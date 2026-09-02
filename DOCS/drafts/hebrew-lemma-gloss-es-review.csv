@@ -199,7 +199,7 @@ H201,o.mar,proper-noun,Omar,defEs-name,,"Omar, un nieto de Esaú",1.000,3,0.0010
 H202,on,judgment,"habilidad, fuerza",definition_es-head,,"habilidad, fuerza, vigor, (figurativamente) riqueza",0.385,13,0.0043,strength,,,no dominant sense (top 0.38),
 H203,on,proper-noun,On,defEs-name,,"On, un israelita",1.000,1,0.0003,On,On,tbesh-en-placeholder,,
 H204,on,proper-noun,On,defEs-name,,"On, una ciudad de Egipto",1.000,4,0.0013,On,On,tbesh-en-placeholder,,
-H205,a.ven,judgment,nada,definition_es-head,,"estrictamente, nada; también aflicción, vanidad, maldad; específicamente, un íd…",0.844,77,0.0252,evil,,,no dominant sense (top 0.84),
+H205,a.ven,judgment,iniquidad / maldad / vanidad,hand-fix,,"estrictamente, nada; también aflicción, vanidad, maldad; específicamente, un íd…",0.844,77,0.0252,evil,,,no dominant sense (top 0.84),
 H206,a.ven,proper-noun,Avén,defEs-name,,"Avén, sinónimo despectivo de tres lugares: uno en Celesiria, uno en Egipto (On)…",0.500,2,0.0007,(Valley of) Aven,(Valley of) Aven,tbesh-en-placeholder,,Avén
 H207,o.no,proper-noun,Ono,defEs-name,,"Ono, un lugar en Palestina",1.000,5,0.0016,Ono,Ono,tbesh-en-placeholder,,Ono
 H208,o.nam,proper-noun,Onam,defEs-name,,"Onam, nombre de un edomita y de un israelita",1.000,4,0.0013,Onam,Onam,tbesh-en-placeholder,,Onam
@@ -209,7 +209,7 @@ H211,o.phir,proper-noun,Ofir,defEs-name,,"Ofir, el nombre de un hijo de Joctán,
 H212,o.phan,mechanical,rueda,definition_es-head,,una rueda,1.000,35,0.0115,wheel,rueda,definition_es-head,,
 H213,uts,judgment,"apremiar, urgir",definition_es-head,,"apremiar, urgir; (por implicación) estar cerca, apresurarse, retirarse, darse p…",0.200,10,0.0033,to hasten,,,no dominant sense (top 0.20),
 H214,o.tsar,judgment,depósito,definition_es-head,,un depósito; tesoro / almacén,0.316,79,0.0259,treasure,,,no dominant sense (top 0.32),
-H215,or,judgment,ser,definition_es-head,,"ser (causativo, hacer) luminoso (literal y metafóricamente)",0.233,43,0.0141,to light,,,no dominant sense (top 0.23),
+H215,or,judgment,ser luminoso,definition_es-head,,"ser (causativo, hacer) luminoso (literal y metafóricamente)",0.233,43,0.0141,to light,,,no dominant sense (top 0.23),
 H216,or,mechanical,luz,tbesh-map,,"iluminación o (concreto) luminaria (en todo sentido, incluido el relámpago, la…",0.983,121,0.0397,light,luz,tbesh-map,,
 H217,ur,judgment,llama,definition_es-head,,llama; de ahí (en plural) el Oriente (por ser la región de la luz),0.667,6,0.0020,flame,,,no dominant sense (top 0.67),
 H218,ur,proper-noun,Ur,defEs-name,,"Ur, un lugar en Caldea; también un israelita",1.000,5,0.0016,Ur,Ur,tbesh-en-placeholder,,
@@ -732,7 +732,7 @@ H744,ar.yeh,mechanical,león,tbesh-map,,(arameo) un león,0.900,10,0.0033,lion,l
 H745,ar.yeh,proper-noun,Arié,defEs-name,,"Arié, un israelita",1.000,1,0.0003,Arieh,Arieh,tbesh-en-placeholder,,Arie
 H746,ar.yokh,proper-noun,Arioc,defEs-name,,"Arioc, el nombre de dos babilonios",1.000,7,0.0023,Arioch,Arioch,tbesh-en-placeholder,,Arioc
 H747,a.ri.say,proper-noun,Arisai,defEs-name,,"Arisai, un hijo de Amán",1.000,1,0.0003,Arisai,Arisai,tbesh-en-placeholder,,Arisai
-H748,a.rakh,judgment,ser,definition_es-head,,"ser (causativo, hacer) largo (literal o figurativamente)",0.412,34,0.0111,to prolong,,,no dominant sense (top 0.41),
+H748,a.rakh,judgment,ser largo,definition_es-head,,"ser (causativo, hacer) largo (literal o figurativamente)",0.412,34,0.0111,to prolong,,,no dominant sense (top 0.41),
 H749,a.rakh,mechanical,convenir,definition_es-head,,(arameo) convenir,1.000,1,0.0003,be proper,convenir,definition_es-head,,
 H750,a.rekh,mechanical,"largo, paciente",definition_es-head,,"largo, paciente (lento para la ira)",0.867,15,0.0049,slow,"largo, paciente",definition_es-head,,
 H751,e.rekh,proper-noun,Erec,defEs-name,,"Erec, un lugar en Babilonia",1.000,1,0.0003,Erech,Erech,tbesh-en-placeholder,,Erec
@@ -1768,7 +1768,7 @@ H1813,dal.phon,proper-noun,Dalfón,defEs-name,,"Dalfón, un hijo de Amán",1.000
 H1814,da.laq,judgment,"arder, encenderse",definition_es-head,,"arder, encenderse (literal o figurativamente), perseguir (acaloradamente)",0.444,9,0.0030,to burn/pursue,,,no dominant sense (top 0.44),
 H1815,de.laq,mechanical,quemar,tbesh-map,,(arameo) arder (literal o figuradamente),1.000,1,0.0003,to burn,quemar,tbesh-map,,
 H1816,dal.le.qet,mechanical,fiebre ardiente,definition_es-head,,una fiebre ardiente,1.000,1,0.0003,inflammation,fiebre ardiente,definition_es-head,,
-H1817,dal,judgment,algo que se mece,definition_es-head,,"algo que se mece, es decir, la hoja de una puerta",0.784,88,0.0289,door,,,no dominant sense (top 0.78),
+H1817,dal,judgment,puerta / hoja,hand-fix,,"algo que se mece, es decir, la hoja de una puerta",0.784,88,0.0289,door,,,no dominant sense (top 0.78),
 H1818,dam,mechanical,sangre,tbesh-map,,"sangre (como aquello que, al derramarse, causa la muerte) del hombre o de un an…",0.908,360,0.1180,blood,sangre,tbesh-map,,
 H1819,da.mah,judgment,comparar,definition_es-head,,"comparar; por implicación, asemejarse, semejar, considerar",0.567,30,0.0098,to resemble,,,no dominant sense (top 0.57),
 H1820,da.mah,judgment,enmudecer o callar,definition_es-head,,"enmudecer o callar; de ahí, fallar o perecer; transitivamente, destruir",0.733,15,0.0049,to cease,,,no dominant sense (top 0.73),
@@ -1912,7 +1912,7 @@ H1959,he.dad,mechanical,"aclamación, grito",definition_es-head,,"aclamación, g
 H1960,huy.y.dah,mechanical,aclamación,definition_es-head,,"propiamente, una aclamación, es decir un coro de cantores",1.000,1,0.0003,praise,aclamación,definition_es-head,,
 H1961,ha.yah,judgment,ser / estar / haber / suceder,hand-particle,particle,"existir, es decir, ser o llegar a ser, acontecer (siempre enfático, y no una me…",0.315,3559,1.1669,to be,,,denylist,
 H1963,hekh,mechanical,cómo,tbesh-map,,¿cómo?,1.000,2,0.0007,how?,cómo,tbesh-map,,
-H1964,he.khal,judgment,gran edificio público,definition_es-head,,"un gran edificio público, como un palacio o templo",0.838,80,0.0262,temple,,,no dominant sense (top 0.84),
+H1964,he.khal,judgment,templo / palacio,hand-fix,,"un gran edificio público, como un palacio o templo",0.838,80,0.0262,temple,,,no dominant sense (top 0.84),
 H1965,he.khal,judgment,gran edificio público,definition_es-head,,"(arameo) un gran edificio público, como un palacio o templo",0.615,13,0.0043,temple,,,no dominant sense (top 0.62),
 H1966,he.lel,mechanical,lucero del alba,definition_es-head,,el lucero del alba,1.000,1,0.0003,Day Star,lucero del alba,definition_es-head,,
 H1967,he.mam,proper-noun,Hemam,defEs-name,,"Hemam, un idumeo",1.000,1,0.0003,Hemam,Hemam,tbesh-en-placeholder,,Hemam
@@ -1976,7 +1976,7 @@ H2025,har.el,mechanical,altar,tbesh-map,,"monte de Dios; figuradamente, el altar
 H2026,ha.rag,mechanical,matar,tbesh-map,,herir con intención mortal; matar,0.868,167,0.0548,to kill,matar,tbesh-map,,
 H2027,he.reg,mechanical,matanza,definition_es-head,,matanza,1.000,5,0.0016,slaughter,matanza,definition_es-head,,
 H2028,ha.re.gah,mechanical,matanza,definition_es-head,,matanza,1.000,5,0.0016,slaughter,matanza,definition_es-head,,
-H2029,ha.rah,mechanical,estar,definition_es-head,,"estar (o quedar) encinta, concebir (literal o figurativamente)",0.977,43,0.0141,to conceive,estar,definition_es-head,,
+H2029,ha.rah,mechanical,"estar encinta, concebir",definition_es-head,,"estar (o quedar) encinta, concebir (literal o figurativamente)",0.977,43,0.0141,to conceive,"estar encinta, concebir",definition_es-head,,
 H2030,ha.rah,mechanical,"encinta, preñada",definition_es-head,,"encinta, preñada",0.875,16,0.0052,pregnant,"encinta, preñada",definition_es-head,,
 H2031,har.hor,mechanical,fantasías,tbesh-head-es,,,1.000,1,0.0003,fantasies,,tbesh-untranslated,,
 H2032,he.ron,judgment,preñez,definition_es-head,,preñez (concepción),0.667,3,0.0010,conception,,,no dominant sense (top 0.67),
@@ -2243,7 +2243,7 @@ H2296,cha.gar,judgment,ceñirse,definition_es-head,,"ceñirse (como un cinturón
 H2297,chad,mechanical,uno,tbesh-map,,uno,1.000,1,0.0003,one,uno,tbesh-map,,
 H2298,chad,mechanical,uno,tbesh-map,,"(arameo) como cardinal, uno; como artículo, un; como ordinal, primero; adverbia…",1.000,14,0.0046,one,uno,tbesh-map,,
 H2299,chad,mechanical,afilado,definition_es-head,,afilado (agudo),1.000,4,0.0013,sharp,afilado,definition_es-head,,
-H2300,cha.dad,judgment,ser,definition_es-head,,"ser (causativamente, hacer) afilado o (figurativamente) severo",0.500,6,0.0020,be sharp,,,no dominant sense (top 0.50),
+H2300,cha.dad,judgment,ser afilado o,definition_es-head,,"ser (causativamente, hacer) afilado o (figurativamente) severo",0.500,6,0.0020,be sharp,,,no dominant sense (top 0.50),
 H2301,cha.dad,proper-noun,Hadad,defEs-name,,"Hadad, un ismaelita",1.000,2,0.0007,Hadad,Hadad,tbesh-en-placeholder,,Hadad
 H2302,cha.dah,judgment,regocijarse,definition_es-head,,regocijarse,0.667,3,0.0010,to rejoice,,,no dominant sense (top 0.67),
 H2303,chad.dud,mechanical,punta,tbesh-head-es,,,1.000,1,0.0003,point,,tbesh-untranslated,,
@@ -2757,7 +2757,7 @@ H2822,cho.shekh,mechanical,oscuridad,tbesh-map,,"lo oscuro; de ahí (literalment
 H2823,cha.shokh,mechanical,oscuro,definition_es-head,,"oscuro (figuradamente, es decir confuso)",1.000,1,0.0003,obscure,oscuro,definition_es-head,,
 H2824,chesh.khah,mechanical,oscuro,tbesh-head-es,,,1.000,1,0.0003,dark,,tbesh-untranslated,,
 H2825,cha.she.khah,mechanical,oscuridad,tbesh-map,,"oscuridad; figurativamente, miseria",1.000,5,0.0016,darkness,oscuridad,tbesh-map,,
-H2826,cha.shal,mechanical,hacer,definition_es-head,,"hacer (intransitivo, ser) inestable, es decir débil",1.000,1,0.0003,be feeble,hacer,definition_es-head,,
+H2826,cha.shal,mechanical,hacer inestable,definition_es-head,,"hacer (intransitivo, ser) inestable, es decir débil",1.000,1,0.0003,be feeble,hacer inestable,definition_es-head,,
 H2827,cha.shal,mechanical,debilitar,definition_es-head,,"(arameo) debilitar, es decir aplastar",1.000,1,0.0003,to shatter,debilitar,definition_es-head,,
 H2828,cha.shum,proper-noun,Hasum,defEs-name,,"Hasum, nombre de dos o tres israelitas",1.000,5,0.0016,Hashum,Hashum,tbesh-en-placeholder,,Hasum
 H2829,chesh.mon,proper-noun,Hesmón,defEs-name,,"Hesmón, un lugar en Palestina",1.000,1,0.0003,Heshmon,Heshmon,tbesh-en-placeholder,,Hesmón
@@ -2790,7 +2790,7 @@ H2855,chet.lon,proper-noun,Hetlón,defEs-name,,"Hetlón, un lugar en Palestina",
 H2856,cha.tam,judgment,cerrar,definition_es-head,,cerrar; especialmente sellar,0.577,26,0.0085,to seal,,,no dominant sense (top 0.58),
 H2857,cha.tam,mechanical,sello / sellar,tbesh-head-es,,,1.000,1,0.0003,to seal,,tbesh-untranslated,,
 H2858,cho.te.met,mechanical,anillo,tbesh-map,,un sello,1.000,1,0.0003,ring,anillo,tbesh-map,,
-H2859,cho.ten,judgment,dar,definition_es-head,,dar (una hija) en matrimonio; de ahí (generalmente) contraer afinidad por matri…,0.636,33,0.0108,relative,,,no dominant sense (top 0.64),
+H2859,cho.ten,judgment,dar en matrimonio,definition_es-head,,dar (una hija) en matrimonio; de ahí (generalmente) contraer afinidad por matri…,0.636,33,0.0108,relative,,,no dominant sense (top 0.64),
 H2860,cha.tan,judgment,pariente por matrimonio,definition_es-head,,"un pariente por matrimonio (especialmente por la novia); figurativamente, un ni…",0.500,20,0.0066,son-in-law,,,no dominant sense (top 0.50),
 H2861,cha.tun.nah,mechanical,boda,definition_es-head,,una boda,1.000,1,0.0003,marriage,boda,definition_es-head,,
 H2862,cha.taph,mechanical,asir,definition_es-head,,asir (agarrar con fuerza),1.000,1,0.0003,to seize,asir,definition_es-head,,
@@ -2826,7 +2826,7 @@ H2891,ta.her,judgment,ser puro,definition_es-head,,"ser puro (físicamente, sano
 H2892,to.har,judgment,brillo,definition_es-head,,de H2891 (טָהֵר); literalmente brillo; ceremonialmente purificación,0.667,6,0.0020,purity,,,no dominant sense (top 0.67),
 H2893,to.ho.rah,mechanical,purificación ceremonial,definition_es-head,,purificación ceremonial; pureza moral,1.000,11,0.0036,purifying,purificación ceremonial,definition_es-head,,
 H2894,tu,mechanical,barrer,definition_es-head,,barrer (arrastrar),1.000,1,0.0003,to sweep,barrer,definition_es-head,,
-H2895,tov,mechanical,ser,definition_es-head,,"ser (transitivamente, hacer) bueno (o bien) en el sentido más amplio",0.867,45,0.0148,be pleasing,ser,definition_es-head,,
+H2895,tov,mechanical,ser bueno,definition_es-head,,"ser (transitivamente, hacer) bueno (o bien) en el sentido más amplio",0.867,45,0.0148,be pleasing,ser bueno,definition_es-head,,
 H2896,tov,judgment,bueno / bien,hand-weighted,weighted,"bueno (como adjetivo) en el sentido más amplio; usado asimismo como sustantivo,…",0.950,538,0.1764,good,,,denylist,
 H2897,tov,proper-noun,Tob,defEs-name,,"Tob, una región aparentemente al este del Jordán",1.000,4,0.0013,Tob,Tob,tbesh-en-placeholder,,Tob
 H2898,tuv,judgment,bien,definition_es-head,,"bien (como sustantivo), en el sentido más amplio, especialmente bondad (superla…",0.438,32,0.0105,goodness,,,no dominant sense (top 0.44),
@@ -3083,7 +3083,7 @@ H3156,yiz.rach.yah,proper-noun,Izrahías,defEs-name,,"Izrahías, nombre de dos i
 H3157,yiz.re.el,proper-noun,Jezreel,defEs-name,,"Jezreel, el nombre de dos lugares en Palestina y de dos israelitas",0.806,36,0.0118,Jezreel,Jezreel,tbesh-en-placeholder,,Jezreel
 H3158,yiz.re.e.li,proper-noun,jezreelita,defEs-gentilic,,un jezreelita o natural de Jezreel,1.000,13,0.0043,Jezreel,Jezreel,tbesh-en-placeholder,,jezreelita
 H3160,ye.chub.bah,proper-noun,Jecuba,defEs-name,,"Jecuba, un israelita",1.000,1,0.0003,Jehubbah,Jehubbah,tbesh-en-placeholder,,
-H3161,ya.chad,mechanical,ser,definition_es-head,,ser (o llegar a ser) uno (unirse),1.000,3,0.0010,be joined,ser,definition_es-head,,
+H3161,ya.chad,mechanical,ser uno,definition_es-head,,ser (o llegar a ser) uno (unirse),1.000,3,0.0010,be joined,ser uno,definition_es-head,,
 H3162,yach.dav,judgment,juntos,hand-fix,,"de H3161 (יָחַד); propiamente, una unidad, es decir, (adverbio) unidamente / ju…",0.780,141,0.0462,together,,,no dominant sense (top 0.78),
 H3163,yach.do,proper-noun,Jado,defEs-name,,"Jado, un israelita",1.000,1,0.0003,Jahdo,Jahdo,tbesh-en-placeholder,,
 H3164,yach.di.el,proper-noun,Jadiel,defEs-name,,"Jadiel, un israelita",1.000,1,0.0003,Jahdiel,Jahdiel,tbesh-en-placeholder,,
@@ -3112,7 +3112,7 @@ H3187,ya.cha.s,judgment,registrar por genealogía,definition_es-head,,"registrar
 H3188,ya.cha.s,judgment,genealogía o lista familiar,definition_es-head,,una genealogía o lista familiar (como creciendo espontáneamente),0.667,3,0.0010,genealogy,,,no dominant sense (top 0.67),
 H3189,ya.chat,proper-noun,Jahat,defEs-name,,"Jahat, nombre de cuatro israelitas",1.000,8,0.0026,Jahath,Jahath,tbesh-en-placeholder,,Jahat
 H3190,ya.tav,judgment,hacer bien / ir bien,hand-fix,,"ser (causativo, hacer) bien, literalmente (sano, hermoso) o figurativamente (fe…",0.385,117,0.0384,be good,,,no dominant sense (top 0.38),
-H3191,ye.tav,mechanical,ser,definition_es-head,,"(arameo) ser (causativamente, hacer) bueno, literalmente (sano, hermoso) o figu…",1.000,1,0.0003,be good,ser,definition_es-head,,
+H3191,ye.tav,judgment,ser bueno,tbesh-head-es,,"(arameo) ser (causativamente, hacer) bueno, literalmente (sano, hermoso) o figu…",1.000,1,0.0003,be good,,,definition_es not condensable to a terse gloss,
 H3192,yot.vah,proper-noun,Jotba,defEs-name,,"Jotba, un lugar en Palestina",1.000,1,0.0003,Jotbah,Jotbah,tbesh-en-placeholder,,Jotba
 H3193,yot.va.tah,proper-noun,Jotbata,defEs-name,,"Jotbata, un lugar en el Desierto",1.000,3,0.0010,Jotbathah,Jotbathah,tbesh-en-placeholder,,Jotbata
 H3194,yut.tah,proper-noun,Jutá,defEs-name,,"Jutá, un lugar en Palestina",1.000,2,0.0007,Juttah,Juttah,tbesh-en-placeholder,,Juta
@@ -3126,7 +3126,7 @@ H3202,ye.khel,mechanical,"poder, ser capaz",definition_es-head,,"(arameo) poder,
 H3203,ye.khol.yah,proper-noun,Jecolías,defEs-name,,"Jecolías, una israelita",1.000,2,0.0007,Jecoliah,Jecoliah,tbesh-en-placeholder,,Jecolías
 H3204,ye.khon.yah,proper-noun,Jeconías,defEs-name,,"Jeconías, un rey judío",1.000,7,0.0023,Jeconiah,Jeconiah,tbesh-en-placeholder,,Jeconías
 H3205,ya.lad,judgment,dar a luz,definition_es-head,,"dar a luz; causativamente, engendrar; médicamente, actuar de partera; específic…",0.387,496,0.1626,to beget,,,no dominant sense (top 0.39),
-H3206,ye.led,judgment,algo nacido,definition_es-head,,"algo nacido, es decir, un muchacho o descendencia",0.337,89,0.0292,youth,,,no dominant sense (top 0.34),
+H3206,ye.led,judgment,niño / muchacho,hand-fix,,"algo nacido, es decir, un muchacho o descendencia",0.337,89,0.0292,youth,,,no dominant sense (top 0.34),
 H3207,yal.dah,mechanical,muchacha,definition_es-head,,una muchacha,1.000,3,0.0010,maiden,muchacha,definition_es-head,,
 H3208,yal.dut,mechanical,niñez,definition_es-head,,la niñez (o juventud),1.000,3,0.0010,youth,niñez,definition_es-head,,
 H3209,yil.lod,mechanical,nacido,definition_es-head,,nacido,1.000,5,0.0016,born,nacido,definition_es-head,,
@@ -3650,7 +3650,7 @@ H3738,khur,judgment,cavar,tbesh-head-es,,"raíz primitiva; propiamente, cavar; f
 H3739,ka.rah,judgment,comprar,definition_es-head,,comprar (adquirir),0.400,5,0.0016,to trade,,,no dominant sense (top 0.40),
 H3740,ke.rah,mechanical,compra,definition_es-head,,una compra,1.000,1,0.0003,feast,compra,definition_es-head,,
 H3741,ka.rah,mechanical,prado,definition_es-head,,un prado,1.000,1,0.0003,hollow,prado,definition_es-head,,
-H3742,ke.ruv,judgment,querubín o figura imaginaria,definition_es-head,,un querubín o figura imaginaria,0.703,91,0.0298,cherub,,,no dominant sense (top 0.70),
+H3742,ke.ruv,judgment,querubín,hand-fix,,un querubín o figura imaginaria,0.703,91,0.0298,cherub,,,no dominant sense (top 0.70),
 H3743,ke.ruv,proper-noun,Querub,defEs-name,,"Querub, un lugar en Babilonia",1.000,2,0.0007,Cherub,Cherub,tbesh-en-placeholder,,Querub
 H3744,ka.roz,mechanical,heraldo,definition_es-head,,(arameo) un heraldo,1.000,1,0.0003,proclaimer,heraldo,definition_es-head,,
 H3745,ke.raz,mechanical,proclamar,definition_es-head,,(arameo) proclamar,1.000,1,0.0003,to proclaim,proclamar,definition_es-head,,
@@ -3742,7 +3742,7 @@ H3831,le.vush,mechanical,vestido,tbesh-map,,(arameo) una vestidura (literal o fi
 H3832,la.vat,mechanical,derribar,definition_es-head,,"derribar; intransitivo, caer (arruinarse)",1.000,3,0.0010,to ruin,derribar,definition_es-head,,
 H3833,le.vi,judgment,rugir,definition_es-head,,"rugir; un león (propiamente, una leona como la más fiera (aunque no la que ruge…",0.643,14,0.0046,lion,,,no dominant sense (top 0.64),
 H3834,la.vi.vah,mechanical,torta,definition_es-head,,una torta (ya sea frita o volteada),1.000,3,0.0010,cake,torta,definition_es-head,,
-H3835,la.ven,judgment,ser,definition_es-head,,"ser (o volverse) blanco, blanquear; hacer ladrillos",0.375,8,0.0026,to whiten,,,no dominant sense (top 0.38),
+H3835,la.ven,judgment,"ser blanco, blanquear",definition_es-head,,"ser (o volverse) blanco, blanquear; hacer ladrillos",0.375,8,0.0026,to whiten,,,no dominant sense (top 0.38),
 H3836,la.van,mechanical,blanco,definition_es-head,,blanco,1.000,29,0.0095,white,blanco,definition_es-head,,
 H3837,la.van,proper-noun,Labán,defEs-name,,"Labán, un mesopotamio; también un lugar en el desierto",1.000,55,0.0180,Laban,Laban,tbesh-en-placeholder,,Labán
 H3838,le.va.na,proper-noun,Lebana,defEs-name,,"Lebana, uno de los sirvientes del templo",1.000,2,0.0007,Lebanah,Lebanah,tbesh-en-placeholder,,Lebana
@@ -4669,7 +4669,7 @@ H4780,mar.dut,mechanical,rebeldía,definition_es-head,,rebeldía,1.000,1,0.0003,
 H4781,me.ro.dakh,proper-noun,Merodac,defEs-name,,"Merodac, un ídolo babilonio",1.000,1,0.0003,Merodach,Merodach,tbesh-en-placeholder,,Merodac
 H4782,mor.de.khay,proper-noun,Mardoqueo,defEs-name,,"Mardoqueo, un israelita",1.000,60,0.0197,Mordecai,Mordecai,tbesh-en-placeholder,,Mardoqueo
 H4783,mur.daph,mechanical,perseguido,definition_es-head,,perseguido,1.000,1,0.0003,persecution,perseguido,definition_es-head,,
-H4784,ma.rah,judgment,ser,definition_es-head,,"ser (causativamente, hacer) amargo (o desagradable); (figurativamente) rebelars…",0.267,45,0.0148,to rebel,,,no dominant sense (top 0.27),
+H4784,ma.rah,judgment,ser amargo,definition_es-head,,"ser (causativamente, hacer) amargo (o desagradable); (figurativamente) rebelars…",0.267,45,0.0148,to rebel,,,no dominant sense (top 0.27),
 H4785,ma.rah,proper-noun,Mara,defEs-name,,"Mara, un lugar en el Desierto",0.800,5,0.0016,Marah,Marah,tbesh-en-placeholder,,Mara
 H4786,mo.rah,mechanical,amargura,definition_es-head,,"amargura, es decir (figuradamente) aflicción",1.000,1,0.0003,bitterness,amargura,definition_es-head,,
 H4787,mor.rah,mechanical,aflicción,definition_es-head,,aflicción (problema),1.000,1,0.0003,bitterness,aflicción,definition_es-head,,
@@ -4728,7 +4728,7 @@ H4839,ma.raq,mechanical,caldo,tbesh-map,,caldo (como un enjuague),1.000,3,0.0010
 H4840,mer.qach,mechanical,hierba aromática,definition_es-head,,una hierba aromática,1.000,1,0.0003,spice,hierba aromática,definition_es-head,,
 H4841,mer.qa.chah,judgment,condimento,definition_es-head,,"abstractamente, un condimento (con especias); concretamente, una olla de ungüen…",0.500,2,0.0007,ointment pot/seasoning,,,no dominant sense (top 0.50),
 H4842,mir.qa.chat,judgment,ungüento aromático,definition_es-head,,un ungüento aromático; también un pote de ungüento (perfumería),0.333,3,0.0010,ointment,,,no dominant sense (top 0.33),
-H4843,ma.rar,judgment,ser,definition_es-head,,"ser (causativamente, hacer) amargo (literal o figurativamente), amargar",0.375,16,0.0052,to provoke,,,no dominant sense (top 0.38),
+H4843,ma.rar,judgment,ser amargo,definition_es-head,,"ser (causativamente, hacer) amargo (literal o figurativamente), amargar",0.375,16,0.0052,to provoke,,,no dominant sense (top 0.38),
 H4844,me.ror,judgment,hierba amarga,definition_es-head,,una hierba amarga,0.667,3,0.0010,bitterness,,,no dominant sense (top 0.67),
 H4845,me.re.rah,mechanical,bilis,definition_es-head,,bilis (por su amargura),1.000,1,0.0003,gall,bilis,definition_es-head,,
 H4846,me.ro.rah,judgment,amargura,definition_es-head,,"o מְרוֹרָה; de H4843 (מָרַר); propiamente, amargura; concretamente, una cosa am…",0.250,4,0.0013,gall,,,no dominant sense (top 0.25),
@@ -4770,7 +4770,7 @@ H4881,me.su.khah,judgment,seto,definition_es-head,,un seto (cerca),0.500,2,0.000
 H4883,mas.s.vor,mechanical,sierra,definition_es-head,,una sierra,1.000,1,0.0003,saw,sierra,definition_es-head,,
 H4884,me.su.rah,judgment,medida,definition_es-head,,una medida (para líquidos),0.500,4,0.0013,capacity,,,no dominant sense (top 0.50),
 H4885,ma.s.vo.s,judgment,"deleite, concretamente",definition_es-head,,"deleite, concretamente (la causa u objeto) o abstractamente (el sentimiento), g…",0.588,17,0.0056,rejoicing,,,no dominant sense (top 0.59),
-H4886,ma.shach,judgment,untar con aceite,definition_es-head,,"untar con aceite, es decir, ungir; por implicación, consagrar; también pintar",0.841,69,0.0226,to anoint,,,no dominant sense (top 0.84),
+H4886,ma.shach,judgment,ungir,hand-fix,,"untar con aceite, es decir, ungir; por implicación, consagrar; también pintar",0.841,69,0.0226,to anoint,,,no dominant sense (top 0.84),
 H4887,me.shach,mechanical,aceite,tbesh-map,,(arameo) aceite,1.000,2,0.0007,oil,aceite,tbesh-map,,
 H4888,mish.chah,mechanical,unción,definition_es-head,,"unción (el acto); por implicación, una porción consagrada",0.885,26,0.0085,anointing,unción,definition_es-head,,
 H4889,mash.chit,mechanical,destructivo,definition_es-head,,"destructivo, es decir, (como sustantivo) destrucción, literalmente (específicam…",0.917,12,0.0039,destruction,destructivo,definition_es-head,,
@@ -4950,7 +4950,7 @@ H5065,na.ga.s,judgment,arrear,definition_es-head,,"arrear (un animal, un obrero,
 H5066,na.gash,judgment,ser o llegar,definition_es-head,,"ser o llegar (causativamente, traer) cerca (con cualquier propósito); eufemísti…",0.304,125,0.0410,to approach,,,no dominant sense (top 0.30),
 H5067,ned,mechanical,montículo,definition_es-head,,"un montículo, es decir una ola",1.000,6,0.0020,heap,montículo,definition_es-head,,
 H5068,na.dav,judgment,impeler,definition_es-head,,"impeler; de ahí, ofrecerse voluntariamente (como un soldado), presentar espontá…",0.235,17,0.0056,be willing,,,no dominant sense (top 0.24),
-H5069,ne.dav,judgment,ser,definition_es-head,,"(arameo) ser (o dar) generoso(-amente), ofrecer voluntariamente",0.500,4,0.0013,be willing,,,no dominant sense (top 0.50),
+H5069,ne.dav,judgment,estar dispuesto,tbesh-head-es,,"(arameo) ser (o dar) generoso(-amente), ofrecer voluntariamente",0.500,4,0.0013,be willing,,,no dominant sense (top 0.50),
 H5070,na.dav,proper-noun,Nadab,defEs-name,,"Nadab, el nombre de cuatro israelitas",1.000,20,0.0066,Nadab,Nadab,tbesh-en-placeholder,,Nadab
 H5071,ne.da.vah,judgment,espontaneidad,definition_es-head,,"de H5068 (נָדַב); propiamente (abstractamente) espontaneidad, o (adjetivo) espo…",0.846,26,0.0085,voluntariness,,,no dominant sense (top 0.85),
 H5072,ne.dav.yah,proper-noun,Nedabías,defEs-name,,"Nedabías, un israelita",1.000,1,0.0003,Nedabiah,Nedabiah,tbesh-en-placeholder,,Nedabías
@@ -5227,7 +5227,7 @@ H5348,na.qod,mechanical,"moteado, manchado",definition_es-head,,"moteado, mancha
 H5349,no.qed,judgment,marcador,definition_es-head,,"un marcador (de ovejas o ganado), es decir el dueño o cuidador (que así las mar…",0.500,2,0.0007,shepherd,,,no dominant sense (top 0.50),
 H5350,niq.qud,judgment,migaja,definition_es-head,,"una migaja (como desmenuzada); también una galleta (como picada), bizcocho",0.667,3,0.0010,crumb,,,no dominant sense (top 0.67),
 H5351,ne.qud.dah,mechanical,realce,definition_es-head,,un realce (protuberancia ornamental),1.000,1,0.0003,bead,realce,definition_es-head,,
-H5352,na.qah,judgment,estar,definition_es-head,,estar (o hacer) limpio (literal o figurativamente); por implicación (en sentido…,0.205,44,0.0144,to clear,,,no dominant sense (top 0.20),
+H5352,na.qah,judgment,estar limpio,definition_es-head,,estar (o hacer) limpio (literal o figurativamente); por implicación (en sentido…,0.205,44,0.0144,to clear,,,no dominant sense (top 0.20),
 H5353,ne.qo.da,proper-noun,Necoda,defEs-name,,"Necoda, un sirviente del Templo (netineo)",1.000,4,0.0013,Nekoda,Nekoda,tbesh-en-placeholder,,Necoda
 H5354,na.qat,mechanical,aborrecer,definition_es-head,,aborrecer,1.000,1,0.0003,to tire,aborrecer,definition_es-head,,
 H5355,na.qi,judgment,inocente,definition_es-head,,inocente,0.814,43,0.0141,innocent,,,no dominant sense (top 0.81),
@@ -5549,7 +5549,7 @@ H5672,a.vi,judgment,densidad,definition_es-head,,"densidad, es decir espesor o a
 H5673,a.vi.dah,judgment,labor o asunto,definition_es-head,,(arameo) labor o asunto,0.333,6,0.0020,service,,,no dominant sense (top 0.33),
 H5674,a.var,judgment,cruzar al otro lado,definition_es-head,,cruzar al otro lado; usado muy ampliamente de toda transición (literal o figura…,0.243,556,0.1823,to pass,,,no dominant sense (top 0.24),
 H5675,a.var,mechanical,región del otro lado,definition_es-head,,"(arameo) propiamente, una región del otro lado; pero usado solo adverbialmente…",1.000,14,0.0046,beyond,región del otro lado,definition_es-head,,
-H5676,e.ver,judgment,región del otro lado,definition_es-head,,"de H5674 (עָבַר); propiamente, una región del otro lado; pero usado solo adverb…",0.778,90,0.0295,side,,,no dominant sense (top 0.78),
+H5676,e.ver,judgment,otro lado / región de allá,hand-fix,,"de H5674 (עָבַר); propiamente, una región del otro lado; pero usado solo adverb…",0.778,90,0.0295,side,,,no dominant sense (top 0.78),
 H5677,e.ver,proper-noun,Heber,defEs-name,,"Heber, el nombre de dos patriarcas y cuatro israelitas",1.000,15,0.0049,Eber,Eber,tbesh-en-placeholder,,Heber
 H5678,ev.rah,judgment,arrebato de pasión,definition_es-head,,"un arrebato de pasión, furor",0.529,34,0.0111,fury,,,no dominant sense (top 0.53),
 H5679,a.va.rah,mechanical,vado,tbesh-head-es,,,1.000,1,0.0003,ford,,tbesh-untranslated,,
@@ -5609,7 +5609,7 @@ H5732,id.dan,judgment,tiempo determinado,definition_es-head,,"(arameo) un tiempo
 H5733,ad.na,proper-noun,Adna,defEs-name,,"Adna, nombre de dos israelitas",1.000,2,0.0007,Adna,Adna,tbesh-en-placeholder,,Adna
 H5734,ad.nah,proper-noun,Adna,defEs-name,,"Adna, nombre de dos israelitas",0.500,2,0.0007,Adnah,Adnah,tbesh-en-placeholder,,Adnas
 H5735,a.de.a.dah,proper-noun,Adada,defEs-name,,"Adada, un lugar en Palestina",1.000,1,0.0003,Adadah,Adadah,tbesh-en-placeholder,,Adada
-H5736,a.daph,judgment,ser,definition_es-head,,"ser (causativamente, tener) sobrante, sobrar, exceder",0.667,9,0.0030,to remain,,,no dominant sense (top 0.67),
+H5736,a.daph,judgment,"ser sobrante, sobrar",definition_es-head,,"ser (causativamente, tener) sobrante, sobrar, exceder",0.667,9,0.0030,to remain,,,no dominant sense (top 0.67),
 H5737,a.dar,judgment,ordenar como una batalla,definition_es-head,,"ordenar como una batalla, una viña (escardar); de ahí, pasar revista y así echa…",0.364,11,0.0036,to help,,,no dominant sense (top 0.36),
 H5738,e.der,proper-noun,Éder,defEs-name,,"Éder, un israelita",1.000,1,0.0003,Eder,Eder,tbesh-en-placeholder,,
 H5739,e.der,judgment,ordenamiento,definition_es-head,,"un ordenamiento, es decir, un hato (de animales), rebaño",0.737,38,0.0125,flock,,,no dominant sense (top 0.74),
@@ -5875,7 +5875,7 @@ H6005,im.ma.nu.el,proper-noun,Emanuel,defEs-name,,"Emanuel, un nombre simbólico
 H6006,a.mas,judgment,cargar,definition_es-head,,"cargar, es decir, imponer una carga (o figurativamente, una aflicción), llevar…",0.444,9,0.0030,to lift,,,no dominant sense (top 0.44),
 H6007,a.mas.yah,proper-noun,Amasías,defEs-name,,"Amasías, un israelita",1.000,1,0.0003,Amasiah,Amasiah,tbesh-en-placeholder,,Amasías
 H6008,am.ad,proper-noun,Amad,defEs-name,,"Amad, un lugar en Palestina",1.000,1,0.0003,Amad,Amad,tbesh-en-placeholder,,Amad
-H6009,a.maq,judgment,ser,definition_es-head,,"ser (causativamente, hacer) profundo (literal o figurativamente), profundizar",0.333,9,0.0030,be deep,,,no dominant sense (top 0.33),
+H6009,a.maq,judgment,ser profundo,definition_es-head,,"ser (causativamente, hacer) profundo (literal o figurativamente), profundizar",0.333,9,0.0030,be deep,,,no dominant sense (top 0.33),
 H6010,e.meq,mechanical,valle,tbesh-map,,"un valle (es decir, una amplia depresión)",0.986,69,0.0226,valley,valle,tbesh-map,,
 H6011,o.meq,mechanical,profundidad,definition_es-head,,profundidad,1.000,1,0.0003,depth,profundidad,definition_es-head,,
 H6012,a.meq,judgment,profundo,definition_es-head,,profundo (literal o figurativamente),0.500,4,0.0013,unfathomable,,,no dominant sense (top 0.50),
@@ -6033,7 +6033,7 @@ H6164,ar.va.ti,proper-noun,arbatita,defEs-gentilic,,"un arbatita, habitante de (
 H6165,a.rag,mechanical,anhelar,definition_es-head,,anhelar,1.000,3,0.0010,to long for,anhelar,definition_es-head,,
 H6166,a.rad,proper-noun,Arad,defEs-name,,"Arad, nombre de un lugar cerca de Palestina, también de un cananeo y un israeli…",1.000,5,0.0016,Arad,Arad,tbesh-en-placeholder,,Arad
 H6167,a.rad,mechanical,asno salvaje,definition_es-head,,(arameo) un asno salvaje,1.000,1,0.0003,wild donkey,asno salvaje,definition_es-head,,
-H6168,a.rah,judgment,estar,definition_es-head,,"estar (causativamente, dejar) desnudo; de ahí, vaciar, derramar, demoler, descu…",0.333,15,0.0049,to uncover,,,no dominant sense (top 0.33),
+H6168,a.rah,judgment,estar desnudo,definition_es-head,,"estar (causativamente, dejar) desnudo; de ahí, vaciar, derramar, demoler, descu…",0.333,15,0.0049,to uncover,,,no dominant sense (top 0.33),
 H6169,a.rah,mechanical,terreno desnudo,definition_es-head,,"un terreno desnudo (es decir, llano)",1.000,1,0.0003,bulrush,terreno desnudo,definition_es-head,,
 H6170,a.ru.gah,judgment,algo amontonado,definition_es-head,,"algo amontonado (como si (figurativamente) elevado por aspiración mental), es d…",0.750,4,0.0013,bed,,,no dominant sense (top 0.75),
 H6171,a.rod,mechanical,asno salvaje,definition_es-head,,un asno salvaje (por sus hábitos solitarios),1.000,1,0.0003,wild donkey,asno salvaje,definition_es-head,,
@@ -6144,7 +6144,7 @@ H6276,a.teq,mechanical,antiguo,definition_es-head,,"antiguo, es decir apreciado"
 H6277,a.taq,mechanical,impúdico,definition_es-head,,impúdico (insolente),1.000,4,0.0013,arrogant,impúdico,definition_es-head,,
 H6278,et qa.tsin,proper-noun,Et-cazín,defEs-name,,"Et-cazín, un lugar en Palestina",0.500,2,0.0007,Eth-kazin,Eth-kazin,tbesh-en-placeholder,,
 H6279,a.tar,judgment,quemar incienso en adoración,definition_es-head,,"quemar incienso en adoración, es decir, interceder (recíprocamente, oír la orac…",0.600,20,0.0066,to pray,,,no dominant sense (top 0.60),
-H6280,a.tar,judgment,ser,definition_es-head,,"ser (causativamente, hacer) abundante",0.500,2,0.0007,be abundant,,,no dominant sense (top 0.50),
+H6280,a.tar,judgment,ser abundante,definition_es-head,,"ser (causativamente, hacer) abundante",0.500,2,0.0007,be abundant,,,no dominant sense (top 0.50),
 H6281,e.ter,proper-noun,Éter,defEs-name,,"Éter, un lugar en Palestina",1.000,2,0.0007,Ether,Ether,tbesh-en-placeholder,,Eter
 H6282,a.tar,judgment,incienso,definition_es-head,,"incienso (que aumenta a una nube de humo); de ahí, un adorador",0.500,2,0.0007,worshiper,,,no dominant sense (top 0.50),
 H6283,a.te.ret,mechanical,abundancia,definition_es-head,,abundancia (copiosidad),1.000,1,0.0003,abundance,abundancia,definition_es-head,,
@@ -6782,7 +6782,7 @@ H6920,qad.da.chat,mechanical,inflamación,definition_es-head,,"inflamación, es 
 H6921,qa.dim,judgment,parte delantera o frontal,definition_es-head,,la parte delantera o frontal; de ahí (por orientación) el este (a menudo adverb…,0.522,69,0.0226,east,,,no dominant sense (top 0.52),
 H6922,qad.dish,mechanical,santo,definition_es-head,,(arameo) santo (ceremonial o moralmente); (como sustantivo) Dios (por eminencia…,1.000,13,0.0043,holy,santo,definition_es-head,,
 H6923,qa.dam,judgment,proyectarse,definition_es-head,,"proyectarse, es decir, preceder; de ahí, anticipar, apresurarse, salir al encue…",0.346,26,0.0085,to meet,,,no dominant sense (top 0.35),
-H6924,qe.dem,judgment,frente,definition_es-head,,"el frente, de lugar (en absoluto, la parte delantera; relativamente, el este) o…",0.322,87,0.0285,east,,,no dominant sense (top 0.32),
+H6924,qe.dem,judgment,oriente / antigüedad,hand-fix,,"el frente, de lugar (en absoluto, la parte delantera; relativamente, el este) o…",0.322,87,0.0285,east,,,no dominant sense (top 0.32),
 H6925,qo.dam,mechanical,"delante de, ante",definition_es-head,,"(arameo) delante de, ante",1.000,42,0.0138,before,"delante de, ante",definition_es-head,,
 H6926,qid.mah,mechanical,parte delantera,definition_es-head,,"la parte delantera (o relativamente) el Oriente (a menudo adverbialmente, al es…",1.000,4,0.0013,east,parte delantera,definition_es-head,,
 H6927,qad.mah,judgment,prioridad,definition_es-head,,prioridad (en el tiempo); también usado adverbialmente (antes),0.667,6,0.0020,former,,,no dominant sense (top 0.67),
@@ -6830,7 +6830,7 @@ H6969,qun,judgment,entonar una nota musical,definition_es-head,,"entonar una not
 H6970,qo.a,proper-noun,Coa,defEs-name,,"Coa, una región de Babilonia",1.000,1,0.0003,Koa,Koa,tbesh-en-placeholder,,Coa
 H6971,qoph,mechanical,mono,definition_es-head,,un mono,1.000,2,0.0007,ape,mono,definition_es-head,,
 H6972,quts,mechanical,pasar la temporada de cosecha,definition_es-head,,pasar la temporada de cosecha,1.000,1,0.0003,to summer,pasar la temporada de cosecha,definition_es-head,,
-H6973,quts,judgment,estar,definition_es-head,,"estar (causativamente, hacer) hastiado o angustiado, sentir aversión, tener fas…",0.556,9,0.0030,to loathe,,,no dominant sense (top 0.56),
+H6973,quts,judgment,estar hastiado o angustiado,definition_es-head,,"estar (causativamente, hacer) hastiado o angustiado, sentir aversión, tener fas…",0.556,9,0.0030,to loathe,,,no dominant sense (top 0.56),
 H6974,quts,judgment,despertar,definition_es-head,,despertar (literal o figurativamente),0.682,22,0.0072,to awake,,,no dominant sense (top 0.68),
 H6975,qots,judgment,"espino, abrojo",definition_es-head,,"un espino, abrojo, cardo",0.750,12,0.0039,thorn,,,no dominant sense (top 0.75),
 H6976,qots,proper-noun,Cos,defEs-name,,"Cos, nombre de dos israelitas",0.833,6,0.0020,Koz,Koz,tbesh-en-placeholder,,Cos
@@ -6899,7 +6899,7 @@ H7039,qa.li,mechanical,espigas de grano tostadas,definition_es-head,,espigas de 
 H7040,qal.lay,proper-noun,Calai,defEs-name,,"Calai, un israelita",1.000,1,0.0003,Kallai,Kallai,tbesh-en-placeholder,,Calai
 H7041,qe.la.yah,proper-noun,Kelaía,defEs-name,,"Kelaía, un israelita",1.000,1,0.0003,Kelaiah,Kelaiah,tbesh-en-placeholder,,Kelaía
 H7042,qe.li.ta,proper-noun,Quelita,defEs-name,,"Quelita, nombre de tres israelitas",1.000,3,0.0010,Kelita,Kelita,tbesh-en-placeholder,,
-H7043,qa.lal,judgment,ser,definition_es-head,,"ser (causativamente, hacer) ligero, literalmente (veloz, pequeño, agudo, etc.)…",0.500,82,0.0269,to lighten,,,no dominant sense (top 0.50),
+H7043,qa.lal,judgment,menospreciar / maldecir,hand-fix,,"ser (causativamente, hacer) ligero, literalmente (veloz, pequeño, agudo, etc.)…",0.500,82,0.0269,to lighten,,,no dominant sense (top 0.50),
 H7044,qa.lal,mechanical,aclarado,definition_es-head,,aclarado (como si se hubiera afilado),1.000,2,0.0007,burnished,aclarado,definition_es-head,,
 H7045,qe.la.lah,mechanical,"vilipendio, maldición",definition_es-head,,"vilipendio, maldición",1.000,33,0.0108,curse,"vilipendio, maldición",definition_es-head,,
 H7046,qa.las,judgment,menospreciar,definition_es-head,,"menospreciar, es decir ridiculizar (escarnecer)",0.750,4,0.0013,to mock,,,no dominant sense (top 0.75),
@@ -6921,7 +6921,7 @@ H7061,qa.mats,mechanical,agarrar con la mano,definition_es-head,,agarrar con la 
 H7062,qo.mets,mechanical,puñado,definition_es-head,,un puñado (lo que cabe en la mano),1.000,4,0.0013,handful,puñado,definition_es-head,,
 H7063,qim.ma.shon,mechanical,planta espinosa,definition_es-head,,una planta espinosa,1.000,1,0.0003,thorn,planta espinosa,definition_es-head,,
 H7064,qen,judgment,nido,definition_es-head,,"un nido (como fijo), a veces incluyendo los polluelos; figurativamente, una cám…",0.692,13,0.0043,nest,,,no dominant sense (top 0.69),
-H7065,qa.na,judgment,ser,definition_es-head,,"ser (causativamente, hacer) celoso, es decir, (en mal sentido) celoso o envidio…",0.441,34,0.0111,be jealous,,,no dominant sense (top 0.44),
+H7065,qa.na,judgment,ser celoso,definition_es-head,,"ser (causativamente, hacer) celoso, es decir, (en mal sentido) celoso o envidio…",0.441,34,0.0111,be jealous,,,no dominant sense (top 0.44),
 H7066,qe.na,mechanical,comprar,tbesh-map,,(arameo) comprar,1.000,1,0.0003,to buy,comprar,tbesh-map,,
 H7067,qan.na,mechanical,celoso,definition_es-head,,celoso,1.000,6,0.0020,jealous,celoso,definition_es-head,,
 H7068,qin.ah,judgment,celos o envidia,definition_es-head,,celos o envidia,0.674,43,0.0141,jealousy,,,no dominant sense (top 0.67),
@@ -6988,7 +6988,7 @@ H7129,qe.rav,mechanical,encuentro hostil,definition_es-head,,(arameo) encuentro 
 H7130,qe.rev,judgment,interior / entrañas / medio,hand-fix,,"de H7126 (קָרַב); propiamente, la parte más cercana, es decir, el centro / inte…",0.568,227,0.0744,entrails,,,no dominant sense (top 0.57),
 H7131,qa.rev,mechanical,"cercano, próximo",definition_es-head,,"cercano, próximo",1.000,12,0.0039,approaching,"cercano, próximo",definition_es-head,,
 H7132,qe.ra.vah,mechanical,acercamiento,definition_es-head,,acercamiento,1.000,2,0.0007,nearness,acercamiento,definition_es-head,,
-H7133,qor.ban,judgment,algo traído cerca del altar,definition_es-head,,"algo traído cerca del altar, es decir, una ofrenda sacrificial",0.512,82,0.0269,offering,,,no dominant sense (top 0.51),
+H7133,qor.ban,judgment,ofrenda / oblación,hand-fix,,"algo traído cerca del altar, es decir, una ofrenda sacrificial",0.512,82,0.0269,offering,,,no dominant sense (top 0.51),
 H7134,qar.dom,judgment,hacha,definition_es-head,,un hacha,0.800,5,0.0016,axe,,,no dominant sense (top 0.80),
 H7135,qa.rah,mechanical,frío,tbesh-map,,frescura (frío),1.000,5,0.0016,cold,frío,tbesh-map,,
 H7136,qa.rah,judgment,encontrarse con,definition_es-head,,"encontrarse con (principalmente por accidente); causativamente, ocasionar; espe…",0.222,27,0.0089,to meet,,,no dominant sense (top 0.22),
@@ -7043,7 +7043,7 @@ H7184,qa.sah,judgment,jarro,definition_es-head,,un jarro (por su forma),0.750,4,
 H7185,qa.shah,judgment,endurecer,tbesh-head-es,,"raíz primitiva; propiamente, ser denso, es decir, duro o severo (en varias apli…",0.321,28,0.0092,to harden,,,no dominant sense (top 0.32),
 H7186,qa.sheh,judgment,severo,definition_es-head,,severo (en diversas aplicaciones),0.444,36,0.0118,severe,,,no dominant sense (top 0.44),
 H7187,qe.shot,mechanical,fidelidad,definition_es-head,,(arameo) fidelidad,1.000,2,0.0007,truth,fidelidad,definition_es-head,,
-H7188,qa.shach,judgment,endurecer,tbesh-head-es,,hacer(se) insensible,0.500,2,0.0007,to harden,,,no dominant sense (top 0.50),
+H7188,qa.shach,judgment,hacer insensible,definition_es-head,,hacer(se) insensible,0.500,2,0.0007,to harden,,,no dominant sense (top 0.50),
 H7189,qo.shet,judgment,equidad,definition_es-head,,"equidad (justamente pesada), es decir realidad",0.500,2,0.0007,bow,,,no dominant sense (top 0.50),
 H7190,qe.shi,mechanical,obstinación,definition_es-head,,obstinación,1.000,1,0.0003,stubbornness,obstinación,definition_es-head,,
 H7191,qish.yon,proper-noun,Quisón,defEs-name,,"Quisón, un lugar en Palestina",1.000,2,0.0007,Kishion,Kishion,tbesh-en-placeholder,,
@@ -7411,7 +7411,7 @@ H7557,raq.qat,proper-noun,Racat,defEs-name,,"Racat, un lugar en Palestina",1.000
 H7558,rish.yon,mechanical,permiso,definition_es-head,,un permiso,1.000,1,0.0003,permission,permiso,definition_es-head,,
 H7559,ra.sham,mechanical,registrar,definition_es-head,,registrar,1.000,1,0.0003,to inscribe,registrar,definition_es-head,,
 H7560,re.sham,judgment,registrar,definition_es-head,,(arameo) registrar,0.714,7,0.0023,to sign,,,no dominant sense (top 0.71),
-H7561,ra.sah,judgment,ser,definition_es-head,,"ser (causativamente, hacer o declarar) malo; por implicación, perturbar, violar",0.471,34,0.0111,be wicked,,,no dominant sense (top 0.47),
+H7561,ra.sah,judgment,ser malo,definition_es-head,,"ser (causativamente, hacer o declarar) malo; por implicación, perturbar, violar",0.471,34,0.0111,be wicked,,,no dominant sense (top 0.47),
 H7562,re.sah,mechanical,mal,definition_es-head,,"un mal (especialmente moral), maldad, impiedad",0.933,30,0.0098,wickedness,mal,definition_es-head,,
 H7563,ra.sah,mechanical,moralmente malo,definition_es-head,,"moralmente malo; concretamente, una persona (activamente) mala / un impío",0.970,263,0.0862,wicked,moralmente malo,definition_es-head,,
 H7564,rish.ah,mechanical,maldad,definition_es-head,,"maldad (especialmente moral), impiedad",1.000,15,0.0049,wickedness,maldad,definition_es-head,,
@@ -7528,7 +7528,7 @@ H7678,shab.b.tay,proper-noun,Sabetai,defEs-name,,"Sabetai, nombre de tres israel
 H7679,sa.ga,judgment,crecer,definition_es-head,,"crecer, es decir (causativamente) engrandecer, (figuradamente) alabar",0.500,2,0.0007,to grow great,,,no dominant sense (top 0.50),
 H7680,se.ga,judgment,aumentar,definition_es-head,,(arameo) aumentar,0.667,3,0.0010,to grow great,,,no dominant sense (top 0.67),
 H7681,sha.geh,proper-noun,Sagé,defEs-name,,"Sagé, un israelita",1.000,1,0.0003,Shagee,Shagee,tbesh-en-placeholder,,Sage
-H7682,sa.gav,judgment,ser,definition_es-head,,"ser (causativamente, hacer) elevado, especialmente inaccesible; por implicación…",0.500,20,0.0066,to exalt,,,no dominant sense (top 0.50),
+H7682,sa.gav,judgment,ser elevado,definition_es-head,,"ser (causativamente, hacer) elevado, especialmente inaccesible; por implicación…",0.500,20,0.0066,to exalt,,,no dominant sense (top 0.50),
 H7683,sha.gag,judgment,extraviarse,definition_es-head,,"extraviarse, es decir (figurativamente) pecar (con más o menos excusa), por yer…",0.500,4,0.0013,to go astray,,,no dominant sense (top 0.50),
 H7684,she.ga.gah,mechanical,error o transgresión inadvertida,definition_es-head,,un error o transgresión inadvertida,1.000,19,0.0062,unintentionally,error o transgresión inadvertida,definition_es-head,,
 H7685,sa.gah,judgment,agrandarse,definition_es-head,,"agrandarse (especialmente hacia arriba, también figurativamente), crecer",0.750,4,0.0013,to grow,,,no dominant sense (top 0.75),
@@ -7758,8 +7758,8 @@ H7915,sak.kin,mechanical,cuchillo,definition_es-head,,un cuchillo (puntiagudo o 
 H7916,sa.khir,judgment,asalariado,tbesh-head-es,,"un hombre a sueldo por día o por año, jornalero, asalariado",0.882,17,0.0056,hired,,,definition_es not condensable to a terse gloss,
 H7917,se.khi.rah,mechanical,alquiler,definition_es-head,,un alquiler (contrato de jornal),1.000,1,0.0003,hired,alquiler,definition_es-head,,
 H7918,sha.khakh,judgment,tejer,definition_es-head,,"tejer (es decir tender) una trampa; figurativamente, (por la idea de aplacar) c…",0.600,5,0.0016,to subside,,,no dominant sense (top 0.60),
-H7919,sa.khal,judgment,ser,definition_es-head,,"ser (causativamente, hacer o actuar) circunspecto y de ahí, inteligente; prospe…",0.161,62,0.0203,be prudent,,,no dominant sense (top 0.16),
-H7920,se.khal,mechanical,ser,definition_es-head,,"(arameo) ser (causativamente, hacer o actuar) circunspecto, y de ahí, inteligen…",1.000,1,0.0003,to contemplate,ser,definition_es-head,,
+H7919,sa.khal,judgment,ser prudente / prosperar,hand-fix,,"ser (causativamente, hacer o actuar) circunspecto y de ahí, inteligente; prospe…",0.161,62,0.0203,be prudent,,,no dominant sense (top 0.16),
+H7920,se.khal,mechanical,ser circunspecto,definition_es-head,,"(arameo) ser (causativamente, hacer o actuar) circunspecto, y de ahí, inteligen…",1.000,1,0.0003,to contemplate,ser circunspecto,definition_es-head,,
 H7921,sha.khol,judgment,quedar sin hijos,tbesh-head-es,,"raíz primitiva; propiamente, malparir, es decir, sufrir aborto; por analogía, p…",0.348,23,0.0075,be bereaved,,,no dominant sense (top 0.35),
 H7922,se.khel,judgment,"inteligencia, entendimiento",definition_es-head,,"inteligencia, entendimiento; por implicación, éxito, prudencia",0.563,16,0.0052,understanding,,,no dominant sense (top 0.56),
 H7923,shik.ku.lim,mechanical,orfandad de hijos,definition_es-head,,orfandad de hijos (por pérdidas continuas),1.000,1,0.0003,bereavement,orfandad de hijos,definition_es-head,,
@@ -7863,7 +7863,7 @@ H8023,shi.lo.ni,proper-noun,Siloni,defEs-name,,"Siloni, un israelita",1.000,1,0.
 H8024,she.la.ni,proper-noun,selanita,defEs-gentilic,,"un selanita, descendientes de Sela",1.000,1,0.0003,Shelanite,Shelanite,tbesh-en-placeholder,,
 H8025,sha.laph,judgment,"sacar, arrancar o quitar",definition_es-head,,"sacar, arrancar o quitar, desenvainar",0.320,25,0.0082,to draw,,,no dominant sense (top 0.32),
 H8026,she.leph,proper-noun,Sélef,defEs-name,,"Sélef, un hijo de Joctán",1.000,2,0.0007,Sheleph,Sheleph,tbesh-en-placeholder,,Selef
-H8027,sha.lash,judgment,ser,definition_es-head,,"ser (causativamente, hacer) triple (por restitución, en porciones, hebras, días…",0.333,9,0.0030,to do three,,,no dominant sense (top 0.33),
+H8027,sha.lash,judgment,ser triple,definition_es-head,,"ser (causativamente, hacer) triple (por restitución, en porciones, hebras, días…",0.333,9,0.0030,to do three,,,no dominant sense (top 0.33),
 H8028,she.lesh,proper-noun,Seles,defEs-name,,"Seles, un israelita",1.000,1,0.0003,Shelesh,Shelesh,tbesh-en-placeholder,,Seles
 H8029,shil.lesh,mechanical,tercero,tbesh-map,,"un descendiente de tercer grado, es decir bisnieto",1.000,5,0.0016,third,tercero,tbesh-map,,
 H8030,shil.shah,proper-noun,Silsa,defEs-name,,"Silsa, un israelita",1.000,1,0.0003,Shilshah,Shilshah,tbesh-en-placeholder,,Silsa
@@ -8080,7 +8080,7 @@ H8242,saq,mechanical,cilicio,tbesh-map,,"de H8264 (שָׁקַק); propiamente, u
 H8243,shaq,mechanical,pierna,definition_es-head,,(arameo) la pierna,1.000,1,0.0003,leg,pierna,definition_es-head,,
 H8244,sa.qad,mechanical,sujetar,definition_es-head,,sujetar (atar),1.000,1,0.0003,to bind,sujetar,definition_es-head,,
 H8245,sha.qad,judgment,estar alerta,definition_es-head,,"estar alerta, es decir, desvelado; de ahí, estar al acecho (sea para bien o par…",0.333,12,0.0039,to watch,,,no dominant sense (top 0.33),
-H8246,sha.qad,mechanical,ser,definition_es-head,,"ser (intensivamente, hacer) en forma de almendra",1.000,6,0.0020,be almond shaped,ser,definition_es-head,,
+H8246,sha.qad,mechanical,ser en forma de almendra,definition_es-head,,"ser (intensivamente, hacer) en forma de almendra",1.000,6,0.0020,be almond shaped,ser en forma de almendra,definition_es-head,,
 H8247,sha.qed,judgment,almendro,definition_es-head,,el almendro (árbol o nuez; por ser el primero en florecer),0.500,4,0.0013,almond,,,no dominant sense (top 0.50),
 H8248,sha.qah,judgment,abrevar,definition_es-head,,"abrevar, es decir, (causativamente) regar o dar de beber a",0.262,61,0.0200,to water,,,no dominant sense (top 0.26),
 H8249,shiq.quv,mechanical,beber / bebida,tbesh-head-es,,,1.000,1,0.0003,drink,,tbesh-untranslated,,
@@ -8155,7 +8155,7 @@ H8319,sha.raq,judgment,silbar / silbido,tbesh-head-es,,"raíz primitiva; propiam
 H8320,sa.ruq,mechanical,rojo vivo,definition_es-head,,"rojo vivo (que hiere la vista), es decir alazán",1.000,1,0.0003,sorrel,rojo vivo,definition_es-head,,
 H8321,so.req,mechanical,vid,tbesh-map,,"una cepa de vid (propiamente, la que da uvas moradas, la variedad más rica), vi…",1.000,3,0.0010,vine,vid,tbesh-map,,
 H8322,she.re.qah,mechanical,"mofa, silbido",definition_es-head,,"una mofa, silbido, escarnio",1.000,7,0.0023,hissing,"mofa, silbido",definition_es-head,,
-H8323,sa.rar,judgment,tener,definition_es-head,,"tener (transitivamente, ejercer; reflexivamente, obtener) dominio",0.400,5,0.0016,to rule,,,no dominant sense (top 0.40),
+H8323,sa.rar,judgment,tener dominio,definition_es-head,,"tener (transitivamente, ejercer; reflexivamente, obtener) dominio",0.400,5,0.0016,to rule,,,no dominant sense (top 0.40),
 H8324,sha.rar,mechanical,enemigo,tbesh-map,,"ser hostil (solo participio activo, un adversario)",1.000,5,0.0016,enemy,enemigo,tbesh-map,,
 H8325,sha.rar,proper-noun,Sarar,defEs-name,,"Sarar, un israelita",1.000,1,0.0003,Sharar,Sharar,tbesh-en-placeholder,,Sarar
 H8326,sho.rer,mechanical,ombligo,tbesh-head-es,,,1.000,1,0.0003,navel,,tbesh-untranslated,,
@@ -8213,7 +8213,7 @@ H8378,ta.a.vah,judgment,anhelo,definition_es-head,,"un anhelo; por implicación,
 H8379,ta.a.vah,mechanical,límite,tbesh-map,,"un límite, es decir extensión total",1.000,1,0.0003,boundary,límite,tbesh-map,,
 H8380,ta.om,mechanical,gemelo,definition_es-head,,"un gemelo (solo en plural), literal o figurativamente",1.000,6,0.0020,twin,gemelo,definition_es-head,,
 H8381,ta.a.lah,mechanical,imprecación,definition_es-head,,una imprecación (maldición),1.000,1,0.0003,curse,imprecación,definition_es-head,,
-H8382,ta.am,mechanical,ser,definition_es-head,,"ser (causativamente, hacer) gemelo, es decir (figuradamente) duplicado o (arqui…",1.000,2,0.0007,be double,ser,definition_es-head,,
+H8382,ta.am,mechanical,ser gemelo,definition_es-head,,"ser (causativamente, hacer) gemelo, es decir (figuradamente) duplicado o (arqui…",1.000,2,0.0007,be double,ser gemelo,definition_es-head,,
 H8383,te.un,mechanical,maldad,definition_es-head,,"maldad, es decir fatiga",1.000,1,0.0003,toil,maldad,definition_es-head,,
 H8384,te.e.nah,judgment,higuera,definition_es-head,,la higuera (árbol o fruto),0.538,39,0.0128,fig,,,no dominant sense (top 0.54),
 H8385,ta.a.nah,judgment,oportunidad o,definition_es-head,,una oportunidad o (subjetivamente) propósito,0.500,2,0.0007,estrous,,,no dominant sense (top 0.50),
@@ -8458,7 +8458,7 @@ H8627,te.qan,mechanical,confirmar,tbesh-head-es,,,1.000,1,0.0003,to confirm,,tbe
 H8628,ta.qa,judgment,golpetear,definition_es-head,,"golpetear, es decir, dar una palmada (juntar las manos), tañer (un instrumento)…",0.279,68,0.0223,to blow,,,no dominant sense (top 0.28),
 H8629,te.qa,mechanical,toque de trompeta,definition_es-head,,un toque de trompeta,1.000,1,0.0003,blast,toque de trompeta,definition_es-head,,
 H8630,ta.qaph,judgment,dominar,definition_es-head,,"dominar (prevalecer sobre, acometer)",0.667,3,0.0010,to prevail,,,no dominant sense (top 0.67),
-H8631,te.qeph,judgment,volverse,definition_es-head,,"(arameo) volverse (causativamente, hacer) poderoso o (figuradamente) obstinado",0.600,5,0.0016,to grow strong,,,no dominant sense (top 0.60),
+H8631,te.qeph,judgment,volverse poderoso o,definition_es-head,,"(arameo) volverse (causativamente, hacer) poderoso o (figuradamente) obstinado",0.600,5,0.0016,to grow strong,,,no dominant sense (top 0.60),
 H8632,ti.qaph,judgment,poder,definition_es-head,,(arameo) poder,0.500,2,0.0007,might,,,no dominant sense (top 0.50),
 H8633,to.qeph,judgment,poder o,definition_es-head,,poder o (figurativamente) firmeza (autoridad),0.667,3,0.0010,power,,,no dominant sense (top 0.67),
 H8634,tar.a.lah,proper-noun,Tarala,defEs-name,,"Tarala, un lugar en Palestina",1.000,1,0.0003,Taralah,Taralah,tbesh-en-placeholder,,Tarala

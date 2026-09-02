@@ -16,12 +16,12 @@ Procedencia de la glosa (`fullSource`):
 
 | fuente              | lemas |
 | ------------------- | ----- |
-| definition_es-head  | 4564  |
+| definition_es-head  | 4552  |
 | defEs-name          | 2352  |
 | tbesh-map           | 696   |
-| tbesh-head-es       | 470   |
+| tbesh-head-es       | 471   |
 | defEs-gentilic      | 220   |
-| hand-fix            | 64    |
+| hand-fix            | 75    |
 | hand-weighted       | 50    |
 | hand-translit       | 46    |
 | hand-name           | 19    |
@@ -2918,6 +2918,12 @@ Procedencia de la glosa (`fullSource`):
 
 ---
 
+## 4. Sin traducción automática fiable (0) — ninguno
+
+Todos los lemas recibieron una glosa española (a mano, de `definition_es`, o del mapa TBESH→ES).
+
+---
+
 ## 5. El grueso mecánico
 
-Las ~7606 glosas restantes (vocabulario concreto, no marcadas) están en `DOCS/drafts/hebrew-lemma-gloss-es-review.csv` — una fila por lema, con `final_gloss`, `final_source`, `definition_es` y `dominant_gloss_share` en columnas contiguas para revisión por muestreo.
+Las ~7595 glosas restantes (vocabulario concreto, no marcadas) están en `DOCS/drafts/hebrew-lemma-gloss-es-review.csv` — una fila por lema, con `final_gloss`, `final_source`, `definition_es` y `dominant_gloss_share` en columnas contiguas para revisión por muestreo.

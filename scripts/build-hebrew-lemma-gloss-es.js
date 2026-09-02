@@ -407,6 +407,14 @@ function headSense(defEs) {
     s = s.replace(/^\([^)]*\)[,;]?\s*/, '').trim();
     if (s === b) break;
   }
+  // openscriptures glosses stative verbs as "ser (causativamente, hacer) ADJ"
+  // — the parenthetical sits BETWEEN the verb and the real content word, so a
+  // naive "\s(" split would keep only "ser". Fold the inline aside away first
+  // so "ser (causativamente, hacer) bueno" → "ser bueno".
+  s = s.replace(
+    /^((?:ser|estar|hacer|dar|poner|tener|llegar a ser|volverse)(?:se)?)\s*\([^)]*\)\s*/i,
+    '$1 ',
+  );
   // first sense segment (before ; , parenthetical, colon, dash, slash)
   s = s.split(/;|\s\(|:\s|\s—\s|\s–\s|\s\/\s/)[0].trim();
   // if it is still a comma list, keep the first 1-2 items when short
@@ -1123,6 +1131,17 @@ const JUDGMENT_FIX_ES = {
   H6776: 'yunta / par',
   H546: 'en verdad / ciertamente',
   H6493: 'vidente / perspicaz',
+  H7043: 'menospreciar / maldecir',
+  H4886: 'ungir',
+  H3742: 'querubín',
+  H1817: 'puerta / hoja',
+  H7133: 'ofrenda / oblación',
+  H1964: 'templo / palacio',
+  H3206: 'niño / muchacho',
+  H205: 'iniquidad / maldad / vanidad',
+  H6924: 'oriente / antigüedad',
+  H5676: 'otro lado / región de allá',
+  H7919: 'ser prudente / prosperar',
 };
 
 // ── (proper nouns without any definition_es, 46 hapax) — hand transliteration
@@ -2425,16 +2444,18 @@ function main() {
   assignFullGloss(records);
 
   if (process.env.A3_DUMP) {
-    fs.mkdirSync(OUT_DIR, {recursive: true});
+    // Dev-only per-lemma record dump for eyeballing gloss quality. Written to
+    // the OS temp dir, NEVER the repo, so `npm run format:check` stays clean.
+    const dump = path.join(os.tmpdir(), 'a3-lemma-records.json');
     fs.writeFileSync(
-      path.join(OUT_DIR, '_a3-dump.json'),
+      dump,
       JSON.stringify(
         records.map(r => ({...r, verses: undefined})),
         null,
         1,
       ),
     );
-    console.log('   (A3_DUMP) wrote DOCS/drafts/_a3-dump.json');
+    console.log(`   (A3_DUMP) wrote ${dump}`);
   }
 
   writeOutputs({records, totalH, nullStrongsH, esDefs, auditSamples});
@@ -3231,19 +3252,24 @@ function writeA3Full({records, totalH}) {
   const untx = records
     .filter(r => r.fullSource === 'UNTRANSLATED')
     .sort((a, b) => b.occ - a.occ);
+  L.push('---');
+  L.push('');
+  L.push(
+    `## 4. Sin traducción automática fiable (${untx.length})${untx.length ? ' — glosa provisional = cabeza TBESH limpiada' : ' — ninguno'}`,
+  );
+  L.push('');
   if (untx.length) {
-    L.push('---');
-    L.push('');
-    L.push(
-      `## 4. Sin traducción automática fiable (${untx.length}) — glosa provisional = cabeza TBESH limpiada`,
-    );
-    L.push('');
     L.push('| Strong | translit | ocurr. | glosa provisional | TBESH (EN) |');
     L.push('|---|---|---:|---|---|');
     for (const r of untx)
       L.push(
         `| ${r.strongs} | ${mdCell(r.translit)} | ${r.occ} | ${mdCell(r.fullGloss)} | ${mdCell(r._tbeshHeadGloss)} |`,
       );
+    L.push('');
+  } else {
+    L.push(
+      'Todos los lemas recibieron una glosa española (a mano, de `definition_es`, o del mapa TBESH→ES).',
+    );
     L.push('');
   }
 
