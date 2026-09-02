@@ -948,6 +948,888 @@ function translateTbesh(strongs, tbeshRawGloss) {
   return null;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+ * A3 FULL-COVERAGE LAYER  (branch feature/hebrew-lemma-gloss-es)
+ *
+ * The pipeline above buckets all 8,503 used lemmas and drafts the mechanical +
+ * proper-noun ones. This layer extends that to a FIRST-PASS Spanish gloss for
+ * EVERY used lemma — the owner-approved A3 scope (all 8,503 as one project).
+ * Emits, in addition to the decision-support artifacts:
+ *   assets/hebrew-lemma-gloss-es.json            flat {H####:"gloss"}, all 8,503
+ *   DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md   the owner's review package
+ * Nothing here wires the data into the app (that is P2, a separate change).
+ *
+ * OWNER DECISIONS baked in:
+ *   1. Coverage = ALL used lemmas (judgment / held-back bucket included).
+ *   2. Divine names / titles == the RVR1960 on-screen form (Jehová, not Yahvé;
+ *      Dios; Señor …), verified verse-by-verse against assets/bible-seed.db.
+ *   3. FREE, shipped as a bundled JSON (not a pack rebuild).
+ *   4. Owner reviews: the ~2.6k proper-noun spellings (skim) + the theologically
+ *      loaded lemmas (close read); mechanical bulk spot-checked. So every
+ *      low-confidence / weighted / particle / divine call is FLAGGED here.
+ * ═══════════════════════════════════════════════════════════════════════════ */
+
+const GLOSS_MAXLEN = 40;
+
+// ── (2) Divine names & titles — gloss == what the RVR1960 verse prints.
+//    PER-WORD: H136 "Señor" + H3069 "Jehová" compose the printed "Señor Jehová"
+//    pair — H3069 must NOT carry the whole phrase. Every entry is flagged.
+const DIVINE_NAMES_ES = {
+  H3068: 'Jehová', //  YHWH — RVR1960 "Jehová" (its own definition_es concurs)
+  H3069: 'Jehová', //  YHWH pointed as elohim — prints "Jehová" in "Señor Jehová"
+  H430: 'Dios', //      elohim
+  H433: 'Dios', //      Eloah
+  H410: 'Dios', //      El
+  H426: 'Dios', //      Aramaic elah (Esdras / Daniel)
+  H136: 'Señor', //     Adonai
+  H3050: 'JAH', //      Yah
+  H7706: 'Todopoderoso', // Shaddai
+  H5945: 'Altísimo / superior', // Elyon — ~half divine title, ~half plain adj.
+};
+
+// ── The 8 named grammatical particles — compact best-effort, every one flagged.
+const PARTICLE_ES = {
+  H853: 'introduce el complemento directo', // ʾet — no lexical sense at all
+  H5921: 'sobre / encima / contra', // ʿal
+  H413: 'a / hacia', // ʾel
+  H834: 'que / el cual', // ʾasher
+  H3605: 'todo / cada / cualquiera', // kol
+  H3588: 'porque / que / cuando', // ki
+  H1961: 'ser / estar / haber / suceder', // hayah
+  H559: 'decir', // ʾamar
+};
+
+// ── Weighted / covenant / soteriological / anthropological core. Compound
+//    glosses on purpose; each is flagged for the owner's close read. Aligned
+//    to how RVR1960 renders the word most often.
+const WEIGHTED_ES = {
+  H1285: 'pacto', // berit  (RVR tb "alianza / concierto")
+  H2617: 'misericordia / amor leal', // hesed
+  H8451: 'ley / instrucción', // torah
+  H5315: 'alma / vida / ser', // nephesh  (tb persona, deseo, garganta)
+  H7307: 'espíritu / viento / aliento', // ruaj
+  H3519: 'gloria / honra', // kavod  (lit. "peso")
+  H6664: 'justicia / rectitud', // tsedeq
+  H6666: 'justicia / rectitud', // tsedaqah
+  H6944: 'santidad / lo santo', // qodesh
+  H2403: 'pecado / ofrenda por el pecado', // chattaah
+  H2398: 'pecar / errar el blanco', // chata
+  H3722: 'expiar / hacer expiación', // kipper  (lit. "cubrir")
+  H1350: 'redimir / rescatar', // gaal  (el pariente redentor, goel)
+  H1353: 'redención / rescate', // geullah
+  H6662: 'justo', // tsaddiq
+  H6663: 'ser justo / justificar', // tsadaq
+  H539: 'creer / confiar / ser fiel', // aman  (hifil "creer", Gn 15:6)
+  H530: 'fidelidad / fe', // emunah
+  H8199: 'juzgar / gobernar', // shaphat
+  H4941: 'juicio / derecho / ordenanza', // mishpat
+  H4397: 'mensajero / ángel', // malak
+  H5771: 'iniquidad / culpa', // avon
+  H6588: 'transgresión / rebelión', // pesha
+  H5162: 'consolar / arrepentirse', // najam
+  H3444: 'salvación / liberación', // yeshuah
+  H3468: 'salvación / liberación', // yesha
+  H3467: 'salvar / librar', // yasha (verbo)
+  H7965: 'paz / bienestar', // shalom
+  H2896: 'bueno / bien', // tov
+  H7451: 'malo / mal / calamidad', // ra
+  H1697: 'palabra / asunto / cosa', // davar
+  H7223: 'primero / anterior', // rishon
+  H3820: 'corazón / mente', // lev
+  H3824: 'corazón / mente', // levav
+  H7355: 'compadecerse / amar', // racham (verbo)
+  H7356: 'misericordia / compasión / entrañas', // rachamim
+  H2580: 'gracia / favor', // chen
+  H7812: 'postrarse / adorar', // shajah  (lit. "inclinarse")
+  H5647: 'servir / trabajar / labrar', // avad
+  H3372: 'temer / reverenciar', // yare
+  H6635: 'ejército / hueste', // tsava  (título "Jehová de los ejércitos")
+  H2233: 'simiente / descendencia', // zera
+  H6942: 'santificar / consagrar', // qadash
+  H4899: 'ungido', // mashiaj  ("el Mesías")
+  H7522: 'voluntad / beneplácito / favor', // ratzon
+  H1254: 'crear', // bara  (sujeto siempre Dios en Qal)
+  H120: 'hombre / ser humano', // adam  (tb el nombre propio Adán)
+  H127: 'tierra / suelo', // adamah
+  H8085: 'oír / escuchar / obedecer', // shama
+  H3045: 'conocer / saber', // yada
+};
+
+// ── Targeted fixes for high-frequency judgment lemmas whose auto-draft is an
+//    etymology leak, a bad gloss_en merge, or too verbose. NOT flagged (these
+//    are unambiguous common words) unless noted; the owner spot-checks.
+const JUDGMENT_FIX_ES = {
+  H2088: 'este / esto',
+  H5769: 'eternidad / para siempre',
+  H7225: 'principio / primicia',
+  H6963: 'voz / sonido',
+  H7121: 'llamar / proclamar / invocar',
+  H1696: 'hablar',
+  H854: 'con / junto a',
+  H369: 'no hay / nada',
+  H4100: 'qué / cómo',
+  H582: 'hombre / gente',
+  H5750: 'aún / todavía',
+  H6258: 'ahora',
+  H8478: 'debajo / en lugar de',
+  H8432: 'medio / en medio',
+  H5439: 'alrededor',
+  H905: 'solo / aparte',
+  H4481: 'de / desde',
+  H637: 'también / aún más',
+  H639: 'nariz / ira',
+  H1366: 'frontera / territorio',
+  H3627: 'objeto / utensilio / vasija',
+  H4616: 'para que / por causa de',
+  H6485: 'visitar / castigar / encargar',
+  H3644: 'como',
+  H571: 'verdad / fidelidad',
+  H3162: 'juntos',
+  H4605: 'arriba',
+  H312: 'otro',
+  H1984: 'alabar',
+  H3034: 'alabar / dar gracias',
+  H1431: 'engrandecer / crecer',
+  H3190: 'hacer bien / ir bien',
+  H5387: 'príncipe / jefe',
+  H6828: 'norte',
+  H2534: 'furor / ira',
+  H899: 'vestido / ropa',
+  H4758: 'aspecto / apariencia / visión',
+  H7130: 'interior / entrañas / medio',
+  H2022: 'monte / montaña',
+  H8269: 'príncipe / jefe / oficial',
+  H3541: 'así',
+  H113: 'señor / amo',
+  H2142: 'recordar / acordarse',
+  H4639: 'obra / hecho',
+  H1129: 'edificar',
+  H3651: 'así / correcto',
+  H995: 'entender / discernir',
+  H5375: 'levantar / llevar / perdonar',
+  H6440: 'rostro / delante de',
+  H5648: 'hacer (arameo)',
+};
+
+// ── (proper nouns without any definition_es, 46 hapax) — hand transliteration
+//    to the Spanish-Bible convention. Every one flagged (owner skims).
+const PROPER_FALLBACK_ES = {
+  H245: 'Azanías',
+  H250: 'ezraíta',
+  H287: 'Ahimot',
+  H498: 'Eluzai',
+  H867: 'Etni',
+  H1056: 'Baca',
+  H1084: 'Bilgai',
+  H1148: 'Beninú',
+  H1180: 'Baali',
+  H1183: 'Bealías',
+  H1202: 'Baasías',
+  H1337: 'Bat-rabim',
+  H1381: 'Gebal',
+  H1452: 'gederatita',
+  H1862: 'Darda',
+  H2059: 'Vasni',
+  H2293: 'Haguía',
+  H2432: 'Hilén',
+  H2741: 'harufita',
+  H2769: 'Hermón',
+  H2812: 'Hasabna',
+  H2979: 'Jeaterai',
+  H3084: 'José',
+  H3125: 'griego',
+  H3132: 'Joela',
+  H3134: 'Joezer',
+  H3643: 'Quimam',
+  H4047: 'Magpías',
+  H4077: 'medo',
+  H4235: 'Mahol',
+  H4344: 'Macbanai',
+  H4706: 'Mizar',
+  H4913: 'Masal',
+  H4925: 'Mismana',
+  H5109: 'Nebai',
+  H5538: 'Sila',
+  H6046: 'Anem',
+  H6052: 'Anán',
+  H6401: 'Pilha',
+  H6543: 'persa',
+  H6859: 'Sefata',
+  H7029: 'Cisi',
+  H7615: 'sabeo',
+  H7733: 'Sobec',
+  H7759: 'sulamita',
+  H8430: 'Toa',
+};
+
+// Explicit review flags: strongs -> {kind, note}. kind ∈ particle | divine |
+// weighted | fix | proper-fallback | low-confidence | untranslated.
+const A3_FLAGS = new Map();
+function flagLemma(strongs, kind, note) {
+  if (!A3_FLAGS.has(strongs)) A3_FLAGS.set(strongs, {kind, note: note || ''});
+}
+for (const s of Object.keys(PARTICLE_ES))
+  flagLemma(
+    s,
+    'particle',
+    'partícula gramatical polisémica — sin equivalente 1:1',
+  );
+for (const s of Object.keys(DIVINE_NAMES_ES))
+  flagLemma(s, 'divine', 'nombre / título divino — debe reflejar RVR1960');
+for (const s of Object.keys(WEIGHTED_ES))
+  flagLemma(s, 'weighted', 'término teológicamente cargado — lectura atenta');
+for (const s of Object.keys(PROPER_FALLBACK_ES))
+  flagLemma(
+    s,
+    'proper-fallback',
+    'nombre propio sin definition_es — translit. a mano',
+  );
+
+// Notes shown verbatim in the review for specific divine / particle calls.
+const A3_NOTES = {
+  H853: 'ʾet: RVR1960 no lo traduce (no tiene forma en español). Opciones: «(objeto directo)» · «—» (omitir del interlineal) · dejar el gloss_en actual. Aparece ~10.9k veces.',
+  H3069:
+    'aparece casi siempre en la pareja «Señor Jehová» (H136 + H3069); por palabra, H3069 imprime «Jehová».',
+  H430: 'plural; RVR1960 usa «dioses» para dioses falsos y, raras veces, «jueces». ~2.6k ocurrencias.',
+  H410: 'RVR1960 casi siempre «Dios»; unas pocas veces «poderoso».',
+  H3050:
+    'RVR1960 imprime «JAH» (Sal 68:4) pero «Jehová» dentro de compuestos / Éx 15:2.',
+  H7706:
+    'RVR1960 alterna «Todopoderoso» (Gn 17:1) y «Omnipotente» (Gn 28:3; 35:11).',
+  H5945:
+    '~mitad título divino «Altísimo», ~mitad adjetivo común «de arriba / superior» (puerta, estanque…).',
+  H6635:
+    'la palabra es «ejército»; el título «Jehová de los ejércitos» es H3068 + H6635.',
+  H2617:
+    'hesed: RVR1960 mayormente «misericordia»; tb «bondad / favor». Compuesto propuesto para reflejar el sentido de pacto.',
+  H5162:
+    'najam: nifal «arrepentirse / compadecerse», piel «consolar» — dos sentidos casi iguales en frecuencia.',
+  H2233:
+    'zera: lit. «semilla»; incluye la descendencia (y la simiente mesiánica, Gn 3:15).',
+  H4899: 'mashiaj: «ungido»; el NT lo toma como «Mesías / Cristo».',
+};
+
+/** Enforce the gloss contract: <=40 chars, no markup, cut on a word/segment
+ *  boundary (never a bare "…"), no leading/trailing punctuation. */
+function capClean(s, max = GLOSS_MAXLEN) {
+  if (!s) return '';
+  let t = String(s)
+    .replace(/[<>[\]{}*`_#|~]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  t = t
+    .replace(/^[\s./;:,–—-]+/, '')
+    .replace(/[\s./;:,]+$/, '')
+    .trim();
+  if (t.length <= max) return t;
+  let cut = t.slice(0, max + 1);
+  const seps = [
+    cut.lastIndexOf(' / '),
+    cut.lastIndexOf(', '),
+    cut.lastIndexOf('; '),
+    cut.lastIndexOf(' '),
+  ];
+  const at = Math.max(...seps);
+  if (at > max * 0.45) cut = cut.slice(0, at);
+  return cut.replace(/[\s./;:,/]+$/, '').trim();
+}
+
+/** Drop a leading Spanish etymology / cross-reference clause from a
+ *  definition_es (proper-noun path). */
+function stripEsEtymology(s) {
+  let t = String(s || '').trim();
+  for (let k = 0; k < 5; k++) {
+    const b = t;
+    t = t.replace(
+      /^\((?:arameo|caldeo|hebreo|gentilicio|patron[íi]mico|forma\s+\w+)[^)]*\)[,;:]?\s*/i,
+      '',
+    );
+    t = t.replace(
+      /^(?:lo mismo que|igual que|el mismo que|(?:una?\s+)?forma\s+(?:de|alargada de|abreviada de|prolongada de)|variaci[óo]n de|variante de|patron[íi]micamente de|contracci[óo]n de|probablemente de|quiz[áa]s? de|aparentemente de|de|del)\s+h?\d+[a-z]?\s*(?:\([^)]*\))?\s*[;:,.]?\s*/i,
+      '',
+    );
+    t = t.replace(/^(?:o|u)\s+[^\s;,()]+\s*[;,]\s*/i, '');
+    if (t === b) break;
+  }
+  return t.trim();
+}
+
+/** Proper-noun → RVR1960-conventional Spanish spelling, from the vetted
+ *  definition_es (openscriptures-ES already uses Reina-Valera spellings). */
+function properNounEs(rec) {
+  const hand = PROPER_FALLBACK_ES[rec.strongs];
+  if (hand) return {gloss: capClean(hand), source: 'hand-translit'};
+
+  const raw = rec.defEs ? stripEsEtymology(rec.defEs) : '';
+  if (raw) {
+    // gentilic: "un/una X o habitante/descendiente de Y" → X (lowercase)
+    const gm = raw.match(/^un[oa]?\s+([a-záéíóúüñ]+(?:-[a-záéíóúüñ]+)*)\b/i);
+    if (
+      gm &&
+      /^un[oa]?\s+[a-záéíóúüñ-]+\s+(?:o\b|,\s|$)/i.test(raw) &&
+      !/^un[oa]?\s+(?:rey|hijo|ciudad|lugar|monte|r[íi]o|pozo|valle|hombre|mujer|profeta|sacerdote|nombre|t[íe]rmino|pariente|descendiente|eunuco|israelita|edomita)\b/i.test(
+        raw,
+      )
+    ) {
+      return {gloss: capClean(gm[1].toLowerCase()), source: 'defEs-gentilic'};
+    }
+    let name = raw.split(/[;(]/)[0];
+    name = name.split(/,\s/)[0].trim();
+    name = name
+      .replace(/\s*=.*$/, '')
+      .replace(/\s+es decir.*$/i, '')
+      .replace(/[.;:,\s]+$/, '')
+      .trim();
+    name = name.replace(/\s+o\s+/i, ' / ');
+    if (name && /[A-Za-zÀ-ÿ]/.test(name) && name.length <= GLOSS_MAXLEN + 8) {
+      return {gloss: capClean(name), source: 'defEs-name'};
+    }
+  }
+  // last resort — crude English→Spanish transliteration (always flagged)
+  return {
+    gloss: capClean(translitName(rec.tbeshGloss || rec.rawTop || '')),
+    source: 'auto-translit',
+  };
+}
+
+function translitName(en) {
+  let s = String(en || '')
+    .replace(/\([^)]*\)/g, ' ')
+    .replace(/[`'"]/g, '')
+    .split(/[,;/]/)[0]
+    .trim();
+  if (!s) return '';
+  s = s
+    .replace(/ites?$/i, 'ita')
+    .replace(/ean$/i, 'eo')
+    .replace(/iah$/i, 'ías')
+    .replace(/jah$/i, 'ías')
+    .replace(/th/gi, 't')
+    .replace(/ph/gi, 'f')
+    .replace(/kh/gi, 'j')
+    .replace(/ch/gi, 'c')
+    .replace(/sh/gi, 's')
+    .replace(/ck/gi, 'c')
+    .replace(/h$/i, '');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/** Permissive condense of a definition_es head — the tail-of-tail safety net
+ *  when headSense() (which rejects meta-language) returns null. */
+function looseHead(defEs) {
+  if (!defEs) return null;
+  let s = String(defEs).trim();
+  for (let k = 0; k < 3; k++) {
+    const b = s;
+    s = s.replace(
+      /^(?:una?\s+)?ra[íi]z\s+(?:primitiva|denominativa)[^;.]*[;.]\s*/i,
+      '',
+    );
+    s = s.replace(
+      /^(?:de|del|de la|una forma de|variante de|variaci[óo]n de|lo mismo que|igual que)\s+h?\d+[a-z]?\s*(?:\([^)]*\))?\s*[;:,.]?\s*/i,
+      '',
+    );
+    s = s.replace(
+      /^(?:propiamente|literalmente|figuradamente|figurativamente|espec[íi]ficamente|por implicaci[óo]n|es decir|por extensi[óo]n|por analog[íi]a|generalmente|usualmente|com[úu]nmente|probablemente|quiz[áa]s?|(?:tal vez)|acaso|as[íi] llamad[oa])[,;: ]+/i,
+      '',
+    );
+    s = s.replace(/^\([^)]*\)[,;:]?\s*/, '');
+    if (s === b) break;
+  }
+  s = s
+    .replace(/[֐-׿]+/g, ' ')
+    .replace(/\bh\d+[a-z]?\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  s = s.split(/;|\s\(|:\s|\s—\s|\s–\s/)[0].trim();
+  const parts = s
+    .split(',')
+    .map(p => p.trim())
+    .filter(Boolean);
+  if (parts.length) {
+    s = parts[0];
+    if (
+      parts[1] &&
+      parts[1].length >= 4 &&
+      !/^(o|y|e|u|es decir|como|etc|de|a|del?)\b/i.test(parts[1]) &&
+      (s + ' / ' + parts[1]).length <= GLOSS_MAXLEN
+    ) {
+      s = s + ' / ' + parts[1];
+    }
+  }
+  s = capClean(s).toLowerCase();
+  s = s.replace(/^(?:un|una|unos|unas|el|la|los|las)\s+/, '');
+  if (!s || s.length < 2) return null;
+  if (
+    /^(?:de|del|o|y|e|u|a|que|se|con|por|para)\b/.test(s) &&
+    s.split(' ').length <= 2
+  )
+    return null;
+  return capClean(s);
+}
+
+/** TBESH head-gloss (English) → terse Spanish. Fallback ONLY when there is no
+ *  usable definition_es (task rule: definition_es first, TBESH second). */
+const TBESH_HEAD_ES = {
+  above: 'arriba / encima',
+  acceptable: 'aceptable',
+  accident: 'accidente / suceso',
+  account: 'cuenta / relato',
+  acquaintance: 'conocido',
+  add: 'añadir',
+  adultery: 'adulterio',
+  affair: 'asunto',
+  afflict: 'afligir',
+  affliction: 'aflicción',
+  aggitate: 'agitar',
+  all: 'todo',
+  allotted: 'asignado',
+  also: 'también',
+  ambassador: 'embajador / mensajero',
+  answer: 'responder',
+  anything: 'algo / nada',
+  apple: 'manzana',
+  'aromatic powder': 'polvo aromático',
+  artisan: 'artesano',
+  associate: 'asociarse / compañero',
+  attach: 'unir / adherir',
+  baked: 'cocido al horno',
+  basin: 'tazón / fuente',
+  'be able': 'poder',
+  'be appalled': 'horrorizarse',
+  'be ashamed': 'avergonzarse',
+  'be beautiful': 'ser hermoso',
+  'be bereaved': 'quedar sin hijos',
+  'be brother-in-law': 'cumplir el deber de cuñado',
+  'be displeased': 'disgustarse',
+  'be dry': 'secarse',
+  'be evil': 'ser malo',
+  'be faithful': 'ser fiel',
+  'be foolish': 'ser necio',
+  'be good': 'ser bueno',
+  'be gracious': 'tener piedad',
+  'be humble': 'humillarse',
+  'be humiliated': 'ser humillado',
+  'be indignant': 'indignarse',
+  'be like': 'ser semejante',
+  'be lovely': 'ser amable',
+  'be precious': 'ser precioso',
+  'be safe': 'estar a salvo',
+  'be shrewd': 'ser astuto',
+  'be sick': 'enfermar',
+  'be sorry': 'arrepentirse',
+  'be sweet': 'ser dulce',
+  'be tender': 'ser tierno',
+  'be unfaithful': 'ser infiel / prevaricar',
+  'be weak': 'debilitarse',
+  'be weary/toil': 'fatigarse / afanarse',
+  'be wide': 'ensancharse',
+  'be willing': 'estar dispuesto',
+  'bear tidings': 'traer noticias',
+  beat: 'golpear / batir',
+  beauty: 'hermosura',
+  because: 'porque',
+  before: 'antes / delante',
+  bird: 'ave / pájaro',
+  'bird of prey': 'ave de rapiña',
+  bitterness: 'amargura',
+  body: 'cuerpo',
+  boil: 'hervir / llaga',
+  boot: 'bota / calzado',
+  border: 'borde / frontera',
+  bottom: 'fondo',
+  bough: 'rama',
+  bow: 'arco / inclinarse',
+  breast: 'pecho',
+  broad: 'ancho',
+  bruise: 'magulladura / herir',
+  brushwood: 'maleza',
+  buckler: 'escudo',
+  bulwark: 'baluarte',
+  burden: 'carga',
+  butter: 'mantequilla / cuajada',
+  'by day': 'de día',
+  camp: 'campamento / acampar',
+  cassia: 'casia',
+  cast: 'arrojar / fundir',
+  cease: 'cesar',
+  celebrate: 'celebrar',
+  channel: 'canal / cauce',
+  chief: 'jefe / principal',
+  choose: 'escoger',
+  chop: 'cortar / talar',
+  cleave: 'hender / adherirse',
+  close: 'cerrar',
+  clothe: 'vestir',
+  'clothe in scarlet': 'vestir de escarlata',
+  cloud: 'nube',
+  club: 'garrote / maza',
+  cluster: 'racimo',
+  commander: 'comandante / jefe',
+  confirm: 'confirmar',
+  confuse: 'confundir',
+  consent: 'consentir',
+  conspiracy: 'conspiración',
+  constrain: 'constreñir / apremiar',
+  contempt: 'desprecio',
+  contend: 'contender',
+  continually: 'continuamente',
+  continuance: 'continuidad / duración',
+  counsel: 'consejo',
+  count: 'contar',
+  cover: 'cubrir',
+  creep: 'arrastrarse / reptar',
+  creeping: 'reptil',
+  crime: 'crimen / delito',
+  crowd: 'multitud',
+  crushing: 'quebranto',
+  'cry out': 'clamar',
+  curve: 'curva / doblar',
+  'cut off': 'cortar / talar',
+  dance: 'danza / danzar',
+  dark: 'oscuro',
+  darkened: 'oscurecido',
+  dawn: 'amanecer / alba',
+  daylight: 'luz del día',
+  decide: 'decidir',
+  declare: 'declarar',
+  decree: 'decreto',
+  dedicate: 'dedicar',
+  delay: 'tardar / demora',
+  'delight in': 'deleitarse en',
+  den: 'guarida',
+  desire: 'desear / deseo',
+  despise: 'despreciar',
+  destitute: 'menesteroso / desamparado',
+  devise: 'idear / tramar',
+  dig: 'cavar',
+  diminish: 'disminuir',
+  disappear: 'desaparecer',
+  discipline: 'disciplina / corrección',
+  'dislocate/hang': 'dislocar / colgar',
+  dismay: 'consternación / espanto',
+  'distinguish oneself': 'distinguirse',
+  distract: 'distraer',
+  diversion: 'distracción',
+  divide: 'dividir',
+  divine: 'adivinar',
+  dominion: 'dominio',
+  'drawn sword': 'espada desenvainada',
+  dream: 'sueño / soñar',
+  drink: 'beber / bebida',
+  ease: 'sosiego / alivio',
+  elevation: 'elevación',
+  emptiness: 'vacío / vanidad',
+  enduring: 'perdurable',
+  enquire: 'inquirir / preguntar',
+  enrage: 'enfurecer',
+  enrich: 'enriquecer',
+  envy: 'envidia',
+  error: 'error / yerro',
+  escape: 'escapar / huida',
+  establish: 'establecer / afirmar',
+  excellence: 'excelencia',
+  except: 'excepto',
+  explain: 'explicar',
+  fair: 'hermoso',
+  faithfulness: 'fidelidad',
+  fantasies: 'fantasías',
+  fasting: 'ayuno',
+  feast: 'fiesta / banquete',
+  feed: 'alimentar / apacentar',
+  fence: 'cerca / valla',
+  filth: 'inmundicia',
+  finally: 'finalmente',
+  fine: 'multa',
+  flood: 'diluvio / inundación',
+  foe: 'enemigo / adversario',
+  foliage: 'follaje',
+  food: 'alimento / comida',
+  'food offering': 'ofrenda de alimento',
+  foothold: 'punto de apoyo',
+  for: 'porque / para',
+  ford: 'vado',
+  forgetfulness: 'olvido',
+  fowl: 'ave',
+  fowler: 'cazador de aves',
+  frame: 'estructura / armazón',
+  from: 'de / desde',
+  'fruit-stalk': 'pedúnculo',
+  fuel: 'combustible / pábilo',
+  furnace: 'horno',
+  gain: 'ganancia / lucro',
+  gallery: 'galería',
+  generation: 'generación',
+  gentleness: 'mansedumbre',
+  glide: 'deslizarse',
+  gloom: 'penumbra / tinieblas',
+  'go either way': 'vacilar',
+  'go left': 'ir a la izquierda',
+  'go right': 'ir a la derecha',
+  'go through': 'pasar por / atravesar',
+  god: 'dios',
+  'going down': 'descenso',
+  goring: 'cornear',
+  'great man': 'grande / notable',
+  green: 'verde',
+  grieved: 'afligido',
+  'grow warm': 'calentarse',
+  guide: 'guiar / guía',
+  'hammered out': 'labrado a martillo',
+  hamstring: 'desjarretar',
+  harden: 'endurecer',
+  hasten: 'apresurar',
+  'have shade': 'dar sombra',
+  hearth: 'hogar / brasero',
+  herb: 'hierba',
+  hew: 'labrar / cortar',
+  hired: 'asalariado',
+  hope: 'esperanza',
+  hurry: 'apresurarse',
+  hurt: 'herir / dañar',
+  idol: 'ídolo',
+  if: 'si',
+  imprint: 'grabar / marca',
+  incision: 'incisión / sajadura',
+  incite: 'incitar',
+  inheritance: 'heredad / herencia',
+  injunction: 'mandato / precepto',
+  innocence: 'inocencia',
+  "isn't?": '¿acaso no?',
+  jar: 'cántaro / vasija',
+  jasper: 'jaspe',
+  javelin: 'jabalina / venablo',
+  jewelry: 'joyas / alhajas',
+  join: 'juntar / unir',
+  judge: 'juzgar / juez',
+  keep: 'guardar',
+  kor: 'coro',
+  lady: 'señora / dama',
+  learn: 'aprender',
+  leave: 'dejar / abandonar',
+  left: 'izquierda',
+  lewdness: 'lascivia / perversión',
+  loath: 'aborrecer / hastiarse',
+  lock: 'cerrojo',
+  lodge: 'alojarse / pernoctar',
+  loin: 'lomo / cintura',
+  long: 'anhelar',
+  look: 'mirar',
+  lord: 'señor',
+  luxuriant: 'frondoso',
+  'make clear': 'aclarar / declarar',
+  mark: 'marca / señal',
+  maskil: 'masquil',
+  master: 'amo / señor',
+  measure: 'medida / medir',
+  meditation: 'meditación',
+  medium: 'evocador de espíritus',
+  meeting: 'reunión / asamblea',
+  melody: 'melodía',
+  melting: 'derretimiento',
+  mighty: 'poderoso',
+  mind: 'mente / ánimo',
+  mire: 'cieno / lodo',
+  mischief: 'maldad / daño',
+  mistress: 'señora / ama',
+  mixture: 'mezcla',
+  mock: 'burlarse',
+  moment: 'momento / instante',
+  much: 'mucho',
+  multiply: 'multiplicar',
+  murder: 'asesinar / matar',
+  music: 'música',
+  muzzle: 'bozal',
+  'nail/claw': 'uña / garra',
+  navel: 'ombligo',
+  need: 'necesidad',
+  nettle: 'ortiga',
+  nevertheless: 'sin embargo',
+  'new wine': 'mosto / vino nuevo',
+  noble: 'noble',
+  nostril: 'nariz',
+  numbering: 'censo / recuento',
+  official: 'oficial / funcionario',
+  opposite: 'enfrente / frente a',
+  oppress: 'oprimir',
+  oppression: 'opresión',
+  outside: 'afuera / fuera',
+  overcome: 'vencer',
+  overflow: 'desbordar / rebosar',
+  pain: 'dolor',
+  palate: 'paladar',
+  parched: 'reseco / árido',
+  pass: 'pasar',
+  pasture: 'pasto / dehesa',
+  'pay brideprice': 'pagar la dote',
+  peace: 'paz',
+  peacock: 'pavo real',
+  peak: 'cima / cumbre',
+  penis: 'miembro viril',
+  perish: 'perecer',
+  pervert: 'pervertir / torcer',
+  petition: 'petición',
+  piece: 'pedazo / trozo',
+  pine: 'languidecer',
+  pity: 'compasión / lástima',
+  plan: 'plan / designio',
+  play: 'tocar / tañer',
+  plot: 'trama / parcela',
+  plowshare: 'reja de arado',
+  point: 'punta',
+  'practice sorcery': 'practicar hechicería',
+  praise: 'alabanza',
+  preacher: 'predicador',
+  press: 'prensar / apretar',
+  pressure: 'presión / opresión',
+  pretext: 'pretexto',
+  pride: 'soberbia / orgullo',
+  princess: 'princesa',
+  'profane/begin': 'profanar / comenzar',
+  prosperity: 'prosperidad',
+  proud: 'soberbio / altivo',
+  purple: 'púrpura',
+  quake: 'temblar',
+  quiver: 'aljaba / carcaj',
+  raft: 'balsa',
+  ransomed: 'rescatado',
+  'rash word': 'palabra precipitada',
+  recognize: 'reconocer',
+  recount: 'recontar / relatar',
+  refuse: 'desecho / basura',
+  reinforced: 'reforzado',
+  remain: 'quedar / permanecer',
+  remove: 'quitar / apartar',
+  request: 'petición / solicitud',
+  rest: 'descanso / reposo',
+  riddle: 'enigma / acertijo',
+  righteousness: 'justicia',
+  'rock badger': 'conejo / damán',
+  'roll up': 'enrollar',
+  roof: 'techo / azotea',
+  rottenness: 'podredumbre / carcoma',
+  roundness: 'redondez',
+  rove: 'vagar / merodear',
+  ruin: 'ruina',
+  rush: 'junco',
+  'sabbath observance': 'reposo del sábado',
+  salt: 'sal',
+  salvation: 'salvación',
+  sanctuary: 'santuario',
+  satrap: 'sátrapa',
+  seal: 'sello / sellar',
+  search: 'buscar / escudriñar',
+  security: 'seguridad',
+  'set out': 'partir / ponerse en marcha',
+  shade: 'sombra',
+  shaking: 'temblor / sacudida',
+  sharp: 'agudo / afilado',
+  sharpen: 'afilar / aguzar',
+  shattering: 'quebrantamiento',
+  shave: 'afeitar / rasurar',
+  shoot: 'brote / retoño',
+  side: 'lado / costado',
+  sight: 'vista',
+  sign: 'señal',
+  'signet ring': 'anillo de sellar',
+  silence: 'silencio',
+  sin: 'pecado',
+  'skip about': 'brincar / saltar',
+  slaughter: 'matanza / degüello',
+  sleep: 'dormir / sueño',
+  smear: 'untar / embadurnar',
+  smell: 'oler / olor',
+  snail: 'caracol / babosa',
+  snatch: 'arrebatar',
+  sneezing: 'estornudo',
+  snow: 'nieve',
+  sojourn: 'peregrinar / morar',
+  sojourner: 'forastero / peregrino',
+  soothe: 'aplacar / calmar',
+  space: 'espacio',
+  spark: 'chispa / centella',
+  'split open': 'hender / partir',
+  spot: 'mancha',
+  stall: 'establo / pesebre',
+  stand: 'estar de pie',
+  statute: 'estatuto / ordenanza',
+  steed: 'corcel',
+  steward: 'mayordomo',
+  still: 'aún / todavía',
+  'stir up': 'agitar / despertar',
+  stock: 'tronco / cepa',
+  stone: 'piedra',
+  strife: 'contienda / rencilla',
+  strip: 'despojar / desnudar',
+  strive: 'contender / esforzarse',
+  struggle: 'luchar',
+  succeed: 'prosperar',
+  surely: 'ciertamente',
+  surround: 'rodear / cercar',
+  sustain: 'sostener',
+  swerve: 'desviarse',
+  'tear off': 'arrancar',
+  theft: 'hurto / robo',
+  that: 'que / aquel',
+  then: 'entonces',
+  therefore: 'por tanto',
+  thing: 'cosa / asunto',
+  thirty: 'treinta',
+  thousands: 'millares',
+  throng: 'multitud / tropel',
+  thrust: 'empujar / clavar',
+  'thumb/big toe': 'pulgar / dedo gordo',
+  'to be dismayed': 'consternarse',
+  tottering: 'tambaleante',
+  touch: 'tocar',
+  trade: 'comerciar / mercadería',
+  travel: 'viajar',
+  tread: 'pisar / hollar',
+  tree: 'árbol',
+  trouble: 'angustia / turbación',
+  trust: 'confiar',
+  turn: 'volverse / girar',
+  'turn right': 'ir a la derecha',
+  twenty: 'veinte',
+  twist: 'torcer',
+  'unleavened bread': 'pan sin levadura',
+  urge: 'instar / apremiar',
+  vileness: 'vileza / bajeza',
+  viper: 'víbora',
+  visibility: 'claridad',
+  waking: 'vigilia',
+  wandering: 'errante / vagar',
+  ware: 'mercancía',
+  washing: 'lavamiento',
+  waste: 'desolación / asolar',
+  watch: 'vigilar / guardia',
+  'watch with envy': 'mirar con envidia',
+  watcher: 'centinela / vigilante',
+  weapon: 'arma',
+  whistle: 'silbar / silbido',
+  whom: 'a quien',
+  window: 'ventana',
+  wipe: 'limpiar / enjugar',
+  wonder: 'maravilla / prodigio',
+  wrestle: 'luchar',
+  write: 'escribir',
+  yesterday: 'ayer',
+};
+
+function tbeshHeadEs(headGloss) {
+  if (!headGloss) return null;
+  let h = String(headGloss).toLowerCase().replace(/`/g, '').trim();
+  h = h.split(/:\s/)[0].trim();
+  h = h
+    .replace(/^to\s+/, '')
+    .replace(/^\([^)]*\)\s*/, '')
+    .trim();
+  if (Object.prototype.hasOwnProperty.call(TBESH_HEAD_ES, h))
+    return TBESH_HEAD_ES[h];
+  // "to X" verbs whose bare head is also in the noun map are fine here
+  return null;
+}
+
 // ── TBESH parse ───────────────────────────────────────────────────────────
 function ensureTbesh() {
   fs.mkdirSync(CACHE, {recursive: true});
@@ -1153,7 +2035,13 @@ function parseOriginals() {
   for (const r of rows) {
     let e = lemmas.get(r.strongs);
     if (!e) {
-      e = {occ: 0, glossCounts: new Map(), rawTop: null, rawTopN: 0};
+      e = {
+        occ: 0,
+        glossCounts: new Map(),
+        rawTop: null,
+        rawTopN: 0,
+        verses: [],
+      };
       lemmas.set(r.strongs, e);
     }
     e.occ += r.n;
@@ -1164,8 +2052,96 @@ function parseOriginals() {
     const k = normGloss(r.gloss_en || '') || '∅';
     e.glossCounts.set(k, (e.glossCounts.get(k) || 0) + r.n);
   }
+  // Up to 8 spread-out occurrence verses per lemma — feeds the RVR1960
+  // proper-noun spelling cross-check (see attestNameInRvr).
+  const vrows = db
+    .prepare(
+      'SELECT strongs, book_id, chapter, verse FROM original_words ' +
+        "WHERE lang='H' AND strongs IS NOT NULL " +
+        'GROUP BY strongs, book_id, chapter, verse',
+    )
+    .all();
+  for (const r of vrows) {
+    const e = lemmas.get(r.strongs);
+    if (e && e.verses.length < 400) {
+      e.verses.push([r.book_id, r.chapter, r.verse]);
+    }
+  }
+  for (const e of lemmas.values()) {
+    if (e.verses.length > 8) {
+      const step = e.verses.length / 8;
+      e.verses = Array.from(
+        {length: 8},
+        (_, i) => e.verses[Math.floor(i * step)],
+      );
+    }
+  }
   db.close();
   return {totalH, nullStrongsH, lemmas};
+}
+
+// ── RVR1960 verse text (assets/bible-seed.db) — for the proper-noun pass ───
+let _rvrDb = null;
+let _rvrStmt = null;
+function rvrVerseText(bookId, chapter, verse) {
+  if (_rvrDb === null) {
+    const p = path.join(ROOT, 'assets', 'bible-seed.db');
+    if (!fs.existsSync(p)) {
+      _rvrDb = false;
+      return null;
+    }
+    _rvrDb = new DatabaseSync(p);
+    _rvrStmt = _rvrDb.prepare(
+      "SELECT text FROM verses WHERE version='RVR1960' " +
+        'AND book_id=? AND chapter=? AND verse=?',
+    );
+  }
+  if (_rvrDb === false) return null;
+  const row = _rvrStmt.get(bookId, chapter, verse);
+  return row ? row.text : null;
+}
+
+/** Strip Spanish diacritics + lowercase, for accent-insensitive matching. */
+function deaccent(s) {
+  return String(s || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase();
+}
+
+/**
+ * Does RVR1960 print `candidate` (or its head token) in any of this lemma's
+ * occurrence verses? Returns the actual attested surface form (accented, as
+ * printed) or null. A miss means UNVERIFIED, never "wrong" — RVR1960
+ * legitimately renders a name with a pronoun / omits it / uses a title in
+ * many verses the Hebrew word appears in.
+ */
+function attestNameInRvr(verses, candidate) {
+  if (!candidate || !verses || !verses.length) return null;
+  const heads = candidate
+    .split(/\s*\/\s*|\s+o\s+/i)
+    .map(x => x.trim().split(/[\s-]/)[0])
+    .filter(x => x && x.length >= 3);
+  if (!heads.length) return null;
+  for (const [b, c, v] of verses) {
+    const text = rvrVerseText(b, c, v);
+    if (!text) continue;
+    const flat = deaccent(text);
+    for (const h of heads) {
+      const dh = deaccent(h);
+      const idx = flat.indexOf(dh);
+      if (idx < 0) continue;
+      // whole-word-ish: boundary before, and the match covers a real word start
+      const before = idx === 0 ? ' ' : flat[idx - 1];
+      if (/[a-zñ]/.test(before)) continue;
+      // recover the printed form from the ORIGINAL text at the same offset
+      const m = text
+        .slice(idx)
+        .match(/^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+(?:-[A-Za-zÁÉÍÓÚÜÑáéíóúüñ]+)*/);
+      if (m) return m[0];
+    }
+  }
+  return null;
 }
 
 // ── main ──────────────────────────────────────────────────────────────────
@@ -1313,10 +2289,147 @@ function main() {
       morph: t.morph,
       wouldBeMechanical:
         !t.properNoun && dominantShare >= 0.85 && recurringSenses <= 3,
+      _fromMap: fromMap,
+      _fromDef: fromDef,
+      _tbeshHeadGloss: t.tbeshHeadGloss || '',
+      rawTop: lem.rawTop || '',
+      verses: lem.verses || [],
     });
   }
 
+  // ── A3 full-coverage pass — a first-pass Spanish gloss for EVERY lemma ────
+  assignFullGloss(records);
+
+  if (process.env.A3_DUMP) {
+    fs.mkdirSync(OUT_DIR, {recursive: true});
+    fs.writeFileSync(
+      path.join(OUT_DIR, '_a3-dump.json'),
+      JSON.stringify(
+        records.map(r => ({...r, verses: undefined})),
+        null,
+        1,
+      ),
+    );
+    console.log('   (A3_DUMP) wrote DOCS/drafts/_a3-dump.json');
+  }
+
   writeOutputs({records, totalH, nullStrongsH, esDefs, auditSamples});
+  writeA3Full({records, totalH, nullStrongsH});
+}
+
+/**
+ * Resolve `fullGloss` + `fullSource` (+ review `flag`) for every used lemma.
+ * Priority:
+ *   1. hand maps (particle / divine / weighted / high-freq fix)
+ *   2. proper-noun bucket → RVR1960 spelling from the vetted definition_es
+ *      (+ an accent-insensitive cross-check against assets/bible-seed.db)
+ *   3. mechanical bucket → the draft already produced by the classifier
+ *   4. judgment / mechanical-blank →  definition_es head  (task: ES first)
+ *                                  →  curated EN→ES map on the TBESH raw gloss
+ *                                  →  TBESH head-gloss translated to ES
+ *                                  →  permissive definition_es condense
+ *                                  →  last resort: cleaned TBESH head + FLAG
+ */
+function assignFullGloss(records) {
+  let dbChecked = 0;
+  for (const r of records) {
+    const s = r.strongs;
+    let gloss = '';
+    let source = '';
+
+    if (PARTICLE_ES[s]) {
+      gloss = PARTICLE_ES[s];
+      source = 'hand-particle';
+    } else if (DIVINE_NAMES_ES[s]) {
+      gloss = DIVINE_NAMES_ES[s];
+      source = 'hand-divine';
+    } else if (WEIGHTED_ES[s]) {
+      gloss = WEIGHTED_ES[s];
+      source = 'hand-weighted';
+    } else if (JUDGMENT_FIX_ES[s]) {
+      gloss = JUDGMENT_FIX_ES[s];
+      source = 'hand-fix';
+    } else if (r.bucket === 'proper-noun') {
+      const pn = properNounEs(r);
+      gloss = pn.gloss;
+      source = pn.source;
+      // RVR1960 cross-check (accent-insensitive; a miss = unverified, not wrong)
+      const attested = attestNameInRvr(r.verses, gloss);
+      r._dbAttested = attested || '';
+      dbChecked++;
+      if (
+        attested &&
+        deaccent(attested) !== deaccent(gloss) &&
+        deaccent(attested).split('-')[0] !== deaccent(gloss).split(/[ /]/)[0]
+      ) {
+        // RVR prints a materially different form — keep ours, flag for review
+        flagLemma(
+          s,
+          'proper-mismatch',
+          `RVR1960 imprime «${attested}» en un versículo de muestra`,
+        );
+      }
+      if (pn.source === 'auto-translit')
+        flagLemma(s, 'proper-fallback', 'transliteración automática — revisar');
+    } else if (r.bucket === 'mechanical' && r.proposed) {
+      gloss = capClean(r.proposed);
+      source = r.proposedSource || 'mechanical';
+    } else {
+      // judgment + mechanical-blank + judgment-without-defEs
+      const viaDef = headSense(r.defEs);
+      const viaMap = r._fromMap || translateTbesh(s, r.tbeshRawGloss);
+      const viaHead = tbeshHeadEs(r._tbeshHeadGloss);
+      const viaLoose = looseHead(r.defEs);
+      if (viaDef) {
+        gloss = capClean(viaDef);
+        source = 'definition_es-head';
+      } else if (viaMap) {
+        gloss = capClean(viaMap);
+        source = 'tbesh-map';
+      } else if (viaHead) {
+        gloss = capClean(viaHead);
+        source = 'tbesh-head-es';
+      } else if (viaLoose) {
+        gloss = capClean(viaLoose);
+        source = 'definition_es-loose';
+      } else {
+        gloss = capClean(translitTbeshHeadFallback(r));
+        source = 'UNTRANSLATED';
+        flagLemma(s, 'untranslated', 'sin traducción automática fiable');
+      }
+      // Flag meaningful-frequency auto glosses so the owner has a review list.
+      if (
+        source !== 'UNTRANSLATED' &&
+        r.occ >= 50 &&
+        !A3_FLAGS.has(s) &&
+        !r._fromDef
+      ) {
+        flagLemma(
+          s,
+          'low-confidence',
+          `auto (${source}); ${r.occ} ocurrencias`,
+        );
+      }
+    }
+
+    r.fullGloss = capClean(gloss) || capClean(r.tbeshGloss) || '(?)';
+    r.fullSource = source;
+  }
+  if (_rvrDb && _rvrDb !== false) {
+    console.log(`   RVR1960 proper-noun cross-check: ${dbChecked} lemmas`);
+  }
+}
+
+/** Absolute last-resort value so the JSON never has an empty — a cleaned
+ *  English TBESH head. Always paired with an 'untranslated' flag. */
+function translitTbeshHeadFallback(r) {
+  const h = (r._tbeshHeadGloss || r.tbeshGloss || r.dominantForm || '').trim();
+  return (
+    h
+      .replace(/[<>[\]{}*`_#|]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim() || 'término'
+  );
 }
 
 function csvCell(v) {
@@ -1384,20 +2497,25 @@ function writeOutputs({records, totalH, nullStrongsH, esDefs, auditSamples}) {
   );
 
   // ── review CSV ──────────────────────────────────────────────────────────
+  // final_gloss / final_source / review_flag are the A3 full-coverage columns
+  // (one Spanish gloss for EVERY lemma); proposed_gloss stays as the original
+  // decision-support draft (mechanical + proper-noun buckets only).
   const head = [
     'strongs',
     'translit',
     'bucket',
-    'tbesh_gloss',
+    'final_gloss',
+    'final_source',
+    'review_flag',
     'definition_es',
     'dominant_gloss_share',
-    'recurring_senses',
-    'tbesh_sense_count',
     'occurrences',
     'pct_running_tokens',
+    'tbesh_gloss',
     'proposed_gloss',
     'proposed_source',
     'held_reason',
+    'rvr1960_db_form',
   ];
   const lines = [head.join(',')];
   for (const r of records) {
@@ -1406,16 +2524,18 @@ function writeOutputs({records, totalH, nullStrongsH, esDefs, auditSamples}) {
         r.strongs,
         r.translit,
         r.bucket,
-        trunc(r.tbeshGloss, 60),
+        r.fullGloss || '',
+        r.fullSource || '',
+        A3_FLAGS.get(r.strongs) ? A3_FLAGS.get(r.strongs).kind : '',
         trunc(r.defEs || '', 80),
         r.dominantShare.toFixed(3),
-        r.recurringSenses,
-        r.tbeshSenseCount,
         r.occ,
         r.pctTokens.toFixed(4),
+        trunc(r.tbeshGloss, 60),
         r.proposed,
         r.proposedSource,
         r.heldReason,
+        r._dbAttested || '',
       ]
         .map(csvCell)
         .join(','),
@@ -1777,6 +2897,270 @@ function rvrHint(en) {
     Zion: 'Sion',
   };
   return map[en] || 'Spanish spelling TBD';
+}
+
+// ═══ A3 full-coverage outputs ═══════════════════════════════════════════════
+
+const FLAG_KIND_LABEL = {
+  particle: 'Partícula gramatical',
+  divine: 'Nombre / título divino',
+  weighted: 'Término teológicamente cargado',
+  fix: 'Corrección de alta frecuencia',
+  'proper-fallback': 'Nombre propio sin definition_es',
+  'proper-mismatch': 'Nombre propio: RVR1960 imprime otra forma',
+  'low-confidence': 'Auto (frecuencia media) — verificar',
+  untranslated: 'Sin traducción automática fiable',
+};
+
+function mdCell(v) {
+  return String(v === null || v === undefined ? '' : v)
+    .replace(/\|/g, '\\|')
+    .replace(/\r?\n/g, ' ')
+    .trim();
+}
+
+function writeA3Full({records, totalH}) {
+  fs.mkdirSync(OUT_DIR, {recursive: true});
+  const ASSET_DIR = path.join(ROOT, 'assets');
+  const numKey = k => parseInt(k.slice(1), 10);
+
+  // ── 1. the bundled dataset — flat {H####:"gloss"}, ALL used lemmas ───────
+  const flat = {};
+  for (const r of records) flat[r.strongs] = r.fullGloss;
+  const sorted = {};
+  for (const k of Object.keys(flat).sort((a, b) => numKey(a) - numKey(b))) {
+    sorted[k] = flat[k];
+  }
+
+  // hard contract assertions — fail loudly rather than ship a broken asset
+  const keys = Object.keys(sorted);
+  const problems = [];
+  if (keys.length !== records.length)
+    problems.push(`key count ${keys.length} != ${records.length}`);
+  for (const [k, v] of Object.entries(sorted)) {
+    if (!/^H\d+$/.test(k)) problems.push(`bad key ${k}`);
+    if (!v || !String(v).trim()) problems.push(`empty value for ${k}`);
+    if (String(v).length > GLOSS_MAXLEN)
+      problems.push(`over ${GLOSS_MAXLEN} chars: ${k} = "${v}" (${v.length})`);
+    if (/[<>[\]{}*`_#|~]/.test(v)) problems.push(`markup in ${k} = "${v}"`);
+  }
+  if (problems.length) {
+    console.error('\n❌ A3 dataset contract violations:');
+    for (const p of problems.slice(0, 40)) console.error('   ' + p);
+    throw new Error(
+      `${problems.length} contract violation(s) — asset NOT written`,
+    );
+  }
+
+  fs.writeFileSync(
+    path.join(ASSET_DIR, 'hebrew-lemma-gloss-es.json'),
+    JSON.stringify(sorted, null, 2) + '\n',
+  );
+
+  // ── 2. the review package ──────────────────────────────────────────────
+  const bySrc = {};
+  for (const r of records) bySrc[r.fullSource] = (bySrc[r.fullSource] || 0) + 1;
+  const proper = records.filter(r => r.bucket === 'proper-noun');
+  const attestedN = proper.filter(r => r._dbAttested).length;
+
+  const flagged = [...A3_FLAGS.entries()]
+    .map(([strongs, f]) => ({
+      strongs,
+      ...f,
+      rec: records.find(r => r.strongs === strongs),
+    }))
+    .filter(x => x.rec)
+    .sort((a, b) => b.rec.occ - a.rec.occ);
+  const flaggedByKind = k => flagged.filter(x => x.kind === k);
+
+  const theo = records
+    .filter(
+      r =>
+        (r.fullSource === 'hand-weighted' ||
+          r.fullSource === 'hand-divine' ||
+          r.fullSource === 'hand-particle' ||
+          A3_FLAGS.get(r.strongs)?.kind === 'low-confidence') &&
+        r.bucket !== 'proper-noun',
+    )
+    .sort((a, b) => b.occ - a.occ);
+
+  const L = [];
+  L.push('# A3 — Glosa española por lema hebreo · Paquete de revisión');
+  L.push('');
+  L.push(
+    `_Generado por \`scripts/build-hebrew-lemma-gloss-es.js\` · rama \`feature/hebrew-lemma-gloss-es\`._`,
+  );
+  L.push(
+    '_BORRADOR para la aprobación del propietario. Nada de esto está cableado en la app (eso es P2)._',
+  );
+  L.push('');
+  L.push('## Resumen');
+  L.push('');
+  L.push(`| | |`);
+  L.push(`|---|---|`);
+  L.push(`| Lemas hebreos usados (total) | **${records.length}** |`);
+  L.push(
+    `| Entradas en \`assets/hebrew-lemma-gloss-es.json\` | **${keys.length}** (todas, planas, ordenadas) |`,
+  );
+  L.push(
+    `| Nombres propios | ${proper.length} (${attestedN} con forma RVR1960 confirmada en un versículo de muestra) |`,
+  );
+  L.push(
+    `| Lemas marcados para revisión | **${flagged.length}** (${flaggedByKind('particle').length} partículas · ${flaggedByKind('divine').length} nombres divinos · ${flaggedByKind('weighted').length} términos cargados · ${flaggedByKind('low-confidence').length} auto frecuencia media · ${flaggedByKind('proper-fallback').length} translit. a mano · ${flaggedByKind('proper-mismatch').length} discrepancia RVR · ${flaggedByKind('untranslated').length} sin traducción)_ |`,
+  );
+  L.push('');
+  L.push('Procedencia de la glosa (`fullSource`):');
+  L.push('');
+  L.push('| fuente | lemas |');
+  L.push('|---|---|');
+  for (const [k, n] of Object.entries(bySrc).sort((a, b) => b[1] - a[1]))
+    L.push(`| ${mdCell(k)} | ${n} |`);
+  L.push('');
+  L.push(
+    '- `hand-*` — mapa curado a mano en el script (partículas, nombres divinos, términos cargados, correcciones de alta frecuencia).',
+  );
+  L.push(
+    '- `defEs-*` — nombre / glosa condensada de `scripts/strongs-defs-es.json` (español ya cotejado).',
+  );
+  L.push(
+    '- `tbesh-map` / `tbesh-head-es` — glosa TBESH (col. `Gloss` únicamente; col. `Meaning`/BDB nunca se lee) traducida al español.',
+  );
+  L.push(
+    '- `definition_es-loose` — condensación permisiva del `definition_es` (red de seguridad para la cola).',
+  );
+  L.push(
+    '- `UNTRANSLATED` — sin traducción automática fiable; ver la lista al final.',
+  );
+  L.push('');
+
+  // (iii) flagged particles / divine / weighted — AT THE TOP
+  L.push('---');
+  L.push('');
+  L.push(
+    '## 1. Partículas, nombres divinos y términos cargados (lectura atenta)',
+  );
+  L.push('');
+  for (const kind of ['particle', 'divine', 'weighted']) {
+    const rows = flaggedByKind(kind);
+    if (!rows.length) continue;
+    L.push(`### ${FLAG_KIND_LABEL[kind]} (${rows.length})`);
+    L.push('');
+    L.push(
+      '| Strong | translit | ocurr. | glosa propuesta | TBESH (EN) | definition_es (extracto) | nota |',
+    );
+    L.push('|---|---|---:|---|---|---|---|');
+    for (const x of rows) {
+      const r = x.rec;
+      L.push(
+        `| ${r.strongs} | ${mdCell(r.translit)} | ${r.occ} | **${mdCell(r.fullGloss)}** | ${mdCell(trunc(r.tbeshRawGloss, 22))} | ${mdCell(trunc(r.defEs || '', 60))} | ${mdCell(A3_NOTES[r.strongs] || x.note)} |`,
+      );
+    }
+    L.push('');
+  }
+
+  // (ii) theologically-loaded lemmas — proposed gloss + source defEs + confidence
+  L.push('---');
+  L.push('');
+  L.push(
+    `## 2. Lemas teológicamente cargados / de frecuencia media (${theo.length})`,
+  );
+  L.push('');
+  L.push(
+    '`conf.` = confianza: **alta** (mapa a mano) · media (auto de `definition_es`) · baja (auto de TBESH / condensación permisiva).',
+  );
+  L.push('');
+  L.push(
+    '| Strong | translit | ocurr. | glosa propuesta | fuente | conf. | definition_es (extracto) |',
+  );
+  L.push('|---|---|---:|---|---|---|---|');
+  for (const r of theo) {
+    const conf = /^hand-/.test(r.fullSource)
+      ? 'alta'
+      : /definition_es-head|tbesh-map/.test(r.fullSource)
+        ? 'media'
+        : 'baja';
+    L.push(
+      `| ${r.strongs} | ${mdCell(r.translit)} | ${r.occ} | **${mdCell(r.fullGloss)}** | ${mdCell(r.fullSource)} | ${conf} | ${mdCell(trunc(r.defEs || '', 70))} |`,
+    );
+  }
+  L.push('');
+
+  // (i) proper-noun spelling table
+  L.push('---');
+  L.push('');
+  L.push(`## 3. Nombres propios — ortografía RVR1960 (${proper.length})`);
+  L.push('');
+  L.push(
+    '`RVR1960 (BD)` = forma realmente impresa por RVR1960 en un versículo de muestra donde aparece el lema (búsqueda sin acentos contra `assets/bible-seed.db`). Vacío = no confirmado en la muestra (no implica que la propuesta sea incorrecta). ⚠️ = la BD imprime una forma distinta — revisar.',
+  );
+  L.push('');
+  L.push(
+    '| Strong | translit | TBESH (EN) | propuesta (RVR1960) | RVR1960 (BD) | ocurr. |',
+  );
+  L.push('|---|---|---|---|---|---:|');
+  for (const r of [...proper].sort((a, b) => b.occ - a.occ)) {
+    const mism =
+      r._dbAttested &&
+      deaccent(r._dbAttested).split('-')[0] !==
+        deaccent(r.fullGloss).split(/[ /]/)[0]
+        ? ' ⚠️'
+        : '';
+    L.push(
+      `| ${r.strongs} | ${mdCell(r.translit)} | ${mdCell(r.tbeshGloss || r.rawTop)} | **${mdCell(r.fullGloss)}** | ${mdCell(r._dbAttested || '')}${mism} | ${r.occ} |`,
+    );
+  }
+  L.push('');
+
+  // untranslated tail
+  const untx = records
+    .filter(r => r.fullSource === 'UNTRANSLATED')
+    .sort((a, b) => b.occ - a.occ);
+  if (untx.length) {
+    L.push('---');
+    L.push('');
+    L.push(
+      `## 4. Sin traducción automática fiable (${untx.length}) — glosa provisional = cabeza TBESH limpiada`,
+    );
+    L.push('');
+    L.push('| Strong | translit | ocurr. | glosa provisional | TBESH (EN) |');
+    L.push('|---|---|---:|---|---|');
+    for (const r of untx)
+      L.push(
+        `| ${r.strongs} | ${mdCell(r.translit)} | ${r.occ} | ${mdCell(r.fullGloss)} | ${mdCell(r._tbeshHeadGloss)} |`,
+      );
+    L.push('');
+  }
+
+  L.push('---');
+  L.push('');
+  L.push('## 5. El grueso mecánico');
+  L.push('');
+  L.push(
+    `Las ~${records.filter(r => /mechanical|defEs-name|defEs-gentilic|tbesh-head-es|definition_es-head/.test(r.fullSource)).length} glosas restantes (vocabulario concreto, no marcadas) están en \`DOCS/drafts/hebrew-lemma-gloss-es-review.csv\` — una fila por lema, con \`final_gloss\`, \`final_source\`, \`definition_es\` y \`dominant_gloss_share\` en columnas contiguas para revisión por muestreo.`,
+  );
+  L.push('');
+
+  fs.writeFileSync(
+    path.join(OUT_DIR, 'hebrew-lemma-gloss-es-REVIEW.md'),
+    L.join('\n') + '\n',
+  );
+
+  prettify([
+    path.join(ASSET_DIR, 'hebrew-lemma-gloss-es.json'),
+    path.join(OUT_DIR, 'hebrew-lemma-gloss-es-REVIEW.md'),
+  ]);
+
+  console.log('\n✅ A3 full-coverage:');
+  console.log(
+    `   assets/hebrew-lemma-gloss-es.json             (${keys.length} entries, all ≤${GLOSS_MAXLEN} chars, no markup)`,
+  );
+  console.log(
+    `   DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md   (${flagged.length} flagged)`,
+  );
+  const cov = totalH
+    ? ((records.reduce((a, r) => a + r.occ, 0) / totalH) * 100).toFixed(2)
+    : '?';
+  console.log(`   running-token coverage: ${cov}%  (ceiling for used lemmas)`);
 }
 
 main();
