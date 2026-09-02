@@ -4403,7 +4403,7 @@ export const translations = {
         spainRecommendation:
           'Para la RVR1960, elige una voz de España: pronuncia mejor las formas antiguas como «alabadle».',
         spainRecommendationNoVoice:
-          'Para la RVR1960, una voz de España pronuncia mejor las formas antiguas como «alabadle». Descarga una en los ajustes de texto a voz del sistema.',
+          'Para la RVR1960, una voz de España pronuncia mejor las formas antiguas como «alabadle». Descarga una en los ajustes de texto a voz del sistema. Si ya la instalaste y no aparece aquí, reinicia la app.',
         openTtsSettings: 'Abrir ajustes de texto a voz',
         voiceWord: 'Voz',
         regions: {
@@ -10926,7 +10926,7 @@ export const translations = {
         spainRecommendation:
           'For the RVR1960, choose a Spain voice: it pronounces archaic forms like "alabadle" more accurately.',
         spainRecommendationNoVoice:
-          'For the RVR1960, a Spain voice pronounces archaic forms like "alabadle" more accurately. Download one in your Text-to-speech settings.',
+          'For the RVR1960, a Spain voice pronounces archaic forms like "alabadle" more accurately. Download one in your Text-to-speech settings. If you already installed one and it is not listed here, restart the app.',
         openTtsSettings: 'Open Text-to-speech settings',
         voiceWord: 'Voice',
         regions: {
