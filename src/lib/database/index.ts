@@ -215,6 +215,29 @@ const DICT_V2_UPDATED_AT = '2026-07-21';
  */
 const HEBREW_GLOSS_ES_VERSION = 2;
 
+/**
+ * Version of the bundled Hebrew PER-LEMMA Spanish-gloss overlay (A3 —
+ * `feature/hebrew-lemma-gloss-es`). A companion to
+ * {@link HEBREW_GLOSS_ES_VERSION}: where `hebrew_gloss_es` carries a
+ * hand-curated gloss for 37 SPECIFIC word occurrences, this table
+ * (`hebrew_lemma_gloss_es`) carries a first-pass Spanish gloss keyed by
+ * base Strong's number for ALL ~8,503 Hebrew lemmas the OT actually uses,
+ * so the inline word list stops rendering English `gloss_en` for the ~99%
+ * of Hebrew words that had no per-occurrence curation. Sourced from the
+ * bundled `assets/hebrew-lemma-gloss-es.json` (flat `{ "H7225": "principio",
+ * … }`, produced by `scripts/build-hebrew-lemma-gloss-es.js` from STEPBible
+ * TBESH's `Gloss` column + the vetted `scripts/strongs-defs-es.json`).
+ * Ranks BELOW both the pack's own gloss_es (Greek) and the per-occurrence
+ * `hebrew_gloss_es` overlay in getOriginalWords' COALESCE — it is only the
+ * fallback default. Bump whenever the bundled JSON changes.
+ *
+ * v2 = review pass over the 185 flagged items in
+ * `DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md`, approved by Victor (7
+ * glosses proposed and verified against `bible-seed.db`/
+ * `strongs-defs-es.json`: H1148, H1486, H1692, H2313, H2803, H5315, H7703).
+ */
+const HEBREW_LEMMA_GLOSS_ES_VERSION = 2;
+
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
 
@@ -295,6 +318,9 @@ class BibleDatabase {
   // Imported VERSION of the bundled Hebrew Spanish-gloss overlay (Tanda 10).
   private static readonly HEBREW_GLOSS_ES_LOADED_KEY =
     '@hebrew_gloss_es_loaded_version';
+  // Imported VERSION of the bundled Hebrew per-lemma Spanish-gloss overlay (A3).
+  private static readonly HEBREW_LEMMA_GLOSS_ES_LOADED_KEY =
+    '@hebrew_lemma_gloss_es_loaded_version';
 
   async initialize(): Promise<void> {
     // Si ya está inicializado, retornar inmediatamente
@@ -340,6 +366,7 @@ class BibleDatabase {
       await this.seedCrossReferencesIfMissing();
       await this.seedStrongsDefsIfNeeded();
       await this.seedHebrewGlossEsIfNeeded();
+      await this.seedHebrewLemmaGlossEsIfNeeded();
       await this.seedDictionaryV1IfNeeded();
       await this.seedDictionaryV2IfNeeded();
       await this.seedWebTextIfNeeded();
@@ -591,6 +618,22 @@ class BibleDatabase {
       )
     `);
 
+    // Bundled Hebrew PER-LEMMA Spanish-gloss overlay (A3). Unlike
+    // hebrew_gloss_es above (37 hand-curated per-occurrence rows), this is a
+    // first-pass Spanish gloss keyed by base Strong's number for EVERY Hebrew
+    // lemma the OT uses (~8,503), so the inline word list stops showing English
+    // gloss_en for un-curated Hebrew words. Populated from the bundled
+    // `hebrew-lemma-gloss-es.json` asset (see seedHebrewLemmaGlossEsIfNeeded);
+    // overlays original_words.gloss_es at read time in getOriginalWords as the
+    // LOWEST-priority COALESCE tier (below the pack's gloss_es and the
+    // per-occurrence hebrew_gloss_es overlay).
+    await db.runAsync(`
+      CREATE TABLE IF NOT EXISTS hebrew_lemma_gloss_es (
+        strongs TEXT PRIMARY KEY,
+        gloss_es TEXT NOT NULL
+      )
+    `);
+
     // Bundled Strong's-definitions overlay: the COMPLETE English definition
     // (fixes the openscriptures derivation/strongs_def split) + our faithful
     // Spanish translation. Populated from the bundled `strongs-defs.db` asset
@@ -837,6 +880,78 @@ class BibleDatabase {
       console.log(`📜 Hebrew Spanish-gloss overlay imported (${inserted})`);
     } catch (error) {
       console.warn('⚠️ Hebrew Spanish-gloss overlay seed failed', error);
+    }
+  }
+
+  /**
+   * Load the bundled Hebrew PER-LEMMA Spanish-gloss overlay (A3) into
+   * `hebrew_lemma_gloss_es`. Same shape as {@link seedHebrewGlossEsIfNeeded}
+   * (versioned via AsyncStorage, DELETE-then-INSERT in one transaction,
+   * empty/whitespace rows skipped, failures degrade silently) — the only
+   * differences are the source (a flat `{ strongs: gloss }` object, not an
+   * array of per-occurrence rows) and the target table (keyed by Strong's).
+   *
+   * This supplies the LOWEST-priority Spanish gloss tier: getOriginalWords'
+   * COALESCE prefers the pack's own gloss_es (Greek) and then the
+   * per-occurrence `hebrew_gloss_es` overlay before falling back to this
+   * per-lemma default, so a curated occurrence gloss always outranks it.
+   *
+   * ~8,500 rows is ~10× seedHebrewGlossEsIfNeeded, so the INSERTs go in
+   * multi-row `VALUES` batches (not one bridge round-trip per row) to keep
+   * this off the first-launch critical path — same skip-empty and
+   * graceful-failure semantics, just fewer `runAsync` calls.
+   */
+  private async seedHebrewLemmaGlossEsIfNeeded(): Promise<void> {
+    const db = this.getDb();
+    try {
+      const loaded = await AsyncStorage.getItem(
+        BibleDatabase.HEBREW_LEMMA_GLOSS_ES_LOADED_KEY,
+      );
+      if (loaded === String(HEBREW_LEMMA_GLOSS_ES_VERSION)) return;
+
+      // Bundled JSON asset: flat { "H7225": "principio", … }, all ~8,503 used
+      // OT Hebrew lemmas — produced by scripts/build-hebrew-lemma-gloss-es.js
+      // from STEPBible TBESH's `Gloss` column + scripts/strongs-defs-es.json.
+      const entries: Record<
+        string,
+        string
+      > = require('../../../assets/hebrew-lemma-gloss-es.json');
+
+      const pairs: [string, string][] = [];
+      for (const [strongs, rawGloss] of Object.entries(entries)) {
+        const gloss = (rawGloss ?? '').trim();
+        if (!strongs || !gloss) continue; // never seed a blank
+        pairs.push([strongs, gloss]);
+      }
+
+      const BATCH = 400; // 800 bound params/statement — well under SQLite's limit
+      let inserted = 0;
+      await db.withTransactionAsync(async () => {
+        await db.runAsync('DELETE FROM hebrew_lemma_gloss_es');
+        for (let i = 0; i < pairs.length; i += BATCH) {
+          const chunk = pairs.slice(i, i + BATCH);
+          const placeholders = chunk.map(() => '(?, ?)').join(', ');
+          await db.runAsync(
+            `INSERT OR REPLACE INTO hebrew_lemma_gloss_es (strongs, gloss_es)
+             VALUES ${placeholders}`,
+            chunk.flat(),
+          );
+          inserted += chunk.length;
+        }
+      });
+
+      await AsyncStorage.setItem(
+        BibleDatabase.HEBREW_LEMMA_GLOSS_ES_LOADED_KEY,
+        String(HEBREW_LEMMA_GLOSS_ES_VERSION),
+      );
+      console.log(
+        `📜 Hebrew per-lemma Spanish-gloss overlay imported (${inserted})`,
+      );
+    } catch (error) {
+      console.warn(
+        '⚠️ Hebrew per-lemma Spanish-gloss overlay seed failed',
+        error,
+      );
     }
   }
 
@@ -1174,14 +1289,28 @@ class BibleDatabase {
       // hebrew_gloss_es overlay actually gets a chance to fill in the
       // specific reviewed occurrences (Tanda 10, Fase 1) regardless of
       // which shape the pack happens to carry.
+      //
+      // Three COALESCE tiers, highest priority first:
+      //   1. ow.gloss_es       — the pack's own gloss. Real only for Greek
+      //                          (TAGNT); Hebrew rows are always NULL/''.
+      //   2. hg.gloss_es       — hebrew_gloss_es, 37 hand-curated PER-OCCURRENCE
+      //                          Hebrew glosses (keyed book/chapter/verse/pos).
+      //   3. hl.gloss_es       — hebrew_lemma_gloss_es, the A3 first-pass
+      //                          PER-LEMMA default (keyed Strong's, Hebrew only).
+      // So Greek keeps its own gloss, a curated occurrence still outranks the
+      // lemma default (e.g. Sal 136:1 pos 7 stays "misericordia suya", not
+      // H2617's lemma gloss), and every other Hebrew word gets the A3 default
+      // instead of falling back to English gloss_en in the UI.
       `SELECT ow.position AS position, ow.lang AS lang, ow.word AS word,
               ow.translit AS translit, ow.gloss_en AS gloss_en,
-              COALESCE(NULLIF(TRIM(ow.gloss_es), ''), hg.gloss_es) AS gloss_es,
+              COALESCE(NULLIF(TRIM(ow.gloss_es), ''), hg.gloss_es, hl.gloss_es) AS gloss_es,
               ow.strongs AS strongs, ow.grammar AS grammar
        FROM original_words ow
        LEFT JOIN hebrew_gloss_es hg
          ON hg.book_id = ow.book_id AND hg.chapter = ow.chapter
         AND hg.verse = ow.verse AND hg.position = ow.position
+       LEFT JOIN hebrew_lemma_gloss_es hl
+         ON hl.strongs = ow.strongs AND ow.lang = 'H'
        WHERE ow.book_id = ? AND ow.chapter = ? AND ow.verse = ?
        ORDER BY ow.position`,
       [bookId, chapter, verse],

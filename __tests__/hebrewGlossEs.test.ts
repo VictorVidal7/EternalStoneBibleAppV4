@@ -61,6 +61,21 @@ const SYNTHETIC_ENTRIES = [
 ];
 jest.mock('../assets/hebrew-gloss-es-v1.json', () => SYNTHETIC_ENTRIES);
 
+// Synthetic fixture for the A3 per-lemma overlay — flat { strongs: gloss },
+// NOT the real bundled asset (which the content-sweep test below reads via
+// jest.requireActual). Includes empty/whitespace values the seeder must skip.
+const SYNTHETIC_LEMMA_ENTRIES: Record<string, string> = {
+  H3034: 'alabar / dar gracias',
+  H2617: 'misericordia / amor leal', // must LOSE to the per-occurrence overlay
+  H7225: 'principio',
+  H0001: '', // empty — must be skipped
+  H0002: '   ', // whitespace-only — must be skipped
+};
+jest.mock(
+  '../assets/hebrew-lemma-gloss-es.json',
+  () => SYNTHETIC_LEMMA_ENTRIES,
+);
+
 import {BibleDatabase} from '../src/lib/database';
 
 interface OriginalWordRow {
@@ -83,6 +98,10 @@ interface HebrewGlossEsRow {
   position: number;
   gloss_es: string;
 }
+interface HebrewLemmaGlossEsRow {
+  strongs: string;
+  gloss_es: string;
+}
 
 /** In-memory stand-in for the SQLite handle. Unlike a canned-response stub,
  *  `getAllAsync` genuinely EVALUATES the join + `COALESCE(NULLIF(TRIM(...),
@@ -91,6 +110,7 @@ interface HebrewGlossEsRow {
 class FakeOriginalsHandle {
   originalWords: OriginalWordRow[] = [];
   hebrewGlossEs: HebrewGlossEsRow[] = [];
+  hebrewLemmaGlossEs: HebrewLemmaGlossEsRow[] = [];
 
   async runAsync(
     sql: string,
@@ -111,6 +131,23 @@ class FakeOriginalsHandle {
       ];
       this.hebrewGlossEs.push({book_id, chapter, verse, position, gloss_es});
       return {changes: 1, lastInsertRowId: 0};
+    }
+    if (/^DELETE FROM hebrew_lemma_gloss_es/i.test(s)) {
+      this.hebrewLemmaGlossEs = [];
+      return {changes: 0, lastInsertRowId: 0};
+    }
+    if (/^INSERT (?:OR REPLACE )?INTO hebrew_lemma_gloss_es/i.test(s)) {
+      // The seeder batches N (strongs, gloss) pairs into one multi-row VALUES
+      // statement — params is a flat [s1, g1, s2, g2, …].
+      const p = params as string[];
+      for (let k = 0; k + 1 < p.length; k += 2) {
+        const strongs = p[k];
+        const gloss_es = p[k + 1];
+        const i = this.hebrewLemmaGlossEs.findIndex(r => r.strongs === strongs);
+        if (i >= 0) this.hebrewLemmaGlossEs[i] = {strongs, gloss_es};
+        else this.hebrewLemmaGlossEs.push({strongs, gloss_es});
+      }
+      return {changes: p.length / 2, lastInsertRowId: 0};
     }
     throw new Error(
       `FakeOriginalsHandle.runAsync: unhandled statement: ${s.slice(0, 80)}`,
@@ -135,10 +172,24 @@ class FakeOriginalsHandle {
             h.verse === w.verse &&
             h.position === w.position,
         );
-        // Mirror COALESCE(NULLIF(TRIM(ow.gloss_es), ''), hg.gloss_es) exactly:
-        // NULLIF(TRIM(x), '') is NULL for NULL, '', or whitespace-only x.
+        // `LEFT JOIN hebrew_lemma_gloss_es hl ON hl.strongs = ow.strongs
+        //  AND ow.lang = 'H'` — the lang guard is part of the ON clause, so a
+        // Greek row never joins even if a same-numbered Strong's exists.
+        const hl =
+          w.lang === 'H' && w.strongs
+            ? this.hebrewLemmaGlossEs.find(r => r.strongs === w.strongs)
+            : undefined;
+        // Mirror COALESCE(NULLIF(TRIM(ow.gloss_es), ''), hg.gloss_es,
+        // hl.gloss_es) exactly: NULLIF(TRIM(x), '') is NULL for NULL, '', or
+        // whitespace-only x; then the two overlays in priority order.
         const trimmed = w.gloss_es === null ? null : w.gloss_es.trim();
-        const gloss_es = trimmed ? trimmed : hg ? hg.gloss_es : null;
+        const gloss_es = trimmed
+          ? trimmed
+          : hg
+            ? hg.gloss_es
+            : hl
+              ? hl.gloss_es
+              : null;
         return {
           position: w.position,
           lang: w.lang,
@@ -172,6 +223,7 @@ function makeDb(): {db: BibleDatabase; fake: FakeOriginalsHandle} {
 function privateApi(db: BibleDatabase) {
   return db as unknown as {
     seedHebrewGlossEsIfNeeded(): Promise<void>;
+    seedHebrewLemmaGlossEsIfNeeded(): Promise<void>;
   };
 }
 
@@ -449,5 +501,192 @@ describe('getOriginalWords — Hebrew Spanish-gloss overlay fallback (the NULLIF
     // pickGloss's `en || es` fallback. Documented, not fixed — flagged in
     // the tanda report for Victor's awareness, not changed in pickGloss.
     expect(pickGloss(word, 'en')).toBe('alabad');
+  });
+});
+
+// ── A3 — the per-lemma overlay (hebrew_lemma_gloss_es), 3rd COALESCE tier ────
+
+describe('seedHebrewLemmaGlossEsIfNeeded (synthetic fixture)', () => {
+  afterEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  it('inserts every strongs→gloss pair with a non-empty value, skipping empty/whitespace ones', async () => {
+    const {db, fake} = makeDb();
+    await privateApi(db).seedHebrewLemmaGlossEsIfNeeded();
+
+    expect(fake.hebrewLemmaGlossEs).toEqual(
+      expect.arrayContaining([
+        {strongs: 'H3034', gloss_es: 'alabar / dar gracias'},
+        {strongs: 'H2617', gloss_es: 'misericordia / amor leal'},
+        {strongs: 'H7225', gloss_es: 'principio'},
+      ]),
+    );
+    expect(fake.hebrewLemmaGlossEs).toHaveLength(3); // H0001 '' + H0002 '   ' skipped
+    expect(fake.hebrewLemmaGlossEs.some(r => r.strongs === 'H0001')).toBe(
+      false,
+    );
+    expect(fake.hebrewLemmaGlossEs.some(r => r.strongs === 'H0002')).toBe(
+      false,
+    );
+  });
+
+  it('marks its own version flag done after seeding', async () => {
+    const {db} = makeDb();
+    await privateApi(db).seedHebrewLemmaGlossEsIfNeeded();
+    expect(
+      await AsyncStorage.getItem('@hebrew_lemma_gloss_es_loaded_version'),
+    ).toBe('2');
+  });
+
+  it('is versioned: a second call is a no-op once the flag is set', async () => {
+    const {db, fake} = makeDb();
+    await privateApi(db).seedHebrewLemmaGlossEsIfNeeded();
+    fake.hebrewLemmaGlossEs[0].gloss_es = 'stale-marker';
+    await privateApi(db).seedHebrewLemmaGlossEsIfNeeded();
+    expect(fake.hebrewLemmaGlossEs).toHaveLength(3); // not doubled
+    expect(fake.hebrewLemmaGlossEs[0].gloss_es).toBe('stale-marker'); // untouched
+  });
+
+  it('re-seeds from scratch when the stored version differs (a future bump)', async () => {
+    await AsyncStorage.setItem('@hebrew_lemma_gloss_es_loaded_version', '0');
+    const {db, fake} = makeDb();
+    await privateApi(db).seedHebrewLemmaGlossEsIfNeeded();
+    expect(fake.hebrewLemmaGlossEs).toHaveLength(3);
+    expect(
+      await AsyncStorage.getItem('@hebrew_lemma_gloss_es_loaded_version'),
+    ).toBe('2');
+  });
+
+  it('does not throw when the db op fails, and never marks itself done', async () => {
+    const {db, fake} = makeDb();
+    fake.withTransactionAsync = async () => {
+      throw new Error('simulated failure');
+    };
+    await expect(
+      privateApi(db).seedHebrewLemmaGlossEsIfNeeded(),
+    ).resolves.not.toThrow();
+    expect(
+      await AsyncStorage.getItem('@hebrew_lemma_gloss_es_loaded_version'),
+    ).toBeNull();
+  });
+});
+
+describe('getOriginalWords — 3-tier gloss_es COALESCE (pack › per-occurrence › per-lemma)', () => {
+  it('tier 3: a Hebrew word with no pack gloss and no per-occurrence row gets its per-lemma default', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: '', strongs: 'H7225'})];
+    fake.hebrewGlossEs = [];
+    fake.hebrewLemmaGlossEs = [{strongs: 'H7225', gloss_es: 'principio'}];
+
+    const [word] = await db.getOriginalWords(19, 136, 1);
+    expect(word.gloss_es).toBe('principio');
+    expect(pickGloss(word, 'es')).toBe('principio');
+  });
+
+  it('tier 2 beats tier 3: the 37 curated per-occurrence rows outrank the per-lemma default — Sal 136:1 pos 7 stays "misericordia suya", NOT H2617’s lemma gloss', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [
+      ow({position: 4, gloss_es: '', strongs: 'H2617', word: 'חֶ֫סֶד'}),
+      ow({position: 7, gloss_es: '', strongs: 'H2617', word: 'חַסְדּֽוֹ'}),
+    ];
+    fake.hebrewGlossEs = [
+      {
+        book_id: 19,
+        chapter: 136,
+        verse: 1,
+        position: 7,
+        gloss_es: 'misericordia suya',
+      },
+    ];
+    fake.hebrewLemmaGlossEs = [
+      {strongs: 'H2617', gloss_es: 'misericordia / amor leal'},
+    ];
+
+    const words = await db.getOriginalWords(19, 136, 1);
+    const byPos = Object.fromEntries(words.map(w => [w.position, w.gloss_es]));
+    expect(byPos[7]).toBe('misericordia suya'); // curated occurrence wins
+    expect(byPos[4]).toBe('misericordia / amor leal'); // no curated row → lemma default
+  });
+
+  it('tier 1 beats tier 3: a Greek row keeps its own pack gloss_es — the lemma overlay never touches Greek (the lang guard is in the ON clause)', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [
+      ow({lang: 'G', gloss_es: 'amó', strongs: 'H2617', word: 'ἠγάπησεν'}),
+    ];
+    fake.hebrewLemmaGlossEs = [
+      {strongs: 'H2617', gloss_es: 'should-never-win'},
+    ];
+
+    const [word] = await db.getOriginalWords(19, 136, 1);
+    expect(word.gloss_es).toBe('amó');
+  });
+
+  it('stays null when the Hebrew word has no lemma-overlay row (rare — a strongs outside the ~8,503 used set)', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: '', strongs: 'H99999'})];
+    fake.hebrewGlossEs = [];
+    fake.hebrewLemmaGlossEs = [{strongs: 'H7225', gloss_es: 'principio'}];
+
+    const [word] = await db.getOriginalWords(19, 136, 1);
+    expect(word.gloss_es).toBeNull();
+  });
+
+  it('a NULL strongs Hebrew row (prefix / particle) never joins the lemma overlay', async () => {
+    const {db, fake} = makeDb();
+    fake.originalWords = [ow({gloss_es: '', strongs: null})];
+    fake.hebrewLemmaGlossEs = [{strongs: 'H7225', gloss_es: 'principio'}];
+
+    const [word] = await db.getOriginalWords(19, 136, 1);
+    expect(word.gloss_es).toBeNull();
+  });
+});
+
+describe('assets/hebrew-lemma-gloss-es.json — bundled A3 dataset (content sweep)', () => {
+  // Bypasses the jest.mock above to read the REAL bundled asset.
+  const REAL: Record<string, string> = jest.requireActual(
+    '../assets/hebrew-lemma-gloss-es.json',
+  );
+  const keys = Object.keys(REAL);
+
+  it('is a flat object of ~8,503 base-Strong’s entries, numerically sorted, no metadata keys', () => {
+    expect(keys.length).toBeGreaterThanOrEqual(8000);
+    expect(keys.length).toBeLessThanOrEqual(9000);
+    for (const k of keys) expect(k).toMatch(/^H\d+$/);
+    const nums = keys.map(k => Number(k.slice(1)));
+    for (let i = 1; i < nums.length; i++)
+      expect(nums[i]).toBeGreaterThan(nums[i - 1]);
+  });
+
+  it('every value is a non-empty, ≤40-char, markup-free Spanish gloss', () => {
+    for (const v of Object.values(REAL)) {
+      expect(typeof v).toBe('string');
+      expect(v.trim().length).toBeGreaterThan(0);
+      expect(v.length).toBeLessThanOrEqual(40);
+      expect(v).not.toMatch(/[<>[\]{}*`_#|~]/); // no HTML / markdown residue
+      expect(v).not.toMatch(/\bH\d{2,}\b/); // no leaked Strong's cross-ref
+    }
+  });
+
+  it('covers the divine names as their RVR1960 forms (decision 2)', () => {
+    expect(REAL.H3068).toBe('Jehová'); // YHWH — not "Yahvé"
+    expect(REAL.H3069).toBe('Jehová');
+    expect(REAL.H430).toBe('Dios'); // elohim
+    expect(REAL.H136).toBe('Señor'); // adonai
+  });
+
+  it('the 8 named particles all have a gloss', () => {
+    for (const s of [
+      'H853',
+      'H5921',
+      'H413',
+      'H834',
+      'H3605',
+      'H3588',
+      'H1961',
+      'H559',
+    ]) {
+      expect(REAL[s]?.trim().length).toBeGreaterThan(0);
+    }
   });
 });
