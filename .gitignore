@@ -9,6 +9,9 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Test coverage (jest --coverage / npm run test:ci writes this at repo root)
+coverage/
+
 # Firebase CLI local cache
 .firebase/
 
