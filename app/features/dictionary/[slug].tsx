@@ -86,9 +86,15 @@ type LoadStatus = 'loading' | 'ready' | 'error' | 'unknown';
  *  reader (`app/(tabs)/verse/[book]/[chapter].tsx`'s `jumpToReference`) and
  *  derived for sermon notes (`src/features/study/sermonNotes.ts`'s
  *  `getReferencedVerses`), now reused so dictionary citations like "Lv 16" or
- *  "Dt 1:2" become tappable too. Called both per-segment from `MarkdownBody`
- *  (article/multi-view bodies) and directly on the free gloss (which has no
- *  bold/italic markdown of its own, so it skips `parseMarkdownSegments`).
+ *  "Dt 1:2" become tappable too. Called per-segment from `MarkdownBody`,
+ *  which now renders the free gloss too (see below) as well as
+ *  article/multi-view bodies — a gloss occasionally carries its own
+ *  `*italic*` span (e.g. a transliterated term or a single emphasized word),
+ *  same convention as the article text, so it must go through
+ *  `parseMarkdownSegments` exactly like they do rather than being linkified
+ *  raw (a raw call rendered `*cómo*`'s literal asterisks on-device instead of
+ *  italicizing "cómo" — see `dictionaryMultiviewScreen.test.tsx`'s eleccion
+ *  gloss-italic regression case).
  *  Segments with no reference are returned as bare strings, inheriting the
  *  wrapping `Text`'s style — same "no separate plain color prop" idiom as
  *  `MarkdownBody` itself. `keyPrefix` disambiguates React keys across the
@@ -481,12 +487,13 @@ export default function DictionaryDetailScreen() {
                   {color: themedColors.textSecondary},
                 ]}
                 textBreakStrategy="simple">
-                {linkifyMarkdownSegment(
-                  entry.gloss_es,
-                  themedColors.primary,
-                  handleReferencePress,
-                  0,
-                )}
+                <MarkdownBody
+                  text={entry.gloss_es}
+                  boldColor={themedColors.text}
+                  boldFontFamily={readerFontFamilyBold}
+                  linkColor={themedColors.primary}
+                  onPressReference={handleReferencePress}
+                />
               </Text>
 
               {entry.article_es ? (

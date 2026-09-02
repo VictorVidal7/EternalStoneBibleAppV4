@@ -12,9 +12,10 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState, type ReactNode} from 'react';
 import {
   View,
+  Text,
   ScrollView,
   TextInput,
   TouchableOpacity,
@@ -32,6 +33,7 @@ import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
 import {
   filterDictionaryEntries,
+  parseMarkdownSegments,
   titleCaseHeadword,
   type DictionaryListEntry,
 } from '@/features/study/dictionary';
@@ -43,6 +45,43 @@ import {
 } from '@/styles/designTokens';
 
 type LoadStatus = 'loading' | 'ready' | 'error';
+
+/** Render a free-gloss row preview with its own `*italic*`/`**bold**`
+ *  markdown (see `parseMarkdownSegments` — the same one- or two-asterisk
+ *  spans the detail screen's `MarkdownBody` understands), instead of
+ *  showing literal asterisks for the rare gloss that carries one (e.g.
+ *  "sábado"'s "*shabbat*"). This compact `numberOfLines={1}` search-result
+ *  row doesn't wire in the reader's swappable typefaces the way the detail
+ *  screen does, so bold/italic here just use plain RN `fontStyle`/
+ *  `fontWeight` on the row's own font rather than a font-family swap; Bible
+ *  references are intentionally left un-linkified, same as before this fix,
+ *  since the whole row is already one tap target that opens the entry. */
+function renderGlossPreview(text: string): ReactNode {
+  return parseMarkdownSegments(text).map((seg, i) => {
+    switch (seg.style) {
+      case 'plain':
+        return seg.text;
+      case 'italic':
+        return (
+          <Text key={i} style={styles.glossPreviewItalic}>
+            {seg.text}
+          </Text>
+        );
+      case 'bold':
+        return (
+          <Text key={i} style={styles.glossPreviewBold}>
+            {seg.text}
+          </Text>
+        );
+      case 'bold-italic':
+        return (
+          <Text key={i} style={styles.glossPreviewBoldItalic}>
+            {seg.text}
+          </Text>
+        );
+    }
+  });
+}
 
 export default function DictionaryBrowseScreen() {
   const router = useRouter();
@@ -232,7 +271,7 @@ export default function DictionaryBrowseScreen() {
                             {color: colors.textSecondary},
                           ]}
                           numberOfLines={1}>
-                          {entry.gloss_es}
+                          {renderGlossPreview(entry.gloss_es)}
                         </AppText>
                       </View>
                       <Ionicons
@@ -340,5 +379,18 @@ const styles = StyleSheet.create({
   },
   entryGloss: {
     fontSize: fontSizes.sm,
+  },
+  // Used by `renderGlossPreview` for a gloss's own `*italic*`/`**bold**`
+  // markdown (e.g. "sábado"'s "*shabbat*") — sizing/color are inherited from
+  // the wrapping `entryGloss` AppText, only the weight/slant differ here.
+  glossPreviewItalic: {
+    fontStyle: 'italic',
+  },
+  glossPreviewBold: {
+    fontWeight: '700',
+  },
+  glossPreviewBoldItalic: {
+    fontStyle: 'italic',
+    fontWeight: '700',
   },
 });
