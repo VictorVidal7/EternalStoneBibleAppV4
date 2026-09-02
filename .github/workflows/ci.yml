@@ -1,10 +1,21 @@
 name: CI
 
 on:
+  # Run on every pushed branch, not just main/develop — otherwise a feature
+  # branch only gets its first CI run when it lands on main, which is how two
+  # red pushes (a flaky test surfacing only under the CI job's slower
+  # `--maxWorkers=2 --coverage` config) went unnoticed in Sept 2026.
   push:
-    branches: [main, develop, 'claude/**']
+    branches: ['**']
   pull_request:
     branches: [main, develop]
+
+# One in-flight run per ref — a new push to a branch cancels its previous
+# still-running CI so iterating on a branch doesn't stack full 3-job runs.
+# `main` is excluded from cancellation so a merge is always fully validated.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   lint-and-type-check:
