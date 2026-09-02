@@ -252,13 +252,18 @@ describe('hebrew-gloss-es-v1.json (bundled asset) — Fase 1 shape', () => {
     glossEs: string;
   }> = jest.requireActual('../assets/hebrew-gloss-es-v1.json');
 
-  it('has exactly the Fase 1 scope (37 rows), each with a non-empty draft glossEs', () => {
-    // Filled in by Claude at Victor's direct request ("agrega el español")
-    // after the review sheet was handed off — a first-pass translation of
-    // each row's already-verified gloss_en, not independently re-sourced.
-    // Still worth Victor's own skim before this ships live, same spirit as
-    // the commentary entries' explicit "Victor reviewed and approved" mark.
-    expect(REAL_ASSET).toHaveLength(37);
+  it('has the Fase 1 + A4-chico positional-overlay scope (610 rows), each with a non-empty draft glossEs', () => {
+    // v1/v2: filled in by Claude at Victor's direct request ("agrega el
+    // español") after the review sheet was handed off — a first-pass
+    // translation of each row's already-verified gloss_en, not independently
+    // re-sourced. v3 (60th session): 573 more rows for the non-dominant
+    // TBESH senses of 27 polysemous Hebrew lemmas, built by
+    // scripts/build-hebrew-gloss-es-v2.js from 2 independently-verified
+    // research agents (mechanical TAHOT position keys + hand-cited Spanish
+    // translations verified against bible-seed.db). Still worth Victor's own
+    // skim before this ships live, same spirit as the commentary entries'
+    // explicit "Victor reviewed and approved" mark.
+    expect(REAL_ASSET).toHaveLength(610);
     for (const row of REAL_ASSET) {
       expect(Number.isInteger(row.bookId)).toBe(true);
       expect(Number.isInteger(row.chapter)).toBe(true);
@@ -268,17 +273,24 @@ describe('hebrew-gloss-es-v1.json (bundled asset) — Fase 1 shape', () => {
     }
   });
 
-  it('covers exactly the 4 approved target verses, with no extra verses (no wider corpus)', () => {
+  it('still carries the original Fase 1 scope (4 target verses) unchanged, plus the v3 positional-overlay batch', () => {
     const key = (r: {bookId: number; chapter: number; verse: number}) =>
       `${r.bookId}.${r.chapter}.${r.verse}`;
     const counts: Record<string, number> = {};
     for (const r of REAL_ASSET) counts[key(r)] = (counts[key(r)] ?? 0) + 1;
-    expect(counts).toEqual({
-      '5.27.15': 18, // Deuteronomy 27:15 (amen)
-      '19.136.1': 7, // Psalms 136:1 (hesed)
-      '19.3.2': 8, // Psalms 3:2 (selah)
-      '19.23.1': 4, // Psalms 23:1 (my-shepherd)
-    });
+    // Fase 1's 4 verses are untouched by the v3 batch.
+    expect(counts['5.27.15']).toBe(18); // Deuteronomy 27:15 (amen)
+    expect(counts['19.136.1']).toBe(7); // Psalms 136:1 (hesed)
+    expect(counts['19.3.2']).toBe(8); // Psalms 3:2 (selah)
+    expect(counts['19.23.1']).toBe(4); // Psalms 23:1 (my-shepherd)
+    // v3 adds many more verses across the 27 Tier-A1 lemmas (573 rows).
+    const totalOtherRows =
+      REAL_ASSET.length -
+      (counts['5.27.15'] +
+        counts['19.136.1'] +
+        counts['19.3.2'] +
+        counts['19.23.1']);
+    expect(totalOtherRows).toBe(573);
   });
 
   it('has no duplicate (bookId, chapter, verse, position) keys — per-occurrence, not per-Strong’s', () => {
@@ -343,7 +355,7 @@ describe('seedHebrewGlossEsIfNeeded (synthetic fixture)', () => {
     await privateApi(db).seedHebrewGlossEsIfNeeded();
 
     expect(await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version')).toBe(
-      '2',
+      '3',
     );
   });
 
@@ -367,7 +379,7 @@ describe('seedHebrewGlossEsIfNeeded (synthetic fixture)', () => {
 
     expect(fake.hebrewGlossEs).toHaveLength(2);
     expect(await AsyncStorage.getItem('@hebrew_gloss_es_loaded_version')).toBe(
-      '2',
+      '3',
     );
   });
 

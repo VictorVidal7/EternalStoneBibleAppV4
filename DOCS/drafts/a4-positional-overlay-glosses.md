@@ -1,13 +1,21 @@
 # A4-chico: sense-specific Spanish glosses for 27 polysemous Hebrew lemmas
 
-**STATUS: DRAFT for Victor's review. Nothing here is wired into the app.**
-`assets/hebrew-gloss-es-v1.json` was NOT touched, `HEBREW_GLOSS_ES_VERSION` was NOT
-bumped, nothing was merged. This file only proposes what a future `hebrew_gloss_es`
-per-occurrence row (`book_id, chapter, verse, position, glossEs`) could say for the
-listed verse, for a specific dStrong sense. Positions are NOT included — I don't have
-the tagged TAHOT source locally (see "Method & limits" below), so exact word-position
-numbers still need to be pulled from the originals pack before any row could actually
-be inserted.
+**INTEGRATION NOTE (60th session):** Victor approved this batch as FREE content
+(not premium — `hebrew_gloss_es` already feeds the free per-verse word list with
+no `isPremium` gate, and Victor decided that's fine for a disambiguation/quality
+improvement rather than new premium content). Combined with the position rows
+from `DOCS/drafts/a4-override-positions.json` (branch `research/a4-positional-overlay-rows`)
+in `scripts/build-hebrew-gloss-es-v2.js`. The 7 senses marked UNCERTAIN/NO CITATION
+below (H6887A, H6887B, H3651B, H2717C, H6030A, H1481B, H1984I) were EXCLUDED from
+the shipped batch per that script's own filter — 71 of 78 senses shipped, not 78.
+The separate "A3 base-gloss mismatch" flags below are NOT addressed by this batch
+— they're about `assets/hebrew-lemma-gloss-es.json`'s existing base-lemma glosses,
+a different file/decision, still pending Victor's word.
+
+**STATUS: DRAFT for Victor's review — the source material below, not final ship-ready
+text.** This file only proposes what a per-occurrence row could say for the listed
+verse. Positions were not available to this pass; see the position-generation
+branch/file referenced above.
 
 ## Method & limits (read this before the tables)
 
@@ -429,24 +437,6 @@ no citation possible), H3651B (as — root uncertain), H2717C (to slay — may b
 tagging the related noun "sword" instead), H6030A (to dwell — no citation found;
 refused to invent one), H1481B (to quarrel — root uncertain), H1984I (rave madly —
 root uncertain, closely bordering H1984C).
-
-**Most theologically significant judgment calls, for priority review:**
-
-1. **H1984 (halal) — the Hallelujah root.** Five senses spanning "praise" down to
-   "rave madly", sharing one root. The dominant/liturgical sense (H1984B, "alabar")
-   is solid, but two of the minor senses (H1984I "rave madly", and to a lesser
-   extent H1984C "be foolish") sit on genuinely contested lexical ground — I've
-   flagged H1984I as uncertain rather than asserting it confidently.
-2. **H5035 (nevel) — harp vs. wineskin.** A3's current base gloss shows the
-   minority sense in exactly the context (Psalms worship instruments) where users
-   are most likely to look the word up. I'm fairly confident in "salterio" as the
-   disambiguated fix (validated by the Daniel 3 Aramaic cognate independently
-   landing on the same word), but this is the one I'd want Victor to sign off on
-   before anything downstream depends on it.
-3. **H4853 (massa) "carga"/"oráculo" and H2254C "estar de parto"** — both touch
-   prophetic-genre and judgment-day imagery respectively. Not mistranslations, just
-   flagged because they carry more theological weight than an average vocabulary
-   entry and deserve a slower read than the mechanical rows.
 
 **Most theologically significant judgment calls, for priority review:**
 
