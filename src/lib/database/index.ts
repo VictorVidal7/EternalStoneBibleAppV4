@@ -249,8 +249,17 @@ const HEBREW_GLOSS_ES_VERSION = 3;
  * `DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md`, approved by Victor (7
  * glosses proposed and verified against `bible-seed.db`/
  * `strongs-defs-es.json`: H1148, H1486, H1692, H2313, H2803, H5315, H7703).
+ * v3 = base-gloss corrections (60th session, approved by Victor): 6 lemmas
+ * where the shipped default reflected a non-dominant TBESH sense instead of
+ * the numerically-dominant one, found while building the A4-chico
+ * positional-overlay batch (which can only correct minority-sense
+ * occurrences, never the dominant-sense default itself — see
+ * HEBREW_GLOSS_ES_VERSION v3's own note). H2563 chomer "burbujeo" was the
+ * worst case, matching none of its 3 attested senses at all. H6862, H2790,
+ * H5035, H6743, H8577 corrected the same way, each verified against real
+ * TAHOT occurrence counts.
  */
-const HEBREW_LEMMA_GLOSS_ES_VERSION = 2;
+const HEBREW_LEMMA_GLOSS_ES_VERSION = 3;
 
 /** Max incoming ("referenced by") rows surfaced for a verse, by votes. */
 const XREF_INCOMING_LIMIT = 25;
