@@ -9,7 +9,7 @@ H7,a.vad,mechanical,destruir,tbesh-map,,"(arameo) propiamente, extraviarse, es d
 H8,o.ved,mechanical,miserable o,definition_es-head,,(concreto) miserable o (abstracto) destrucción,1.000,2,0.0007,destruction,miserable o,definition_es-head,,
 H9,a.ve.dah,mechanical,algo perdido,definition_es-head,,"concretamente, algo perdido; abstractamente, destrucción, es decir el Hades",1.000,4,0.0013,something lost,algo perdido,definition_es-head,,
 H10,a.vad.don,mechanical,perdición,definition_es-head,,una perdición (ruina),1.000,1,0.0003,destruction,perdición,definition_es-head,,
-H11,a.vad.don,proper-noun,abstracto,defEs-name,,"abstracto, una destrucción (perecimiento); concreto, el Hades (Abadón)",1.000,5,0.0016,Abaddon,Abaddon,tbesh-en-placeholder,,
+H11,a.vad.don,proper-noun,Abadón,hand-name,,"abstracto, una destrucción (perecimiento); concreto, el Hades (Abadón)",1.000,5,0.0016,Abaddon,Abaddon,tbesh-en-placeholder,,Abadón
 H12,av.dan,mechanical,perdición,definition_es-head,,una perdición (ruina),1.000,1,0.0003,destruction,perdición,definition_es-head,,
 H13,ov.dan,mechanical,perdición,definition_es-head,,una perdición (ruina),1.000,1,0.0003,destruction,perdición,definition_es-head,,
 H14,a.vah,mechanical,anhelar tras,definition_es-head,,"anhelar tras, es decir, (figurativamente) consentir / querer",0.907,54,0.0177,be willing,anhelar tras,definition_es-head,,
@@ -30,7 +30,7 @@ H29,a.viy.yah,proper-noun,Abías,defEs-name,,"Abías, el nombre de varios hombre
 H30,a.vi.hu,proper-noun,Abiú,defEs-name,,"Abiú, un hijo de Aarón",1.000,12,0.0039,Abihu,Abihu,tbesh-en-placeholder,,Abiú
 H31,a.vi.hud,proper-noun,Abiud,defEs-name,,"Abiud, nombre de dos israelitas",1.000,1,0.0003,Abihud,Abihud,tbesh-en-placeholder,,Abiud
 H32,a.vi.ha.yil,proper-noun,Abihail / Abicail,defEs-name,,"Abihail o Abicail, nombre de tres israelitas y dos israelitas (mujeres)",1.000,6,0.0020,Abihail,Abihail,tbesh-en-placeholder,,Abihail
-H33,a.vi ha.ez.ri,proper-noun,abiezrita,defEs-gentilic,,un abiezrita o descendiente de Abiezer,0.500,6,0.0020,Abiezrite,Abiezrite,tbesh-en-placeholder,,
+H33,a.vi ha.ez.ri,proper-noun,un abiezrita / descendiente de Abiezer,defEs-name,,un abiezrita o descendiente de Abiezer,0.500,6,0.0020,Abiezrite,Abiezrite,tbesh-en-placeholder,,
 H34,ev.yon,mechanical,menesteroso,definition_es-head,,menesteroso / indigente,0.984,61,0.0200,needy,menesteroso,definition_es-head,,
 H35,a.viy.yo.nah,mechanical,provocador de deseo,definition_es-head,,provocador de deseo; la alcaparra (por su sabor estimulante),1.000,1,0.0003,desire,provocador de deseo,definition_es-head,,
 H36,a.vi.tuv,proper-noun,Ahitob,defEs-name,,"Ahitob, un israelita",1.000,1,0.0003,Abitub,Abitub,tbesh-en-placeholder,,
@@ -86,7 +86,7 @@ H87,av.ram,proper-noun,Abram,defEs-name,,"Abram, el nombre original de Abraham",
 H88,o.vot,proper-noun,Obot,defEs-name,,"Obot, un lugar en el Desierto",1.000,4,0.0013,Oboth,Oboth,tbesh-en-placeholder,,Obot
 H89,a.ge,proper-noun,Age,defEs-name,,"Age, un israelita",1.000,1,0.0003,Agee,Agee,tbesh-en-placeholder,,Age
 H90,a.gag,proper-noun,Agag,defEs-name,,"Agag, un título de los reyes amalecitas",1.000,8,0.0026,Agag,Agag,tbesh-en-placeholder,,Agag
-H91,a.ga.gi,proper-noun,agagueo,defEs-gentilic,,un agagueo o descendiente (súbdito) de Agag,1.000,5,0.0016,Agagite,Agagite,tbesh-en-placeholder,,agagueo
+H91,a.ga.gi,proper-noun,un agagueo / descendiente,defEs-name,,un agagueo o descendiente (súbdito) de Agag,1.000,5,0.0016,Agagite,Agagite,tbesh-en-placeholder,,
 H92,a.gud.dah,judgment,atadura,definition_es-head,,"una atadura, haz, nudo o arco (bóveda)",0.250,4,0.0013,band,,,no dominant sense (top 0.25),
 H93,e.goz,mechanical,nuez,definition_es-head,,una nuez,1.000,1,0.0003,nut,nuez,definition_es-head,,
 H94,a.gur,proper-noun,Agur,defEs-name,,"Agur, nombre figurado de Salomón",1.000,1,0.0003,Agur,Agur,tbesh-en-placeholder,,Agur
@@ -260,7 +260,7 @@ H262,ach.vah,mechanical,expresión,definition_es-head,,una expresión (dicho),1.
 H263,a.cha.vah,mechanical,solución,definition_es-head,,(arameo) solución (de enigmas),1.000,1,0.0003,explanation,solución,definition_es-head,,
 H264,a.cha.vah,mechanical,fraternidad,definition_es-head,,fraternidad,1.000,1,0.0003,brotherhood,fraternidad,definition_es-head,,
 H265,a.cho.ach,proper-noun,Ahoa,defEs-name,,"Ahoa, un israelita",1.000,1,0.0003,Ahoah,Ahoah,tbesh-en-placeholder,,Ahoa
-H266,a.cho.chi,proper-noun,ahohíta,defEs-gentilic,,un ahohíta o descendiente de Ahoa,0.800,5,0.0016,Ahohite,Ahohite,tbesh-en-placeholder,,ahohíta
+H266,a.cho.chi,proper-noun,un ahohíta / descendiente de Ahoa,defEs-name,,un ahohíta o descendiente de Ahoa,0.800,5,0.0016,Ahohite,Ahohite,tbesh-en-placeholder,,
 H267,a.chu.may,proper-noun,Ahumai,defEs-name,,"Ahumai, un israelita",1.000,1,0.0003,Ahumai,Ahumai,tbesh-en-placeholder,,Ahumai
 H268,a.chor,judgment,parte trasera,definition_es-head,,"la parte trasera; de ahí (adverbio) detrás, hacia atrás; también (mirando al no…",0.659,41,0.0134,back,,,no dominant sense (top 0.66),
 H269,a.chot,mechanical,hermana,tbesh-map,,"una hermana (usado muy ampliamente (como hermano), literal y figuradamente)",0.930,114,0.0374,sister,hermana,tbesh-map,,
@@ -657,9 +657,9 @@ H667,eph.ro.ach,judgment,cría,definition_es-head,,la cría (pollada) de un ave,
 H668,ap.pir.yon,mechanical,palanquín,definition_es-head,,un palanquín,1.000,1,0.0003,carriage,palanquín,definition_es-head,,
 H669,eph.ra.yim,proper-noun,Efraín,defEs-name,,"Efraín, un hijo de José; también la tribu descendiente de él, y su territorio",1.000,180,0.0590,Ephraim,Ephraim,tbesh-en-placeholder,,Efraín
 H670,a.pha.re.say,proper-noun,un aferesita,defEs-name,,"(arameo) un aferesita, habitante de una región desconocida de Asiria",1.000,1,0.0003,Persia,Persia,tbesh-en-placeholder,,
-H671,a.phar.se.khay,proper-noun,afarsaquita,defEs-gentilic,,"(arameo) un afarsaquita o afarsataquita, una tribu asiria desconocida",1.000,3,0.0010,governors,governors,tbesh-en-placeholder,,
+H671,a.phar.se.khay,proper-noun,un afarsaquita / afarsataquita,defEs-name,,"(arameo) un afarsaquita o afarsataquita, una tribu asiria desconocida",1.000,3,0.0010,governors,governors,tbesh-en-placeholder,,
 H672,eph.ra.tah,proper-noun,Efrata,defEs-name,,"Efrata, otro nombre de Belén",0.600,10,0.0033,Ephrathah,Ephrathah,tbesh-en-placeholder,,Efrata
-H673,eph.ra.ti,proper-noun,efrateo,defEs-gentilic,,un efrateo o un efrainita,1.000,5,0.0016,Ephraimite,Ephraimite,tbesh-en-placeholder,,efrateo
+H673,eph.ra.ti,proper-noun,un efrateo / un efrainita,defEs-name,,un efrateo o un efrainita,1.000,5,0.0016,Ephraimite,Ephraimite,tbesh-en-placeholder,,
 H674,ap.p.tom,mechanical,renta,definition_es-head,,"(arameo) renta; según otros, al fin",1.000,1,0.0003,revenue,renta,definition_es-head,,
 H675,ets.bon,proper-noun,Ezbón,defEs-name,,"Ezbón, nombre de dos israelitas",1.000,2,0.0007,Ezbon,Ezbon,tbesh-en-placeholder,,Ezbón
 H676,ets.ba,mechanical,dedo,tbesh-map,,"algo con que asir, es decir, un dedo (de la mano); por analogía, un dedo del pie",0.935,31,0.0102,finger,dedo,tbesh-map,,
@@ -706,8 +706,8 @@ H717,a.rah,judgment,arrancar,definition_es-head,,arrancar,0.500,2,0.0007,to pluc
 H718,a.ru,mechanical,he aquí,definition_es-head,,(arameo) ¡he aquí!,1.000,5,0.0016,behold!,he aquí,definition_es-head,,
 H719,ar.vad,proper-noun,Arvad,defEs-name,,"Arvad, una ciudad-isla de Palestina",1.000,2,0.0007,Arvad,Arvad,tbesh-en-placeholder,,Arvad
 H720,a.rod,proper-noun,Arod,defEs-name,,"Arod, un israelita",1.000,1,0.0003,Arod,Arod,tbesh-en-placeholder,,Arod
-H721,ar.va.di,proper-noun,arvadita,defEs-gentilic,,un arvadita o ciudadano de Arvad,1.000,2,0.0007,Arvadite,Arvadite,tbesh-en-placeholder,,
-H722,a.ro.di,proper-noun,arodita,defEs-gentilic,proper-mismatch,un arodita o descendiente de Arod,0.500,2,0.0007,Arodi,Arodi,tbesh-en-placeholder,,aroditas
+H721,ar.va.di,proper-noun,un arvadita / ciudadano de Arvad,defEs-name,,un arvadita o ciudadano de Arvad,1.000,2,0.0007,Arvadite,Arvadite,tbesh-en-placeholder,,
+H722,a.ro.di,proper-noun,un arodita / descendiente de Arod,defEs-name,,un arodita o descendiente de Arod,0.500,2,0.0007,Arodi,Arodi,tbesh-en-placeholder,,
 H723,ur.vah,judgment,establo / pesebre,tbesh-head-es,,un lugar de apacentamiento para un animal,1.000,3,0.0010,stall,,,definition_es not condensable to a terse gloss,
 H724,a.ru.khah,judgment,integridad,definition_es-head,,integridad (literal o figurativamente),0.667,6,0.0020,health,,,no dominant sense (top 0.67),
 H725,a.ru.mah,proper-noun,Aruma,defEs-name,,"Aruma, un lugar en Palestina",1.000,1,0.0003,Arumah,Arumah,tbesh-en-placeholder,,Aruma
@@ -741,7 +741,7 @@ H753,o.rekh,judgment,longitud,definition_es-head,,longitud / largura,0.674,95,0.
 H754,ar.ka,mechanical,longitud,definition_es-head,,(arameo) longitud,1.000,2,0.0007,lengthening,longitud,definition_es-head,,
 H755,ar.khu.vah,mechanical,rodilla,tbesh-map,,(arameo) la rodilla,1.000,1,0.0003,knee,rodilla,tbesh-map,,
 H756,ar.ke.vay,proper-noun,un arquevita,defEs-name,,"(arameo) un arquevita, natural de Erec",1.000,1,0.0003,Erech,Erech,tbesh-en-placeholder,,
-H757,ar.ki,proper-noun,arquita,defEs-gentilic,proper-mismatch,un arquita o nativo de Erec,1.000,6,0.0020,Archite,Archite,tbesh-en-placeholder,,arquitas
+H757,ar.ki,proper-noun,un arquita / nativo de Erec,defEs-name,,un arquita o nativo de Erec,1.000,6,0.0020,Archite,Archite,tbesh-en-placeholder,,
 H758,a.ram,proper-noun,Aram / Siria,defEs-name,,"Aram o Siria, y sus habitantes; también el nombre del hijo de Sem, un nieto de…",0.986,143,0.0469,Aram,Aram,tbesh-en-placeholder,,Aram
 H759,ar.mon,judgment,ciudadela,definition_es-head,,"una ciudadela (por su altura), palacio",0.625,32,0.0105,citadel,,,no dominant sense (top 0.63),
 H761,a.ram.mi,proper-noun,un arameo,defEs-name,,un arameo,1.000,11,0.0036,Aramean,Aramean,tbesh-en-placeholder,,
@@ -785,7 +785,7 @@ H798,ash.dot hap.pis.gah,proper-noun,Asdot-pisga,defEs-name,,"Asdot-pisga, un lu
 H801,ish.shah,judgment,ofrenda de alimento,tbesh-head-es,low-confidence,"lo mismo que H800 (אֶשָּׁה), pero usado en sentido litúrgico; propiamente, un h…",1.000,65,0.0213,food offering,,,definition_es not condensable to a terse gloss,
 H802,ish.shah,judgment,mujer,definition_es-head,,una mujer,0.392,781,0.2561,woman,,,no dominant sense (top 0.39),
 H803,a.shu.yah,mechanical,fundamento,definition_es-head,,fundamento,1.000,1,0.0003,foundation,fundamento,definition_es-head,,
-H804,ash.shur,proper-noun,Asur,defEs-name,,"Asur, el segundo hijo de Sem; también sus descendientes y el país ocupado por e…",0.927,151,0.0495,Assyria,Assyria,tbesh-en-placeholder,,
+H804,ash.shur,proper-noun,Asiria,hand-name,,"Asur, el segundo hijo de Sem; también sus descendientes y el país ocupado por e…",0.927,151,0.0495,Assyria,Assyria,tbesh-en-placeholder,,Asiria
 H805,a.shu.ri,proper-noun,un asurita,defEs-name,,"un asurita (colectivamente) o habitante de Asur, un distrito en Palestina",0.500,2,0.0007,Asshurim,Asshurim,tbesh-en-placeholder,,
 H806,ash.chur,proper-noun,Asur,defEs-name,,"Asur, un israelita",1.000,2,0.0007,Ashhur,Ashhur,tbesh-en-placeholder,,Asur
 H807,a.shi.ma,proper-noun,Asima,defEs-name,,"Asima, una deidad de Hamat",1.000,1,0.0003,Ashima,Ashima,tbesh-en-placeholder,,Asima
@@ -816,7 +816,7 @@ H832,esh.qe.lo.ni,proper-noun,ascalonita,defEs-name,,"ascalonita, habitante de A
 H833,a.shar,judgment,ser recto,definition_es-head,,"ser recto (usado en el sentido más amplio, especialmente estar nivelado, recto,…",0.500,16,0.0052,to bless,,,no dominant sense (top 0.50),
 H834,a.sher,judgment,que / el cual,hand-particle,particle,"quien, el cual, lo que, que; también (como adverbio y conjunción) cuando, donde…",0.513,5496,1.8019,which,,,denylist,
 H835,e.sher,mechanical,felicidad,definition_es-head,,"felicidad; solo en plural masculino constructo como interjección, ¡cuán feliz!",1.000,45,0.0148,blessed,felicidad,definition_es-head,,
-H836,a.sher,proper-noun,feliz,defEs-name,,"feliz; Aser, un hijo de Jacob, y la tribu que descendió de él, con su territori…",1.000,43,0.0141,Asher,Asher,tbesh-en-placeholder,,
+H836,a.sher,proper-noun,Aser,hand-name,,"feliz; Aser, un hijo de Jacob, y la tribu que descendió de él, con su territori…",1.000,43,0.0141,Asher,Asher,tbesh-en-placeholder,,Aser
 H837,o.sher,mechanical,felicidad,definition_es-head,,felicidad,1.000,1,0.0003,happy,felicidad,definition_es-head,,
 H838,a.shur,mechanical,"paso, pisada",definition_es-head,,"un paso, pisada",1.000,9,0.0030,step,"paso, pisada",definition_es-head,,
 H839,a.shur,mechanical,cedro,definition_es-head,,"el cedro, o alguna otra madera ligera y elástica",1.000,1,0.0003,pine,cedro,definition_es-head,,
@@ -865,7 +865,7 @@ H881,be.e.rot,proper-noun,Beerot,defEs-name,,"Beerot, un lugar en Palestina",1.0
 H882,be.e.ri,proper-noun,Beeri,defEs-name,,"Beeri, nombre de un heteo y de un israelita",1.000,2,0.0007,Beeri,Beeri,tbesh-en-placeholder,,Beeri
 H883,be.er la.chay ro.i,proper-noun,Beer-lahai-roi,defEs-name,,"Beer-lahai-roi, un lugar en el desierto",0.333,9,0.0030,Beer-lahai-roi,Beer-lahai-roi,tbesh-en-placeholder,,
 H884,be.er she.va,proper-noun,Beerseba,defEs-name,,"Beerseba, un lugar en Palestina",0.500,68,0.0223,Beersheba,Beersheba,tbesh-en-placeholder,,Beerseba
-H886,be.e.ro.ti,proper-noun,beerotita,defEs-gentilic,,un beerotita o habitante de Beerot,1.000,5,0.0016,Beerothite,Beerothite,tbesh-en-placeholder,,beerotita
+H886,be.e.ro.ti,proper-noun,un beerotita / habitante de Beerot,defEs-name,,un beerotita o habitante de Beerot,1.000,5,0.0016,Beerothite,Beerothite,tbesh-en-placeholder,,
 H887,ba.ash,judgment,"oler mal, heder",definition_es-head,,"oler mal, heder; figurativamente, ser ofensivo moralmente, hacerse odioso",0.235,17,0.0056,to stink,,,no dominant sense (top 0.24),
 H888,be.esh,mechanical,disgustarse,tbesh-head-es,,,1.000,1,0.0003,be displeased,,tbesh-untranslated,,
 H889,be.osh,judgment,hedor,definition_es-head,,un hedor,0.667,3,0.0010,stench,,,no dominant sense (top 0.67),
@@ -873,8 +873,8 @@ H890,bo.shah,mechanical,hierba maloliente,definition_es-head,,"hierba maloliente
 H891,be.u.shim,mechanical,bayas venenosas,definition_es-head,,bayas venenosas,1.000,2,0.0007,sour grapes,bayas venenosas,definition_es-head,,
 H892,ba.vah,mechanical,manzana,tbesh-head-es,,,1.000,1,0.0003,apple,,tbesh-untranslated,,
 H893,be.vay,proper-noun,Bebai,defEs-name,,"Bebai, un israelita",1.000,6,0.0020,Bebai,Bebai,tbesh-en-placeholder,,Bebai
-H894,ba.vel,proper-noun,Babel,defEs-name,,"Babel (es decir, Babilonia), incluida Babilonia y el imperio babilónico",0.889,262,0.0859,Babylon,Babylon,tbesh-en-placeholder,,Babel
-H895,ba.vel,proper-noun,Babel,defEs-name,,"(arameo) Babel (es decir, Babilonia), incluyendo Babilonia y el imperio babilón…",1.000,25,0.0082,Babylon,Babylon,tbesh-en-placeholder,,
+H894,ba.vel,proper-noun,Babilonia,hand-name,,"Babel (es decir, Babilonia), incluida Babilonia y el imperio babilónico",0.889,262,0.0859,Babylon,Babylon,tbesh-en-placeholder,,Babilonia
+H895,ba.vel,proper-noun,Babilonia,defEs-name,,"(arameo) Babel (es decir, Babilonia), incluyendo Babilonia y el imperio babilón…",1.000,25,0.0082,Babylon,Babylon,tbesh-en-placeholder,,Babilonia
 H896,bav.li,proper-noun,un babilonio,defEs-name,,(arameo) un babilonio,1.000,1,0.0003,Babylonian,Babylonian,tbesh-en-placeholder,,
 H898,ba.gad,judgment,cubrir,definition_es-head,,"cubrir (con una prenda); figurativamente, actuar encubiertamente; por implicaci…",0.347,49,0.0161,to act treacherously,,,no dominant sense (top 0.35),
 H899,be.ged,judgment,vestido / ropa,hand-fix,,"una cubierta, es decir, ropa / vestido; también traición o pillaje",0.581,217,0.0711,garment,,,no dominant sense (top 0.58),
@@ -918,7 +918,7 @@ H936,buz,judgment,"menospreciar, despreciar",definition_es-head,,"menospreciar, 
 H937,buz,mechanical,"desprecio, menosprecio",definition_es-head,,"desprecio, menosprecio",1.000,11,0.0036,contempt,"desprecio, menosprecio",definition_es-head,,
 H938,buz,proper-noun,Buz,defEs-name,,"Buz, nombre de un hijo de Nacor, y de un israelita",1.000,3,0.0010,Buz,Buz,tbesh-en-placeholder,,Buz
 H939,bu.zah,mechanical,desprecio,tbesh-head-es,,,1.000,1,0.0003,contempt,,tbesh-untranslated,,
-H940,bu.zi,proper-noun,buzita,defEs-gentilic,,un buzita o descendiente de Buz,1.000,2,0.0007,Buzite,Buzite,tbesh-en-placeholder,,buzita
+H940,bu.zi,proper-noun,un buzita / descendiente de Buz,defEs-name,,un buzita o descendiente de Buz,1.000,2,0.0007,Buzite,Buzite,tbesh-en-placeholder,,
 H941,bu.zi,proper-noun,Buzi,defEs-name,,"Buzi, un israelita",1.000,1,0.0003,Buzi,Buzi,tbesh-en-placeholder,,Buzi
 H942,bav.vay,proper-noun,Bavai,defEs-name,,"Bavai, un israelita",1.000,1,0.0003,Bavvai,Bavvai,tbesh-en-placeholder,,Bavai
 H943,bukh,judgment,enredar,definition_es-head,,enredar (confundir) (literal o figurativamente),0.667,3,0.0010,to perplex,,,no dominant sense (top 0.67),
@@ -999,7 +999,7 @@ H1019,bet hag.gil.gal,proper-noun,Bet-gilgal,defEs-name,,"Bet-gilgal, un lugar e
 H1020,bet hay.shi.mot,proper-noun,Bet-jesimot,defEs-name,,"Bet-jesimot, una ciudad al este del Jordán",0.500,8,0.0026,Beth-jeshimoth,Beth-jeshimoth,tbesh-en-placeholder,,Bet-jesimot
 H1021,bet hak.ke.rem,proper-noun,Bet-haquerem,defEs-name,,"Bet-haquerem, un lugar en Palestina",0.500,4,0.0013,Beth-haccherem,Beth-haccherem,tbesh-en-placeholder,,Bet-haquerem
 H1022,bet hal.lach.mi,proper-noun,un belemita,defEs-name,,"un belemita, o natural de Belén",0.500,8,0.0026,Bethlehemite,Bethlehemite,tbesh-en-placeholder,,
-H1024,bet ham.mar.ka.vot,proper-noun,Bet-hamarcabot / Bet-marcabot,defEs-name,proper-mismatch,"Bet-hamarcabot o Bet-marcabot, un lugar en Palestina",0.500,4,0.0013,Beth-marcaboth,Beth-marcaboth,tbesh-en-placeholder,,Bet-marcabot
+H1024,bet ham.mar.ka.vot,proper-noun,Bet-hamarcabot / Bet,defEs-name,proper-mismatch,"Bet-hamarcabot o Bet-marcabot, un lugar en Palestina",0.500,4,0.0013,Beth-marcaboth,Beth-marcaboth,tbesh-en-placeholder,,Bet-marcabot
 H1025,bet ha.e.meq,proper-noun,Bet-emec,defEs-name,proper-mismatch,"Bet-emec, un lugar en Palestina",0.500,2,0.0007,Beth-emek,Beth-emek,tbesh-en-placeholder,,Bet-dagón
 H1026,bet ha.a.ra.vah,proper-noun,Bet-ha-Arabá,defEs-name,proper-mismatch,"Bet-ha-Arabá, un lugar en Palestina",0.500,6,0.0020,Beth-arabah,Beth-arabah,tbesh-en-placeholder,,Bet-hogla
 H1027,bet ha.ram,proper-noun,Bet-arán,defEs-name,proper-mismatch,"Bet-arán, un lugar al este del Jordán",0.500,2,0.0007,Beth-haram,Beth-haram,tbesh-en-placeholder,,Bet-aram
@@ -1025,7 +1025,7 @@ H1048,bet pats.tsets,proper-noun,Bet-paset,defEs-name,proper-mismatch,"Bet-paset
 H1049,bet tsur,proper-noun,Bet-sur,defEs-name,,"Bet-sur, un lugar en Palestina",0.500,8,0.0026,Beth-zur,Beth-zur,tbesh-en-placeholder,,Bet-sur
 H1050,bet re.chov,proper-noun,Bet-rehob,defEs-name,,"Bet-rehob, un lugar en Palestina",0.500,4,0.0013,Beth-rehob,Beth-rehob,tbesh-en-placeholder,,Bet-rehob
 H1051,bet ra.pah,proper-noun,Bet-rafá,defEs-name,,"Bet-rafá, un israelita",0.500,2,0.0007,Beth-rapha,Beth-rapha,tbesh-en-placeholder,,Bet-rafa
-H1052,bet she.an,proper-noun,Bet-seán / Bet-sán,defEs-name,proper-mismatch,"Bet-seán o Bet-sán, un lugar en Palestina",0.500,18,0.0059,Beth-shean,Beth-shean,tbesh-en-placeholder,,Bet-seán
+H1052,bet she.an,proper-noun,Bet-seán / Bet,defEs-name,proper-mismatch,"Bet-seán o Bet-sán, un lugar en Palestina",0.500,18,0.0059,Beth-shean,Beth-shean,tbesh-en-placeholder,,Bet-seán
 H1053,bet she.mesh,proper-noun,Bet-semes,defEs-name,,"Bet-semes, un lugar en Palestina",0.500,42,0.0138,Beth-shemesh,Beth-shemesh,tbesh-en-placeholder,,Bet-semes
 H1054,bet tap.pu.ach,proper-noun,Bet-tapúa,defEs-name,,"Bet-tapúa, un lugar en Palestina",0.500,2,0.0007,Beth-tappuah,Beth-tappuah,tbesh-en-placeholder,,Bet-tapúa
 H1055,bi.tan,mechanical,palacio,definition_es-head,,"un palacio (es decir, casa grande)",1.000,3,0.0010,palace,palacio,definition_es-head,,
@@ -1523,7 +1523,7 @@ H1565,gal.mud,mechanical,estéril,definition_es-head,,"estéril (como demasiado 
 H1566,ga.la,judgment,ser obstinado,definition_es-head,,ser obstinado (terco),0.667,3,0.0010,to quarrel,,,no dominant sense (top 0.67),
 H1567,gal.ed,proper-noun,Galed,defEs-name,,"Galed, un montículo conmemorativo al este del Jordán",1.000,2,0.0007,Galeed,Galeed,tbesh-en-placeholder,,
 H1568,gil.ad,proper-noun,Galaad,defEs-name,,"Galaad, una región al este del Jordán; también el nombre de tres israelitas",0.978,134,0.0439,Gilead,Gilead,tbesh-en-placeholder,,Galaad
-H1569,gil.a.di,proper-noun,galaadita,defEs-gentilic,proper-mismatch,un galaadita o descendiente de Galaad,1.000,11,0.0036,Gileadite,Gileadite,tbesh-en-placeholder,,galaaditas
+H1569,gil.a.di,proper-noun,un galaadita / descendiente de Galaad,defEs-name,,un galaadita o descendiente de Galaad,1.000,11,0.0036,Gileadite,Gileadite,tbesh-en-placeholder,,
 H1570,ga.lash,mechanical,brincar,definition_es-head,,probablemente brincar (como una cabra),1.000,2,0.0007,to step down,brincar,definition_es-head,,
 H1571,gam,judgment,también,tbesh-head-es,low-confidence,"por contracción de una raíz en desuso que significa reunir; propiamente, agrupa…",0.865,769,0.2521,also,,,"function-word (Conj, 769 occ)",
 H1572,ga.ma,judgment,absorber,definition_es-head,,absorber,0.500,2,0.0007,to swallow,,,no dominant sense (top 0.50),
@@ -1582,7 +1582,7 @@ H1624,ga.rah,judgment,agitar / despertar,tbesh-head-es,,"raíz primitiva; propia
 H1625,ge.rah,mechanical,"rumen, lo rumiado",definition_es-head,,"el rumen, lo rumiado (como que raspa la garganta)",1.000,11,0.0036,cud,"rumen, lo rumiado",definition_es-head,,
 H1626,ge.rah,mechanical,gera o peso pequeño,definition_es-head,,una gera o peso pequeño (y moneda),1.000,5,0.0016,gerah,gera o peso pequeño,definition_es-head,,
 H1627,ga.ron,judgment,garganta,definition_es-head,,la garganta (como áspera por tragar),0.750,8,0.0026,throat,,,no dominant sense (top 0.75),
-H1628,ge.rut,proper-noun,una morada,defEs-name,,una morada (temporal),1.000,1,0.0003,Geruth,Geruth,tbesh-en-placeholder,,
+H1628,ge.rut,proper-noun,morada,defEs-gentilic,,una morada (temporal),1.000,1,0.0003,Geruth,Geruth,tbesh-en-placeholder,,
 H1629,ga.raz,mechanical,cortar / talar,tbesh-head-es,,,1.000,1,0.0003,to cut off,,tbesh-untranslated,,
 H1630,ge.ri.zim,proper-noun,Gerizim,defEs-name,,"Gerizim, un monte de Palestina",1.000,4,0.0013,(Mount) Gerizim,(Mount) Gerizim,tbesh-en-placeholder,,Gerizim
 H1631,gar.zen,mechanical,hacha,definition_es-head,,un hacha,1.000,4,0.0013,axe,hacha,definition_es-head,,
@@ -1602,7 +1602,7 @@ H1645,ge.resh,mechanical,producto,definition_es-head,,producto (como expulsado),
 H1646,ge.ru.shah,mechanical,desposeimiento,definition_es-head,,(abstractamente) desposeimiento,1.000,1,0.0003,eviction,desposeimiento,definition_es-head,,
 H1647,ge.re.shom,proper-noun,Gersón,defEs-name,,"Gersón, el nombre de cuatro israelitas",1.000,13,0.0043,Gershom,Gershom,tbesh-en-placeholder,,Gersón
 H1648,ge.re.shon,proper-noun,Gersón / Gersom,defEs-name,,"Gersón o Gersom, un israelita",0.944,18,0.0059,Gershon,Gershon,tbesh-en-placeholder,,Gersón
-H1649,ge.re.shun.ni,proper-noun,gersonita,defEs-gentilic,proper-mismatch,un gersonita o descendiente de Gersón,1.000,13,0.0043,Gershonite,Gershonite,tbesh-en-placeholder,,gersonitas
+H1649,ge.re.shun.ni,proper-noun,un gersonita / descendiente de Gersón,defEs-name,,un gersonita o descendiente de Gersón,1.000,13,0.0043,Gershonite,Gershonite,tbesh-en-placeholder,,
 H1650,ge.shur,proper-noun,Gesur,defEs-name,proper-mismatch,"Gesur, un distrito de Siria",0.889,9,0.0030,Geshur,Geshur,tbesh-en-placeholder,,gesureos
 H1651,ge.shu.ri,proper-noun,un gesurita,defEs-name,,un gesurita (también colectivamente) o habitantes de Gesur,1.000,6,0.0020,Geshurite,Geshurite,tbesh-en-placeholder,,
 H1652,ga.sham,mechanical,llover violentamente,definition_es-head,,llover violentamente,1.000,1,0.0003,to rain,llover violentamente,definition_es-head,,
@@ -1616,7 +1616,7 @@ H1659,ga.shash,judgment,palpar,definition_es-head,,palpar (tantear),0.500,2,0.00
 H1660,gat,mechanical,lagar,definition_es-head,,un lagar (o cuba para contener las uvas al pisarlas),1.000,5,0.0016,wine press,lagar,definition_es-head,,
 H1661,gat,proper-noun,Gat,defEs-name,,"Gat, una ciudad filistea",0.969,32,0.0105,Gath,Gath,tbesh-en-placeholder,,Gat
 H1662,gat-ha.che.pher,proper-noun,Gat-hefer,defEs-name,,"Gat-hefer, un lugar en Palestina",0.500,4,0.0013,Gath-hepher,Gath-hepher,tbesh-en-placeholder,,Gat-hefer
-H1663,git.ti,proper-noun,geteo,defEs-gentilic,,un geteo o habitante de Gat,1.000,10,0.0033,Gittite,Gittite,tbesh-en-placeholder,,geteo
+H1663,git.ti,proper-noun,un geteo / habitante de Gat,defEs-name,,un geteo o habitante de Gat,1.000,10,0.0033,Gittite,Gittite,tbesh-en-placeholder,,
 H1664,git.ta.yim,proper-noun,Gitaim,defEs-name,,"Gitaim, un lugar en Palestina",0.500,2,0.0007,Gittaim,Gittaim,tbesh-en-placeholder,,Gitaim
 H1666,ge.ter,proper-noun,Geter,defEs-name,,"Geter, un hijo de Aram, y la región que él colonizó",1.000,2,0.0007,Gether,Gether,tbesh-en-placeholder,,Geter
 H1667,gat-rim.mon,proper-noun,Gat-rimón,defEs-name,,"Gat-rimón, un lugar en Palestina",0.500,8,0.0026,Gath-rimmon,Gath-rimmon,tbesh-en-placeholder,,Gat-rimón
@@ -1855,7 +1855,7 @@ H1901,ha.gig,mechanical,meditación,tbesh-head-es,,,1.000,2,0.0007,meditation,,t
 H1902,hig.ga.von,judgment,sonido murmurante,definition_es-head,,"un sonido murmurante, es decir una notación musical; por implicación, una maqui…",0.250,4,0.0013,Higgaion,,,no dominant sense (top 0.25),
 H1903,ha.gin,mechanical,tal vez adecuado,definition_es-head,,"tal vez adecuado, o cambiante",1.000,1,0.0003,suitable,tal vez adecuado,definition_es-head,,
 H1904,ha.gar,proper-noun,Agar,defEs-name,,"Agar, la madre de Ismael",1.000,12,0.0039,Hagar,Hagar,tbesh-en-placeholder,,Agar
-H1905,hag.ri,proper-noun,agareno,defEs-gentilic,proper-mismatch,un agareno o miembro de cierto clan árabe,0.833,6,0.0020,Hagri,Hagri,tbesh-en-placeholder,,agarenos
+H1905,hag.ri,proper-noun,Hagri,auto-translit,proper-fallback,un agareno o miembro de cierto clan árabe,0.833,6,0.0020,Hagri,Hagri,tbesh-en-placeholder,,
 H1906,hed,mechanical,grito,definition_es-head,,un grito,1.000,1,0.0003,shout,grito,definition_es-head,,
 H1907,had.da.var,judgment,visir,definition_es-head,,(arameo) un visir,0.750,4,0.0013,counselor,,,no dominant sense (top 0.75),
 H1908,ha.dad,proper-noun,Hadad,defEs-name,,"Hadad, el nombre de un ídolo, y de varios reyes de Edom",1.000,12,0.0039,Hadad,Hadad,tbesh-en-placeholder,,Hadad
@@ -1889,7 +1889,7 @@ H1935,hod,judgment,grandeza,definition_es-head,,"grandeza (es decir, una forma y
 H1936,hod,proper-noun,Hod,defEs-name,,"Hod, un israelita",1.000,1,0.0003,Hod,Hod,tbesh-en-placeholder,,Hod
 H1937,ho.de.vah,proper-noun,Hodevá,defEs-name,,"Hodevá (Hodevías), un israelita",1.000,1,0.0003,Hodevah,Hodevah,tbesh-en-placeholder,,
 H1938,ho.dav.yah,proper-noun,Hodavías,defEs-name,,"Hodavías, nombre de tres israelitas",1.000,4,0.0013,Hodaviah,Hodaviah,tbesh-en-placeholder,,Hodavías
-H1940,ho.diy.yah,proper-noun,una judía,defEs-name,,una judía,1.000,1,0.0003,Hodiah,Hodiah,tbesh-en-placeholder,,
+H1940,ho.diy.yah,proper-noun,judía,defEs-gentilic,,una judía,1.000,1,0.0003,Hodiah,Hodiah,tbesh-en-placeholder,,
 H1941,ho.diy.yah,proper-noun,Hodías,defEs-name,,"Hodías, nombre de tres israelitas",1.000,5,0.0016,Hodiah,Hodiah,tbesh-en-placeholder,,Hodías
 H1942,hav.vah,judgment,deseo,definition_es-head,,de H1933 (הָוָא) (en el sentido de codiciar ávidamente y precipitarse sobre; po…,0.813,16,0.0052,desire,,,no dominant sense (top 0.81),
 H1943,ho.vah,mechanical,ruina,definition_es-head,,ruina (calamidad),1.000,3,0.0010,misfortune,ruina,definition_es-head,,
@@ -2015,13 +2015,13 @@ H2064,za.vad,mechanical,conferir,definition_es-head,,conferir (otorgar),1.000,1,
 H2065,ze.ved,mechanical,regalo,definition_es-head,,un regalo,1.000,1,0.0003,dowry,regalo,definition_es-head,,
 H2066,za.vad,proper-noun,Zabad,defEs-name,,"Zabad, el nombre de siete israelitas",1.000,8,0.0026,Zabad,Zabad,tbesh-en-placeholder,,Zabad
 H2067,zav.di,proper-noun,Zabdi,defEs-name,,"Zabdi, nombre de cuatro israelitas",1.000,6,0.0020,Zabdi,Zabdi,tbesh-en-placeholder,,Zabdi
-H2068,zav.di.el,proper-noun,don de Dios,defEs-name,,"don de Dios; Zabdiel, nombre de dos israelitas",1.000,2,0.0007,Zabdiel,Zabdiel,tbesh-en-placeholder,,
+H2068,zav.di.el,proper-noun,Zabdiel,defEs-name,,"don de Dios; Zabdiel, nombre de dos israelitas",1.000,2,0.0007,Zabdiel,Zabdiel,tbesh-en-placeholder,,Zabdiel
 H2069,ze.vad.yah,proper-noun,Zebadías,defEs-name,,"Zebadías, el nombre de nueve israelitas",1.000,9,0.0030,Zebadiah,Zebadiah,tbesh-en-placeholder,,Zebadías
 H2070,ze.vuv,judgment,mosca,definition_es-head,,una mosca (especialmente de las que pican),0.500,2,0.0007,fly,,,no dominant sense (top 0.50),
-H2071,za.vud,proper-noun,dado,defEs-name,,"dado; Zabud, un israelita",1.000,1,0.0003,Zabud,Zabud,tbesh-en-placeholder,,
+H2071,za.vud,proper-noun,Zabud,defEs-name,,"dado; Zabud, un israelita",1.000,1,0.0003,Zabud,Zabud,tbesh-en-placeholder,,Zabud
 H2073,ze.vul,judgment,morada,definition_es-head,,una morada,0.600,5,0.0016,elevation,,,no dominant sense (top 0.60),
 H2074,ze.vu.lun,proper-noun,Zabulón,defEs-name,,"Zabulón, un hijo de Jacob; también su territorio y tribu",1.000,45,0.0148,Zebulun,Zebulun,tbesh-en-placeholder,,Zabulón
-H2075,ze.vu.lo.ni,proper-noun,zabulonita,defEs-gentilic,proper-mismatch,un zabulonita o descendiente de Zabulón,1.000,3,0.0010,Zebulunite,Zebulunite,tbesh-en-placeholder,,zabulonitas
+H2075,ze.vu.lo.ni,proper-noun,un zabulonita / descendiente de Zabulón,defEs-name,,un zabulonita o descendiente de Zabulón,1.000,3,0.0010,Zebulunite,Zebulunite,tbesh-en-placeholder,,
 H2076,za.vach,mechanical,degollar un animal,definition_es-head,,degollar un animal (usualmente en sacrificio); ofrecer en sacrificio,0.896,134,0.0439,to sacrifice,degollar un animal,definition_es-head,,
 H2077,ze.vach,mechanical,matanza,definition_es-head,,"de H2076 (זָבַח); propiamente, una matanza, es decir, la carne de un animal; po…",1.000,162,0.0531,sacrifice,matanza,definition_es-head,,
 H2078,ze.vach,proper-noun,Zeba,defEs-name,,"Zeba, un príncipe madianita",1.000,12,0.0039,Zebah,Zebah,tbesh-en-placeholder,,Zeba
@@ -2170,7 +2170,7 @@ H2223,zar.zir,mechanical,ceñido apretadamente,definition_es-head,,"propiamente,
 H2224,za.rach,judgment,levantarse,tbesh-map,,"raíz primitiva; propiamente, irradiar (o lanzar rayos), es decir, salir (como e…",0.500,18,0.0059,to rise,,,no dominant sense (top 0.50),
 H2225,ze.rach,mechanical,surgimiento de luz,definition_es-head,,un surgimiento de luz,1.000,1,0.0003,dawning,surgimiento de luz,definition_es-head,,
 H2226,ze.rach,proper-noun,Zera,defEs-name,,"Zera, el nombre de tres israelitas, también de un idumeo y un príncipe etíope",1.000,21,0.0069,Zerah,Zerah,tbesh-en-placeholder,,Zera
-H2227,zar.chi,proper-noun,zaraíta,defEs-gentilic,,un zaraíta o descendiente de Zera,1.000,6,0.0020,Zerahite,Zerahite,tbesh-en-placeholder,,
+H2227,zar.chi,proper-noun,un zaraíta / descendiente de Zera,defEs-name,,un zaraíta o descendiente de Zera,1.000,6,0.0020,Zerahite,Zerahite,tbesh-en-placeholder,,
 H2228,ze.rach.yah,proper-noun,Zeraías,defEs-name,,"Zeraías, nombre de dos israelitas",1.000,5,0.0016,Zerahiah,Zerahiah,tbesh-en-placeholder,,Zeraías
 H2229,za.ram,judgment,brotar,definition_es-head,,brotar (como agua),0.500,2,0.0007,to flood,,,no dominant sense (top 0.50),
 H2230,ze.rem,judgment,"torrente, chaparrón de agua",definition_es-head,,"un torrente, chaparrón de agua",0.444,9,0.0030,storm,,,no dominant sense (top 0.44),
@@ -2685,7 +2685,7 @@ H2748,char.tom,judgment,"astrólogo, mago",definition_es-head,,"un astrólogo, m
 H2749,char.tom,judgment,astrólogo,definition_es-head,,"(arameo) un astrólogo (como el que traza líneas o círculos mágicos), mago",0.600,5,0.0016,magician,,,no dominant sense (top 0.60),
 H2750,cho.ri,mechanical,ira ardiente,definition_es-head,,una ira ardiente (es decir intensa),1.000,6,0.0020,burning,ira ardiente,definition_es-head,,
 H2751,cho.ri,mechanical,pan blanco,definition_es-head,,pan blanco,1.000,1,0.0003,white,pan blanco,definition_es-head,,
-H2752,cho.ri,proper-noun,horeo,defEs-gentilic,proper-mismatch,un horeo o idumeo aborigen,1.000,6,0.0020,Horite,Horite,tbesh-en-placeholder,,horeos
+H2752,cho.ri,proper-noun,un horeo / idumeo aborigen,defEs-name,,un horeo o idumeo aborigen,1.000,6,0.0020,Horite,Horite,tbesh-en-placeholder,,
 H2753,cho.ri,proper-noun,Hori,defEs-name,,"Hori, nombre de dos hombres",0.750,4,0.0013,Hori,Hori,tbesh-en-placeholder,,Hori
 H2754,cha.rit,judgment,recortado,definition_es-head,,"propiamente, recortado (o ahuecado), es decir (por implicación) un bolsillo",0.500,2,0.0007,purse,,,no dominant sense (top 0.50),
 H2756,cha.riph,proper-noun,Harif,defEs-name,,"Harif, nombre de dos israelitas",1.000,2,0.0007,Hariph,Hariph,tbesh-en-placeholder,,Harif
@@ -2704,7 +2704,7 @@ H2768,cher.mon,proper-noun,Hermón,defEs-name,,"Hermón, un monte de Palestina",
 H2769,cher.mo.nim,proper-noun,Hermón,hand-translit,proper-fallback,,1.000,1,0.0003,Hermon,Hermon,tbesh-en-placeholder,,hermonitas
 H2770,cher.mesh,mechanical,hoz,definition_es-head,,una hoz (que corta),1.000,2,0.0007,sickle,hoz,definition_es-head,,
 H2771,cha.ran,proper-noun,Harán,defEs-name,,"Harán, el nombre de un hombre y también de un lugar",0.833,12,0.0039,Haran,Haran,tbesh-en-placeholder,,Harán
-H2772,cho.ro.ni,proper-noun,horonita,defEs-gentilic,,un horonita o habitante de Horonaim,1.000,3,0.0010,Horonite,Horonite,tbesh-en-placeholder,,horonita
+H2772,cho.ro.ni,proper-noun,un horonita / habitante de Horonaim,defEs-name,,un horonita o habitante de Horonaim,1.000,3,0.0010,Horonite,Horonite,tbesh-en-placeholder,,
 H2773,cho.ro.na.yim,proper-noun,Horonaim,defEs-name,,"Horonaim, un lugar en Moab",1.000,4,0.0013,Horonaim,Horonaim,tbesh-en-placeholder,,Horonaim
 H2774,char.ne.pher,proper-noun,Harnefer,defEs-name,,"Harnefer, un israelita",1.000,1,0.0003,Harnepher,Harnepher,tbesh-en-placeholder,,Harnefer
 H2775,che.res,judgment,sarna,definition_es-head,,la sarna (comezón); el sol,0.667,3,0.0010,sun,,,no dominant sense (top 0.67),
@@ -2774,7 +2774,7 @@ H2839,chish.shuq,mechanical,unido,definition_es-head,,"unido, es decir un radio 
 H2840,chish.shur,mechanical,combinado,definition_es-head,,"combinado, es decir el cubo de una rueda (que sostiene los radios juntos)",1.000,1,0.0003,hub,combinado,definition_es-head,,
 H2841,chash.rah,mechanical,combinación o agrupación,definition_es-head,,"propiamente, una combinación o agrupación, es decir de nubes de agua",1.000,1,0.0003,collection,combinación o agrupación,definition_es-head,,
 H2842,cha.shash,mechanical,paja,tbesh-map,,hierba seca,1.000,2,0.0007,chaff,paja,tbesh-map,,
-H2843,chu.sha.ti,proper-noun,husatita,defEs-gentilic,,un husatita o descendiente de Husa,1.000,5,0.0016,Hushathite,Hushathite,tbesh-en-placeholder,,husatita
+H2843,chu.sha.ti,proper-noun,un husatita / descendiente de Husa,defEs-name,proper-mismatch,un husatita o descendiente de Husa,1.000,5,0.0016,Hushathite,Hushathite,tbesh-en-placeholder,,descendientes
 H2844,chat,judgment,quebrantado,definition_es-head,,"concretamente, quebrantado; también atemorizado; abstractamente, terror (espant…",0.250,4,0.0013,shattered,,,no dominant sense (top 0.25),
 H2845,chet,proper-noun,Het,defEs-name,,"Het, un cananeo aborigen",1.000,14,0.0046,Heth,Heth,tbesh-en-placeholder,,Het
 H2846,cha.tah,mechanical,asir,definition_es-head,,asir; especialmente recoger fuego (brasas),1.000,4,0.0013,to snatch up,asir,definition_es-head,,
@@ -2905,7 +2905,7 @@ H2971,ya.ir,proper-noun,Jair,defEs-name,,"Jair, el nombre de cuatro israelitas",
 H2972,ya.i.ri,proper-noun,un jairita,defEs-name,,"un jairita, descendiente de Jaír",1.000,1,0.0003,Jairite,Jairite,tbesh-en-placeholder,,
 H2973,ya.al,judgment,ser necio,tbesh-head-es,,"raíz primitiva; propiamente, ser flojo, es decir (figurativamente) ser necio",0.500,4,0.0013,be foolish,,,no dominant sense (top 0.50),
 H2974,ya.al,judgment,estar dispuesto,tbesh-head-es,,raíz primitiva (probablemente la misma que H2973 (יָאַל) por la idea de debilid…,0.474,19,0.0062,be willing,,,no dominant sense (top 0.47),
-H2975,ye.or,proper-noun,un canal,defEs-name,,"un canal, p.ej. un foso, acequia, pozo; específicamente el Nilo, como el único…",0.708,65,0.0213,Nile,Nile,tbesh-en-placeholder,,
+H2975,ye.or,proper-noun,Nilo / río,hand-name,proper-mismatch,"un canal, p.ej. un foso, acequia, pozo; específicamente el Nilo, como el único…",0.708,65,0.0213,Nile,Nile,tbesh-en-placeholder,,río
 H2976,ya.ash,judgment,desistir,definition_es-head,,"desistir, es decir (figurativamente) desesperar",0.667,6,0.0020,to despair,,,no dominant sense (top 0.67),
 H2977,yo.shiy.yah,proper-noun,Josías,defEs-name,,"Josías, nombre de dos israelitas",1.000,53,0.0174,Josiah,Josiah,tbesh-en-placeholder,,Josías
 H2978,ye.i.ton,mechanical,entrada,definition_es-head,,una entrada,1.000,1,0.0003,entrance,entrada,definition_es-head,,
@@ -2913,7 +2913,7 @@ H2979,ye.a.te.ray,proper-noun,Jeaterai,hand-translit,proper-fallback,,1.000,1,0.
 H2980,ya.vav,mechanical,clamar,tbesh-map,,gritar (vociferar),1.000,1,0.0003,to cry,clamar,tbesh-map,,
 H2981,ye.vul,judgment,producto,definition_es-head,,"producto, es decir, una cosecha o (figurativamente) riqueza, fruto",0.692,13,0.0043,crops,,,no dominant sense (top 0.69),
 H2982,ye.vus,proper-noun,Jebús,defEs-name,,"Jebús, el nombre original de Jerusalén",1.000,4,0.0013,Jebus,Jebus,tbesh-en-placeholder,,Jebús
-H2983,ye.vu.si,proper-noun,jebuseo,defEs-gentilic,,un jebuseo o habitante de Jebús,1.000,41,0.0134,Jebusite,Jebusite,tbesh-en-placeholder,,jebuseo
+H2983,ye.vu.si,proper-noun,un jebuseo / habitante de Jebús,defEs-name,,un jebuseo o habitante de Jebús,1.000,41,0.0134,Jebusite,Jebusite,tbesh-en-placeholder,,
 H2984,yiv.char,proper-noun,Ibhar,defEs-name,,"Ibhar, un israelita",1.000,3,0.0010,Ibhar,Ibhar,tbesh-en-placeholder,,Ibhar
 H2985,ya.vin,proper-noun,Jabín,defEs-name,,"Jabín, el nombre de dos reyes cananeos",1.000,8,0.0026,Jabin,Jabin,tbesh-en-placeholder,,Jabín
 H2986,ya.val,judgment,fluir,definition_es-loose,,"raíz primitiva; propiamente, fluir; causativamente, llevar, conducir (especialm…",0.278,18,0.0059,to conduct,,,no dominant sense (top 0.28),
@@ -2991,7 +2991,7 @@ H3057,ye.hu.diy.yah,proper-noun,Jehudías,defEs-name,,"Jehudías, una judía",1.
 H3058,ye.hu,proper-noun,Jehú,defEs-name,,"Jehú, nombre de cinco israelitas",1.000,58,0.0190,Jehu,Jehu,tbesh-en-placeholder,,Jehú
 H3059,ye.ho.a.chaz,proper-noun,Joacaz,defEs-name,,"Joacaz, el nombre de tres israelitas",1.000,20,0.0066,Jehoahaz,Jehoahaz,tbesh-en-placeholder,,Joacaz
 H3060,ye.ho.ash,proper-noun,Joás,defEs-name,,"Joás, el nombre de dos reyes israelitas",1.000,17,0.0056,Jehoash,Jehoash,tbesh-en-placeholder,,Joás
-H3061,ye.hud,proper-noun,contraído de una forma correspondiente a,defEs-name,,(arameo) contraído de una forma correspondiente a H3063 (יְהוּדָה); propiamente…,0.857,7,0.0023,Judah,Judah,tbesh-en-placeholder,,
+H3061,ye.hud,proper-noun,Judá,hand-name,,(arameo) contraído de una forma correspondiente a H3063 (יְהוּדָה); propiamente…,0.857,7,0.0023,Judah,Judah,tbesh-en-placeholder,,Judá
 H3062,ye.hu.da.i,proper-noun,un judaíta,defEs-name,,"(arameo) un judaíta, es decir, judío",0.900,10,0.0033,Jew,Jew,tbesh-en-placeholder,,
 H3063,ye.hu.dah,proper-noun,Judá,defEs-name,,"Judá, nombre de cinco israelitas; también de la tribu descendiente del primero,…",0.994,819,0.2685,Judah,Judah,tbesh-en-placeholder,,Judá
 H3064,ye.hu.di,proper-noun,un judío,defEs-name,,"un judío, o descendiente de Judá",0.973,75,0.0246,Jew,Jew,tbesh-en-placeholder,,
@@ -3081,7 +3081,7 @@ H3154,ye.za,mechanical,sudor,definition_es-head,,"sudor, es decir (por implicaci
 H3155,yiz.rach,proper-noun,un izraíta,defEs-name,,"un izraíta (ezraíta o zaraíta), descendiente de Zera",1.000,1,0.0003,Izrahite,Izrahite,tbesh-en-placeholder,,
 H3156,yiz.rach.yah,proper-noun,Izrahías,defEs-name,,"Izrahías, nombre de dos israelitas",1.000,3,0.0010,Izrahiah,Izrahiah,tbesh-en-placeholder,,Izrahías
 H3157,yiz.re.el,proper-noun,Jezreel,defEs-name,,"Jezreel, el nombre de dos lugares en Palestina y de dos israelitas",0.806,36,0.0118,Jezreel,Jezreel,tbesh-en-placeholder,,Jezreel
-H3158,yiz.re.e.li,proper-noun,jezreelita,defEs-gentilic,,un jezreelita o natural de Jezreel,1.000,13,0.0043,Jezreel,Jezreel,tbesh-en-placeholder,,jezreelita
+H3158,yiz.re.e.li,proper-noun,un jezreelita / natural de Jezreel,defEs-name,,un jezreelita o natural de Jezreel,1.000,13,0.0043,Jezreel,Jezreel,tbesh-en-placeholder,,
 H3160,ye.chub.bah,proper-noun,Jecuba,defEs-name,,"Jecuba, un israelita",1.000,1,0.0003,Jehubbah,Jehubbah,tbesh-en-placeholder,,
 H3161,ya.chad,mechanical,ser,definition_es-head,,ser (o llegar a ser) uno (unirse),1.000,3,0.0010,be joined,ser,definition_es-head,,
 H3162,yach.dav,judgment,juntos,hand-fix,,"de H3161 (יָחַד); propiamente, una unidad, es decir, (adverbio) unidamente / ju…",0.780,141,0.0462,together,,,no dominant sense (top 0.78),
@@ -3239,7 +3239,7 @@ H3321,ye.tsav,mechanical,conocer,tbesh-map,,"(arameo) ser firme; de ahí, hablar
 H3322,ya.tsag,judgment,colocar permanentemente,definition_es-head,,"colocar permanentemente, poner, presentar",0.313,16,0.0052,to set,,,no dominant sense (top 0.31),
 H3323,yits.har,mechanical,aceite,tbesh-map,,"aceite (como productor de luz); figurativamente, unción",1.000,23,0.0075,oil,aceite,tbesh-map,,
 H3324,yits.har,proper-noun,Izhar,defEs-name,,"Izhar, un israelita",1.000,9,0.0030,Izhar,Izhar,tbesh-en-placeholder,,Izhar
-H3325,yits.ha.ri,proper-noun,izharita,defEs-gentilic,proper-mismatch,un izharita o descendiente de Izhar,1.000,4,0.0013,Izharite,Izharite,tbesh-en-placeholder,,izharitas
+H3325,yits.ha.ri,proper-noun,un izharita / descendiente de Izhar,defEs-name,,un izharita o descendiente de Izhar,1.000,4,0.0013,Izharite,Izharite,tbesh-en-placeholder,,
 H3326,ya.tsu.a,judgment,tendido,definition_es-head,,"tendido, es decir, una cama, lecho; (arquitectura) una extensión, es decir, ala…",0.500,8,0.0026,bed,,,no dominant sense (top 0.50),
 H3327,yits.chaq,proper-noun,Isaac,defEs-name,,"Isaac, hijo de Abraham",1.000,108,0.0354,Isaac,Isaac,tbesh-en-placeholder,,Isaac
 H3329,ya.tsi,mechanical,descendencia,definition_es-head,,"descendencia, es decir progenie",1.000,1,0.0003,offspring,descendencia,definition_es-head,,
@@ -3296,7 +3296,7 @@ H3379,ya.rov.am,proper-noun,Jeroboam,defEs-name,,"Jeroboam, nombre de dos reyes 
 H3380,ye.rub.be.shet,proper-noun,Jerobeset,defEs-name,,"Jerobeset, nombre simbólico de Gedeón",1.000,1,0.0003,Jerubbesheth,Jerubbesheth,tbesh-en-placeholder,,
 H3381,ya.rad,judgment,descender,definition_es-head,,"descender (literalmente, bajar; o convencionalmente a una región más baja, como…",0.239,380,0.1246,to go down,,,no dominant sense (top 0.24),
 H3382,ye.red,proper-noun,Jared,defEs-name,,"Jared, el nombre de un antediluviano y de un israelita",1.000,7,0.0023,Jared,Jared,tbesh-en-placeholder,,Jared
-H3383,yar.den,proper-noun,el Jordán,defEs-name,,"el Jordán, el principal río de Palestina",0.978,182,0.0597,Jordan,Jordan,tbesh-en-placeholder,,
+H3383,yar.den,proper-noun,Jordán,hand-name,,"el Jordán, el principal río de Palestina",0.978,182,0.0597,Jordan,Jordan,tbesh-en-placeholder,,Jordán
 H3384,ya.ra,judgment,brote / retoño,tbesh-head-es,low-confidence,"o (2 Crónicas 26:15) יָרָא; una raíz primitiva; propiamente, fluir como agua (e…",0.388,80,0.0262,to shoot,,,no dominant sense (top 0.39),
 H3385,ye.ru.el,proper-noun,Jeruel,defEs-name,,"Jeruel, un lugar en Palestina",1.000,1,0.0003,Jeruel,Jeruel,tbesh-en-placeholder,,Jeruel
 H3386,ya.ro.ach,proper-noun,Jaroa,defEs-name,,"Jaroa, un israelita",1.000,1,0.0003,Jaroah,Jaroah,tbesh-en-placeholder,,Jaroa
@@ -3371,7 +3371,7 @@ H3455,ya.sam,mechanical,colocar,definition_es-head,,"colocar; intransitivamente,
 H3456,ya.sham,mechanical,quedar asolado,definition_es-head,,quedar asolado,1.000,4,0.0013,be desolate,quedar asolado,definition_es-head,,
 H3457,yish.ma,proper-noun,Isma,defEs-name,,"Isma, un israelita",1.000,1,0.0003,Ishma,Ishma,tbesh-en-placeholder,,Isma
 H3458,yish.ma.el,proper-noun,Ismael,defEs-name,,"Ismael, el nombre del hijo mayor de Abraham, y de cinco israelitas",1.000,48,0.0157,Ishmael,Ishmael,tbesh-en-placeholder,,Ismael
-H3459,yish.ma.e.li,proper-noun,ismaelita,defEs-gentilic,proper-mismatch,un ismaelita o descendiente de Ismael,1.000,8,0.0026,Ishmaelite,Ishmaelite,tbesh-en-placeholder,,ismaelitas
+H3459,yish.ma.e.li,proper-noun,un ismaelita / descendiente de Ismael,defEs-name,,un ismaelita o descendiente de Ismael,1.000,8,0.0026,Ishmaelite,Ishmaelite,tbesh-en-placeholder,,
 H3460,yish.ma.yah,proper-noun,Ismaías,defEs-name,,"Ismaías, nombre de dos israelitas",1.000,2,0.0007,Ishmaiah,Ishmaiah,tbesh-en-placeholder,,Ismaías
 H3461,yish.me.ray,proper-noun,Ismerai,defEs-name,,"Ismerai, un israelita",1.000,1,0.0003,Ishmerai,Ishmerai,tbesh-en-placeholder,,Ismerai
 H3462,ya.shen,judgment,dormir,tbesh-map,,"raíz primitiva; propiamente, estar flojo o lánguido, es decir, (por implicación…",0.474,19,0.0062,to sleep,,,no dominant sense (top 0.47),
@@ -3415,7 +3415,7 @@ H3501,yit.ra,proper-noun,Itra,defEs-name,,"Itra, un israelita (o ismaelita)",1.0
 H3502,yit.rah,mechanical,excelencia,definition_es-head,,"propiamente, excelencia, es decir (por implicación) riqueza",1.000,2,0.0007,abundance,excelencia,definition_es-head,,
 H3503,yit.ro,proper-noun,Jetro,defEs-name,,"Jetro, el suegro de Moisés",1.000,9,0.0030,Jethro,Jethro,tbesh-en-placeholder,,Jetro
 H3504,yit.ron,judgment,"preeminencia, ventaja",definition_es-head,,"preeminencia, ventaja, provecho, ganancia",0.600,10,0.0033,advantage,,,no dominant sense (top 0.60),
-H3505,yit.ri,proper-noun,itrita,defEs-gentilic,,un itrita o descendiente de Jeter,1.000,5,0.0016,Ithrite,Ithrite,tbesh-en-placeholder,,itrita
+H3505,yit.ri,proper-noun,un itrita / descendiente de Jeter,defEs-name,,un itrita o descendiente de Jeter,1.000,5,0.0016,Ithrite,Ithrite,tbesh-en-placeholder,,
 H3506,yit.ran,proper-noun,Itrán,defEs-name,,"Itrán, nombre de un edomita y de un israelita",1.000,3,0.0010,Ithran,Ithran,tbesh-en-placeholder,,Itrán
 H3507,yit.re.am,proper-noun,Itream,defEs-name,,"Itream, un hijo de David",1.000,2,0.0007,Ithream,Ithream,tbesh-en-placeholder,,Itream
 H3508,yo.te.ret,mechanical,lóbulo o redaño del hígado,definition_es-head,,el lóbulo o redaño del hígado (como sobrante o colgante),1.000,11,0.0036,lobe,lóbulo o redaño del hígado,definition_es-head,,
@@ -3507,7 +3507,7 @@ H3594,kiy.yun,proper-noun,propiamente,defEs-name,,"propiamente, una estatua, es 
 H3595,kiy.yor,judgment,tazón / fuente,tbesh-head-es,,"o כִּיֹּר; de la misma raíz que H3564 (כּוּר); propiamente, algo redondo (como…",0.870,23,0.0075,basin,,,definition_es not condensable to a terse gloss,
 H3596,ki.lay,mechanical,tacaño,definition_es-head,,tacaño (mezquino),1.000,2,0.0007,rogue,tacaño,definition_es-head,,
 H3597,ke.laph,mechanical,maza o mazo,definition_es-head,,una maza o mazo,1.000,1,0.0003,axe,maza o mazo,definition_es-head,,
-H3598,ki.mah,proper-noun,un cúmulo de estrellas,defEs-name,,"un cúmulo de estrellas, es decir las Pléyades",1.000,3,0.0010,Pleiades,Pleiades,tbesh-en-placeholder,,
+H3598,ki.mah,proper-noun,las Pléyades,defEs-name,,"un cúmulo de estrellas, es decir las Pléyades",1.000,3,0.0010,Pleiades,Pleiades,tbesh-en-placeholder,,las
 H3599,kis,mechanical,copa,definition_es-head,,una copa; también una bolsa para dinero o pesas,1.000,5,0.0016,purse,copa,definition_es-head,,
 H3600,kir,mechanical,hogar de cocina,definition_es-head,,un hogar de cocina (dos piedras paralelas sobre las que se coloca la olla),1.000,1,0.0003,stove,hogar de cocina,definition_es-head,,
 H3601,ki.shor,mechanical,director,definition_es-head,,"literalmente un director, es decir el huso o vara de una rueca, con que se hace…",1.000,1,0.0003,distaff,director,definition_es-head,,
@@ -3577,7 +3577,7 @@ H3665,ka.na,judgment,humillarse,tbesh-head-es,,"raíz primitiva; propiamente, do
 H3666,kin.ah,mechanical,paquete,definition_es-head,,un paquete,1.000,1,0.0003,bundle,paquete,definition_es-head,,
 H3667,ke.na.an,proper-noun,Canaán,defEs-name,,"Canaán, un hijo de Cam; también el país habitado por él",0.968,94,0.0308,Canaan,Canaan,tbesh-en-placeholder,,Canaán
 H3668,ke.na.a.nah,proper-noun,Quenaana,defEs-name,,"Quenaana, nombre de dos israelitas",1.000,5,0.0016,Chenaanah,Chenaanah,tbesh-en-placeholder,,Quenaana
-H3669,ke.na.a.ni,proper-noun,cananeo,defEs-gentilic,proper-mismatch,"un cananeo o habitante de Canaán; por implicación, un buhonero (los cananeos re…",0.932,73,0.0239,Canaanitess,Canaanitess,tbesh-en-placeholder,,cananeos
+H3669,ke.na.a.ni,proper-noun,un cananeo / habitante de Canaán,defEs-name,,"un cananeo o habitante de Canaán; por implicación, un buhonero (los cananeos re…",0.932,73,0.0239,Canaanitess,Canaanitess,tbesh-en-placeholder,,
 H3670,ka.naph,mechanical,proyectarse lateralmente,definition_es-head,,"propiamente, proyectarse lateralmente, es decir probablemente (reflexivo) retir…",1.000,1,0.0003,to corner,proyectarse lateralmente,definition_es-head,,
 H3671,ka.naph,judgment,borde o extremidad,definition_es-head,,"un borde o extremidad; específicamente (de un ave o ejército) un ala, (de una p…",0.505,109,0.0357,wing,,,no dominant sense (top 0.50),
 H3672,kin.n.rot,proper-noun,Cineret,defEs-name,,"Cineret, un lugar en Palestina",1.000,7,0.0023,(Sea of) Chinnereth,(Sea of) Chinnereth,tbesh-en-placeholder,,Cineret
@@ -3669,7 +3669,7 @@ H3757,kar.mi,proper-noun,un carmita,defEs-name,,"un carmita, descendiente de Car
 H3758,kar.mil,mechanical,"carmesí, un rojo intenso",definition_es-head,,"carmesí, un rojo intenso",1.000,3,0.0010,crimson,"carmesí, un rojo intenso",definition_es-head,,
 H3759,kar.mel,judgment,campo plantado,definition_es-head,,"un campo plantado (huerto, vergel, viña o parque); por implicación, el producto…",0.529,17,0.0056,plantation,,,no dominant sense (top 0.53),
 H3760,kar.mel,proper-noun,Carmelo,defEs-name,,"Carmelo, el nombre de un monte y de una ciudad en Palestina",0.864,22,0.0072,Carmel,Carmel,tbesh-en-placeholder,,Carmelo
-H3761,kar.me.li,proper-noun,carmelita,defEs-gentilic,,un carmelita o habitante de Carmel (la ciudad),1.000,7,0.0023,Carmelite,Carmelite,tbesh-en-placeholder,,carmelita
+H3761,kar.me.li,proper-noun,un carmelita / habitante de Carmel,defEs-name,,un carmelita o habitante de Carmel (la ciudad),1.000,7,0.0023,Carmelite,Carmelite,tbesh-en-placeholder,,
 H3763,ke.ran,proper-noun,Querán,defEs-name,,"Querán, un idumeo aborigen",1.000,2,0.0007,Cheran,Cheran,tbesh-en-placeholder,,Querán
 H3764,kor.se,mechanical,trono,tbesh-map,,(arameo) un trono,1.000,3,0.0010,throne,trono,tbesh-map,,
 H3765,kir.sem,mechanical,arrancar,tbesh-head-es,,,1.000,1,0.0003,to tear off,,tbesh-untranslated,,
@@ -3681,12 +3681,12 @@ H3770,ke.re.s,mechanical,vientre,tbesh-map,,la panza o el vientre (que se hincha
 H3771,kar.she.na,proper-noun,Carsena,defEs-name,,"Carsena, un cortesano de Jerjes",1.000,1,0.0003,Carshena,Carshena,tbesh-en-placeholder,,Carsena
 H3772,ka.rat,judgment,cortar,definition_es-head,,"cortar (separar, derribar o partir); por implicación, destruir o consumir; espe…",0.563,288,0.0944,to cut,,,no dominant sense (top 0.56),
 H3773,ka.ru.tah,mechanical,algo cortado,definition_es-head,,"algo cortado, es decir una viga labrada",1.000,3,0.0010,beam,algo cortado,definition_es-head,,
-H3774,ke.re.ti,proper-noun,cereteo,defEs-gentilic,proper-mismatch,un cereteo o miembro de la guardia personal,1.000,10,0.0033,Cherethite,Cherethite,tbesh-en-placeholder,,cereteos
+H3774,ke.re.ti,proper-noun,Ceretita,auto-translit,proper-fallback,un cereteo o miembro de la guardia personal,1.000,10,0.0033,Cherethite,Cherethite,tbesh-en-placeholder,,
 H3775,ke.sev,judgment,"cordero, oveja joven",definition_es-head,,"un cordero, oveja joven",0.462,13,0.0043,sheep,,,no dominant sense (top 0.46),
 H3776,kis.bah,mechanical,cordero,tbesh-map,,una cordera joven,1.000,1,0.0003,lamb,cordero,tbesh-map,,
 H3777,ke.sed,proper-noun,Quesed,defEs-name,,"Quesed, un pariente de Abraham",1.000,1,0.0003,Chesed,Chesed,tbesh-en-placeholder,,Quesed
 H3778,kas.di,proper-noun,un caldeo,defEs-name,,"un caldeo, o descendiente de Quesed; por implicación, un caldeo (como si así de…",0.912,80,0.0262,Chaldea,Chaldea,tbesh-en-placeholder,,
-H3779,kas.day,proper-noun,caldeo,defEs-gentilic,proper-mismatch,"(arameo) un caldeo o habitante de Caldea; por implicación, un mago o astrólogo…",0.625,8,0.0026,Chaldean,Chaldean,tbesh-en-placeholder,,caldeos
+H3779,kas.day,proper-noun,un caldeo / habitante de Caldea,defEs-name,,"(arameo) un caldeo o habitante de Caldea; por implicación, un mago o astrólogo…",0.625,8,0.0026,Chaldean,Chaldean,tbesh-en-placeholder,,
 H3780,ka.sah,mechanical,engordar,definition_es-head,,"engordar (es decir, cubrirse de carne)",1.000,1,0.0003,be sated,engordar,definition_es-head,,
 H3781,kash.shil,mechanical,talador,definition_es-head,,"propiamente, un talador, es decir un hacha",1.000,1,0.0003,axe,talador,definition_es-head,,
 H3782,ka.shal,judgment,tambalearse o vacilar,definition_es-head,,"tambalearse o vacilar (por debilidad de las piernas, especialmente el tobillo);…",0.742,62,0.0203,to stumble,,,no dominant sense (top 0.74),
@@ -3701,7 +3701,7 @@ H3790,ke.tav,judgment,escribir,tbesh-head-es,,"(arameo) grabar, por implicación
 H3791,ka.tav,judgment,algo escrito,definition_es-head,,"algo escrito, es decir, un escrito, registro o libro",0.588,17,0.0056,writing,,,no dominant sense (top 0.59),
 H3792,ke.tav,judgment,algo escrito,definition_es-head,,"(arameo) algo escrito, es decir, un escrito, registro o libro",0.833,12,0.0039,inscription,,,no dominant sense (top 0.83),
 H3793,ke.to.vet,judgment,grabar / marca,tbesh-head-es,,una letra u otra marca grabada en la piel,1.000,1,0.0003,imprint,,,definition_es not condensable to a terse gloss,
-H3794,kit.ti,proper-noun,quiteo,defEs-gentilic,,"un quiteo o chipriota; de ahí, un isleño en general, es decir, los griegos o ro…",0.625,8,0.0026,Kittim,Kittim,tbesh-en-placeholder,,
+H3794,kit.ti,proper-noun,un quiteo / chipriota,defEs-name,,"un quiteo o chipriota; de ahí, un isleño en general, es decir, los griegos o ro…",0.625,8,0.0026,Kittim,Kittim,tbesh-en-placeholder,,
 H3795,ka.tit,mechanical,machacado,definition_es-head,,"machacado, es decir (aceite) puro",1.000,5,0.0016,beaten,machacado,definition_es-head,,
 H3796,ko.tel,mechanical,muro,tbesh-map,,un muro (que reúne a los habitantes),1.000,1,0.0003,wall,muro,tbesh-map,,
 H3797,ke.tal,judgment,muro,definition_es-head,,(arameo) un muro (que reúne a los habitantes),0.500,2,0.0007,wall,,,no dominant sense (top 0.50),
@@ -3750,7 +3750,7 @@ H3839,liv.neh,mechanical,cierto árbol blanquecino,definition_es-head,,"cierto �
 H3841,liv.nah,proper-noun,Libna,defEs-name,,"Libna, un lugar en el desierto y otro en Palestina",1.000,18,0.0059,Libnah,Libnah,tbesh-en-placeholder,,Libna
 H3842,le.va.nah,judgment,blanca,definition_es-head,,"de H3835 (לָבַן); propiamente, (la) blanca, es decir la luna",0.667,3,0.0010,moon,,,no dominant sense (top 0.67),
 H3843,le.ve.nah,mechanical,ladrillo,definition_es-head,,un ladrillo (por la blancura de la arcilla),0.917,12,0.0039,brick,ladrillo,definition_es-head,,
-H3844,le.va.non,proper-noun,el Líbano,defEs-name,,"el Líbano, una cadena montañosa en Palestina",0.986,71,0.0233,Lebanon,Lebanon,tbesh-en-placeholder,,
+H3844,le.va.non,proper-noun,Líbano,hand-name,,"el Líbano, una cadena montañosa en Palestina",0.986,71,0.0233,Lebanon,Lebanon,tbesh-en-placeholder,,Líbano
 H3845,liv.ni,proper-noun,Libni,defEs-name,,"Libni, un israelita",1.000,5,0.0016,Libni,Libni,tbesh-en-placeholder,,Libni
 H3846,liv.ni,proper-noun,un libnita,defEs-name,,"un libnita, descendientes de Libni (colectivamente)",1.000,2,0.0007,Libnite,Libnite,tbesh-en-placeholder,,
 H3847,la.vash,judgment,vestir,tbesh-head-es,low-confidence,"o לָבֵשׁ; una raíz primitiva; propiamente, envolver alrededor, es decir, (por i…",0.582,110,0.0361,to clothe,,,no dominant sense (top 0.58),
@@ -3770,9 +3770,9 @@ H3860,la.hen,judgment,por tanto,tbesh-head-es,,"popularmente por si; de ahí, po
 H3861,la.hen,judgment,excepto,tbesh-head-es,,(arameo) por tanto; también excepto,0.714,7,0.0023,except,,,no dominant sense (top 0.71),
 H3862,la.ha.qah,mechanical,asamblea,definition_es-head,,una asamblea,1.000,1,0.0003,company,asamblea,definition_es-head,,
 H3863,lu,judgment,si,tbesh-head-es,,una partícula condicional; si; por implicación (interjección como deseo) ¡ojalá!,0.909,22,0.0072,if,,,definition_es not condensable to a terse gloss,
-H3864,lu.vi,proper-noun,libio,defEs-gentilic,proper-mismatch,un libio o habitante del interior de África (solo en plural),1.000,4,0.0013,Libyan,Libyan,tbesh-en-placeholder,,libios
+H3864,lu.vi,proper-noun,Libyan,auto-translit,proper-fallback,un libio o habitante del interior de África (solo en plural),1.000,4,0.0013,Libyan,Libyan,tbesh-en-placeholder,,
 H3865,lud,proper-noun,Lud,defEs-name,,"Lud, nombre de dos naciones",1.000,5,0.0016,Lud,Lud,tbesh-en-placeholder,,Lud
-H3866,lu.di,proper-noun,ludita,defEs-gentilic,,un ludita o habitantes de Lud (solo en plural),1.000,3,0.0010,Ludite,Ludite,tbesh-en-placeholder,,
+H3866,lu.di,proper-noun,un ludita / habitantes de Lud,defEs-name,,un ludita o habitantes de Lud (solo en plural),1.000,3,0.0010,Ludite,Ludite,tbesh-en-placeholder,,
 H3867,la.vah,judgment,juntar / unir,tbesh-head-es,,"raíz primitiva; propiamente, entrelazar, es decir, (por implicación) unir, perm…",0.269,26,0.0085,to join,,,no dominant sense (top 0.27),
 H3868,luz,judgment,desviarse,definition_es-head,,"desviarse, es decir (literalmente) apartarse, (figurativamente) ser perverso",0.667,6,0.0020,be devious,,,no dominant sense (top 0.67),
 H3869,luz,mechanical,cierto árbol de fruto seco,definition_es-head,,"cierto árbol de fruto seco, tal vez el almendro",1.000,1,0.0003,almond,cierto árbol de fruto seco,definition_es-head,,
@@ -3787,8 +3787,8 @@ H3877,lo.tan,proper-noun,Lotán,defEs-name,,"Lotán, un idumeo",1.000,7,0.0023,L
 H3878,le.vi,proper-noun,Leví,defEs-name,,"Leví, un hijo de Jacob",0.864,59,0.0193,Levi,Levi,tbesh-en-placeholder,,Leví
 H3879,le.vi,mechanical,algo adjunto,definition_es-head,,"(arameo) algo adjunto, es decir una guirnalda",1.000,4,0.0013,Levite,algo adjunto,definition_es-head,,
 H3880,liv.yah,mechanical,algo unido,definition_es-head,,"algo unido, es decir una guirnalda",1.000,2,0.0007,wreath,algo unido,definition_es-head,,
-H3881,le.viy.yi,proper-noun,levita,defEs-gentilic,,un levita o descendiente de Leví,0.969,291,0.0954,Levi,Levi,tbesh-en-placeholder,,levita
-H3882,liv.ya.tan,proper-noun,un animal enroscado,defEs-name,,"un animal enroscado, es decir una serpiente (especialmente el cocodrilo u otro…",1.000,6,0.0020,Leviathan,Leviathan,tbesh-en-placeholder,,
+H3881,le.viy.yi,proper-noun,un levita / descendiente de Leví,defEs-name,,un levita o descendiente de Leví,0.969,291,0.0954,Levi,Levi,tbesh-en-placeholder,,
+H3882,liv.ya.tan,proper-noun,leviatán,hand-name,,"un animal enroscado, es decir una serpiente (especialmente el cocodrilo u otro…",1.000,6,0.0020,Leviathan,Leviathan,tbesh-en-placeholder,,Leviatán
 H3883,lul,mechanical,escalón en espiral,definition_es-head,,un escalón en espiral,1.000,1,0.0003,stairs,escalón en espiral,definition_es-head,,
 H3884,lu.le,mechanical,si no,definition_es-head,,"si no, de no ser",1.000,14,0.0046,unless,si no,definition_es-head,,
 H3885,lun,judgment,detenerse,definition_es-head,,"detenerse (usualmente a pasar la noche); por implicación, quedarse permanenteme…",0.179,84,0.0275,to lodge,,,no dominant sense (top 0.18),
@@ -3984,7 +3984,7 @@ H4080,mid.yan,proper-noun,Madián,defEs-name,,"Madián, un hijo de Abraham; tamb
 H4081,mid.din,proper-noun,Madián,defEs-name,,"Madián, un hijo de Abraham; también su país y (colectivamente) sus descendientes",1.000,1,0.0003,Middin,Middin,tbesh-en-placeholder,,
 H4082,me.di.nah,mechanical,jurisdicción judicial,definition_es-head,,"de H1777 (דִּין); propiamente, una jurisdicción judicial, es decir, jurisdicció…",0.981,53,0.0174,province,jurisdicción judicial,definition_es-head,,
 H4083,me.di.nah,judgment,judicatura,definition_es-head,,"(arameo) propiamente, una judicatura, es decir, jurisdicción; por implicación,…",0.636,11,0.0036,province,,,no dominant sense (top 0.64),
-H4084,mid.ya.ni,proper-noun,madianita,defEs-gentilic,proper-mismatch,un madianita o descendiente (natural) de Madián,1.000,7,0.0023,Midianite,Midianite,tbesh-en-placeholder,,madianitas
+H4084,mid.ya.ni,proper-noun,un madianita / descendiente,defEs-name,,un madianita o descendiente (natural) de Madián,1.000,7,0.0023,Midianite,Midianite,tbesh-en-placeholder,,
 H4085,me.do.khah,mechanical,mortero,definition_es-head,,un mortero,1.000,1,0.0003,mortar,mortero,definition_es-head,,
 H4086,mad.men,proper-noun,Madmén,defEs-name,,"Madmén, un lugar en Palestina",1.000,1,0.0003,Madmen,Madmen,tbesh-en-placeholder,,Madmén
 H4087,mad.me.nah,mechanical,muladar,definition_es-head,,un muladar (estercolero),1.000,1,0.0003,dunghill,muladar,definition_es-head,,
@@ -4024,7 +4024,7 @@ H4121,ma.ha.ray,proper-noun,Maharai,defEs-name,,"Maharai, un israelita",1.000,3,
 H4122,ma.her sha.lal chash baz,proper-noun,Maher-salal-hasbaz,defEs-name,,Maher-salal-hasbaz; el nombre simbólico del hijo de Isaías,0.250,8,0.0026,Maher-shalal-hash-baz,Maher-shalal-hash-baz,tbesh-en-placeholder,,Maher-salal-hasbaz
 H4123,ma.ha.tal.lah,mechanical,ilusión,definition_es-head,,una ilusión (engaño),1.000,1,0.0003,deception,ilusión,definition_es-head,,
 H4124,mo.av,proper-noun,Moab,defEs-name,,"Moab, un hijo incestuoso de Lot; también su territorio y descendientes",0.994,181,0.0593,Moab,Moab,tbesh-en-placeholder,,Moab
-H4125,mo.a.vi,proper-noun,moabita,defEs-gentilic,proper-mismatch,"un moabita o moabita (mujer), es decir, un descendiente de Moab",1.000,16,0.0052,Moabite,Moabite,tbesh-en-placeholder,,moabitas
+H4125,mo.a.vi,proper-noun,un moabita / moabita,defEs-name,proper-mismatch,"un moabita o moabita (mujer), es decir, un descendiente de Moab",1.000,16,0.0052,Moabite,Moabite,tbesh-en-placeholder,,moabitas
 H4126,mo.va,judgment,entrada,definition_es-head,,una entrada,0.500,2,0.0007,entrance,,,no dominant sense (top 0.50),
 H4127,mug,judgment,derretirse,definition_es-head,,"derretirse, es decir, literalmente (ablandarse, escurrirse, desaparecer), o fig…",0.471,17,0.0056,to melt,,,no dominant sense (top 0.47),
 H4128,mud,mechanical,sacudir,definition_es-head,,sacudir,1.000,1,0.0003,to shake,sacudir,definition_es-head,,
@@ -4277,7 +4277,7 @@ H4384,makh.she.lah,judgment,tropiezo,definition_es-head,,"un tropiezo, pero solo
 H4385,mikh.tav,mechanical,cosa escrita,definition_es-head,,"una cosa escrita, los caracteres, o un documento (carta, copia, edicto, poema),…",0.889,9,0.0030,writing,cosa escrita,definition_es-head,,
 H4386,me.khit.tah,mechanical,fractura,definition_es-head,,una fractura,1.000,1,0.0003,fragment,fractura,definition_es-head,,
 H4388,makh.tesh,judgment,mortero,definition_es-head,,"un mortero; por analogía, una cuenca (de un diente)",0.500,2,0.0007,hollow,,,no dominant sense (top 0.50),
-H4389,makh.tesh,proper-noun,hondonada,defEs-name,,"hondonada; el Mactes, un lugar en Jerusalén",1.000,1,0.0003,Mortar,Mortar,tbesh-en-placeholder,,
+H4389,makh.tesh,proper-noun,el Mactes,defEs-name,,"hondonada; el Mactes, un lugar en Jerusalén",1.000,1,0.0003,Mortar,Mortar,tbesh-en-placeholder,,
 H4390,ma.le,judgment,llenar o,definition_es-head,,"llenar o (intransitivamente) estar lleno de, en una amplia aplicación (literal…",0.590,249,0.0816,to fill,,,no dominant sense (top 0.59),
 H4391,me.la,mechanical,llenar,tbesh-map,,(arameo) llenar,1.000,2,0.0007,to fill,llenar,tbesh-map,,
 H4392,ma.le,mechanical,lleno,tbesh-map,,lleno (literal o figuradamente) o que llena (literalmente); también (concretame…,1.000,64,0.0210,full,lleno,tbesh-map,,
@@ -4295,7 +4295,7 @@ H4403,mal.bush,mechanical,vestido,tbesh-map,,"una vestidura, o (colectivamente) 
 H4404,mal.ben,judgment,horno de ladrillos,definition_es-head,,un horno de ladrillos,0.667,3,0.0010,brick,,,no dominant sense (top 0.67),
 H4405,mil.lah,mechanical,palabra,definition_es-head,,"una palabra; colectivamente, un discurso; figurativamente, un tema",0.868,38,0.0125,speech,palabra,definition_es-head,,
 H4406,mil.lah,judgment,"palabra, mandato",definition_es-head,,"(arameo) una palabra, mandato, discurso o asunto",0.333,24,0.0079,word,,,no dominant sense (top 0.33),
-H4407,mil.lo,proper-noun,un baluarte,defEs-name,,"un baluarte (como rellenado), es decir la ciudadela",1.000,6,0.0020,Millo,Millo,tbesh-en-placeholder,,
+H4407,mil.lo,proper-noun,Milo,hand-name,,"un baluarte (como rellenado), es decir la ciudadela",1.000,6,0.0020,Millo,Millo,tbesh-en-placeholder,,Milo
 H4408,mal.lu.ach,mechanical,verdolaga de mar,definition_es-head,,verdolaga de mar (por su salinidad),1.000,1,0.0003,mallow,verdolaga de mar,definition_es-head,,
 H4409,mal.lukh,proper-noun,Maluc,defEs-name,,"Maluc, nombre de cinco israelitas",0.857,7,0.0023,Malluch,Malluch,tbesh-en-placeholder,,Maluc
 H4410,me.lu.khah,judgment,algo gobernado,definition_es-head,,"algo gobernado, es decir, un reino, realeza",0.708,24,0.0079,kingship,,,no dominant sense (top 0.71),
@@ -4408,7 +4408,7 @@ H4516,man.am,mechanical,exquisitez,definition_es-head,,una exquisitez (manjar),1
 H4517,me.na.na,mechanical,sistro,definition_es-head,,un sistro (llamado así por su sonido de cascabeleo),1.000,1,0.0003,castanets,sistro,definition_es-head,,
 H4518,me.naq.qiy.yah,judgment,tazón sacrificial,definition_es-head,,un tazón sacrificial (para contener sangre),0.500,4,0.0013,bowl,,,no dominant sense (top 0.50),
 H4519,me.nash.sheh,proper-noun,Manasés,defEs-name,,"Manasés, un nieto de Jacob; también la tribu descendiente de él, y su territorio",1.000,146,0.0479,Manasseh,Manasseh,tbesh-en-placeholder,,Manasés
-H4520,me.nash.shi,proper-noun,manasita,defEs-gentilic,,un manasita o descendiente de Manasés,1.000,4,0.0013,Manassite,Manassite,tbesh-en-placeholder,,
+H4520,me.nash.shi,proper-noun,un manasita / descendiente de Manasés,defEs-name,,un manasita o descendiente de Manasés,1.000,4,0.0013,Manassite,Manassite,tbesh-en-placeholder,,
 H4521,me.nat,mechanical,porción,tbesh-map,,"una porción asignada (por cortesía, ley o providencia)",1.000,8,0.0026,portion,porción,tbesh-map,,
 H4522,mas,mechanical,carga,definition_es-head,,"o מִס; de H4549 (מָסַס); propiamente, una carga (como que hace desfallecer), es…",0.870,23,0.0075,taskworker,carga,definition_es-head,,
 H4523,mas,mechanical,desfalleciente,definition_es-head,,"desfalleciente, es decir (figuradamente) desconsolado",1.000,1,0.0003,despairing,desfalleciente,definition_es-head,,
@@ -4692,7 +4692,7 @@ H4803,ma.rat,judgment,pulir,definition_es-head,,"pulir; por implicación, dejar 
 H4804,me.rat,mechanical,arrancar,definition_es-head,,(arameo) arrancar,1.000,1,0.0003,to pluck,arrancar,definition_es-head,,
 H4805,me.ri,mechanical,amargura,definition_es-head,,"amargura, es decir, (figurativamente) rebelión; concretamente, amargo, o rebelde",0.913,23,0.0075,rebellion,amargura,definition_es-head,,
 H4806,me.ri,mechanical,cebado en establo,definition_es-head,,"cebado en establo; a menudo (como sustantivo) una res, animal engordado",1.000,8,0.0026,fatling,cebado en establo,definition_es-head,,
-H4807,me.riv ba.al,proper-noun,rival de Baal,defEs-name,,"rival de Baal, Merib-baal, un epíteto de Gedeón",0.500,6,0.0020,Merib-baal,Merib-baal,tbesh-en-placeholder,,
+H4807,me.riv ba.al,proper-noun,Merib-baal,hand-name,,"rival de Baal, Merib-baal, un epíteto de Gedeón",0.500,6,0.0020,Merib-baal,Merib-baal,tbesh-en-placeholder,,Merib-baal
 H4808,me.ri.vah,mechanical,riña,definition_es-head,,riña (pleito),1.000,2,0.0007,provocation,riña,definition_es-head,,
 H4809,me.ri.vah,proper-noun,Meriba,defEs-name,,"Meriba, el nombre de dos lugares en el desierto",0.727,11,0.0036,Meribah,Meribah,tbesh-en-placeholder,,Meriba
 H4810,me.ri va.al,proper-noun,Merib-baal,defEs-name,,"Merib-baal, un epíteto de Gedeón",0.500,2,0.0007,Merib-baal,Merib-baal,tbesh-en-placeholder,,Merib-baal
@@ -4926,7 +4926,7 @@ H5041,ne.val.lat,proper-noun,Nebalat,defEs-name,,"Nebalat, un lugar en Palestina
 H5042,na.va,judgment,manar a borbotones,definition_es-head,,"manar a borbotones; figurativamente, proferir (buenas o malas palabras); especí…",0.727,11,0.0036,to bubble,,,no dominant sense (top 0.73),
 H5043,nev.re.sah,mechanical,luz,definition_es-head,,(arameo) una luz; en plural (colectivamente) un candelabro,1.000,1,0.0003,lampstand,luz,definition_es-head,,
 H5044,niv.shan,proper-noun,Nibsán,defEs-name,,"Nibsán, un lugar en Palestina",1.000,1,0.0003,Nibshan,Nibshan,tbesh-en-placeholder,,Nibsán
-H5045,ne.gev,proper-noun,el sur,defEs-name,,"el sur (por su sequía); específicamente, el Néguev o distrito meridional de Jud…",0.446,112,0.0367,Negeb,Negeb,tbesh-en-placeholder,,
+H5045,ne.gev,proper-noun,Neguev / sur,hand-name,,"el sur (por su sequía); específicamente, el Néguev o distrito meridional de Jud…",0.446,112,0.0367,Negeb,Negeb,tbesh-en-placeholder,,Neguev
 H5046,na.gad,judgment,contar,tbesh-map,low-confidence,"una raíz primitiva; propiamente, ponerse al frente, es decir, destacarse audazm…",0.412,369,0.1210,to tell,,,no dominant sense (top 0.41),
 H5047,ne.gad,mechanical,fluir,definition_es-head,,(arameo) fluir (por la idea de abrir camino),1.000,1,0.0003,to flow,fluir,definition_es-head,,
 H5048,ne.ged,mechanical,frente,definition_es-head,,"un frente, es decir, la parte opuesta; específicamente, una contraparte o parej…",0.934,151,0.0495,before,frente,definition_es-head,,
@@ -5192,7 +5192,7 @@ H5312,ne.phaq,judgment,salir,definition_es-head,,"(arameo) salir; causativamente
 H5313,niph.qa,mechanical,salida,definition_es-head,,"(arameo) una salida, es decir gasto",1.000,2,0.0007,cost,salida,definition_es-head,,
 H5314,na.phash,mechanical,respirar,definition_es-head,,"respirar; pasivamente, ser refrescado, es decir (figurativamente) reanimado (co…",1.000,3,0.0010,be refreshed,respirar,definition_es-head,,
 H5315,ne.phesh,judgment,alma / vida / ser,hand-weighted,weighted,"de H5314 (נָפַשׁ); propiamente, una criatura que respira, es decir, animal de (…",0.293,754,0.2472,soul,,,denylist,
-H5316,ne.phet,proper-noun,una altura,defEs-name,,una altura (elevación),0.667,3,0.0010,Naphath,Naphath,tbesh-en-placeholder,,
+H5316,ne.phet,proper-noun,altura,defEs-gentilic,,una altura (elevación),0.667,3,0.0010,Naphath,Naphath,tbesh-en-placeholder,,
 H5317,no.phet,judgment,goteo,definition_es-head,,"un goteo, es decir de miel (del panal)",0.800,5,0.0016,honey,,,no dominant sense (top 0.80),
 H5318,neph.to.ach,proper-noun,Neftoa,defEs-name,,"Neftoa, un lugar en Palestina",1.000,2,0.0007,Nephtoah,Nephtoah,tbesh-en-placeholder,,Neftoa
 H5319,naph.tul,mechanical,luchado,definition_es-head,,"propiamente, luchado; pero usado (en plural) transitivamente, una lucha",1.000,1,0.0003,wrestling,luchado,definition_es-head,,
@@ -5447,7 +5447,7 @@ H5570,se.na.ah,proper-noun,Sena,defEs-name,proper-mismatch,"Sena, un lugar en Pa
 H5571,san.val.lat,proper-noun,Sanbalat,defEs-name,,"Sanbalat, un sátrapa persa de Samaria",1.000,10,0.0033,Sanballat,Sanballat,tbesh-en-placeholder,,Sanbalat
 H5572,se.neh,mechanical,zarza,definition_es-head,,una zarza,1.000,6,0.0020,bush,zarza,definition_es-head,,
 H5573,se.neh,proper-noun,Sene,defEs-name,,"Sene, un peñasco en Palestina",1.000,1,0.0003,Seneh,Seneh,tbesh-en-placeholder,,Sene
-H5574,se.nu.ah,proper-noun,puntiagudo,defEs-name,,"puntiagudo; Senúa, nombre de dos israelitas",1.000,1,0.0003,Hassenuah,Hassenuah,tbesh-en-placeholder,,
+H5574,se.nu.ah,proper-noun,Senúa,defEs-name,,"puntiagudo; Senúa, nombre de dos israelitas",1.000,1,0.0003,Hassenuah,Hassenuah,tbesh-en-placeholder,,Senúa
 H5575,san.ver,mechanical,ceguera,definition_es-head,,(en plural) ceguera,1.000,3,0.0010,blindness,ceguera,definition_es-head,,
 H5576,san.che.riv,proper-noun,Senaquerib,defEs-name,,"Senaquerib, un rey asirio",1.000,13,0.0043,Sennacherib,Sennacherib,tbesh-en-placeholder,,Senaquerib
 H5577,san.sin,mechanical,pedúnculo,tbesh-head-es,,,1.000,1,0.0003,fruit-stalk,,tbesh-untranslated,,
@@ -5553,7 +5553,7 @@ H5676,e.ver,judgment,región del otro lado,definition_es-head,,"de H5674 (עָב
 H5677,e.ver,proper-noun,Heber,defEs-name,,"Heber, el nombre de dos patriarcas y cuatro israelitas",1.000,15,0.0049,Eber,Eber,tbesh-en-placeholder,,Heber
 H5678,ev.rah,judgment,arrebato de pasión,definition_es-head,,"un arrebato de pasión, furor",0.529,34,0.0111,fury,,,no dominant sense (top 0.53),
 H5679,a.va.rah,mechanical,vado,tbesh-head-es,,,1.000,1,0.0003,ford,,tbesh-untranslated,,
-H5680,iv.ri,proper-noun,un eberita,defEs-name,,"un eberita (es decir, hebreo) o descendiente de Heber",1.000,34,0.0111,Hebrew,Hebrew,tbesh-en-placeholder,,
+H5680,iv.ri,proper-noun,hebreo,hand-name,,"un eberita (es decir, hebreo) o descendiente de Heber",1.000,34,0.0111,Hebrew,Hebrew,tbesh-en-placeholder,,hebreo
 H5681,iv.ri,proper-noun,Ibri,defEs-name,,"Ibri, un israelita",1.000,1,0.0003,Ibri,Ibri,tbesh-en-placeholder,,Ibri
 H5682,a.va.rim,proper-noun,Abarim,defEs-name,,"Abarim, un lugar en Palestina",1.000,5,0.0016,Abarim,Abarim,tbesh-en-placeholder,,Abarim
 H5683,ev.ron,proper-noun,Ebrón,defEs-name,,"Ebrón, un lugar en Palestina",1.000,1,0.0003,Ebron,Ebron,tbesh-en-placeholder,,
@@ -5599,7 +5599,7 @@ H5722,a.di.no,proper-noun,su lanza,defEs-name,,su lanza,1.000,1,0.0003,wielded,w
 H5723,a.di.ta.yim,proper-noun,Aditaim,defEs-name,,"Aditaim, un lugar en Palestina",1.000,1,0.0003,Adithaim,Adithaim,tbesh-en-placeholder,,Aditaim
 H5724,ad.lay,proper-noun,Adlai,defEs-name,,"Adlai, un israelita",1.000,1,0.0003,Adlai,Adlai,tbesh-en-placeholder,,Adlai
 H5725,a.dul.lam,proper-noun,Adulam,defEs-name,,"Adulam, un lugar en Palestina",1.000,8,0.0026,Adullam,Adullam,tbesh-en-placeholder,,Adulam
-H5726,a.dul.la.mi,proper-noun,adulamita,defEs-gentilic,,un adulamita o nativo de Adulam,1.000,3,0.0010,Adullamite,Adullamite,tbesh-en-placeholder,,
+H5726,a.dul.la.mi,proper-noun,un adulamita / nativo de Adulam,defEs-name,,un adulamita o nativo de Adulam,1.000,3,0.0010,Adullamite,Adullamite,tbesh-en-placeholder,,
 H5727,a.dan,mechanical,ser suave o agradable,definition_es-head,,"ser suave o agradable; figurada y reflexivamente, vivir con voluptuosidad",1.000,1,0.0003,to luxuriate,ser suave o agradable,definition_es-head,,
 H5728,a.den,mechanical,hasta ahora,definition_es-head,,hasta ahora,1.000,2,0.0007,still,hasta ahora,definition_es-head,,
 H5729,e.den,proper-noun,Edén,defEs-name,,"Edén, un lugar en Mesopotamia",1.000,3,0.0010,Eden,Eden,tbesh-en-placeholder,,Edén
@@ -5853,7 +5853,7 @@ H5980,um.mah,judgment,cerrar,tbesh-head-es,,"conjunción, es decir, compañía; 
 H5981,um.mah,proper-noun,Umá,defEs-name,,"Umá, un lugar en Palestina",1.000,1,0.0003,Ummah,Ummah,tbesh-en-placeholder,,Uma
 H5982,am.mud,mechanical,columna,definition_es-head,,"una columna (como que se sostiene en pie); también un soporte, es decir, una pl…",0.856,111,0.0364,pillar,columna,definition_es-head,,
 H5983,am.mon,proper-noun,Amón,defEs-name,proper-mismatch,"Amón, un hijo de Lot; también su posteridad y su país",1.000,106,0.0348,Ammon,Ammon,tbesh-en-placeholder,,amonitas
-H5984,am.mo.ni,proper-noun,amonita,defEs-gentilic,proper-mismatch,un amonita o (el adjetivo) amonita,1.000,21,0.0069,Meunite,Meunite,tbesh-en-placeholder,,amonitas
+H5984,am.mo.ni,proper-noun,un amonita o,defEs-name,,un amonita o (el adjetivo) amonita,1.000,21,0.0069,Meunite,Meunite,tbesh-en-placeholder,,
 H5986,a.mos,proper-noun,Amós,defEs-name,,"Amós, un profeta israelita",1.000,7,0.0023,Amos,Amos,tbesh-en-placeholder,,Amós
 H5987,a.moq,proper-noun,Amoc,defEs-name,,"Amoc, un israelita",1.000,2,0.0007,Amok,Amok,tbesh-en-placeholder,,Amoc
 H5988,am.mi.el,proper-noun,Amiel,defEs-name,,"Amiel, nombre de tres o cuatro israelitas",1.000,6,0.0020,Ammiel,Ammiel,tbesh-en-placeholder,,Amiel
@@ -5886,7 +5886,7 @@ H6016,o.mer,judgment,montón,definition_es-head,,"de H6014 (עָמַר); propiam
 H6017,a.mo.rah,proper-noun,Gomorra,defEs-name,,"Gomorra, un lugar en Palestina",1.000,19,0.0062,Gomorrah,Gomorrah,tbesh-en-placeholder,,Gomorra
 H6018,om.ri,proper-noun,Omri,defEs-name,,"Omri, un israelita",1.000,18,0.0059,Omri,Omri,tbesh-en-placeholder,,Omri
 H6019,am.ram,proper-noun,Amram,defEs-name,,"Amram, el nombre de dos israelitas",1.000,14,0.0046,Amram,Amram,tbesh-en-placeholder,,Amram
-H6020,am.ra.mi,proper-noun,amramita,defEs-gentilic,proper-mismatch,un amramita o descendiente de Amram,1.000,2,0.0007,Amramite,Amramite,tbesh-en-placeholder,,amramitas
+H6020,am.ra.mi,proper-noun,un amramita / descendiente de Amram,defEs-name,,un amramita o descendiente de Amram,1.000,2,0.0007,Amramite,Amramite,tbesh-en-placeholder,,
 H6021,a.ma.sa,proper-noun,Amasa,defEs-name,,"Amasa, el nombre de dos israelitas",1.000,16,0.0052,Amasa,Amasa,tbesh-en-placeholder,,Amasa
 H6022,a.ma.say,proper-noun,Amasai,defEs-name,,"Amasai, nombre de tres israelitas",1.000,5,0.0016,Amasai,Amasai,tbesh-en-placeholder,,Amasai
 H6023,a.mash.say,proper-noun,Amasai,defEs-name,,"Amasai, un israelita",1.000,1,0.0003,Amashsai,Amashsai,tbesh-en-placeholder,,Amasai
@@ -5928,14 +5928,14 @@ H6058,a.neph,mechanical,ramificado,definition_es-head,,ramificado,1.000,1,0.0003
 H6059,a.naq,judgment,poner al cuello,definition_es-head,,"poner al cuello, es decir adornar con un collar; figurativamente, proveer de pr…",0.333,3,0.0010,to ornament,,,no dominant sense (top 0.33),
 H6060,a.naq,mechanical,collar,definition_es-head,,un collar (como ciñendo el cuello),1.000,3,0.0010,necklace,collar,definition_es-head,,
 H6061,a.naq,proper-noun,Anac,defEs-name,,"Anac, un cananeo",1.000,9,0.0030,Anak,Anak,tbesh-en-placeholder,,Anac
-H6062,a.na.qi,proper-noun,anaceo,defEs-gentilic,proper-mismatch,un anaceo o descendiente de Anac,0.889,9,0.0030,Anakite,Anakite,tbesh-en-placeholder,,anaceos
+H6062,a.na.qi,proper-noun,un anaceo / descendiente de Anac,defEs-name,,un anaceo o descendiente de Anac,0.889,9,0.0030,Anakite,Anakite,tbesh-en-placeholder,,
 H6063,a.ner,proper-noun,Aner,defEs-name,,"Aner, un amorreo; también un lugar en Palestina",1.000,3,0.0010,Aner,Aner,tbesh-en-placeholder,,Aner
 H6064,a.nash,judgment,multa,tbesh-head-es,,"raíz primitiva; propiamente, apremiar; por implicación, infligir una pena, espe…",0.333,9,0.0030,to fine,,,no dominant sense (top 0.33),
 H6065,a.nash,mechanical,multa,definition_es-head,,(arameo) una multa,1.000,1,0.0003,confiscation,multa,definition_es-head,,
 H6066,o.nesh,judgment,multa,definition_es-head,,una multa,0.500,2,0.0007,fine,,,no dominant sense (top 0.50),
 H6067,a.nat,proper-noun,Anat,defEs-name,,"Anat, un israelita",1.000,2,0.0007,Anath,Anath,tbesh-en-placeholder,,Anat
 H6068,a.na.tot,proper-noun,Anatot,defEs-name,,"Anatot, el nombre de dos israelitas, también de un lugar en Palestina",1.000,15,0.0049,Anathoth,Anathoth,tbesh-en-placeholder,,Anatot
-H6069,an.to.ti,proper-noun,anatotita,defEs-gentilic,,un anatotita o habitante de Anatot,1.000,5,0.0016,Anathoth,Anathoth,tbesh-en-placeholder,,anatotita
+H6069,an.to.ti,proper-noun,un anatotita / habitante de Anatot,defEs-name,,un anatotita o habitante de Anatot,1.000,5,0.0016,Anathoth,Anathoth,tbesh-en-placeholder,,
 H6070,an.to.tiy.yah,proper-noun,Antotías,defEs-name,,"Antotías, un israelita",1.000,1,0.0003,Anthothijah,Anthothijah,tbesh-en-placeholder,,
 H6071,a.sis,judgment,dulce,tbesh-map,,mosto o jugo fresco de uva (como recién pisado),0.800,5,0.0016,sweet,,,no dominant sense (top 0.80),
 H6072,a.sas,mechanical,prensar / apretar,tbesh-head-es,,,1.000,1,0.0003,to press,,tbesh-untranslated,,
@@ -6017,7 +6017,7 @@ H6148,a.rav,judgment,trenzar,definition_es-head,,"trenzar, es decir, entremezcla
 H6149,a.rev,mechanical,"ser agradable, ser dulce",definition_es-head,,"ser agradable, ser dulce",1.000,8,0.0026,to please,"ser agradable, ser dulce",definition_es-head,,
 H6150,a.rav,judgment,oscurecer al atardecer,definition_es-head,,oscurecer al atardecer (anochecer),0.667,3,0.0010,to grow dark,,,no dominant sense (top 0.67),
 H6151,a.rav,mechanical,mezclarse,definition_es-head,,(arameo) mezclarse,1.000,4,0.0013,to mix,mezclarse,definition_es-head,,
-H6152,a.rav,proper-noun,Arab,defEs-name,proper-mismatch,"Arab (es decir Arabia), un país al este de Palestina",0.833,6,0.0020,Arabia,Arabia,tbesh-en-placeholder,,Arabia
+H6152,a.rav,proper-noun,Arabia,hand-name,,"Arab (es decir Arabia), un país al este de Palestina",0.833,6,0.0020,Arabia,Arabia,tbesh-en-placeholder,,Arabia
 H6153,e.rev,mechanical,tarde,tbesh-map,,el crepúsculo / la tarde,0.985,134,0.0439,evening,tarde,tbesh-map,,
 H6154,e.rev,judgment,trama,definition_es-head,,"la trama (o hilos transversales de la tela); también una mezcla, (o raza mezcla…",0.600,15,0.0049,mixture,,,no dominant sense (top 0.60),
 H6155,a.ra.vah,mechanical,sauce,definition_es-head,,un sauce (por el uso de mimbres como zarzos),1.000,5,0.0016,willow,sauce,definition_es-head,,
@@ -6028,7 +6028,7 @@ H6159,o.rev,proper-noun,Oreb,defEs-name,,"Oreb, nombre de un madianita y del pe�
 H6160,a.ra.vah,proper-noun,un desierto,defEs-name,,un desierto; especialmente (con el artículo) el (generalmente) estéril valle de…,0.393,61,0.0200,Arabah,Arabah,tbesh-en-placeholder,,
 H6161,a.rub.bah,mechanical,algo dado como garantía,definition_es-head,,"algo dado como garantía, es decir (literalmente) una prenda (de seguridad) o (m…",1.000,2,0.0007,pledge,algo dado como garantía,definition_es-head,,
 H6162,a.ra.von,mechanical,prenda,definition_es-head,,"una prenda (dada como garantía), arras",1.000,3,0.0010,pledge,prenda,definition_es-head,,
-H6163,a.ra.vi,proper-noun,árabe,defEs-gentilic,proper-mismatch,un árabe o habitante de Arabia,1.000,9,0.0030,Arab,Arab,tbesh-en-placeholder,,árabes
+H6163,a.ra.vi,proper-noun,un árabe / habitante de Arabia,defEs-name,,un árabe o habitante de Arabia,1.000,9,0.0030,Arab,Arab,tbesh-en-placeholder,,
 H6164,ar.va.ti,proper-noun,un arbatita,defEs-name,,"un arbatita, habitante de (Bet-) Arabá",1.000,2,0.0007,Arbathite,Arbathite,tbesh-en-placeholder,,
 H6165,a.rag,mechanical,anhelar,definition_es-head,,anhelar,1.000,3,0.0010,to long for,anhelar,definition_es-head,,
 H6166,a.rad,proper-noun,Arad,defEs-name,,"Arad, nombre de un lugar cerca de Palestina, también de un cananeo y un israeli…",1.000,5,0.0016,Arad,Arad,tbesh-en-placeholder,,Arad
@@ -6259,7 +6259,7 @@ H6393,pe.la.dah,mechanical,hierro,tbesh-map,,,1.000,1,0.0003,iron,hierro,tbesh-m
 H6394,pil.dash,proper-noun,Pildas,defEs-name,,"Pildas, un pariente de Abraham",1.000,1,0.0003,Pildash,Pildash,tbesh-en-placeholder,,Pildas
 H6395,pa.lah,judgment,distinguir,definition_es-head,,distinguir (literal o figurativamente),0.429,7,0.0023,be distinguished,,,no dominant sense (top 0.43),
 H6396,pal.lu,proper-noun,Falú,defEs-name,,"Falú, un israelita",1.000,5,0.0016,Pallu,Pallu,tbesh-en-placeholder,,Falú
-H6397,pe.lo.ni,proper-noun,pelonita,defEs-gentilic,,un pelonita o habitante de un desconocido Palón,1.000,3,0.0010,Pelonite,Pelonite,tbesh-en-placeholder,,pelonita
+H6397,pe.lo.ni,proper-noun,Pelonita,auto-translit,proper-fallback,un pelonita o habitante de un desconocido Palón,1.000,3,0.0010,Pelonite,Pelonite,tbesh-en-placeholder,,pelonita
 H6398,pa.lach,judgment,cortar en rebanadas,definition_es-head,,"cortar en rebanadas, es decir partir o atravesar",0.200,5,0.0016,to cleave,,,no dominant sense (top 0.20),
 H6399,pe.lach,mechanical,servir,tbesh-map,,"(arameo) servir o adorar, rendir culto",0.900,10,0.0033,to serve,servir,tbesh-map,,
 H6400,pe.lach,judgment,rebanada,definition_es-head,,una rebanada,0.500,6,0.0020,millstone,,,no dominant sense (top 0.50),
@@ -6292,7 +6292,7 @@ H6426,pa.lats,mechanical,tal vez desgarrar,definition_es-head,,"propiamente, tal
 H6427,pal.la.tsut,mechanical,espanto,definition_es-head,,"espanto (estremecimiento, temblor)",1.000,4,0.0013,shuddering,espanto,definition_es-head,,
 H6428,pa.lash,judgment,revolcarse,definition_es-head,,revolcarse (en el polvo),0.500,4,0.0013,to wallow,,,no dominant sense (top 0.50),
 H6429,pe.le.shet,proper-noun,Filistea,defEs-name,,"Filistea, una región de Siria",1.000,8,0.0026,Philistia,Philistia,tbesh-en-placeholder,,Filistea
-H6430,pe.lish.ti,proper-noun,filisteo,defEs-gentilic,proper-mismatch,un filisteo o habitante de Filistea,0.972,287,0.0941,Philistine,Philistine,tbesh-en-placeholder,,filisteos
+H6430,pe.lish.ti,proper-noun,un filisteo / habitante de Filistea,defEs-name,,un filisteo o habitante de Filistea,0.972,287,0.0941,Philistine,Philistine,tbesh-en-placeholder,,
 H6431,pe.let,proper-noun,Pelet,defEs-name,,"Pelet, nombre de dos israelitas",1.000,2,0.0007,Peleth,Peleth,tbesh-en-placeholder,,Pelet
 H6432,pe.le.ti,proper-noun,un correo,defEs-name,,un correo (colectivamente) o mensajero oficial (peleteos),1.000,7,0.0023,Pelethite,Pelethite,tbesh-en-placeholder,,
 H6433,pum,judgment,boca,definition_es-head,,(arameo) la boca (literal o figurativamente),0.833,6,0.0020,mouth,,,no dominant sense (top 0.83),
@@ -6401,8 +6401,8 @@ H6535,par.nakh,proper-noun,Parnac,defEs-name,,"Parnac, un israelita",1.000,1,0.0
 H6536,pa.ras,judgment,partir en pedazos,definition_es-head,,"partir en pedazos, es decir, (usualmente sin violencia) dividir, distribuir, re…",0.500,14,0.0046,to divide,,,no dominant sense (top 0.50),
 H6537,pe.ras,judgment,dividir,definition_es-head,,(arameo) dividir (repartir),0.333,3,0.0010,to divide,,,no dominant sense (top 0.33),
 H6538,pe.res,mechanical,garra,definition_es-head,,una garra; también una especie de águila,1.000,2,0.0007,vulture,garra,definition_es-head,,
-H6539,pa.ras,proper-noun,Paras,defEs-name,,"Paras (es decir, Persia), un país oriental, incluyendo sus habitantes",1.000,28,0.0092,Persia,Persia,tbesh-en-placeholder,,
-H6540,pa.ras,proper-noun,Paras,defEs-name,,"(arameo) Paras (es decir, Persia), un país oriental, incluyendo sus habitantes",0.667,6,0.0020,Persia,Persia,tbesh-en-placeholder,,
+H6539,pa.ras,proper-noun,Persia,hand-name,,"Paras (es decir, Persia), un país oriental, incluyendo sus habitantes",1.000,28,0.0092,Persia,Persia,tbesh-en-placeholder,,Persia
+H6540,pa.ras,proper-noun,Persia,defEs-name,,"(arameo) Paras (es decir, Persia), un país oriental, incluyendo sus habitantes",0.667,6,0.0020,Persia,Persia,tbesh-en-placeholder,,Persia
 H6541,par.sah,judgment,pezuña o casco hendido,definition_es-head,,una pezuña o casco hendido,0.619,21,0.0069,hoof,,,no dominant sense (top 0.62),
 H6542,par.si,proper-noun,un persa,defEs-name,,"un persa, habitante de Peres",1.000,1,0.0003,Persian,Persian,tbesh-en-placeholder,,
 H6543,par.si,proper-noun,persa,hand-translit,proper-fallback,,1.000,1,0.0003,Persian,Persian,tbesh-en-placeholder,,persa
@@ -6414,7 +6414,7 @@ H6548,par.oh choph.ra,proper-noun,Faraón-hofra,defEs-name,proper-mismatch,"Fara
 H6550,par.osh,mechanical,pulga,definition_es-head,,una pulga (insecto aislado),1.000,2,0.0007,flea,pulga,definition_es-head,,
 H6551,par.osh,proper-noun,Paros,defEs-name,,"Paros, nombre de un israelita",1.000,6,0.0020,Parosh,Parosh,tbesh-en-placeholder,,Paros
 H6552,pir.a.ton,proper-noun,Piratón,defEs-name,proper-mismatch,"Piratón, un lugar en Palestina",1.000,1,0.0003,Pirathon,Pirathon,tbesh-en-placeholder,,piratonita
-H6553,pir.a.to.ni,proper-noun,piratonita,defEs-gentilic,,un piratonita o habitante de Piratón,1.000,5,0.0016,Pirathon,Pirathon,tbesh-en-placeholder,,piratonita
+H6553,pir.a.to.ni,proper-noun,un piratonita / habitante de Piratón,defEs-name,,un piratonita o habitante de Piratón,1.000,5,0.0016,Pirathon,Pirathon,tbesh-en-placeholder,,
 H6554,par.par,proper-noun,Farfar,defEs-name,,"Farfar, un río de Siria",1.000,1,0.0003,Pharpar,Pharpar,tbesh-en-placeholder,,Farfar
 H6555,pa.rats,judgment,irrumpir,definition_es-head,,"irrumpir (en muchas aplicaciones, directas e indirectas, literales y figurativa…",0.104,48,0.0157,to break through,,,no dominant sense (top 0.10),
 H6556,pe.rets,judgment,"brecha, rotura",definition_es-head,,"una brecha, rotura (literal o figurativamente)",0.789,19,0.0062,breach,,,no dominant sense (top 0.79),
@@ -6581,7 +6581,7 @@ H6718,tsa.yid,judgment,caza,definition_es-head,,la caza; también la presa (así
 H6719,tsay.yad,mechanical,cazador,definition_es-head,,un cazador,1.000,1,0.0003,hunter,cazador,definition_es-head,,
 H6720,tse.dah,judgment,"comida, provisión",definition_es-head,,"comida, provisión, vituallas",0.667,9,0.0030,provision,,,no dominant sense (top 0.67),
 H6721,tsi.don,proper-noun,Sidón,defEs-name,,"Sidón, el nombre de un hijo de Canaán, y de un lugar en Palestina",1.000,22,0.0072,Sidon,Sidon,tbesh-en-placeholder,,Sidón
-H6722,tsi.do.ni,proper-noun,sidonio,defEs-gentilic,proper-mismatch,un sidonio o habitante de Sidón,1.000,16,0.0052,Sidonian,Sidonian,tbesh-en-placeholder,,sidonios
+H6722,tsi.do.ni,proper-noun,un sidonio / habitante de Sidón,defEs-name,,un sidonio o habitante de Sidón,1.000,16,0.0052,Sidonian,Sidonian,tbesh-en-placeholder,,
 H6723,tsiy.yah,judgment,aridez,definition_es-head,,"aridez; concretamente, un desierto, sequedal",0.563,16,0.0052,dryness,,,no dominant sense (top 0.56),
 H6724,tsi.von,mechanical,desierto,definition_es-head,,un desierto,1.000,2,0.0007,dryness,desierto,definition_es-head,,
 H6725,tsiy.yun,judgment,columna conmemorativa o indicadora,definition_es-head,,una columna conmemorativa o indicadora (mojón),0.333,3,0.0010,signpost,,,no dominant sense (top 0.33),
@@ -6734,7 +6734,7 @@ H6872,tse.ror,judgment,"atado, bulto",definition_es-head,,"un atado, bulto (como
 H6873,tsa.rach,judgment,ser claro,definition_es-head,,"ser claro (de tono, es decir agudo), es decir gritar",0.500,2,0.0007,to cry,,,no dominant sense (top 0.50),
 H6874,tse.ri,proper-noun,Zeri,defEs-name,,"Zeri, un israelita",1.000,1,0.0003,Zeri,Zeri,tbesh-en-placeholder,,Zeri
 H6875,tse.ri,mechanical,destilación,definition_es-head,,"destilación, es decir bálsamo",1.000,6,0.0020,balsam,destilación,definition_es-head,,
-H6876,tso.ri,proper-noun,tirio,defEs-gentilic,proper-mismatch,"un tirio o habitante de Tiro (es decir, sirio)",1.000,5,0.0016,Tyrian,Tyrian,tbesh-en-placeholder,,tirios
+H6876,tso.ri,proper-noun,un tirio / habitante de Tiro,defEs-name,,"un tirio o habitante de Tiro (es decir, sirio)",1.000,5,0.0016,Tyrian,Tyrian,tbesh-en-placeholder,,
 H6877,tse.ri.ach,mechanical,ciudadela,definition_es-head,,una ciudadela (torre fuerte),1.000,4,0.0013,stronghold,ciudadela,definition_es-head,,
 H6878,tso.rekh,mechanical,necesidad,tbesh-head-es,,,1.000,1,0.0003,need,,tbesh-untranslated,,
 H6879,tsa.ra,judgment,azotar,definition_es-head,,"azotar, es decir, (intransitivo y figurativo) ser herido de lepra",0.350,20,0.0066,be leprous,,,no dominant sense (top 0.35),
@@ -6874,7 +6874,7 @@ H7013,qa.yin,mechanical,lanza,tbesh-map,,una lanza (que golpea rápido),1.000,1,
 H7014,qa.yin,proper-noun,Caín,defEs-name,,"Caín, el nombre del primer hijo, también de un lugar en Palestina, y de una tri…",0.842,19,0.0062,Kenite,Kenite,tbesh-en-placeholder,,Caín
 H7015,qi.nah,mechanical,endecha,tbesh-map,,"una endecha (como acompañada de golpes de pecho o con instrumentos), lamentación",1.000,18,0.0059,dirge,endecha,tbesh-map,,
 H7016,qi.nah,proper-noun,Cina,defEs-name,,"Cina, un lugar en Palestina",1.000,1,0.0003,Kinah,Kinah,tbesh-en-placeholder,,Cina
-H7017,qe.ni,proper-noun,ceneo,defEs-gentilic,proper-mismatch,un ceneo o miembro de la tribu de Caín,1.000,12,0.0039,Kenite,Kenite,tbesh-en-placeholder,,ceneos
+H7017,qe.ni,proper-noun,un ceneo / miembro de la tribu de Caín,defEs-name,,un ceneo o miembro de la tribu de Caín,1.000,12,0.0039,Kenite,Kenite,tbesh-en-placeholder,,
 H7018,qe.nan,proper-noun,Cainán,defEs-name,,"Cainán, un antediluviano",1.000,6,0.0020,Kenan,Kenan,tbesh-en-placeholder,,Cainán
 H7019,qa.yits,judgment,cosecha,definition_es-head,,"cosecha (como el producto), sea el fruto (grano o fruta) o la estación (seca),…",0.550,20,0.0066,summer,,,no dominant sense (top 0.55),
 H7020,qi.tson,mechanical,extremo,definition_es-head,,extremo (que está al final),1.000,4,0.0013,outermost,extremo,definition_es-head,,
@@ -6882,7 +6882,7 @@ H7021,qi.qa.von,mechanical,calabacera,definition_es-head,,la calabacera (como na
 H7022,qi.qa.lon,mechanical,deshonra intensa,definition_es-head,,deshonra intensa,1.000,1,0.0003,disgrace,deshonra intensa,definition_es-head,,
 H7023,qir,mechanical,muro,tbesh-map,,un muro (como construido en una zanja),0.905,74,0.0243,wall,muro,tbesh-map,,
 H7024,qir,proper-noun,Kir,defEs-name,,"Kir, un lugar en Asiria; también uno en Moab",0.600,5,0.0016,Kir,Kir,tbesh-en-placeholder,,Kir
-H7025,qir che.re.s,proper-noun,Kir-hareset / Kir-hares,defEs-name,proper-mismatch,"Kir-hareset o Kir-hares, un lugar en Moab",0.500,10,0.0033,Kir-hareseth,Kir-hareseth,tbesh-en-placeholder,,Kir-hareset
+H7025,qir che.re.s,proper-noun,Kir-hareset / Kir,defEs-name,proper-mismatch,"Kir-hareset o Kir-hares, un lugar en Moab",0.500,10,0.0033,Kir-hareseth,Kir-hareseth,tbesh-en-placeholder,,Kir-hareset
 H7026,qe.ros,proper-noun,Queros,defEs-name,,"Queros, uno de los sirvientes del templo",1.000,2,0.0007,Keros,Keros,tbesh-en-placeholder,,Queros
 H7027,qish,proper-noun,Cis,defEs-name,,"Cis, el nombre de cinco israelitas",1.000,21,0.0069,Kish,Kish,tbesh-en-placeholder,,Cis
 H7028,qi.shon,proper-noun,Cisón,defEs-name,,"Cisón, un río de Palestina",1.000,6,0.0020,Kishon,Kishon,tbesh-en-placeholder,,Cisón
@@ -6930,7 +6930,7 @@ H7070,qa.neh,judgment,caña,definition_es-head,,"una caña (como erguida); por s
 H7071,qa.nah,proper-noun,Cana,defEs-name,,"Cana, nombre de un arroyo y de un lugar en Palestina",1.000,3,0.0010,Kanah,Kanah,tbesh-en-placeholder,,Caná
 H7072,qan.no,mechanical,celoso o enojado,definition_es-head,,celoso o enojado,1.000,2,0.0007,jealous,celoso o enojado,definition_es-head,,
 H7073,qe.naz,proper-noun,Quenaz,defEs-name,,"Quenaz, el nombre de un edomita y de dos israelitas",1.000,11,0.0036,Kenaz,Kenaz,tbesh-en-placeholder,,
-H7074,qe.niz.zi,proper-noun,cenezeo,defEs-gentilic,proper-mismatch,un cenezeo o descendiente de Quenaz,1.000,4,0.0013,Kenizzite,Kenizzite,tbesh-en-placeholder,,cenezeos
+H7074,qe.niz.zi,proper-noun,un cenezeo / descendiente de Quenaz,defEs-name,,un cenezeo o descendiente de Quenaz,1.000,4,0.0013,Kenizzite,Kenizzite,tbesh-en-placeholder,,
 H7075,qin.yan,judgment,creación,definition_es-head,,"creación, es decir, (concretamente) criaturas; también adquisición, compra, riq…",0.600,10,0.0033,acquisition,,,no dominant sense (top 0.60),
 H7076,qin.na.mon,mechanical,corteza de canela,definition_es-head,,corteza de canela (como en rollos verticales),1.000,3,0.0010,cinnamon,corteza de canela,definition_es-head,,
 H7077,qa.nan,judgment,anidar,definition_es-head,,"anidar, es decir construir u ocupar como nido",0.400,5,0.0016,to make a nest,,,no dominant sense (top 0.40),
@@ -7008,12 +7008,12 @@ H7149,qir.yah,judgment,edificación,definition_es-head,,(arameo) edificación; u
 H7150,qe.ri.ah,mechanical,proclamación,definition_es-head,,una proclamación,1.000,1,0.0003,proclamation,proclamación,definition_es-head,,
 H7151,qir.yah,mechanical,ciudad,tbesh-map,,edificación; una ciudad,1.000,29,0.0095,town,ciudad,tbesh-map,,
 H7152,qe.riy.yot,proper-noun,Queriot,defEs-name,,"Queriot, nombre de dos lugares en Palestina",1.000,4,0.0013,Kerioth,Kerioth,tbesh-en-placeholder,,Queriot
-H7153,qir.yat ar.ba,proper-noun,Quiriat-arba / Quiriat-ha-arba,defEs-name,proper-mismatch,"Quiriat-arba o Quiriat-ha-arba, un lugar en Palestina",0.500,18,0.0059,Kiriath-arba,Kiriath-arba,tbesh-en-placeholder,,Quiriat-arba
+H7153,qir.yat ar.ba,proper-noun,Quiriat-arba / Quiriat,defEs-name,proper-mismatch,"Quiriat-arba o Quiriat-ha-arba, un lugar en Palestina",0.500,18,0.0059,Kiriath-arba,Kiriath-arba,tbesh-en-placeholder,,Quiriat-arba
 H7154,qir.yat ba.al,proper-noun,Quiriat-baal,defEs-name,,"Quiriat-baal, un lugar en Palestina",0.500,4,0.0013,Kiriath-baal,Kiriath-baal,tbesh-en-placeholder,,Quiriat-baal
 H7155,qir.yat chu.tsot,proper-noun,Cariat-husot,defEs-name,,"Cariat-husot, un lugar en Moab",0.500,2,0.0007,Kiriath-huzoth,Kiriath-huzoth,tbesh-en-placeholder,,
 H7156,qir.ya.ta.yim,proper-noun,Quiriataim,defEs-name,,"Quiriataim, nombre de dos lugares en Palestina",1.000,7,0.0023,Kiriathaim,Kiriathaim,tbesh-en-placeholder,,quiriataim
-H7157,qir.yat ye.a.rim,proper-noun,Quiriat-jearim / Quiriat-arim,defEs-name,proper-mismatch,"Quiriat-jearim o Quiriat-arim, un lugar en Palestina",0.513,39,0.0128,Kiriath-jearim,Kiriath-jearim,tbesh-en-placeholder,,Quiriat-jearim
-H7158,qir.yat san.nah,proper-noun,Quiriat-sana / Quiriat-sefer,defEs-name,proper-mismatch,"Quiriat-sana o Quiriat-sefer, un lugar en Palestina",0.500,10,0.0033,Kiriath-sannah,Kiriath-sannah,tbesh-en-placeholder,,Quiriat-sefer
+H7157,qir.yat ye.a.rim,proper-noun,Quiriat-jearim / Quiriat,defEs-name,proper-mismatch,"Quiriat-jearim o Quiriat-arim, un lugar en Palestina",0.513,39,0.0128,Kiriath-jearim,Kiriath-jearim,tbesh-en-placeholder,,Quiriat-jearim
+H7158,qir.yat san.nah,proper-noun,Quiriat-sana / Quiriat,defEs-name,proper-mismatch,"Quiriat-sana o Quiriat-sefer, un lugar en Palestina",0.500,10,0.0033,Kiriath-sannah,Kiriath-sannah,tbesh-en-placeholder,,Quiriat-sefer
 H7159,qa.ram,mechanical,cubrir,definition_es-head,,cubrir,1.000,2,0.0007,to cover,cubrir,definition_es-head,,
 H7160,qa.ran,judgment,echar cuernos,definition_es-head,,"echar cuernos; figurativamente, rayos (resplandecer)",0.750,4,0.0013,to shine,,,no dominant sense (top 0.75),
 H7161,qe.ren,judgment,cuerno,definition_es-head,,"un cuerno (como que se proyecta); por implicación, un frasco, corneta; por seme…",0.763,76,0.0249,horn,,,no dominant sense (top 0.76),
@@ -7061,7 +7061,7 @@ H7202,ra.eh,mechanical,ver,tbesh-map,,"viendo, es decir experimentando",1.000,1,
 H7203,ro.eh,mechanical,vidente,definition_es-head,,un vidente (como a menudo se traduce); pero también (abstractamente) una visión,0.917,12,0.0039,seer,vidente,definition_es-head,,
 H7204,ro.eh,proper-noun,Roé,defEs-name,,"Roé, un israelita",1.000,1,0.0003,Haroeh,Haroeh,tbesh-en-placeholder,,
 H7205,re.u.ven,proper-noun,Rubén,defEs-name,,"Rubén, un hijo de Jacob",1.000,72,0.0236,Reuben,Reuben,tbesh-en-placeholder,,Rubén
-H7206,re.u.ve.ni,proper-noun,rubenita,defEs-gentilic,proper-mismatch,un rubenita o descendiente de Rubén,1.000,18,0.0059,Reubenite,Reubenite,tbesh-en-placeholder,,rubenitas
+H7206,re.u.ve.ni,proper-noun,un rubenita / descendiente de Rubén,defEs-name,,un rubenita o descendiente de Rubén,1.000,18,0.0059,Reubenite,Reubenite,tbesh-en-placeholder,,
 H7208,re.u.mah,proper-noun,Reúma,defEs-name,,"Reúma, una mujer siria",1.000,1,0.0003,Reumah,Reumah,tbesh-en-placeholder,,Reuma
 H7209,re.i,mechanical,espejo,definition_es-head,,un espejo (visible),1.000,1,0.0003,mirror,espejo,definition_es-head,,
 H7210,ro.i,judgment,"vista, sea abstractamente",definition_es-head,,"vista, sea abstractamente (visión) o concretamente (un espectáculo)",0.400,5,0.0016,sight,,,no dominant sense (top 0.40),
@@ -7270,7 +7270,7 @@ H7414,ra.mah,proper-noun,Ramá,defEs-name,,"Ramá, el nombre de cuatro lugares e
 H7415,rim.mah,mechanical,gusano,tbesh-map,,"un gusano (como criado rápidamente), literal o figurativamente",1.000,7,0.0023,worm,gusano,tbesh-map,,
 H7416,rim.mon,mechanical,"granada, el árbol",definition_es-head,,"una granada, el árbol (por su crecimiento erguido) o el fruto (también un ornam…",0.938,32,0.0105,pomegranate,"granada, el árbol",definition_es-head,,
 H7417,rim.mon,proper-noun,Rimón,defEs-name,,"Rimón, el nombre de una deidad siria, también de cinco lugares en Palestina",0.938,16,0.0052,Rimmon,Rimmon,tbesh-en-placeholder,,Rimón
-H7418,ra.mot,proper-noun,Ramot-néguev / Ramat-néguev,defEs-name,proper-mismatch,"Ramot-néguev o Ramat-néguev, un lugar en Palestina",1.000,22,0.0072,Ramoth,Ramoth,tbesh-en-placeholder,,Ramot
+H7418,ra.mot,proper-noun,Ramot-néguev / Ramat,defEs-name,proper-mismatch,"Ramot-néguev o Ramat-néguev, un lugar en Palestina",1.000,22,0.0072,Ramoth,Ramoth,tbesh-en-placeholder,,Ramot
 H7419,ra.mut,mechanical,montón,definition_es-head,,un montón (de cadáveres),1.000,1,0.0003,refuse,montón,definition_es-head,,
 H7420,ro.mach,mechanical,lanza,tbesh-map,,una lanza (como arrojada); especialmente la punta de hierro,0.933,15,0.0049,spear,lanza,tbesh-map,,
 H7421,ram.mi,proper-noun,un ramita,defEs-name,,"un ramita, es decir arameo",1.000,1,0.0003,Syrian,Syrian,tbesh-en-placeholder,,
@@ -7433,7 +7433,7 @@ H7580,sha.ag,mechanical,rugir,tbesh-map,,rugir o bramar,0.950,20,0.0066,to roar,
 H7581,she.a.gah,judgment,rugido o gemido,definition_es-head,,un rugido o gemido,0.429,7,0.0023,roaring,,,no dominant sense (top 0.43),
 H7582,sha.ah,judgment,precipitarse,definition_es-head,,"precipitarse; por implicación, asolar",0.333,6,0.0020,to crash,,,no dominant sense (top 0.33),
 H7583,sha.ah,mechanical,aturdir,definition_es-head,,"aturdir, es decir (intransitivamente) quedar asombrado",1.000,1,0.0003,to gaze,aturdir,definition_es-head,,
-H7585,she.ol,proper-noun,el Hades / mundo de los muertos,defEs-name,,"el Hades o mundo de los muertos (como si fuera un retiro subterráneo), incluido…",0.864,66,0.0216,hell: Sheol,hell: Sheol,tbesh-en-placeholder,,
+H7585,she.ol,proper-noun,Seol,hand-name,,"el Hades o mundo de los muertos (como si fuera un retiro subterráneo), incluido…",0.864,66,0.0216,hell: Sheol,hell: Sheol,tbesh-en-placeholder,,Seol
 H7586,sha.ul,proper-noun,Saúl,defEs-name,,"Saúl, nombre de un edomita y de dos israelitas",0.978,401,0.1315,Saul,Saul,tbesh-en-placeholder,,Saúl
 H7587,sha.u.li,proper-noun,un saulita,defEs-name,,"un saulita, descendiente de Saúl",1.000,1,0.0003,Shaulite,Shaulite,tbesh-en-placeholder,,
 H7588,sha.on,judgment,estruendo,definition_es-head,,"estruendo (como de algo que se precipita); por implicación, destrucción, alboro…",0.833,18,0.0059,roar,,,no dominant sense (top 0.83),
@@ -7589,7 +7589,7 @@ H7743,shu.ach,judgment,hundirse,definition_es-head,,"hundirse, literal o figurad
 H7744,shu.ach,proper-noun,Súah,defEs-name,,"Súah, un hijo de Abraham",1.000,2,0.0007,Shuah,Shuah,tbesh-en-placeholder,,
 H7745,shu.chah,mechanical,fosa,tbesh-map,,un abismo (hoyo),1.000,5,0.0016,pit,fosa,tbesh-map,,
 H7746,shu.chah,proper-noun,Súah,defEs-name,,"Súah, un israelita",1.000,1,0.0003,Shuhah,Shuhah,tbesh-en-placeholder,,
-H7747,shu.chi,proper-noun,suhita,defEs-gentilic,,un suhita o descendiente de Súa,1.000,5,0.0016,Shuhite,Shuhite,tbesh-en-placeholder,,suhita
+H7747,shu.chi,proper-noun,un suhita / descendiente de Súa,defEs-name,,un suhita o descendiente de Súa,1.000,5,0.0016,Shuhite,Shuhite,tbesh-en-placeholder,,
 H7748,shu.cham,proper-noun,Suham,defEs-name,,"Suham, un israelita",1.000,1,0.0003,Shuham,Shuham,tbesh-en-placeholder,,Suham
 H7749,shu.cha.mi,proper-noun,un sujamita,defEs-name,,un sujamita (colectivamente),1.000,2,0.0007,Shuhamite,Shuhamite,tbesh-en-placeholder,,
 H7750,sut,mechanical,desviarse,tbesh-head-es,,,1.000,1,0.0003,to swerve,,tbesh-untranslated,,
@@ -7609,7 +7609,7 @@ H7763,sho.mer,proper-noun,Semer,defEs-name,,"Semer, nombre de dos israelitas",1.
 H7764,shu.ni,proper-noun,Suni,defEs-name,,"Suni, un israelita",1.000,2,0.0007,Shuni,Shuni,tbesh-en-placeholder,,Suni
 H7765,shu.ni,proper-noun,un sunita,defEs-name,,"un sunita, descendientes de Suni",1.000,1,0.0003,Shunite,Shunite,tbesh-en-placeholder,,
 H7766,shu.nem,proper-noun,Sunem,defEs-name,,"Sunem, un lugar en Palestina",1.000,3,0.0010,Shunem,Shunem,tbesh-en-placeholder,,Sunem
-H7767,shu.nam.mit,proper-noun,una sunamita,defEs-name,,"una sunamita, o habitante (mujer) de Sunem",1.000,8,0.0026,Shunammites,Shunammites,tbesh-en-placeholder,,una
+H7767,shu.nam.mit,proper-noun,sunamita,defEs-gentilic,,"una sunamita, o habitante (mujer) de Sunem",1.000,8,0.0026,Shunammites,Shunammites,tbesh-en-placeholder,,sunamita
 H7768,sha.va,judgment,clamar,tbesh-map,,"raíz primitiva; propiamente, ser libre; pero usado solo causativa y reflexivame…",0.476,21,0.0069,to cry,,,no dominant sense (top 0.48),
 H7769,shu.a,judgment,grito,definition_es-head,,un grito,0.500,2,0.0007,cry,,,no dominant sense (top 0.50),
 H7770,shu.a,proper-noun,Súa,defEs-name,,"Súa, un cananeo",0.667,3,0.0010,Shua,Shua,tbesh-en-placeholder,,Súa
@@ -7728,7 +7728,7 @@ H7884,shi.chor liv.nat,proper-noun,Sihor-libnat,defEs-name,,"Sihor-libnat, un ar
 H7885,sha.yit,mechanical,remo,definition_es-head,,un remo; un azote (figuradamente),1.000,1,0.0003,oar,remo,definition_es-head,,
 H7886,shi.loh,proper-noun,Siloh,defEs-name,,"Siloh, un epíteto del Mesías",1.000,1,0.0003,tribute,tribute,tbesh-en-placeholder,,Siloh
 H7887,shi.loh,proper-noun,Silo,defEs-name,,"Silo, un lugar en Palestina",1.000,32,0.0105,Shiloh,Shiloh,tbesh-en-placeholder,,Silo
-H7888,shi.lo.ni,proper-noun,silonita,defEs-gentilic,,un silonita o habitante de Silo,1.000,6,0.0020,Shilonite,Shilonite,tbesh-en-placeholder,,silonita
+H7888,shi.lo.ni,proper-noun,un silonita / habitante de Silo,defEs-name,,un silonita o habitante de Silo,1.000,6,0.0020,Shilonite,Shilonite,tbesh-en-placeholder,,
 H7889,shi.mon,proper-noun,Simón,defEs-name,,"Simón, un israelita",1.000,1,0.0003,Shimon,Shimon,tbesh-en-placeholder,,Simón
 H7891,shir,judgment,cantar,definition_es-head,,cantar,0.407,86,0.0282,to sing,,,no dominant sense (top 0.41),
 H7892,shir,mechanical,cántico,tbesh-map,,"un canto; en abstracto, el cantar",0.983,59,0.0193,song,cántico,tbesh-map,,
@@ -7780,7 +7780,7 @@ H7938,se.kher,mechanical,salario,definition_es-head,,salario,1.000,2,0.0007,hire
 H7939,sa.khar,judgment,pago de contrato,definition_es-head,,"pago de contrato; concretamente, salario, jornal, sustento; por implicación, co…",0.536,28,0.0092,wages,,,no dominant sense (top 0.54),
 H7940,sa.khar,proper-noun,Sacar,defEs-name,,"Sacar, nombre de dos israelitas",1.000,2,0.0007,Sachar,Sachar,tbesh-en-placeholder,,Sacar
 H7941,she.khar,mechanical,embriagante,definition_es-head,,"un embriagante, es decir, licor intensamente alcohólico, sidra",1.000,23,0.0075,strong drink,embriagante,definition_es-head,,
-H7942,shik.k.ron,proper-noun,embriaguez,defEs-name,,"embriaguez; Sicrón, un lugar en Palestina",1.000,1,0.0003,Shikkeron,Shikkeron,tbesh-en-placeholder,,
+H7942,shik.k.ron,proper-noun,Sicrón,defEs-name,,"embriaguez; Sicrón, un lugar en Palestina",1.000,1,0.0003,Shikkeron,Shikkeron,tbesh-en-placeholder,,Sicrón
 H7943,shik.ka.ron,mechanical,embriaguez,definition_es-head,,embriaguez,1.000,3,0.0010,drunkenness,embriaguez,definition_es-head,,
 H7944,shal,mechanical,falta,definition_es-head,,una falta,1.000,1,0.0003,irreverence,falta,definition_es-head,,
 H7946,shal.a.nan,mechanical,tranquilo,definition_es-head,,tranquilo,1.000,1,0.0003,at ease,tranquilo,definition_es-head,,
@@ -8004,7 +8004,7 @@ H8166,se.i.rah,mechanical,cabra,definition_es-head,,una cabra,1.000,2,0.0007,fem
 H8167,se.i.rah,proper-noun,Seirat,defEs-name,,"Seirat, un lugar en Palestina",1.000,1,0.0003,Seirah,Seirah,tbesh-en-placeholder,,Seirat
 H8168,sho.al,judgment,palma,definition_es-head,,"la palma (de la mano); por extensión, un puñado",0.667,3,0.0010,handful,,,no dominant sense (top 0.67),
 H8169,sha.al.vim,proper-noun,Saalbim / Saalabín,defEs-name,proper-mismatch,"Saalbim o Saalabín, un lugar en Palestina",0.667,3,0.0010,Shaalbim,Shaalbim,tbesh-en-placeholder,,Saalabín
-H8170,sha.al.vo.ni,proper-noun,saalbonita,defEs-gentilic,,un saalbonita o habitante de Saalbín,1.000,2,0.0007,Shaalbonite,Shaalbonite,tbesh-en-placeholder,,saalbonita
+H8170,sha.al.vo.ni,proper-noun,un saalbonita / habitante de Saalbín,defEs-name,,un saalbonita o habitante de Saalbín,1.000,2,0.0007,Shaalbonite,Shaalbonite,tbesh-en-placeholder,,
 H8171,sha.a.lim,proper-noun,Saalim,defEs-name,,"Saalim, un lugar en Palestina",1.000,1,0.0003,Shaalim,Shaalim,tbesh-en-placeholder,,Saalim
 H8172,sha.an,judgment,"apoyarse, recostarse",definition_es-head,,"apoyarse, recostarse",0.409,22,0.0072,to lean,,,no dominant sense (top 0.41),
 H8173,sha.a,judgment,mirar,definition_es-head,,"(en buena acepción) mirar (con complacencia), es decir, acariciar, deleitar o r…",0.222,9,0.0030,to delight,,,no dominant sense (top 0.22),
@@ -8053,7 +8053,7 @@ H8215,she.phal,mechanical,bajo,tbesh-map,,,1.000,1,0.0003,low,bajo,tbesh-map,,
 H8216,she.phel,judgment,rango humilde,definition_es-head,,un rango humilde,0.500,2,0.0007,poverty,,,no dominant sense (top 0.50),
 H8217,sha.phal,judgment,"abatido, bajo",definition_es-head,,"abatido, bajo, literal o figurativamente, humilde",0.765,17,0.0056,low,,,no dominant sense (top 0.76),
 H8218,shiph.lah,mechanical,depresión,definition_es-head,,depresión (abatimiento),1.000,1,0.0003,humiliation,depresión,definition_es-head,,
-H8219,she.phe.lah,proper-noun,tierra baja,defEs-name,,"tierra baja, es decir, (con el artículo) la ladera marítima de Palestina, la Se…",0.950,20,0.0066,Shephelah,Shephelah,tbesh-en-placeholder,,tierra
+H8219,she.phe.lah,proper-noun,la Sefela,defEs-name,,"tierra baja, es decir, (con el artículo) la ladera marítima de Palestina, la Se…",0.950,20,0.0066,Shephelah,Shephelah,tbesh-en-placeholder,,
 H8220,shiph.lut,mechanical,negligencia,definition_es-head,,negligencia,1.000,1,0.0003,idleness,negligencia,definition_es-head,,
 H8221,she.pham,proper-noun,Sefam,defEs-name,,"Sefam, un lugar en o cerca de Palestina",0.500,2,0.0007,Shepham,Shepham,tbesh-en-placeholder,,Sefam
 H8222,sa.pham,mechanical,bigote,definition_es-head,,el bigote (como pieza del labio),1.000,5,0.0016,mustache,bigote,definition_es-head,,
@@ -8123,7 +8123,7 @@ H8285,she.rah,mechanical,muñequera,definition_es-head,,una muñequera (ajustada
 H8286,se.rug,proper-noun,Serug,defEs-name,,"Serug, un patriarca postdiluviano",1.000,5,0.0016,Serug,Serug,tbesh-en-placeholder,,Serug
 H8287,sha.ru.chen,proper-noun,Saruhén,defEs-name,,"Saruhén, un lugar en Palestina",1.000,1,0.0003,Sharuhen,Sharuhen,tbesh-en-placeholder,,Saruhén
 H8288,se.rokh,mechanical,correa,definition_es-head,,una correa (trenzada o atada),1.000,2,0.0007,thong,correa,definition_es-head,,
-H8289,sha.ron,proper-noun,llanura,defEs-name,,"llanura, Sarón, el nombre de un lugar en Palestina",1.000,7,0.0023,Lasharon,Lasharon,tbesh-en-placeholder,,
+H8289,sha.ron,proper-noun,Sarón,hand-name,,"llanura, Sarón, el nombre de un lugar en Palestina",1.000,7,0.0023,Lasharon,Lasharon,tbesh-en-placeholder,,Sarón
 H8290,sha.ro.ni,proper-noun,un saronita,defEs-name,,"un saronita, habitante de Sarón",1.000,1,0.0003,Sharonite,Sharonite,tbesh-en-placeholder,,
 H8291,sa.ruq,mechanical,vid,definition_es-head,,una vid,1.000,1,0.0003,tendril,vid,definition_es-head,,
 H8292,she.ru.qah,mechanical,silbido,definition_es-head,,"un silbido (de burla); por analogía, un pitido",1.000,2,0.0007,piping,silbido,definition_es-head,,
@@ -8238,7 +8238,7 @@ H8403,tav.nit,judgment,estructura,definition_es-head,,"estructura; por implicaci
 H8404,tav.e.rah,proper-noun,Tabera,defEs-name,,"Tabera, un lugar en el desierto",1.000,2,0.0007,Taberah,Taberah,tbesh-en-placeholder,,Tabera
 H8405,te.vets,proper-noun,Tebes,defEs-name,,"Tebes, un lugar en Palestina",1.000,3,0.0010,Thebez,Thebez,tbesh-en-placeholder,,Tebes
 H8406,te.var,mechanical,quebrar,tbesh-map,,(arameo) ser frágil (figuradamente),1.000,1,0.0003,to break,quebrar,tbesh-map,,
-H8407,tig.lat pil.e.ser,proper-noun,Tiglat-pileser / Tilgat-pilneser,defEs-name,proper-mismatch,"Tiglat-pileser o Tilgat-pilneser, un rey asirio",0.500,12,0.0039,Tiglath-pileser,Tiglath-pileser,tbesh-en-placeholder,,Tiglat-pileser
+H8407,tig.lat pil.e.ser,proper-noun,Tiglat-pileser / Tilgat,defEs-name,proper-mismatch,"Tiglat-pileser o Tilgat-pilneser, un rey asirio",0.500,12,0.0039,Tiglath-pileser,Tiglath-pileser,tbesh-en-placeholder,,Tiglat-pileser
 H8408,tag.mul,mechanical,dádiva,definition_es-head,,una dádiva (donación),1.000,1,0.0003,benefit,dádiva,definition_es-head,,
 H8409,tig.rah,mechanical,contienda / rencilla,tbesh-head-es,,,1.000,1,0.0003,strife,,tbesh-untranslated,,
 H8410,tid.har,mechanical,duradero,definition_es-head,,duradero; una especie de madera dura o árbol perdurable (tal vez la encina),1.000,2,0.0007,elm,duradero,definition_es-head,,
@@ -8318,11 +8318,11 @@ H8485,te.ma,proper-noun,Tema,defEs-name,,"Tema, un hijo de Ismael, y la región 
 H8486,te.man,judgment,sur,definition_es-head,,el sur (como a la mano derecha de quien mira al este),0.565,23,0.0075,south,,,no dominant sense (top 0.57),
 H8487,te.man,proper-noun,Temán,defEs-name,,"Temán, el nombre de dos edomitas, y de la región y descendiente de uno de ellos",1.000,11,0.0036,Teman,Teman,tbesh-en-placeholder,,Temán
 H8488,te.me.ni,proper-noun,Temeni,defEs-name,,"Temeni, un israelita",1.000,1,0.0003,Temeni,Temeni,tbesh-en-placeholder,,Temeni
-H8489,te.ma.ni,proper-noun,temanita,defEs-gentilic,proper-mismatch,un temanita o descendiente de Temán,1.000,8,0.0026,Temanite,Temanite,tbesh-en-placeholder,,temanitas
+H8489,te.ma.ni,proper-noun,un temanita / descendiente de Temán,defEs-name,,un temanita o descendiente de Temán,1.000,8,0.0026,Temanite,Temanite,tbesh-en-placeholder,,
 H8490,ti.ma.rah,mechanical,columna,definition_es-head,,"una columna, es decir nube",1.000,2,0.0007,column,columna,definition_es-head,,
 H8491,ti.tsi,proper-noun,un tizita,defEs-name,,"un tizita, descendiente o habitante de un Tiz desconocido",1.000,1,0.0003,Tizite,Tizite,tbesh-en-placeholder,,
 H8492,ti.rosh,judgment,mosto / vino nuevo,tbesh-head-es,,mosto o jugo de uva fresco (como recién exprimido); por implicación (raramente)…,1.000,38,0.0125,new wine,,,definition_es not condensable to a terse gloss,
-H8493,tir.ya,proper-noun,temeroso,defEs-name,,"temeroso; Tiría, un israelita",1.000,1,0.0003,Tiria,Tiria,tbesh-en-placeholder,,
+H8493,tir.ya,proper-noun,Tiría,defEs-name,proper-mismatch,"temeroso; Tiría, un israelita",1.000,1,0.0003,Tiria,Tiria,tbesh-en-placeholder,,Tirías
 H8494,ti.ras,proper-noun,Tiras,defEs-name,,"Tiras, un hijo de Jafet",1.000,2,0.0007,Tiras,Tiras,tbesh-en-placeholder,,Tiras
 H8495,ta.yish,mechanical,macho cabrío,definition_es-head,,un macho cabrío (como propenso a topetar),1.000,4,0.0013,male goat,macho cabrío,definition_es-head,,
 H8496,tokh,mechanical,opresión,definition_es-head,,opresión (fraude),1.000,4,0.0013,oppression,opresión,definition_es-head,,
@@ -8448,7 +8448,7 @@ H8617,te.qu.mah,mechanical,resistencia,definition_es-head,,resistencia (tenacida
 H8618,te.qo.mem,mechanical,oponente,definition_es-head,,un oponente,1.000,1,0.0003,to confront,oponente,definition_es-head,,
 H8619,ta.qo.a,mechanical,trompeta,definition_es-head,,una trompeta,1.000,1,0.0003,trumpet,trompeta,definition_es-head,,
 H8620,te.qo.a,proper-noun,Tecoa,defEs-name,,"Tecoa, un lugar en Palestina",0.857,7,0.0023,Tekoa,Tekoa,tbesh-en-placeholder,,Tecoa
-H8621,te.qo.i,proper-noun,tecoíta,defEs-gentilic,,un tecoíta o habitante de Tecoa,1.000,7,0.0023,Tekoa,Tekoa,tbesh-en-placeholder,,tecoíta
+H8621,te.qo.i,proper-noun,un tecoíta / habitante de Tecoa,defEs-name,,un tecoíta o habitante de Tecoa,1.000,7,0.0023,Tekoa,Tekoa,tbesh-en-placeholder,,
 H8622,te.qu.phah,judgment,revolución,definition_es-head,,"una revolución, es decir (del sol) curso, (del tiempo) transcurso (fin del año)",0.750,4,0.0013,circuit,,,no dominant sense (top 0.75),
 H8623,taq.qiph,mechanical,poderoso,definition_es-head,,poderoso,1.000,1,0.0003,mighty,poderoso,definition_es-head,,
 H8624,taq.qiph,mechanical,fuerte,tbesh-map,,(arameo) poderoso (fuerte),1.000,5,0.0016,strong,fuerte,tbesh-map,,
@@ -8491,7 +8491,7 @@ H8660,tir.sha.ta,proper-noun,Tirsata,defEs-name,,"Tirsata, el título de un dele
 H8661,tar.tan,proper-noun,Tartán,defEs-name,,"Tartán, un asirio (título de un alto oficial militar)",0.500,2,0.0007,Tartan,Tartan,tbesh-en-placeholder,,Tartán
 H8662,tar.taq,proper-noun,Tartac,defEs-name,,"Tartac, una deidad de los aveos",1.000,1,0.0003,Tartak,Tartak,tbesh-en-placeholder,,Tartac
 H8663,te.shu.ah,judgment,estruendo o clamor fuerte,definition_es-head,,un estruendo o clamor fuerte (alboroto),0.500,4,0.0013,shout,,,no dominant sense (top 0.50),
-H8664,tish.bi,proper-noun,tisbita,defEs-gentilic,,un tisbita o habitante de Tisbe (en Galaad),1.000,6,0.0020,Tishbite,Tishbite,tbesh-en-placeholder,,tisbita
+H8664,tish.bi,proper-noun,un tisbita / habitante de Tisbe,defEs-name,,un tisbita o habitante de Tisbe (en Galaad),1.000,6,0.0020,Tishbite,Tishbite,tbesh-en-placeholder,,
 H8665,tash.bets,mechanical,tela ajedrezada,definition_es-head,,tela ajedrezada (reticulada),1.000,1,0.0003,checkered,tela ajedrezada,definition_es-head,,
 H8666,te.shu.vah,judgment,recurrencia,definition_es-head,,"una recurrencia (de tiempo o lugar), retorno; una respuesta (como devuelta)",0.750,8,0.0026,turn,,,no dominant sense (top 0.75),
 H8667,te.su.met,mechanical,seguridad,tbesh-head-es,,,1.000,1,0.0003,security,,tbesh-untranslated,,

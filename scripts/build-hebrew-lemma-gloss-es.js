@@ -1254,38 +1254,103 @@ function stripEsEtymology(s) {
   return t.trim();
 }
 
+// Proper nouns RVR1960 renders by a fixed convention that diverges from the
+// openscriptures-ES transliteration in the leading position of definition_es.
+const PROPER_NAME_OVERRIDE = {
+  H7585: 'Seol', //     sheol   (def leads "el Hades / mundo de los muertos")
+  H3882: 'leviatán', // livyatan (def leads "un animal enroscado")
+  H11: 'Abadón', //     abaddon (def leads "abstracto, una destrucción")
+  H8289: 'Sarón', //    sharon  (def leads "llanura")
+  H4807: 'Merib-baal', // (def leads "rival de Baal")
+  H4557: 'Milo', //     millo   (H4407) — corrected below
+  H4407: 'Milo', //     millo   (def leads "un baluarte")
+  H2975: 'Nilo / río', // yeor  (def leads "un canal")
+  H5045: 'Neguev / sur', // negev (def leads "el sur")
+  H836: 'Aser', //      asher   (def leads "feliz;")
+  H3061: 'Judá', //     yehud (aramaic) (def leads "contraído de una forma…")
+  H6539: 'Persia', //   paras   (RVR "Persia", not the translit "Paras")
+  H804: 'Asiria', //    ashshur (RVR mostly "Asiria"; "Asur" only for Sem's son)
+  H6152: 'Arabia', //   arav
+  H894: 'Babilonia', // bavel   (RVR "Babilonia"; "Babel" only Gn 11:9 wordplay)
+  H5680: 'hebreo', //   ibri    (def leads "un eberita")
+  H3383: 'Jordán', //   yarden
+  H3844: 'Líbano', //   levanon
+};
+
+const ETY_NAME_RE =
+  /\bforma\b|\bra[íi]z\b|correspond|contra[íi]d|derivad|variaci[óo]n|prolonga|abrevia|patron[íi]|gentilic|\babstracto\b|\bde\s+h\d|significa|el mismo que|lo mismo que/i;
+
+function looksLikeEsName(s) {
+  return (
+    s &&
+    /[A-Za-zÀ-ÿ]/.test(s) &&
+    !/\d/.test(s) &&
+    !ETY_NAME_RE.test(s) &&
+    s.length <= GLOSS_MAXLEN
+  );
+}
+
 /** Proper-noun → RVR1960-conventional Spanish spelling, from the vetted
  *  definition_es (openscriptures-ES already uses Reina-Valera spellings). */
 function properNounEs(rec) {
+  if (PROPER_NAME_OVERRIDE[rec.strongs])
+    return {
+      gloss: capClean(PROPER_NAME_OVERRIDE[rec.strongs]),
+      source: 'hand-name',
+    };
   const hand = PROPER_FALLBACK_ES[rec.strongs];
   if (hand) return {gloss: capClean(hand), source: 'hand-translit'};
 
-  const raw = rec.defEs ? stripEsEtymology(rec.defEs) : '';
-  if (raw) {
-    // gentilic: "un/una X o habitante/descendiente de Y" → X (lowercase)
-    const gm = raw.match(/^un[oa]?\s+([a-záéíóúüñ]+(?:-[a-záéíóúüñ]+)*)\b/i);
+  const raw0 = rec.defEs ? String(rec.defEs).trim() : '';
+  const raw = raw0 ? stripEsEtymology(raw0) : '';
+
+  // 1. gentilic / common-noun gloss: leading "un(a/os/as) X …"
+  const gm = raw.match(/^un[oa]s?\s+([a-záéíóúüñ]+(?:-[a-záéíóúüñ]+)*)\b/i);
+  if (
+    gm &&
+    !/^un[oa]s?\s+(?:rey|hijo|ciudad|lugar|monte|r[íi]o|pozo|valle|nombre|t[ée]rmino|pariente|eunuco|ep[íi]teto)\b/i.test(
+      raw,
+    )
+  ) {
+    return {gloss: capClean(gm[1].toLowerCase()), source: 'defEs-gentilic'};
+  }
+
+  // 2. first Capitalised token that reads like a name (skip a leading etymology
+  //    clause / "de H####" / Hebrew residue). Keeps a leading article + hyphens.
+  const capRe =
+    /(?:^|[;,:]\s*|\bpropiamente,?\s*|\bes decir,?\s*)((?:el|la|los|las)\s+)?([A-ZÁÉÍÓÚÑ][a-záéíóúñ]{1,}(?:[- ][A-Za-záéíóúñ]+){0,3})/g;
+  let m;
+  while ((m = capRe.exec(raw0))) {
+    const cand = ((m[1] || '') + m[2]).trim();
     if (
-      gm &&
-      /^un[oa]?\s+[a-záéíóúüñ-]+\s+(?:o\b|,\s|$)/i.test(raw) &&
-      !/^un[oa]?\s+(?:rey|hijo|ciudad|lugar|monte|r[íi]o|pozo|valle|hombre|mujer|profeta|sacerdote|nombre|t[íe]rmino|pariente|descendiente|eunuco|israelita|edomita)\b/i.test(
-        raw,
+      looksLikeEsName(cand) &&
+      !/^(?:De|Del|El|La|Los|Las|Un|Una|Unos|Unas|Compare|Aramaic|Compárese)\b/.test(
+        cand,
       )
     ) {
-      return {gloss: capClean(gm[1].toLowerCase()), source: 'defEs-gentilic'};
-    }
-    let name = raw.split(/[;(]/)[0];
-    name = name.split(/,\s/)[0].trim();
-    name = name
-      .replace(/\s*=.*$/, '')
-      .replace(/\s+es decir.*$/i, '')
-      .replace(/[.;:,\s]+$/, '')
-      .trim();
-    name = name.replace(/\s+o\s+/i, ' / ');
-    if (name && /[A-Za-zÀ-ÿ]/.test(name) && name.length <= GLOSS_MAXLEN + 8) {
-      return {gloss: capClean(name), source: 'defEs-name'};
+      return {
+        gloss: capClean(cand.replace(/\s+o\s+/i, ' / ')),
+        source: 'defEs-name',
+      };
     }
   }
-  // last resort — crude English→Spanish transliteration (always flagged)
+
+  // 3. first lowercase segment (place descriptors: "el sur", "tierra baja")
+  let name = raw
+    .split(/[;(]/)[0]
+    .split(/,\s/)[0]
+    .replace(/\s*=.*$/, '')
+    .replace(/\s+es decir.*$/i, '')
+    .replace(/[.;:,\s]+$/, '')
+    .trim();
+  if (looksLikeEsName(name)) {
+    return {
+      gloss: capClean(name.replace(/\s+o\s+/i, ' / ')),
+      source: 'defEs-name',
+    };
+  }
+
+  // 4. last resort — crude English→Spanish transliteration (always flagged)
   return {
     gloss: capClean(translitName(rec.tbeshGloss || rec.rawTop || '')),
     source: 'auto-translit',
