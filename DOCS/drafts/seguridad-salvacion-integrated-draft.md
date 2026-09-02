@@ -62,7 +62,7 @@ El quinto artículo empieza afirmando la seguridad del creyente: los injertados 
 
 **Las Opiniones de los Remonstrantes (1618): la caída final afirmada**
 
-Ocho años después, ante el Sínodo de Dort, los remonstrantes ya no dejaron la cuestión abierta. En sus _Opiniones_ sobre el quinto artículo (1618) declararon que los creyentes verdaderos pueden caer de la fe verdadera y caer en pecados incompatibles con una fe viva y justificadora; que pueden hacerlo no solo de manera parcial, sino total y final; y que esto no solo es posible, sino que sucede con frecuencia. Un creyente puede, por su propia culpa, caer en hechos vergonzosos y atroces, persistir en ellos y morir en ellos, y así al fin caer y perderse; y rechazaron expresamente como dañina la enseñanza contraria —que ni siquiera el adulterio o el homicidio pueden hacer caer de la fe total y finalmente— (Opiniones de los Remonstrantes, 1618, quinto artículo, pts. 3-4, 6). Aquí es donde la tradición arminiana se separa de la reformada.
+Ocho años después, ante el Sínodo de Dort, los remonstrantes ya no dejaron la cuestión abierta. En sus _Opiniones_ sobre el quinto artículo (1618) declararon que los creyentes verdaderos pueden caer de la fe verdadera y caer en pecados incompatibles con una fe viva y justificadora; que pueden hacerlo no solo de manera parcial, sino total y final; y que esto no solo es posible, sino que sucede con frecuencia. Un creyente puede, por su propia culpa, caer en hechos vergonzosos y atroces, persistir en ellos y morir en ellos, y así al fin caer y perderse; y rechazaron expresamente como dañina la enseñanza contraria, según la cual ni siquiera el adulterio o el homicidio pueden hacer caer de la fe total y finalmente (Opiniones de los Remonstrantes, 1618, quinto artículo, pts. 3-4, 6). Aquí es donde la tradición arminiana se separa de la reformada.
 
 **Arminio, cauteloso; sus herederos, explícitos**
 
@@ -84,7 +84,7 @@ La tradición encuentra el mismo principio ya en el Antiguo Testamento. Por medi
 
 **La seguridad del creyente**
 
-Que la caída sea posible no deja al creyente sin seguridad. Esta tradición —y de forma especialmente marcada Wesley y el metodismo— subraya el testimonio interior del Espíritu: "El Espíritu mismo da testimonio a nuestro espíritu, de que somos hijos de Dios" (Ro 8:16). Quien permanece en Cristo por la fe tiene una promesa firme de vida; y las propias Opiniones de 1618 afirman que el creyente verdadero puede y debe estar seguro, en el presente, de su fe y de su salvación, y rechazan la idea de que tal certeza no sea alcanzable (Opiniones de los Remonstrantes, 1618, quinto artículo, pts. 7-8). Lo que esta tradición no promete es una garantía que vuelva innecesaria la vigilancia.
+Que la caída sea posible no deja al creyente sin seguridad. Esta tradición —y de forma especialmente marcada en Wesley y el metodismo— subraya el testimonio interior del Espíritu: "El Espíritu mismo da testimonio a nuestro espíritu, de que somos hijos de Dios" (Ro 8:16). Quien permanece en Cristo por la fe tiene una promesa firme de vida; y las propias Opiniones de 1618 afirman que el creyente verdadero puede y debe estar seguro, en el presente, de su fe y de su salvación, y rechazan la idea de que tal certeza no sea alcanzable (Opiniones de los Remonstrantes, 1618, quinto artículo, pts. 7-8). Lo que esta tradición no promete es una garantía que vuelva innecesaria la vigilancia.
 
 **Ni angustia ni descuido**
 
