@@ -228,9 +228,10 @@ const HEBREW_GLOSS_ES_VERSION = 2;
  * `hebrew_gloss_es` overlay in getOriginalWords' COALESCE — it is only the
  * fallback default. Bump whenever the bundled JSON changes.
  *
- * v2 = Victor's manual review pass over the 185 flagged items in
- * `DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md` (7 corrected glosses:
- * H1148, H1486, H1692, H2313, H2803, H5315, H7703).
+ * v2 = review pass over the 185 flagged items in
+ * `DOCS/drafts/hebrew-lemma-gloss-es-REVIEW.md`, approved by Victor (7
+ * glosses proposed and verified against `bible-seed.db`/
+ * `strongs-defs-es.json`: H1148, H1486, H1692, H2313, H2803, H5315, H7703).
  */
 const HEBREW_LEMMA_GLOSS_ES_VERSION = 2;
 

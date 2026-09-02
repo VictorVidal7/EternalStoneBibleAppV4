@@ -1,7 +1,8 @@
 # A3 — Glosa española por lema hebreo · Paquete de revisión
 
 _Generado por `scripts/build-hebrew-lemma-gloss-es.js` · rama `feature/hebrew-lemma-gloss-es`._
-_REVISADO por Victor (60ª sesión) — 7 glosas corregidas (H1148, H1486, H1692, H2313, H2803, H5315, H7703),
+_Revisión aprobada por Victor (60ª sesión): 7 glosas propuestas y verificadas contra
+`bible-seed.db`/`strongs-defs-es.json` (H1148, H1486, H1692, H2313, H2803, H5315, H7703),
 aplicadas en `assets/hebrew-lemma-gloss-es.json`. Nada de esto está cableado en la app todavía (eso es P2)._
 
 ## Resumen
