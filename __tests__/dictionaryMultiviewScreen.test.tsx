@@ -520,6 +520,39 @@ describe('DictionaryDetailScreen — multi-view branch (Bautismo, Milenio)', () 
     expect(mockPush).not.toHaveBeenCalled();
   });
 
+  // Regression: the bundled "eleccion" gloss ships a real `*cómo*` italic
+  // span ("Sobre *cómo* se relacionan esa elección soberana..."), same
+  // `*italic*` convention `parseMarkdownSegments` already handles for
+  // article/section bodies. Until this fix, the gloss `<Text>` called
+  // `linkifyMarkdownSegment` directly on the raw string instead of running
+  // it through `MarkdownBody` (which itself calls `parseMarkdownSegments`
+  // first) — so the free-preview gloss, uniquely among the app's rendered
+  // dictionary text, showed the literal "*cómo*" asterisks on-device instead
+  // of italicizing "cómo". Guards both halves: the italic word renders in
+  // its own styled node, AND the raw asterisks never leak into the tree.
+  it('renders a *italic* span inside the free gloss as real italic text, not literal asterisks (eleccion regression)', async () => {
+    const GLOSS_WITH_ITALIC_ENTRY = {
+      ...BAUTISMO_ENTRY,
+      slug: 'eleccion',
+      gloss_es: 'Sobre *cómo* se relacionan esa elección soberana.',
+    };
+    mockGetDictionaryEntry.mockResolvedValue(GLOSS_WITH_ITALIC_ENTRY);
+    mockGetDictionaryMultiviewSections.mockResolvedValue([]);
+
+    const {findByText, queryByText} = render(<DictionaryDetailScreen />);
+
+    const italicNode = await findByText('cómo');
+    const flat = StyleSheet.flatten(italicNode.props.style) as {
+      fontStyle?: string;
+    };
+    expect(flat.fontStyle).toBe('italic');
+
+    expect(queryByText(/\*cómo\*/)).toBeNull();
+    expect(
+      queryByText('Sobre *cómo* se relacionan esa elección soberana.'),
+    ).toBeNull();
+  });
+
   // "Ver también" (RELATED_DICTIONARY_SLUGS) — additive navigation, always
   // free (rendered regardless of `isPremium`).
   it('"Ver también" renders the related entry and navigates to it on tap', async () => {
