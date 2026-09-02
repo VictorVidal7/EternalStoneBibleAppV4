@@ -536,7 +536,7 @@ describe('seedHebrewLemmaGlossEsIfNeeded (synthetic fixture)', () => {
     await privateApi(db).seedHebrewLemmaGlossEsIfNeeded();
     expect(
       await AsyncStorage.getItem('@hebrew_lemma_gloss_es_loaded_version'),
-    ).toBe('1');
+    ).toBe('2');
   });
 
   it('is versioned: a second call is a no-op once the flag is set', async () => {
@@ -555,7 +555,7 @@ describe('seedHebrewLemmaGlossEsIfNeeded (synthetic fixture)', () => {
     expect(fake.hebrewLemmaGlossEs).toHaveLength(3);
     expect(
       await AsyncStorage.getItem('@hebrew_lemma_gloss_es_loaded_version'),
-    ).toBe('1');
+    ).toBe('2');
   });
 
   it('does not throw when the db op fails, and never marks itself done', async () => {
