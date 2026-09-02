@@ -72,8 +72,14 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const {t} = useLanguage();
   const tv = t.audio.voiceSelector;
   const [modalVisible, setModalVisible] = useState(false);
-  const {spanishVoices, englishVoices, isLoading, previewVoice, stopPreview} =
-    useVoices();
+  const {
+    spanishVoices,
+    englishVoices,
+    isLoading,
+    previewVoice,
+    stopPreview,
+    refreshVoices,
+  } = useVoices();
 
   // The narration follows the loaded text's language, so lock the list to it
   // when content is loaded (hiding the toggle); otherwise honour the manual pick.
@@ -102,6 +108,11 @@ export const VoiceSelector: React.FC<VoiceSelectorProps> = ({
   const handleOpenModal = () => {
     haptics.tap();
     setModalVisible(true);
+    // Re-enumerate on open: the user may have just installed a "Español
+    // (España)" voice from the OS TTS settings via the hint below, and it
+    // should appear here (and flip the hint to the "elige una voz" variant)
+    // without an app restart (58th session).
+    void refreshVoices();
   };
 
   const handleCloseModal = () => {

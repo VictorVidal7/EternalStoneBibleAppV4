@@ -8,6 +8,7 @@
  */
 import React from 'react';
 import {renderHook, act} from '@testing-library/react-native';
+import {AppState} from 'react-native';
 import * as Speech from 'expo-speech';
 import {
   AudioPlayerProvider,
@@ -263,5 +264,53 @@ describe('es-ES voice auto-selection for Spanish narration (56th session)', () =
     const opts = lastSpeakOptions();
     expect(opts.language).toBe('es-ES');
     expect(opts.voice).toBeUndefined();
+  });
+
+  it('picks up a newly-installed es-ES voice on the next foreground return (58th-session fallback)', async () => {
+    const esUsOnly = [
+      {
+        identifier: 'es-us-x-esd-local',
+        name: 'es-US',
+        language: 'es-US',
+        quality: 'Enhanced',
+      },
+    ];
+    (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue(esUsOnly);
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await act(async () => {
+      await Promise.resolve();
+    });
+    await act(async () =>
+      result.current.loadChapter(chapter, {language: 'es'}),
+    );
+    await act(async () => result.current.play());
+    // No Castilian voice on the device yet — nothing to pin.
+    expect(lastSpeakOptions().voice).toBeUndefined();
+
+    // The user leaves to the OS TTS settings, installs "Español (España)", and
+    // returns — the enumeration effect re-runs on AppState 'active'.
+    (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue([
+      ...esUsOnly,
+      {
+        identifier: 'es-es-x-eea-local',
+        name: 'es-ES eea',
+        language: 'es-ES',
+        quality: 'Enhanced',
+      },
+    ]);
+    const changeHandlers = (AppState.addEventListener as jest.Mock).mock.calls
+      .filter(([type]) => type === 'change')
+      .map(([, handler]) => handler as (state: string) => void);
+    expect(changeHandlers.length).toBeGreaterThan(0);
+    await act(async () => {
+      changeHandlers.forEach(handler => handler('active'));
+    });
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => result.current.play());
+    expect(lastSpeakOptions().language).toBe('es-ES');
+    expect(lastSpeakOptions().voice).toBe('es-es-x-eea-local');
   });
 });
