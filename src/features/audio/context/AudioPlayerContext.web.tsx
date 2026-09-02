@@ -103,6 +103,7 @@ const STUB_VALUE: AudioPlayerContextValue = {
 
   setPlaybackSpeed: noop,
   setVoice: noop,
+  clearVoice: noop,
   setLanguage: noop,
 
   autoAdvanceChapter: false,

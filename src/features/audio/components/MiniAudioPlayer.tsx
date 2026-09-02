@@ -139,6 +139,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
     setSleepTimerEndOfBook,
     cancelSleepTimer,
     setVoice,
+    clearVoice,
     setLanguage,
     autoAdvanceChapter,
     setAutoAdvanceChapter,
@@ -1055,6 +1056,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
                     currentLanguage={state.selectedLanguage}
                     contentLanguage={state.contentLanguage}
                     onVoiceSelect={setVoice}
+                    onVoiceClear={clearVoice}
                     onLanguageChange={setLanguage}
                     variant="compact"
                   />

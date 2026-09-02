@@ -149,6 +149,15 @@ export interface AudioPlayerContextValue {
   // Settings
   setPlaybackSpeed: (speed: PlaybackSpeed) => void;
   setVoice: (voice: VoiceInfo) => void;
+  /**
+   * Un-pin the manually chosen voice and return to the automatic pick —
+   * `resolveNarration` then selects the best voice for the text's language
+   * (an es-ES Castilian voice for Spanish; see `pickDefaultSpanishVoiceId`).
+   * Mirrors `setVoice`: clears `state.selectedVoice` and persists
+   * `selectedVoiceId: null`. `setLanguage` already clears it as a side effect;
+   * this exposes it as its own action so the VoiceSelector can offer it.
+   */
+  clearVoice: () => void;
   setLanguage: (language: AudioLanguage) => void;
 
   /**

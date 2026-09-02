@@ -314,3 +314,61 @@ describe('es-ES voice auto-selection for Spanish narration (56th session)', () =
     expect(lastSpeakOptions().voice).toBe('es-es-x-eea-local');
   });
 });
+
+describe('clearVoice un-pins the chosen voice and returns to the auto pick (58th session)', () => {
+  beforeEach(() => jest.clearAllMocks());
+
+  const systemVoices = [
+    {
+      identifier: 'es-us-x-esd-local',
+      name: 'es-US',
+      language: 'es-US',
+      quality: 'Enhanced',
+    },
+    {
+      identifier: 'es-es-x-eea-local',
+      name: 'es-ES eea',
+      language: 'es-ES',
+      quality: 'Enhanced',
+    },
+  ];
+
+  // A Latin-America Spanish voice the user pinned by hand — still an es-family
+  // voice, so resolveNarration honours it as-is for Spanish text.
+  const latamVoice: VoiceInfo = {
+    identifier: 'es-us-x-esd-local',
+    name: 'es-US',
+    language: 'es-US',
+    quality: 'Enhanced',
+  };
+
+  it('honours a pinned es-US voice, then auto-picks the Castilian es-ES voice after clearVoice', async () => {
+    (Speech.getAvailableVoicesAsync as jest.Mock).mockResolvedValue(
+      systemVoices,
+    );
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    // let the mount-time voice enumeration + preference load resolve
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    await act(async () => result.current.setVoice(latamVoice));
+    await act(async () =>
+      result.current.loadChapter(chapter, {language: 'es'}),
+    );
+    await act(async () => result.current.play());
+
+    // The user's explicit pick is spoken as-is (its own es-US tag).
+    const pinnedOpts = lastSpeakOptions();
+    expect(pinnedOpts.language).toBe('es-US');
+    expect(pinnedOpts.voice).toBe('es-us-x-esd-local');
+
+    // Reset to automatic → the bare es-ES tag + the auto-pinned Castilian voice.
+    await act(async () => result.current.clearVoice());
+    await act(async () => result.current.play());
+
+    const autoOpts = lastSpeakOptions();
+    expect(autoOpts.language).toBe('es-ES');
+    expect(autoOpts.voice).toBe('es-es-x-eea-local');
+  });
+});
