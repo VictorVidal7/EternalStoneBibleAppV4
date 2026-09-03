@@ -106,11 +106,13 @@ Busca:
 - Violaciones de sync: escribir a Firestore cuando debería ser local-first
   (`feedback_essb-minimize-firestore-sync`).
 - Manejo de params de deep-link (`app/+native-intent.tsx`, headers de cada pantalla).
-  Evidencia: `file:line` + una frase del defecto + escenario de fallo concreto. Una
-  sesión posterior puede re-verificar releyendo.
-  **Herramienta:** para el barrido grande, dile a Victor que lance él
-  `/code-review ultra` (el chat no puede lanzarlo). El chat SÍ puede correr
-  `/code-review` (no-ultra) sobre un path/módulo específico.
+
+Evidencia: `file:line` + una frase del defecto + escenario de fallo concreto. Una
+sesión posterior puede re-verificar releyendo.
+
+Herramienta: para el barrido grande, dile a Victor que lance él `/code-review ultra`
+(el chat no puede lanzarlo). El chat SÍ puede correr `/code-review` (no-ultra) sobre
+un path/módulo específico.
 
 ### Modo B — Dependencias, vulnerabilidades, vigencia de software
 
@@ -237,7 +239,7 @@ no. Cuando diga "despacha N agentes para las áreas X, Y, Z":
   `DOCS/REVIEW_2026-09/_scratch/<área>.md` — **nunca** a `INDEX.md` (evita carreras
   de escritura concurrente).
 - El orquestador espera a que TODOS terminen, luego fusiona los scratch al `INDEX.md`
-  - archivos `detail/` en UNA sola pasada de integración, y borra los scratch.
+  y a los archivos `detail/` en UNA sola pasada de integración, y borra los scratch.
 - Verifica el estado real en el worktree de cada agente, no confíes en el "completado"
   (`feedback_essb-verify-agent-commits-before-merge`).
 - Modo C en paralelo: un emulador por agente (ver la nota de multi-emulador en
