@@ -98,3 +98,10 @@ assets/eternal-stone-logo-final.png
 assets/eternal-stone-logo-no-text.png
 assets/eternal-stone-logo-patched.png
 assets/logo-original.jpg
+
+# Scratch de agentes en fan-out durante la revisión profunda 2026-09: cada agente
+# escribe sus hallazgos aquí y el orquestador los fusiona al INDEX.md / detail/ en
+# una sola pasada, luego los borra. Ignorarlos mantiene `git status` limpio, que es
+# justo lo que el protocolo de la revisión pide (un corte a media sesión nunca debe
+# dejar el árbol sucio). Ver DOCS/REVIEW_2026-09/REVIEW_PROMPT.md §1 y §6.
+DOCS/REVIEW_2026-09/_scratch/
