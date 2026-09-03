@@ -11,12 +11,7 @@
  * (expanded cross-refs, original-language keywords) by
  * prepTableScreenPremium.test.tsx — both stub this section out too.
  */
-import {
-  render,
-  waitFor,
-  fireEvent,
-  configure,
-} from '@testing-library/react-native';
+import {render, waitFor, fireEvent} from '@testing-library/react-native';
 import * as SecureStore from 'expo-secure-store';
 import Purchases from 'react-native-purchases';
 import PrepTableScreen from '../app/features/prep/index';
@@ -30,23 +25,12 @@ const mockPurchases = Purchases as unknown as {
   __reset: () => void;
 };
 
-// CI hardening: every assertion in this file gates on the same chain —
-// a chip press / initial mount sets `selectedCompareIds`, which re-runs the
-// `loadCompareRows` effect, which awaits the (mocked) `compareVerseRange`
-// before `setCompareRows` re-renders the version cards. Under `test:ci`
-// (`--maxWorkers=2 --coverage`, istanbul instrumentation) that state-update →
-// async-resolve → re-render chain occasionally overruns RNTL's 1000ms default
-// and this suite flakes on CI (never locally). Raise the async-utils default
-// for the whole file so `waitFor` / `findBy*` stay patient without changing
-// any assertion's meaning. Per-file: Jest gives each suite its own module
-// registry, so this does not leak into other suites.
-//
-// `jest.setTimeout` too: with the async-utils default at 5s a single slow
-// `waitFor` on a loaded runner could otherwise trip Jest's 5s per-test
-// ceiling first (these tests chain ~9 awaits), just trading one flake
-// message for another.
-configure({asyncUtilTimeout: 5000});
-jest.setTimeout(20000);
+// This suite's `waitFor` / `findBy*` chains (a chip press / initial mount
+// re-runs the `loadCompareRows` effect, which awaits the mocked
+// `compareVerseRange` before the version cards re-render — some tests chain
+// ~9 such awaits) used to flake on the loaded `test:ci` runner. The
+// async-utils + per-test timeout bump that fixes it now lives globally in
+// jest.setup.js; see that file's header comment for the full rationale.
 
 // Mutable route params — reassigned per-test (range test needs an explicit
 // endVerse). Read at CALL time by the closure below, so reassigning before a
