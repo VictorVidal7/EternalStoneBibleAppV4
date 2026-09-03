@@ -208,11 +208,20 @@ inmediato.
 
 ## Dudas
 
-- **No se verificó en un navegador.** Todo `R9-13` es análisis estático: no se corrió
-  `expo export --platform web` ni se cargó el sitio desplegado. **Recomendado antes de
-  tocar código**, sobre todo para descartar que el build desplegado hoy sea anterior a
-  `d753a6e` (2026-08-18) — si el último deploy es más viejo, el crash está en el repo pero
-  no todavía en el aire.
+- **✅ RESUELTA la duda del despliegue (2026-09-03): `R9-13` NO está en producción, por 5
+  días.** El historial de releases de Firebase Hosting (consultado por API con la
+  credencial cacheada de `firebase-tools`, patrón de
+  `reference_essb-firebase-cli-token-for-rules-api`) da **7 releases, del 2026-07-09 al
+  2026-08-13**; el último es **2026-08-13T04:39Z**. La regresión entró en `d753a6e` el
+  **2026-08-18** — **5 días después**. Victor estimaba "mes y medio o dos meses"; la
+  fecha real es 3 semanas, y el margen real es de 5 días, no de meses.
+  **Consecuencia práctica:** el sitio vivo está sano, así que no hay incidente en curso;
+  pero el bug está **armado** — el próximo `firebase deploy` publica el crash. Es un
+  **bloqueante de release**, no un P0 activo. Arreglarlo antes de volver a desplegar la
+  web.
+- **Aun así no se verificó en un navegador.** El mecanismo de `R9-13` es análisis estático
+  (re-verificado a mano, ver arriba): no se corrió `expo export --platform web`. Vale una
+  comprobación cuando se arregle, para confirmar que la corrección basta.
 - **`R9-14` puede quedarse corto.** Solo se grepearon los hooks que lanzan en los
   **archivos de ruta** de `app/`. Un componente de `src/` que llame `useAuth()` y sea
   renderizado por una ruta web-alcanzable produce el mismo crash sin salir en la tabla. El

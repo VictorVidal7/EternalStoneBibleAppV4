@@ -91,8 +91,16 @@
   hay boundary por ruta, **cae la app web entera**. Afecta a las 2 pantallas que renderizan
   la hoja en web: lector de capítulo (`chapter].web.tsx:358`) y entrada de diccionario
   (`dictionary/[slug].tsx:750`). **Regresión fechada:** `d753a6e` (2026-08-18). Invisible
-  para `tsc` (resuelve al nativo) y para jest (preset nativo). **Pendiente:** confirmar si
-  el build desplegado hoy ya incluye `d753a6e`. Detalle: `detail/A6-paridad-web-native.md`.
+  para `tsc` (resuelve al nativo) y para jest (preset nativo).
+  **✅ RESUELTO 2026-09-03 el "¿está en producción?": NO, y por 5 días.** El último deploy
+  de Firebase Hosting es del **2026-08-13T04:39Z** (consultado por la API de Hosting con la
+  credencial cacheada de `firebase-tools`, patrón de
+  `reference_essb-firebase-cli-token-for-rules-api`; los 7 releases del historial son del
+  2026-07-09 al 2026-08-13). La regresión entró el **2026-08-18**, o sea **5 días después
+  del último deploy**. **El sitio vivo está sano; el bug está armado.** Por tanto no es un
+  incidente activo, pero **sí es bloqueante del próximo `firebase deploy`**: publicar hoy
+  rompe el lector web. Tratarlo como release-blocker, no como P0 en curso.
+  Detalle: `detail/A6-paridad-web-native.md`.
 
 - **`R9-14` (A6, web) — 🐛 7 rutas web-alcanzables lanzan "must be used within a
   …Provider".** Severidad **media** (código P0, impacto acotado). El árbol web no monta

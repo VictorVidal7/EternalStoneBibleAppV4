@@ -249,13 +249,17 @@ que un código huérfano sea detectable sin leer logs. No cambiar el 200 al usua
 
 ## Dudas
 
-1. **`GRANT_DURATION = 'lifetime'` sigue marcado como suposición NO verificada en el propio
-   fichero desplegado** (`redeem.ts:50-55`: _"verify the real 'ofrenda' packages actually
-   grant a lifetime entitlement before distributing real codes"_). Por memoria del proyecto,
-   la 48ª sesión hizo un canje real end-to-end, así que probablemente ya esté verificado de
-   hecho, pero no está escrito. **Pregunta directa para Victor: ¿los tres packages de
-   `default` conceden `extras` de forma vitalicia?** Si no, los códigos regalados y las
-   ofrendas pagadas darían accesos de duración distinta.
+1. **✅ RESUELTA (2026-09-03) — `GRANT_DURATION = 'lifetime'` es CORRECTO.** Victor lo
+   confirmó: **la ofrenda desbloquea premium para siempre.** Por tanto el canje de gift
+   code y la ofrenda pagada conceden el mismo acceso vitalicio, no hay divergencia de
+   duración, y la suposición del backend está bien elegida.
+   **Queda un residuo de documentación, no de comportamiento:** `redeem.ts:50-55` sigue
+   diciendo _"verify the real 'ofrenda' packages actually grant a lifetime entitlement
+   **before distributing real codes**"_ — una advertencia ya cumplida que, tal como está,
+   induce a pensar que el punto sigue abierto. **Arreglo sugerido (no aplicado, es código
+   de app):** cambiar ese comentario por la constatación ("confirmado 2026-09-03: los
+   packages de la ofrenda conceden `extras` vitalicio, así que el canje iguala a la
+   compra"). Barato y evita que la próxima sesión vuelva a levantar la duda.
 2. **Doble envío en `RedeemCodeSheet`, muy difícil de disparar.** El guard
    `if (!trimmed || submitting) return` (`:152`) lee `submitting` del closure del último
    render, y el `Pressable` está `disabled` por estado — pero `onSubmitEditing` (`:262`)

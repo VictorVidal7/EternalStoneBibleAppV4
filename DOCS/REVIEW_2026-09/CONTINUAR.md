@@ -68,10 +68,12 @@ jamás (barrido de 5558/5558 blobs), 0 paths abiertos en Firestore, 0 exposició
 explotable en CI. Sus 8 hallazgos son endurecimiento, no bugs de la app.
 
 **El Modo A P0 salió lo contrario: 24 hallazgos, 9 de ellos P0 reales.** Los más graves,
-por si hay que priorizar arreglos: `R9-13` (el lector **web** desplegado crashea en el
-primer render), `R9-27`/`R9-28` (dos caminos por los que **restaurar un respaldo borra
-datos**), `R9-22`/`R9-23` (fuga de datos **entre cuentas** en un dispositivo compartido),
-`R9-9` (premium que sobrevive al reembolso). Detalle por fila en `detail/A*.md`.
+por si hay que priorizar arreglos: `R9-27`/`R9-28` (dos caminos por los que **restaurar un
+respaldo borra datos**), `R9-22`/`R9-23` (fuga de datos **entre cuentas** en un dispositivo
+compartido), `R9-9` (premium que sobrevive al reembolso), y `R9-13` (el lector **web**
+crashea en el primer render — **no está en producción**, el último deploy es 5 días
+anterior a la regresión, pero es **bloqueante del próximo deploy web**). Detalle por fila
+en `detail/A*.md`.
 
 **El patrón que los une, y que conviene tener presente al revisar lo que queda:** las
 tres compuertas verdes (`tsc`, jest, CI) comparten puntos ciegos — la **resolución de
@@ -202,16 +204,24 @@ Alternativas legítimas, según con qué margen cuentes:
   divergencia de API entre una pareja web/native es invisible para las tres compuertas.**
 - **`_scratch/` está gitignoreado pero NO jest-ignoreado** (ver §5).
 
-**Dos preguntas abiertas para Victor que salieron de la sesión 3** (no son hallazgos, son
-datos que solo él puede dar):
+- **El último deploy web es del 2026-08-13** (`2026-08-13T04:39Z`); el historial completo
+  de Firebase Hosting son 7 releases, del 2026-07-09 al 2026-08-13. **La regresión de
+  `R9-13` entró el 2026-08-18, 5 días DESPUÉS**, así que el sitio vivo está sano y el bug
+  está solo **armado**: el próximo `firebase deploy` lo publica. Trátalo como bloqueante de
+  release, no como P0 en curso.
+- **El recipe del token de `firebase-tools` generaliza a la API de Hosting**, no solo a la
+  de Rules: `GET https://firebasehosting.googleapis.com/v1beta1/sites/{projectId}/releases`
+  con el access_token refrescado da el historial de despliegues con fecha y autor. Útil
+  cada vez que haya que decidir si algo del repo está o no en el aire. Ver
+  `reference_essb-firebase-cli-token-for-rules-api`.
+- **La ofrenda desbloquea premium PARA SIEMPRE** (confirmado por Victor, 2026-09-03). Por
+  tanto el `GRANT_DURATION = 'lifetime'` del backend de canje es correcto y un código
+  regalado concede exactamente lo mismo que una compra. La advertencia de
+  `redeem.ts:50-55` ("verify … before distributing real codes") **ya está cumplida** y
+  conviene reescribirla como constatación para que nadie vuelva a levantar la duda.
 
-1. **¿Cuándo se desplegó por última vez la web?** `R9-13` (el crash del lector web) entró
-   en `d753a6e`, el 2026-08-18. Si el build en el aire es anterior, el bug está en el repo
-   pero todavía no en producción — y eso cambia su urgencia.
-2. **¿Los tres packages de la oferta `default` conceden `extras` de forma vitalicia?** El
-   backend de canje asume `duration: 'lifetime'` y su propio comentario
-   (`redeem.ts:50-55`) dice que eso **no se ha verificado**. Si no coincide, un código
-   regalado y una ofrenda pagada dan accesos de duración distinta.
+**Las dos preguntas que la sesión 3 dejó abiertas para Victor están ambas RESPONDIDAS**
+(arriba, en este mismo bloque). No las vuelvas a preguntar.
 
 ## 7. Abierto, sin relación con la revisión
 
