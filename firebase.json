@@ -6,20 +6,6 @@
     "crashlytics_is_error_generation_on_js_crash_enabled": true,
     "crashlytics_javascript_exception_handler_chaining_enabled": true
   },
-  "functions": [
-    {
-      "source": "functions",
-      "codebase": "default",
-      "ignore": [
-        "node_modules",
-        ".git",
-        "firebase-debug.log",
-        "firebase-debug.*.log",
-        "*.local"
-      ],
-      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
-    }
-  ],
   "hosting": {
     "public": "dist",
     "ignore": ["firebase.json", "**/.*"],

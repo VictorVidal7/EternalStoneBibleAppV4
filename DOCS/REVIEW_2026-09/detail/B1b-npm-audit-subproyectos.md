@@ -93,7 +93,20 @@ chain"), que existe justamente porque las versiones viejas rompían. **No correr
 
 ---
 
-## ⚠️ `R9-7` — `functions/` es código muerto que duplica la lógica de dinero, y `firebase.json` todavía lo declara
+## ✅ `R9-7` — `functions/` no desplegado duplica la lógica de dinero, y `firebase.json` todavía lo declara
+
+> **RESUELTO 2026-09-03, después de escribir este detalle.** Al revisar el objetivo
+> antes de borrarlo apareció un dato que a este hallazgo le faltaba:
+> `src/lib/offering/giftCodeService.ts` ya documenta que `functions/` está
+> **deliberadamente sin desplegar** porque Cloud Functions exige plan **Blaze**, que
+> pasa el proyecto Firebase **entero** a facturación con sobrecosto (Vercel Hobby
+> tiene tope duro). O sea que "código muerto" era correcto sobre el despliegue pero
+> incompleto sobre la intención. Se resolvió **conservando** el código: se quitó la
+> sección `functions` de `firebase.json` (mata la trampa de despliegue) y se agregó
+> `functions/README.md` etiquetándolo. Ver `R9-7` en `BUGS.md` para el detalle.
+> **Lección de método:** un hallazgo de "código muerto" tiene que buscar la
+> justificación de por qué sigue ahí antes de recomendar borrarlo — acá estaba a un
+> `grep` de distancia, en el archivo que consume el endpoint.
 
 **Severidad: baja-media** (riesgo de mantenimiento en una ruta P0, no un bug hoy).
 

@@ -105,7 +105,7 @@ _Ninguno todavía._
   **Arreglo sugerido (no aplicado):** `permissions: {contents: read}` a nivel workflow +
   fijar la acción de Codecov a SHA completo.
 
-- **`R9-7` (B1b, `functions/`) — ⚠️ código muerto que duplica la lógica de dinero, y
+- **`R9-7` (B1b, `functions/`) — ✅ RESUELTO 2026-09-03.** Era: código no desplegado que duplica la lógica de dinero, y
   `firebase.json` todavía lo declara.** Severidad **baja-media** (mantenimiento en una
   ruta P0, no un bug hoy).
   `functions/src/index.ts` implementa el canje de gift-codes completo **en paralelo** al
@@ -120,10 +120,25 @@ _Ninguno todavía._
   atrás la copia invisible, y son dos implementaciones del mismo gate de pago;
   (b) `firebase.json` sigue con `"functions": [{"source": "functions", "predeploy": …}]`,
   así que un `firebase deploy` sin `--only hosting` intentaría desplegarlo.
-  **Opciones (no aplicadas):** borrarlo + quitar la sección de `firebase.json`; o
-  conservarlo como plan B con un README que diga que NO está desplegado y que la fuente
-  de verdad es `vercel/gift-code-redeem`. **Decisión de Victor** — hay argumento real
-  para tener un fallback en otra nube.
+  **Resolución:** Victor pidió primero borrarlo; al revisar el objetivo antes de borrar
+  apareció un dato que faltaba en este hallazgo — `functions/` **no está olvidado, está
+  conservado a propósito**, y la razón ya estaba escrita en
+  `src/lib/offering/giftCodeService.ts`: Cloud Functions exige el **plan Blaze**, que
+  convierte el proyecto Firebase **entero** a facturación con sobrecosto, mientras el
+  tier Hobby de Vercel tiene tope duro. Con ese dato se recomendó **no borrar**, y Victor
+  estuvo de acuerdo. Aplicado:
+  (a) se quitó la sección `functions` de `firebase.json` — mata la trampa concreta de
+  despliegue (ahora `firebase deploy` solo publica hosting);
+  (b) se agregó `functions/README.md`, que lo etiqueta como NO DESPLEGADO, explica el
+  motivo de Blaze, señala que la fuente de verdad es `vercel/gift-code-redeem`, **avisa
+  que esta copia está atrasada en mantenimiento** (la de Vercel recibió `d97516b`) y deja
+  los 5 pasos si alguna vez se despliega, incluida la sección JSON exacta que se quitó;
+  (c) punteros al README desde `giftCodeService.ts` y `.prettierignore`.
+  **Por qué no se borró:** conservarlo cuesta cero medible (no compila, no testea, no
+  entra al bundle, no lo toca `npm run validate`), el riesgo de deriva exige pasar a
+  Blaze — un acto deliberado de mucha fricción — y borrarlo sí destruye la salida de
+  emergencia de un solo proveedor en una ruta de dinero. El problema del "duplicado
+  invisible" se resolvió haciéndolo visible y etiquetado.
 
 - **`R9-8` (B1b, subproyectos) — 💡 replicar el `override` de `uuid` que la raíz ya
   tiene.** Severidad **baja**; cierra la única vuln de runtime desplegado sin tocar
