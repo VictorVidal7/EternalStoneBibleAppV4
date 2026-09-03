@@ -9,6 +9,30 @@
 
 import 'react-native-gesture-handler/jestSetup';
 import mockAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
+import {configure} from '@testing-library/react-native';
+
+// CI hardening — global async-utils + per-test timeouts.
+//
+// `test:ci` runs `jest --ci --coverage --maxWorkers=2`. Istanbul
+// instrumentation under only two workers keeps the CI runner permanently in a
+// slow-CPU state (never reproduced locally), and CI now runs on every pushed
+// branch, so the exposure is broad. A cluster of RNTL suites
+// (prepTableScreenVersionCompare, webStubProviders, AuthContext, OfferingSheet,
+// the wordStudyScreen* family) gate every assertion on the same shape — a
+// state update re-runs an effect that awaits a mocked service before the
+// component re-renders; several chain ~9 such awaits. RNTL's 1000ms
+// `asyncUtilTimeout` default and Jest's 5000ms per-test default
+// (jest.config.js sets no `testTimeout`) are exactly what those suites overrun
+// on a loaded runner, so they flake on CI only.
+//
+// Raise both globally so `waitFor` / `findBy*` stay patient without changing
+// any assertion's meaning. The values are matched deliberately: with the
+// async default at 5s, a single slow `waitFor` must not trip the per-test
+// ceiling (20s) first, which would just trade one flake message for another.
+// setupFilesAfterEnv runs per-suite in the same module registry as each test
+// file, so this is equivalent to putting these two lines atop every suite.
+configure({asyncUtilTimeout: 5000});
+jest.setTimeout(20000);
 
 // AsyncStorage
 jest.mock('@react-native-async-storage/async-storage', () => mockAsyncStorage);
