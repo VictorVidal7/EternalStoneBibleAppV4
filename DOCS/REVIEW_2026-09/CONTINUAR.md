@@ -39,10 +39,11 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-`main` = `origin/main` = **`2f32aa9`** (o posterior), **árbol limpio**, 6 ramas locales
-(`main`, `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
+`main` = `origin/main`, **árbol limpio**, 6 ramas locales (`main`,
+`audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
 `chore/worklets-bundle-mode`, `feature/red-letter-web`,
 `research/a4-chico-spanish-availability`). Si no coincide, dilo antes de empezar.
+La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11`; la sesión 2 cerró en ese último.
 
 ## 3. Dónde va la revisión
 
@@ -53,6 +54,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 | ------ | ------------------------------------------ | --------- |
 | 1      | Solo el inventario (charter §5)            | `18a3ffa` |
 | 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5` | `2f32aa9` |
+| 2      | Este prompt + correcciones al charter      | `8b64c11` |
 
 El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0 secretos filtrados
 jamás (barrido de 5558/5558 blobs, incluidos los inalcanzables), 0 paths abiertos en
