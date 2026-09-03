@@ -1,9 +1,9 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: Modo A · fila `A2`.** Sesión 2 cerró todo el Modo B P0 (`B1`,
-> `B1b`, `B2`–`B5`). Sesión 3 (2026-09-03) cerró `A1` con **2 bugs P0 de dinero**
-> (`R9-9`, `R9-10`). Siguiente `PENDIENTE`: `A2` (P0, ofrenda/gift-code) y el resto del
-> bloque `A2`–`A12`, que es el mayor valor restante.
+> **Frontera actual: Modo A · fila `A4`.** Sesión 2 cerró todo el Modo B P0. Sesión 3
+> (2026-09-03) cerró **6 filas del Modo A P0** (`A1`, `A2`, `A3`, `A5`, `A6`, `A7`) con
+> **24 hallazgos nuevos** (`R9-9`..`R9-32`), de los cuales **9 son P0**. Siguiente
+> `PENDIENTE`: `A4` (`SyncEngine`, donde ya apuntan `R9-11` y `R9-22`), luego `A8`–`A12`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -103,54 +103,54 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 
 ## Modo A — Auditoría estática de código
 
-| #   | Área                                                               | Prioridad | Estado    | Detalle                 |
-| --- | ------------------------------------------------------------------ | --------- | --------- | ----------------------- |
-| A1  | Premium: `PremiumContext` + RevenueCat + entitlements              | P0        | 🐛 BUG    | `A1-premium-revenuecat` |
-| A2  | Ofrenda/Donación: `offeringService`, `giftCodeService`             | P0        | PENDIENTE | —                       |
-| A3  | Auth: `AuthContext` + borrado de cuenta                            | P0        | PENDIENTE | —                       |
-| A4  | Sync: `SyncEngine.ts` (1378 L) y colas de escritura                | P0        | PENDIENTE | —                       |
-| A5  | Auditoría de TODAS las escrituras a Firestore (call sites)         | P0        | PENDIENTE | —                       |
-| A6  | Paridad web/native (`*.web.tsx` premium/offering/memory)           | P0        | PENDIENTE | —                       |
-| A7  | `BackupService.ts` (1526 L) — respaldar/restaurar                  | P0        | PENDIENTE | —                       |
-| A8  | Persistencia de notas y subrayados (`lib/notes`, `lib/highlights`) | P0        | PENDIENTE | —                       |
-| A9  | Persistencia/autoguardado de la Mesa (`features/prep`)             | P0        | PENDIENTE | —                       |
-| A10 | Memoria/SRS: `MemoryDeckContext`, `lib/memory`                     | P0        | PENDIENTE | —                       |
-| A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | PENDIENTE | —                       |
-| A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | PENDIENTE | —                       |
-| A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | PENDIENTE | —                       |
-| A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | PENDIENTE | —                       |
-| A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | PENDIENTE | —                       |
-| A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | PENDIENTE | —                       |
-| A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | PENDIENTE | —                       |
-| A18 | Word study / idiomas originales (`features/study`)                 | P1        | PENDIENTE | —                       |
-| A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | PENDIENTE | —                       |
-| A20 | Ajustes (`(tabs)/settings.tsx`, 1289 L)                            | P1        | PENDIENTE | —                       |
-| A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | PENDIENTE | —                       |
-| A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | PENDIENTE | —                       |
-| A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | PENDIENTE | —                       |
-| A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | PENDIENTE | —                       |
-| A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | PENDIENTE | —                       |
-| A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | PENDIENTE | —                       |
-| A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | PENDIENTE | —                       |
-| A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | PENDIENTE | —                       |
-| A29 | Árbol de contexts + `ServicesContext` (18 providers)               | P1        | PENDIENTE | —                       |
-| A30 | Seguridad de tipos: `any` / `as` / `@ts-ignore` / `!`              | P1        | PENDIENTE | —                       |
-| A31 | Código muerto: exports sin usar, archivos huérfanos                | P1        | PENDIENTE | —                       |
-| A32 | Mesa de preparación — altitud (`prep/index.tsx`, 3467 L)           | P2        | PENDIENTE | —                       |
-| A33 | Profecías (`prophecies/index.tsx`, 1892 L)                         | P2        | PENDIENTE | —                       |
-| A34 | Journeys + "Tu camino" (`journeys/`, `journey/`)                   | P2        | PENDIENTE | —                       |
-| A35 | Niños (`features/kids`)                                            | P2        | PENDIENTE | —                       |
-| A36 | Oración y lectio (`features/prayer`, `lectio.tsx`)                 | P2        | PENDIENTE | —                       |
-| A37 | Planes y Juntos (`CustomPlansContext`, `TogetherContext`)          | P2        | PENDIENTE | —                       |
-| A38 | Widgets (`src/widgets`, `features/widgets`)                        | P2        | PENDIENTE | —                       |
-| A39 | Timeline, facts, colecciones, marcadores                           | P2        | PENDIENTE | —                       |
-| A40 | Devocional, Daily Light, guiada, sentimientos, temas               | P2        | PENDIENTE | —                       |
-| A41 | Teología y diccionario (`features/theology`, `dictionary`)         | P2        | PENDIENTE | —                       |
-| A42 | Sermon-notes y share-faith                                         | P2        | PENDIENTE | —                       |
-| A43 | Reading insights (`reading-insights/index.tsx`, 1730 L)            | P2        | PENDIENTE | —                       |
-| A44 | Comparación de versiones (`VersionComparisonScreen`, 2141 L)       | P2        | PENDIENTE | —                       |
-| A45 | Landings compartidos + about-book + explore-all                    | P2        | PENDIENTE | —                       |
-| A46 | Conflictos (`features/conflicts`, `(tabs)/conflicts.tsx`)          | P2        | PENDIENTE | —                       |
+| #   | Área                                                               | Prioridad | Estado    | Detalle                         |
+| --- | ------------------------------------------------------------------ | --------- | --------- | ------------------------------- |
+| A1  | Premium: `PremiumContext` + RevenueCat + entitlements              | P0        | 🐛 BUG    | `A1-premium-revenuecat`         |
+| A2  | Ofrenda/Donación: `offeringService`, `giftCodeService`             | P0        | 🐛 BUG    | `A2-ofrenda-donacion-giftcodes` |
+| A3  | Auth: `AuthContext` + borrado de cuenta                            | P0        | 🐛 BUG    | `A3-auth-borrado-cuenta`        |
+| A4  | Sync: `SyncEngine.ts` (1378 L) y colas de escritura                | P0        | PENDIENTE | —                               |
+| A5  | Auditoría de TODAS las escrituras a Firestore (call sites)         | P0        | 🐛 BUG    | `A5-escrituras-firestore`       |
+| A6  | Paridad web/native (`*.web.tsx` premium/offering/memory)           | P0        | 🐛 BUG    | `A6-paridad-web-native`         |
+| A7  | `services/BackupService.ts` (1526 L) — respaldar/restaurar         | P0        | 🐛 BUG    | `A7-backupservice`              |
+| A8  | Persistencia de notas y subrayados (`lib/notes`, `lib/highlights`) | P0        | PENDIENTE | —                               |
+| A9  | Persistencia/autoguardado de la Mesa (`features/prep`)             | P0        | PENDIENTE | —                               |
+| A10 | Memoria/SRS: `MemoryDeckContext`, `lib/memory`                     | P0        | PENDIENTE | —                               |
+| A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | PENDIENTE | —                               |
+| A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | PENDIENTE | —                               |
+| A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | PENDIENTE | —                               |
+| A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | PENDIENTE | —                               |
+| A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | PENDIENTE | —                               |
+| A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | PENDIENTE | —                               |
+| A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | PENDIENTE | —                               |
+| A18 | Word study / idiomas originales (`features/study`)                 | P1        | PENDIENTE | —                               |
+| A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | PENDIENTE | —                               |
+| A20 | Ajustes (`(tabs)/settings.tsx`, 1289 L)                            | P1        | PENDIENTE | —                               |
+| A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | PENDIENTE | —                               |
+| A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | PENDIENTE | —                               |
+| A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | PENDIENTE | —                               |
+| A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | PENDIENTE | —                               |
+| A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | PENDIENTE | —                               |
+| A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | PENDIENTE | —                               |
+| A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | PENDIENTE | —                               |
+| A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | PENDIENTE | —                               |
+| A29 | Árbol de contexts + `ServicesContext` (18 providers)               | P1        | PENDIENTE | —                               |
+| A30 | Seguridad de tipos: `any` / `as` / `@ts-ignore` / `!`              | P1        | PENDIENTE | —                               |
+| A31 | Código muerto: exports sin usar, archivos huérfanos                | P1        | PENDIENTE | —                               |
+| A32 | Mesa de preparación — altitud (`prep/index.tsx`, 3467 L)           | P2        | PENDIENTE | —                               |
+| A33 | Profecías (`prophecies/index.tsx`, 1892 L)                         | P2        | PENDIENTE | —                               |
+| A34 | Journeys + "Tu camino" (`journeys/`, `journey/`)                   | P2        | PENDIENTE | —                               |
+| A35 | Niños (`features/kids`)                                            | P2        | PENDIENTE | —                               |
+| A36 | Oración y lectio (`features/prayer`, `lectio.tsx`)                 | P2        | PENDIENTE | —                               |
+| A37 | Planes y Juntos (`CustomPlansContext`, `TogetherContext`)          | P2        | PENDIENTE | —                               |
+| A38 | Widgets (`src/widgets`, `features/widgets`)                        | P2        | PENDIENTE | —                               |
+| A39 | Timeline, facts, colecciones, marcadores                           | P2        | PENDIENTE | —                               |
+| A40 | Devocional, Daily Light, guiada, sentimientos, temas               | P2        | PENDIENTE | —                               |
+| A41 | Teología y diccionario (`features/theology`, `dictionary`)         | P2        | PENDIENTE | —                               |
+| A42 | Sermon-notes y share-faith                                         | P2        | PENDIENTE | —                               |
+| A43 | Reading insights (`reading-insights/index.tsx`, 1730 L)            | P2        | PENDIENTE | —                               |
+| A44 | Comparación de versiones (`VersionComparisonScreen`, 2141 L)       | P2        | PENDIENTE | —                               |
+| A45 | Landings compartidos + about-book + explore-all                    | P2        | PENDIENTE | —                               |
+| A46 | Conflictos (`features/conflicts`, `(tabs)/conflicts.tsx`)          | P2        | PENDIENTE | —                               |
 
 ---
 
@@ -278,10 +278,14 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   índice con 137 filas (A 46 · B 10 · C 71 · D 10) y `BUGS.md`. Hallazgo colateral: la
   semilla BUG-10 del charter estaba obsoleta — ya está arreglada en `b17ec99`. Nada
   revisado. Siguiente: fila `A1` (o `B1` si se prefiere empezar por lo barato).
-- **Sesión 3 — 2026-09-03.** Modo A, fila `A1` (premium / RevenueCat / entitlements)
-  cerrada como `🐛 BUG` con **2 hallazgos P0 de dinero** (`R9-9` alta, `R9-10` media),
-  ambos **verificados con sondas ejecutables**, no solo por lectura. Hueco de fondo: la
-  suite tenía cubierta la dirección `false → true` (conceder) y **ninguna** prueba de la
-  dirección que **quita** el acceso. Intento de fan-out de 11 agentes para `A2`–`A12`
-  abortado por límite de uso antes de que ninguno escribiera su `_scratch/` — sin
-  progreso perdido, las 11 filas siguen `PENDIENTE`.
+- **Sesión 3 — 2026-09-03.** Modo A. **6 filas cerradas** (`A1`, `A5` por el
+  orquestador; `A2`, `A3`, `A6`, `A7` por fan-out de agentes en worktree) → **24 hallazgos
+  `R9-9`..`R9-32`, 9 de ellos P0.** `A1` y `A5` se verificaron con **sondas ejecutables**
+  en `_scratch/`, no solo por lectura; de los hallazgos de agentes, el orquestador
+  **re-verificó a mano** los portantes de `R9-13`, `R9-22`, `R9-24`, `R9-27` y `R9-28`, y
+  corrigió dos imprecisiones del informe de `A6`. Un primer fan-out de 11 agentes se
+  abortó por límite de uso sin escribir nada (sin progreso perdido); el segundo, de 4,
+  salió completo. Corregida en el índice la ruta de `BackupService` (`src/services/`, no
+  `src/lib/backup/`). **Patrón que atraviesa la sesión:** las tres compuertas verdes
+  (`tsc`, jest, CI) comparten puntos ciegos —resolución por plataforma, y la dirección
+  "quitar acceso"/"restaurar"— y ahí es donde estaban casi todos los P0.
