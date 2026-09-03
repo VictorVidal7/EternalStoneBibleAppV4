@@ -26,8 +26,9 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
    bug fresco algo ya sabido. **No re-derives el índice desde el código.**
 2. **`DOCS/REVIEW_2026-09/REVIEW_PROMPT.md`** — el charter: protocolo (§1), prioridades
    (§2), las 4 dimensiones y su estándar de evidencia (§3).
-3. **`DOCS/REVIEW_2026-09/BUGS.md`** — los 8 hallazgos abiertos (`R9-1`..`R9-8`), para
-   no volver a reportarlos.
+3. **`DOCS/REVIEW_2026-09/BUGS.md`** — los 8 hallazgos (`R9-1`..`R9-8`), para no volver
+   a reportarlos. **`R9-7` ya está RESUELTO** (`af64ce1`); los otros 7 siguen abiertos
+   y son propuestas, no bugs de la app.
 4. Solo el `detail/<slug>.md` del área que vayas a tocar. **No leas los 7 detalles de
    una** — para eso está el índice.
 5. Memorias (por el índice `MEMORY.md`): `essb-64th-session-deep-review-2026-09-inventory`
@@ -55,6 +56,7 @@ La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11`; la sesión 2 cerró en
 | 1      | Solo el inventario (charter §5)            | `18a3ffa` |
 | 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5` | `2f32aa9` |
 | 2      | Este prompt + correcciones al charter      | `8b64c11` |
+| 2      | `R9-7` resuelto: `functions/` documentada  | `af64ce1` |
 
 El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0 secretos filtrados
 jamás (barrido de 5558/5558 blobs, incluidos los inalcanzables), 0 paths abiertos en
@@ -99,6 +101,12 @@ Alternativas legítimas, según con qué margen cuentes:
   antes de recomendarlo. `decode-uri-component@0.5.0` es ESM-only y rompería Metro;
   `uuid@11.1.1` trae build dual y la raíz ya lo corre en verde. Mismo patrón, veredictos
   opuestos.
+- **Un hallazgo de "código muerto" tiene que buscar POR QUÉ sigue ahí antes de
+  recomendar borrarlo.** `R9-7` recomendó borrar `functions/` sin ver que la
+  justificación estaba a un `grep` de distancia, en el archivo que consume el endpoint
+  (`giftCodeService.ts` documenta que no se despliega a propósito por el tema Blaze).
+  Se detectó al mirar el objetivo antes de borrar, que es justo para lo que sirve ese
+  paso.
 - **Verificá contra `git log` antes de afirmar un estado que venga de memoria o del
   charter.** La sesión 1 encontró que la semilla BUG-10 del charter ya estaba arreglada
   (`b17ec99`), y la sesión 2 encontró que la memoria de device-testing miente sobre el
@@ -130,8 +138,11 @@ Alternativas legítimas, según con qué margen cuentes:
   `giftCodes` es de raíz y está deliberadamente **fuera** de las reglas → ningún cliente
   puede enumerar códigos; solo los backends con Admin SDK. **Está bien así.**
 - **La app llama al backend de Vercel** (`giftCodeService.ts:44` →
-  `essb-gift-redeem.vercel.app/api/redeem`). **`functions/` es código muerto** que
-  duplica la lógica de canje (`R9-7`, decisión pendiente de Victor).
+  `essb-gift-redeem.vercel.app/api/redeem`). **`functions/` NO está desplegada, y es a
+  propósito** — Cloud Functions exige plan Blaze, que pasa el proyecto Firebase entero a
+  facturación con sobrecosto. Se conserva como respaldo y está etiquetada en
+  `functions/README.md`; su sección se quitó de `firebase.json` para que un
+  `firebase deploy` no la toque. **No propongas borrarla de nuevo** (`R9-7`, resuelto).
 - **Firebase Storage no se usa** (paquete no instalado, 0 usos).
 - **`TogetherContext` no toca Firestore** — los grupos de "Juntos" son locales.
 - **`/android` está gitignoreado** (0 archivos trackeados). La contraseña del keystore
