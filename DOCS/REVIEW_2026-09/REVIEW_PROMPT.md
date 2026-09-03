@@ -7,6 +7,13 @@
 
 ---
 
+> **ESTADO AL 2026-09-03 (leélo antes de usar este charter).** Este archivo es el
+> **programa**, no el estado. El estado vivo está en
+> [`INDEX.md`](INDEX.md) — 137 filas, y su línea `Frontera actual:` dice dónde seguir.
+> Ya cerrado: **sesión 1** (inventario, `18a3ffa`) y **sesión 2** (todo el Modo B P0 —
+> `B1`, `B1b`, `B2`, `B3`, `B4`, `B5` — `2f32aa9`). Para arrancar un chat nuevo, usa
+> [`CONTINUAR.md`](CONTINUAR.md), que ya trae el mensaje inicial armado.
+
 ## 0. Contexto
 
 App bíblica React Native / Expo (SDK 57, RN 0.86.2), español-primero, ~520 archivos
@@ -118,8 +125,19 @@ un path/módulo específico.
 
 Entorno: ninguno. Es ~1–2 sesiones en total, no 54 filas.
 
-- `npm audit` (hoy: 8 vulns — 7 moderate, 1 high, 0 critical). Clasificar cada una:
-  ¿alcanzable desde código de la app? ¿hay fix sin breaking change?
+- ~~`npm audit` (hoy: 8 vulns — 7 moderate, 1 high, 0 critical). Clasificar cada una:
+  ¿alcanzable desde código de la app? ¿hay fix sin breaking change?~~ **HECHO** (filas
+  `B1` y `B1b`, sesión 2). Resultado: ninguna alcanzable. **Y una regla que salió de
+  ahí y aplica a todo el programa: NUNCA correr `npm audit fix --force` en este repo**
+  — propone _downgrades_ que romperían la app en dos lugares distintos
+  (`expo-router@5.1.11` desde el `57.0.12` instalado; `firebase-admin@10.3.0` desde
+  `13.10.0` en `vercel/`). `npm audit fix` a secas sí es seguro. Ver `R9-1` y `R9-8`.
+- **El audit de la raíz NO cubre `functions/` ni `vercel/gift-code-redeem`** (son
+  proyectos Node aparte, con su propio `package.json` y lockfile). Importan más que la
+  raíz porque son código de servidor con service account — se auditaron en la fila
+  `B1b`, que el charter original no tenía. Cualquier fila futura de Modo B (`B9`
+  dependencias sin usar, `B10` licencias) debería extenderse a los dos subproyectos
+  también, no solo a la raíz.
 - `npm outdated` (hoy: ~50 paquetes atrás). Separar: (a) seguro de subir ya,
   (b) fijado por Expo SDK 57 — no tocar, (c) major con breaking changes — anotar
   esfuerzo.
@@ -156,9 +174,13 @@ recipe completo, gotchas de `adb` en Windows, deep links, y el toggle premium de
 - Evidencia por fila: `file:line` + repro exacto + ruta de la captura + extracto de
   logcat. Una sesión posterior NO puede re-verificar un hallazgo en vivo sin rehacer
   el trabajo de dispositivo — por eso el estándar es más alto aquí.
-- Semilla ya conocida: **BUG-10** (Hilo profético, "Siguiente" no resetea el scroll —
-  `app/features/prophecies/index.tsx`) sigue abierto de la revisión previa. Verifícalo
-  y si sigue, entra directo como `🐛 BUG` P2.
+- ~~Semilla ya conocida: **BUG-10** (Hilo profético, "Siguiente" no resetea el
+  scroll)~~ **DATO OBSOLETO, corregido en la sesión 1.** Ya estaba arreglado en
+  `b17ec99` (`app/features/prophecies/index.tsx:297-299`, un `useEffect` de
+  `scrollTo({y:0})` por cambio de fase, con comentario que cita "QA BUG-10", y cubre
+  más rutas que el repro original). Con eso **los 12 bugs de la revisión Fable están
+  cerrados**, no 11 de 12. No lo siembres como bug abierto. Los otros 11 no se
+  re-verificaron en vivo: si el Modo C toca su área, vale una comprobación de paso.
 
 ### Modo D — Propuestas de mejora
 
@@ -221,7 +243,9 @@ La primera sesión NO revisa nada. Su único entregable:
    - **Modo D:** filas por superficie de UX (onboarding, Home, lector, reproductor,
      Ajustes, flujos premium, accesibilidad transversal, rendimiento).
    - Todas en `PENDIENTE`. Asignar prioridad a cada una.
-3. Crear `BUGS.md` vacío (con encabezados P0/P1/P2) y sembrar BUG-10.
+3. Crear `BUGS.md` vacío (con encabezados P0/P1/P2). ~~y sembrar BUG-10~~ — no: se
+   verificó que BUG-10 ya estaba arreglado, así que se registró como CERRADO con su
+   evidencia en vez de sembrarse como abierto.
 4. Commit del scaffold (`docs(review): scaffold 2026-09 deep-review ledger`) — es
    doc puro, no código de app. **Pídele a Victor el OK para commitear/pushear** (no
    asumas — ver convenciones). Luego PARA. No empieces a revisar.

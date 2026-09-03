@@ -5,7 +5,9 @@
 > sigue en Modo B, o `A1` (P0) si se cambia al Modo A — que es el mayor valor restante.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
-que hay que leer al reanudar.
+que hay que leer al reanudar. **Para arrancar un chat nuevo:**
+[`CONTINUAR.md`](CONTINUAR.md), que ya trae el mensaje inicial y las reglas que ya
+costaron caro.
 
 ---
 
