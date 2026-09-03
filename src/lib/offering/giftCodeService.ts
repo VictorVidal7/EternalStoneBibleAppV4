@@ -34,7 +34,8 @@ import {linkUser} from './offeringService';
  * Cloud Function (functions/src/index.ts, same logic, kept in the repo but
  * deliberately left undeployed — Cloud Functions requires the Blaze billing
  * plan, which converts the WHOLE Firebase project to overage-billed; Vercel's
- * free Hobby tier hard-caps usage with no overage instead). See
+ * free Hobby tier hard-caps usage with no overage instead; functions/README.md
+ * spells this out and warns that that copy is behind on maintenance). See
  * vercel/gift-code-redeem/README.md for the deploy steps and project memory
  * essb-gift-code-redemption for the full decision trail. This only resolves
  * AFTER that project is deployed to production — update this constant if the

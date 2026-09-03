@@ -27,8 +27,9 @@ src/features/study/data/hebrewMorphologyCodes.json
 assets
 
 # Cloud Functions — separate Node project with its own tooling; not part of
-# the main repo's npm run validate (see functions/ setup in the gift-code-
-# redemption feature report for how it's gated instead).
+# the main repo's npm run validate. NOT DEPLOYED — it's reference/fallback code
+# for the gift-code redemption that actually runs on Vercel; see
+# functions/README.md for why it's kept and what to do if it ever ships.
 functions
 
 # Vercel serverless fallback for gift-code redemption — same reasoning as functions/.
