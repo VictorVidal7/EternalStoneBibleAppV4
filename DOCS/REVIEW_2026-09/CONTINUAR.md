@@ -122,6 +122,17 @@ Alternativas legítimas, según con qué margen cuentes:
   (ya está en `.gitignore`), nunca a `INDEX.md`; el orquestador fusiona todo en **una**
   pasada al final y verifica el estado real de cada worktree en vez de confiar en el
   "completado". El fan-out necesita que **Victor lo pida explícitamente**.
+- **`_scratch/` está gitignoreado pero NO está jest-ignoreado.** El `testMatch` de
+  `jest.config.js` incluye `**/?(*.)+(spec|test).[jt]s?(x)` y `testPathIgnorePatterns`
+  solo excluye `node_modules/` y `.claude/`. Un `*.test.tsx` olvidado ahí **se suma a la
+  suite** de `npm test` sin aparecer nunca en `git status`. Si escribís sondas
+  ejecutables (ver abajo), borralas al cerrar la fila.
+- **Una sonda ejecutable vale más que una lectura, y `_scratch/` la hace gratis.** En
+  `A1`, la lectura sugería el bug pero la sonda lo **probó** y de paso mostró que era
+  asimétrico (la concesión se propaga, la revocación no) — un matiz que la lectura sola
+  no daba. Se puede montar el contexto real con el mock oficial del SDK sin tocar código
+  de la app ni ensuciar el árbol. No aplica al Modo B ni a agentes en worktree (esos no
+  tienen `node_modules`).
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
 
 ## 6. Hechos duros que ya no hay que volver a averiguar

@@ -15,7 +15,61 @@
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-_Ninguno todavía._
+- **`R9-9` (A1, entitlements) — 🐛 la revocación de la entitlement premium no se propaga
+  nunca.** Severidad **alta**. Es dinero: acceso de pago que sobrevive al reembolso, y
+  premium gratis para el segundo usuario de un dispositivo compartido.
+  `src/lib/offering/offeringService.ts:121` corta con
+  `if (unlocked === lastKnownUnlocked) return;`, y `lastKnownUnlocked` se inicializa a
+  `false` en cada arranque del proceso (`:112`). En cualquier arranque en el que
+  RevenueCat reporte la entitlement **inactiva**, ese dedupe (`false === false`) corta
+  **antes** de `setCachedEntitlement(unlocked)` (`:123`) y **antes** de notificar a los
+  listeners (`:124-133`). Un `'true'` viejo en la caché de `expo-secure-store` no se
+  corrige jamás. `PremiumContext` se siembra de esa caché al montar
+  (`src/context/PremiumContext.tsx:57-61`) y después solo escucha **cambios** (`:64-66`)
+  — que ya no van a llegar.
+  **Nada lo repara:** `grep` de `SecureStore` sobre `src/` + `app/` da **cero** usos
+  fuera de `entitlementCache.ts`. Ni el cierre de sesión, ni el borrado de cuenta, ni el
+  reset de Ajustes limpian la clave; y `linkUser()` está documentado a propósito para no
+  revocar en el sign-out (`offeringService.ts:200-205`). Solo una desinstalación la
+  borra.
+  **Repro (verificado con sondas contra el `PremiumContext` y el `offeringService`
+  reales + el mock oficial de `react-native-purchases`):** con la caché en `'true'` y
+  RevenueCat reportando inactiva → `isPremium = true`, caché en disco `'true'`, y sin
+  embargo `getLastKnownEntitlement() = false`. Igual con `linkUser('uid-B')` de un
+  usuario sin compra. El **control** en la dirección contraria (caché vacía + RevenueCat
+  activa) sí funciona: **el defecto es asimétrico, solo falla la dirección que quita el
+  acceso.**
+  **Corroboración:** `src/components/settings/ColorThemeSettings.tsx:60-74` tiene un
+  `useEffect` cuyo comentario nombra el escenario textualmente ("_the entitlement is
+  later revoked (e.g. a refund)_"). Ese revert depende de que `isPremium` pase a `false`,
+  que es justo lo que este bug impide. Igual en `ReaderPreferencesSheet.tsx:128-150`.
+  **Arreglo sugerido (no aplicado):** el dedupe está bien para no notificar de más; lo
+  que está mal es tomar `false` como estado inicial **conocido** cuando en realidad es
+  "todavía no sé". Opciones: (a) sembrar `lastKnownUnlocked` desde la caché en
+  `initialize()`; (b) escribir siempre la caché y dejar el dedupe solo para la
+  notificación; (c) `lastKnownUnlocked: boolean | null` con `null` = sin resolver.
+  Detalle completo en `detail/A1-premium-revenuecat.md`.
+
+- **`R9-10` (A1, `PremiumContext`) — 🐛 la lectura tardía de la caché pisa el valor real
+  de RevenueCat.** Severidad **media** (se auto-repara en el siguiente arranque), pero el
+  usuario afectado es, por definición, uno que **ya pagó**.
+  En `src/context/PremiumContext.tsx:54-72` la lectura asíncrona de caché y el listener
+  de RevenueCat escriben el mismo estado sin orden garantizado; si el push de RevenueCat
+  llega primero, el `setIsPremium(unlocked)` incondicional de la línea **59** lo
+  sobrescribe con el valor viejo. Contradice el contrato que declara el propio docstring
+  del módulo (`:5-8`: "_those come from RevenueCat's CustomerInfo … and win over anything
+  written here_").
+  **Repro (verificado, determinista, sin timers):** difiriendo la resolución de
+  `getPremiumUnlocked()` y disparando entremedio `initialize()` con la entitlement activa
+  → `tras push de RevenueCat: isPremium = true` … `tras resolver la caché: isPremium = false`.
+  **Escenario:** usuario que pagó, arranque en frío con la primera lectura de
+  `expo-secure-store` lenta (init del keystore de Android) y la caché aún sin reflejar la
+  compra — p. ej. tras reinstalar, o tras una escritura fallida, porque
+  `entitlementCache.ts:43-48` **se traga los errores de escritura**. Queda premium
+  bloqueado toda la sesión.
+  **Arreglo sugerido (no aplicado):** ignorar el resultado de la lectura de caché si un
+  valor del listener ya llegó (basta un `ref` de "ya resuelto por RevenueCat"), en vez del
+  `setIsPremium` incondicional de la línea 59.
 
 ---
 
