@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: Modo A · fila `A1`.** Sesión 1 (2026-09-03) solo creó el
-> inventario; las 137 filas están en `PENDIENTE`. Nada se ha revisado todavía.
+> **Frontera actual: Modo B · fila `B6`.** Sesión 2 (2026-09-03) cerró **todo el Modo B
+> P0** (`B1`, `B1b`, `B2`, `B3`, `B4`, `B5`). Siguiente `PENDIENTE`: `B6` (P1) si se
+> sigue en Modo B, o `A1` (P0) si se cambia al Modo A — que es el mayor valor restante.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar.
@@ -152,18 +153,19 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 
 ## Modo B — Dependencias, vulnerabilidades, vigencia
 
-| #   | Área                                                     | Prioridad | Estado    | Detalle |
-| --- | -------------------------------------------------------- | --------- | --------- | ------- |
-| B1  | `npm audit` — clasificar las 8 vulns (alcanzables? fix?) | P0        | PENDIENTE | —       |
-| B2  | Escaneo de secretos en el árbol de trabajo               | P0        | PENDIENTE | —       |
-| B3  | Escaneo de secretos en el historial de git               | P0        | PENDIENTE | —       |
-| B4  | Reglas de Firestore y Storage — ¿algún path abierto?     | P0        | PENDIENTE | —       |
-| B5  | Seguridad de CI (`.github/workflows/ci.yml`)             | P0        | PENDIENTE | —       |
-| B6  | Permisos Android, plugins, `google-services.json`        | P1        | PENDIENTE | —       |
-| B7  | `npm outdated` (~50) — clasificar seguro/fijado/major    | P1        | PENDIENTE | —       |
-| B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`   | P1        | PENDIENTE | —       |
-| B9  | Dependencias sin usar (estilo `depcheck`)                | P2        | PENDIENTE | —       |
-| B10 | Licencias de dependencias vs. app comercial de pago      | P2        | PENDIENTE | —       |
+| #   | Área                                                       | Prioridad | Estado    | Detalle                       |
+| --- | ---------------------------------------------------------- | --------- | --------- | ----------------------------- |
+| B1  | `npm audit` — clasificar las 8 vulns (alcanzables? fix?)   | P0        | ✅ OK     | `B1-npm-audit`                |
+| B1b | `npm audit` en `functions/` y `vercel/` (proyectos aparte) | P0        | ⚠️ DUDA   | `B1b-npm-audit-subproyectos`  |
+| B2  | Escaneo de secretos en el árbol de trabajo                 | P0        | ✅ OK     | `B2-secretos-arbol`           |
+| B3  | Escaneo de secretos en el historial de git                 | P0        | ✅ OK     | `B3-secretos-historial`       |
+| B4  | Reglas de Firestore y Storage — ¿algún path abierto?       | P0        | ✅ OK     | `B4-reglas-firestore-storage` |
+| B5  | Seguridad de CI (`.github/workflows/ci.yml`)               | P0        | ✅ OK     | `B5-seguridad-ci`             |
+| B6  | Permisos Android, plugins, `google-services.json`          | P1        | PENDIENTE | —                             |
+| B7  | `npm outdated` (~50) — clasificar seguro/fijado/major      | P1        | PENDIENTE | —                             |
+| B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`     | P1        | PENDIENTE | —                             |
+| B9  | Dependencias sin usar (estilo `depcheck`)                  | P2        | PENDIENTE | —                             |
+| B10 | Licencias de dependencias vs. app comercial de pago        | P2        | PENDIENTE | —                             |
 
 ---
 
