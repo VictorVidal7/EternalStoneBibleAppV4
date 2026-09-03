@@ -11,8 +11,22 @@
 
 ## Mensaje para pegar en el chat nuevo
 
+Al cerrar la sesión 3 hay una bifurcación real. Elegí **uno** de los dos:
+
+**(a) Seguir revisando** — continúa el programa donde quedó (`A4`, `SyncEngine`):
+
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí.
+
+**(b) Empezar a arreglar** — con 9 P0 abiertos es una opción defendible, y es una sesión
+de **otro** protocolo: sí se toca código de la app, con rama y gates, al revés que la
+revisión:
+
+> Quiero arreglar los bugs P0 que encontró la revisión profunda, no seguir revisando.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` para el contexto y `DOCS/REVIEW_2026-09/BUGS.md`
+> para los hallazgos. Propone un orden de ataque y empezá por el primero. Ojo: esta sesión
+> SÍ toca código de la app, así que va en rama con los gates en verde — no aplica el
+> "solo revisar y reportar" del charter.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
@@ -27,18 +41,28 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 2. **`DOCS/REVIEW_2026-09/REVIEW_PROMPT.md`** — el charter: protocolo (§1), prioridades
    (§2), las 4 dimensiones y su estándar de evidencia (§3).
 3. **`DOCS/REVIEW_2026-09/BUGS.md`** — los **32** hallazgos (`R9-1`..`R9-32`), para no
-   volver a reportarlos. `R9-1`..`R9-8` (sesión 2) son propuestas de endurecimiento, no
-   bugs de la app, y `R9-7` ya está RESUELTO (`af64ce1`). **`R9-9`..`R9-32` (sesión 3) SÍ
-   son bugs reales, y 9 de ellos son P0** — dinero, identidad, fuga entre cuentas y
-   pérdida de datos. Léelos antes de tocar nada de premium, auth, sync o respaldo.
-4. Solo el `detail/<slug>.md` del área que vayas a tocar. **No leas los 7 detalles de
-   una** — para eso está el índice.
-5. Memorias (por el índice `MEMORY.md`): `essb-64th-session-deep-review-2026-09-inventory`
-   (las 2 sesiones hechas, con los aprendizajes de método),
-   `reference_essb-device-testing-and-automation` (obligatoria si vas a Modo C),
-   `feedback_essb-theme-and-navigation-patterns`, `feedback_essb-minimize-firestore-sync`,
-   `feedback_essb-agent-worktree-isolation`, `feedback_essb-verify-agent-commits-before-merge`,
-   `feedback_essb-theological-care`, `feedback_essb-memory-freshness`.
+   volver a reportarlos. Ya son 446 líneas: **no hace falta leerlo entero**, la sección
+   P0 va primero y es la que importa.
+   - `R9-1`..`R9-8` (sesión 2) son propuestas de endurecimiento, **no** bugs de la app;
+     `R9-7` ya está RESUELTO (`af64ce1`).
+   - **`R9-9`..`R9-32` (sesión 3) SÍ son bugs reales, 9 de ellos P0** — dinero,
+     identidad, fuga entre cuentas y pérdida de datos. Léelos antes de tocar nada de
+     premium, auth, sync o respaldo.
+   - **Matiz importante sobre `R9-13`** (el crash del lector web): está en `main` pero
+     **NO en producción** — el último deploy web es 5 días anterior a la regresión. Es
+     **bloqueante del próximo `firebase deploy`**, no un incendio. No lo priorices por
+     encima de los de pérdida de datos.
+4. Solo el `detail/<slug>.md` del área que vayas a tocar. Ya hay **12** (6 del Modo A, 6
+   del Modo B). **No los leas todos** — para eso está el índice.
+5. Memorias (por el índice `MEMORY.md`): **`essb-65th-session-deep-review-modo-a-p0`**
+   (la sesión más reciente y la más cargada de aprendizajes de método — empezá por ahí),
+   `essb-64th-session-deep-review-2026-09-inventory` (sesiones 1-2: el inventario y todo
+   el Modo B), `reference_essb-device-testing-and-automation` (**obligatoria** si vas a
+   Modo C), `feedback_essb-theme-and-navigation-patterns`,
+   `feedback_essb-minimize-firestore-sync`, `feedback_essb-agent-worktree-isolation`,
+   `feedback_essb-verify-agent-commits-before-merge`, `feedback_essb-theological-care`,
+   `feedback_essb-memory-freshness`. Si vas a mirar si algo está desplegado,
+   `reference_essb-firebase-cli-token-for-rules-api` (sirve para Rules **y** Hosting).
 
 ## 2. Estado esperado de git
 
@@ -47,7 +71,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 `chore/worklets-bundle-mode`, `feature/red-letter-web`,
 `research/a4-chico-spanish-availability`). Si no coincide, dilo antes de empezar.
 La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a76c` →
-`b5a9afa`; la sesión 3 cerró en ese último.
+`b5a9afa` → `6ac10e3` → **`894deb5`**; la sesión 3 cerró en ese último.
 
 ## 3. Dónde va la revisión
 
@@ -62,6 +86,8 @@ La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a
 | 2      | `R9-7` resuelto: `functions/` documentada       | `af64ce1` |
 | 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`     | `299a76c` |
 | 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32` | `b5a9afa` |
+| 3      | Este prompt: cierre de la sesión 3              | `6ac10e3` |
+| 3      | Las 2 preguntas abiertas, respondidas           | `894deb5` |
 
 El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0 secretos filtrados
 jamás (barrido de 5558/5558 blobs), 0 paths abiertos en Firestore, 0 exposición
@@ -96,8 +122,11 @@ Alternativas legítimas, según con qué margen cuentes:
   Android, `npm outdated`, `expo-doctor`, deps sin usar, licencias. Baratas, sin
   entorno. Ojo: extendé `B9`/`B10` a `functions/` y `vercel/`, no solo a la raíz.
 - **Una sesión de ARREGLOS** en vez de más revisión. Con 9 P0 abiertos —dos de ellos de
-  pérdida de datos y uno que tumba la web desplegada— es una opción defendible, y el
-  charter la contempla como sesión aparte con sus ramas (§1). Es decisión de Victor.
+  pérdida de datos al restaurar un respaldo, dos de fuga entre cuentas— es una opción
+  defendible, y el charter la contempla como sesión aparte con sus ramas (§1). Es
+  decisión de Victor. Orden sugerido si se elige esta vía: `R9-27`/`R9-28` (respaldo,
+  pérdida de datos irreversible) → `R9-22`/`R9-23` (fuga entre cuentas) → `R9-9`
+  (dinero) → `R9-13` **antes de volver a desplegar la web**.
 - **Modo C P0** (14 filas) si querés pagar el arranque de emulador una sola vez y
   ejercitar las rutas de dinero/identidad/datos en vivo. **Requiere** leer el recipe de
   `reference_essb-device-testing-and-automation` y usar **emulador + APK debug**, nunca
@@ -137,9 +166,10 @@ Alternativas legítimas, según con qué margen cuentes:
 - **Antes de creerle a un conteo, verificá qué extrajiste.** En `B3`, una extracción mal
   hecha agarró la contraseña de _debug_ (`'android'`, 7 chars) y devolvió 43 falsos
   positivos.
-- **Pedí el OK a Victor antes de commitear el ledger** (charter §5.4/§7). Ya lo dio dos
-  veces con el formato **commit + push directo a `main`** (no rama, no solo-local), así
-  que el formato está fijado — pero la autorización es por sesión, no se hereda.
+- **Pedí el OK a Victor antes de commitear el ledger** (charter §5.4/§7). Ya lo dio
+  **tres** veces con el formato **commit + push directo a `main`** (no rama, no
+  solo-local), así que el formato está fijado — pero la autorización es por sesión, no se
+  hereda.
 - **Si despachás agentes:** `isolation: "worktree"` en **todos**, incluso los de solo
   lectura; cada uno escribe **únicamente** a `DOCS/REVIEW_2026-09/_scratch/<área>.md`
   (ya está en `.gitignore`), nunca a `INDEX.md`; el orquestador fusiona todo en **una**
@@ -203,7 +233,6 @@ Alternativas legítimas, según con qué margen cuentes:
   `jest.mock` que redirige (patrón en `webStubProviders.test.tsx:516-532`). **Cualquier
   divergencia de API entre una pareja web/native es invisible para las tres compuertas.**
 - **`_scratch/` está gitignoreado pero NO jest-ignoreado** (ver §5).
-
 - **El último deploy web es del 2026-08-13** (`2026-08-13T04:39Z`); el historial completo
   de Firebase Hosting son 7 releases, del 2026-07-09 al 2026-08-13. **La regresión de
   `R9-13` entró el 2026-08-18, 5 días DESPUÉS**, así que el sitio vivo está sano y el bug
