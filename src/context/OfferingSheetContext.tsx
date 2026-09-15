@@ -16,7 +16,10 @@ import React, {
 } from 'react';
 import {OfferingSheet} from '@components/offering/OfferingSheet';
 
-interface OfferingSheetContextValue {
+// Exported so OfferingSheetContext.web.tsx can IMPORT this contract instead
+// of keeping a look-alike copy of it (R9-70) — a copy that `tsc` can never
+// catch drifting, because it resolves the bare specifier to this file.
+export interface OfferingSheetContextValue {
   open: () => void;
 }
 

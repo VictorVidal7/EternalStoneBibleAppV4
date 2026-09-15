@@ -32,11 +32,16 @@ import type {LinkifiedSegment} from '@lib/references/parseReference';
 // reuses the row shape so this file doesn't have to redeclare it.
 import type {RedLetterVerse} from '@lib/database/bible-data-web-redletter';
 
-export interface RedLetterRun {
-  text: string;
-  ref?: LinkifiedSegment['ref'];
-  isRedLetter: boolean;
-}
+/**
+ * R9-70: imported from the native sibling rather than redeclared, so the two
+ * cannot drift. `mergeRedLetterSpans` below is a verbatim copy of native's and
+ * returns this shape; a local duplicate would let a field added natively go
+ * missing here with `tsc` green, since it resolves the bare specifier to the
+ * native file. Type-only, so it is erased at compile time.
+ */
+import type {RedLetterRun} from './redLetterText';
+
+export type {RedLetterRun};
 
 /**
  * Base URL for the web-only bootstrap packs. Duplicated from

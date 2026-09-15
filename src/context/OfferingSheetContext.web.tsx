@@ -27,9 +27,9 @@
 import React, {createContext, useContext, ReactNode} from 'react';
 import {logger} from '@lib/utils/logger';
 
-interface OfferingSheetContextValue {
-  open: () => void;
-}
+// R9-70: the contract comes from the native sibling, not a local copy. See
+// PremiumContext.web.tsx's import for the full reasoning. Type-only, erased.
+import type {OfferingSheetContextValue} from './OfferingSheetContext';
 
 const OfferingSheetContext = createContext<
   OfferingSheetContextValue | undefined

@@ -35,14 +35,23 @@
 import React, {createContext, useContext, ReactNode} from 'react';
 import {logger} from '@lib/utils/logger';
 
-export interface PremiumContextValue {
-  /** Whether premium features are unlocked on this device. */
-  isPremium: boolean;
-  /** True until the persisted flag has been read on mount. */
-  isLoading: boolean;
-  /** __DEV__-only manual override; no-ops in production. See module docstring. */
-  setPremium: (value: boolean) => Promise<void>;
-}
+/**
+ * R9-70: imported from the native sibling, NOT redeclared here. A local copy
+ * looks identical right up until someone adds a member to the native one:
+ * `tsc` resolves the bare `@context/PremiumContext` that every shared
+ * component writes to the NATIVE file, sees the native shape, and passes —
+ * while this stub's STUB_VALUE, typed against its own copy, never grows the
+ * member. On web that is `usePremium().<newMember> is not a function`, which
+ * is R9-13's crash arriving from a different direction. Verified by probe:
+ * extending the native interface and satisfying it natively left
+ * `tsc --noEmit` completely green. Type-only, so it is erased entirely at
+ * compile time and cannot create a runtime self-import on web (the same
+ * pattern MemoryDeckContext.web.tsx and AudioPlayerContext.web.tsx already
+ * use).
+ */
+import type {PremiumContextValue} from './PremiumContext';
+
+export type {PremiumContextValue};
 
 const PremiumContext = createContext<PremiumContextValue | undefined>(
   undefined,

@@ -92,6 +92,10 @@ interface ExportSurface {
    * comparison silently weakens instead of failing.
    */
   unresolvable: string[];
+  /** Type names declared at top level, exported or not. */
+  declaredTypes: Set<string>;
+  /** Type names the file EXPORTS — the ones that are a shared contract. */
+  exportedTypes: Set<string>;
 }
 
 function isExported(node: ts.Node): boolean {
@@ -130,6 +134,8 @@ function exportSurface(file: string, source: string): ExportSurface {
   );
   const runtime = new Set<string>();
   const unresolvable: string[] = [];
+  const declaredTypes = new Set<string>();
+  const exportedTypes = new Set<string>();
   let hasDefault = false;
   const describe = (node: ts.Node): string =>
     node.getText(sourceFile).slice(0, 80).split('\n')[0].trim();
@@ -161,16 +167,21 @@ function exportSurface(file: string, source: string): ExportSurface {
       continue;
     }
 
-    if (!isExported(statement)) continue;
-
-    // Types are erased at compile time, so they cannot produce the runtime
-    // `X is not a function` this gate exists to prevent.
+    // Types are erased at compile time, so they cannot themselves produce the
+    // runtime `X is not a function` this gate exists to prevent — but a
+    // redeclared one lets a shared contract drift, which produces it one
+    // level down. Collected before the export check, since a native type can
+    // be private and still be the shape both sides must agree on.
     if (
       ts.isInterfaceDeclaration(statement) ||
       ts.isTypeAliasDeclaration(statement)
     ) {
+      declaredTypes.add(statement.name.text);
+      if (isExported(statement)) exportedTypes.add(statement.name.text);
       continue;
     }
+
+    if (!isExported(statement)) continue;
 
     if (ts.isVariableStatement(statement)) {
       // `export const a = 1, b = 2` declares TWO bindings; the old regex saw
@@ -201,7 +212,7 @@ function exportSurface(file: string, source: string): ExportSurface {
     unresolvable.push(describe(statement));
   }
 
-  return {runtime, hasDefault, unresolvable};
+  return {runtime, hasDefault, unresolvable, declaredTypes, exportedTypes};
 }
 
 function surfaceOf(absoluteFile: string): ExportSurface {
@@ -276,6 +287,36 @@ describe('web/native module surface parity', () => {
     // reason), never the reverse.
     expect(surfaceOf(file as string).unresolvable).toEqual([]);
   });
+
+  it.each(webFiles.map(f => [repoRelative(f), f]))(
+    '%s imports its shared types instead of redeclaring them',
+    (_label, webFile) => {
+      // R9-70: the same divergence as above, one level DOWN. The gate
+      // compares module export NAMES, and a context's value type is not a
+      // module export — it is the contract between a provider and everything
+      // that calls its hook. `PremiumContext.web.tsx` redeclared
+      // `PremiumContextValue` locally, so adding a member to the native one
+      // left the web stub silently short of it: `tsc` resolves a bare
+      // specifier to the NATIVE file, sees the native shape, and passes.
+      // Verified by probe — extending the native interface and satisfying it
+      // on the native side left `tsc --noEmit` completely green while the web
+      // stub never implemented the new member, which on web is
+      // `x.y is not a function`: R9-13's crash, from a different direction.
+      //
+      // The rule is narrow on purpose: only types the NATIVE sibling
+      // EXPORTS. A private `Props`/`State`/`…ProviderProps`/`SpanMap` that
+      // both files happen to name the same is genuinely local to each, and
+      // flagging those would bury the signal.
+      const nativeFile = nativeSiblingOf(webFile as string);
+      if (!nativeFile) return; // reported by the case above
+      const native = surfaceOf(nativeFile);
+      const web = surfaceOf(webFile as string);
+      const redeclared = [...web.declaredTypes].filter(name =>
+        native.exportedTypes.has(name),
+      );
+      expect(redeclared).toEqual([]);
+    },
+  );
 
   it('has no stale entries in the native-only allowlist', () => {
     // An allowlist that outlives its reason stops being documentation and
