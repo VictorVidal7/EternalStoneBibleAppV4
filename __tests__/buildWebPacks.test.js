@@ -25,6 +25,8 @@ const path = require('path');
 const {
   buildPack,
   verifyRedLetterAlignment,
+  shrinkComplaints,
+  assertNoShrink,
 } = require('../scripts/build-web-packs.js');
 
 const JOHN_316 =
@@ -127,5 +129,165 @@ describe('verifyRedLetterAlignment cannot pass in a vacuum', () => {
         'RVR1960',
       ),
     ).toThrow(/verse not found/);
+  });
+});
+
+/**
+ * R9-66, second half. The floors above are floors of ZERO: they catch a source
+ * that regenerated to nothing and nothing else. A regeneration yielding 3
+ * entries instead of 2057 is the same accident with a less convenient number.
+ * The committed web-bootstrap.json already records what the last run produced,
+ * so it is a free reference point — and a count going DOWN is worth stopping
+ * for.
+ */
+describe('a run that would SHRINK what is already published', () => {
+  const PUBLISHED = {
+    packs: [
+      {id: 'RVR1960', verseCount: 31102},
+      {id: 'WEB', verseCount: 31098},
+    ],
+    redLetter: [
+      {versionId: 'WEB', entries: 2059, spans: 2077},
+      {versionId: 'RVR1960', entries: 2057, spans: 2077},
+    ],
+  };
+  const SAME_PACKS = [
+    {id: 'RVR1960', verseCount: 31102},
+    {id: 'WEB', verseCount: 31098},
+  ];
+  const SAME_RED_LETTER = [
+    {versionId: 'WEB', entries: 2059, spans: 2077},
+    {versionId: 'RVR1960', entries: 2057, spans: 2077},
+  ];
+
+  it('is refused when red-letter entries drop', () => {
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        SAME_PACKS,
+        [
+          {versionId: 'WEB', entries: 2059, spans: 2077},
+          {versionId: 'RVR1960', entries: 3, spans: 3},
+        ],
+        false,
+      ),
+    ).toThrow(/2057 entries -> 3/);
+  });
+
+  it('is refused when VERSE counts drop, not just red-letter ones', () => {
+    // The .sqlite half has its own floors, but they pin the DB against the
+    // SOURCE — a source that quietly lost verses satisfies both.
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        [
+          {id: 'RVR1960', verseCount: 31102},
+          {id: 'WEB', verseCount: 20000},
+        ],
+        SAME_RED_LETTER,
+        false,
+      ),
+    ).toThrow(/31098 verses -> 20000/);
+  });
+
+  it('is refused when spans drop even though entries did not', () => {
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        SAME_PACKS,
+        [
+          {versionId: 'WEB', entries: 2059, spans: 2077},
+          {versionId: 'RVR1960', entries: 2057, spans: 900},
+        ],
+        false,
+      ),
+    ).toThrow(/2077 spans -> 900/);
+  });
+
+  it('says NOTHING was written, so the message is actionable', () => {
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        SAME_PACKS,
+        [
+          {versionId: 'WEB', entries: 2059, spans: 2077},
+          {versionId: 'RVR1960', entries: 3, spans: 3},
+        ],
+        false,
+      ),
+    ).toThrow(/NOTHING was written/);
+  });
+
+  it('continues with --allow-shrink, because an editorial removal is legitimate', () => {
+    // The escape hatch. `decisions/*.json` is a human pass, so a span really
+    // can be withdrawn on purpose; this is a stop sign, not a wall, and the
+    // flag in the shell history is the record of the decision.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        SAME_PACKS,
+        [
+          {versionId: 'WEB', entries: 2059, spans: 2077},
+          {versionId: 'RVR1960', entries: 2056, spans: 2076},
+        ],
+        true,
+      ),
+    ).not.toThrow();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('says nothing when the counts are unchanged (the control)', () => {
+    // Without this, a check that complained unconditionally would pass every
+    // case above and break every ordinary rebuild.
+    expect(shrinkComplaints(PUBLISHED, SAME_PACKS, SAME_RED_LETTER)).toEqual(
+      [],
+    );
+  });
+
+  it('says nothing when counts GREW', () => {
+    expect(
+      shrinkComplaints(
+        PUBLISHED,
+        [
+          {id: 'RVR1960', verseCount: 31102},
+          {id: 'WEB', verseCount: 31099},
+        ],
+        [
+          {versionId: 'WEB', entries: 2060, spans: 2078},
+          {versionId: 'RVR1960', entries: 2057, spans: 2077},
+        ],
+      ),
+    ).toEqual([]);
+  });
+
+  it('does not block the FIRST run of a brand-new version', () => {
+    // Nothing published to compare against is not a shrink.
+    expect(
+      shrinkComplaints(PUBLISHED, SAME_PACKS, [
+        ...SAME_RED_LETTER,
+        {versionId: 'KJV', entries: 1, spans: 1},
+      ]),
+    ).toEqual([]);
+    expect(shrinkComplaints(null, SAME_PACKS, SAME_RED_LETTER)).toEqual([]);
+  });
+
+  it('can still read a manifest written BEFORE redLetter became an array', () => {
+    // web-bootstrap.json carried a single `redLetter` OBJECT until 2026-09-15.
+    // A checker that only understood the new shape would compare against
+    // nothing and pass — vacuously, which is the very bug being fixed.
+    const legacy = {
+      packs: PUBLISHED.packs,
+      redLetter: {file: 'web-red-letter.json', entries: 2059, spans: 2077},
+    };
+    expect(
+      shrinkComplaints(legacy, SAME_PACKS, [
+        {versionId: 'WEB', entries: 5, spans: 5},
+      ]),
+    ).toEqual([
+      expect.stringContaining('2059 entries -> 5'),
+      expect.stringContaining('2077 spans -> 5'),
+    ]);
   });
 });

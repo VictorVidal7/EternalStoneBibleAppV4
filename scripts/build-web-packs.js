@@ -30,14 +30,17 @@
  * own pack is the whole point: a span is a character offset into that
  * version's verse text, so checking RVR1960 spans against web.sqlite would
  * be meaningless. That verification also refuses to pass on an empty array
- * or on entries with no spans (R9-66) — see verifyRedLetterAlignment.
+ * or on entries with no spans (R9-66) — see verifyRedLetterAlignment — and
+ * the run as a whole refuses to emit anything if a count went DOWN vs the
+ * published manifest, unless --allow-shrink says the removal is deliberate
+ * (see assertNoShrink).
  *
  * RVR1960 was missing here until 2026-09-15, which is why red-letter worked
  * on web only in English: native reads both arrays straight from the bundle,
  * but the web build fetches packs, and nobody emitted the Spanish one.
  *
  * Requires Node ≥ 22 (node:sqlite). Usage:
- *   node --experimental-sqlite scripts/build-web-packs.js [outDir]
+ *   node --experimental-sqlite scripts/build-web-packs.js [outDir] [--allow-shrink]
  *   (default outDir: %USERPROFILE%/Desktop/web-packs)
  *
  * Para la gloria de Dios Todopoderoso ✨
@@ -49,7 +52,13 @@ const crypto = require('crypto');
 const {DatabaseSync} = require('node:sqlite');
 
 const ROOT = path.resolve(__dirname, '..');
-const OUT = process.argv[2] || path.join(os.homedir(), 'Desktop', 'web-packs');
+const ARGS = process.argv.slice(2);
+/** First non-flag argument, so `--allow-shrink` can't be mistaken for a path. */
+const OUT =
+  ARGS.find(a => !a.startsWith('--')) ||
+  path.join(os.homedir(), 'Desktop', 'web-packs');
+/** Escape hatch for a DELIBERATE editorial removal — see assertNoShrink. */
+const ALLOW_SHRINK = ARGS.includes('--allow-shrink');
 const WEB_PACKS_JSON = path.join(ROOT, 'web', 'packs', 'web-bootstrap.json');
 
 /**
@@ -231,6 +240,94 @@ function verifyRedLetterAlignment(entries, dbFile, versionId) {
   db.close();
 }
 
+/**
+ * The manifest this script wrote LAST time, which is committed and describes
+ * what is actually published. Absent or unreadable is not an error: the very
+ * first run has nothing to compare against.
+ */
+function readPreviousManifest(file) {
+  try {
+    return JSON.parse(fs.readFileSync(file, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * R9-66, second half. The floors inside verifyRedLetterAlignment are floors of
+ * ZERO — they catch a source file that regenerated to nothing, and nothing
+ * else. A regeneration that yields 3 entries instead of 2057 is the same
+ * accident with a less convenient number, and it would sail through.
+ *
+ * There is a free reference point for that: the committed web-bootstrap.json
+ * already records what the last run produced, so a count going DOWN is a
+ * question worth stopping for. Deliberate editorial removals do happen
+ * (`decisions/*.json` is a human pass), so this is a stop sign, not a wall:
+ * `--allow-shrink` continues, and the flag in the shell history is the record
+ * of the decision.
+ *
+ * Compares only counts, never the sha256 — the bytes are expected to change.
+ */
+function shrinkComplaints(previous, packs, redLetter) {
+  const complaints = [];
+  if (!previous) return complaints;
+
+  const previousPacks = Array.isArray(previous.packs) ? previous.packs : [];
+  for (const pack of packs) {
+    const before = previousPacks.find(x => x.id === pack.id);
+    if (!before || typeof before.verseCount !== 'number') continue;
+    if (pack.verseCount < before.verseCount) {
+      complaints.push(
+        `${pack.id}: ${before.verseCount} verses -> ${pack.verseCount} ` +
+          `(${before.verseCount - pack.verseCount} fewer)`,
+      );
+    }
+  }
+
+  // `redLetter` was a single OBJECT until 2026-09-15 and is an ARRAY now, so a
+  // manifest written before that date still has to be readable here.
+  const previousRedLetter = Array.isArray(previous.redLetter)
+    ? previous.redLetter
+    : previous.redLetter
+      ? [{versionId: 'WEB', ...previous.redLetter}]
+      : [];
+  for (const entry of redLetter) {
+    const before = previousRedLetter.find(x => x.versionId === entry.versionId);
+    if (!before) continue;
+    for (const field of ['entries', 'spans']) {
+      if (typeof before[field] !== 'number') continue;
+      if (entry[field] < before[field]) {
+        complaints.push(
+          `${entry.versionId} red-letter: ${before[field]} ${field} -> ` +
+            `${entry[field]} (${before[field] - entry[field]} fewer)`,
+        );
+      }
+    }
+  }
+  return complaints;
+}
+
+function assertNoShrink(previous, packs, redLetter, allowShrink) {
+  const complaints = shrinkComplaints(previous, packs, redLetter);
+  if (complaints.length === 0) return;
+  if (allowShrink) {
+    console.warn(
+      '\n  ⚠️  Counts went DOWN vs the published manifest, continuing because ' +
+        '--allow-shrink was passed:\n    ' +
+        complaints.join('\n    '),
+    );
+    return;
+  }
+  throw new Error(
+    'Pack counts went DOWN vs the published manifest:\n  ' +
+      complaints.join('\n  ') +
+      '\n\nNOTHING was written to web/packs/web-bootstrap.json and no pack ' +
+      'file was emitted, so nothing here is publishable yet. Check that the ' +
+      'source arrays regenerated correctly. If the removal IS deliberate, ' +
+      're-run with --allow-shrink.',
+  );
+}
+
 function main() {
   fs.mkdirSync(OUT, {recursive: true});
 
@@ -296,7 +393,11 @@ function main() {
     },
   ];
 
+  // Parse, verify and COUNT every red-letter pack before writing any of them,
+  // so the shrink check below can refuse the whole run rather than leaving
+  // half-written packs in the output directory looking publishable.
   const redLetterManifest = [];
+  const pendingWrites = [];
   for (const rl of redLetterSpecs) {
     console.log(`Building ${rl.out} from ${path.basename(rl.source)}…`);
     const entries = parseTsArray(path.join(ROOT, rl.source));
@@ -304,24 +405,32 @@ function main() {
     // version's text.
     const ownDbFile = path.join(OUT, rl.versionId.toLowerCase() + '.sqlite');
     verifyRedLetterAlignment(entries, ownDbFile, rl.versionId);
-    const jsonFile = path.join(OUT, rl.out);
-    fs.writeFileSync(jsonFile, JSON.stringify(entries));
-    const buf = fs.readFileSync(jsonFile);
-    const sha = crypto.createHash('sha256').update(buf).digest('hex');
+    const body = Buffer.from(JSON.stringify(entries), 'utf8');
+    const sha = crypto.createHash('sha256').update(body).digest('hex');
     const spanCount = entries.reduce((sum, e) => sum + e.spans.length, 0);
     console.log(
       `  ${rl.versionId} red-letter: ${entries.length} entries, ${spanCount} ` +
-        `spans -> ${buf.length} bytes, sha256 ${sha.slice(0, 16)}…`,
+        `spans -> ${body.length} bytes, sha256 ${sha.slice(0, 16)}…`,
     );
+    pendingWrites.push({file: path.join(OUT, rl.out), body});
     redLetterManifest.push({
       versionId: rl.versionId,
       file: rl.out,
-      bytes: buf.length,
+      bytes: body.length,
       sha256: sha,
       entries: entries.length,
       spans: spanCount,
     });
   }
+
+  assertNoShrink(
+    readPreviousManifest(WEB_PACKS_JSON),
+    manifest,
+    redLetterManifest,
+    ALLOW_SHRINK,
+  );
+
+  for (const w of pendingWrites) fs.writeFileSync(w.file, w.body);
 
   fs.writeFileSync(
     WEB_PACKS_JSON,
@@ -367,5 +476,7 @@ module.exports = {
   buildPack,
   verifyPack,
   verifyRedLetterAlignment,
+  shrinkComplaints,
+  assertNoShrink,
   main,
 };
