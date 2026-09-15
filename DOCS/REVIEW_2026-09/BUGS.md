@@ -37,6 +37,15 @@
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
+> **Conteo, corregido en la sesión 9. Esta sección tiene 21 entradas: 13 ARREGLADAS y
+> 8 ABIERTAS** (`R9-9`, `R9-10`, `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`).
+>
+> **Las sesiones 7 y 8 venían contando mal.** Su lista de «arreglados» incluía `R9-50`, que
+> vive en **P1**, no aquí — así que el «quedan 10» de la sesión 8 eran en realidad **11**.
+> Cuenta siempre las entradas de ESTA sección, no los arreglos hechos. Si crees que `R9-50`
+> debería ser P0 por su severidad (pérdida silenciosa, la UI dice «Guardado»), muévelo y di
+> que lo moviste; lo que no vale es contarlo desde fuera.
+
 - **`R9-9` (A1, entitlements) — 🐛 la revocación de la entitlement premium no se propaga
   nunca.** Severidad **alta**. Es dinero: acceso de pago que sobrevive al reembolso, y
   premium gratis para el segundo usuario de un dispositivo compartido.
@@ -203,6 +212,8 @@
   ms** — la prueba más directa de que no hay espera de ninguna clase. Detalle:
   `detail/A4-syncengine.md`.
 
+  **✅ ARREGLADO en la sesión 9** (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO INTENTO — campo nuevo `lastAttemptAt`, porque `queuedAt` no se mueve nunca y una escritura encolada sin conexión estaría «vencida» en cada tick. Exponencial 30s→30min con tope: **hora y media de reloj real** antes de rendirse, no milisegundos. Una entrada que falla siempre deja además de bloquear a las de atrás. (b) La señal: contador `droppedWrites` **persistido por uid** y una insignia en Ajustes que se limpia solo cuando el usuario la toca. **Ojo para el futuro: `pendingWrites` SÍ tiene consumidor** (`app/(tabs)/settings.tsx:87`); un `grep` limitado a `src/` no lo ve.
+
 - **`R9-34` (A4, `SyncEngine`) — 🐛 la rama de ERROR de `flush()` pisa la reedición con el
   snapshot viejo (gemelo de `R9-11`).** Severidad **media-alta**.
   `src/lib/sync/SyncEngine.ts:1256-1263`. `R9-11` es la rama de éxito; ésta es la de
@@ -215,6 +226,8 @@
   antes del fallo `{"value":"v2-REEDITADO","updatedAt":2000}`; después del rechazo
   `{"value":"v1","updatedAt":1000,"attempts":1}`. Conviene arreglarlo junto con `R9-11`.
   Detalle: `detail/A4-syncengine.md`.
+
+  **✅ ARREGLADO en la sesión 9** (`0a4f0fc`): la rama de error hace el spread de la entrada **viva** de la cola, no del snapshot `item`. Cayó del mismo cambio que `R9-33` porque hay que sellar `lastAttemptAt` en esa misma línea, y se dice aparte en vez de colarlo. **`R9-11`, su gemelo en la rama de ÉXITO, sigue ABIERTO** — es otro arreglo (allí la entrada se elimina por clave, no se sobrescribe).
 
 - **`R9-35` (A4, `SyncEngine`) — 🐛 un `updatedAt` en el futuro fija el cursor por delante
   del reloj y la bajada se detiene para siempre.** Severidad **media-alta**.
@@ -232,6 +245,8 @@
   el siguiente push **machaca en la nube el cambio de B**. **Repro (sonda):** con un doc a
   `ahora + 30 días`, tras reiniciar con el reloj correcto el suelo queda 30 días en el
   futuro y una nota legítima de hoy **no llega nunca**. Detalle: `detail/A4-syncengine.md`.
+
+  **✅ ARREGLADO en la sesión 9** (`0a4f0fc`): `advanceCursor` topa en `Date.now()`, así que el envenenamiento ya no puede ocurrir; y `loadCursor` **descarta** un cursor fechado en el futuro, que es lo que cura a un dispositivo ya envenenado. **Topar no bastaba:** lo que se perdió durante la ventana envenenada es más viejo que `ahora - 5 min` y seguiría por debajo del suelo para siempre, así que la única recuperación honesta es re-leer la colección una vez — exactamente lo que hace un dispositivo nuevo, y es autolimitado porque el techo impide que vuelva a pasar.
 
 - **`R9-36` (A4, conflictos) — 🐛 «conservar lo mío» empuja el snapshot de la detección y
   revierte lo que el usuario escribió después.** Severidad **media**.

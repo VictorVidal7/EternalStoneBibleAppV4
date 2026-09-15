@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 9 (revisión del diff de la 8 + remates).**
+> **Última actualización: 2026-09-15, fin de la sesión 9 (revisión del diff de la 8 + 3 P0).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,10 +12,13 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. NO QUEDA NINGUNA RAMA SIN MERGEAR.** `fix/review-p0-notas-cuentas` se revisó con ojo
+**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-sync-descarta-silencio`** (`0a4f0fc` →
+el cierre del ledger), con `R9-33`, `R9-34` y `R9-35` arreglados y los gates en verde
+(**356 suites, 4073 pruebas**). Victor pidió no mergear nada sin preguntarle, así que lo
+primero es que él decida. Lo de antes ya está todo dentro: `fix/review-p0-notas-cuentas` se revisó con ojo
 fresco en la sesión 9 y **se mergeó a `main`** en fast-forward. La de la sesión 7 ya estaba
-dentro desde la 8 (`63f124c..8fe24f1`, pusheada). **Pero `main` está POR DELANTE de
-`origin/main`: sin pushear** (`git rev-list --count origin/main..main` te da el número). Es la única decisión de estado pendiente.
+dentro desde la 8 (`63f124c..8fe24f1`, pusheada). **`main` está PUSHEADO** al día de la sesión 9
+(`8fe24f1..653c7b3`).
 
 **2. La revisión de la sesión 9 encontró DOS defectos reales en los arreglos de la 8**, los
 dos de pérdida de datos, los dos ya remateados antes de mergear (`3e780c6`, `29a9449`), cada
@@ -28,13 +31,16 @@ decidió NO tocar** por caer fuera del alcance de ese diff.
 Lo mismo vale para `detail/S8-revision-del-diff.md`, con las cinco cosas portantes que esa
 revisión fijó.
 
-**Quedan 10 P0 abiertos.** Cerrados en código hasta ahora: `R9-22`, `R9-23`, `R9-27`,
-`R9-28`, `R9-44`, `R9-45`, `R9-46`, `R9-47`, `R9-48`, `R9-49`, `R9-50`. Van marcados
-**✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Hallazgos
-totales: **65** — `R9-65` es nuevo.
+**Quedan 8 P0 abiertos:** `R9-9`, `R9-10`, `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`,
+`R9-39`. Todo lo demás de la sección P0 va marcado **✅ ARREGLADO** dentro de su entrada de
+`BUGS.md`. **No los vuelvas a atacar.** Hallazgos totales: **65** — `R9-65` es nuevo.
 
-**3. Lo que queda del orden de ataque de arreglos:** `R9-33`/`R9-35` (sync que descarta en
-silencio) → `R9-9` (dinero) → `R9-13` **antes de volver a desplegar la web**. Los 4 de campo
+**⚠️ Y no re-derives el conteo contando arreglos: cuenta las entradas de la sección P0.** Las
+sesiones 7 y 8 contaban `R9-50` como P0 cerrado, pero vive en **P1**, así que su «quedan 10»
+eran 11. La nota está al principio de la sección P0 de `BUGS.md`.
+
+**3. Lo que queda del orden de ataque de arreglos:** `R9-9` (dinero) → `R9-13` **antes de
+volver a desplegar la web**. `R9-33`/`R9-34`/`R9-35` ya están cerrados (sesión 9). Los 4 de campo
 (`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar una sesión. Y **`R9-65` se
 arregla con UNA LÍNEA** (la misma cota de cursor de `R9-46`, extendida a los conflictos), es
 bug **preexistente en `main`** y sigue sin decidir.
@@ -73,20 +79,24 @@ vas a arreglar alguno, verificalo primero.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> No hay ramas sin mergear, pero `main` tiene commits sin pushear: decime si los pusheo.
+> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-sync-descarta-silencio`, con
+> `R9-33`, `R9-34` y `R9-35` arreglados. Revisá el diff con ojo crítico —toca la cola de
+> escrituras y el cursor de sync— decime si ves algo mal, y si está bien mergeala a `main`
+> con los gates en verde.
 >
-> Después seguí arreglando por orden: `R9-33`/`R9-35` (el sync que descarta en silencio) y
-> luego `R9-9` (dinero). Verificá cada hallazgo contra el código antes de tocarlo —los P1/P2
-> no están re-verificados— y acordate de que una prueba de regresión no vale hasta que la
-> viste fallar sin el arreglo, **y de que una prueba de un solo caso no prueba el
+> Después seguí con `R9-9` (dinero). Verificá cada hallazgo contra el código antes de tocarlo
+> —los P1/P2 no están re-verificados— y acordate de que una prueba de regresión no vale hasta
+> que la viste fallar sin el arreglo, **y de que una prueba de un solo caso no prueba el
 > mecanismo**: preguntate siempre qué vecino del caso probado sigue roto. Va todo en rama con
-> gates verdes; no mergees nada sin preguntarme.
+> gates verdes; no mergees nada más sin preguntarme.
 
-**(b) Corto: rematar `R9-65` y pushear**, si querés una sesión de media hora:
+**(b) Corto: revisar y mergear la rama, y rematar `R9-65`**, si querés media hora:
 
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá `R9-65` —es una línea, la misma cota de
-> cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista fallar primero, y
-> decime si pusheo `main`.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de
+> `fix/review-p0-sync-descarta-silencio` con ojo crítico, decime si ves algo mal, y si está
+> bien mergeala con los gates en verde. Si queda margen, arreglá `R9-65` —es una línea, la
+> misma cota de cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista
+> fallar primero.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
 bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
@@ -147,8 +157,9 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 8 ramas locales.** `main` (**por delante de `origin/main`, sin pushear**;
-lleva ya los arreglos de las sesiones 7, 8 y 9), `fix/review-p0-notas-cuentas` y
+**Hay 9 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+sesiones 7, 8 y la primera mitad de la 9), **`fix/review-p0-sync-descarta-silencio`** (la
+segunda mitad de la 9, **sin mergear**), `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos` (**las dos ya mergeadas** — se pueden borrar), y las 5 de
 siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
 `chore/worklets-bundle-mode`, `feature/red-letter-web`,

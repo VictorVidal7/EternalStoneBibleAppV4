@@ -15,12 +15,15 @@
 >
 > **Sesión 8 (2026-09-15) revisó el diff de la 7, lo mergeó a `main`, y ARREGLÓ 4 P0 más**
 > (`R9-46` + el bloque entero de mezcla entre cuentas: `R9-22`, `R9-23`, `R9-48`).
-> **Sesión 9 (2026-09-15) revisó ESE diff, encontró 2 defectos reales, los arregló y mergeó.**
-> **Quedan 10 P0 abiertos.** Hallazgos: **65** (`R9-65` es nuevo, P1).
+> **Sesión 9 (2026-09-15) revisó ESE diff, encontró 2 defectos reales, los arregló y mergeó**
+> — y después cerró `R9-33`, `R9-34` y `R9-35`.
+> **Quedan 8 P0 abiertos** (`R9-9`, `R9-10`, `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`,
+> `R9-39`). Hallazgos: **65** (`R9-65` es nuevo, P1). **El conteo venía mal desde la sesión
+> 7** — ver la nota al principio de la sección P0 de `BUGS.md`.
 >
-> Siguiente: seguir arreglando — `R9-33`/`R9-35` (sync que descarta en silencio), luego
-> `R9-9` (dinero), y `R9-13` **antes del próximo deploy web**. O terminar `A12` (hay 3 hilos
-> ya abiertos en su detalle), con lo que **queda cerrado el bloque P0 entero del Modo A**.
+> Siguiente: `R9-9` (dinero) → `R9-13` **antes del próximo deploy web**. O terminar `A12`
+> (hay 3 hilos ya abiertos en su detalle), con lo que **queda cerrado el bloque P0 entero del
+> Modo A**.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -439,3 +442,14 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   decisión. **Y una corrección de higiene del ledger: la sesión 8 nunca actualizó `INDEX.md`**
   (seguía diciendo «Quedan 14 P0»), justo el archivo que `CONTINUAR.md` manda leer sin
   re-derivar. Arreglado aquí.
+  **Segunda mitad: ARREGLOS.** Cerrados `R9-33` (no había backoff **y** el descarte era mudo:
+  al tirar la última entrada `pendingWrites` caía a 0 y Ajustes decía «Sincronizado hace un
+  momento» en ese mismo instante), `R9-34` (la rama de error hacía retroceder la cola entera
+  sobre una reedición en vuelo) y `R9-35` (un `updatedAt` en el futuro paraba la bajada para
+  siempre; hizo falta **techo + descarte del cursor envenenado**, porque topar no recupera lo
+  que la ventana escondió). Más un remate de `R9-22`: `pendingWrites` no se recalculaba al
+  cambiar de cuenta. 7 pruebas, las 7 vistas fallar primero — **una no discriminaba y hubo
+  que arreglarla**. **Dos correcciones a lo que esta misma sesión había afirmado antes:**
+  `pendingWrites` **sí** tiene consumidor (`app/(tabs)/settings.tsx:87` — un `grep` acotado a
+  `src/` no ve las pantallas), y **el conteo de P0 venía mal desde la sesión 7** porque
+  contaba `R9-50`, que vive en P1: eran 11 abiertos, no 10.

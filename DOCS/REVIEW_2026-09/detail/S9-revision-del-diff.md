@@ -78,3 +78,45 @@ abierto el vecino.
 
 **Compuertas al mergear:** 356 suites, **4066** pruebas (4064 + las 2 nuevas), `tsc` limpio,
 lint 0 errores, prettier limpio.
+
+---
+
+## Segunda mitad de la sesión 9 — ARREGLOS: `R9-33`, `R9-34`, `R9-35`
+
+Tras mergear, se siguió el orden de ataque. **Los tres cerrados** (`0a4f0fc`, `c41c9cb`),
+con 7 pruebas, las 7 vistas fallar sin el arreglo.
+
+- **`R9-33`** tenía dos mitades y las dos hacían falta. El backoff **no existía** pese a que
+  `types.ts` y `netinfo.ts` lo daban por hecho; ahora se mide desde el **último intento**
+  (campo nuevo `lastAttemptAt` — `queuedAt` no sirve, no se mueve nunca, así que una
+  escritura encolada sin conexión estaría «vencida» en cada tick). Y la señal: sin ella,
+  descartar la última entrada llevaba `pendingWrites` a 0 y Ajustes decía «Sincronizado hace
+  un momento» en el instante exacto en que se tiraba el cambio.
+- **`R9-34`** cayó del mismo cambio: hay que sellar `lastAttemptAt` en la misma línea que
+  hacía el spread del snapshot viejo. Se commiteó dicho aparte, no colado. **`R9-11` sigue
+  abierto** — es la rama de ÉXITO y necesita otro arreglo.
+- **`R9-35`** necesitaba **dos** cosas, no una: el techo en `advanceCursor` impide envenenar,
+  pero solo el descarte en `loadCursor` **cura** a un dispositivo ya envenenado. Topar el
+  valor a «ahora» no bastaba: lo perdido durante la ventana es más viejo que `ahora - 5 min`
+  y seguiría bajo el suelo para siempre.
+
+**Un remate de `R9-22` que salió al escribir las pruebas:** `hydrateQueue` sale temprano por
+`queueHydrated`, así que en un segundo `start()` de la misma sesión de la app nadie
+recalculaba `pendingWrites` — y `stop()` lo conserva a propósito. Ajustes le decía a la
+cuenta nueva «Sincronizando 1 cambio…» para siempre.
+
+### Dos correcciones a lo que decía la primera mitad de esta sesión
+
+1. **`pendingWrites` SÍ tiene consumidor**: `app/(tabs)/settings.tsx:87`. Arriba se dijo que
+   no tenía «ni uno en `src/`» — literalmente cierto y **engañoso**, porque las pantallas
+   viven en `app/`, no en `src/`. El conteo obsoleto al cambiar de cuenta **no era
+   cosmético**: era visible. Ya está arreglado. **Lección: un `grep` acotado a `src/` no cubre
+   esta app.**
+2. **El conteo de P0 venía mal desde la sesión 7.** La lista de «arreglados» incluía `R9-50`,
+   que está en la sección **P1**, así que el «quedan 10» de la sesión 8 eran **11**. Contando
+   las entradas de la sección P0: 21 en total, 13 arregladas, **8 abiertas**. La nota está
+   ahora al principio de la sección P0 de `BUGS.md`.
+
+**Una prueba que no discriminaba, cazada a tiempo:** la del conteo de pendientes pasaba igual
+con el código roto, porque la escritura de Ana se subía bien y la cola se vaciaba sola. Hubo
+que hacer fallar el push para que la entrada siguiera pendiente al cambiar de cuenta.
