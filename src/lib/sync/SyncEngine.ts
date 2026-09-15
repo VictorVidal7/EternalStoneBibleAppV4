@@ -193,9 +193,11 @@ export function droppedStorageKey(uid: string): string {
  * thrown away. With the periodic flush alone, a plain few-minute outage was
  * enough to lose it.
  *
- * Exponential from the last ATTEMPT, capped: 30s, 1m, 2m, 4m, 8m, 16m, 30m,
- * 30m — about an hour and a half of real wall-clock before a write is given
- * up on, instead of milliseconds.
+ * Exponential from the last ATTEMPT, capped: 30s, 1m, 2m, 4m, 8m, 16m, 30m
+ * between the 8 allowed attempts — 61.5 min of real wall-clock before a
+ * write is given up on, instead of milliseconds. (Only ever MORE in
+ * practice: nothing re-flushes the instant a window elapses, the 60s
+ * periodic tick does.)
  */
 export const RETRY_BASE_DELAY_MS = 30 * 1000;
 export const RETRY_MAX_DELAY_MS = 30 * 60 * 1000;
@@ -413,6 +415,14 @@ export class SyncEngine {
       isActive: false,
       isSyncing: false,
       conflicts: [],
+      // R9-33 — the dropped-write notice is per-uid state, exactly like the
+      // conflicts and the cursors cleared just above, and it has to go out
+      // with its account for the same reason. It is NOT lost: it lives in
+      // AsyncStorage under `droppedStorageKey(uid)` and `start()` reloads it,
+      // so it comes back with its owner. Keeping it live here instead would
+      // show Ana's notice inside Beto's session for as long as
+      // `start('uid-beto')` takes to resolve its two AsyncStorage reads.
+      droppedWrites: 0,
       // keep pendingWrites count — the queue is persisted, and if the
       // user signs back in we'll attempt to flush it again.
     });

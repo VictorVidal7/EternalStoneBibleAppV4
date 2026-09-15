@@ -1851,6 +1851,30 @@ describe('R9-33 — retry backoff y la senal de descarte', () => {
     expect(await AsyncStorage.getItem('@sync_dropped_uid')).toBe('1');
   });
 
+  it('el aviso de una cuenta no sobrevive a su cierre de sesion', async () => {
+    await AsyncStorage.setItem('@sync_dropped_uid-ana', '2');
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-ana');
+    await flush();
+    expect(engine.getState().droppedWrites).toBe(2);
+
+    // `stop()` ya limpia los cursores y los conflictos por esto mismo: son
+    // estado por-uid y no pueden quedar vivos para la cuenta siguiente. El
+    // contador de descartes nacio despues y se quedo fuera de esa lista.
+    // Ajustes lo pinta en cuanto `user` pasa a ser Beto, y `start('uid-beto')`
+    // es asincrona (dos lecturas de AsyncStorage), asi que hay un render con
+    // la sesion de Beto y el aviso de Ana.
+    engine.stop();
+    expect(engine.getState().droppedWrites).toBe(0);
+
+    // Y sigue siendo de Ana: al volver ella, el aviso vuelve con ella.
+    await engine.start('uid-ana');
+    await flush();
+    expect(engine.getState().droppedWrites).toBe(2);
+  });
+
   it('el aviso se limpia solo cuando el usuario lo reconoce', async () => {
     await AsyncStorage.setItem('@sync_dropped_uid', '3');
     const engine = new SyncEngine();
@@ -1872,15 +1896,26 @@ describe('R9-34 — la rama de error no puede hacer retroceder la cola', () => {
     const {adapter} = makeAdapter();
     engine.register(adapter);
     await engine.start('uid');
+
+    // La carrera EXACTA: `queueWrite` llama a `void this.flush()` de forma
+    // sincrona, y `flush()` corre hasta su primer `await` —el de `pushOne`—
+    // antes de devolver. Asi que al volver de esta linea el push YA esta en
+    // vuelo y `items` ya quedo capturado con v1.
+    //
+    // Ojo: no metas un `await flush()` aqui. El primer intento fallaria, y el
+    // backoff que R9-33 acaba de introducir dejaria la entrada NO vencida, asi
+    // que el `flush()` siguiente saldria por `flushableCount() === 0` sin
+    // empujar nada — no habria push en vuelo y la prueba pasaria con el bug
+    // puesto. Es lo que le pasaba a la primera version de esta prueba.
     engine.queueWrite('test', 'doc1', {value: 'v1', updatedAt: 1000});
+    // Reedicion mientras ese pushOne sigue en vuelo.
+    engine.queueWrite('test', 'doc1', {value: 'v2-REEDITADO', updatedAt: 2000});
     await flush();
 
-    // Reedicion mientras pushOne esta en vuelo: el mock rechaza en una
-    // microtarea, asi que encolar aqui replica la carrera real.
-    const pending = engine.__flushForTests();
-    engine.queueWrite('test', 'doc1', {value: 'v2-REEDITADO', updatedAt: 2000});
-    await pending;
-    await flush();
+    // Control de que la carrera ocurrio de verdad: si `flush()` hubiera salido
+    // temprano no habria intento ninguno, y entonces este `toBe(1)` —no la
+    // asercion de abajo— seria lo que falla.
+    expect(engine.__getQueueForTests()[0].attempts).toBe(1);
 
     // Pre-fix la rama de error escribia `{...item}` —el snapshot tomado al
     // empezar el flush— encima de la entrada nueva, asi que ni un reintento
