@@ -25,7 +25,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getFirestore} from '@lib/sync/firestore';
 import {getSyncEngine, nullifyUndefined} from '@lib/sync';
 import {logger} from '@lib/utils/logger';
-import {getAllReviewEvents} from './reviewEventStore';
+import {getAllReviewEvents, clearAllReviewEvents} from './reviewEventStore';
 import {
   coerceMemoryStatsSummary,
   computeMemoryStatsSummary,
@@ -50,6 +50,40 @@ const FLOOR_KEY = '@memory_stats_floor';
  *  on sign-out). Drives a one-time "we restored your progress" notice,
  *  never a per-session nag. */
 const RESTORE_BANNER_KEY = '@memory_stats_floor_banner_pending';
+
+/**
+ * R9-48 — WHOSE review history the local `review_events` table currently
+ * holds. The table is device-level and was never uid-scoped, and nothing
+ * clears it on sign-out (`clearMemoryStatsFloor` says so in its own
+ * docstring), so on a shared phone it keeps Ana's reviews after Beto signs
+ * in. That broke the memoryStats aggregate in BOTH directions:
+ *
+ *  - `maybeWriteMemoryStatsSummary` combined `getActiveUid()` = Beto with
+ *    Ana's events and wrote them to `users/{beto}/memoryStats/summary` with
+ *    `.set()` — a TOTAL overwrite, not a merge. Since `reviewEvents` no
+ *    longer syncs, that doc is Beto's only anchor in the cloud, so his real
+ *    history was replaced by hers.
+ *  - `seedMemoryStatsFloorIfFresh` treats "any local events" as "not a fresh
+ *    device", so Ana's leftovers stopped Beto's own cloud floor from ever
+ *    being restored.
+ *
+ * This marker keeps the two apart WITHOUT deleting anyone's local history:
+ * an unclaimed log is claimed by the first account that writes, and a log
+ * owned by someone else is neither uploaded nor counted as this device's
+ * history. Whether signing out should also WIPE the local log is a separate
+ * product question (R9-59) and deliberately not decided here.
+ */
+const REVIEW_LOG_OWNER_KEY = '@review_log_owner_uid';
+
+/** The uid whose reviews the local log holds, or null if unclaimed. */
+async function getReviewLogOwner(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(REVIEW_LOG_OWNER_KEY);
+  } catch {
+    // Unreadable marker: treat as unclaimed rather than blocking the write.
+    return null;
+  }
+}
 
 /** Session guard so app-background writes stay cheap (skip when unchanged). */
 let lastWrittenSignature: string | null = null;
@@ -84,6 +118,38 @@ export async function seedMemoryStatsFloorIfFresh(uid: string): Promise<void> {
     // and its immutability keeps the write-side merge from double-counting.
     const existing = await AsyncStorage.getItem(FLOOR_KEY);
     if (existing != null) return;
+
+    // R9-48 — a log owned by ANOTHER account is handed over here, at the one
+    // point where a new uid is known to have signed in. Leaving it in place
+    // is what caused the bug in both directions: its rows made this user look
+    // like a returning heavy user (so their own cloud floor was never
+    // restored, below), and `maybeWriteMemoryStatsSummary` folded them into
+    // an aggregate written to THIS user's doc with `.set()`.
+    //
+    // The departing account loses nothing the design doesn't already treat as
+    // recoverable — their aggregate is in their own cloud doc and re-seeds as
+    // their floor when they sign back in, the same path a new device takes.
+    // Ownership is claimed only if the clear actually succeeded.
+    const owner = await getReviewLogOwner();
+    if (owner !== null && owner !== uid) {
+      try {
+        await clearAllReviewEvents();
+        await AsyncStorage.setItem(REVIEW_LOG_OWNER_KEY, uid);
+        logger.info(
+          'memoryStatsSync: review log handed over to the account signing in',
+          {component: 'memory/memoryStatsSync', uid},
+        );
+      } catch (err) {
+        logger.warn('memoryStatsSync: could not hand over the review log', {
+          component: 'memory/memoryStatsSync',
+          uid,
+          error: err instanceof Error ? err.message : String(err),
+        });
+        // Leave ownership with the previous account: the write-side guard
+        // still refuses to upload their history into this user's doc.
+        return;
+      }
+    }
 
     // Fresh-device signal: no local review history to restore over.
     const events = await getAllReviewEvents();
@@ -128,6 +194,24 @@ export async function maybeWriteMemoryStatsSummary(): Promise<void> {
       lastWrittenUid = uid;
       lastWrittenSignature = null;
     }
+    // R9-48 — refuse to upload a log that belongs to a DIFFERENT account.
+    // The write below is `.set()`, a total overwrite of the one doc that
+    // anchors this user's memory stats in the cloud; writing Ana's history
+    // into Beto's document destroys his outright. An unclaimed log is this
+    // user's by definition (they are the first to write from this device).
+    const owner = await getReviewLogOwner();
+    if (owner !== null && owner !== uid) {
+      logger.warn(
+        'memoryStatsSync: local review log belongs to another account — ' +
+          'skipping the aggregate write so it cannot overwrite this one',
+        {component: 'memory/memoryStatsSync', uid},
+      );
+      return;
+    }
+    if (owner === null) {
+      await AsyncStorage.setItem(REVIEW_LOG_OWNER_KEY, uid);
+    }
+
     const [events, floor] = await Promise.all([
       getAllReviewEvents(),
       getMemoryStatsFloor(),

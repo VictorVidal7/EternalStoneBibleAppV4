@@ -121,6 +121,27 @@ export async function getReviewEventById(
 }
 
 /**
+ * Drop the ENTIRE local review log. Only for a change of account owner on a
+ * shared device (R9-48) — see `memoryStatsSync`'s `REVIEW_LOG_OWNER_KEY`.
+ *
+ * Nothing is lost that the design doesn't already treat as recoverable: the
+ * departing account's aggregate lives in `users/{uid}/memoryStats/summary`,
+ * and `seedMemoryStatsFloorIfFresh` restores it as their floor the moment
+ * they sign back in — which is exactly the path a genuinely new device
+ * takes. Keeping the rows instead is what let one account's history
+ * overwrite another's cloud aggregate and blocked the second account's own
+ * floor from ever being restored.
+ *
+ * Throws on failure: the caller must NOT claim ownership of a log it did
+ * not manage to clear.
+ */
+export async function clearAllReviewEvents(): Promise<void> {
+  await bibleDB.initialize();
+  const db = await bibleDB.getDatabase();
+  await db.runAsync('DELETE FROM review_events');
+}
+
+/**
  * Hard-delete an event. We never tombstone events ourselves (deleting a
  * card keeps its history so the heatmap doesn't grow holes), but the
  * sync adapter still honors an inbound remote delete defensively.
