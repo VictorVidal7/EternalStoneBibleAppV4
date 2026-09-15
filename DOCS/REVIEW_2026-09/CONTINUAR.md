@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 11 (`R9-11` + `R9-65` + la prueba que le faltaba a `R9-28`).**
+> **Última actualización: 2026-09-15, fin de la sesión 12 (`R9-13` + `R9-15` + `R9-14`: el bloque WEB).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,12 +12,13 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
-pendiente. Las cinco `fix/review-p0-*` están dentro de `main`, la última
-(`fix/review-p0-cola-y-cursor-conflictos`, sesión 11) en fast-forward y con los gates corridos
-**sobre `main` ya mergeado** antes de publicar: **356 suites, 4086 pruebas**. No se pone el
-SHA del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA
-escrito aquí nace obsoleto.
+**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-lector-web-paridad` (sesión 12).** Victor
+pidió explícitamente que no se mergeara sin preguntarle, así que **lo primero es preguntarle
+si la mergea**, no seguir de largo. Lleva `R9-13`, `R9-15` y la mitad estructural de `R9-14`,
+con las tres compuertas verdes: **358 suites, 4123 pruebas** (desde 356/4086), `tsc` limpio,
+0 errores de lint, Prettier conforme. Las cinco `fix/review-p0-*` anteriores sí están dentro
+de `main`. No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve,
+así que cualquier SHA escrito aquí nace obsoleto.
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -35,22 +36,33 @@ prueba cubre y deja abierto el vecino_): aquí el vecino no era otro caso, era *
 del mismo diff**. Si un commit lleva dos arreglos, pregúntate si uno desarma la prueba del
 otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-del-diff.md`.
 
-**Quedan 5 P0 abiertos:** `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`. Todo lo demás
-de la sección P0 va marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los
-vuelvas a atacar.** Hallazgos totales: **65**.
+**Quedan 3 P0 abiertos:** `R9-36`, `R9-38`, `R9-39`. Todo lo demás de la sección P0 va
+marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.**
+Hallazgos totales: **65**.
+
+**Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
+navegador de verdad sobre el bundle real.
 
 **⚠️ Y no re-derives el conteo contando arreglos: cuenta las entradas de la sección P0.** Las
 sesiones 7 y 8 contaban `R9-50` como P0 cerrado, pero vive en **P1**, así que su «quedan 10»
 eran 11. La nota está al principio de la sección P0 de `BUGS.md`.
 
-**3. Lo que queda del orden de ataque de arreglos:** **`R9-13` es lo siguiente, y es el único
-que bloquea algo** — el próximo `firebase deploy` de la web. Todo el bloque de sync está
-cerrado: `R9-33`/`R9-34`/`R9-35` (sesión 9), `R9-9`/`R9-10` de dinero (sesión 10),
-`R9-11`+`R9-65` (sesión 11). Ojo con `R9-13`: **léete `R9-15` antes**, porque el único test
-que renderiza el lector web **enmascara exactamente ese bug** (mockea el especificador `.web`
-explícito y el componente importa el pelado) — arreglar el bug sin arreglar el test deja la
-compuerta igual de ciega. Los 4 de campo (`R9-40`..`R9-43`) son baratos y muy visibles:
-buenos para cerrar una sesión.
+**3. El orden de ataque de arreglos SE ACABÓ.** Todos los bloques están cerrados: sync
+(`R9-33`/`R9-34`/`R9-35`, sesión 9), dinero (`R9-9`/`R9-10`, sesión 10), cola y cursor
+(`R9-11`+`R9-65`, sesión 11) y **web (`R9-13`+`R9-15`+`R9-14`, sesión 12)**. Lo que queda son
+tres P0 sueltos (`R9-36`, `R9-38`, `R9-39`) y los 4 reportes de campo (`R9-40`..`R9-43`), que
+son baratos y muy visibles: buenos para cerrar una sesión.
+
+**La lección de la sesión 12, que es la que hay que llevarse:** el arreglo del test iba
+PRIMERO, y a propósito. `R9-15` (el test que enmascaraba) se arregló antes que `R9-13` (el
+bug), para **ver el crash de producción ponerse rojo en la compuerta** antes de tocar el
+código de la app. Y ahí saltó la trampa: el mock del especificador `.web` era un **objeto
+escrito a mano**, o sea que era él quien definía la superficie del módulo bajo prueba.
+Redirigir el import pelado a ese mock habría seguido fallando **después** del arreglo, y el
+reflejo obvio —añadirle `hasRedLetterData: jest.fn()` al mock— habría dejado la prueba verde
+**sin mirar jamás el archivo real**. El antídoto es barato: `...jest.requireActual` y stubear
+solo lo que de verdad hace falta. **Generalización: un mock con factoría literal no prueba
+paridad de superficie, la SUSTITUYE.**
 
 **4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
@@ -96,23 +108,30 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — seguir arreglando por donde toca.**
+**(a) RECOMENDADA — revisar el diff de la sesión 12 y decidir el merge.** Es el patrón que
+ya pagó cuatro veces seguidas (sesiones 8, 9, 10 y 11 encontraron defectos reales en el diff
+de ARREGLOS de la sesión anterior, y dos de esas veces eran pérdidas de datos nuevas).
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> No hay ninguna rama pendiente: `main` está pusheado y al día, así que no busques una.
->
-> Empezá por `R9-13`, el crash del lector web — es el único P0 que bloquea algo (el próximo
-> `firebase deploy`). Leete `R9-15` antes de tocarlo: el único test que renderiza esa pantalla
-> **enmascara exactamente ese bug**, así que hay que arreglar los dos o la compuerta se queda
-> igual de ciega. Si sobra margen, `R9-14`.
->
-> Verificá cada hallazgo contra el código antes de tocarlo —los P1/P2 no están
-> re-verificados—, y acordate de que una prueba de regresión no vale hasta que la viste fallar
-> sin el arreglo: **si un commit lleva dos arreglos, uno puede estar desarmando la prueba del
-> otro**, y si una prueba encadena el mecanismo y su consecuencia, el revert la tumba en la
-> primera aserción y la segunda no prueba nada. Va todo en rama con gates verdes; no mergees
-> nada sin preguntarme.
+> Hay una rama sin mergear, `fix/review-p0-lector-web-paridad` (sesión 12: `R9-13`, `R9-15`
+> y la mitad estructural de `R9-14`). Revisá su diff **antes** de mergear nada, con el mismo
+> criterio de las sesiones 8-11: buscá si algún arreglo cierra el caso que su prueba cubre y
+> deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el
+> arreglo, corré, restaurá — y `diff` el revert para confirmar que tocó la línea que creés).
+> Prestá atención especial a la prueba de paridad de superficie
+> (`__tests__/webNativeModuleParity.test.ts`): es un escaneo de texto, no un `require`, así
+> que preguntate qué formas de `export` NO ve y si su lista blanca de una entrada está bien
+> justificada. Cuando termines, decime qué encontraste y si la mergeo.
+
+**(a-bis) Si preferís seguir arreglando en vez de revisar:** quedan `R9-36`, `R9-38` y
+`R9-39` (P0) y los 4 de campo. Ojo: **los P1/P2 siguen sin re-verificar**, así que verificá
+contra el código antes de tocar. Y acordate de que una prueba de regresión no vale hasta que
+la viste fallar sin el arreglo: si un commit lleva dos arreglos, uno puede estar desarmando la
+prueba del otro; si una prueba encadena el mecanismo y su consecuencia, el revert la tumba en
+la primera aserción y la segunda no prueba nada; y un mock con factoría literal **sustituye**
+la superficie del módulo en vez de comprobarla. Va todo en rama con gates verdes; no mergees
+nada sin preguntarme.
 
 **(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
 
@@ -179,13 +198,13 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 11 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los
-arreglos de las sesiones 7 a 11) y **cinco ramas de arreglos YA MERGEADAS** que se
-pueden borrar: `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
+**Hay 12 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+sesiones 7 a 11), **`fix/review-p0-lector-web-paridad` SIN MERGEAR** (sesión 12: el bloque
+web) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
+`fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
-`fix/review-p0-perdida-datos`. Más las 5 de
-siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
-`chore/worklets-bundle-mode`, `feature/red-letter-web`,
+`fix/review-p0-perdida-datos`. Más las 5 de siempre: `audio/tts-caps-hyphen`,
+`audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`, `feature/red-letter-web`,
 `research/a4-chico-spanish-availability`. Árbol limpio. Si no coincide, dilo antes de
 empezar.
 
@@ -196,14 +215,17 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 → `63f124c`.
 
 Los arreglos de las sesiones 7 a 11 **ya están todos en `main` y pusheados**, todos los merges
-en fast-forward. **No queda deuda de git.**
+en fast-forward. **La única deuda de git es la rama de la sesión 12**, que espera el OK de
+Victor.
 
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
 **Cerradas: 17** (todo el Modo B P0 + 11 filas del Modo A P0). **`A12` en curso.**
 **Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
-arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) → **10** (sesión 8).
+arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
+tras la sesión 12 son **3** (`R9-36`, `R9-38`, `R9-39`). **No re-derives ese número contando
+arreglos** — ver la nota al principio de esa sección.
 
 | Sesión | Qué se hizo                                               | Commit              |
 | ------ | --------------------------------------------------------- | ------------------- |
@@ -226,6 +248,7 @@ arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) →
 | 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
 | 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
 | 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
+| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | sin mergear         |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -245,8 +268,9 @@ por orden de daño irreversible:
 - **Sync que descarta o se para en silencio:** `R9-33`, `R9-35`, `R9-45` (una lápida que no
   se limpia deja un subrayado **borrado para siempre** en todo otro dispositivo).
 - **Dinero:** `R9-9` (premium que sobrevive al reembolso).
-- **Web:** `R9-13` (el lector crashea — **no está en producción**, pero bloquea el próximo
-  deploy web).
+- **Web:** `R9-13` (el lector crashea — **no llegó a estar en producción**; bloqueaba el
+  próximo deploy web). **✅ Cerrado en la sesión 12 y verificado en un navegador de verdad,
+  así que el deploy web ya no está bloqueado.**
 
 **Los cuatro ejes donde están, y donde conviene seguir buscando.** Las tres compuertas
 verdes (`tsc`, jest, CI) comparten puntos ciegos:
@@ -276,8 +300,9 @@ Alternativas legítimas:
   `R9-47`, y `R9-44`/`R9-45`/`R9-50` juntos por su raíz); la 8 hizo `R9-46` y **el bloque
   entero de mezcla entre cuentas** (`R9-22`/`R9-48`/`R9-23`); la 9, el bloque de **sync que
   descarta en silencio** (`R9-33`/`R9-34`/`R9-35`); la 10, el de **dinero**
-  (`R9-9`+`R9-10`). **Lo que queda del orden:** `R9-11` (el más barato, contexto fresco, con
-  el arreglo ya localizado) → `R9-13` **antes de volver a desplegar la web**. Los 4 de campo
+  (`R9-9`+`R9-10`); la 11, **cola y cursor** (`R9-11`+`R9-65`); la 12, **el bloque web**
+  (`R9-13`+`R9-15`+`R9-14`). **Ya no queda orden que seguir:** los tres P0 sueltos
+  (`R9-36`, `R9-38`, `R9-39`) son independientes entre sí, y los 4 de campo
   (`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar la sesión.
 - **`B6`–`B10`** (Modo B, P1/P2) si preferís terminar el Modo B de una: permisos Android,
   `npm outdated`, `expo-doctor`, deps sin usar, licencias. Baratas, sin entorno. Ojo:
@@ -393,6 +418,32 @@ Alternativas legítimas:
   mismo diff y parece que se refuerzan. Antídoto barato: meterle a la prueba un **control del
   mecanismo** (`expect(...attempts).toBe(1)`) que falle ruidosamente si la carrera deja de
   ocurrir.
+- **Un mock con factoría literal no COMPRUEBA la superficie de un módulo: la SUSTITUYE.**
+  La trampa de la sesión 12. `chapterReaderWebFontPicker.test.tsx` mockeaba
+  `@lib/reading/redLetterText.web` con un objeto escrito a mano de 3 claves, así que ese
+  objeto **era** la superficie del módulo dentro de la prueba. Al redirigirle el import pelado
+  (el arreglo de `R9-15`), la prueba habría seguido roja **después** de arreglar `R9-13`, y el
+  reflejo obvio —añadir la clave que falta al mock— la habría puesto verde sin mirar jamás el
+  archivo real. Antídoto: `...jest.requireActual(<mismo especificador>)` y stubear **solo** lo
+  que de verdad estorba.
+- **Si el bug es de resolución por plataforma, arreglá el TEST primero y mirá el rojo.** En la
+  sesión 12 el orden fue `R9-15` → `R9-13`, no al revés, y por eso se pudo ver el `TypeError`
+  exacto de producción (`hasRedLetterData is not a function`, en la línea real del componente)
+  dentro de jest antes de tocar código de la app. Al revés no se habría visto nunca, porque el
+  bug es invisible para las tres compuertas por construcción.
+- **Para verificar algo de WEB de verdad: `npx expo export --platform web` y servilo.** Es la
+  única forma de ver la resolución `.web` que ni `tsc` ni jest pueden ver. Dos gotchas que
+  cuestan tiempo: (1) un servidor estático pelado **no tiene el rewrite catch-all** de
+  `firebase.json`, así que una URL profunda da 404 — **navegá siempre dentro de la SPA**; (2)
+  recargar con el worker de SQLite vivo dispara el bloqueo de OPFS
+  (`NoModificationAllowedError`) y el botón «Clear data & reload» no siempre lo salva. Además,
+  grepear el bundle vale como prueba: si están `loadRedLetterSpans` y `web-red-letter.json` y
+  **no** están `redLetterByVersion`/`buildSpanMap`, el pelado resolvió al `.web`.
+- **`python - <<'EOF'` decodifica el script en cp1252 en esta máquina, no en UTF-8.** Primo
+  hermano del gotcha de `translations.ts`, y falla distinto: los acentos pasan (están en
+  cp1252) pero `≥`, `⊆` o `✅` se corrompen y un `assert <ancla> in s` falla sin explicar por
+  qué. Costó dos intentos en la sesión 12. Usá **`PYTHONUTF8=1 python script.py`** con el
+  script escrito a archivo por la herramienta de edición, no por heredoc.
 - **Revertir un `let` de módulo NO discrimina si hay un `__resetForTests()` que lo
   reasigna.** En la sesión 10, revertir `lastKnownUnlocked = false` en su declaración dejó las
   33 pruebas en verde, porque el `beforeEach` llama a `__resetForTests()` y **es ese** el que

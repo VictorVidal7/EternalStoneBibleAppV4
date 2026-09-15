@@ -1,7 +1,8 @@
 # A6 — Paridad web/native
 
 > Modo A (auditoría estática) · Prioridad **P0** · Sesión 3 (2026-09-03) · Estado
-> **🐛 BUG** (2 P0 + 1 P1: `R9-13`, `R9-14`, `R9-15`)
+> **🐛 BUG** (2 P0 + 1 P1: `R9-13`, `R9-14`, `R9-15`) · **los 3 ARREGLADOS en la sesión 12
+> (2026-09-15)** — ver cada bloque «Arreglo» más abajo y las entradas de `BUGS.md`
 >
 > Revisado por un agente en worktree; **el orquestador re-verificó a mano las
 > afirmaciones que sostienen `R9-13`** (ver "Verificación independiente" abajo) antes de
@@ -94,12 +95,25 @@ Invisible para las dos compuertas: `tsc` no tiene conciencia de plataforma y res
 especificador pelado contra el **nativo** (trampa ya documentada en
 `app/_layout.web.tsx:7-11`), y jest corre con preset nativo.
 
-**Arreglo (no aplicado):** agregar `hasRedLetterData` a `redLetterText.web.ts` con la
-semántica web correcta (ahí el mapa se carga por `fetch` asíncrono vía
-`loadRedLetterSpans`, así que probablemente deba responder por `versionId` sin depender de
-que el pack haya llegado). **Y** para matar la clase entera: un test de paridad de
-superficie que compare `Object.keys(require('./X'))` contra `Object.keys(require('./X.web'))`
-para los 14 pares.
+**Arreglo — ✅ APLICADO en la sesión 12, y en las dos mitades que pedía esta línea.**
+`redLetterText.web.ts` exporta `hasRedLetterData` sobre un `Set` de módulo (`['WEB']`),
+síncrono y **sin depender de que el pack haya llegado**, que es justo lo que este párrafo
+anticipaba: si dependiera, el interruptor de la hoja pasaría de deshabilitado a habilitado un
+instante después de abrirla. Solo `WEB` —no `RVR1960`— porque `scripts/build-web-packs.js`
+emite un único pack, y es el mismo gate que el lector web ya aplicaba por su cuenta
+(`chapter].web.tsx:110`).
+
+Y la segunda mitad, la que mata la clase: `__tests__/webNativeModuleParity.test.ts` compara
+los **14 pares**. Con una corrección respecto a lo que decía esta línea: **no** por
+`Object.keys(require(...))`, porque la mitad de esos archivos son pantallas cuyo grafo de
+imports arrastra dependencias nativas y un chequeo por `require` necesitaría un muro de mocks
+por par. Es un escaneo de **texto fuente** (comprobado antes de escribirlo que ningún par usa
+`export {x} from` ni `export *`, las formas que un regex no vería). Y la invariante es de una
+sola dirección, **`nativo ⊆ web`**: un símbolo del nativo ausente en el web es un crash,
+porque el especificador pelado se convierte en el archivo web al bundlear; un extra web-only
+(`loadRedLetterSpans`, `clearWebStorageForLockRecovery`) solo se alcanza por el `.web`
+explícito, que el código nativo nunca escribe. Lista blanca de una entrada,
+documentada (`heroNudgeRoute`), con prueba anti-pudrición.
 
 ### Verificación independiente del orquestador
 
@@ -155,12 +169,24 @@ incidente que motivó T21.
 **Impacto medio, no alto:** ninguna de estas rutas está enlazada desde la nav web, así que
 llegar requiere URL directa — el mismo perfil que T21 ya trató como P0.
 
-**Arreglo (no aplicado):** (a) stubs `.web.tsx` inertes y fail-closed para esos 5
-contextos, montados en `_layout.web.tsx` — ojo que `Auth`/`ReadingProgress`/`Together`
-tienen dependencias nativas reales (`@react-native-firebase/*`), así que el stub debe ser
-un archivo nuevo, no el provider real; **y/o** (b) la estructural: un `ErrorBoundary` por
-ruta (o `app/features/_layout.web.tsx`) para romper la amplificación "una ruta cae → todo
-cae", que es la mitad de la severidad de `R9-13` y `R9-14` juntos.
+**Arreglo — ✅ APLICADA la opción (b) en la sesión 12; la (a) sigue abierta, a propósito.**
+
+La (b), la estructural, es un `ErrorBoundary` **por ruta** en los dos niveles del árbol web,
+porque las 7 rutas viven en los dos: `screenLayout` del `Stack` raíz (`_layout.web.tsx`)
+cubre las 6 de `app/features/**`, y envolver el `<Slot />` de `(tabs)/_layout.web.tsx`
+—**solo el Slot**, dejando la barra de navegación FUERA, que es la única salida que le queda
+al usuario— cubre la séptima, `(tabs)/plan/[id].tsx`. Se prefirió a un
+`app/features/_layout.web.tsx`, que habría metido un navegador anidado solo en web y no
+habría alcanzado a `plan/[id]`. La `key={pathname}` del segundo es portante y tiene prueba
+propia: un boundary de React retiene su error hasta desmontarse y el `Slot` reusa la misma
+posición para todas las rutas, así que sin ella una sola URL mala envenenaba el resto de la
+sesión.
+
+**Por qué (b) y no (a):** la duda de más abajo dice que el conteo real es ≥ 7 porque solo se
+grepearon archivos de ruta. (a) cierra las 7 conocidas; (b) acota la clase entera, incluidas
+las que no están en ninguna lista. Y (a) tiene una pregunta de producto dentro —qué ve un
+visitante web sin cuenta en `/features/together`— que no es de ingeniería. **Las 7 rutas
+siguen sin funcionar en web; ahora fallan localmente en vez de llevarse la SPA.**
 
 ---
 
@@ -175,9 +201,18 @@ import carga `redLetterText.ts` (que sí exporta el símbolo) y el mock nunca se
 crashea en producción web. Es el mecanismo preciso por el que `d753a6e` se mergeó con CI
 verde el 2026-08-18.
 
-**Arreglo (no aplicado):** redirigir el especificador **pelado** al módulo web real — el
-patrón que ya usa `webStubProviders.test.tsx:516-532`. Con eso `R9-13` fallaría de
-inmediato.
+**Arreglo — ✅ APLICADO en la sesión 12, y ANTES que `R9-13`** para ver el crash de
+producción ponerse rojo en la compuerta: con la redirección puesta y el módulo web sin tocar,
+las 4 pruebas fallaron con el `TypeError` exacto,
+`(0, _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.tsx:121`.
+
+**Una trampa que esta línea no anticipaba y casi deja una prueba en vacío:** el mock del
+especificador `.web` era un objeto escrito a mano, así que era ÉL quien definía la superficie
+del módulo bajo prueba. Redirigir el pelado a ESE mock habría seguido fallando **después** del
+arreglo, y el reflejo obvio —añadirle `hasRedLetterData: jest.fn()`— habría dejado las 4 en
+verde sin mirar nunca el archivo real. El mock ahora hace `...jest.requireActual` y solo
+stubea las tres funciones de datos, así que la superficie que ve el componente es la del
+módulo web de verdad.
 
 ---
 
@@ -219,9 +254,27 @@ inmediato.
   pero el bug está **armado** — el próximo `firebase deploy` publica el crash. Es un
   **bloqueante de release**, no un P0 activo. Arreglarlo antes de volver a desplegar la
   web.
-- **Aun así no se verificó en un navegador.** El mecanismo de `R9-13` es análisis estático
-  (re-verificado a mano, ver arriba): no se corrió `expo export --platform web`. Vale una
-  comprobación cuando se arregle, para confirmar que la corrección basta.
+- **✅ RESUELTA en la sesión 12: verificado en un navegador de verdad.** Esta duda decía
+  que el mecanismo de `R9-13` era solo análisis estático. Ya no: `npx expo export --platform
+web` + un servidor estático sobre `dist/` → Génesis 1 **renderiza**, la hoja de
+  preferencias **abre entera**, el interruptor «Words of Christ» sale **habilitado** (el
+  valor correcto para `WEB`), y la consola no trae `is not a function` ni error de boundary.
+  El bundle además confirma la resolución por plataforma que sostenía el diagnóstico: trae
+  `loadRedLetterSpans` y `web-red-letter.json`, y **no** trae
+  `redLetterByVersion`/`buildSpanMap`/`RVR1960_RED_LETTER`, o sea que el especificador pelado
+  resolvió al `.web`.
+  **Dos cosas que solo se ven haciendo esto:**
+  1. El bundle web **sí incluye** `(tabs)/verse/[book]/[chapter].tsx`, el archivo NATIVO,
+     además del `.web`. No es un hallazgo: `getRoutesCore.js:538-566` da especificidad 2 al
+     `.web.tsx` y 0 al pelado, así que la ruta registrada es la web y el módulo nativo nunca
+     se evalúa. Queda dicho para que nadie lo vuelva a investigar — y porque **dentro de ese
+     código muerto hay una llamada a `getRedLetterSpans` con 4 argumentos contra la firma
+     web de 3**, que parece un bug y no lo es.
+  2. Recargar la página con el worker de SQLite vivo dispara el bloqueo de OPFS conocido
+     (`NoModificationAllowedError`). Es la clase que `isStorageLockError` ya trata; con un
+     `http.server` de python el botón «Clear data & reload» a veces no basta. Si vas a repetir
+     esta verificación, **navegá SIEMPRE dentro de la SPA** — sin rewrite catch-all, una URL
+     profunda da 404 y volver deja el lock tomado.
 - **`R9-14` puede quedarse corto.** Solo se grepearon los hooks que lanzan en los
   **archivos de ruta** de `app/`. Un componente de `src/` que llame `useAuth()` y sea
   renderizado por una ruta web-alcanzable produce el mismo crash sin salir en la tabla. El

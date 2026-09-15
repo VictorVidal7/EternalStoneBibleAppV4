@@ -26,13 +26,23 @@
 > `flush()`, o sea la común, cuyo vecino se tragaba una LÁPIDA— **y `R9-65`**, y saldó la
 > deuda más vieja: `R9-28` por fin tiene prueba, así que **no queda ningún arreglo sin una**.
 > **Todo mergeado y PUSHEADO**; no queda rama de arreglos pendiente.
-> **Quedan 5 P0 abiertos** (`R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`). Hallazgos:
-> **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de la sección
-> P0 de `BUGS.md`.
+> **Sesión 12 (2026-09-15) cerró el bloque WEB: `R9-13`, `R9-15` y `R9-14`.** El orden fue
+> deliberado — primero `R9-15`, el test que enmascaraba, para **ver el crash de producción
+> ponerse rojo en la compuerta**, y solo después `R9-13`. De `R9-14` se tomó la opción
+> estructural (un `ErrorBoundary` **por ruta** en los dos niveles del árbol web), que acota
+> la clase entera en vez de las 7 rutas contadas; lo que queda de esa entrada es decisión de
+> producto, no código. Además se remató la clase de `R9-13` con una compuerta de **paridad
+> de superficie sobre los 14 pares** `.web`/nativo. **Y se cerró la duda que el detalle de
+> `A6` dejaba abierta desde la sesión 3: verificado en un navegador de verdad**, sobre el
+> bundle real de `expo export --platform web`.
 >
-> Siguiente: `R9-13` **antes del próximo deploy web** (y con él `R9-15`, el test que lo
-> enmascara). O terminar `A12` (hay 3 hilos ya abiertos en su detalle),
-> con lo que **queda cerrado el bloque P0 entero del Modo A**.
+> **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
+> Hallazgos: **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> la sección P0 de `BUGS.md`.
+>
+> Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
+> cerrado el bloque P0 entero del Modo A**. O los 3 P0 que quedan, o los 4 reportes de campo
+> (`R9-40`..`R9-43`), que son baratos y muy visibles.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**

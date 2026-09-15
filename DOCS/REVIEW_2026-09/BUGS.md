@@ -53,8 +53,10 @@
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 11. Esta sección tiene 21 entradas: 16 ARREGLADAS y
-> 5 ABIERTAS** (`R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`).
+> **Conteo, al día tras la sesión 12. Esta sección tiene 21 entradas: 18 ARREGLADAS y
+> 3 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`). `R9-14` cuenta como ARREGLADA por su **mitad
+> estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
+> producto, dicha en su propia entrada — no código pendiente.
 >
 > **Las sesiones 7 y 8 venían contando mal.** Su lista de «arreglados» incluía `R9-50`, que
 > vive en **P1**, no aquí — así que el «quedan 10» de la sesión 8 eran en realidad **11**.
@@ -176,6 +178,28 @@
   incidente activo, pero **sí es bloqueante del próximo `firebase deploy`**: publicar hoy
   rompe el lector web. Tratarlo como release-blocker, no como P0 en curso.
   Detalle: `detail/A6-paridad-web-native.md`.
+  **✅ ARREGLADO en la sesión 12.** `redLetterText.web.ts` exporta `hasRedLetterData`,
+  síncrono y sobre un `Set` de módulo (`['WEB']`), **no** sobre el mapa que llena
+  `loadRedLetterSpans`. Las dos decisiones van razonadas en el archivo. (1) La divergencia
+  con el nativo —que también da `true` para `RVR1960`— es deliberada:
+  `scripts/build-web-packs.js` emite **un solo** pack, `web-red-letter.json`, así que en web
+  RVR1960 genuinamente no tiene datos, y es exactamente lo que el lector web ya gateaba por
+  su cuenta (`chapter].web.tsx:110`, `selectedVersion.id === 'WEB'`). (2) Que la
+  disponibilidad no dependa del estado de carga también es decisión: si dependiera, el
+  interruptor de la hoja pasaría de deshabilitado a habilitado un instante después de abrir.
+  **Verificado en un navegador de verdad**, que es la duda que esta entrada dejaba abierta:
+  `npx expo export --platform web` + servidor estático → Génesis 1 renderiza, la hoja de
+  preferencias abre entera, «Words of Christ» sale **habilitado**, y no hay `is not a
+function` ni error de boundary en consola. El bundle confirma además la resolución: trae
+  `loadRedLetterSpans` y `web-red-letter.json`, y **no** trae
+  `redLetterByVersion`/`buildSpanMap`/`RVR1960_RED_LETTER` — o sea que el especificador
+  pelado resolvió al `.web`, como decía el diagnóstico.
+  **Queda DICHO, no arreglado:** con la UI en español el web selecciona `RVR1960`
+  (`useBibleVersion.tsx:82-88`), y ahí el interruptor sale **deshabilitado** mientras su
+  subtítulo sigue diciendo «Disponible leyendo en inglés (WEB) o español (RVR1960)».
+  Deshabilitado es el estado honesto —habilitarlo sería un no-op—, pero la copia no lo
+  refleja. Arreglarlo de verdad es publicar un pack de letra roja de RVR1960 para web
+  (`build-web-packs.js` + subida al repo de Pages): **decisión de contenido, de Victor.**
 
 - **`R9-14` (A6, web) — 🐛 7 rutas web-alcanzables lanzan "must be used within a
   …Provider".** Severidad **media** (código P0, impacto acotado). El árbol web no monta
@@ -185,6 +209,25 @@
   badges, version-comparison, reading-insights, plan/[id], plan-builder, together) tumba la
   SPA entera. T21 arregló 4 hooks; faltaron estos 5. Conteo real **≥ 7** (no se barrió
   `src/`). Detalle: `detail/A6-paridad-web-native.md`.
+  **✅ ARREGLADO en la sesión 12 — la mitad estructural, que es la que tenía la severidad.**
+  Se tomó la opción (b) del detalle, no la (a): un `ErrorBoundary` **por ruta**, en los dos
+  niveles del árbol web. En la raíz, por `screenLayout` del `Stack` (`_layout.web.tsx`), que
+  envuelve cada pantalla del stack — las 6 de `app/features/**`. En las tabs, envolviendo el
+  `<Slot />` de `(tabs)/_layout.web.tsx` **y solo el Slot**, con la barra de navegación
+  FUERA: es la única salida que le queda al usuario y antes se caía con el resto. Eso cubre
+  la séptima, `(tabs)/plan/[id].tsx`. La `key={pathname}` del segundo es **portante** y tiene
+  prueba propia: un boundary de React retiene su error hasta desmontarse y el `Slot` reusa la
+  misma posición para todas las rutas, así que sin la key una sola URL mala envenenaba el
+  resto de la sesión.
+  **Por qué (b) y no (a):** el propio detalle avisa de que el conteo real es **≥ 7** porque
+  solo se grepearon los archivos de ruta — (a) arregla las 7 conocidas, (b) acota la clase
+  entera, incluidas las que no están en ninguna lista. Y monta menos: los stubs de `Auth` /
+  `ReadingProgress` / `Together` arrastran dependencias nativas reales.
+  **Lo que NO arregla, dicho en voz alta: las 7 rutas siguen sin funcionar en web.** Ahora
+  fallan localmente en vez de llevarse la SPA. Que rendericen algo útil —o que digan «esta
+  sección no está en la versión web» en vez del error genérico— es la opción (a), y sigue
+  **pendiente de decisión de Victor**: qué ve un visitante web sin cuenta en
+  `/features/together` es producto, no ingeniería.
 
 - **`R9-22` (A3, sync) — 🐛 la cola de escrituras pendientes no está namespaceada por uid:
   lo que quedó sin subir de la cuenta A se escribe en la nube de la cuenta B.** Severidad
@@ -516,6 +559,26 @@
   nativo ese import carga el archivo nativo (que sí exporta el símbolo) y el mock nunca se
   aplica. Por eso `d753a6e` se mergeó con CI verde. **Arreglo:** redirigir el especificador
   pelado, como ya hace `webStubProviders.test.tsx:516-532`.
+  **✅ ARREGLADO en la sesión 12**, y arreglado **antes** que `R9-13` a propósito, para ver
+  el crash de producción aparecer en la compuerta: con la redirección puesta y el módulo web
+  sin tocar, las 4 pruebas se pusieron rojas con el `TypeError` exacto, `(0,
+_redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.tsx:121`.
+  **Detalle que casi arma una prueba en vacío:** el mock del especificador `.web` era un
+  objeto escrito a mano, así que era ÉL quien definía la superficie del módulo. Redirigir el
+  pelado a ESE mock habría seguido fallando después del arreglo, y el reflejo —añadirle
+  `hasRedLetterData: jest.fn()`— habría dejado la prueba verde sin mirar nunca el archivo
+  real. Ahora el mock hace `...jest.requireActual` y solo stubea las tres funciones de datos.
+  **Y se remató la clase entera**, que es lo que pedía el detalle:
+  `webNativeModuleParity.test.ts` compara los **14 pares** `.web`/nativo y exige
+  **`nativo ⊆ web`** para los exports que existen en runtime. La invariante es de una sola
+  dirección a propósito: un símbolo que está en el nativo y no en el web es un crash (el
+  especificador pelado se convierte en el archivo web al bundlear), mientras que un extra
+  web-only (`loadRedLetterSpans`, `clearWebStorageForLockRecovery`) solo se alcanza por el
+  especificador `.web` explícito, que el código nativo nunca escribe. Es un escaneo de
+  **texto**, no un `require`: la mitad de esos archivos son pantallas cuyo grafo de imports
+  arrastra dependencias nativas, y un chequeo por `require` necesitaría un muro de mocks por
+  par. Con `R9-13` revertido nombra el par y el símbolo. Lista blanca de **una** entrada,
+  documentada (`heroNudgeRoute`), con su propia prueba anti-pudrición.
 
 - **`R9-16` (A2, dinero) — 🐛 `restore()` confunde "no tienes compra" con "falló la red".**
   `offeringService.ts:325-331` devuelve `{unlocked:false}` en el `catch`, el mismo valor que
