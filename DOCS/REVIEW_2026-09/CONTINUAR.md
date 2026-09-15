@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 8 (la segunda de ARREGLOS).**
+> **Última actualización: 2026-09-15, fin de la sesión 9 (revisión del diff de la 8 + remates).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,31 +12,34 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. La rama de la sesión 7 YA ESTÁ EN `main`.** Se revisó con ojo fresco, se mergeó en
-fast-forward y **se pusheó** (`63f124c..8fe24f1`). No queda ninguna decisión pendiente sobre
-ella. Lo que esa revisión verificó **a mano** está en `detail/S8-revision-del-diff.md` —
-cinco cosas portantes que **no hace falta volver a comprobar**.
+**1. NO QUEDA NINGUNA RAMA SIN MERGEAR.** `fix/review-p0-notas-cuentas` se revisó con ojo
+fresco en la sesión 9 y **se mergeó a `main`** en fast-forward. La de la sesión 7 ya estaba
+dentro desde la 8 (`63f124c..8fe24f1`, pusheada). **Pero `main` está 10 commits POR DELANTE
+de `origin/main`: sin pushear.** Es la única decisión de estado pendiente.
 
-**2. Hay OTRA rama de arreglos sin mergear: `fix/review-p0-notas-cuentas`.** Lleva los 4 P0
-de la sesión 8, con gates verdes (**356 suites, 4064 pruebas**) y **el árbol limpio**:
+**2. La revisión de la sesión 9 encontró DOS defectos reales en los arreglos de la 8**, los
+dos de pérdida de datos, los dos ya remateados antes de mergear (`3e780c6`, `29a9449`), cada
+uno con su prueba vista fallar primero. **Los dos son la misma clase de error, y es la que
+hay que buscar de aquí en adelante: el arreglo cierra exactamente el caso que su prueba cubre
+y deja abierto el vecino.** Detalle completo en `detail/S9-revision-del-diff.md`, que además
+lista **las 5 cosas comprobadas a mano que están BIEN** (no re-verificar) y **las 5 que se
+decidió NO tocar** por caer fuera del alcance de ese diff.
 
-- `R9-46` (`b3d73e1`) — el `getLocal` de notas dejó de fallar abierto.
-- `R9-22` (`a9785be`) — la cola de escrituras pendientes se namespacea por uid.
-- `R9-48` (`67af8c9`) — el log de repasos deja de contaminar la cuenta ajena.
-- `R9-23` (`e75eca3`) — una cuenta nueva ya no hereda en silencio el almacén ajeno.
+Lo mismo vale para `detail/S8-revision-del-diff.md`, con las cinco cosas portantes que esa
+revisión fijó.
 
-Con esos tres últimos **cierra el bloque entero de mezcla entre cuentas**. Victor pidió
-explícitamente **no mergear nada más sin preguntarle**, así que lo primero es que él decida.
-
-**Quedan 10 P0 abiertos, no 14.** Cerrados en código hasta ahora: `R9-22`, `R9-23`, `R9-27`,
+**Quedan 10 P0 abiertos.** Cerrados en código hasta ahora: `R9-22`, `R9-23`, `R9-27`,
 `R9-28`, `R9-44`, `R9-45`, `R9-46`, `R9-47`, `R9-48`, `R9-49`, `R9-50`. Van marcados
-**✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.**
+**✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Hallazgos
+totales: **65** — `R9-65` es nuevo.
 
 **3. Lo que queda del orden de ataque de arreglos:** `R9-33`/`R9-35` (sync que descarta en
 silencio) → `R9-9` (dinero) → `R9-13` **antes de volver a desplegar la web**. Los 4 de campo
-(`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar una sesión.
+(`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar una sesión. Y **`R9-65` se
+arregla con UNA LÍNEA** (la misma cota de cursor de `R9-46`, extendida a los conflictos), es
+bug **preexistente en `main`** y sigue sin decidir.
 
-**4. Deuda conocida de la sesión 8, dicha en voz alta:**
+**4. Deuda conocida de las sesiones 8 y 9, dicha en voz alta:**
 
 - **`R9-28` sigue sin prueba de regresión** (la señal de restauración + la re-hidratación de
   los providers). Es el único de los 11 arreglados que no tiene ninguna.
@@ -66,26 +69,24 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — cerrar la rama y seguir arreglando.**
+**(a) RECOMENDADA — seguir arreglando por donde toca.**
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-notas-cuentas`, con 4 P0
-> arreglados (`R9-46` y los tres de mezcla entre cuentas). Revisá el diff con ojo crítico
-> —toca sync, auth e identidad— decime si ves algo mal, y si está bien mergeala a `main` con
-> los gates en verde.
+> No hay ramas sin mergear, pero `main` tiene commits sin pushear: decime si los pusheo.
 >
-> Después seguí arreglando por donde toca: `R9-33`/`R9-35` (el sync que descarta en silencio)
-> y luego `R9-9` (dinero). Verificá cada hallazgo contra el código antes de tocarlo — los
-> P1/P2 no están re-verificados — y acordate de que una prueba de regresión no vale hasta que
-> la viste fallar sin el arreglo. Va todo en rama con gates verdes; no mergees nada más sin
-> preguntarme.
+> Después seguí arreglando por orden: `R9-33`/`R9-35` (el sync que descarta en silencio) y
+> luego `R9-9` (dinero). Verificá cada hallazgo contra el código antes de tocarlo —los P1/P2
+> no están re-verificados— y acordate de que una prueba de regresión no vale hasta que la
+> viste fallar sin el arreglo, **y de que una prueba de un solo caso no prueba el
+> mecanismo**: preguntate siempre qué vecino del caso probado sigue roto. Va todo en rama con
+> gates verdes; no mergees nada sin preguntarme.
 
-**(b) Solo cerrar la rama**, si querés una sesión corta:
+**(b) Corto: rematar `R9-65` y pushear**, si querés una sesión de media hora:
 
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de la rama
-> `fix/review-p0-notas-cuentas` con ojo crítico, decime si ves algo mal, y si está bien
-> mergeala a `main` con los gates en verde. Nada más por ahora.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá `R9-65` —es una línea, la misma cota de
+> cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista fallar primero, y
+> decime si pusheo `main`.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
 bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
@@ -146,9 +147,9 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 8 ramas locales.** `main` (= `origin/main`, con los arreglos de la sesión 7 ya dentro),
-**`fix/review-p0-notas-cuentas`** (la de la sesión 8, **sin mergear**),
-`fix/review-p0-perdida-datos` (la de la 7, **ya mergeada** — se puede borrar), y las 5 de
+**Hay 8 ramas locales.** `main` (**10 commits por delante de `origin/main`, sin pushear**;
+lleva ya los arreglos de las sesiones 7, 8 y 9), `fix/review-p0-notas-cuentas` y
+`fix/review-p0-perdida-datos` (**las dos ya mergeadas** — se pueden borrar), y las 5 de
 siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
 `chore/worklets-bundle-mode`, `feature/red-letter-web`,
 `research/a4-chico-spanish-availability`. Árbol limpio. Si no coincide, dilo antes de
@@ -171,22 +172,23 @@ la sesión 8 van aparte, fuera de `main`, en **`fix/review-p0-notas-cuentas`**: 
 **Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) → **10** (sesión 8).
 
-| Sesión | Qué se hizo                                                | Commit              |
-| ------ | ---------------------------------------------------------- | ------------------- |
-| 1      | Solo el inventario (charter §5)                            | `18a3ffa`           |
-| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                 | `2f32aa9`           |
-| 2      | Este prompt + correcciones al charter                      | `8b64c11`           |
-| 2      | `R9-7` resuelto: `functions/` documentada                  | `af64ce1`           |
-| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`                | `299a76c`           |
-| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`            | `b5a9afa`           |
-| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas           | `6ac10e3`/`894deb5` |
-| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint      | `f791749`           |
-| 5      | `A4` verificada + campo `R9-40`..`R9-43`                   | `f791749`           |
-| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias  | `f791749`           |
-| 6      | Re-verificados a mano los 6 P0 nuevos                      | `c184a1c`/`9939e76` |
-| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                     | `7f8e666`           |
-| 8      | Revisión del diff de la 7 + merge y push a `main`          | `8fe24f1`           |
-| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas (sin mergear) | `b3d73e1`→`e75eca3` |
+| Sesión | Qué se hizo                                               | Commit              |
+| ------ | --------------------------------------------------------- | ------------------- |
+| 1      | Solo el inventario (charter §5)                           | `18a3ffa`           |
+| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                | `2f32aa9`           |
+| 2      | Este prompt + correcciones al charter                     | `8b64c11`           |
+| 2      | `R9-7` resuelto: `functions/` documentada                 | `af64ce1`           |
+| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`               | `299a76c`           |
+| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`           | `b5a9afa`           |
+| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas          | `6ac10e3`/`894deb5` |
+| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint     | `f791749`           |
+| 5      | `A4` verificada + campo `R9-40`..`R9-43`                  | `f791749`           |
+| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias | `f791749`           |
+| 6      | Re-verificados a mano los 6 P0 nuevos                     | `c184a1c`/`9939e76` |
+| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                    | `7f8e666`           |
+| 8      | Revisión del diff de la 7 + merge y push a `main`         | `8fe24f1`           |
+| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas              | `b3d73e1`→`e75eca3` |
+| 9      | Revisión del diff de la 8: **2 defectos reales** + merge  | `3e780c6`→`d800a24` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
