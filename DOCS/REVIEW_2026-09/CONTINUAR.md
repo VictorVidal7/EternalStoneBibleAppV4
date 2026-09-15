@@ -48,7 +48,7 @@ bug **preexistente en `main`** y sigue sin decidir.
 **4. Deuda conocida de las sesiones 8 y 9, dicha en voz alta:**
 
 - **`R9-28` sigue sin prueba de regresión** (la señal de restauración + la re-hidratación de
-  los providers). Es el único de los 11 arreglados que no tiene ninguna.
+  los providers). Es el único de los 13 arreglados que no tiene ninguna.
 - **La rama del lector de `R9-44`** (recolorear preserva la nota) es **verificación en
   dispositivo, Modo C**. El MECANISMO sí está fijado en `highlightServiceTriState.test.ts`
   (que `addHighlight` con 5 argumentos escribe NULL sobre categoría y nota), pero la rama de
@@ -59,6 +59,13 @@ bug **preexistente en `main`** y sigue sin decidir.
   de «migrar mis datos a esta cuenta», pero no está documentado), y el `return` temprano por
   `!table` en `load()` de la Mesa, que no incrementa `loadRunRef` (peor caso: pantalla
   obsoleta, no pérdida).
+- **La insignia nueva de Ajustes (`droppedWrites`, sesión 9) NO está verificada en
+  dispositivo.** Es la mitad visible de `R9-33`: si no se ve, la pérdida de datos sigue
+  siendo silenciosa en la práctica. Modo C, emulador + APK debug — **nunca el OnePlus de
+  Victor**.
+- **`R9-11` quedó abierto a propósito** al cerrar `R9-34`: es su gemelo en la rama de ÉXITO
+  de `flush()` (allí la entrada se elimina por clave, no se sobrescribe), y es otro arreglo.
+  Barato, y ahora que `R9-34` está hecho, el contexto está fresco.
 - **`R9-59` sigue abierta y ahora toca de cerca:** el arreglo de `R9-48` decide que el log de
   repasos se **traspasa** (se limpia) cuando entra otra cuenta, pero **no** decide que cerrar
   sesión deba borrarlo. Eso sigue siendo de Victor.
@@ -104,14 +111,16 @@ bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO toc
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
 
-**(d) Saldar la deuda de la sesión 8** — corta y concreta. Ojo: la parte de dispositivo es
-Modo C y **necesita emulador + APK debug**, nunca el OnePlus de Victor:
+**(d) Saldar la deuda acumulada (sesiones 7-9)** — corta y concreta. Ojo: la parte de
+dispositivo es Modo C y **necesita emulador + APK debug**, nunca el OnePlus de Victor:
 
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Quiero saldar la deuda que dejó la sesión 8:
-> escribí la prueba de regresión que le falta a `R9-28` (la señal de restauración y la
-> re-hidratación de los providers) — es el único de los 11 arreglos que no tiene ninguna.
-> Acordate de que no vale hasta que la veas fallar sin el arreglo. Si queda margen, seguí con
-> la verificación en dispositivo de `R9-47` y de la rama del lector de `R9-44`.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Quiero saldar la deuda acumulada, en este orden:
+> (1) la prueba de regresión que le falta a `R9-28` (la señal de restauración y la
+> re-hidratación de los providers) — es el único de los 13 arreglos sin ninguna; (2) la
+> verificación en dispositivo de la insignia nueva de Ajustes (`droppedWrites`, la mitad
+> visible de `R9-33`: si no se ve, la pérdida de datos sigue siendo silenciosa); (3) si queda
+> margen, `R9-47` y la rama del lector de `R9-44`, también en dispositivo. Acordate de que
+> una prueba no vale hasta que la veas fallar sin el arreglo.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
