@@ -21,7 +21,7 @@
  */
 
 import type {MemoryCard, ReviewGrade, SrsBox} from './srs';
-import {withoutUndefined} from '../sync/sanitize';
+import {nullifyUndefined} from '../sync/sanitize';
 import type {SyncEntity} from '../sync/types';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -116,7 +116,7 @@ export function buildReviewEvent(input: {
 export function reviewEventToRemote(
   event: ReviewEvent,
 ): SyncEntity<RemoteReviewEvent> {
-  return withoutUndefined({
+  return nullifyUndefined({
     verseKey: event.verseKey,
     bookName: event.bookName,
     grade: event.grade,

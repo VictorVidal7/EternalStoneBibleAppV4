@@ -56,6 +56,13 @@ export default function DataSettings() {
   const [isResetting, setIsResetting] = useState(false);
   const [resetConfirmVisible, setResetConfirmVisible] = useState(false);
   const [importConfirmVisible, setImportConfirmVisible] = useState(false);
+  // R9-28 — the post-import "close and reopen" notice. A dialog, not a toast:
+  // `importBackup` now emits a restore signal that re-hydrates the providers
+  // that would actively overwrite the restored data, but it CANNOT refresh
+  // every screen already mounted (this project has no programmatic app
+  // reload), so the user still has to be told. `importBackup`'s own docstring
+  // has always claimed Settings asks for this; it never actually did.
+  const [restartNoticeVisible, setRestartNoticeVisible] = useState(false);
   const pendingImportUriRef = useRef<string | null>(null);
 
   function handleResetData() {
@@ -146,6 +153,9 @@ export default function DataSettings() {
       } else {
         toast.success(t.settings.importSuccess);
       }
+      // Shown for a partial import too: whatever DID land is subject to the
+      // same stale-screen problem.
+      setRestartNoticeVisible(true);
     } catch (error) {
       logger.error('Backup import failed', error as Error, {
         component: 'DataSettings',
@@ -324,6 +334,15 @@ export default function DataSettings() {
         }}
         destructive
         icon="cloud-download-outline"
+      />
+      <ConfirmDialog
+        visible={restartNoticeVisible}
+        title={t.settings.importRestartTitle}
+        message={t.settings.importRestartMessage}
+        confirmLabel={t.settings.importRestartCta}
+        onConfirm={() => setRestartNoticeVisible(false)}
+        onCancel={() => setRestartNoticeVisible(false)}
+        icon="refresh-outline"
       />
     </View>
   );

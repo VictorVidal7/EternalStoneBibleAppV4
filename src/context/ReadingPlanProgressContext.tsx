@@ -21,6 +21,7 @@ import {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 import {READING_PLANS} from '../constants/reading-plans';
 import {getBookByName} from '../constants/bible';
 import {getRegisteredCustomPlans} from '../lib/reading/customPlans';
@@ -160,30 +161,40 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     readChaptersRef.current = readChapters;
   }, [readChapters]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const [rawProgress, rawRead] = await Promise.all([
-          AsyncStorage.getItem(STORAGE_KEY),
-          AsyncStorage.getItem(READ_CHAPTERS_KEY),
-        ]);
-        if (rawProgress) {
-          const parsed = JSON.parse(rawProgress);
-          setProgress(parsed);
-          progressRef.current = parsed;
-        }
-        if (rawRead) {
-          const parsed = JSON.parse(rawRead);
-          setReadChapters(parsed);
-          readChaptersRef.current = parsed;
-        }
-      } catch {
-        logger.warn('Could not load reading plan progress', {
-          component: 'ReadingPlanProgress',
-        });
+  const hydrateFromStorage = useCallback(async () => {
+    try {
+      const [rawProgress, rawRead] = await Promise.all([
+        AsyncStorage.getItem(STORAGE_KEY),
+        AsyncStorage.getItem(READ_CHAPTERS_KEY),
+      ]);
+      if (rawProgress) {
+        const parsed = JSON.parse(rawProgress);
+        setProgress(parsed);
+        progressRef.current = parsed;
       }
-    })();
+      if (rawRead) {
+        const parsed = JSON.parse(rawRead);
+        setReadChapters(parsed);
+        readChaptersRef.current = parsed;
+      }
+    } catch {
+      logger.warn('Could not load reading plan progress', {
+        component: 'ReadingPlanProgress',
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    void hydrateFromStorage();
+  }, [hydrateFromStorage]);
+
+  // R9-28 — every writer here persists the WHOLE map derived from the
+  // in-memory copy, so after an import the first `markChapterRead` would
+  // write the pre-import map straight back over the restored one.
+  useEffect(
+    () => subscribeBackupRestored(() => void hydrateFromStorage()),
+    [hydrateFromStorage],
+  );
 
   const persist = useCallback(async (next: ProgressMap) => {
     setProgress(next);

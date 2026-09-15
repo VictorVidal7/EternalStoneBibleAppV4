@@ -27,7 +27,7 @@ import {canonicalBookName} from '../constants/bible';
 import {useServices} from './ServicesContext';
 import {
   getSyncEngine,
-  withoutUndefined,
+  nullifyUndefined,
   type SyncAdapter,
   type SyncEntity,
 } from '../lib/sync';
@@ -84,14 +84,17 @@ const FavoritesContext = createContext<FavoritesContextType | undefined>(
 );
 
 /** Build the Firestore payload for a favorite. Strips React-only
- *  fields and ensures `updatedAt` is present. withoutUndefined drops an
- *  absent `note` — Firestore rejects `undefined` field values, so a
- *  note-less favorite failed every push (8 retries → dropped) and NEVER
- *  synced before (live-caught S77). */
+ *  fields and ensures `updatedAt` is present. `nullifyUndefined` turns an
+ *  absent `note` into an explicit `null`: Firestore rejects `undefined`
+ *  field values, so a note-less favorite failed every push (8 retries →
+ *  dropped) and NEVER synced before (live-caught S77) — and sending
+ *  `null` rather than omitting the key is what lets a CLEARED note
+ *  actually overwrite the server copy under `pushOne`'s `{merge: true}`
+ *  (R9-50's root; see sync/sanitize.ts). */
 function favoriteToRemote(
   f: Favorite,
 ): SyncEntity<Omit<Favorite, 'updatedAt'>> {
-  return withoutUndefined({
+  return nullifyUndefined({
     id: f.id,
     verseId: f.verseId,
     book: f.book,

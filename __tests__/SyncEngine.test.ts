@@ -532,14 +532,14 @@ describe('initial bulk push', () => {
   });
 });
 
-describe('engine boundary sanitization (Sprint 78)', () => {
-  it('strips undefined fields before the Firestore set so the write lands', async () => {
+describe('engine boundary sanitization (Sprint 78 + R9-50)', () => {
+  it('nullifies undefined fields before the Firestore set so the write lands', async () => {
     const engine = new SyncEngine();
     const {adapter} = makeAdapter();
     engine.register(adapter);
     await engine.start('uid-clean');
-    // Simulates a payload that skipped its builder's withoutUndefined —
-    // pre-fix this wedged the queue until the entry was DROPPED.
+    // Simulates a payload that skipped its builder's nullifyUndefined —
+    // pre-S78 this wedged the queue until the entry was DROPPED.
     engine.queueWrite('test', 'doc-u', {
       value: 'kept',
       note: undefined,
@@ -550,9 +550,42 @@ describe('engine boundary sanitization (Sprint 78)', () => {
     await engine.__flushForTests();
     expect(mockDocSets).toHaveLength(1);
     const data = mockDocSets[0].data as Record<string, unknown>;
-    expect('note' in data).toBe(false);
-    expect(data.meta).toEqual({ok: true});
+    // R9-50 — the KEY has to survive as an explicit null: `pushOne` writes
+    // with `{merge: true}`, under which an omitted key means "keep whatever
+    // the server has", making an optional field impossible to unset.
+    expect('note' in data).toBe(true);
+    expect(data.note).toBeNull();
+    expect(data.meta).toEqual({label: null, ok: true});
+    expect(Object.values(data).includes(undefined)).toBe(false);
     expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+
+  it('R9-45 — a live write clears a previous tombstone (deleted: false)', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-tombstone');
+
+    // Delete, let it actually reach Firestore, then re-create the SAME id —
+    // highlights key on the verseId, a reusable natural key, so this is the
+    // ordinary "unhighlight, then highlight the verse again later" flow.
+    engine.queueDelete('test', 'doc-reused', {value: 'v1', updatedAt: 100});
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(1);
+    expect(mockDocSets[0].data).toMatchObject({deleted: true});
+
+    engine.queueWrite('test', 'doc-reused', {value: 'v2', updatedAt: 200});
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(2);
+    const resurrected = mockDocSets[1].data as Record<string, unknown>;
+    // Pre-fix the second write omitted `deleted`, and `{merge: true}` left
+    // the doc carrying the new value AND the old tombstone — every other
+    // device read it as deleted, permanently.
+    expect(resurrected.value).toBe('v2');
+    expect(resurrected.deleted).toBe(false);
+    expect(resurrected.deletedAt).toBeNull();
   });
 });
 

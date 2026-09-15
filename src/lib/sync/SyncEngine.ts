@@ -38,7 +38,7 @@ import {
   type QuerySnapshot,
 } from './firestore';
 import {getNetInfo, isStateOnline} from './netinfo';
-import {deepWithoutUndefined} from './sanitize';
+import {deepNullifyUndefined} from './sanitize';
 import type {
   ConflictChoice,
   ConflictRecord,
@@ -383,6 +383,16 @@ export class SyncEngine {
    * No-op when the engine isn't active (anonymous user, or no auth
    * yet). The local change still went through; we just don't bother
    * recording a queue entry that would never have anywhere to land.
+   *
+   * R9-45 — the write CLEARS the tombstone explicitly (`deleted: false`).
+   * Adapters whose doc id is a reusable natural key (highlights use the
+   * `verseId`, memoryCards the `verseKey`) can legitimately see the same id
+   * deleted and then re-created. `queueDelete` sets `deleted: true`, and
+   * because `pushOne` writes with `{merge: true}`, a later write that simply
+   * omitted the flag left the doc carrying the NEW data and the OLD
+   * tombstone — every other device kept reading it as deleted, forever, and
+   * a re-highlight of the same verse never arrived. Nothing in the app ever
+   * wrote `deleted: false`; this is the one place that can.
    */
   queueWrite(collection: string, id: string, data: object): void {
     if (!this.uid) return;
@@ -394,6 +404,8 @@ export class SyncEngine {
         typeof asRecord.updatedAt === 'number'
           ? asRecord.updatedAt
           : Date.now(),
+      deleted: false,
+      deletedAt: null,
     };
     this.upsertQueueEntry({
       collection,
@@ -1079,7 +1091,7 @@ export class SyncEngine {
       await fn()
         .collection(`users/${this.uid}/conflicts`)
         .doc(record.id)
-        .set(deepWithoutUndefined(record));
+        .set(deepNullifyUndefined(record));
     } catch (err) {
       logger.warn('SyncEngine: logResolvedConflict failed', {
         component: 'SyncEngine',
@@ -1182,7 +1194,16 @@ export class SyncEngine {
             id: row.id,
             // Cast: SyncEntity<unknown> is structurally a SyncEntity<object>
             // (every adapter's T is an object in practice).
-            data: row.data as SyncEntity<object>,
+            // `deleted: false` for the same reason `queueWrite` stamps it
+            // (R9-45): `pullAllLocal` only ever returns rows that EXIST
+            // locally, so under `{merge: true}` this is what clears a stale
+            // server tombstone left by an earlier delete of the same
+            // natural-key id.
+            data: {
+              ...(row.data as SyncEntity<object>),
+              deleted: false,
+              deletedAt: null,
+            },
             queuedAt: Date.now(),
             attempts: 0,
           });
@@ -1320,7 +1341,14 @@ export class SyncEngine {
     // (the S77 silent-loss bug). Builders sanitize at the source; this
     // engine-boundary sweep covers what they can't (conflict-resolution
     // merges typed in the UI, future adapters).
-    await ref.set(deepWithoutUndefined(item.data), {merge: true});
+    //
+    // `{merge: true}` is kept deliberately — it protects a field written by a
+    // NEWER app version on another device from being erased by this one. The
+    // price is that an OMITTED key means "keep the server's value", which is
+    // why the sweep above nullifies instead of dropping (R9-44/45/50): every
+    // queued payload is a COMPLETE entity, so an absent optional must travel
+    // as an explicit `null` to actually clear the server copy.
+    await ref.set(deepNullifyUndefined(item.data), {merge: true});
   }
 
   // ---------- private: state plumbing ----------

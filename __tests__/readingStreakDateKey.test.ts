@@ -73,7 +73,12 @@ class FakeDb {
     if (s.startsWith('UPDATE user_stats SET current_streak')) {
       const [current, longest] = params as [number, number];
       this.stats.current_streak = current;
-      this.stats.longest_streak = longest;
+      // Mirrors the real SQL's `longest_streak = MAX(longest_streak, ?)`:
+      // the lifetime record may only ever be raised by the self-heal (R9-49).
+      this.stats.longest_streak = Math.max(
+        Number(this.stats.longest_streak ?? 0),
+        longest,
+      );
       return this.result([]);
     }
     if (s.startsWith('SELECT COUNT(*) AS n FROM')) {

@@ -94,7 +94,8 @@ import {
   parsePrepSeriesMap,
   serializePrepSeriesMap,
 } from '../features/study/prepSeries';
-import {getSyncEngine, withoutUndefined} from '../lib/sync';
+import {getSyncEngine, nullifyUndefined} from '../lib/sync';
+import {emitBackupRestored} from '../lib/backup/restoreSignal';
 import {buildNoteRemotePayload} from '../lib/sync/adapters/notes';
 import {buildHighlightRemotePayload} from '../lib/sync/adapters/highlights';
 import type {HighlightColor, HighlightCategory} from '../lib/highlights';
@@ -204,6 +205,21 @@ export interface BackupPayload {
     notes: PrepNotesMap | null;
     series: PrepSeriesMap | null;
   };
+  /**
+   * Which sections this file does NOT actually contain because their read
+   * threw at export time (R9-27). Additive within format v2 — an older build
+   * simply ignores it, and a v1/v2 file written before this existed has no
+   * `meta`, which reads as "nothing degraded", exactly as before.
+   *
+   * `importBackup` treats a listed section as UNKNOWN rather than empty: it
+   * skips that section's destructive DELETE-then-insert and reports it in
+   * `failedSections`. Without this the restore could not tell "the user
+   * genuinely has zero of these" from "the export never managed to read
+   * them", and it resolved that ambiguity by deleting.
+   */
+  meta?: {
+    degradedSections?: string[];
+  };
 }
 
 /**
@@ -215,7 +231,13 @@ export interface BackupPayload {
  * actually missing real data, normally only discovered much later when the
  * user tries to restore from it. `degradedSections` closes that visibility
  * gap: it lists every section whose read actually threw (never a section
- * that's just legitimately empty — see the doc on `readJSON`). */
+ * that's just legitimately empty — see the doc on `readJSON`).
+ *
+ * R9-27 — the list is ALSO written into the payload
+ * (`BackupPayload.meta.degradedSections`). Returning it only as a sibling of
+ * the payload meant it died in the export toast: the file itself stayed
+ * indistinguishable from a complete one, and the import months later resolved
+ * that ambiguity by deleting the device's real data. */
 export interface BuildBackupResult {
   payload: BackupPayload;
   degradedSections: string[];
@@ -225,8 +247,10 @@ export interface BuildBackupResult {
 export interface ExportResult {
   /** Absolute `file://` URI of the written backup JSON. */
   uri: string;
-  /** See `BuildBackupResult.degradedSections` — forwarded unchanged. Empty
-   *  when every section read cleanly. */
+  /** See `BuildBackupResult.degradedSections` — forwarded unchanged, and
+   *  ALSO written into the file itself as `payload.meta.degradedSections`
+   *  (R9-27) so the eventual import can honor it. Empty when every section
+   *  read cleanly. */
   degradedSections: string[];
 }
 
@@ -238,8 +262,13 @@ export interface ImportResult {
    *  AsyncStorage-backed sections it means the `multiSet` call that wrote
    *  them actually succeeded (see `asyncStorageWriteFailed`). */
   restoredSections: string[];
-  /** Sections present in the backup with real (non-empty) source data where
-   *  NOTHING ended up restored. Two distinct causes land here:
+  /** Sections the restore deliberately did not write. Three distinct causes
+   *  land here:
+   *   0. (R9-27) The EXPORT flagged the section as degraded — its read threw
+   *      on the source device, so the file carries a default/empty value that
+   *      was never really read. Treated as UNKNOWN rather than empty: the
+   *      destructive write is skipped and this device keeps what it had.
+   *  The other two are about sections that DO carry real source data:
    *   1. Every row/entry in the section failed per-row validation (a
    *      structurally-valid-but-garbled backup) — the destructive
    *      DELETE-then-insert for that section was skipped entirely and the
@@ -466,6 +495,14 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     readRaw(KEYS.prepSeries, 'prepSeries', degradedSections),
   ]);
 
+  // R9-49 — `{strict: true}` on the four reading-history ledgers. Those
+  // getters swallow their own exception and return `[]` for their UI callers
+  // (a fresh install has no table yet and "Tu camino" must not crash over
+  // it), which made `degradedSections` PHYSICALLY UNREACHABLE for exactly the
+  // four sections holding the whole reading history — `safeQuery` can only
+  // mark a section from its own `catch`. Strict makes the throw reach us, so
+  // a transient SQLite error is recorded instead of being exported as a
+  // credible "this user has never read anything".
   const [
     rawStats,
     achievementsAll,
@@ -488,25 +525,25 @@ export async function buildBackup(): Promise<BuildBackupResult> {
       degradedSections,
     ),
     safeQuery(
-      () => achievementService.getReadingLog(),
+      () => achievementService.getReadingLog({strict: true}),
       [],
       'achievements.streakLog',
       degradedSections,
     ),
     safeQuery(
-      () => achievementService.getCompletedBooks(),
+      () => achievementService.getCompletedBooks({strict: true}),
       [],
       'achievements.completedBooks',
       degradedSections,
     ),
     safeQuery(
-      () => achievementService.getBookReadingLog(),
+      () => achievementService.getBookReadingLog({strict: true}),
       [],
       'achievements.bookReadingLog',
       degradedSections,
     ),
     safeQuery(
-      () => achievementService.getChaptersReadLog(),
+      () => achievementService.getChaptersReadLog({strict: true}),
       [],
       'achievements.chaptersReadLog',
       degradedSections,
@@ -566,7 +603,16 @@ export async function buildBackup(): Promise<BuildBackupResult> {
 
   // A handful of sections (appTheme, readerPreferences) are read from more
   // than one AsyncStorage key and would otherwise appear twice.
-  return {payload, degradedSections: Array.from(new Set(degradedSections))};
+  const degraded = Array.from(new Set(degradedSections));
+  // R9-27 — the marker has to travel WITH the file. It used to be returned
+  // only as a sibling of the payload, so it reached a warning toast and died
+  // there: months later `importBackup` saw `favorites: []` and could not tell
+  // a failed read from a user with no favorites, so it ran the destructive
+  // DELETE and reported success. `meta` is additive within format v2 on
+  // purpose — an older build ignores an unknown key, so a file written here
+  // still imports there (bumping formatVersion would have made it refuse).
+  payload.meta = {degradedSections: degraded};
+  return {payload, degradedSections: degraded};
 }
 
 /**
@@ -973,7 +1019,7 @@ function pushImportedEntitiesToSync(data: {
     engine.queueWrite(
       'favorites',
       f.id,
-      withoutUndefined({
+      nullifyUndefined({
         id: f.id,
         verseId: f.verseId,
         book: f.book,
@@ -1014,7 +1060,7 @@ function pushImportedEntitiesToSync(data: {
   }
 
   for (const c of data.memoryDeck) {
-    engine.queueWrite('memoryCards', c.verseKey, withoutUndefined({...c}));
+    engine.queueWrite('memoryCards', c.verseKey, nullifyUndefined({...c}));
   }
 
   for (const e of data.reviewEvents) {
@@ -1070,13 +1116,22 @@ function pushImportedEntitiesToSync(data: {
  *     re-writing the PREVIOUS state, which importBackup never captured, and
  *     is out of scope for this fix).
  *
- * Does NOT reload most in-memory app state — see Settings' import handler,
- * which asks the user to close and reopen the app (the same fallback this
- * project's own `performResetData` pattern documents as acceptable when a
- * safe universal hot-reload isn't reasonably achievable for every affected
- * context — and here there are over a dozen: favorites, notes, highlights,
- * two reading-progress stores, reader preferences, app theme, memory deck,
- * review events, prep notes, prep series).
+ * Does NOT reload ALL in-memory app state, and there is no programmatic app
+ * reload available in this project. Two things cover the gap, and the split
+ * between them is deliberate (R9-28):
+ *   - `emitBackupRestored()` fires once both storage engines are done, and
+ *     the providers that PERSIST ON EVERY CHANGE re-read their store
+ *     (memory deck, both reading-progress stores, reader preferences).
+ *     Those are not a cosmetic staleness problem: holding pre-import state
+ *     in `useState` and writing the whole blob back on the next interaction
+ *     actively DESTROYS what was just restored, silently, right after the
+ *     success toast. This is the part that had to be fixed in code.
+ *   - Settings then shows a blocking "close and reopen the app" notice for
+ *     everything else (already-mounted screens, app theme, favorites lists)
+ *     — the same fallback this project's own `performResetData` pattern
+ *     documents as acceptable when a safe universal hot-reload isn't
+ *     reasonably achievable. This docstring claimed that notice existed long
+ *     before it did; it exists now (`DataSettings.performImport`).
  *
  * `achievements` is the one exception: `resolveAchievementService()` reaches
  * the SAME `AchievementService` instance the Achievements tab reads from
@@ -1096,6 +1151,23 @@ export async function importBackup(
 
   const restoredSections: string[] = [];
   const failedSections: string[] = [];
+
+  // ---- R9-27/R9-49 — sections the EXPORT could not read. A listed section
+  // is UNKNOWN, not empty: its destructive DELETE-then-insert is skipped and
+  // it is reported as failed, because "the user has zero of these" and "the
+  // export's read threw" produce a byte-identical empty section and only one
+  // of them may legitimately wipe what this device already holds. A file
+  // written before `meta` existed has none, which reads as "nothing
+  // degraded" — identical to the previous behavior. ----
+  const degradedIn = new Set<string>(
+    isPlainObject(payload.meta) && Array.isArray(payload.meta.degradedSections)
+      ? payload.meta.degradedSections.filter(
+          (x): x is string => typeof x === 'string',
+        )
+      : [],
+  );
+  const wasDegraded = (label: string): boolean => degradedIn.has(label);
+
   const bible: Record<string, unknown> = isPlainObject(payload.bible)
     ? payload.bible
     : {};
@@ -1111,30 +1183,32 @@ export async function importBackup(
   // the destructive write and get reported via `failedSections`. ----
   const favoritesPresent = Array.isArray(bible.favorites);
   const favoritesIn = coerceArray(bible.favorites, coerceFavorite);
-  const favoritesAllFailed = allRowsFailedValidation(
-    sourceArrayLength(bible.favorites),
-    favoritesIn.length,
-  );
+  const favoritesAllFailed =
+    allRowsFailedValidation(
+      sourceArrayLength(bible.favorites),
+      favoritesIn.length,
+    ) || wasDegraded('favorites');
 
   const notesPresent = Array.isArray(bible.notes);
   const notesIn = coerceArray(bible.notes, coerceNote);
-  const notesAllFailed = allRowsFailedValidation(
-    sourceArrayLength(bible.notes),
-    notesIn.length,
-  );
+  const notesAllFailed =
+    allRowsFailedValidation(sourceArrayLength(bible.notes), notesIn.length) ||
+    wasDegraded('notes');
 
   const highlightsPresent = Array.isArray(bible.highlights);
   const highlightsIn = coerceArray(bible.highlights, coerceHighlightRow);
-  const highlightsAllFailed = allRowsFailedValidation(
-    sourceArrayLength(bible.highlights),
-    highlightsIn.length,
-  );
+  const highlightsAllFailed =
+    allRowsFailedValidation(
+      sourceArrayLength(bible.highlights),
+      highlightsIn.length,
+    ) || wasDegraded('highlights');
 
   // v1 compat: the SQLite pointer was called `readingProgress` back then.
   const legacyPointer = getLegacyField(bible, 'readingProgress');
-  const lastReadPositionIn = coerceLastReadPosition(
-    bible.lastReadPosition ?? legacyPointer,
-  );
+  const lastReadPositionIn = wasDegraded('lastReadPosition')
+    ? null
+    : coerceLastReadPosition(bible.lastReadPosition ?? legacyPointer);
+  if (wasDegraded('lastReadPosition')) failedSections.push('lastReadPosition');
 
   const chapterProgressMapPresent = bible.chapterProgressMap !== undefined;
   const chapterProgressMapIn = chapterProgressMapPresent
@@ -1179,20 +1253,22 @@ export async function importBackup(
     : {};
   const memoryDeckPresent = memorySection.memoryDeck !== undefined;
   const memoryDeckIn = coerceMemoryDeck(memorySection.memoryDeck);
-  const memoryDeckAllFailed = allRowsFailedValidation(
-    sourceObjectLength(memorySection.memoryDeck),
-    Object.keys(memoryDeckIn).length,
-  );
+  const memoryDeckAllFailed =
+    allRowsFailedValidation(
+      sourceObjectLength(memorySection.memoryDeck),
+      Object.keys(memoryDeckIn).length,
+    ) || wasDegraded('memoryDeck');
 
   const reviewEventsPresent = Array.isArray(memorySection.reviewEvents);
   const reviewEventsIn = coerceArray(
     memorySection.reviewEvents,
     coerceReviewEvent,
   );
-  const reviewEventsAllFailed = allRowsFailedValidation(
-    sourceArrayLength(memorySection.reviewEvents),
-    reviewEventsIn.length,
-  );
+  const reviewEventsAllFailed =
+    allRowsFailedValidation(
+      sourceArrayLength(memorySection.reviewEvents),
+      reviewEventsIn.length,
+    ) || wasDegraded('reviewEvents');
 
   const prepSection: Record<string, unknown> = isPlainObject(payload.prep)
     ? payload.prep
@@ -1216,61 +1292,112 @@ export async function importBackup(
   // `multiSet` call below is known to have succeeded or failed. ----
   const pairs: [string, string][] = [];
   const pendingAsyncStorageSections: string[] = [];
+  /**
+   * Queue one AsyncStorage key for the single `multiSet` below, unless the
+   * EXPORT flagged its section as degraded (R9-27) — in which case the file
+   * holds a default/empty value that was never actually read off the source
+   * device, and writing it would overwrite this device's real data with a
+   * placeholder. `exportLabel` is the label `buildBackup` uses (it doesn't
+   * always match the import-side section name); `section` is what the user-
+   * facing result reports. `section: null` marks a key with no section of
+   * its own (sideBySide rides along with the reader preferences).
+   */
+  const queuePair = (
+    key: string,
+    value: string,
+    exportLabel: string,
+    section: string | null,
+  ): void => {
+    if (wasDegraded(exportLabel)) {
+      if (section) failedSections.push(section);
+      return;
+    }
+    pairs.push([key, value]);
+    if (section) pendingAsyncStorageSections.push(section);
+  };
+
   if (readingPlanProgressPresent) {
-    pairs.push([
+    queuePair(
       KEYS.readingPlanProgress,
       JSON.stringify(user.readingPlanProgress),
-    ]);
-    pendingAsyncStorageSections.push('readingPlanProgress');
+      'readingPlanProgress',
+      'readingPlanProgress',
+    );
   }
   if (readingPlanReadChaptersPresent) {
-    pairs.push([
+    queuePair(
       KEYS.readingPlanReadChapters,
       JSON.stringify(user.readingPlanReadChapters),
-    ]);
-    pendingAsyncStorageSections.push('readingPlanReadChapters');
+      'readingPlanReadChapters',
+      'readingPlanReadChapters',
+    );
   }
   if (searchHistoryPresent) {
-    pairs.push([KEYS.searchHistory, JSON.stringify(user.searchHistory)]);
-    pendingAsyncStorageSections.push('searchHistory');
+    queuePair(
+      KEYS.searchHistory,
+      JSON.stringify(user.searchHistory),
+      'searchHistory',
+      'searchHistory',
+    );
   }
   if (sideBySideIn !== null) {
-    pairs.push([KEYS.sideBySide, sideBySideIn ? '1' : '0']);
+    // `buildBackup` labels the sideBySide key 'readerPreferences'.
+    queuePair(
+      KEYS.sideBySide,
+      sideBySideIn ? '1' : '0',
+      'readerPreferences',
+      null,
+    );
   }
   if (readerPreferencesFullPresent) {
-    pairs.push([
+    queuePair(
       KEYS.readerPreferences,
       JSON.stringify(user.readerPreferencesFull),
-    ]);
-    pendingAsyncStorageSections.push('readerPreferences');
+      'readerPreferencesFull',
+      'readerPreferences',
+    );
   }
   if (appThemeModeIn) {
-    pairs.push([KEYS.appThemeMode, appThemeModeIn]);
-    pendingAsyncStorageSections.push('appThemeMode');
+    queuePair(KEYS.appThemeMode, appThemeModeIn, 'appTheme', 'appThemeMode');
   }
   if (appColorThemeIn) {
-    pairs.push([KEYS.appColorTheme, appColorThemeIn]);
-    pendingAsyncStorageSections.push('appColorTheme');
+    queuePair(KEYS.appColorTheme, appColorThemeIn, 'appTheme', 'appColorTheme');
   }
   if (chapterProgressMapPresent) {
-    pairs.push([KEYS.readingProgress, JSON.stringify(chapterProgressMapIn)]);
-    pendingAsyncStorageSections.push('chapterProgressMap');
+    queuePair(
+      KEYS.readingProgress,
+      JSON.stringify(chapterProgressMapIn),
+      'chapterProgressMap',
+      'chapterProgressMap',
+    );
   }
   if (memoryDeckPresent) {
     if (memoryDeckAllFailed) {
       failedSections.push('memoryDeck');
     } else {
-      pairs.push([KEYS.memoryDeck, JSON.stringify(memoryDeckIn)]);
-      pendingAsyncStorageSections.push('memoryDeck');
+      queuePair(
+        KEYS.memoryDeck,
+        JSON.stringify(memoryDeckIn),
+        'memoryDeck',
+        'memoryDeck',
+      );
     }
   }
   if (prepNotesPresent && prepNotesIn) {
-    pairs.push([KEYS.prepNotes, serializePrepNotesMap(prepNotesIn)]);
-    pendingAsyncStorageSections.push('prepNotes');
+    queuePair(
+      KEYS.prepNotes,
+      serializePrepNotesMap(prepNotesIn),
+      'prepNotes',
+      'prepNotes',
+    );
   }
   if (prepSeriesPresent && prepSeriesIn) {
-    pairs.push([KEYS.prepSeries, serializePrepSeriesMap(prepSeriesIn)]);
-    pendingAsyncStorageSections.push('prepSeries');
+    queuePair(
+      KEYS.prepSeries,
+      serializePrepSeriesMap(prepSeriesIn),
+      'prepSeries',
+      'prepSeries',
+    );
   }
 
   // ---- SQLite portion: ONE transaction, all-or-nothing ----
@@ -1446,9 +1573,35 @@ export async function importBackup(
             chaptersReadLogIn.length,
           ),
         },
+        // R9-49 — the other half of the same protection, for the channel the
+        // per-row check structurally cannot see: these four ledgers hold the
+        // ENTIRE reading history and have no cloud copy, so a section the
+        // export never managed to read must not be allowed to look like a
+        // user who has never read a verse.
+        degraded: {
+          stats: wasDegraded('achievements.stats'),
+          achievements: wasDegraded('achievements.list'),
+          streakLog: wasDegraded('achievements.streakLog'),
+          completedBooks: wasDegraded('achievements.completedBooks'),
+          bookReadingLog: wasDegraded('achievements.bookReadingLog'),
+          chaptersReadLog: wasDegraded('achievements.chaptersReadLog'),
+        },
       };
       await achievementService.restoreBackup(data);
-      restoredSections.push('achievements');
+      const achievementsDegraded = [
+        'achievements.stats',
+        'achievements.list',
+        'achievements.streakLog',
+        'achievements.completedBooks',
+        'achievements.bookReadingLog',
+        'achievements.chaptersReadLog',
+      ].filter(wasDegraded);
+      if (achievementsDegraded.length > 0) {
+        failedSections.push(...achievementsDegraded);
+      }
+      if (achievementsDegraded.length < 6) {
+        restoredSections.push('achievements');
+      }
     }
   });
 
@@ -1493,6 +1646,17 @@ export async function importBackup(
     memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
     reviewEvents: reviewEventsIn,
   });
+
+  // ---- R9-28 — tell the providers that hydrated from these same stores at
+  // mount that what they hold is now stale. Emitted LAST, once both storage
+  // engines are done, so nobody re-reads a half-restored state. Without it
+  // the providers that persist on every change (memory deck, both reading-
+  // progress stores, reader preferences) write their PRE-import copy straight
+  // back over the restored data at the first interaction — no toast, no
+  // error, no log, right after telling the user the import succeeded. It does
+  // NOT cover everything (there is no programmatic app reload available in
+  // this project), which is why Settings still asks for a restart. ----
+  emitBackupRestored();
 
   return {
     formatVersion: payload.formatVersion,

@@ -22,6 +22,27 @@ import {
 import {localDayKey} from '../utils/dateKey';
 import {logger} from '../utils/logger';
 
+/**
+ * Options for the four ledger reads that back the reading history
+ * (`getReadingLog`, `getCompletedBooks`, `getBookReadingLog`,
+ * `getChaptersReadLog`).
+ *
+ * R9-49 — those four swallow their own exception and return `[]`, which is
+ * exactly right for the UI callers they were written for: a fresh install
+ * genuinely has no table yet, and "Tu camino" must not crash over it. It is
+ * exactly WRONG for `BackupService.buildBackup`, whose whole
+ * `degradedSections` mechanism depends on a failing read actually throwing
+ * so the section can be marked. Swallowing made the flag physically
+ * unreachable for the four sections holding the entire reading history: a
+ * transient SQLite error produced a backup that looked complete, and
+ * importing it ran `DELETE FROM reading_streak_log` with zero rows to
+ * re-insert. `strict: true` is how the backup path asks for the throw.
+ */
+export interface ReadLogOptions {
+  /** Rethrow instead of degrading to `[]`. Used by the backup export. */
+  strict?: boolean;
+}
+
 export class AchievementService {
   private db: BibleDatabase;
   private stats: UserStats | null = null;
@@ -528,8 +549,15 @@ export class AchievementService {
     }
 
     const {currentStreak, longestStreak} = computeStreaks(dates, anchor);
+    // `longest_streak` is a lifetime RECORD, so the self-heal may only ever
+    // raise it — hence `MAX`, not a plain assignment (R9-49). `current_streak`
+    // still recomputes freely in both directions; dropping to 0 after a missed
+    // day is the whole point of running this on every launch. Without the MAX,
+    // a restore that put a real record back into `user_stats` but could not
+    // repopulate `reading_streak_log` (an empty or withheld log section) had
+    // that record silently overwritten with 0 on the very next boot.
     await this.db.executeSql(
-      'UPDATE user_stats SET current_streak = ?, longest_streak = ? WHERE id = 1',
+      'UPDATE user_stats SET current_streak = ?, longest_streak = MAX(longest_streak, ?) WHERE id = 1',
       [currentStreak, longestStreak],
     );
     // Invalidate the cache so the next read reflects the new streak.
@@ -835,12 +863,13 @@ export class AchievementService {
    * Full per-day reading log, oldest first. `getReadingStreak` caps at the
    * most recent 30 days for the streak widget; the "Tu camino" journey recap
    * (Sprint 57) needs the entire lifetime series to derive active days and
-   * the busiest day, so this read is uncapped. Read-only; never throws (a
-   * missing table on a fresh install yields an empty log).
+   * the busiest day, so this read is uncapped. Read-only; by default never
+   * throws (a missing table on a fresh install yields an empty log) —
+   * see [[ReadLogOptions]] for why the backup path opts out of that.
    */
-  async getReadingLog(): Promise<
-    {date: string; versesRead: number; timeSpent: number}[]
-  > {
+  async getReadingLog(
+    options?: ReadLogOptions,
+  ): Promise<{date: string; versesRead: number; timeSpent: number}[]> {
     try {
       const result = await this.db.executeSql(
         'SELECT date, verses_read, time_spent FROM reading_streak_log ORDER BY date ASC',
@@ -852,7 +881,8 @@ export class AchievementService {
           timeSpent: row.time_spent ?? 0,
         }),
       );
-    } catch {
+    } catch (error) {
+      if (options?.strict) throw error;
       return [];
     }
   }
@@ -860,12 +890,12 @@ export class AchievementService {
   /**
    * Reads the completed books WITH their completion stamps (`completed_books`
    * has carried `completed_at` since its creation — the timeline, Sprint 80,
-   * is the first reader). Read-only; never throws (a fresh install yields an
-   * empty list).
+   * is the first reader). Read-only; by default never throws (a fresh install
+   * yields an empty list) — see [[ReadLogOptions]].
    */
-  async getCompletedBooks(): Promise<
-    {bookName: string; completedAt: number}[]
-  > {
+  async getCompletedBooks(
+    options?: ReadLogOptions,
+  ): Promise<{bookName: string; completedAt: number}[]> {
     try {
       const result = await this.db.executeSql(
         'SELECT book_name, completed_at FROM completed_books ORDER BY completed_at ASC',
@@ -876,7 +906,8 @@ export class AchievementService {
           completedAt: row.completed_at ?? 0,
         }),
       );
-    } catch {
+    } catch (error) {
+      if (options?.strict) throw error;
       return [];
     }
   }
@@ -885,11 +916,14 @@ export class AchievementService {
    * Reads the REAL per-book reading aggregates (`book_reading_log`), one row per
    * book the user has read with verses + accumulated seconds + last-read time.
    * Powers the "most-read book" surfaces (Mi lectura / Tu camino) via the pure
-   * [[rankBookReading]] / [[topBookReading]]. Read-only; never throws (a missing
-   * table on an install that predates Sprint 65 yields an empty log until the
-   * next read creates it). Sprint 65.
+   * [[rankBookReading]] / [[topBookReading]]. Read-only; by default never
+   * throws (a missing table on an install that predates Sprint 65 yields an
+   * empty log until the next read creates it) — see [[ReadLogOptions]].
+   * Sprint 65.
    */
-  async getBookReadingLog(): Promise<BookReadingEntry[]> {
+  async getBookReadingLog(
+    options?: ReadLogOptions,
+  ): Promise<BookReadingEntry[]> {
     try {
       const result = await this.db.executeSql(
         'SELECT book_name, verses_read, time_spent, last_read_at FROM book_reading_log',
@@ -909,23 +943,25 @@ export class AchievementService {
           }),
         ),
       );
-    } catch {
+    } catch (error) {
+      if (options?.strict) throw error;
       return [];
     }
   }
 
   /**
    * Reads the `chapters_read_log` ledger — every distinct (book, chapter)
-   * ever credited by the reader's 5s dwell timer. Read-only; never throws (a
-   * missing table yields an empty log). Backup-only reader: `total_chapters_read`
+   * ever credited by the reader's 5s dwell timer. Read-only; by default never
+   * throws (a missing table yields an empty log) — see [[ReadLogOptions]].
+   * Backup-only reader: `total_chapters_read`
    * is normally derived FROM this table (see `trackChapterCompleted`), so a
    * backup must carry the ledger itself, not just the derived count — restoring
    * only the count would get silently overwritten back down on the next chapter
    * read (see `restoreBackup`).
    */
-  async getChaptersReadLog(): Promise<
-    Array<{bookName: string; chapter: number; firstReadAt: number}>
-  > {
+  async getChaptersReadLog(
+    options?: ReadLogOptions,
+  ): Promise<Array<{bookName: string; chapter: number; firstReadAt: number}>> {
     try {
       const result = await this.db.executeSql(
         'SELECT book_name, chapter, first_read_at FROM chapters_read_log',
@@ -941,7 +977,8 @@ export class AchievementService {
           firstReadAt: row.first_read_at ?? 0,
         }),
       );
-    } catch {
+    } catch (error) {
+      if (options?.strict) throw error;
       return [];
     }
   }
@@ -996,12 +1033,12 @@ export class AchievementService {
    *
    * The 4 log-shaped sections (streakLog/completedBooks/bookReadingLog/
    * chaptersReadLog) each go through the same DELETE-then-insert REPLACE
-   * pattern — see `data.allFailed` on `AchievementBackupData` for how a
-   * corrupted-but-structurally-valid backup (real source rows that all
-   * failed per-row coercion upstream in `BackupService`) is prevented from
-   * silently wiping a section down to zero rows: the destructive DELETE is
-   * skipped entirely for a section flagged there, leaving this device's
-   * existing local data untouched instead.
+   * pattern, and either of TWO flags withholds that destructive rewrite:
+   * `data.allFailed` (real source rows that all failed per-row coercion
+   * upstream in `BackupService` — a corrupted-but-structurally-valid file)
+   * and `data.degraded` (the EXPORT's own read threw, so the file carries no
+   * rows for that section at all). Both leave this device's existing local
+   * data untouched instead of wiping it down to zero rows.
    *
    * Invalidates the in-memory stats cache so the next `getUserStats()` call
    * reflects the restore instead of a stale pre-restore snapshot.
@@ -1009,47 +1046,82 @@ export class AchievementService {
   async restoreBackup(data: AchievementBackupData): Promise<void> {
     const knownIds = new Set(ACHIEVEMENT_DEFINITIONS.map(a => a.id));
 
-    await this.db.executeSql(
-      `UPDATE user_stats SET
-         total_verses_read = ?, total_chapters_read = ?, total_books_completed = ?,
-         total_reading_time = ?, current_streak = ?, longest_streak = ?, last_read_date = ?,
-         total_highlights = ?, total_notes = ?, total_bookmarks = ?, total_searches = ?,
-         total_shares = ?, level = ?, total_points = ?, updated_at = ?
-       WHERE id = 1`,
-      [
-        data.stats.totalVersesRead,
-        data.stats.totalChaptersRead,
-        data.stats.totalBooksCompleted,
-        data.stats.totalReadingTime,
-        data.stats.currentStreak,
-        data.stats.longestStreak,
-        data.stats.lastReadDate,
-        data.stats.totalHighlights,
-        data.stats.totalNotes,
-        data.stats.totalBookmarks,
-        data.stats.totalSearches,
-        data.stats.totalShares,
-        data.stats.level,
-        data.stats.totalPoints,
-        Date.now(),
-      ],
-    );
+    // Two independent reasons to withhold a section's destructive rewrite:
+    // every row failed per-row coercion HERE (`allFailed`), or the section
+    // never made it into the file in the first place because the EXPORT's
+    // read threw (`degraded` — see `BackupPayload.meta.degradedSections`).
+    // Both collapse to an empty array by the time this method sees them, and
+    // both must leave the device's own data alone; they're reported apart
+    // only so the log says which one happened.
+    const withheld = (
+      key: keyof NonNullable<AchievementBackupData['allFailed']>,
+    ): 'allFailed' | 'degraded' | null => {
+      if (data.allFailed?.[key]) return 'allFailed';
+      if (data.degraded?.[key]) return 'degraded';
+      return null;
+    };
+    const warnWithheld = (section: string, why: 'allFailed' | 'degraded') => {
+      logger.warn(
+        why === 'allFailed'
+          ? `AchievementService.restoreBackup: ${section} had real source rows ` +
+              'that all failed validation — skipping the destructive delete to ' +
+              'avoid wiping existing local data.'
+          : `AchievementService.restoreBackup: ${section} was marked degraded ` +
+              'by the export (its read threw, so the file carries no rows for ' +
+              'it) — skipping the destructive delete to avoid wiping existing ' +
+              'local data with a section the backup never actually captured.',
+        {component: 'AchievementService', action: 'restoreBackup'},
+      );
+    };
 
-    for (const a of data.achievements) {
-      if (!knownIds.has(a.id)) continue;
+    if (data.degraded?.stats) {
+      // The export could not read `user_stats`, so the file carries the
+      // all-zero EMPTY_RAW_STATS placeholder. Writing it would zero the
+      // user's level, points and streak record. Leave the row alone.
+      warnWithheld('stats', 'degraded');
+    } else {
       await this.db.executeSql(
-        'UPDATE user_achievements SET is_unlocked = ?, current_progress = ?, unlocked_at = ? WHERE id = ?',
-        [a.isUnlocked ? 1 : 0, a.currentProgress, a.unlockedAt ?? null, a.id],
+        `UPDATE user_stats SET
+           total_verses_read = ?, total_chapters_read = ?, total_books_completed = ?,
+           total_reading_time = ?, current_streak = ?, longest_streak = ?, last_read_date = ?,
+           total_highlights = ?, total_notes = ?, total_bookmarks = ?, total_searches = ?,
+           total_shares = ?, level = ?, total_points = ?, updated_at = ?
+         WHERE id = 1`,
+        [
+          data.stats.totalVersesRead,
+          data.stats.totalChaptersRead,
+          data.stats.totalBooksCompleted,
+          data.stats.totalReadingTime,
+          data.stats.currentStreak,
+          data.stats.longestStreak,
+          data.stats.lastReadDate,
+          data.stats.totalHighlights,
+          data.stats.totalNotes,
+          data.stats.totalBookmarks,
+          data.stats.totalSearches,
+          data.stats.totalShares,
+          data.stats.level,
+          data.stats.totalPoints,
+          Date.now(),
+        ],
       );
     }
 
-    if (data.allFailed?.streakLog) {
-      logger.warn(
-        'AchievementService.restoreBackup: streakLog had real source rows ' +
-          'that all failed validation — skipping the destructive delete to ' +
-          'avoid wiping existing local reading-streak history.',
-        {component: 'AchievementService', action: 'restoreBackup'},
-      );
+    if (data.degraded?.achievements) {
+      warnWithheld('achievements', 'degraded');
+    } else {
+      for (const a of data.achievements) {
+        if (!knownIds.has(a.id)) continue;
+        await this.db.executeSql(
+          'UPDATE user_achievements SET is_unlocked = ?, current_progress = ?, unlocked_at = ? WHERE id = ?',
+          [a.isUnlocked ? 1 : 0, a.currentProgress, a.unlockedAt ?? null, a.id],
+        );
+      }
+    }
+
+    const withheldStreakLog = withheld('streakLog');
+    if (withheldStreakLog) {
+      warnWithheld('streakLog', withheldStreakLog);
     } else {
       await this.db.executeSql('DELETE FROM reading_streak_log');
       for (const entry of data.streakLog) {
@@ -1060,13 +1132,9 @@ export class AchievementService {
       }
     }
 
-    if (data.allFailed?.completedBooks) {
-      logger.warn(
-        'AchievementService.restoreBackup: completedBooks had real source ' +
-          'rows that all failed validation — skipping the destructive ' +
-          'delete to avoid wiping existing local completed-books data.',
-        {component: 'AchievementService', action: 'restoreBackup'},
-      );
+    const withheldCompletedBooks = withheld('completedBooks');
+    if (withheldCompletedBooks) {
+      warnWithheld('completedBooks', withheldCompletedBooks);
     } else {
       await this.db.executeSql('DELETE FROM completed_books');
       for (const entry of data.completedBooks) {
@@ -1077,13 +1145,9 @@ export class AchievementService {
       }
     }
 
-    if (data.allFailed?.bookReadingLog) {
-      logger.warn(
-        'AchievementService.restoreBackup: bookReadingLog had real source ' +
-          'rows that all failed validation — skipping the destructive ' +
-          'delete to avoid wiping existing local book-reading-log data.',
-        {component: 'AchievementService', action: 'restoreBackup'},
-      );
+    const withheldBookReadingLog = withheld('bookReadingLog');
+    if (withheldBookReadingLog) {
+      warnWithheld('bookReadingLog', withheldBookReadingLog);
     } else {
       await this.db.executeSql('DELETE FROM book_reading_log');
       for (const entry of data.bookReadingLog) {
@@ -1094,13 +1158,9 @@ export class AchievementService {
       }
     }
 
-    if (data.allFailed?.chaptersReadLog) {
-      logger.warn(
-        'AchievementService.restoreBackup: chaptersReadLog had real source ' +
-          'rows that all failed validation — skipping the destructive ' +
-          'delete to avoid wiping existing local chapters-read-log data.',
-        {component: 'AchievementService', action: 'restoreBackup'},
-      );
+    const withheldChaptersReadLog = withheld('chaptersReadLog');
+    if (withheldChaptersReadLog) {
+      warnWithheld('chaptersReadLog', withheldChaptersReadLog);
     } else {
       await this.db.executeSql('DELETE FROM chapters_read_log');
       for (const entry of data.chaptersReadLog) {
@@ -1169,6 +1229,33 @@ export interface AchievementBackupData {
    * case.
    */
   allFailed?: {
+    streakLog?: boolean;
+    completedBooks?: boolean;
+    bookReadingLog?: boolean;
+    chaptersReadLog?: boolean;
+  };
+  /**
+   * R9-49/R9-27 — the OTHER reason a section can arrive empty without being
+   * legitimately empty: the export's own read threw, so nothing about this
+   * section ever reached the file. `BackupService.buildBackup` records that
+   * in `degradedSections`, which now travels inside the backup as
+   * `BackupPayload.meta.degradedSections`; `importBackup` translates the
+   * achievement labels back into these flags.
+   *
+   * This is a DISTINCT channel from `allFailed`, not a synonym: there, the
+   * file holds real rows this device refused to trust; here, the file holds
+   * nothing and never did. Both must block the destructive DELETE, which is
+   * exactly what made the original bug so bad — a transient SQLite error at
+   * export time produced a file whose `streakLog: []` was indistinguishable
+   * from "this user has never read", and importing it wiped the entire
+   * reading history, which has no cloud copy to fall back on.
+   *
+   * `stats`/`achievements` have no `allFailed` counterpart (they're not
+   * row-arrays) but can degrade the same way, so they're covered here only.
+   */
+  degraded?: {
+    stats?: boolean;
+    achievements?: boolean;
     streakLog?: boolean;
     completedBooks?: boolean;
     bookReadingLog?: boolean;

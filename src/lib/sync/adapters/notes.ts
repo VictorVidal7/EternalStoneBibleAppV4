@@ -19,7 +19,7 @@ import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import type {Note} from '@/types/bible';
 import {millisToIso, toMillis} from '../timeUtils';
-import {withoutUndefined} from '../sanitize';
+import {nullifyUndefined} from '../sanitize';
 import type {SyncAdapter, SyncEntity} from '../types';
 
 interface RemoteNote {
@@ -36,7 +36,7 @@ interface RemoteNote {
 // one optional field emitting `undefined` silently blocks the entity from
 // ever syncing, so every *ToRemote builder sanitizes by construction.
 function noteToRemote(n: Note): SyncEntity<RemoteNote> {
-  return withoutUndefined({
+  return nullifyUndefined({
     book: n.book,
     chapter: n.chapter,
     verse: n.verse,

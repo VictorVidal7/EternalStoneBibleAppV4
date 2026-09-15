@@ -1501,18 +1501,28 @@ export default function VerseReadingScreen() {
             existing ? buildHighlightRemotePayload(existing) : undefined,
           );
         } else {
-          const created = await highlightService.addHighlight(
-            verseId,
-            canonicalBook,
-            chapterNum,
-            num,
-            color,
-          );
+          // R9-44 — recoloring a verse that ALREADY has a highlight must not
+          // touch the category/note the reader wrote on it (nor reset its
+          // created_at). `addHighlight` is an INSERT OR REPLACE against the
+          // UNIQUE(verse_id) constraint, so calling it here with only the
+          // colour wrote NULL over both columns — silently, with no prompt,
+          // from a picker that doesn't even show that the verse has a note.
+          // An existing highlight gets a colour-only UPDATE instead.
+          const existing = await highlightService.getHighlightByVerse(verseId);
+          const saved = existing
+            ? await highlightService.updateHighlight(verseId, {color})
+            : await highlightService.addHighlight(
+                verseId,
+                canonicalBook,
+                chapterNum,
+                num,
+                color,
+              );
           next.set(num, color);
           engine?.queueWrite(
             'highlights',
             verseId,
-            buildHighlightRemotePayload(created),
+            buildHighlightRemotePayload(saved),
           );
         }
       }

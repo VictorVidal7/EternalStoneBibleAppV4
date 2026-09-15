@@ -4167,6 +4167,13 @@ export const translations = {
       importConfirmMessage:
         'Esto reemplazará tus datos actuales con los del archivo elegido y no se puede deshacer.\n\nFavoritos, notas, resaltados, memorización y repasos (últimos 12 meses) también se sincronizan con la nube si iniciaste sesión. El progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
       importConfirmCta: 'Importar y reemplazar',
+      // R9-28 — mostrado como diálogo, no como toast: parte de la app (el
+      // lector abierto, las pantallas ya montadas) sigue mostrando lo de
+      // antes hasta reiniciar, y un aviso que se desvanece solo no basta.
+      importRestartTitle: 'Datos restaurados',
+      importRestartMessage:
+        'Tu copia se importó correctamente.\n\nCierra la app por completo y vuelve a abrirla para que todas las pantallas carguen los datos restaurados.',
+      importRestartCta: 'Entendido',
 
       about: 'Acerca de',
       version: 'Versión',
@@ -10694,6 +10701,13 @@ export const translations = {
       importConfirmMessage:
         "This will replace your current data with the contents of the chosen file, and can't be undone.\n\nFavorites, notes, highlights, memorization, and reviews (last 12 months) also sync to the cloud if you're signed in. Reading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",
       importConfirmCta: 'Import and replace',
+      // R9-28 — shown as a dialog, not a toast: part of the app (the open
+      // reader, already-mounted screens) keeps showing the pre-import data
+      // until a restart, and a notice that fades on its own isn't enough.
+      importRestartTitle: 'Data restored',
+      importRestartMessage:
+        'Your backup was imported successfully.\n\nClose the app completely and open it again so every screen loads the restored data.',
+      importRestartCta: 'Got it',
 
       about: 'About',
       version: 'Version',

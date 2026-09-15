@@ -23,7 +23,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getFirestore} from '@lib/sync/firestore';
-import {getSyncEngine, withoutUndefined} from '@lib/sync';
+import {getSyncEngine, nullifyUndefined} from '@lib/sync';
 import {logger} from '@lib/utils/logger';
 import {getAllReviewEvents} from './reviewEventStore';
 import {
@@ -140,7 +140,7 @@ export async function maybeWriteMemoryStatsSummary(): Promise<void> {
     await fn()
       .collection(`users/${uid}/${MEMORY_STATS_COLLECTION}`)
       .doc(MEMORY_STATS_DOC_ID)
-      .set(withoutUndefined({...summary}));
+      .set(nullifyUndefined({...summary}));
     lastWrittenSignature = signature;
   } catch (err) {
     logger.warn('memoryStatsSync: maybeWriteMemoryStatsSummary failed', {

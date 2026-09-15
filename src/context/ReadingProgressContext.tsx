@@ -8,6 +8,7 @@ import {
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '../lib/utils/logger';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 import {
   canonicalProgressKey,
   canonicalizeProgressMap,
@@ -82,6 +83,14 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
   useEffect(() => {
     loadProgress();
   }, []);
+
+  /**
+   * R9-28 — an import writes the `readingProgress` key directly. `saveProgress`
+   * always persists a WHOLE map built from the in-memory copy, so without
+   * re-reading here the next chapter the user opens would write the
+   * pre-import map back over everything that was just restored.
+   */
+  useEffect(() => subscribeBackupRestored(() => void loadProgress()), []);
 
   /**
    * Load progress data from persistent storage

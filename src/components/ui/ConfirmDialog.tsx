@@ -31,7 +31,11 @@ export interface ConfirmDialogProps {
   title: string;
   message: string;
   confirmLabel: string;
-  cancelLabel: string;
+  /** Omit for an acknowledge-only dialog — the cancel button is not
+   *  rendered and the confirm button is the only way out. Used where the
+   *  user has no choice left to make, only something they must read (the
+   *  post-import "close and reopen the app" notice). */
+  cancelLabel?: string;
   onConfirm: () => void;
   onCancel: () => void;
   /** Paints the confirm action in the error color + uses a warning icon. */
@@ -88,23 +92,25 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
           </Text>
 
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                styles.cancelButton,
-                {borderColor: colors.border},
-              ]}
-              onPress={onCancel}
-              accessibilityRole="button"
-              accessibilityLabel={cancelLabel}>
-              <Text
-                style={[styles.buttonText, {color: colors.text}]}
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.8}>
-                {cancelLabel}
-              </Text>
-            </TouchableOpacity>
+            {cancelLabel !== undefined && (
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  styles.cancelButton,
+                  {borderColor: colors.border},
+                ]}
+                onPress={onCancel}
+                accessibilityRole="button"
+                accessibilityLabel={cancelLabel}>
+                <Text
+                  style={[styles.buttonText, {color: colors.text}]}
+                  numberOfLines={2}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.8}>
+                  {cancelLabel}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={[styles.button, {backgroundColor: accent}]}

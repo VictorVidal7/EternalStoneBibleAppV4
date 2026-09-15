@@ -343,6 +343,22 @@ export default function PrepTableScreen() {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [reloading, setReloading] = useState(false);
   const hasLoadedRef = useRef(false);
+  /**
+   * R9-47 — monotonic id of the newest `load()` run. A load that isn't the
+   * newest when it finally resolves must not touch state: two taps on the
+   * range stepper start two loads, nothing cancels the first, and whichever
+   * SQLite read happens to finish last used to win.
+   */
+  const loadRunRef = useRef(0);
+  /**
+   * R9-47 — which passage the current `drafts` actually belong to. NOT the
+   * same thing as `table.passageKey`: the table moves the instant the stepper
+   * is tapped, while the drafts still hold the previous passage's prose until
+   * its reload lands. `handleNoteBlur` writes under THIS key, so text can
+   * never be filed under a passage the user wasn't looking at when they wrote
+   * it. `null` until the first load has adopted a passage.
+   */
+  const draftsPassageKeyRef = useRef<string | null>(null);
   const [maxVerse, setMaxVerse] = useState(0);
   const [lines, setLines] = useState<VerseLine[]>([]);
   const [crossRows, setCrossRows] = useState<CrossRow[]>([]);
@@ -466,6 +482,20 @@ export default function PrepTableScreen() {
       setStatus('empty');
       return;
     }
+    // R9-47 — staleness guard. Every tap on the range stepper builds a new
+    // `table`, which rebuilds this callback and re-runs the effect below
+    // WITHOUT cancelling the load already in flight. Both runs then applied
+    // `setDrafts`/`setTemplate` unconditionally, so a slower earlier load
+    // could land last and overwrite the drafts with another passage's prose
+    // (or with nothing) — and the next `onBlur` wrote that foreign/empty
+    // value back to storage under the CURRENTLY visible passage key. That is
+    // the user's sermon, hand-written, with no cloud copy.
+    //
+    // A monotonic run id is what this needs rather than a passageKey
+    // comparison: `load` also depends on `params.version`, so two runs can
+    // legitimately share a passage and still need the later one to win.
+    const runId = ++loadRunRef.current;
+    const isStale = () => loadRunRef.current !== runId;
     // First open shows the spinner; later range tweaks keep the content on
     // screen and show a subtle inline indicator instead of blanking it.
     if (hasLoadedRef.current) {
@@ -585,11 +615,17 @@ export default function PrepTableScreen() {
       const saved = await getPrepNotes(table.passageKey);
       const savedSelfReview = await getPrepSelfReview(table.passageKey);
 
+      // Everything above is read-only; this is the first line that mutates
+      // shared state, so it's the only place the guard has to hold.
+      if (isStale()) return;
+
       setLines(verseRows);
       setCrossRows(crossResolved);
       setChristRows(christResolved.filter(r => Boolean(r.note)));
       setIntro(bookIntro);
       setDrafts(saved.sections);
+      // The drafts now belong to THIS passage — see `handleNoteBlur`.
+      draftsPassageKeyRef.current = table.passageKey;
       setSelfReview(savedSelfReview);
       // Unconditional (unlike the narrow refocus effect below): this is a
       // whole-passage (re)load, possibly for a DIFFERENT passageKey than
@@ -600,13 +636,14 @@ export default function PrepTableScreen() {
       hasLoadedRef.current = true;
       setStatus('ready');
     } catch (err) {
+      if (isStale()) return;
       logger.error('Prep table load failed', err as Error, {
         component: 'PrepTableScreen',
         action: 'load',
       });
       if (!hasLoadedRef.current) setStatus('error');
     } finally {
-      setReloading(false);
+      if (!isStale()) setReloading(false);
     }
   }, [table, params.version]);
 
@@ -625,19 +662,29 @@ export default function PrepTableScreen() {
   // read alone so it stays cheap enough to run on every focus.
   useFocusEffect(
     useCallback(() => {
-      if (table) {
-        getPrepNotes(table.passageKey).then(saved => {
-          setDrafts(saved.sections);
-          // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
-          // the illustrations bank and back) must adopt a template another
-          // screen just PERSISTED for this SAME entry, but must never reset
-          // a template the picker just chose locally and hasn't been saved
-          // yet (picking narrativo, then navigating to insert an
-          // illustration before typing a word, must not silently revert the
-          // pick to 'expository' on return).
-          if (saved.template) setTemplate(saved.template);
-        });
-      }
+      if (!table) return;
+      // Same staleness hazard as `load()` (R9-47), narrower: this read only
+      // ever produces drafts for ONE passage, so the effect's own cleanup —
+      // which React runs when `table` changes or the screen blurs — is
+      // enough to disown an answer that arrives after the passage moved.
+      const key = table.passageKey;
+      let cancelled = false;
+      getPrepNotes(key).then(saved => {
+        if (cancelled) return;
+        setDrafts(saved.sections);
+        draftsPassageKeyRef.current = key;
+        // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
+        // the illustrations bank and back) must adopt a template another
+        // screen just PERSISTED for this SAME entry, but must never reset
+        // a template the picker just chose locally and hasn't been saved
+        // yet (picking narrativo, then navigating to insert an
+        // illustration before typing a word, must not silently revert the
+        // pick to 'expository' on return).
+        if (saved.template) setTemplate(saved.template);
+      });
+      return () => {
+        cancelled = true;
+      };
     }, [table]),
   );
 
@@ -1045,7 +1092,12 @@ export default function PrepTableScreen() {
     (section: PrepSection, value: string) => {
       setDrafts(prev => ({...prev, [section]: value}));
       if (!table) return;
-      debouncedSaveNote(table.passageKey, section, value, template);
+      // Same keying rule as `handleNoteBlur` (R9-47): text belongs to the
+      // passage whose notes are on screen, which is what the drafts hold —
+      // `table.passageKey` may already have moved to a range the reader
+      // selected while a reload was still in flight.
+      const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+      debouncedSaveNote(passageKey, section, value, template);
     },
     [table, debouncedSaveNote, template],
   );
@@ -1053,13 +1105,25 @@ export default function PrepTableScreen() {
   const handleNoteBlur = useCallback(
     (section: PrepSection) => {
       if (!table) return;
-      savePrepNote(
-        table.passageKey,
-        section,
-        drafts[section] ?? '',
-        undefined,
-        template,
-      );
+      const value = drafts[section];
+      // R9-47, two separate hazards in one line of the old code
+      // (`savePrepNote(table.passageKey, section, drafts[section] ?? '')`):
+      //
+      //  1. `?? ''` turned "this section has no draft" into an explicit
+      //     CLEAR. Blur fires on a passage change too, and `setMapSectionNote`
+      //     documents what an empty write does: "an edit that empties the last
+      //     section drops the passage entry entirely". A stray blur could
+      //     therefore delete a sermon nobody asked to delete. An absent draft
+      //     is not an edit — there is nothing to save. A user who genuinely
+      //     clears the field goes through `handleNoteChange`, which puts `''`
+      //     in `drafts`, so the two stay distinguishable.
+      //
+      //  2. It filed the text under `table.passageKey`, which may already
+      //     have moved on. The prose belongs to the passage it was loaded
+      //     and typed for.
+      if (value === undefined) return;
+      const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+      savePrepNote(passageKey, section, value, undefined, template);
     },
     [table, drafts, template],
   );

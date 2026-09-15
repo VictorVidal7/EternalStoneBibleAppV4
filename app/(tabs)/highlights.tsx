@@ -187,16 +187,19 @@ export default function HighlightsScreen() {
   async function saveEditor() {
     if (!highlightService || !editing) return;
     const note = noteDraft.trim();
-    await highlightService.updateHighlight(editing.verseId, {
-      note: note || undefined,
-      category: categoryDraft,
+    // R9-50 — an emptied field is an explicit CLEAR, not "leave it alone".
+    // Passing `undefined` here made the service skip the column entirely, so
+    // deleting a highlight's note (or deselecting its category) was a no-op
+    // in SQLite, a no-op in Firestore (`{merge: true}` keeps an omitted
+    // key), and still toasted "Guardado" — the note came back on the next
+    // focus. `null` is the clear; `undefined` stays "don't touch".
+    const saved = await highlightService.updateHighlight(editing.verseId, {
+      note: note || null,
+      category: categoryDraft ?? null,
     });
-    const updated = {
-      ...editing,
-      note: note || undefined,
-      category: categoryDraft,
-      updatedAt: Date.now(),
-    };
+    // `saved` is the plain Highlight the service wrote (authoritative
+    // `updatedAt`); the row also carries the screen-only `text`/`bookName`.
+    const updated: HighlightItem = {...editing, ...saved};
     setItems(prev =>
       prev.map(i => (i.verseId === editing.verseId ? updated : i)),
     );

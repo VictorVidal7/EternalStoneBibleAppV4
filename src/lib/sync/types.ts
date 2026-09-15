@@ -17,10 +17,20 @@
 export interface SyncMetadata {
   /** Last-write-wins clock. Milliseconds since epoch. */
   updatedAt: number;
-  /** Soft-delete tombstone. When true, treat the row as gone. */
+  /**
+   * Soft-delete tombstone. When true, treat the row as gone.
+   *
+   * R9-45 — a live write must set this to `false` EXPLICITLY rather than
+   * omit it. `pushOne` writes with `{merge: true}`, so an omitted flag left
+   * a re-created doc (highlights and memoryCards key on a reusable natural
+   * id) carrying the new data plus the old `deleted: true` — permanently
+   * invisible on every other device. `SyncEngine.queueWrite` and the initial
+   * bulk push both stamp it; nothing else should need to.
+   */
   deleted?: boolean;
-  /** Server timestamp from Firestore (millis). Only present after a sync. */
-  deletedAt?: number;
+  /** Server timestamp from Firestore (millis). Only present after a sync.
+   *  `null` when a live write clears a previous tombstone — see `deleted`. */
+  deletedAt?: number | null;
 }
 
 /** Wraps an entity with its sync metadata for transport. */

@@ -1,29 +1,35 @@
 /**
- * Sprint 77 — withoutUndefined: Firestore payload sanitizer.
- * Sprint 78 — deepWithoutUndefined (engine boundary) + the highlight builder
- * that carried the same silent-loss flaw as S77's note-less favorites.
+ * Sprint 77 — the Firestore payload sanitizer.
+ * Sprint 78 — deep variant (engine boundary) + the highlight builder that
+ * carried the same silent-loss flaw as S77's note-less favorites.
+ * R9-44/45/50 — the sanitizer now NULLIFIES instead of dropping.
  *
  * Firestore rejects documents containing `undefined` field values
  * ("Unsupported field value: undefined") and the SyncEngine retries until it
  * DROPS the entry — a note-less favorite / label-less bookmark never synced.
- * These tests lock the sanitizer every *ToRemote builder now passes through.
+ * The original fix removed those keys outright, which collided with
+ * `pushOne`'s `{merge: true}`: an ABSENT key means "keep the server's value",
+ * so an optional field could never be unset by sync. Sending an explicit
+ * `null` satisfies Firestore AND actually overwrites. These tests lock that
+ * contract for every *ToRemote builder.
  */
 
-import {withoutUndefined, deepWithoutUndefined} from '../src/lib/sync/sanitize';
+import {nullifyUndefined, deepNullifyUndefined} from '../src/lib/sync/sanitize';
 import {buildHighlightRemotePayload} from '../src/lib/sync/adapters/highlights';
 import {HighlightColor, type Highlight} from '../src/lib/highlights';
 
-describe('withoutUndefined', () => {
-  it('drops undefined-valued keys', () => {
-    expect(withoutUndefined({id: 'f1', note: undefined, rating: 5})).toEqual({
+describe('nullifyUndefined', () => {
+  it('replaces undefined-valued keys with null, keeping the key', () => {
+    expect(nullifyUndefined({id: 'f1', note: undefined, rating: 5})).toEqual({
       id: 'f1',
+      note: null,
       rating: 5,
     });
   });
 
   it('keeps every legal falsy value (null, 0, empty string, false)', () => {
     const payload = {a: null, b: 0, c: '', d: false, e: [] as string[]};
-    expect(withoutUndefined(payload)).toEqual(payload);
+    expect(nullifyUndefined(payload)).toEqual(payload);
   });
 
   it('returns an equal copy when nothing is undefined', () => {
@@ -41,40 +47,43 @@ describe('withoutUndefined', () => {
       createdAt: 1,
       updatedAt: 2,
     };
-    const out = withoutUndefined(favorite);
+    const out = nullifyUndefined(favorite);
     expect(out).toEqual(favorite);
     expect(out).not.toBe(favorite);
   });
 
   it('never leaves an undefined value anywhere in the copy', () => {
-    const out = withoutUndefined({label: undefined, x: 1, y: undefined});
+    const out = nullifyUndefined({label: undefined, x: 1, y: undefined});
     expect(Object.values(out).includes(undefined)).toBe(false);
-    expect(Object.keys(out)).toEqual(['x']);
+    expect(Object.keys(out)).toEqual(['label', 'x', 'y']);
   });
 });
 
-describe('deepWithoutUndefined (Sprint 78 — engine boundary)', () => {
-  it('strips undefined keys at every nesting level', () => {
+describe('deepNullifyUndefined (Sprint 78 — engine boundary)', () => {
+  it('nullifies undefined keys at every nesting level', () => {
     const record = {
       id: 'conflict-1',
       localVersion: {note: undefined, color: '#FFF59D', updatedAt: 1},
       remoteVersion: {note: 'remote', color: '#FFF59D', updatedAt: 2},
       resolvedValue: {nested: {deep: undefined, kept: null}},
     };
-    expect(deepWithoutUndefined(record)).toEqual({
+    expect(deepNullifyUndefined(record)).toEqual({
       id: 'conflict-1',
-      localVersion: {color: '#FFF59D', updatedAt: 1},
+      localVersion: {note: null, color: '#FFF59D', updatedAt: 1},
       remoteVersion: {note: 'remote', color: '#FFF59D', updatedAt: 2},
-      resolvedValue: {nested: {kept: null}},
+      resolvedValue: {nested: {deep: null, kept: null}},
     });
   });
 
   it('maps undefined ARRAY elements to null and recurses object elements', () => {
-    const out = deepWithoutUndefined({
+    const out = deepNullifyUndefined({
       tags: ['a', undefined, 'b'],
       rows: [{keep: 1, drop: undefined}],
     });
-    expect(out).toEqual({tags: ['a', null, 'b'], rows: [{keep: 1}]});
+    expect(out).toEqual({
+      tags: ['a', null, 'b'],
+      rows: [{keep: 1, drop: null}],
+    });
   });
 
   it('passes class instances through untouched (FieldValue sentinels, Date)', () => {
@@ -83,19 +92,19 @@ describe('deepWithoutUndefined (Sprint 78 — engine boundary)', () => {
     }
     const sentinel = new Sentinel();
     const when = new Date(0);
-    const out = deepWithoutUndefined({stamp: sentinel, at: when, x: undefined});
+    const out = deepNullifyUndefined({stamp: sentinel, at: when, x: undefined});
     expect(out.stamp).toBe(sentinel);
     expect(out.at).toBe(when);
-    expect(Object.keys(out)).toEqual(['stamp', 'at']);
+    expect(out.x).toBeNull();
   });
 
   it('keeps every legal falsy value at depth', () => {
     const payload = {a: {b: null, c: 0, d: '', e: false}};
-    expect(deepWithoutUndefined(payload)).toEqual(payload);
+    expect(deepNullifyUndefined(payload)).toEqual(payload);
   });
 });
 
-describe('highlightToRemote — the S78 silent-loss fix', () => {
+describe('highlightToRemote — S78 silent loss + R9-50 unsettable optionals', () => {
   const base: Highlight = {
     id: 'hl_1',
     verseId: 'Genesis:1:1',
@@ -107,10 +116,14 @@ describe('highlightToRemote — the S78 silent-loss fix', () => {
     updatedAt: 2,
   };
 
-  it('omits absent category/note instead of sending undefined', () => {
+  it('sends absent category/note as an explicit null, never undefined', () => {
     const out = buildHighlightRemotePayload(base);
-    expect('category' in out).toBe(false);
-    expect('note' in out).toBe(false);
+    // The KEY must be present — that is what lets `{merge: true}` clear a
+    // note the user just deleted, instead of inheriting the server's copy.
+    expect('category' in out).toBe(true);
+    expect('note' in out).toBe(true);
+    expect(out.category).toBeNull();
+    expect(out.note).toBeNull();
     expect(Object.values(out).includes(undefined)).toBe(false);
     expect(out.verseId).toBe('Genesis:1:1');
     expect(out.updatedAt).toBe(2);

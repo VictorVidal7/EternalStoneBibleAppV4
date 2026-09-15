@@ -19,6 +19,7 @@ import React, {
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 import {ReaderTheme, isReaderTheme} from '../styles/readerThemes';
 import {ReaderFontFamily, isReaderFontFamily} from '../lib/reader/typefaces';
 
@@ -140,8 +141,8 @@ export const ReaderPreferencesProvider: React.FC<
   );
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+  const hydrateFromStorage = useCallback(async () => {
+    await AsyncStorage.getItem(STORAGE_KEY)
       .then(raw => {
         if (raw) {
           try {
@@ -178,6 +179,18 @@ export const ReaderPreferencesProvider: React.FC<
       })
       .finally(() => setHydrated(true));
   }, []);
+
+  useEffect(() => {
+    void hydrateFromStorage();
+  }, [hydrateFromStorage]);
+
+  // R9-28 — an import rewrites `@reader_preferences` wholesale; the effect
+  // below would otherwise persist the pre-import object back over it on the
+  // next preference the reader touches.
+  useEffect(
+    () => subscribeBackupRestored(() => void hydrateFromStorage()),
+    [hydrateFromStorage],
+  );
 
   // Whenever preferences change post-hydration, persist them. Don't write
   // during the initial render or we'd overwrite the user's stored value

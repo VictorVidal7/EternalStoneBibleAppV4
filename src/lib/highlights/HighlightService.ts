@@ -101,12 +101,28 @@ export class HighlightService {
   }
 
   /**
-   * Actualiza un resaltado existente
+   * Actualiza un resaltado existente.
+   *
+   * Tri-state per field (R9-50): `undefined` means "leave this column
+   * alone", `null` (or `''` for the note) means "the user CLEARED it —
+   * write NULL". Before this distinction existed the caller had no way to
+   * express a clear at all: the editor mapped an emptied field to
+   * `undefined`, the `!== undefined` guard dropped it from the `SET`, and
+   * removing a highlight's note was a complete no-op that still toasted
+   * "Guardado" and reappeared intact on the next focus.
+   *
+   * Returns the updated highlight so the caller can hand the exact same
+   * entity — with the `updated_at` this method actually wrote, not a second
+   * `Date.now()` — straight to `queueWrite`.
    */
   async updateHighlight(
     verseId: string,
-    updates: Partial<Pick<Highlight, 'color' | 'category' | 'note'>>,
-  ): Promise<void> {
+    updates: {
+      color?: HighlightColor;
+      category?: HighlightCategory | null;
+      note?: string | null;
+    },
+  ): Promise<Highlight> {
     const existing = await this.getHighlightByVerse(verseId);
     if (!existing) {
       throw new Error(`Highlight not found for verse: ${verseId}`);
@@ -136,6 +152,18 @@ export class HighlightService {
     values.push(verseId);
 
     await this.db.executeSql(sql, values);
+
+    return {
+      ...existing,
+      color: updates.color ?? existing.color,
+      category:
+        updates.category === undefined
+          ? existing.category
+          : (updates.category ?? undefined),
+      note:
+        updates.note === undefined ? existing.note : updates.note || undefined,
+      updatedAt: now,
+    };
   }
 
   /**

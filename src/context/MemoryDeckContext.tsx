@@ -37,7 +37,7 @@ import {
 } from '../lib/memory/srs';
 import {
   getSyncEngine,
-  withoutUndefined,
+  nullifyUndefined,
   type SyncAdapter,
   type SyncEntity,
 } from '../lib/sync';
@@ -49,6 +49,7 @@ import {
 import {historySummary} from '../lib/memory/history';
 import {computeEasePrior} from '../lib/memory/easePrior';
 import {maybeWriteMemoryStatsSummary} from '../lib/memory/memoryStatsSync';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 const STORAGE_KEY = '@memory_deck';
@@ -101,7 +102,7 @@ interface MemoryDeckProviderProps {
 // sanitizes by construction: one optional field emitting `undefined` would
 // silently block the card from ever syncing.
 function cardToRemote(c: MemoryCard): SyncEntity<MemoryCard> {
-  return withoutUndefined({...c});
+  return nullifyUndefined({...c});
 }
 
 export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
@@ -140,9 +141,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     void refreshEasePrior();
   }, [refreshEasePrior]);
 
-  // Hydrate from storage once.
-  useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
+  // Read the deck off disk and adopt it. Extracted from the mount effect so
+  // the backup-restore signal can re-run exactly the same parse (R9-28).
+  const hydrateFromStorage = useCallback(async () => {
+    await AsyncStorage.getItem(STORAGE_KEY)
       .then(raw => {
         if (raw) {
           try {
@@ -187,6 +189,19 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       })
       .finally(() => setHydrated(true));
   }, []);
+
+  // Hydrate from storage once.
+  useEffect(() => {
+    void hydrateFromStorage();
+  }, [hydrateFromStorage]);
+
+  // R9-28 — an import writes `@memory_deck` directly, behind this provider's
+  // back. Without this, the effect below would re-serialize the PRE-import
+  // deck on the very next review and the restored one would vanish silently.
+  useEffect(
+    () => subscribeBackupRestored(() => void hydrateFromStorage()),
+    [hydrateFromStorage],
+  );
 
   // Persist on every change post-hydration.
   useEffect(() => {
