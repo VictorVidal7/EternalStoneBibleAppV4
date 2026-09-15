@@ -64,6 +64,10 @@ export const translations = {
         'La descarga inicial de la Biblia se interrumpió (se cerró la pestaña, se recargó la página o hubo un corte) y el almacenamiento de este navegador quedó en un estado inconsistente. Reintentar no lo va a solucionar: hace falta borrar los datos guardados en este navegador y volver a cargar la página.',
       clearDataAndReload: 'Borrar datos y recargar',
       clearingData: 'Borrando datos...',
+      webSectionUnavailableTitle: 'Esta sección no está en la versión web',
+      webSectionUnavailableMessage:
+        'La versión web es solo para leer la Biblia. Esta sección necesita tu cuenta y tus datos guardados, así que vive únicamente en la aplicación para Android.',
+      goToBible: 'Ir a la Biblia',
     },
 
     // Tabs Navigation
@@ -6629,6 +6633,10 @@ export const translations = {
         "The initial Bible download was interrupted (the tab was closed, the page reloaded, or the connection dropped) and this browser's storage was left in an inconsistent state. Retrying will not fix it — the data saved in this browser needs to be cleared and the page reloaded.",
       clearDataAndReload: 'Clear data & reload',
       clearingData: 'Clearing data...',
+      webSectionUnavailableTitle: 'This section is not in the web version',
+      webSectionUnavailableMessage:
+        'The web version is for reading the Bible only. This section needs your account and your saved data, so it lives in the Android app alone.',
+      goToBible: 'Go to the Bible',
     },
 
     // Tabs Navigation

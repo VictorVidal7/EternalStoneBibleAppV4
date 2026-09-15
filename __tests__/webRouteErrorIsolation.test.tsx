@@ -18,7 +18,7 @@
  * (inside the tabs Slot).
  */
 import React from 'react';
-import {render, waitFor} from '@testing-library/react-native';
+import {render, waitFor, fireEvent} from '@testing-library/react-native';
 
 // Mutable mock state. `var` + the `mock` prefix are both required: jest
 // hoists every jest.mock factory above the rest of the module.
@@ -28,11 +28,14 @@ var mockPathname = '/plan/1';
 var mockSlotChild: {current: React.ComponentType} = {current: () => null};
 // eslint-disable-next-line no-var
 var mockCapturedStackProps: Record<string, unknown> | null = null;
+// eslint-disable-next-line no-var
+var mockRouterReplace = jest.fn();
 
 jest.mock('expo-router', () => ({
   Slot: () => require('react').createElement(mockSlotChild.current),
   useRouter: () => ({push: jest.fn()}),
   usePathname: () => mockPathname,
+  router: {replace: (...args: unknown[]) => mockRouterReplace(...args)},
   Stack: Object.assign(
     (props: Record<string, unknown>) => {
       mockCapturedStackProps = props;
@@ -41,6 +44,16 @@ jest.mock('expo-router', () => ({
     {Screen: () => null},
   ),
 }));
+
+// Both layouts import the BARE '@components/ErrorBoundary', which Metro
+// resolves to ErrorBoundary.web.tsx in a web bundle and jest's native preset
+// resolves to ErrorBoundary.tsx. Without this redirect these tests exercise
+// the NATIVE boundary while claiming to be about the web tree — the same
+// masking that let R9-13 ship, and the parity gate cannot see it because
+// both files export `ErrorBoundary`; only the BEHAVIOR differs.
+jest.mock('@components/ErrorBoundary', () =>
+  require('../src/components/ErrorBoundary.web'),
+);
 
 jest.mock('../src/lib/database/data-loader', () => ({
   initializeBibleData: jest.fn(() => Promise.resolve()),
@@ -99,6 +112,11 @@ function ProviderlessRoute(): React.ReactElement {
   );
 }
 
+/** A route that fails for an ordinary reason, not a missing Provider. */
+function GenuinelyBrokenRoute(): React.ReactElement {
+  throw new Error('Cannot read properties of undefined (reading map)');
+}
+
 function HealthyRoute(): React.ReactElement {
   const {Text} = require('react-native');
   return React.createElement(Text, null, 'healthy-route');
@@ -112,6 +130,7 @@ beforeEach(() => {
   mockPathname = '/plan/1';
   mockSlotChild.current = () => null;
   mockCapturedStackProps = null;
+  mockRouterReplace.mockClear();
 });
 afterEach(() => {
   errorSpy.mockRestore();
@@ -124,12 +143,44 @@ describe('app/(tabs)/_layout.web.tsx — the nav shell survives a crashing route
     const {getByText, getByLabelText} = render(<TabLayoutWeb />);
 
     // The route failed…
-    expect(getByText(es.app.unexpectedErrorTitle)).toBeTruthy();
+    expect(getByText(es.app.webSectionUnavailableTitle)).toBeTruthy();
     // …but the way OUT of it is still on screen. That is the whole finding:
     // before the fix these two assertions could not both hold, because the
     // only boundary that could catch the throw was above the nav bar.
     expect(getByLabelText(es.tabs.bible)).toBeTruthy();
     expect(getByLabelText(es.tabs.settings)).toBeTruthy();
+  });
+
+  it('says the section is not in the web version — not "algo salió mal" with a dead retry', () => {
+    // The generic screen was actively misleading here: its only button
+    // re-renders the same route, which throws again. These routes cannot
+    // work on web by design (their Providers carry native-only deps and
+    // app/_layout.web.tsx deliberately omits them), so the honest thing is
+    // to say so and offer the way out.
+    mockSlotChild.current = ProviderlessRoute;
+
+    const {getByText, queryByText, getByLabelText} = render(<TabLayoutWeb />);
+
+    expect(getByText(es.app.webSectionUnavailableTitle)).toBeTruthy();
+    expect(getByText(es.app.webSectionUnavailableMessage)).toBeTruthy();
+    expect(queryByText(es.app.unexpectedErrorTitle)).toBeNull();
+    expect(queryByText(es.app.retry)).toBeNull();
+
+    fireEvent.press(getByLabelText(es.app.goToBible));
+    expect(mockRouterReplace).toHaveBeenCalledWith('/bible');
+  });
+
+  it('still shows the GENERIC error screen for a real crash', () => {
+    // The control that keeps the branch above from swallowing everything: a
+    // genuine bug must not be dressed up as "this section is Android-only",
+    // or the next R9-13-style crash would look like a product decision.
+    mockSlotChild.current = GenuinelyBrokenRoute;
+
+    const {getByText, queryByText} = render(<TabLayoutWeb />);
+
+    expect(getByText(es.app.unexpectedErrorTitle)).toBeTruthy();
+    expect(getByText(es.app.retry)).toBeTruthy();
+    expect(queryByText(es.app.webSectionUnavailableTitle)).toBeNull();
   });
 
   it('does not latch: navigating to a healthy route clears the fallback', () => {
@@ -139,13 +190,13 @@ describe('app/(tabs)/_layout.web.tsx — the nav shell survives a crashing route
     // in the session. This is the assertion that pins that key down.
     mockSlotChild.current = ProviderlessRoute;
     const {getByText, queryByText, rerender} = render(<TabLayoutWeb />);
-    expect(getByText(es.app.unexpectedErrorTitle)).toBeTruthy();
+    expect(getByText(es.app.webSectionUnavailableTitle)).toBeTruthy();
 
     mockPathname = '/bible';
     mockSlotChild.current = HealthyRoute;
     rerender(<TabLayoutWeb />);
 
-    expect(queryByText(es.app.unexpectedErrorTitle)).toBeNull();
+    expect(queryByText(es.app.webSectionUnavailableTitle)).toBeNull();
     expect(getByText('healthy-route')).toBeTruthy();
   });
 });
@@ -165,6 +216,6 @@ describe('app/_layout.web.tsx — each root Stack screen gets its own boundary',
     const {getByText} = render(
       screenLayout!({children: <ProviderlessRoute />}),
     );
-    expect(getByText(es.app.unexpectedErrorTitle)).toBeTruthy();
+    expect(getByText(es.app.webSectionUnavailableTitle)).toBeTruthy();
   });
 });

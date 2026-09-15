@@ -1,9 +1,11 @@
 import {Component, ErrorInfo, ReactNode, useState} from 'react';
+import {router} from 'expo-router';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 import {useLanguage} from '@hooks/useLanguage';
 import {logger} from '@lib/utils/logger';
 import {isStorageLockError} from '@lib/database/storageLockError';
+import {isMissingProviderError} from '@lib/errors/missingProviderError';
 import {clearWebStorageForLockRecovery} from '@lib/database/data-loader.web';
 
 interface Props {
@@ -29,6 +31,17 @@ interface State {
  * fallback instead, which could never actually recover. This reuses the
  * exact same "Borrar datos y recargar" copy/flow app/_layout.web.tsx
  * already has for its own boot-time case.
+ *
+ * It also recognizes a SECOND class the generic fallback handled badly
+ * (R9-14): a route that calls a hook whose Provider the web tree
+ * deliberately never mounts. Those routes are reachable by direct URL
+ * through firebase.json's catch-all rewrite but genuinely cannot work on
+ * web, so "Reintentar" re-renders and re-throws forever. They get an honest
+ * "this section is not in the web version" screen and a way back to the
+ * Bible instead. Since both app/_layout.web.tsx (per Stack screen) and
+ * app/(tabs)/_layout.web.tsx (around the Slot) now wrap routes in THIS
+ * boundary, handling it here covers every web-reachable route at once —
+ * including the ones the audit's route-file grep could not see.
  */
 export class ErrorBoundary extends Component<Props, State> {
   state: State = {error: null};
@@ -83,6 +96,24 @@ function ErrorFallbackScreen({
     }
   }
 
+  if (isMissingProviderError(error)) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.webUnavailableTitle}>
+          {t.app.webSectionUnavailableTitle}
+        </Text>
+        <Text style={styles.message}>{t.app.webSectionUnavailableMessage}</Text>
+        <TouchableOpacity
+          style={styles.retryButton}
+          onPress={() => router.replace('/bible')}
+          accessibilityRole="button"
+          accessibilityLabel={t.app.goToBible}>
+          <Text style={styles.retryButtonText}>{t.app.goToBible}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   if (isStorageLockError(error)) {
     return (
       <View style={styles.container}>
@@ -130,6 +161,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: staticColors.accentRed,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  // Same size/weight as `title`, but NOT red: this screen is a statement of
+  // scope, not a failure, and the alarm color would say otherwise.
+  webUnavailableTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: staticColors.grayDark,
     marginBottom: 16,
     textAlign: 'center',
   },
