@@ -49,6 +49,14 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 13 (2026-09-15).** Revisó el diff de la 12 (el bloque WEB, 6 commits, 19 archivos)
+> y encontró **5 defectos, ninguno P0** — todos en los BORDES de esos arreglos, no en ellos:
+> `R9-66`, `R9-67` (P1) y `R9-68`, `R9-69`, `R9-70` (P2). Los tres arreglos de la 12 se
+> sostienen y sus pruebas discriminan (verificado revirtiendo cada uno, con el `diff` del
+> revert a la vista). Detalle completo en `detail/S13-revision-del-diff.md`. **La forma común
+> de los dos P1:** una verificación cuyo cuerpo entero es un bucle **pasa cuando no hay nada
+> que recorrer**, y lo hace imprimiendo un mensaje de éxito.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
@@ -598,6 +606,48 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ## P1 — núcleo de la app
 
+- **`R9-66` (S13, build de packs) — 🐛 la verificación de spans de letra roja pasaba EN
+  VACÍO, y es lo único del programa que toca DATOS YA PUBLICADOS.** Encontrado al revisar el
+  diff de la sesión 12. Todo el cuerpo de `verifyRedLetterAlignment`
+  (`scripts/build-web-packs.js`) es un bucle por entrada, y un bucle sobre nada no recoge
+  ningún fallo: con `entries` vacío imprimía «0 entries, 0 spans, ALL slices non-blank and
+  in-range» y daba verde. El script escribía entonces un pack de **2 bytes** (`[]`), le sacaba
+  un sha256 y anotaba `entries: 0, spans: 0` en `web-bootstrap.json`. Publicado, eso es la
+  letra roja muerta en silencio para esa versión en la web — **el síntoma exacto de `R9-13`,
+  con la bendición del build**. No es hipotético: los dos archivos fuente son
+  **auto-generados** (`bible-data-rvr1960-redletter.ts` desde `decisions/*.json`), así que una
+  regeneración vacía es la forma ordinaria de llegar. El contraste que lo delata: la mitad del
+  `.sqlite` **sí** tenía piso desde siempre (`n === expectCount`, `books === 66`, rango
+  `1..66`, cero versículos en blanco). **Comprobado también lo que está BIEN:** si falta el
+  `.sqlite` de esa versión, el `readOnly: true` revienta con `unable to open database file`.
+  **✅ ARREGLADO en la sesión 13:** dos pisos, uno antes de abrir la base y otro después del
+  bucle (`spanCount === 0`), y el script pasa a ser requerible para que la prueba ejercite las
+  funciones REALES. Vistas fallar primero las 2 de vacío, con **4 controles** que pasan en
+  ambos lados para que el piso no se confunda con toda la verificación. Y corrido de punta a
+  punta contra los datos de verdad: los cuatro sha256 salen **idénticos** a los del manifiesto
+  ya publicado y el manifiesto no cambia ni un byte. **Queda dicho:** el piso es de CERO — una
+  caída de 2057 entradas a 3 seguiría pasando; detectarla necesitaría una vía de escape para
+  una supresión editorial legítima, y eso es decisión de Victor. Detalle:
+  `detail/S13-revision-del-diff.md`.
+
+- **`R9-67` (S13, tests) — 🐛 la compuerta de paridad web/nativo se ponía verde ante la forma
+  `export {x}`.** `webNativeModuleParity.test.ts` —la compuerta que la sesión 12 creó
+  justamente para rematar la clase de `R9-13`— escaneaba **texto** con un regex que solo
+  entendía `export [async] function|const|let|class|enum`. Ante la forma de lista devolvía un
+  conjunto **vacío**, y comparar contra vacío siempre pasa. **Reproducido contra la compuerta
+  misma:** declarando `hasRedLetterData` en `redLetterText.ts` con un `export {…}` al final
+  mientras `redLetterText.web.ts` no lo exportaba —`R9-13` al pie de la letra— la suite quedaba
+  en verde **30/30**. El encabezado prometía «verificado que ningún par usa `export {x} from`
+  ni `export *`; si alguno empieza, enséñale la forma al escáner», pero **nada DETECTABA el día
+  en que alguno empezara**, y ni siquiera mencionaba la forma local `export {x}`, que es la más
+  común de las tres. **✅ ARREGLADO en la sesión 13:** parsea con `ts.createSourceFile`, que no
+  type-checkea, no resuelve módulos y no ejecuta una línea — conserva entera la razón de no
+  hacer `require` (la mitad de esos archivos arrastran dependencias nativas) y elimina el punto
+  ciego, más tres formas que el regex tampoco veía (`export const a = 1, b = 2`, destructuring,
+  `export {X as default}`). Queda **una sola** forma irresoluble sin seguir el re-export,
+  `export * from`, y ahora tiene su propio caso por archivo que falla ruidosamente. Vistas
+  fallar primero las dos mitades. Detalle: `detail/S13-revision-del-diff.md`.
+
 - **`R9-65` (S9, sync) — 🐛 el cursor del lote también salta por encima de un doc en
   CONFLICTO sin resolver, y el conflicto no sobrevive a un reinicio.** Encontrado al revisar
   el diff de la sesión 8, pero **preexistente en `main`** — no lo introdujo ese diff. Es el
@@ -840,6 +890,64 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-68` (S13, web) — 🐛 `isMissingProviderError` se tragaba errores legítimos y los
+  presentaba como decisión de producto.** Detectaba por mensaje con `\w*Provider`, o sea
+  **cualquier** mensaje de esa forma. Ejecutando la función real: los **tres errores internos
+  de expo-router** —dos de los cuales dicen literalmente «This is likely a bug in Expo Router»—
+  y **los ocho providers que el árbol web SÍ monta** (ReaderPreferences, BibleVersion, Toast,
+  Premium, Favorites, MemoryDeck, OfferingSheet, AudioPlayer) daban `true`. En cualquiera de
+  esos casos el usuario recibía «Esta sección no está en la versión web / necesita tu cuenta y
+  tus datos guardados» —una explicación afirmativa y **falsa**— se le quitaba el botón de
+  reintentar y solo le quedaba salir a `/bible`. El encabezado solo contemplaba el riesgo en
+  **una** dirección (que un mensaje deje de encajar → pantalla genérica, nunca un crash), y el
+  único control de la prueba («Provider must be used within a tree») no tocaba la contraria.
+  **✅ ARREGLADO en la sesión 13:** el NOMBRE del provider tiene que estar en
+  `WEB_UNMOUNTED_PROVIDERS`, los siete que `app/_layout.web.tsx` deja fuera a propósito.
+  `ServicesProvider` queda fuera de la lista aunque también esté sin montar — su
+  `createContext` tiene por defecto un objeto real, no `undefined`, así que nunca tira y la
+  entrada sería inalcanzable. 3 pruebas vistas fallar primero, una de ellas **deriva** los
+  providers montados leyendo el layout real en vez de fiarse de una lista a mano, con control
+  para que la disyunción no se cumpla en vacío. Detalle: `detail/S13-revision-del-diff.md`.
+
+- **`R9-69` (S13, lector web) — 🐛 cambiar de versión emparejaba el texto de una traducción con
+  los offsets de otra.** El lector reseteaba `redLetterLoaded` a `false` **dentro de un
+  `useEffect`**, y un reset dentro de un efecto llega **un render tarde**: el efecto corre
+  después del render que cambió la versión (y en navegador, después de que ese render haya
+  pintado), así que el primer render con el id nuevo veía el `true` viejo y los `verses`
+  viejos. El comentario de ese efecto afirmaba que el reset evitaba «briefly pair one version's
+  text with the other's offsets» — **no lo evitaba**. Lo que limitaba el daño era que
+  `getRedLetterSpans` está keyed por versión, y eso solo salva mientras el pack nuevo NO esté
+  cacheado; en cuanto el lector cambió de idioma una vez, sí lo está. **Instrumentado:**
+  `{offsetsFor: "RVR1960", textFrom: "WEB"}` — span `[0,145)` de RVR1960 sobre el texto inglés
+  de 130 caracteres todavía en pantalla. Severidad **baja**: dura un frame, y luego entra
+  `loading`. **✅ ARREGLADO en la sesión 13:** `redLetterLoaded: boolean` pasa a
+  `redLetterLoadedFor: string | null` y la prontitud se **deriva en render**
+  (`redLetterLoadedFor === selectedVersion.id`), que es donde no hay ventana para ir un render
+  atrasado. **Nota de método:** `act()` vacía los efectos antes de poder leer el árbol, así que
+  el frame mal pintado no es observable en jest — la CONSULTA sí, y es lo que asserta la
+  prueba, con su control. Detalle: `detail/S13-revision-del-diff.md`.
+
+- **`R9-70` (S13, paridad web/nativo) — 🐛 el vecino de `R9-13`, un nivel más abajo: contratos
+  de contexto redeclarados en el stub web.** La compuerta de paridad compara **nombres de
+  export de módulo**, y el tipo de valor de un contexto no es un export de módulo: es el
+  contrato entre un provider y todo lo que llama a su hook. `PremiumContext.web.tsx`
+  redeclaraba `PremiumContextValue` en local **aunque el nativo sí lo exporta**, y
+  `redLetterText.web.ts` hacía lo mismo con `RedLetterRun`. **Comprobado con sonda:** añadiendo
+  un miembro a la interfaz nativa y satisfaciéndolo del lado nativo, `tsc --noEmit` quedaba
+  **completamente verde** mientras el stub web nunca lo implementaba — `tsc` resuelve el
+  especificador pelado al archivo nativo, ve la forma nativa y pasa. En web eso es
+  `usePremium().<miembro> is not a function`, el crash de `R9-13` por otro lado. **No era un
+  bug vivo** (las formas coincidían), pero el hueco sí. **✅ ARREGLADO en la sesión 13:** los
+  tres importan el tipo del hermano nativo (type-only, borrado en compilación, sin auto-import
+  en runtime) — el patrón que `MemoryDeckContext.web.tsx` y `AudioPlayerContext.web.tsx` **ya
+  usaban**. El tercero, `OfferingSheetContextValue`, tenía excusa (el nativo no lo exportaba);
+  ahora sí. Compuerta nueva deliberadamente **estrecha**: solo tipos que el hermano nativo
+  EXPORTA, porque medido sobre los 14 pares los duplicados se parten limpio entre contratos
+  compartidos y formas privadas (`Props`/`State`, los `*ProviderProps`, `SpanMap`,
+  `ChapterItem`) que es correcto duplicar; marcar las privadas enterraría la señal. Con el
+  arreglo puesto, la misma sonda da `PremiumContext.web.tsx(70,7): error TS2741`. Detalle:
+  `detail/S13-revision-del-diff.md`.
 
 - **`R9-12` (A5, `SyncEngine`) — 💡 no se usa `writeBatch` en ningún lado; los bucles
   empujan de a un documento.** `SyncEngine.ts:1238-1240` empuja secuencialmente y

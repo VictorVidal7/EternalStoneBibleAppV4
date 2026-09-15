@@ -36,6 +36,16 @@
 > `A6` dejaba abierta desde la sesión 3: verificado en un navegador de verdad**, sobre el
 > bundle real de `expo export --platform web`.
 >
+> **Sesión 13 (2026-09-15) revisó el diff de la 12 y encontró 5 defectos, ninguno P0**
+> (`R9-66`, `R9-67` en P1; `R9-68`, `R9-69`, `R9-70` en P2). Los tres arreglos de la 12 se
+> sostienen y sus pruebas discriminan — verificado revirtiendo cada uno. **Los cinco defectos
+> están en los BORDES de esos arreglos**, y los dos P1 comparten forma: _una verificación cuyo
+> cuerpo entero es un bucle pasa cuando no hay nada que recorrer, imprimiendo un mensaje de
+> éxito._ `verifyRedLetterAlignment` decía «ALL slices non-blank and in-range» sobre CERO
+> spans —y eso es lo único del programa que toca **datos ya publicados**— y la compuerta de
+> paridad comparaba contra un conjunto vacío, dejando pasar `R9-13` al pie de la letra en
+> forma `export {x}` con la suite en verde 30/30.
+>
 > **Segunda mitad de la sesión 12: las dos cosas que habían quedado «dichas, no arregladas»
 > se arreglaron de verdad.** (1) La letra roja en web ya no es solo en inglés: el build emite
 > un pack **por versión**, el módulo web carga el que toca, y el lector pregunta
@@ -481,3 +491,31 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   `pendingWrites` **sí** tiene consumidor (`app/(tabs)/settings.tsx:87` — un `grep` acotado a
   `src/` no ve las pantallas), y **el conteo de P0 venía mal desde la sesión 7** porque
   contaba `R9-50`, que vive en P1: eran 11 abiertos, no 10.
+
+- **Sesión 13 — 2026-09-15. Revisar el diff de la 12 (el bloque WEB), ya mergeado.** Quinta
+  sesión seguida de revisión adversarial sobre un diff de arreglos, y la quinta que paga. 6
+  commits, 19 archivos — el diff más ancho del programa, y el único que toca **datos ya
+  publicados**. **Veredicto: los tres arreglos se sostienen.** Verificado revirtiendo cada uno
+  con el `diff` del revert a la vista: quitar el `export` de `hasRedLetterData` → 1 falla;
+  quitar el `<ErrorBoundary>` del `Slot` → 4; quitar **solo** `key={pathname}` → exactamente 1
+  (la de «no se enclava»); re-hardcodear `'WEB'` en la pantalla → 1; quitar `RVR1960` de
+  `RED_LETTER_PACKS` → 6. **Los 5 defectos están en los BORDES**: `R9-66` (la verificación de
+  spans del build pasaba en vacío — probado ejecutándola con `[]`, que imprime «ALL slices
+  non-blank and in-range» y deja escribir un pack de 2 bytes al manifiesto), `R9-67` (la
+  compuerta de paridad se ponía verde ante `export {x}` — reproducido `R9-13` entero con la
+  suite en 30/30), `R9-68` (el detector por mensaje se tragaba los tres errores internos de
+  expo-router, dos de los cuales dicen «This is likely a bug in Expo Router», y los ocho
+  providers que la web SÍ monta), `R9-69` (el reset de `redLetterLoaded` vive en un efecto, o
+  sea un render tarde: medido `{offsetsFor:"RVR1960", textFrom:"WEB"}`) y `R9-70` (el vecino
+  de `R9-13` un nivel abajo: `tsc` queda **verde** con un miembro nuevo en el contrato nativo
+  que el stub web nunca implementa). Los cinco arreglados en
+  `fix/review-s13-revision-diff-s12`, cada uno con su prueba **vista fallar primero**, y
+  `R9-66` además corrido de punta a punta contra los datos reales: los cuatro sha256 salen
+  idénticos a los del manifiesto ya publicado. **Detalle completo, incluido lo que se comprobó
+  y está BIEN y lo que queda dicho sin hacer: `detail/S13-revision-del-diff.md`.**
+  **La lección de método:** las cuatro sesiones anteriores encontraron defectos en los
+  ARREGLOS; esta los encontró en las **compuertas** de los arreglos. El antídoto cabe en una
+  pregunta — _¿qué entrada hace que esta comprobación no ejecute ninguna aserción?_ Si esa
+  entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
+  convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
+  nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
