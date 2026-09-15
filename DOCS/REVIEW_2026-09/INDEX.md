@@ -21,6 +21,7 @@
 > discriminaba** (el backoff de `R9-33`, del mismo commit, hacía que la carrera no ocurriera);
 > la reescribió, remató un hueco de `stop()`, mergeó a `main` — y después cerró **los 2 P0 de
 > dinero, `R9-9` y `R9-10`, juntos**, porque el segundo anulaba el arreglo del primero.
+> **Todo mergeado y PUSHEADO**; no queda rama de arreglos pendiente.
 > **Quedan 6 P0 abiertos** (`R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`). Hallazgos:
 > **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de la sección
 > P0 de `BUGS.md`.

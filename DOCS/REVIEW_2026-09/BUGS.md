@@ -37,8 +37,8 @@
 > discriminaba, ver `detail/S10-revision-del-diff.md`— lo remató (`2bfa126`) y **mergeó
 > `fix/review-p0-sync-descarta-silencio` a `main`** en fast-forward. Después cerró **los 2 P0
 > de dinero**: `R9-9` y `R9-10` juntos (`bb3b25b`), porque arreglar el primero sin el segundo
-> no cambia nada para el usuario. **Quedan 6 P0 abiertos.** Va en
-> `fix/review-p0-dinero-entitlement`, **sin mergear**.
+> no cambia nada para el usuario. **Quedan 6 P0 abiertos.** **Todo MERGEADO a `main` y
+> PUSHEADO**: no queda ninguna rama de arreglos pendiente.
 
 ---
 

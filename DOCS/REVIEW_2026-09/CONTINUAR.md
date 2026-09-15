@@ -12,15 +12,13 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-dinero-entitlement`** (`bb3b25b`), con `R9-9`
-y `R9-10` arreglados y los gates en verde (**356 suites, 4079 pruebas**). Victor pidió no
-mergear nada sin preguntarle, así que lo primero es que él decida.
-
-**⚠️ Y `main` tiene 7 commits SIN PUSHEAR.** La sesión 10 mergeó
-`fix/review-p0-sync-descarta-silencio` a `main` en fast-forward (era lo que Victor pidió),
-pero **no pusheó**, porque publicar no estaba en el encargo. Lo primero de la próxima sesión,
-después de que Victor decida sobre la rama de dinero, es preguntarle si pushea. Lo de antes
-ya está todo dentro de `main`: las sesiones 7, 8 y la 9 entera.
+**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** Es la primera vez en cuatro
+sesiones que se arranca así — no busques una rama pendiente. La sesión 10 mergeó las dos:
+`fix/review-p0-sync-descarta-silencio` (la 9) y `fix/review-p0-dinero-entitlement` (la 10),
+las dos en fast-forward, y Victor autorizó el push. **`main` = `origin/main`**, con los
+arreglos de las sesiones 7, 8, 9 y 10 dentro. Gates verdes sobre `main` antes de publicar:
+**356 suites, 4079 pruebas**. (No se pone el SHA del tip a propósito: el propio commit del
+checkpoint lo mueve, así que cualquier SHA escrito aquí nace obsoleto — ya pasó una vez.)
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -106,14 +104,10 @@ vas a arreglar alguno, verificalo primero.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-dinero-entitlement`, con
-> `R9-9` y `R9-10` arreglados. Revisá el diff con ojo crítico —es dinero, toca la entitlement
-> de RevenueCat y el arranque de `PremiumContext`— decime si ves algo mal, y si está bien
-> mergeala a `main` con los gates en verde. Decime también si pusheo `main`, que lleva
-> commits sin publicar.
->
-> Después seguí con `R9-11`, que es el gemelo de `R9-34` en la rama de éxito de `flush()` y
-> tiene el arreglo ya localizado en `CONTINUAR.md`. Verificá cada hallazgo contra el código
+> No hay ninguna rama pendiente: `main` está pusheado y al día. Empezá directo por `R9-11`,
+> que es el gemelo de `R9-34` en la rama de éxito de `flush()` —la rama común— y tiene el
+> arreglo ya localizado en `CONTINUAR.md`. Después, `R9-13` si querés dejar la web
+> desplegable. Verificá cada hallazgo contra el código
 > antes de tocarlo —los P1/P2 no están re-verificados— y acordate de que una prueba de
 > regresión no vale hasta que la viste fallar sin el arreglo, **y de que si un commit lleva
 > dos arreglos, uno puede estar desarmando la prueba del otro**. Va todo en rama con gates
@@ -121,11 +115,9 @@ vas a arreglar alguno, verificalo primero.
 
 **(b) Corto: revisar y mergear la rama, y rematar `R9-65`**, si querés media hora:
 
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de
-> `fix/review-p0-dinero-entitlement` con ojo crítico, decime si ves algo mal, y si está bien
-> mergeala con los gates en verde. Si queda margen, arreglá `R9-65` —es una línea, la misma
-> cota de cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista fallar
-> primero.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá `R9-65` —es una línea, la misma cota de
+> cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista fallar primero. Si
+> queda margen, `R9-11`, que también tiene el arreglo localizado.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
 bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
@@ -188,11 +180,11 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 10 ramas locales.** `main` (**7 commits POR DELANTE de `origin/main`, sin pushear**;
-lleva los arreglos de las sesiones 7, 8 y la 9 entera),
-**`fix/review-p0-dinero-entitlement`** (la 10, **sin mergear**),
+**Hay 10 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los
+arreglos de las sesiones 7, 8, 9 y 10), y **cuatro ramas de arreglos YA MERGEADAS** que se
+pueden borrar: `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
-`fix/review-p0-perdida-datos` (**las tres ya mergeadas** — se pueden borrar), y las 5 de
+`fix/review-p0-perdida-datos`. Más las 5 de
 siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
 `chore/worklets-bundle-mode`, `feature/red-letter-web`,
 `research/a4-chico-spanish-availability`. Árbol limpio. Si no coincide, dilo antes de
@@ -204,10 +196,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de las sesiones 7, 8 y 9 **ya están todos en `main`**; el último merge fue el de
-la sesión 10 (`653c7b3` → `daad3a9`, fast-forward), y de ahí salen los **7 commits sin
-pushear**. Los de la sesión 10 van aparte, fuera de `main`, en
-**`fix/review-p0-dinero-entitlement`**: `bb3b25b`.
+Los arreglos de las sesiones 7, 8, 9 y 10 **ya están todos en `main` y pusheados**. La sesión
+10 hizo los dos últimos merges en fast-forward (`653c7b3` → `daad3a9` → `f9e184a`) y publicó.
+**No queda deuda de git.**
 
 ## 3. Dónde va la revisión
 
@@ -235,7 +226,7 @@ arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) →
 | 9      | Revisión del diff de la 8: **2 defectos reales** + merge  | `3e780c6`→`d800a24` |
 | 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                   | `0a4f0fc`→`c41c9cb` |
 | 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
-| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero (sin mergear)      | `bb3b25b`           |
+| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
