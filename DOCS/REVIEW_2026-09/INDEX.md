@@ -25,6 +25,7 @@
 > **Sesión 11 (2026-09-15) cerró `R9-11`** —el gemelo de `R9-34` en la rama de ÉXITO de
 > `flush()`, o sea la común, cuyo vecino se tragaba una LÁPIDA— **y `R9-65`**, y saldó la
 > deuda más vieja: `R9-28` por fin tiene prueba, así que **no queda ningún arreglo sin una**.
+> **Todo mergeado y PUSHEADO**; no queda rama de arreglos pendiente.
 > **Quedan 5 P0 abiertos** (`R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`). Hallazgos:
 > **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de la sección
 > P0 de `BUGS.md`.

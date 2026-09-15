@@ -46,7 +46,8 @@
 > `flush()`, que es la rama común— y de paso `R9-65` (P1, el mismo fallo de cursor de `R9-46`
 > por la rama de conflictos). **Quedan 5 P0 abiertos.** Y saldó la deuda más vieja: **`R9-28`
 > por fin tiene prueba de regresión**, las dos mitades, así que ya no hay ningún arreglo sin
-> ninguna. Va en `fix/review-p0-cola-y-cursor-conflictos`, **sin mergear**.
+> ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
+> pendiente.
 
 ---
 

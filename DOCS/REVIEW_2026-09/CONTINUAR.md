@@ -12,11 +12,12 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-cola-y-cursor-conflictos`** (`261c053` →
-`aa70be0`), con `R9-11`, `R9-65` y la prueba que le faltaba a `R9-28`, y los gates en verde
-(**356 suites, 4086 pruebas**). Victor pidió no mergear nada sin preguntarle, así que lo
-primero es que él decida. Todo lo anterior (sesiones 7 a 10) ya está dentro de `main` y
-**pusheado**.
+**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
+pendiente. Las cinco `fix/review-p0-*` están dentro de `main`, la última
+(`fix/review-p0-cola-y-cursor-conflictos`, sesión 11) en fast-forward y con los gates corridos
+**sobre `main` ya mergeado** antes de publicar: **356 suites, 4086 pruebas**. No se pone el
+SHA del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA
+escrito aquí nace obsoleto.
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -99,12 +100,8 @@ vas a arreglar alguno, verificalo primero.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-cola-y-cursor-conflictos`,
-> con `R9-11`, `R9-65` y la prueba que le faltaba a `R9-28`. Revisá el diff con ojo crítico
-> —toca la cola de escrituras y el cursor de sync— decime si ves algo mal, y si está bien
-> mergeala a `main` con los gates en verde.
->
-> Después seguí con `R9-13`, el crash del lector web. Leete `R9-15` antes: el único test que
+> No hay ninguna rama pendiente: `main` está pusheado y al día. Empezá directo por `R9-13`,
+> el crash del lector web. Leete `R9-15` antes: el único test que
 > renderiza esa pantalla enmascara exactamente ese bug, así que hay que arreglar los dos o la
 > compuerta sigue ciega. Verificá cada hallazgo contra el código
 > antes de tocarlo —los P1/P2 no están re-verificados— y acordate de que una prueba de
@@ -114,10 +111,9 @@ vas a arreglar alguno, verificalo primero.
 
 **(b) Corto: revisar y mergear la rama, y rematar `R9-65`**, si querés media hora:
 
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de
-> `fix/review-p0-cola-y-cursor-conflictos` con ojo crítico, decime si ves algo mal, y si está
-> bien mergeala con los gates en verde. Si queda margen, los 4 reportes de campo
-> (`R9-40`..`R9-43`), que son baratos y muy visibles.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá los 4 reportes de campo de Victor
+> (`R9-40`..`R9-43`): son baratos, muy visibles y ninguno es P0. Cada uno con su prueba vista
+> fallar primero, en rama con gates verdes.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
 bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
@@ -179,9 +175,8 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 ## 2. Estado esperado de git
 
 **Hay 11 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los
-arreglos de las sesiones 7 a 10), **`fix/review-p0-cola-y-cursor-conflictos`** (la 11, **sin
-mergear**), y **cuatro ramas de arreglos YA MERGEADAS** que se
-pueden borrar: `fix/review-p0-dinero-entitlement`,
+arreglos de las sesiones 7 a 11) y **cinco ramas de arreglos YA MERGEADAS** que se
+pueden borrar: `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos`. Más las 5 de
 siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
@@ -195,9 +190,8 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de las sesiones 7 a 10 **ya están todos en `main` y pusheados** (la sesión 10
-hizo los dos últimos merges en fast-forward y publicó). Los de la 11 van aparte, fuera de
-`main`, en **`fix/review-p0-cola-y-cursor-conflictos`**: `261c053` → `aa70be0`.
+Los arreglos de las sesiones 7 a 11 **ya están todos en `main` y pusheados**, todos los merges
+en fast-forward. **No queda deuda de git.**
 
 ## 3. Dónde va la revisión
 
@@ -226,7 +220,7 @@ arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) →
 | 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                   | `0a4f0fc`→`c41c9cb` |
 | 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
 | 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
-| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`aa70be0` |
+| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
