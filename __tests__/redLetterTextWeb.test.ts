@@ -210,3 +210,52 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 });
+
+/**
+ * R9-13 regression. `ReaderPreferencesSheet` imports `hasRedLetterData` from
+ * the BARE specifier `@lib/reading/redLetterText`, which Metro resolves to
+ * the .web file in a web bundle — so a symbol the native file exports and
+ * this one does not is a TypeError in the component body, i.e. a crash of
+ * the whole web app under the global ErrorBoundary.
+ *
+ * These assert the MECHANISM (the web module's own contract) and live apart
+ * from the consequence test that renders the screen
+ * (chapterReaderWebFontPicker.test.tsx) on purpose: chained into one body,
+ * a revert would trip the first assertion and the rest would prove nothing.
+ */
+describe('hasRedLetterData (web)', () => {
+  it('reports data for WEB, the one version whose pack this build fetches', () => {
+    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
+  });
+
+  it('reports NO data for RVR1960 on web, deliberately diverging from native', () => {
+    // Not an oversight and not a second bug: scripts/build-web-packs.js
+    // emits only web-red-letter.json, so RVR1960's red-letter array never
+    // reaches the web build. Asserted against the native module in the same
+    // breath so the divergence stays a decision someone made rather than
+    // something that quietly drifts.
+    expect(redLetterTextWeb.hasRedLetterData('RVR1960')).toBe(false);
+    const native = require('../src/lib/reading/redLetterText');
+    expect(native.hasRedLetterData('RVR1960')).toBe(true);
+  });
+
+  it('reports no data for a version that has none', () => {
+    expect(redLetterTextWeb.hasRedLetterData('KJV')).toBe(false);
+  });
+
+  it('answers before the pack is fetched, and still answers after a failed fetch', async () => {
+    // Availability is a property of the VERSION, not of load state. An
+    // implementation keyed off redLetterByKey (null before load, an EMPTY
+    // Map after a failed one) would answer false in both moments here, and
+    // the sheet's red-letter switch would flip from disabled to enabled a
+    // beat after opening.
+    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
+    expect(global.fetch).not.toHaveBeenCalled();
+
+    mockFetchOnce({ok: false, status: 404});
+    await redLetterTextWeb.loadRedLetterSpans();
+
+    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toBeUndefined();
+    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
+  });
+});

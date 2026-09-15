@@ -88,6 +88,43 @@ export async function loadRedLetterSpans(): Promise<void> {
   return loadPromise;
 }
 
+/**
+ * Versions with real red-letter data ON WEB. Native's counterpart map
+ * (redLetterText.ts) has two entries, `WEB` and `RVR1960`; this build has
+ * only one, and that is not an oversight: `scripts/build-web-packs.js`
+ * emits a single pack, web-red-letter.json, built from WEB_RED_LETTER, and
+ * `loadRedLetterSpans` above fetches exactly that one file. RVR1960's
+ * red-letter array is native-only, so on web that version genuinely has no
+ * data — which is also why the web reader gates its own rendering on
+ * `selectedVersion.id === 'WEB'`
+ * (app/(tabs)/verse/[book]/[chapter].web.tsx:110).
+ */
+const RED_LETTER_VERSIONS: ReadonlySet<string> = new Set(['WEB']);
+
+/**
+ * Whether `versionId` has real red-letter data — the web port of
+ * redLetterText.ts's `hasRedLetterData`.
+ *
+ * R9-13: this export is NOT optional. `ReaderPreferencesSheet.tsx` imports
+ * the BARE specifier `@lib/reading/redLetterText`, which Metro resolves to
+ * THIS file in a web bundle, and calls it in the component body on every
+ * render. While this file did not export it the binding was `undefined` and
+ * the call threw `hasRedLetterData is not a function`, which the global
+ * ErrorBoundary turned into a whole-app web crash on both screens that
+ * render the sheet (the chapter reader and the dictionary entry). Neither
+ * gate could see it: `tsc` has no platform awareness and resolves the bare
+ * specifier to the native file, and jest runs a native preset.
+ *
+ * Deliberately synchronous and independent of `loadRedLetterSpans`:
+ * availability is a property of the VERSION, not of whether the pack has
+ * arrived yet. Answering "not available" while the fetch is in flight would
+ * make the sheet's red-letter switch flip from disabled to enabled a moment
+ * after opening.
+ */
+export function hasRedLetterData(versionId: string): boolean {
+  return RED_LETTER_VERSIONS.has(versionId);
+}
+
 export function getRedLetterSpans(
   bookNumber: number,
   chapter: number,

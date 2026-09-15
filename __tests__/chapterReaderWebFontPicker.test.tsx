@@ -38,11 +38,29 @@ jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn()},
 }));
 
+// Only the three DATA functions are stubbed; everything else on the module
+// is spread in from the REAL web file. That matters: a hand-written mock
+// object would silently define this module's export surface for the test,
+// so a symbol missing from the real web file (exactly R9-13) would be
+// invisible here — and, worse, would STAY invisible after the fix.
 jest.mock('@lib/reading/redLetterText.web', () => ({
+  ...jest.requireActual('@lib/reading/redLetterText.web'),
   getRedLetterSpans: jest.fn(() => []),
   mergeRedLetterSpans: jest.fn((text: string) => [{text, isRedLetter: false}]),
   loadRedLetterSpans: jest.fn(async () => undefined),
 }));
+// R9-15: the line above only covers the EXPLICIT `.web` specifier, which is
+// what this screen imports. But the screen also renders
+// `ReaderPreferencesSheet`, which imports the BARE specifier — and Metro
+// resolves THAT to redLetterText.web.ts too when bundling for web, while
+// jest's native preset resolves it to redLetterText.ts. Without this second
+// redirect the sheet runs against the NATIVE module inside a test whose
+// whole subject is the web screen, so any native/web export divergence
+// passes the gate green (it is precisely how R9-13 shipped). Same
+// substitution as webStubProviders.test.tsx:516-532.
+jest.mock('@lib/reading/redLetterText', () =>
+  require('@lib/reading/redLetterText.web'),
+);
 
 const SAMPLE_VERSE = {
   book: 'Juan',
