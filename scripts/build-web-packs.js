@@ -22,10 +22,18 @@
  * bootstrap instead reads a small, separate manifest generated alongside
  * these packs (see WEB_PACKS_JSON below).
  *
- * Also emits web-red-letter.json — the WEB-only "Words of Christ" (\wj) span
- * data from bible-data-web-redletter.ts, flattened to plain JSON and
- * verified span-by-span against the just-built web.sqlite text before being
- * written out.
+ * Also emits ONE red-letter JSON per reading version that has "Words of
+ * Christ" data — web-red-letter.json from bible-data-web-redletter.ts and
+ * rvr1960-red-letter.json from bible-data-rvr1960-redletter.ts — each
+ * flattened to plain JSON and verified span-by-span against ITS OWN
+ * just-built .sqlite before being written out. Verifying each against its
+ * own pack is the whole point: a span is a character offset into that
+ * version's verse text, so checking RVR1960 spans against web.sqlite would
+ * be meaningless.
+ *
+ * RVR1960 was missing here until 2026-09-15, which is why red-letter worked
+ * on web only in English: native reads both arrays straight from the bundle,
+ * but the web build fetches packs, and nobody emitted the Spanish one.
  *
  * Requires Node ≥ 22 (node:sqlite). Usage:
  *   node --experimental-sqlite scripts/build-web-packs.js [outDir]
@@ -133,7 +141,7 @@ function verifyPack(dbFile, expectCount) {
  * means a span would render as garbled/wrong-highlighted text for real
  * users, so this throws rather than warns.
  */
-function verifyRedLetterAlignment(entries, dbFile) {
+function verifyRedLetterAlignment(entries, dbFile, versionId) {
   const db = new DatabaseSync(dbFile, {readOnly: true});
   const stmt = db.prepare(
     'SELECT text FROM verses WHERE book_id=? AND chapter=? AND verse=?',
@@ -172,8 +180,9 @@ function verifyRedLetterAlignment(entries, dbFile) {
     );
   }
   console.log(
-    `  red-letter alignment: ${entries.length} entries, ${spanCount} spans, ` +
-      `ALL slices non-blank and in-range against ${path.basename(dbFile)}`,
+    `  ${versionId} red-letter alignment: ${entries.length} entries, ` +
+      `${spanCount} spans, ALL slices non-blank and in-range against ` +
+      path.basename(dbFile),
   );
   const jw = entries.find(
     e => e.book_id === 43 && e.chapter === 3 && e.verse === 16,
@@ -182,7 +191,7 @@ function verifyRedLetterAlignment(entries, dbFile) {
     const row = stmt.get(jw.book_id, jw.chapter, jw.verse);
     for (const [s, en] of jw.spans) {
       console.log(
-        `    John 3:16 red-letter span [${s},${en}) =`,
+        `    ${versionId} John 3:16 red-letter span [${s},${en}) =`,
         JSON.stringify(row.text.slice(s, en)),
       );
     }
@@ -236,29 +245,51 @@ function main() {
     });
   }
 
-  console.log('Building web-red-letter.json from bible-data-web-redletter.ts…');
-  const redLetterFile = path.join(
-    ROOT,
-    'src/lib/database/bible-data-web-redletter.ts',
-  );
-  const redLetterEntries = parseTsArray(redLetterFile);
-  const webDbFile = path.join(OUT, 'web.sqlite');
-  verifyRedLetterAlignment(redLetterEntries, webDbFile);
-  const redLetterJsonFile = path.join(OUT, 'web-red-letter.json');
-  fs.writeFileSync(redLetterJsonFile, JSON.stringify(redLetterEntries));
-  const redLetterBuf = fs.readFileSync(redLetterJsonFile);
-  const redLetterSha = crypto
-    .createHash('sha256')
-    .update(redLetterBuf)
-    .digest('hex');
-  const redLetterSpanCount = redLetterEntries.reduce(
-    (sum, e) => sum + e.spans.length,
-    0,
-  );
-  console.log(
-    `  red-letter: ${redLetterEntries.length} entries, ${redLetterSpanCount} ` +
-      `spans -> ${redLetterBuf.length} bytes, sha256 ${redLetterSha.slice(0, 16)}…`,
-  );
+  // One pack per version WITH red-letter data. Keep this list in sync with
+  // RED_LETTER_PACKS in src/lib/reading/redLetterText.web.ts (the filenames
+  // below are exactly what that module fetches) and with
+  // redLetterByVersion in src/lib/reading/redLetterText.ts (native). A
+  // version present in the native map and missing here reads red-letter-free
+  // on web while claiming otherwise — that was the RVR1960 bug.
+  const redLetterSpecs = [
+    {
+      versionId: 'WEB',
+      source: 'src/lib/database/bible-data-web-redletter.ts',
+      out: 'web-red-letter.json',
+    },
+    {
+      versionId: 'RVR1960',
+      source: 'src/lib/database/bible-data-rvr1960-redletter.ts',
+      out: 'rvr1960-red-letter.json',
+    },
+  ];
+
+  const redLetterManifest = [];
+  for (const rl of redLetterSpecs) {
+    console.log(`Building ${rl.out} from ${path.basename(rl.source)}…`);
+    const entries = parseTsArray(path.join(ROOT, rl.source));
+    // Against ITS OWN pack, never web.sqlite: spans are offsets into this
+    // version's text.
+    const ownDbFile = path.join(OUT, rl.versionId.toLowerCase() + '.sqlite');
+    verifyRedLetterAlignment(entries, ownDbFile, rl.versionId);
+    const jsonFile = path.join(OUT, rl.out);
+    fs.writeFileSync(jsonFile, JSON.stringify(entries));
+    const buf = fs.readFileSync(jsonFile);
+    const sha = crypto.createHash('sha256').update(buf).digest('hex');
+    const spanCount = entries.reduce((sum, e) => sum + e.spans.length, 0);
+    console.log(
+      `  ${rl.versionId} red-letter: ${entries.length} entries, ${spanCount} ` +
+        `spans -> ${buf.length} bytes, sha256 ${sha.slice(0, 16)}…`,
+    );
+    redLetterManifest.push({
+      versionId: rl.versionId,
+      file: rl.out,
+      bytes: buf.length,
+      sha256: sha,
+      entries: entries.length,
+      spans: spanCount,
+    });
+  }
 
   fs.writeFileSync(
     WEB_PACKS_JSON,
@@ -272,13 +303,10 @@ function main() {
           '(that catalog is also read by the native download-versions ' +
           'screen, which does not filter bundled versions).',
         packs: manifest,
-        redLetter: {
-          file: 'web-red-letter.json',
-          bytes: redLetterBuf.length,
-          sha256: redLetterSha,
-          entries: redLetterEntries.length,
-          spans: redLetterSpanCount,
-        },
+        // An ARRAY as of 2026-09-15 (was a single object, when only WEB had
+        // a pack). Nothing reads this field at runtime — data-loader.web.ts
+        // only reads `packs` and says so — so the shape change is safe.
+        redLetter: redLetterManifest,
       },
       null,
       2,
@@ -288,10 +316,10 @@ function main() {
   console.log('\nDone.');
   for (const s of specs)
     console.log(`  ${path.join(OUT, s.id.toLowerCase() + '.sqlite')}`);
-  console.log(`  ${redLetterJsonFile}`);
+  for (const rl of redLetterSpecs) console.log(`  ${path.join(OUT, rl.out)}`);
   console.log(`  ${WEB_PACKS_JSON} written`);
   console.log(
-    '  Upload the *.sqlite AND web-red-letter.json to the Pages repo under ' +
+    '  Upload the *.sqlite AND *-red-letter.json to the Pages repo under ' +
       '/packs/ (Victor — no gh CLI access from this session).',
   );
 }

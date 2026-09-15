@@ -130,7 +130,9 @@ describe('mergeRedLetterSpans (copied from redLetterText.ts — must behave iden
 
 describe('getRedLetterSpans / loadRedLetterSpans', () => {
   it('returns undefined before loadRedLetterSpans() has resolved', () => {
-    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toBeUndefined();
+    expect(
+      redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16),
+    ).toBeUndefined();
   });
 
   it('after a successful load, returns the right spans for a matching key and undefined for a non-matching one', async () => {
@@ -140,11 +142,15 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
     ];
     mockFetchOnce({ok: true, json: async () => fixture});
 
-    await redLetterTextWeb.loadRedLetterSpans();
+    await redLetterTextWeb.loadRedLetterSpans('WEB');
 
-    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toEqual([[0, 10]]);
-    expect(redLetterTextWeb.getRedLetterSpans(40, 5, 3)).toEqual([[2, 6]]);
-    expect(redLetterTextWeb.getRedLetterSpans(1, 1, 1)).toBeUndefined();
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16)).toEqual([
+      [0, 10],
+    ]);
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 40, 5, 3)).toEqual([
+      [2, 6],
+    ]);
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 1, 1, 1)).toBeUndefined();
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('web-red-letter.json'),
@@ -158,11 +164,13 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     await expect(
-      redLetterTextWeb.loadRedLetterSpans(),
+      redLetterTextWeb.loadRedLetterSpans('WEB'),
     ).resolves.toBeUndefined();
 
-    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toBeUndefined();
-    expect(redLetterTextWeb.getRedLetterSpans(1, 1, 1)).toBeUndefined();
+    expect(
+      redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16),
+    ).toBeUndefined();
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 1, 1, 1)).toBeUndefined();
     expect(warnSpy).toHaveBeenCalled();
   });
 
@@ -171,14 +179,16 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
 
     await expect(
-      redLetterTextWeb.loadRedLetterSpans(),
+      redLetterTextWeb.loadRedLetterSpans('WEB'),
     ).resolves.toBeUndefined();
 
-    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toBeUndefined();
+    expect(
+      redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16),
+    ).toBeUndefined();
     expect(warnSpy).toHaveBeenCalled();
   });
 
-  it('calling loadRedLetterSpans() twice concurrently only triggers ONE fetch call', async () => {
+  it('calling loadRedLetterSpans() twice concurrently for the SAME version only triggers ONE fetch call', async () => {
     let resolveJson: (value: unknown[]) => void;
     const jsonPromise = new Promise<unknown[]>(resolve => {
       resolveJson = resolve;
@@ -188,14 +198,16 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
       json: () => jsonPromise,
     });
 
-    const p1 = redLetterTextWeb.loadRedLetterSpans();
-    const p2 = redLetterTextWeb.loadRedLetterSpans();
+    const p1 = redLetterTextWeb.loadRedLetterSpans('WEB');
+    const p2 = redLetterTextWeb.loadRedLetterSpans('WEB');
 
     resolveJson!([{book_id: 43, chapter: 3, verse: 16, spans: [[0, 5]]}]);
     await Promise.all([p1, p2]);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toEqual([[0, 5]]);
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16)).toEqual([
+      [0, 5],
+    ]);
   });
 
   it('a subsequent call after a successful load resolves immediately without re-fetching', async () => {
@@ -204,10 +216,105 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
       json: async () => [{book_id: 43, chapter: 3, verse: 16, spans: [[0, 5]]}],
     });
 
-    await redLetterTextWeb.loadRedLetterSpans();
-    await redLetterTextWeb.loadRedLetterSpans();
+    await redLetterTextWeb.loadRedLetterSpans('WEB');
+    await redLetterTextWeb.loadRedLetterSpans('WEB');
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+/**
+ * Per-version packs. Until 2026-09-15 this module knew one pack,
+ * web-red-letter.json, so reading in Spanish on the web got no red letters at
+ * all while native had had RVR1960 spans since 2026-08-18.
+ *
+ * These are the assertions that would catch the two ways of getting it wrong:
+ * fetching the WRONG file for a version, and letting one version's spans
+ * answer for another. The second matters more than it looks — a span is a
+ * character offset into that translation's verse text, so serving WEB offsets
+ * over RVR1960 text would not render "nothing", it would render red on the
+ * wrong words.
+ */
+describe('one pack per version', () => {
+  it('fetches rvr1960-red-letter.json for RVR1960, not the WEB pack', async () => {
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 145]]},
+      ],
+    });
+
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    const url = (global.fetch as jest.Mock).mock.calls[0][0] as string;
+    expect(url).toContain('rvr1960-red-letter.json');
+    expect(url).not.toContain('web-red-letter.json');
+  });
+
+  it('keeps the two versions separate: WEB spans never answer for RVR1960', async () => {
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 130]]},
+      ],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('WEB');
+
+    // Same verse, different translation: still unknown, and asking for it
+    // fires its OWN fetch rather than reusing the WEB map.
+    expect(
+      redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16),
+    ).toBeUndefined();
+
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 145]]},
+      ],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    // The offsets differ because the sentences do — that IS the reason the
+    // maps must not be shared.
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16)).toEqual([
+      [0, 130],
+    ]);
+    expect(redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16)).toEqual([
+      [0, 145],
+    ]);
+  });
+
+  it('a failed load for one version does not poison the other', async () => {
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    mockFetchOnce({ok: false, status: 404});
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+    expect(
+      redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16),
+    ).toBeUndefined();
+
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 130]]},
+      ],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('WEB');
+
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16)).toEqual([
+      [0, 130],
+    ]);
+    expect(warnSpy).toHaveBeenCalled();
+  });
+
+  it('a version with no pack settles as empty WITHOUT fetching anything', async () => {
+    await redLetterTextWeb.loadRedLetterSpans('KJV');
+
+    expect(global.fetch).not.toHaveBeenCalled();
+    expect(
+      redLetterTextWeb.getRedLetterSpans('KJV', 43, 3, 16),
+    ).toBeUndefined();
   });
 });
 
@@ -224,38 +331,42 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
  * a revert would trip the first assertion and the rest would prove nothing.
  */
 describe('hasRedLetterData (web)', () => {
-  it('reports data for WEB, the one version whose pack this build fetches', () => {
-    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
-  });
-
-  it('reports NO data for RVR1960 on web, deliberately diverging from native', () => {
-    // Not an oversight and not a second bug: scripts/build-web-packs.js
-    // emits only web-red-letter.json, so RVR1960's red-letter array never
-    // reaches the web build. Asserted against the native module in the same
-    // breath so the divergence stays a decision someone made rather than
-    // something that quietly drifts.
-    expect(redLetterTextWeb.hasRedLetterData('RVR1960')).toBe(false);
+  it('agrees with the NATIVE module, version for version', () => {
+    // The parity that matters, and the one that broke twice: first because
+    // this file did not export the symbol at all (R9-13), then because it
+    // exported it with a shorter list than native's. Asserted against the
+    // real native module rather than a hardcoded list, so adding a version
+    // to one map and not the other fails here.
     const native = require('../src/lib/reading/redLetterText');
-    expect(native.hasRedLetterData('RVR1960')).toBe(true);
-  });
-
-  it('reports no data for a version that has none', () => {
+    for (const versionId of ['WEB', 'RVR1960', 'KJV', 'NVI']) {
+      expect([versionId, redLetterTextWeb.hasRedLetterData(versionId)]).toEqual(
+        [versionId, native.hasRedLetterData(versionId)],
+      );
+    }
+    // Control: the loop above would also pass if BOTH were false for
+    // everything, which is the failure mode it exists to catch.
+    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
+    expect(redLetterTextWeb.hasRedLetterData('RVR1960')).toBe(true);
     expect(redLetterTextWeb.hasRedLetterData('KJV')).toBe(false);
   });
 
   it('answers before the pack is fetched, and still answers after a failed fetch', async () => {
     // Availability is a property of the VERSION, not of load state. An
-    // implementation keyed off redLetterByKey (null before load, an EMPTY
+    // implementation keyed off the loaded map (absent before load, an EMPTY
     // Map after a failed one) would answer false in both moments here, and
     // the sheet's red-letter switch would flip from disabled to enabled a
     // beat after opening.
-    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
+    expect(redLetterTextWeb.hasRedLetterData('RVR1960')).toBe(true);
     expect(global.fetch).not.toHaveBeenCalled();
 
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
     mockFetchOnce({ok: false, status: 404});
-    await redLetterTextWeb.loadRedLetterSpans();
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
 
-    expect(redLetterTextWeb.getRedLetterSpans(43, 3, 16)).toBeUndefined();
-    expect(redLetterTextWeb.hasRedLetterData('WEB')).toBe(true);
+    expect(
+      redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16),
+    ).toBeUndefined();
+    expect(redLetterTextWeb.hasRedLetterData('RVR1960')).toBe(true);
+    expect(warnSpy).toHaveBeenCalled();
   });
 });

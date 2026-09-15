@@ -41,6 +41,7 @@ import {
   getRedLetterSpans,
   mergeRedLetterSpans,
   loadRedLetterSpans,
+  hasRedLetterData,
 } from '@lib/reading/redLetterText.web';
 
 /**
@@ -104,22 +105,35 @@ export default function ChapterReaderWeb() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
 
-  // Red-letter (Words of Christ) is WEB-version-only, exactly like the
-  // native reader — gated on both the user's toggle and the active version.
+  // Red-letter (Words of Christ) — gated on the user's toggle and on the
+  // active version actually HAVING data, asked of the module rather than
+  // hardcoded. This used to read `selectedVersion.id === 'WEB'`, which was
+  // correct only while web shipped a single red-letter pack; now that
+  // RVR1960 has one too, hardcoding it would keep the feature dead in
+  // Spanish. Same source of truth the preferences sheet uses to enable or
+  // grey out the switch, so the two can no longer disagree.
   const redLetterActive =
-    preferences.redLetterWords && selectedVersion.id === 'WEB';
+    preferences.redLetterWords && hasRedLetterData(selectedVersion.id);
   const [redLetterLoaded, setRedLetterLoaded] = useState(false);
 
   useEffect(() => {
     if (!redLetterActive) return;
     let cancelled = false;
-    loadRedLetterSpans().then(() => {
+    // `redLetterLoaded` is reset to false first because the version can
+    // change under us (switching the UI language switches the reading
+    // version — useBibleVersion.tsx): leaving it true would let the render
+    // below look up the NEW version's spans in a map that has not loaded
+    // yet, and, worse, a stale true across a switch would briefly pair one
+    // version's text with the other's offsets.
+    setRedLetterLoaded(false);
+    const versionId = selectedVersion.id;
+    loadRedLetterSpans(versionId).then(() => {
       if (!cancelled) setRedLetterLoaded(true);
     });
     return () => {
       cancelled = true;
     };
-  }, [redLetterActive]);
+  }, [redLetterActive, selectedVersion.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -262,14 +276,21 @@ export default function ChapterReaderWeb() {
             </Text>
           ) : (
             verses.map(v => {
-              // Red-letter (Words of Christ, WEB-only): gated on
-              // redLetterLoaded so we skip the lookup entirely until the
-              // async span data has resolved — before then (or when the
-              // toggle/version don't qualify) this falls through to the
-              // plain {v.text} below, identical to pre-red-letter behavior.
+              // Red-letter (Words of Christ): gated on redLetterLoaded so
+              // we skip the lookup entirely until the async span data has
+              // resolved — before then (or when the toggle/version don't
+              // qualify) this falls through to the plain {v.text} below,
+              // identical to pre-red-letter behavior. The versionId
+              // argument is what keeps offsets and text from different
+              // translations from ever meeting.
               const spans =
                 redLetterActive && redLetterLoaded
-                  ? getRedLetterSpans(bookInfo.id, chapter, v.verse)
+                  ? getRedLetterSpans(
+                      selectedVersion.id,
+                      bookInfo.id,
+                      chapter,
+                      v.verse,
+                    )
                   : undefined;
               // No reference-linkification on this screen, so the whole
               // verse is one implicit plain (ref-less) segment for

@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "generated": "2026-09-01",
+  "generated": "2026-09-15",
   "note": "Web-only bootstrap packs (RVR1960 + WEB), byte-identical to the native bundled seed. NOT part of web/packs/versions.json (that catalog is also read by the native download-versions screen, which does not filter bundled versions).",
   "packs": [
     {
@@ -18,11 +18,22 @@
       "verseCount": 31098
     }
   ],
-  "redLetter": {
-    "file": "web-red-letter.json",
-    "bytes": 116209,
-    "sha256": "9ea0c1dbb1610852b0cfe0f0c12b1cb0399b753c865109bd97e04c592608281b",
-    "entries": 2059,
-    "spans": 2077
-  }
+  "redLetter": [
+    {
+      "versionId": "WEB",
+      "file": "web-red-letter.json",
+      "bytes": 116209,
+      "sha256": "9ea0c1dbb1610852b0cfe0f0c12b1cb0399b753c865109bd97e04c592608281b",
+      "entries": 2059,
+      "spans": 2077
+    },
+    {
+      "versionId": "RVR1960",
+      "file": "rvr1960-red-letter.json",
+      "bytes": 116056,
+      "sha256": "97ebc636c26ac378d56c93941eb7c5a2ffc9b188efe36c1818867addf6eb392f",
+      "entries": 2057,
+      "spans": 2077
+    }
+  ]
 }
