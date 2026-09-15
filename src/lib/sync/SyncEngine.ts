@@ -408,6 +408,7 @@ export class SyncEngine {
       deletedAt: null,
     };
     this.upsertQueueEntry({
+      uid: this.uid,
       collection,
       id,
       data: entity,
@@ -432,6 +433,7 @@ export class SyncEngine {
       deletedAt: Date.now(),
     };
     this.upsertQueueEntry({
+      uid: this.uid,
       collection,
       id,
       data: tombstone,
@@ -460,6 +462,7 @@ export class SyncEngine {
 
   private async hydrateQueue(): Promise<void> {
     if (this.queueHydrated) return;
+    let droppedOnHydrate = false;
     try {
       const raw = await AsyncStorage.getItem(QUEUE_STORAGE_KEY);
       if (raw) {
@@ -467,14 +470,36 @@ export class SyncEngine {
         if (Array.isArray(parsed)) {
           // Defensive filter — drop anything that doesn't look like a
           // PendingWrite. A malformed entry would block the flush loop.
+          const before = parsed.length;
           this.queue = parsed.filter(
             (e): e is PendingWrite =>
               e &&
+              // R9-22 — an entry with no `uid` predates ownership tracking,
+              // so there is no way to tell whose it is. Dropping it is the
+              // conservative read: the local change it represents is already
+              // applied locally and is NOT lost, whereas pushing it could
+              // write one account's data into another's cloud (and a parked
+              // tombstone could delete a row on all of that account's
+              // devices). Only ever affects writes that were still unflushed
+              // across the upgrade.
+              typeof e.uid === 'string' &&
               typeof e.collection === 'string' &&
               typeof e.id === 'string' &&
               e.data &&
               typeof e.data === 'object',
           );
+          if (this.queue.length < before) {
+            logger.info(
+              'SyncEngine: dropped pre-R9-22 queue entries with no owner uid',
+              {
+                component: 'SyncEngine',
+                dropped: before - this.queue.length,
+              },
+            );
+            // Write the cleaned queue back, or the dropped entries sit on
+            // disk forever and get re-filtered on every single launch.
+            droppedOnHydrate = true;
+          }
         }
       }
     } catch (err) {
@@ -484,8 +509,9 @@ export class SyncEngine {
       });
     } finally {
       this.queueHydrated = true;
-      this.updateState({pendingWrites: this.queue.length});
+      this.updateState({pendingWrites: this.pendingForActiveUid()});
     }
+    if (droppedOnHydrate) await this.persistQueue();
   }
 
   private async persistQueue(): Promise<void> {
@@ -499,9 +525,31 @@ export class SyncEngine {
     }
   }
 
+  /**
+   * How many queued writes belong to the account signed in RIGHT NOW.
+   *
+   * R9-22 — the raw queue can also hold a previous user's parked entries,
+   * which will never be pushed under this uid. Counting those would leave
+   * Settings reporting "N pendientes" for a user who has nothing pending and
+   * can do nothing about it, and the engine would never report a clean
+   * "sincronizado" again.
+   */
+  private pendingForActiveUid(): number {
+    const activeUid = this.uid;
+    if (!activeUid) return 0;
+    return this.queue.reduce((n, q) => (q.uid === activeUid ? n + 1 : n), 0);
+  }
+
   private upsertQueueEntry(entry: PendingWrite): void {
+    // R9-22 — the dedupe key includes the uid. Two accounts on one phone can
+    // legitimately hold a pending write for the SAME (collection, id): the
+    // memoryCards id is the verseKey and the highlights id is the verseId,
+    // both stable across users, so Juan 3:16 collides between Ana and Beto.
     const idx = this.queue.findIndex(
-      e => e.collection === entry.collection && e.id === entry.id,
+      e =>
+        e.uid === entry.uid &&
+        e.collection === entry.collection &&
+        e.id === entry.id,
     );
     if (idx >= 0) {
       // Replace existing pending write — newer wins.
@@ -509,7 +557,7 @@ export class SyncEngine {
     } else {
       this.queue.push(entry);
     }
-    this.updateState({pendingWrites: this.queue.length});
+    this.updateState({pendingWrites: this.pendingForActiveUid()});
     void this.persistQueue();
   }
 
@@ -1226,6 +1274,7 @@ export class SyncEngine {
         const rows = await adapter.pullAllLocal();
         for (const row of rows) {
           this.upsertQueueEntry({
+            uid,
             collection: adapter.collection,
             id: row.id,
             // Cast: SyncEntity<unknown> is structurally a SyncEntity<object>
@@ -1291,17 +1340,30 @@ export class SyncEngine {
     try {
       // Snapshot the current queue — flushes that come in mid-loop will
       // be picked up on the next call.
-      const items = [...this.queue];
+      //
+      // R9-22 — ONLY this account's entries. A previous user's unflushed
+      // writes stay parked in the queue until that user signs back in;
+      // draining them here would write their data into whoever is signed in
+      // now, and for the natural-key adapters (memoryCards on the verseKey,
+      // highlights on the verseId) a parked tombstone would delete the
+      // current user's row on every device they own.
+      const activeUid = this.uid;
+      const items = this.queue.filter(q => q.uid === activeUid);
       for (const item of items) {
         try {
           await this.pushOne(fn, item);
           // Success — remove from queue (by reference match on
           // collection+id, the only stable key).
           this.queue = this.queue.filter(
-            q => !(q.collection === item.collection && q.id === item.id),
+            q =>
+              !(
+                q.uid === item.uid &&
+                q.collection === item.collection &&
+                q.id === item.id
+              ),
           );
           this.updateState({
-            pendingWrites: this.queue.length,
+            pendingWrites: this.pendingForActiveUid(),
             lastSyncedAt: Date.now(),
             lastError: null,
           });
@@ -1310,7 +1372,10 @@ export class SyncEngine {
           // Increment attempts; drop only after MAX_RETRY_ATTEMPTS so
           // a poisoned entry can't block the queue forever.
           const idx = this.queue.findIndex(
-            q => q.collection === item.collection && q.id === item.id,
+            q =>
+              q.uid === item.uid &&
+              q.collection === item.collection &&
+              q.id === item.id,
           );
           if (idx >= 0) {
             this.queue[idx] = {
@@ -1332,7 +1397,7 @@ export class SyncEngine {
             }
           }
           this.updateState({
-            pendingWrites: this.queue.length,
+            pendingWrites: this.pendingForActiveUid(),
             lastError: err instanceof Error ? err.message : String(err),
           });
           // Stop the flush — likely network problem, NetInfo or a later
@@ -1354,9 +1419,15 @@ export class SyncEngine {
     // non-empty queue here is genuinely-new work — drain it now instead of
     // waiting for the next NetInfo event / queueWrite / periodic tick. We do
     // NOT re-flush after an error (erroredOut) to avoid a hot retry loop.
+    //
+    // R9-22 — this MUST count only the active uid's entries. The queue can
+    // also hold a previous user's parked writes, which this flush will never
+    // drain; testing `this.queue.length` would see a permanently non-empty
+    // queue, conclude "genuinely-new work" and re-enter flush() forever —
+    // a hot spin for as long as the app is open.
     if (
       !erroredOut &&
-      this.queue.length > 0 &&
+      this.pendingForActiveUid() > 0 &&
       this.uid &&
       this.state.isOnline
     ) {

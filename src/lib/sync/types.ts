@@ -96,6 +96,21 @@ export interface SyncAdapter<T = unknown> {
 
 /** A pending write the engine is trying to push to Firestore. */
 export interface PendingWrite {
+  /**
+   * R9-22 — WHOSE write this is. The persisted queue deliberately survives
+   * `stop()`, but it used to carry no owner, and `pushOne` writes against
+   * whatever uid is active NOW: everything Ana queued offline drained into
+   * Beto's cloud the moment he signed into the same phone. Worse for the
+   * adapters keyed on a natural id that is stable ACROSS users
+   * (`memoryCards` on the verseKey, `highlights` on the verseId) — Ana's
+   * tombstone deleted Beto's card on every device he owns.
+   *
+   * The cursors (`cursorStorageKey`) and the bulk-push flag were already
+   * uid-scoped; the queue was the one piece of persisted sync state that
+   * wasn't. An entry is only ever pushed while its `uid` is the active one,
+   * so Ana's unflushed work simply waits for Ana to come back.
+   */
+  uid: string;
   collection: string;
   id: string;
   /** The full doc to write (includes updatedAt + optional deleted).

@@ -689,18 +689,19 @@ describe('offline behavior', () => {
 });
 
 describe('queue persistence', () => {
+  const persistedEntry = (uid: string, id: string) => ({
+    uid,
+    collection: 'test',
+    id,
+    data: {value: 'from-disk', updatedAt: 1, deleted: false},
+    queuedAt: 0,
+    attempts: 0,
+  });
+
   it('hydrates a previously persisted queue on start', async () => {
     await AsyncStorage.setItem(
       '@sync_queue_v1',
-      JSON.stringify([
-        {
-          collection: 'test',
-          id: 'persisted',
-          data: {value: 'from-disk', updatedAt: 1, deleted: false},
-          queuedAt: 0,
-          attempts: 0,
-        },
-      ]),
+      JSON.stringify([persistedEntry('uid-persist', 'persisted')]),
     );
     const engine = new SyncEngine();
     const {adapter} = makeAdapter();
@@ -709,6 +710,105 @@ describe('queue persistence', () => {
     await flush();
     await engine.__flushForTests();
     expect(mockDocSets.some(d => d.id === 'persisted')).toBe(true);
+  });
+
+  it('R9-22 — never drains a PREVIOUS user’s queue into the account signed in now', async () => {
+    // Ana queued offline, then signed out; Beto signs into the same phone.
+    await AsyncStorage.setItem(
+      '@sync_queue_v1',
+      JSON.stringify([persistedEntry('uid-ana', 'juan-3-16')]),
+    );
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-beto');
+    await flush();
+    await engine.__flushForTests();
+    // Pre-fix `pushOne` wrote it against whatever uid was active NOW, so
+    // Ana's write landed under users/uid-beto — and for the natural-key
+    // adapters a parked tombstone deleted Beto's row on all his devices.
+    expect(mockDocSets).toHaveLength(0);
+    // …and Beto isn't told he has work pending that he can't resolve.
+    expect(engine.getState().pendingWrites).toBe(0);
+  });
+
+  it('R9-22 — Ana’s parked write survives and flushes when Ana returns', async () => {
+    await AsyncStorage.setItem(
+      '@sync_queue_v1',
+      JSON.stringify([persistedEntry('uid-ana', 'juan-3-16')]),
+    );
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-beto');
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(0);
+
+    // Beto signs out, Ana signs back in on the same phone.
+    engine.stop();
+    await engine.start('uid-ana');
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(1);
+    expect(mockDocSets[0].path).toContain('uid-ana');
+    expect(mockDocSets[0].id).toBe('juan-3-16');
+  });
+
+  it('R9-22 — two accounts can hold a pending write for the SAME natural-key id', async () => {
+    // memoryCards key on the verseKey and highlights on the verseId, both
+    // stable across users — so the dedupe key has to include the uid or one
+    // account's write silently replaces the other's in the queue.
+    await AsyncStorage.setItem(
+      '@sync_queue_v1',
+      JSON.stringify([
+        persistedEntry('uid-ana', 'Juan/3/16'),
+        persistedEntry('uid-beto', 'Juan/3/16'),
+      ]),
+    );
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-beto');
+    await flush();
+    await engine.__flushForTests();
+    expect(mockDocSets).toHaveLength(1);
+    expect(mockDocSets[0].path).toContain('uid-beto');
+    // Ana's entry is untouched, still parked for her.
+    const raw = await AsyncStorage.getItem('@sync_queue_v1');
+    expect(JSON.parse(raw!)).toEqual([
+      expect.objectContaining({uid: 'uid-ana', id: 'Juan/3/16'}),
+    ]);
+  });
+
+  it('R9-22 — drops a pre-fix entry that carries no owner uid', async () => {
+    await AsyncStorage.setItem(
+      '@sync_queue_v1',
+      JSON.stringify([
+        {
+          collection: 'test',
+          id: 'legacy',
+          data: {value: 'from-disk', updatedAt: 1},
+          queuedAt: 0,
+          attempts: 0,
+        },
+      ]),
+    );
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-whoever');
+    await flush();
+    await engine.__flushForTests();
+    // There is no way to tell whose it was; the local change it represents
+    // is already applied locally and is not lost by dropping it.
+    expect(mockDocSets).toHaveLength(0);
+    // It must actually be GONE, not merely un-pushed: the flush-time owner
+    // filter would keep an un-droppable entry parked in the queue forever,
+    // which is what this assertion distinguishes.
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+    const raw = await AsyncStorage.getItem('@sync_queue_v1');
+    expect(JSON.parse(raw!)).toEqual([]);
   });
 });
 
