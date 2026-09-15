@@ -23,17 +23,30 @@
  *     reachable through the EXPLICIT `.web` specifier, which native code
  *     never writes.
  *
- * This reads SOURCE TEXT rather than requiring the modules, and that is the
- * point: half these files are screens whose import graph pulls in native-only
+ * This PARSES the sources rather than requiring them, and that is the point:
+ * half these files are screens whose import graph pulls in native-only
  * dependencies, so a require-based check would need a wall of mocks per pair
- * and would rot. The tradeoff is that it only understands the export forms
- * these files actually use — `export [async] function|const|class|enum|
- * interface|type` and `export default`. Verified at the time of writing that
- * no pair uses `export {x} from` or `export *`; if one starts to, teach the
- * scanner about it rather than deleting the case.
+ * and would rot. Parsing costs nothing at runtime — `ts.createSourceFile`
+ * builds a syntax tree without type-checking, resolving a module, or
+ * executing a line.
+ *
+ * R9-67: this used to be a regex scan over the raw text, and that scan was
+ * blind in a way that mattered. `runtimeExports` only understood
+ * `export [async] function|const|let|class|enum`, so a file written as
+ * `function f() {}` + `export {f};` reported ZERO exports — and comparing
+ * against zero always passes. Reproduced against this very gate: declaring
+ * `hasRedLetterData` in redLetterText.ts with a trailing `export {…}` while
+ * redLetterText.web.ts did not export it at all — R9-13, verbatim — left the
+ * suite green at 30/30. The header said "verified that no pair uses
+ * `export {x} from` or `export *`; if one starts to, teach the scanner" but
+ * nothing DETECTED the day one started to, so the promise had no enforcement
+ * behind it. The AST removes the blind spot for every form it can resolve,
+ * and `unresolvableExports` below fails loudly for the one form it cannot
+ * (`export *`, whose names are only knowable by following the re-export).
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const SEARCH_ROOTS = ['src', 'app'];
@@ -68,17 +81,131 @@ function repoRelative(absolute: string): string {
   return path.relative(REPO_ROOT, absolute).split(path.sep).join('/');
 }
 
-/** Named exports that still exist at runtime — `interface`/`type` are erased. */
-function runtimeExports(source: string): Set<string> {
-  const found = new Set<string>();
-  const re = /^export\s+(?:async\s+)?(function|const|let|class|enum)\s+(\w+)/gm;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(source)) !== null) found.add(match[2]);
-  return found;
+interface ExportSurface {
+  /** Named exports that still exist at runtime — `interface`/`type` are erased. */
+  runtime: Set<string>;
+  hasDefault: boolean;
+  /**
+   * Export forms whose names cannot be known without following the
+   * re-export (`export * from './x'`). Reported rather than ignored: an
+   * unreadable export is exactly as dangerous as a missing one, because the
+   * comparison silently weakens instead of failing.
+   */
+  unresolvable: string[];
 }
 
-function hasDefaultExport(source: string): boolean {
-  return /^export\s+default\b/m.test(source);
+function isExported(node: ts.Node): boolean {
+  return (
+    ts.canHaveModifiers(node) &&
+    !!ts.getModifiers(node)?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)
+  );
+}
+
+function isDefault(node: ts.Node): boolean {
+  return (
+    ts.canHaveModifiers(node) &&
+    !!ts.getModifiers(node)?.some(m => m.kind === ts.SyntaxKind.DefaultKeyword)
+  );
+}
+
+/** Every binding a declaration introduces, destructuring patterns included. */
+function bindingNames(name: ts.BindingName, out: string[] = []): string[] {
+  if (ts.isIdentifier(name)) {
+    out.push(name.text);
+  } else {
+    for (const element of name.elements) {
+      if (ts.isBindingElement(element)) bindingNames(element.name, out);
+    }
+  }
+  return out;
+}
+
+function exportSurface(file: string, source: string): ExportSurface {
+  const sourceFile = ts.createSourceFile(
+    file,
+    source,
+    ts.ScriptTarget.Latest,
+    /* setParentNodes */ true,
+    file.endsWith('.tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  );
+  const runtime = new Set<string>();
+  const unresolvable: string[] = [];
+  let hasDefault = false;
+  const describe = (node: ts.Node): string =>
+    node.getText(sourceFile).slice(0, 80).split('\n')[0].trim();
+
+  for (const statement of sourceFile.statements) {
+    // `export default <expr>` and `export = <expr>`.
+    if (ts.isExportAssignment(statement)) {
+      hasDefault = true;
+      continue;
+    }
+
+    // `export {a, b as c}` / `export {a} from './x'` / `export * from './x'`.
+    if (ts.isExportDeclaration(statement)) {
+      if (statement.isTypeOnly) continue; // `export type {…}` — erased.
+      if (!statement.exportClause) {
+        unresolvable.push(describe(statement));
+        continue;
+      }
+      if (ts.isNamespaceExport(statement.exportClause)) {
+        // `export * as ns from './x'` — one runtime binding, and it is named.
+        runtime.add(statement.exportClause.name.text);
+        continue;
+      }
+      for (const element of statement.exportClause.elements) {
+        if (element.isTypeOnly) continue; // `export {type Foo}` — erased.
+        if (element.name.text === 'default') hasDefault = true;
+        else runtime.add(element.name.text);
+      }
+      continue;
+    }
+
+    if (!isExported(statement)) continue;
+
+    // Types are erased at compile time, so they cannot produce the runtime
+    // `X is not a function` this gate exists to prevent.
+    if (
+      ts.isInterfaceDeclaration(statement) ||
+      ts.isTypeAliasDeclaration(statement)
+    ) {
+      continue;
+    }
+
+    if (ts.isVariableStatement(statement)) {
+      // `export const a = 1, b = 2` declares TWO bindings; the old regex saw
+      // only the first. Destructuring (`export const {a, b} = …`) it saw not
+      // at all.
+      for (const declaration of statement.declarationList.declarations) {
+        for (const name of bindingNames(declaration.name)) runtime.add(name);
+      }
+      continue;
+    }
+
+    if (
+      ts.isFunctionDeclaration(statement) ||
+      ts.isClassDeclaration(statement) ||
+      ts.isEnumDeclaration(statement) ||
+      ts.isModuleDeclaration(statement)
+    ) {
+      // `export default function foo()` binds as `default`, not as `foo`.
+      if (isDefault(statement)) hasDefault = true;
+      else if (statement.name && ts.isIdentifier(statement.name)) {
+        runtime.add(statement.name.text);
+      } else {
+        unresolvable.push(describe(statement));
+      }
+      continue;
+    }
+
+    unresolvable.push(describe(statement));
+  }
+
+  return {runtime, hasDefault, unresolvable};
+}
+
+function surfaceOf(absoluteFile: string): ExportSurface {
+  return exportSurface(absoluteFile, fs.readFileSync(absoluteFile, 'utf8'));
 }
 
 function nativeSiblingOf(webFile: string): string | null {
@@ -112,24 +239,43 @@ describe('web/native module surface parity', () => {
     (_label, webFile) => {
       const nativeFile = nativeSiblingOf(webFile as string);
       if (!nativeFile) return; // reported by the case above
-      const nativeSource = fs.readFileSync(nativeFile, 'utf8');
-      const webSource = fs.readFileSync(webFile as string, 'utf8');
+      const native = surfaceOf(nativeFile);
+      const web = surfaceOf(webFile as string);
 
       const allowed = new Set(
         ALLOWED_NATIVE_ONLY[repoRelative(nativeFile)] ?? [],
       );
-      const webNames = runtimeExports(webSource);
-      const missing = [...runtimeExports(nativeSource)]
-        .filter(name => !webNames.has(name))
+      const missing = [...native.runtime]
+        .filter(name => !web.runtime.has(name))
         .filter(name => !allowed.has(name));
 
       expect(missing).toEqual([]);
 
-      if (hasDefaultExport(nativeSource)) {
-        expect(hasDefaultExport(webSource)).toBe(true);
+      if (native.hasDefault) {
+        expect(web.hasDefault).toBe(true);
       }
     },
   );
+
+  it.each(
+    webFiles.flatMap(f => {
+      const native = nativeSiblingOf(f);
+      return native
+        ? [
+            [repoRelative(f), f],
+            [repoRelative(native), native],
+          ]
+        : [[repoRelative(f), f]];
+    }),
+  )('%s uses only export forms this gate can read', (_label, file) => {
+    // R9-67: the case that makes the comparison above trustworthy. A form
+    // the scanner cannot resolve does not make it complain — it makes it
+    // compare against a SHORTER list and pass. `export * from './x'` is the
+    // one such form left, so it has to fail HERE, loudly, the day a pair
+    // starts using it. Teach the scanner (and delete this expectation's
+    // reason), never the reverse.
+    expect(surfaceOf(file as string).unresolvable).toEqual([]);
+  });
 
   it('has no stale entries in the native-only allowlist', () => {
     // An allowlist that outlives its reason stops being documentation and
@@ -137,7 +283,7 @@ describe('web/native module surface parity', () => {
     for (const [relative, names] of Object.entries(ALLOWED_NATIVE_ONLY)) {
       const absolute = path.join(REPO_ROOT, relative);
       expect(fs.existsSync(absolute)).toBe(true);
-      const exported = runtimeExports(fs.readFileSync(absolute, 'utf8'));
+      const exported = surfaceOf(absolute).runtime;
       for (const name of names) expect([...exported]).toContain(name);
     }
   });
