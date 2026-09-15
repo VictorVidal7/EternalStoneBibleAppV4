@@ -482,6 +482,48 @@ describe('applyRemoteChange — LWW', () => {
     expect(cursor).toBeNull();
   });
 
+  it('R9-46 — a skipped doc is not lost when a LATER doc in the same batch is newer', async () => {
+    // The withholding above only omits the skipped doc's own timestamp from
+    // the batch max. A transient per-doc SQLite failure (the R9-49 class:
+    // "database is locked" on one call, fine on the next) skips one doc
+    // while a newer sibling in the SAME batch still advances the cursor
+    // past it — and the next reattach's query floor filters it out for good.
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      async getLocal(id) {
+        if (id === 'doc-old') throw new Error('database is locked');
+        return localStore.get(id) ?? null;
+      },
+    });
+    engine.register(adapter);
+    await engine.start('uid');
+    const coll = mockCollections.get('users/uid/test')!;
+    (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire([
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-old',
+          exists: true,
+          data: () => ({value: 'never-applied', updatedAt: 1_000_000}),
+        },
+      },
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-new',
+          exists: true,
+          data: () => ({value: 'applied', updatedAt: 9_000_000}),
+        },
+      },
+    ]);
+    await flush();
+    const raw = await AsyncStorage.getItem('@sync_cursor_test:uid');
+    const floor = raw === null ? 0 : Number(raw) - CURSOR_SAFETY_MARGIN_MS;
+    // The next reattach queries updatedAt >= floor. If that floor is past
+    // doc-old, the change this device never took is gone forever.
+    expect(floor).toBeLessThanOrEqual(1_000_000);
+  });
+
   it('applies a remote change newer than local', async () => {
     const engine = new SyncEngine();
     const {adapter, localStore, remoteUpsertCalls} = makeAdapter();

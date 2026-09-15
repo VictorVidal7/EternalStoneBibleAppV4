@@ -707,6 +707,13 @@ export class SyncEngine {
     // CURSOR_SAFETY_MARGIN_MS comment for why "advance the cursor" and
     // "never lose a change" aren't in tension here.
     let maxSeenUpdatedAt = 0;
+    // R9-46 — the lowest `updatedAt` in THIS batch whose local state we could
+    // not establish. Omitting such a doc from `maxSeenUpdatedAt` is not
+    // enough on its own: the cursor is a single value for the whole batch, so
+    // a NEWER sibling that applied fine would drag the query floor past the
+    // skipped doc and the next reattach would never deliver it again. The
+    // final cursor is clamped below this.
+    let lowestUnappliedUpdatedAt = Number.POSITIVE_INFINITY;
     try {
       for (const change of changes) {
         // Decode the Firestore doc id back to the logical id (see toDocId):
@@ -732,9 +739,16 @@ export class SyncEngine {
         };
         const localKnown = await this.applyRemoteChange(adapter, remoteChange);
         if (!localKnown) {
-          // R9-46 — the doc was NOT applied. Skip the cursor fold below so
-          // the query floor never moves past a change this device never
-          // took; the next reattach redelivers it.
+          // R9-46 — the doc was NOT applied. Skip the cursor fold below AND
+          // hold the batch's cursor below this doc, so the query floor never
+          // moves past a change this device never took; the next reattach
+          // redelivers it.
+          if (
+            typeof remote.updatedAt === 'number' &&
+            remote.updatedAt < lowestUnappliedUpdatedAt
+          ) {
+            lowestUnappliedUpdatedAt = remote.updatedAt;
+          }
           continue;
         }
 
@@ -757,7 +771,16 @@ export class SyncEngine {
         }
       }
       if (maxSeenUpdatedAt > 0) {
-        await this.advanceCursor(adapter.collection, maxSeenUpdatedAt);
+        // R9-46 — never let the batch max carry the floor past a doc we
+        // skipped. `-1` keeps the skipped doc itself at/above the floor;
+        // with nothing skipped the min is a no-op (Infinity - 1).
+        const safeCursor = Math.min(
+          maxSeenUpdatedAt,
+          lowestUnappliedUpdatedAt - 1,
+        );
+        if (safeCursor > 0) {
+          await this.advanceCursor(adapter.collection, safeCursor);
+        }
       }
       this.updateState({lastSyncedAt: Date.now(), lastError: null});
     } catch (err) {
