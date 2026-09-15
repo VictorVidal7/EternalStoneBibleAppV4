@@ -10,6 +10,13 @@
 >
 > `main` está verde (`npm run validate` pasa), así que **cualquier fallo nuevo que esta
 > revisión haga aparecer es una regresión real.**
+>
+> **Sesión 7 (2026-09-14) fue de ARREGLOS, no de revisión** — la primera. Cerró **7 P0 de
+> pérdida irreversible de datos** en `fix/review-p0-perdida-datos` (`7f8e666`), cada uno con
+> prueba de regresión y con las tres compuertas en verde: `R9-27`, `R9-28`, `R9-44`, `R9-45`,
+> `R9-47`, `R9-49` y `R9-50`. Van marcados **✅ ARREGLADO** dentro de su propia entrada, que
+> se conserva íntegra a propósito: el diagnóstico es lo que explica por qué el arreglo es ese
+> y no otro. **Quedan 14 P0 abiertos.**
 
 ---
 
@@ -146,6 +153,7 @@
   **truthy**, así que se escribe `"{}"` y **la Mesa queda vacía**. Mesa, progreso por
   capítulo y logros **no tienen copia en la nube**: pérdida definitiva.
   Detalle: `detail/A7-backupservice.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): `degradedSections` viaja ahora DENTRO del archivo (`payload.meta.degradedSections`, aditivo dentro del formato v2 — sin bump de versión, para que un build viejo lo ignore en vez de rechazar el archivo), y el import trata una sección marcada como **desconocida**, no como vacía: se salta su borrado destructivo y la reporta en `failedSections`. Cubre las dos mitades del canal, la de SQLite y la de AsyncStorage.
 
 - **`R9-28` (A7, respaldo) — 🐛 ningún contexto se recarga tras el import y la UI no pide
   reiniciar: el estado en memoria reescribe encima de lo restaurado.** Severidad **alta**.
@@ -157,6 +165,7 @@
   dispara el `useEffect` de `:192-197` y persiste el mazo **anterior**. El mazo restaurado
   desaparece sin toast, sin error, sin log. Mismo patrón en `ReadingProgressContext`,
   preferencias de lector, tema y planes. Detalle: `detail/A7-backupservice.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que se suscriben los cuatro providers que podían **destruir** lo restaurado escribiendo su copia pre-import encima — mazo de memoria, los dos de progreso de lectura y preferencias del lector. Para lo que la señal no alcanza (pantallas ya montadas), Ajustes **sí** muestra ahora el aviso bloqueante de cerrar y reabrir que el docstring llevaba tiempo afirmando que existía.
 
 - **`R9-33` (A4, `SyncEngine`) — 🐛 no hay backoff: una escritura se descarta en silencio
   tras 8 intentos, y Ajustes dice «sincronizado».** Severidad **alta**.
@@ -280,6 +289,7 @@
   **Firestore conserva la vieja** → el teléfono la pierde, la nube la mantiene, un
   dispositivo nuevo la resucita. **Repro (sonda, 9/9):** `params[6]`/`params[7]` a `null` en
   la llamada literal de `:1504`. Detalle: `detail/A8-notas-subrayados.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): si el versículo ya tiene subrayado, recolorear es un `UPDATE` de solo color en vez de un `addHighlight` de 5 argumentos, así que la nota, la categoría y el `created_at` sobreviven. La mitad en la nube la cierra la raíz común con `R9-45`/`R9-50`.
 - **`R9-45` (A8, sync) — 🐛 una lápida en `highlights` nunca se limpia: volver a resaltar el
   MISMO versículo no llega jamás a los otros dispositivos.** Severidad **alta**. El adaptador
   usa el `verseId` como id de documento —**clave natural REUTILIZABLE**, decisión documentada
@@ -298,6 +308,7 @@
   subrayado **muy rápido** coalesce en la cola (`upsertQueueEntry`) y **no** dispara el bug;
   hace falta que el borrado alcance a subir. Deshacer rápido funciona, rehacer más tarde
   rompe. Detalle: `detail/A8-notas-subrayados.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): `queueWrite` —y el bulk push inicial— ponen ahora `deleted: false` / `deletedAt: null` **explícitos**. Era el único sitio de la app que podía limpiar una lápida, y no lo hacía nadie.
 - **`R9-46` (A8, sync) — 🐛 `notesSyncAdapter.getLocal` falla ABIERTO: si la BD aún no está
   lista, una copia remota VIEJA pisa la nota local más nueva.** Severidad **alta**.
   `adapters/notes.ts:50-56` es **el único de los 4 métodos del adaptador que NO llama
@@ -348,6 +359,7 @@
   de `setMapSectionNote` (`prepNotes.ts:162-165`) confirma el borrado: _"An edit that empties
   the last section drops the passage entry entirely."_ Detalle:
   `detail/A9-mesa-persistencia.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): `load()` tiene id de ejecución monótono y el re-lectura estrecha del `useFocusEffect` tiene cleanup, así que una carga vieja ya no aterriza; y `handleNoteBlur` no escribe una sección sin borrador (se acabó el `?? ''` que borraba) y archiva bajo la clave a la que pertenecen los borradores, no bajo `table.passageKey`. **Ojo:** la prueba automatizada cubre la consecuencia de BORRADO; la carrera del stepper en sí sigue pendiente de verificación en dispositivo (Modo C), porque react-test-renderer desmonta el árbol al re-renderizar una pantalla de ese tamaño.
 - **`R9-48` (A10, identidad) — 🐛 el log de repasos nunca se borra al cerrar sesión: el
   historial del usuario A se escribe dentro de la cuenta del usuario B y destruye su
   agregado.** Severidad **alta**. `AuthContext.tsx:471` (y `:572`) solo llama
@@ -394,6 +406,7 @@
   primero** bloquee el `DELETE` destructivo — pero los 4 getters hacen que un fallo genuino
   **se vea** como vacío legítimo, así que la distinción se derrota aguas arriba. Detalle:
   `detail/A11-progreso-rachas.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): los 4 getters aceptan `{strict: true}`, que solo usa el export — los llamadores de UI siguen degradando a `[]`, que es correcto para una instalación nueva. Con eso la bandera deja de ser inalcanzable y `R9-27` la hace llegar al archivo. El remate también: `recomputeReadingStreak` usa `MAX(longest_streak, ?)`, porque el récord de por vida solo puede subir.
 
 ---
 
@@ -542,6 +555,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   (sonda):** `{note: undefined, category: undefined}` →
   `UPDATE highlights SET updated_at = ? WHERE verse_id = ?`, sin tocar ningún dato. Detalle:
   `detail/A8-notas-subrayados.md`.
+  **✅ ARREGLADO en la sesión 7** (`7f8e666`): `updateHighlight` pasa a ser tri-estado (`undefined` = no tocar, `null` = borrar) y devuelve la entidad escrita; el editor manda `null`. Y la raíz de las tres: `withoutUndefined` → **`nullifyUndefined`**, que manda `null` explícito en vez de quitar la clave, porque bajo `{merge:true}` una clave ausente significa «conserva lo del servidor». Se conserva `{merge:true}` a propósito (protege un campo escrito por una versión más nueva en otro dispositivo), y `valuesEqual` ya equiparaba `null` y `undefined`, así que no aparecen conflictos fantasma.
 - **`R9-51` (A8, notas) — 🐛 dos dispositivos pueden crear DOS notas para el mismo versículo,
   y el lector solo alcanza una.** Severidad **media**. La tabla `notes`
   (`database/index.ts:521-532`) tiene **solo `id TEXT PRIMARY KEY`**, sin restricción sobre

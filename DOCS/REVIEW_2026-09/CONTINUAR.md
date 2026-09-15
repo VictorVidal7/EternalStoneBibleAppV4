@@ -1,7 +1,8 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-14, fin de la sesión 6.** Actualiza este archivo al
-> cerrar cada sesión (es parte del checkpoint, igual que `INDEX.md`).
+> **Última actualización: 2026-09-14, fin de la sesión 7 (la primera de ARREGLOS).**
+> Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
+> `INDEX.md`).
 >
 > Este archivo es corto a propósito: su único trabajo es arrancar un chat nuevo sin que
 > tenga que re-derivar nada. El **programa** está en
@@ -11,9 +12,14 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. El árbol está limpio y todo está commiteado.** A diferencia de la sesión 5, esta vez
-sí se respaldó: `main` = `origin/main`, sin nada suelto. Si `git status` sale sucio, es algo
-tuyo, no herencia.
+**1. Hay una rama de arreglos SIN MERGEAR: `fix/review-p0-perdida-datos` (`7f8e666`).**
+Es lo primero que tienes que mirar. La sesión 7 cerró ahí **7 P0 de pérdida irreversible de
+datos** con los gates en verde, pero **Victor todavía no la ha mergeado ni desplegado**. El
+árbol está limpio y todo commiteado; si `git status` sale sucio, es algo tuyo, no herencia.
+
+**Quedan 14 P0 abiertos, no 21.** Cerrados en código: `R9-27`, `R9-28`, `R9-44`, `R9-45`,
+`R9-47`, `R9-49`, `R9-50` — van marcados **✅ ARREGLADO** dentro de su entrada de `BUGS.md`,
+que se conserva entera a propósito. **No los vuelvas a atacar.**
 
 **2. Los 6 P0 nuevos (`R9-44`..`R9-49`) YA ESTÁN RE-VERIFICADOS a mano, y los 6 se
 sostienen.** Se hizo en la segunda mitad de la sesión 6. Salieron **3 correcciones y 2
@@ -24,8 +30,9 @@ efecto gated por auth, no de orden de montaje. Lo cierto y peor es que **no hay 
 garantizado** entre la BD y el motor, y la ventana es **más ancha en una reinstalación**,
 que es justo cuando bajan las notas. Es el caso de manual de por qué existe la regla de §5.
 
-**Lo que SIGUE sin re-verificar son los P1 y P2 (`R9-50`..`R9-64`).** Menos urgente, pero
-si vas a arreglar alguno, verificalo primero.
+**Lo que SIGUE sin re-verificar son los P1 y P2 (`R9-51`..`R9-64`).** Menos urgente, pero
+si vas a arreglar alguno, verificalo primero. (`R9-50` ya no está en esa lista: la sesión 7
+lo verificó contra el código y lo arregló con los otros dos de su raíz.)
 
 **3. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
 con **3 hilos abiertos y verificados por `grep`, pero sin escenario de fallo alcanzable**,
@@ -43,16 +50,15 @@ Elegí **uno**:
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí.
 
-**(b) Empezar a arreglar** — con **21 P0** abiertos es lo más defendible que hay, y es una
-sesión de **otro** protocolo: sí se toca código de la app, con rama y gates, al revés que la
-revisión:
+**(b) Seguir arreglando** — con **14 P0** todavía abiertos sigue siendo lo más defendible
+que hay, y es una sesión de **otro** protocolo: sí se toca código de la app, con rama y
+gates, al revés que la revisión:
 
-> Quiero arreglar los bugs P0 que encontró la revisión profunda, no seguir revisando.
+> Quiero seguir arreglando los P0 que encontró la revisión profunda, no revisar.
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` para el contexto y `DOCS/REVIEW_2026-09/BUGS.md`
-> para los hallazgos. Los 6 P0 de la sesión 6 ya están re-verificados; los P1/P2 no, así que
-> verificá el que vayas a tocar antes de tocarlo. Proponé un orden de ataque y arrancá por el
-> primero. Ojo: esta sesión SÍ toca código de la app, así que va en rama con los gates en
-> verde — no aplica el "solo revisar y reportar" del charter.
+> para los hallazgos (los que ya están ✅ ARREGLADO no se tocan). Ahora toca la mezcla entre
+> cuentas: `R9-22`, `R9-23` y `R9-48`. Verificá cada uno antes de tocarlo. Esta sesión SÍ
+> toca código, así que va en rama con los gates en verde.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
@@ -76,7 +82,8 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
      `R9-7` ya está RESUELTO (`af64ce1`).
    - **`R9-9`..`R9-39` y `R9-44`..`R9-64` SÍ son bugs reales, 21 de ellos P0** — dinero,
      identidad, fuga entre cuentas y pérdida de datos. Léelos antes de tocar nada de premium,
-     auth, sync, respaldo, notas, la Mesa, memoria o rachas.
+     auth, sync, respaldo, notas, la Mesa, memoria o rachas. **7 de esos P0 ya están
+     ARREGLADOS** por la sesión 7 (marcados ✅ en su entrada), así que los abiertos son 14.
    - `R9-40`..`R9-43` son los **reportes de campo de Victor** (sesión 5), ninguno P0.
    - **Matiz sobre `R9-13`** (el crash del lector web): está en `main` pero **NO en
      producción** — el último deploy web es 5 días anterior a la regresión. Es **bloqueante
@@ -97,34 +104,41 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-`main` = `origin/main`, **árbol limpio**, 6 ramas locales (`main`, `audio/tts-caps-hyphen`,
-`audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`, `feature/red-letter-web`,
-`research/a4-chico-spanish-availability`). Si no coincide, dilo antes de empezar.
+**Ojo: ahora hay 7 ramas locales, no 6.** La séptima es
+**`fix/review-p0-perdida-datos`**, la de la sesión 7, **sin mergear**. Las otras 6: `main`,
+`audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`,
+`feature/red-letter-web`, `research/a4-chico-spanish-availability`. `main` = `origin/main`,
+árbol limpio. Si no coincide, dilo antes de empezar.
 
 La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a76c` → `b5a9afa` →
 `6ac10e3` → `894deb5` → `4e45f69` → **`f791749`** (sesión 6: `A4` y los reportes de campo de
 las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`) → **`c184a1c`**
-(la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso).
+(la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
+→ `63f124c`.
+
+Los **arreglos** van aparte, fuera de `main`: **`7f8e666`** en `fix/review-p0-perdida-datos`.
 
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
 **Cerradas: 17** (todo el Modo B P0 + 11 filas del Modo A P0). **`A12` en curso.**
-**Pendientes: 120.**
+**Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos de la sesión 7 no mueven
+ninguna fila, porque arreglar no es revisar — mueven el conteo de P0, de 21 a **14**.
 
-| Sesión | Qué se hizo                                               | Commit              |
-| ------ | --------------------------------------------------------- | ------------------- |
-| 1      | Solo el inventario (charter §5)                           | `18a3ffa`           |
-| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                | `2f32aa9`           |
-| 2      | Este prompt + correcciones al charter                     | `8b64c11`           |
-| 2      | `R9-7` resuelto: `functions/` documentada                 | `af64ce1`           |
-| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`               | `299a76c`           |
-| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`           | `b5a9afa`           |
-| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas          | `6ac10e3`/`894deb5` |
-| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint     | `f791749`           |
-| 5      | `A4` verificada + campo `R9-40`..`R9-43`                  | `f791749`           |
-| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias | `f791749`           |
-| 6      | Re-verificados a mano los 6 P0 nuevos                     | `c184a1c`/`9939e76` |
+| Sesión | Qué se hizo                                                | Commit              |
+| ------ | ---------------------------------------------------------- | ------------------- |
+| 1      | Solo el inventario (charter §5)                            | `18a3ffa`           |
+| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                 | `2f32aa9`           |
+| 2      | Este prompt + correcciones al charter                      | `8b64c11`           |
+| 2      | `R9-7` resuelto: `functions/` documentada                  | `af64ce1`           |
+| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`                | `299a76c`           |
+| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`            | `b5a9afa`           |
+| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas           | `6ac10e3`/`894deb5` |
+| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint      | `f791749`           |
+| 5      | `A4` verificada + campo `R9-40`..`R9-43`                   | `f791749`           |
+| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias  | `f791749`           |
+| 6      | Re-verificados a mano los 6 P0 nuevos                      | `c184a1c`/`9939e76` |
+| 7      | **ARREGLOS**: 7 P0 de pérdida de datos (rama, sin mergear) | `7f8e666`           |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -171,14 +185,13 @@ El hilo más prometedor ya está localizado: `CustomPlansContext.tsx:69` parsea 
 
 Alternativas legítimas:
 
-- **Una sesión de ARREGLOS.** Con **21 P0** abiertos pesa más que nunca. Es decisión de
-  Victor, y los 6 P0 más nuevos ya están re-verificados, así que el camino está despejado.
-  Orden sugerido: `R9-49`/`R9-27`/`R9-28` (pérdida irreversible al restaurar) →
-  `R9-47`/`R9-44`/`R9-46` (prosa del usuario) → `R9-22`/`R9-23`/`R9-48` (mezcla entre
-  cuentas) → `R9-33`/`R9-35`/`R9-45` (sync que descarta en silencio) → `R9-9` (dinero) →
-  `R9-13` **antes de volver a desplegar la web**. Los 4 de campo (`R9-40`..`R9-43`) son
-  baratos y muy visibles: buenos para cerrar la sesión.
-  **`R9-44`, `R9-45` y `R9-50` conviene atacarlos juntos** — son una sola raíz.
+- **Seguir la sesión de ARREGLOS.** La 7 hizo el primer tramo del orden sugerido —
+  `R9-49`/`R9-27`/`R9-28` y `R9-47`, más `R9-44`/`R9-45`/`R9-50` atacados juntos por su
+  raíz, que es exactamente lo que este archivo recomendaba. **Lo que queda del orden:**
+  `R9-46` (la otra mitad de la prosa: el `getLocal` de notas que falla abierto) →
+  `R9-22`/`R9-23`/`R9-48` (mezcla entre cuentas) → `R9-33`/`R9-35` (sync que descarta en
+  silencio) → `R9-9` (dinero) → `R9-13` **antes de volver a desplegar la web**. Los 4 de
+  campo (`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar la sesión.
 - **`B6`–`B10`** (Modo B, P1/P2) si preferís terminar el Modo B de una: permisos Android,
   `npm outdated`, `expo-doctor`, deps sin usar, licencias. Baratas, sin entorno. Ojo:
   extendé `B9`/`B10` a `functions/` y `vercel/`, no solo a la raíz.
@@ -262,6 +275,19 @@ Alternativas legítimas:
   `New-Item -ItemType Junction -Path <worktree>\node_modules -Target <repo>\node_modules`, y
   borrarla al terminar con `(Get-Item <ruta>).Delete()` — **un `rm -rf` seguiría la junction**
   y borraría el `node_modules` real.
+- **En una sesión de ARREGLOS, una prueba nueva no vale nada hasta que la ves FALLAR sin el
+  arreglo.** Pasó en la sesión 7: tres pruebas de `R9-47` pasaban igual con el código roto
+  (una porque el re-render no llegaba a aplicarse; otra porque `setSectionNote` ya borra una
+  sección vacía, así que no discriminaba nada). Reescritas contra el mecanismo real, la
+  primera sí falla. Revertí el arreglo, corré, restauralo: cuesta 30 segundos.
+- **`react-test-renderer` no aguanta re-renderizar una pantalla del tamaño de la Mesa.**
+  Tira «Unable to locate attached view in the native tree» (el `Animated` interno de cada
+  `TouchableOpacity`) y DESMONTA el árbol. Cualquier hallazgo que necesite un cambio de
+  pasaje en vivo es verificación en dispositivo, Modo C — no lo pelees en jest.
+- **`python - <<'EOF'` NO persiste las escrituras a `src/i18n/translations.ts`.** Falla en
+  silencio: los `assert` pasan, imprime el "ok", y el archivo queda igual. Descubierto en la
+  sesión 7 tras cuatro intentos. Para ese archivo usá la herramienta de edición; para los
+  demás el heredoc funcionó sin problema.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
 
 ## 6. Hechos duros que ya no hay que volver a averiguar

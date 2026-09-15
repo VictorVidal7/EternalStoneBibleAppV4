@@ -5,8 +5,19 @@
 > 4 y 5 cerraron `A4` (`R9-33`..`R9-39`, 6 P0) y registraron 4 reportes de campo
 > (`R9-40`..`R9-43`). **Sesión 6 (2026-09-14) cerró `A8`, `A9`, `A10` y `A11` con
 > 21 hallazgos nuevos (`R9-44`..`R9-64`), 6 de ellos P0** — y dejó `A12` empezada a
-> propósito. **Total: 21 P0 abiertos.** Siguiente: terminar `A12` (hay 3 hilos ya abiertos
-> en su detalle), y con eso **queda cerrado el bloque P0 entero del Modo A**.
+> propósito.
+>
+> **Sesión 7 (2026-09-14) no revisó: ARREGLÓ.** Cerró en código los **7 P0 de pérdida
+> irreversible de datos** (`R9-27`, `R9-28`, `R9-44`, `R9-45`, `R9-47`, `R9-49`, `R9-50`) en
+> `fix/review-p0-perdida-datos` (`7f8e666`), cada uno con prueba de regresión y con las tres
+> compuertas verdes. Entre ellos, **la raíz común de `{merge:true}`**: `withoutUndefined`
+> pasó a `nullifyUndefined`, así que un campo opcional por fin se puede desasignar por sync.
+> **Quedan 14 P0 abiertos.**
+>
+> Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), y con eso **queda
+> cerrado el bloque P0 entero del Modo A**. O seguir arreglando: los que más pesan ahora son
+> `R9-22`/`R9-23`/`R9-48` (mezcla entre cuentas) y `R9-33`/`R9-35` (sync que descarta en
+> silencio).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -361,3 +372,33 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   y el anzuelo de inicio de sesión promete lo contrario. Y una nota agridulce: **ninguno de
   los ~4027 tests escribe jamás en un campo de nota de la Mesa**, lo que explica por qué
   `R9-47` llevaba ahí sin verse.
+- **Sesión 7 — 2026-09-14. La primera de ARREGLOS, no de revisión.** Otro protocolo: sí se
+  toca código de la app, en rama (`fix/review-p0-perdida-datos`) y con los gates en verde.
+  **7 P0 de pérdida irreversible de datos cerrados** en `7f8e666`, cada uno con prueba de
+  regresión: `R9-49` + `R9-27` + `R9-28` (el respaldo ya no puede borrar lo que no trae, y
+  lo restaurado ya no lo pisa el estado en memoria), `R9-47` (la Mesa: la prosa solo se
+  archiva bajo su propio pasaje, y un `onBlur` ya no puede borrar un sermón) y
+  `R9-44`/`R9-45`/`R9-50` atacados **juntos por su raíz**, como recomendaba `CONTINUAR.md`.
+  **Lo que más vale del arreglo, para lo que venga:** `withoutUndefined` →
+  **`nullifyUndefined`**. Descartar la clave contentaba a Firestore pero, bajo
+  `{merge:true}`, una clave ausente significa «conserva lo del servidor» — por eso un campo
+  opcional era imposible de desasignar por sync. Mandar `null` explícito satisface a
+  Firestore **y** pisa. Se conservó `{merge:true}` a propósito: protege un campo escrito por
+  una versión más nueva de la app en otro dispositivo. No hubo que tocar ningún lector
+  porque `valuesEqual` ya equiparaba `null` y `undefined`, así que tampoco aparecen
+  conflictos fantasma.
+  **Tres lecciones de método, todas pagadas en esta sesión:**
+  (a) **Una prueba nueva no vale nada hasta que la ves fallar sin el arreglo.** Las tres
+  primeras pruebas de `R9-47` pasaban igual con el código roto: una porque el re-render no
+  llegaba a aplicarse, otra porque `setSectionNote` ya borra una sección vacía. Reescritas
+  contra el mecanismo real (otra pantalla escribe prosa mientras esta sigue montada), la
+  primera **sí** falla sin el arreglo.
+  (b) **react-test-renderer no aguanta re-renderizar una pantalla del tamaño de la Mesa**:
+  desmonta el árbol con «Unable to locate attached view in the native tree» (el `Animated`
+  interno de cada `TouchableOpacity`). La carrera del stepper de `R9-47` **no** es testeable
+  aquí; sigue siendo verificación en dispositivo, Modo C.
+  (c) **`python - <<'EOF'` no persiste las escrituras a `src/i18n/translations.ts`** (falla
+  en silencio, con el `print` de éxito y todo). Para ese archivo, usar la herramienta de
+  edición. Para los demás funcionó sin problema.
+  **Quedan 14 P0.** Los que más pesan: `R9-22`/`R9-23`/`R9-48` (mezcla entre cuentas) y
+  `R9-33`/`R9-35` (sync que descarta en silencio). `A12` sigue `EN CURSO`.
