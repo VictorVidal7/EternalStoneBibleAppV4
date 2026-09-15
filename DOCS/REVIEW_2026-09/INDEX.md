@@ -12,12 +12,15 @@
 > `fix/review-p0-perdida-datos` (`7f8e666`), cada uno con prueba de regresión y con las tres
 > compuertas verdes. Entre ellos, **la raíz común de `{merge:true}`**: `withoutUndefined`
 > pasó a `nullifyUndefined`, así que un campo opcional por fin se puede desasignar por sync.
-> **Quedan 14 P0 abiertos.**
 >
-> Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), y con eso **queda
-> cerrado el bloque P0 entero del Modo A**. O seguir arreglando: los que más pesan ahora son
-> `R9-22`/`R9-23`/`R9-48` (mezcla entre cuentas) y `R9-33`/`R9-35` (sync que descarta en
-> silencio).
+> **Sesión 8 (2026-09-15) revisó el diff de la 7, lo mergeó a `main`, y ARREGLÓ 4 P0 más**
+> (`R9-46` + el bloque entero de mezcla entre cuentas: `R9-22`, `R9-23`, `R9-48`).
+> **Sesión 9 (2026-09-15) revisó ESE diff, encontró 2 defectos reales, los arregló y mergeó.**
+> **Quedan 10 P0 abiertos.** Hallazgos: **65** (`R9-65` es nuevo, P1).
+>
+> Siguiente: seguir arreglando — `R9-33`/`R9-35` (sync que descarta en silencio), luego
+> `R9-9` (dinero), y `R9-13` **antes del próximo deploy web**. O terminar `A12` (hay 3 hilos
+> ya abiertos en su detalle), con lo que **queda cerrado el bloque P0 entero del Modo A**.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -402,3 +405,37 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   edición. Para los demás funcionó sin problema.
   **Quedan 14 P0.** Los que más pesan: `R9-22`/`R9-23`/`R9-48` (mezcla entre cuentas) y
   `R9-33`/`R9-35` (sync que descarta en silencio). `A12` sigue `EN CURSO`.
+- **Sesión 8 — 2026-09-15. Revisar el diff ajeno, mergear, y cerrar la mezcla entre
+  cuentas.** Victor pidió que un chat nuevo revisara con ojo fresco el diff de la sesión 7
+  antes de mergearlo. Veredicto: sin defectos bloqueantes → **mergeado en fast-forward y
+  pusheado** (`63f124c..8fe24f1`). Lo verificado a mano está en `detail/S8-revision-del-diff.md`
+  (cinco cosas que **no** hay que re-comprobar). Después, **4 P0 más arreglados** en
+  `fix/review-p0-notas-cuentas`: `R9-46` (el `getLocal` de notas dejó de fallar abierto) y el
+  **bloque entero de mezcla entre cuentas** — `R9-22` (la cola se namespacea por uid), `R9-48`
+  (el log de repasos deja de contaminar la cuenta ajena) y `R9-23` (una cuenta nueva ya no
+  hereda en silencio el almacén ajeno). **Lo que más vale de la sesión:** la revisión descubrió
+  que **el ledger mentía** sobre tener prueba de regresión (dos arreglos no la tenían), y que
+  **el arreglo de `R9-22` había introducido un bucle caliente infinito** que solo cazó la
+  prueba nueva. **Quedan 10 P0.**
+- **Sesión 9 — 2026-09-15. Revisar el diff de la 8, arreglar lo que salió, mergear.** Mismo
+  protocolo, un nivel más arriba. **Dos defectos reales en los arreglos de la sesión 8**, los
+  dos de la **misma clase: el arreglo cierra el caso que su prueba cubre y deja abierto el
+  vecino.** (a) `R9-46` retiraba del cursor el doc saltado, pero `handleSnapshot` guarda **un
+  solo** `maxSeenUpdatedAt` por lote, así que un hermano más nuevo **del mismo lote**
+  arrastraba el piso por delante del saltado y el siguiente reattach ya no lo entregaba
+  (medido: piso `8_700_000` sobre un saltado en `1_000_000`). (b) `R9-48` colocaba el traspaso
+  del log **debajo** de la guarda `if (existing != null) return;`, y `signOut` dispara
+  `clearMemoryStatsFloor()` sin esperarlo (`void`) — con el suelo ajeno en disco, el traspaso
+  **no corría nunca más**, porque nada lo reintenta. Arreglados en `3e780c6` y `29a9449`, cada
+  uno con prueba vista fallar primero. **Detalle completo, incluido lo que se comprobó y está
+  BIEN y lo que se decidió NO tocar: `detail/S9-revision-del-diff.md`.**
+  **La lección de método, que ya va por su tercera sesión seguida:** el diff de una sesión de
+  arreglos **merece la misma revisión adversarial que el código original** — la sesión 8 cazó
+  un bucle infinito en el arreglo de la 7, y la 9 cazó dos pérdidas de datos en los de la 8.
+  Ningún arreglo llegó a `main` sin que otro par de ojos lo rompiera primero.
+  **Un hallazgo colateral:** `R9-65` (P1, **preexistente en `main`**) — el mismo fallo de
+  cursor por la rama de **conflictos**, que además no sobreviven a un reinicio porque `stop()`
+  limpia `this.conflicts`. Se arregla con una línea, pero es bug de `main` y merece su propia
+  decisión. **Y una corrección de higiene del ledger: la sesión 8 nunca actualizó `INDEX.md`**
+  (seguía diciendo «Quedan 14 P0»), justo el archivo que `CONTINUAR.md` manda leer sin
+  re-derivar. Arreglado aquí.

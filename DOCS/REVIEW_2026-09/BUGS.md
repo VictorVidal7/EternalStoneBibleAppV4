@@ -354,6 +354,7 @@
   ventana se abre sola, sin que `initialize()` tenga que fallar. Detalle:
   `detail/A8-notas-subrayados.md`.
   **✅ ARREGLADO en la sesión 8** (`b3d73e1`): `findNoteById` inicializa primero (idempotente, coalesce llamadas concurrentes) y deja **propagar** un fallo real de lectura. Como propagar a secas habría abortado la tanda entera de `handleSnapshot` y podría parar el sync en silencio (la clase de `R9-33`/`R9-35`), `applyRemoteChange` devuelve ahora **si pudo establecer el estado local**: si no pudo, se salta ESE documento y **retiene su aporte al cursor**, para que se re-entregue en el próximo reattach en vez de perderse.
+  **⚠️ COMPLETADO en la sesión 9** (`3e780c6`): el retiro del cursor de abajo estaba **a medias** — `handleSnapshot` guarda UN solo `maxSeenUpdatedAt` por lote, así que un hermano más nuevo del MISMO lote arrastraba el piso por delante del doc saltado y el siguiente reattach ya no lo entregaba (medido: piso `8_700_000` sobre un saltado en `1_000_000`). El cursor del lote se acota ahora por debajo del `updatedAt` más bajo no aplicado. Ver `detail/S9-revision-del-diff.md`.
 - **`R9-47` (A9, Mesa) — 🐛 `load()` no tiene guarda de obsolescencia: una carga vieja que
   llega tarde pisa los `drafts`, y el siguiente `onBlur` escribe esa prosa ajena (o vacía)
   sobre la clave del pasaje visible.** Severidad **alta**. Es dato irreemplazable: el sermón
@@ -399,6 +400,7 @@
   **ninguno está atado a un límite de sesión o de cuenta**, así que el hallazgo no cambia.
   Detalle: `detail/A10-memoria-srs.md`.
   **✅ ARREGLADO en la sesión 8** (`67af8c9`): marca `@review_log_owner_uid`, en vez de scopear la tabla. Un log sin dueño lo reclama quien escribe primero; un log de OTRA cuenta no se sube nunca; y el traspaso ocurre **al iniciar sesión**, único punto donde se sabe que hay un uid nuevo: se limpia el log y se reclama. **Sin ese traspaso, la guarda sola dejaba al segundo usuario sin poder escribir su propio agregado para siempre.** Si la limpieza falla, la propiedad NO se reclama. **Que cerrar sesión deba además BORRAR el log local sigue siendo decisión de producto (`R9-59`) y no se decidió aquí.**
+  **⚠️ COMPLETADO en la sesión 9** (`29a9449`): el traspaso quedaba **debajo** de `if (existing != null) return;` en `seedMemoryStatsFloorIfFresh`, y `signOut` dispara `clearMemoryStatsFloor()` sin esperarlo (`void`) — un cierre de la app justo después de cerrar sesión deja el suelo ajeno en disco y el traspaso **no corre nunca más**, porque nada lo reintenta. La cuenta nueva quedaba con su agregado rechazado para siempre (y `memoryStats/summary` es su único ancla en la nube). Subido por encima de la guarda, y borrando además el suelo ajeno. Ver `detail/S9-revision-del-diff.md`.
 - **`R9-49` (A11, respaldo) — 🐛 los 4 logs de lectura no pueden marcarse "degradados", así
   que un fallo transitorio de SQLite produce un archivo que al importar BORRA la racha y los
   ledgers.** Severidad **alta**. `safeQuery` (`BackupService.ts:356-371`) solo marca degradado
@@ -430,6 +432,18 @@
 ---
 
 ## P1 — núcleo de la app
+
+- **`R9-65` (S9, sync) — 🐛 el cursor del lote también salta por encima de un doc en
+  CONFLICTO sin resolver, y el conflicto no sobrevive a un reinicio.** Encontrado al revisar
+  el diff de la sesión 8, pero **preexistente en `main`** — no lo introdujo ese diff. Es el
+  mismo fallo estructural que se arregló para `R9-46` (`3e780c6`), por la otra rama: un doc
+  en conflicto se omite de `maxSeenUpdatedAt`, pero un hermano **más nuevo del mismo lote**
+  igual mueve el piso de la consulta por delante de él. El comentario del código se apoya en
+  que "`resolveConflict()` avanza el cursor él mismo una vez el doc está asentado" — cierto
+  solo si el usuario lo resuelve **en esa misma sesión**: `stop()` limpia `this.conflicts`
+  ("son transitorios"), así que si la app se reinicia antes, el conflicto se pierde **y** el
+  cursor ya pasó de largo. El cambio remoto se cae en silencio. **Arreglo: una línea**,
+  extender la cota de `lowestUnappliedUpdatedAt` a los docs aún en conflicto.
 
 - **`R9-15` (A6, tests) — 🐛 el único test que renderiza el lector web enmascara
   exactamente `R9-13`.** `__tests__/chapterReaderWebFontPicker.test.tsx:41` mockea el
