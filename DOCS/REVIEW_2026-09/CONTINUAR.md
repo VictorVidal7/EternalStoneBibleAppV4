@@ -43,22 +43,38 @@ que además dice por dónde seguir. **Cerrarla cierra el bloque P0 entero del Mo
 
 ## Mensaje para pegar en el chat nuevo
 
-Elegí **uno**:
+**Antes de elegir: hay una rama sin mergear.** `fix/review-p0-perdida-datos` lleva los 7 P0
+de pérdida de datos de la sesión 7, con los gates en verde, y **nadie la ha mergeado ni
+pusheado**. Las tres opciones de abajo la contemplan; lo que no tiene sentido es empezar una
+cuarta cosa dejándola colgada otra semana.
 
-**(a) Terminar el Modo A P0** — queda **una sola fila**, `A12`:
+**(a) RECOMENDADA — cerrar la rama y seguir arreglando.** Junta la decisión pendiente con el
+siguiente tramo del orden de ataque, y es el mejor uso de una sesión larga:
+
+> Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
+>
+> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-perdida-datos`, con 7 P0 de
+> pérdida de datos arreglados. Revisá el diff con ojo crítico (es código que toca respaldo,
+> restauración, sync y la Mesa), decime si ves algo mal, y si está bien mergeala a `main`
+> con los gates en verde.
+>
+> Después seguí arreglando por donde toca: `R9-46` (el `getLocal` de notas que falla
+> abierto) y luego la mezcla entre cuentas, `R9-22`/`R9-23`/`R9-48`. Verificá cada hallazgo
+> contra el código antes de tocarlo — los P1/P2 no están re-verificados — y acordate de que
+> una prueba de regresión no vale hasta que la viste fallar sin el arreglo. Va todo en rama
+> con gates verdes; no mergees nada más sin preguntarme.
+
+**(b) Solo cerrar la rama**, si querés una sesión corta y no abrir frente nuevo:
+
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de la rama
+> `fix/review-p0-perdida-datos` con ojo crítico, decime si ves algo mal, y si está bien
+> mergeala a `main` con los gates en verde. Nada más por ahora.
+
+**(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
+bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
 
 > Vamos a continuar la revisión profunda de la app. Lee
-> `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí.
-
-**(b) Seguir arreglando** — con **14 P0** todavía abiertos sigue siendo lo más defendible
-que hay, y es una sesión de **otro** protocolo: sí se toca código de la app, con rama y
-gates, al revés que la revisión:
-
-> Quiero seguir arreglando los P0 que encontró la revisión profunda, no revisar.
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` para el contexto y `DOCS/REVIEW_2026-09/BUGS.md`
-> para los hallazgos (los que ya están ✅ ARREGLADO no se tocan). Ahora toca la mezcla entre
-> cuentas: `R9-22`, `R9-23` y `R9-48`. Verificá cada uno antes de tocarlo. Esta sesión SÍ
-> toca código, así que va en rama con los gates en verde.
+> `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
