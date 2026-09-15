@@ -102,8 +102,9 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 `research/a4-chico-spanish-availability`). Si no coincide, dilo antes de empezar.
 
 La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a76c` → `b5a9afa` →
-`6ac10e3` → `894deb5` → `4e45f69` → **la sesión 6** (que trae, en un solo commit, `A4` y los
-reportes de campo de las sesiones 4-5 que nunca se habían commiteado, más todo lo de `A8`–`A11`).
+`6ac10e3` → `894deb5` → `4e45f69` → **`f791749`** (sesión 6: `A4` y los reportes de campo de
+las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`) → **`c184a1c`**
+(la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso).
 
 ## 3. Dónde va la revisión
 
@@ -120,9 +121,10 @@ reportes de campo de las sesiones 4-5 que nunca se habían commiteado, más todo
 | 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`               | `299a76c`           |
 | 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`           | `b5a9afa`           |
 | 3      | Cierre de la sesión 3 + las 2 preguntas abiertas          | `6ac10e3`/`894deb5` |
-| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint     | (sesión 6)          |
-| 5      | `A4` verificada + campo `R9-40`..`R9-43`                  | (sesión 6)          |
-| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias | (sesión 6)          |
+| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint     | `f791749`           |
+| 5      | `A4` verificada + campo `R9-40`..`R9-43`                  | `f791749`           |
+| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias | `f791749`           |
+| 6      | Re-verificados a mano los 6 P0 nuevos                     | `c184a1c`/`9939e76` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
