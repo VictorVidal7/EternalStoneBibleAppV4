@@ -94,7 +94,11 @@ interface ExportSurface {
   unresolvable: string[];
   /** Type names declared at top level, exported or not. */
   declaredTypes: Set<string>;
-  /** Type names the file EXPORTS — the ones that are a shared contract. */
+  /**
+   * Type names the file EXPORTS. Evidence of a shared contract, but NOT the
+   * only evidence — see R9-76 below: whether the native sibling exports a type
+   * is a choice the file being checked makes for itself.
+   */
   exportedTypes: Set<string>;
 }
 
@@ -303,16 +307,32 @@ describe('web/native module surface parity', () => {
       // stub never implemented the new member, which on web is
       // `x.y is not a function`: R9-13's crash, from a different direction.
       //
-      // The rule is narrow on purpose: only types the NATIVE sibling
-      // EXPORTS. A private `Props`/`State`/`…ProviderProps`/`SpanMap` that
-      // both files happen to name the same is genuinely local to each, and
-      // flagging those would bury the signal.
+      // The rule is narrow on purpose: a private `Props`/`State`/
+      // `…ProviderProps`/`SpanMap`/`ChapterItem` that both files happen to name
+      // the same is genuinely local to each, and flagging those would bury the
+      // signal.
+      //
+      // R9-76: but "does the native sibling EXPORT it" cannot be the only
+      // discriminator, because that is a decision the offending code makes
+      // itself. Keep the native type private and the gate goes quiet — which
+      // is precisely the state `OfferingSheetContextValue` was in right up until
+      // R9-70 fixed it by hand ("el nativo no lo exportaba"), so the fix's own
+      // third case is the one its new gate could not catch. Probed with a
+      // synthetic pair: native keeps `FiveContextValue` private, the web stub
+      // declares a diverged copy, gate green.
+      //
+      // So a `…ContextValue` name counts as a shared contract whether the native
+      // sibling exports it or not. That name is not a convention this repo
+      // happens to follow — it is what a provider/hook contract is CALLED here,
+      // in all four context pairs.
       const nativeFile = nativeSiblingOf(webFile as string);
       if (!nativeFile) return; // reported by the case above
       const native = surfaceOf(nativeFile);
       const web = surfaceOf(webFile as string);
-      const redeclared = [...web.declaredTypes].filter(name =>
-        native.exportedTypes.has(name),
+      const redeclared = [...web.declaredTypes].filter(
+        name =>
+          native.exportedTypes.has(name) ||
+          (native.declaredTypes.has(name) && /ContextValue$/.test(name)),
       );
       expect(redeclared).toEqual([]);
     },
