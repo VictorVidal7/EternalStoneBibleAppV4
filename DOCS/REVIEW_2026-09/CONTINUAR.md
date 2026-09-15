@@ -19,13 +19,14 @@ pendiente. Las seis `fix/review-p0-*` están dentro de `main`, la última
 356/4086). No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve,
 así que cualquier SHA escrito aquí nace obsoleto.
 
-**⚠️ PERO HAY UN PASO MANUAL PENDIENTE DE VICTOR, y sin él media función queda muerta: subir
-`rvr1960-red-letter.json` al repo de Pages bajo `/packs/`** (copia lista en
-`~/Desktop/web-packs/`). Es el único archivo NUEVO; los otros cuatro packs recién construidos
-son byte a byte idénticos a los publicados, comprobado por sha256 contra la URL en vivo.
-Hasta que suba, la letra roja en español no aparece en web — el módulo **falla abierto**, que
-es su diseño, así que no hay regresión respecto a antes, solo la mejora sin efecto. **Si
-arrancás una sesión nueva, preguntale si ya lo subió.**
+**El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
+`eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15), verificado en vivo
+por sha256 contra el manifiesto. **No queda ningún paso pendiente de despliegue**: la letra
+roja en español está activa en la web. Si vas a tocar packs, el runbook está en
+`reference_essb-github-pages-pack-publishing`, con dos avisos que ya costaron un rato — el
+push imprime un aviso de renombrado de la org y aun así funciona, y **`~/Desktop/web-packs/`
+tiene `.sqlite` VIEJOS (de julio)**, así que comprobá el sha256 antes de publicar nada desde
+ahí.
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff

@@ -215,13 +215,31 @@ function` ni error de boundary en consola. El bundle confirma además la resoluc
     apagar el interruptor: ya no pueden discrepar.
     **Verificado en navegador** (bundle real, packs servidos en local): Juan 3 en RVR1960
     pinta de rojo la cita de Jesús y deja en blanco la narración y a Nicodemo.
-    **⚠️ FALTA UN PASO MANUAL DE VICTOR: subir `rvr1960-red-letter.json` al repo de Pages bajo
-    `/packs/`.** Es el **único** archivo nuevo — `web.sqlite`, `rvr1960.sqlite` y
-    `web-red-letter.json` recién construidos son **byte a byte idénticos** a los publicados
-    (comprobado por sha256 contra la URL en vivo), así que no hace falta resubirlos. Hasta que
-    suba, el fetch da 404, el módulo **falla abierto** (es su diseño) y la letra roja en español
-    simplemente no aparece — o sea, exactamente lo de antes, sin regresión. Copia lista en
-    `~/Desktop/web-packs/`.
+    **✅ PUBLICADO el 2026-09-15** en `eternalstonebible/eternalstonebible.github.io`
+    (`c0e3ed7`), junto con el `web-bootstrap.json` actualizado. **Los dos `.sqlite` NO se
+    tocaron** — se comprobó por sha256 que los recién construidos son byte a byte idénticos a
+    los publicados, así que aquí no se republicó ninguna Biblia. Verificado en vivo: la URL
+    sirve HTTP 200 y el sha256 servido coincide con el del manifiesto
+    (`97ebc636…`). **Y verificado de punta a punta**: un bundle web construido contra el host
+    real (sin override de URL) renderiza Juan 3 en RVR1960 con la cita de Jesús en rojo,
+    tomando los spans del pack recién publicado, y sin un solo aviso de fallo de carga.
+    **La función está completa y activa, sin pasos pendientes.**
+    **Cuatro cosas que conviene no re-descubrir**, todas encontradas al publicarlo:
+    1. El push imprime un aviso de renombrado de la organización (`EternalStoneBible` con
+       mayúsculas) y aun así funciona por redirección.
+    2. **`~/Desktop/web-packs/` contiene `.sqlite` VIEJOS, de julio.** Casi se publican. No
+       publiques nada desde ahí sin comprobar el sha256 contra el build.
+    3. **Un 404 de GitHub Pages se sirve SIN cabecera CORS**, así que un `fetch` cruzado que
+       lo reciba falla con `TypeError: Failed to fetch`, no con «HTTP 404». Y el edge de
+       Fastly lo cachea 10 minutos (`Cache-Control: max-age=600`): sondear la URL **antes**
+       de publicar envenena la caché y hace parecer roto algo que ya está bien.
+    4. **Metro cachea el transform por módulo, incluidas las `EXPO_PUBLIC_*` inlineadas.** Un
+       `expo export` posterior SIN la variable puede dejar el valor viejo dentro de un módulo
+       concreto: aquí el bundle siguió pidiendo `http://127.0.0.1:8788/packs/` en
+       `redLetterText.web.ts` mientras `data-loader.web.ts` usaba la URL buena, y el síntoma
+       era idéntico al de un pack ausente. **Si vas a verificar contra el host real después de
+       haber construido con un override, `expo export --clear`** — y confirmá con
+       `grep -o 'https\?://[^"]*packs/' <bundle>` que no queda ninguna URL local.
 
 - **`R9-14` (A6, web) — 🐛 7 rutas web-alcanzables lanzan "must be used within a
   …Provider".** Severidad **media** (código P0, impacto acotado). El árbol web no monta
