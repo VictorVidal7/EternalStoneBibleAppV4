@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 10 (revisión del diff de la 9 + los 2 P0 de dinero).**
+> **Última actualización: 2026-09-15, fin de la sesión 11 (`R9-11` + `R9-65` + la prueba que le faltaba a `R9-28`).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,13 +12,11 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** Es la primera vez en cuatro
-sesiones que se arranca así — no busques una rama pendiente. La sesión 10 mergeó las dos:
-`fix/review-p0-sync-descarta-silencio` (la 9) y `fix/review-p0-dinero-entitlement` (la 10),
-las dos en fast-forward, y Victor autorizó el push. **`main` = `origin/main`**, con los
-arreglos de las sesiones 7, 8, 9 y 10 dentro. Gates verdes sobre `main` antes de publicar:
-**356 suites, 4079 pruebas**. (No se pone el SHA del tip a propósito: el propio commit del
-checkpoint lo mueve, así que cualquier SHA escrito aquí nace obsoleto — ya pasó una vez.)
+**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-cola-y-cursor-conflictos`** (`261c053` →
+`aa70be0`), con `R9-11`, `R9-65` y la prueba que le faltaba a `R9-28`, y los gates en verde
+(**356 suites, 4086 pruebas**). Victor pidió no mergear nada sin preguntarle, así que lo
+primero es que él decida. Todo lo anterior (sesiones 7 a 10) ya está dentro de `main` y
+**pusheado**.
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -36,7 +34,7 @@ prueba cubre y deja abierto el vecino_): aquí el vecino no era otro caso, era *
 del mismo diff**. Si un commit lleva dos arreglos, pregúntate si uno desarma la prueba del
 otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-del-diff.md`.
 
-**Quedan 6 P0 abiertos:** `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`. Todo lo demás
+**Quedan 5 P0 abiertos:** `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`. Todo lo demás
 de la sección P0 va marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los
 vuelvas a atacar.** Hallazgos totales: **65**.
 
@@ -44,19 +42,25 @@ vuelvas a atacar.** Hallazgos totales: **65**.
 sesiones 7 y 8 contaban `R9-50` como P0 cerrado, pero vive en **P1**, así que su «quedan 10»
 eran 11. La nota está al principio de la sección P0 de `BUGS.md`.
 
-**3. Lo que queda del orden de ataque de arreglos:** `R9-13` **antes de volver a desplegar la
-web** — es el único que bloquea algo. `R9-9`/`R9-10` (dinero) ya están cerrados (sesión 10),
-igual que `R9-33`/`R9-34`/`R9-35` (sesión 9). **`R9-11` es ahora el más barato y el de
-contexto más fresco:** es el gemelo de `R9-34` en la rama de ÉXITO de `flush()`, y la sesión
-10 dejó **el arreglo exacto localizado** (ver el punto 4). Los 4 de campo
-(`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar una sesión. Y **`R9-65` se
-arregla con UNA LÍNEA** (la misma cota de cursor de `R9-46`, extendida a los conflictos), es
-bug **preexistente en `main`** y sigue sin decidir.
+**3. Lo que queda del orden de ataque de arreglos:** **`R9-13` es lo siguiente, y es el único
+que bloquea algo** — el próximo `firebase deploy` de la web. Todo el bloque de sync está
+cerrado: `R9-33`/`R9-34`/`R9-35` (sesión 9), `R9-9`/`R9-10` de dinero (sesión 10),
+`R9-11`+`R9-65` (sesión 11). Ojo con `R9-13`: **léete `R9-15` antes**, porque el único test
+que renderiza el lector web **enmascara exactamente ese bug** (mockea el especificador `.web`
+explícito y el componente importa el pelado) — arreglar el bug sin arreglar el test deja la
+compuerta igual de ciega. Los 4 de campo (`R9-40`..`R9-43`) son baratos y muy visibles:
+buenos para cerrar una sesión.
 
 **4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
-- **`R9-28` sigue sin prueba de regresión** (la señal de restauración + la re-hidratación de
-  los providers). Es el único de los **15** arreglados que no tiene ninguna.
+- ~~`R9-28` sin prueba~~ — **saldado en la sesión 11** (`aa70be0`). Ya **no queda ningún
+  arreglo sin prueba de regresión**. Cubre las dos mitades: que `importBackup` emite la señal
+  **y que la emite la última** (un listener que re-lea a mitad de escritura cachea un estado a
+  medio restaurar), y que el provider re-hidrata **y por eso deja de pisar lo restaurado** —
+  esta última en prueba aparte, porque compartiendo cuerpo con la primera el revert la tumba
+  antes y no probaría nada.
+  **Detalle que costó un rato: `importBackup` escribe AsyncStorage con UN solo `multiSet`, no
+  con `setItem`.** Medir `setItem` da 0 y la prueba pasa en vacío.
 - **La rama del lector de `R9-44`** (recolorear preserva la nota) es **verificación en
   dispositivo, Modo C**. El MECANISMO sí está fijado en `highlightServiceTriState.test.ts`
   (que `addHighlight` con 5 argumentos escribe NULL sobre categoría y nota), pero la rama de
@@ -71,15 +75,6 @@ bug **preexistente en `main`** y sigue sin decidir.
   dispositivo.** Es la mitad visible de `R9-33`: si no se ve, la pérdida de datos sigue
   siendo silenciosa en la práctica. Modo C, emulador + APK debug — **nunca el OnePlus de
   Victor**.
-- **`R9-11` sigue abierto, y la sesión 10 le dejó el arreglo localizado.** Es el gemelo de
-  `R9-34` en la rama de **ÉXITO** de `flush()` — que es **la rama común**, porque los push
-  normalmente funcionan: borra por `uid+collection+id` sin mirar versión, así que una
-  reedición llegada durante el push en vuelo se elimina como si se hubiera subido. **Sale
-  gratis con una comparación de identidad:** `items` viene de `this.queue.filter(...)`, que
-  conserva las **mismas referencias**, y `upsertQueueEntry` asigna un **objeto nuevo**, así
-  que `this.queue[idx] !== item` distingue exactamente «me reemplazaron mientras empujaba».
-  La prueba tiene que montar la carrera como la de `R9-34` reescrita (dos `queueWrite`
-  seguidos, **sin `await` en medio**) — con un `await` de por medio no hay push en vuelo.
 - **`R9-59` sigue abierta** (ver más abajo) y **el `entitlementCache` nunca se limpia al
   cerrar sesión ni al borrar la cuenta.** Con `R9-9` arreglado ya no importa para el dinero
   —la siguiente respuesta de RevenueCat lo corrige— pero un dispositivo que no vuelva a tener
@@ -104,10 +99,14 @@ vas a arreglar alguno, verificalo primero.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> No hay ninguna rama pendiente: `main` está pusheado y al día. Empezá directo por `R9-11`,
-> que es el gemelo de `R9-34` en la rama de éxito de `flush()` —la rama común— y tiene el
-> arreglo ya localizado en `CONTINUAR.md`. Después, `R9-13` si querés dejar la web
-> desplegable. Verificá cada hallazgo contra el código
+> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-cola-y-cursor-conflictos`,
+> con `R9-11`, `R9-65` y la prueba que le faltaba a `R9-28`. Revisá el diff con ojo crítico
+> —toca la cola de escrituras y el cursor de sync— decime si ves algo mal, y si está bien
+> mergeala a `main` con los gates en verde.
+>
+> Después seguí con `R9-13`, el crash del lector web. Leete `R9-15` antes: el único test que
+> renderiza esa pantalla enmascara exactamente ese bug, así que hay que arreglar los dos o la
+> compuerta sigue ciega. Verificá cada hallazgo contra el código
 > antes de tocarlo —los P1/P2 no están re-verificados— y acordate de que una prueba de
 > regresión no vale hasta que la viste fallar sin el arreglo, **y de que si un commit lleva
 > dos arreglos, uno puede estar desarmando la prueba del otro**. Va todo en rama con gates
@@ -115,9 +114,10 @@ vas a arreglar alguno, verificalo primero.
 
 **(b) Corto: revisar y mergear la rama, y rematar `R9-65`**, si querés media hora:
 
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá `R9-65` —es una línea, la misma cota de
-> cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista fallar primero. Si
-> queda margen, `R9-11`, que también tiene el arreglo localizado.
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de
+> `fix/review-p0-cola-y-cursor-conflictos` con ojo crítico, decime si ves algo mal, y si está
+> bien mergeala con los gates en verde. Si queda margen, los 4 reportes de campo
+> (`R9-40`..`R9-43`), que son baratos y muy visibles.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
 bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
@@ -125,15 +125,13 @@ bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO toc
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
 
-**(d) Saldar la deuda acumulada (sesiones 7-10)** — corta y concreta. Ojo: la parte de
+**(d) Saldar la deuda de DISPOSITIVO (lo único que queda)** — corta y concreta. Ojo: la parte de
 dispositivo es Modo C y **necesita emulador + APK debug**, nunca el OnePlus de Victor:
 
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Quiero saldar la deuda acumulada, en este orden:
-> (1) la prueba de regresión que le falta a `R9-28` (la señal de restauración y la
-> re-hidratación de los providers) — es el único de los 15 arreglos sin ninguna; (2) la
-> verificación en dispositivo de la insignia nueva de Ajustes (`droppedWrites`, la mitad
-> visible de `R9-33`: si no se ve, la pérdida de datos sigue siendo silenciosa); (3) si queda
-> margen, `R9-47` y la rama del lector de `R9-44`, también en dispositivo. Acordate de que
+> (1) la verificación en dispositivo de la insignia nueva de Ajustes (`droppedWrites`, la
+> mitad visible de `R9-33`: si no se ve, la pérdida de datos sigue siendo silenciosa); (2)
+> `R9-47`; (3) la rama del lector de `R9-44`. Las tres en dispositivo. Acordate de que
 > una prueba no vale hasta que la veas fallar sin el arreglo.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
@@ -180,8 +178,9 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 10 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los
-arreglos de las sesiones 7, 8, 9 y 10), y **cuatro ramas de arreglos YA MERGEADAS** que se
+**Hay 11 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los
+arreglos de las sesiones 7 a 10), **`fix/review-p0-cola-y-cursor-conflictos`** (la 11, **sin
+mergear**), y **cuatro ramas de arreglos YA MERGEADAS** que se
 pueden borrar: `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos`. Más las 5 de
@@ -196,9 +195,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de las sesiones 7, 8, 9 y 10 **ya están todos en `main` y pusheados**. La sesión
-10 hizo los dos últimos merges en fast-forward (`653c7b3` → `daad3a9` → `f9e184a`) y publicó.
-**No queda deuda de git.**
+Los arreglos de las sesiones 7 a 10 **ya están todos en `main` y pusheados** (la sesión 10
+hizo los dos últimos merges en fast-forward y publicó). Los de la 11 van aparte, fuera de
+`main`, en **`fix/review-p0-cola-y-cursor-conflictos`**: `261c053` → `aa70be0`.
 
 ## 3. Dónde va la revisión
 
@@ -227,6 +226,7 @@ arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) →
 | 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                   | `0a4f0fc`→`c41c9cb` |
 | 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
 | 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
+| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`aa70be0` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos

@@ -22,8 +22,10 @@
 > `R9-47` y `R9-49` sí (las cuatro re-verificadas fallando sin el arreglo). `R9-50` estaba a
 > medias (solo la raíz del sanitizador). **`R9-28` y `R9-44` no tenían ninguna.** La sesión 8
 > cubrió la mitad que faltaba de `R9-50` y el mecanismo de `R9-44`
-> (`highlightServiceTriState.test.ts`). **Sigue sin prueba `R9-28`**, y la rama del lector de
-> `R9-44` es verificación en dispositivo (Modo C), no jest. Van marcados **✅ ARREGLADO**
+> (`highlightServiceTriState.test.ts`). **`R9-28` ya tiene la suya desde la sesión 11** (`aa70be0`,
+> las dos mitades: que `importBackup` emite la señal Y que la emite la última, y que el
+> provider re-hidrata y por eso deja de pisar lo restaurado). La rama del lector de
+> `R9-44` sigue siendo verificación en dispositivo (Modo C), no jest. Van marcados **✅ ARREGLADO**
 > dentro de su propia entrada, que se conserva íntegra a propósito: el diagnóstico es lo que
 > explica por qué el arreglo es ese y no otro.
 >
@@ -39,13 +41,19 @@
 > de dinero**: `R9-9` y `R9-10` juntos (`bb3b25b`), porque arreglar el primero sin el segundo
 > no cambia nada para el usuario. **Quedan 6 P0 abiertos.** **Todo MERGEADO a `main` y
 > PUSHEADO**: no queda ninguna rama de arreglos pendiente.
+>
+> **Sesión 11 (2026-09-15).** Cerró `R9-11` —el gemelo de `R9-34` en la rama de **ÉXITO** de
+> `flush()`, que es la rama común— y de paso `R9-65` (P1, el mismo fallo de cursor de `R9-46`
+> por la rama de conflictos). **Quedan 5 P0 abiertos.** Y saldó la deuda más vieja: **`R9-28`
+> por fin tiene prueba de regresión**, las dos mitades, así que ya no hay ningún arreglo sin
+> ninguna. Va en `fix/review-p0-cola-y-cursor-conflictos`, **sin mergear**.
 
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 10. Esta sección tiene 21 entradas: 15 ARREGLADAS y
-> 6 ABIERTAS** (`R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`).
+> **Conteo, al día tras la sesión 11. Esta sección tiene 21 entradas: 16 ARREGLADAS y
+> 5 ABIERTAS** (`R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`).
 >
 > **Las sesiones 7 y 8 venían contando mal.** Su lista de «arreglados» incluía `R9-50`, que
 > vive en **P1**, no aquí — así que el «quedan 10» de la sesión 8 eran en realidad **11**.
@@ -137,6 +145,15 @@
   local queda verde, Firestore se queda **amarillo** para siempre; el teléfono que lo
   origina nunca lo ve. **Arreglo:** comparar identidad de entrada (`seq`/`queuedAt`), no
   solo de documento. Detalle: `detail/A5-escrituras-firestore.md`.
+  **✅ ARREGLADO en la sesión 11** (`261c053`), y la identidad salió **exacta y gratis**, sin
+  necesidad de `seq` ni de `queuedAt`: `items` viene de `this.queue.filter(...)`, que conserva
+  las **mismas referencias**, y `upsertQueueEntry` siempre asigna un **objeto nuevo**, así que
+  `this.queue[idx] !== item` significa precisamente «me reemplazaron mientras empujaba».
+  **Severidad real más alta de lo que decía esta entrada:** `R9-34` cerró la rama de ERROR,
+  pero esta es la de ÉXITO, o sea **la común** — los push normalmente funcionan. Y su vecino
+  es peor y tiene prueba propia: si lo encolado durante el push es un **borrado**, lo que se
+  tragaba era la **lápida**, así que el borrado no viajaba nunca y la fila **resucitaba en
+  todos los demás dispositivos** de la cuenta.
 
 - **`R9-13` (A6, web) — 🐛 el lector web crashea en el primer render:
   `hasRedLetterData is not a function`.** Severidad **alta**.
@@ -485,6 +502,12 @@
   ("son transitorios"), así que si la app se reinicia antes, el conflicto se pierde **y** el
   cursor ya pasó de largo. El cambio remoto se cae en silencio. **Arreglo: una línea**,
   extender la cota de `lowestUnappliedUpdatedAt` a los docs aún en conflicto.
+  **✅ ARREGLADO en la sesión 11** (`261c053`): exactamente esa línea, con la rama de
+  conflicto reordenada para que se lea como lo que es (o frena el cursor, o lo empuja, nunca
+  las dos). **Coste conocido y aceptado, el mismo que asumió `R9-46`:** se re-lee ese lote
+  hasta que el usuario resuelva el conflicto. Lo cierra `resolveConflict` avanzando el cursor,
+  y `recordConflict` **deduplica por id de doc**, así que las re-entregas refrescan el
+  snapshot en vez de acumularse. Verificado a mano antes de aceptar el coste.
 
 - **`R9-15` (A6, tests) — 🐛 el único test que renderiza el lector web enmascara
   exactamente `R9-13`.** `__tests__/chapterReaderWebFontPicker.test.tsx:41` mockea el

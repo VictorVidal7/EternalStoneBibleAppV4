@@ -22,12 +22,15 @@
 > la reescribió, remató un hueco de `stop()`, mergeó a `main` — y después cerró **los 2 P0 de
 > dinero, `R9-9` y `R9-10`, juntos**, porque el segundo anulaba el arreglo del primero.
 > **Todo mergeado y PUSHEADO**; no queda rama de arreglos pendiente.
-> **Quedan 6 P0 abiertos** (`R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`). Hallazgos:
+> **Sesión 11 (2026-09-15) cerró `R9-11`** —el gemelo de `R9-34` en la rama de ÉXITO de
+> `flush()`, o sea la común, cuyo vecino se tragaba una LÁPIDA— **y `R9-65`**, y saldó la
+> deuda más vieja: `R9-28` por fin tiene prueba, así que **no queda ningún arreglo sin una**.
+> **Quedan 5 P0 abiertos** (`R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`). Hallazgos:
 > **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de la sección
 > P0 de `BUGS.md`.
 >
-> Siguiente: `R9-11` (barato, con el arreglo ya localizado en `CONTINUAR.md`) → `R9-13`
-> **antes del próximo deploy web**. O terminar `A12` (hay 3 hilos ya abiertos en su detalle),
+> Siguiente: `R9-13` **antes del próximo deploy web** (y con él `R9-15`, el test que lo
+> enmascara). O terminar `A12` (hay 3 hilos ya abiertos en su detalle),
 > con lo que **queda cerrado el bloque P0 entero del Modo A**.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
