@@ -10,11 +10,42 @@
  * back to the generic "Algo salió mal" screen with the retry button that
  * cannot work. This way, rewording a message fails a test instead.
  */
+import * as fs from 'fs';
+import * as path from 'path';
 import {renderHook} from '@testing-library/react-native';
 import {
   isMissingProviderError,
   WEB_UNMOUNTED_PROVIDERS,
 } from '../src/lib/errors/missingProviderError';
+
+/**
+ * Which `<XProvider …>` elements a layout file mounts, read off the file the
+ * app really runs. `[\s>]` rather than `>`: app/_layout.tsx writes
+ * `<ServicesProvider database={bibleDB}>`, and a pattern anchored on `>` would
+ * skip every provider that takes a prop — silently shrinking the set this gate
+ * compares against.
+ */
+function providersMountedIn(layoutFile: string): Set<string> {
+  const source = fs.readFileSync(
+    path.join(__dirname, '..', 'app', layoutFile),
+    'utf8',
+  );
+  return new Set(
+    [...source.matchAll(/<([A-Za-z]+Provider)[\s>]/g)].map(m => m[1]),
+  );
+}
+
+/**
+ * Providers app/_layout.tsx mounts, app/_layout.web.tsx does not, and that
+ * STILL must not appear in WEB_UNMOUNTED_PROVIDERS — each with its reason. An
+ * undocumented entry here is indistinguishable from the gap it would hide.
+ */
+const UNMOUNTED_BUT_NEVER_THROWS: Readonly<Record<string, string>> = {
+  // `useServices`'s createContext default is a real object, not `undefined`, so
+  // the hook never throws and an entry in WEB_UNMOUNTED_PROVIDERS would be
+  // unreachable dead weight. Stated in missingProviderError.ts too.
+  ServicesProvider: 'useServices has a real createContext default',
+};
 
 describe('isMissingProviderError', () => {
   it('matches the three article shapes the app actually uses', () => {
@@ -139,13 +170,7 @@ describe('isMissingProviderError', () => {
     // Derived, not hand-checked: the day someone mounts one of these for
     // real on web, the detector would start lying about it, and this fails
     // instead. Reads the layout the browser really runs.
-    const layout = require('fs').readFileSync(
-      require('path').join(__dirname, '..', 'app', '_layout.web.tsx'),
-      'utf8',
-    );
-    const mounted = new Set(
-      [...layout.matchAll(/<([A-Za-z]+Provider)>/g)].map(m => m[1]),
-    );
+    const mounted = providersMountedIn('_layout.web.tsx');
     // Control: if the regex ever stops matching, the disjointness below
     // would hold vacuously.
     expect(mounted.size).toBeGreaterThanOrEqual(10);
@@ -153,6 +178,52 @@ describe('isMissingProviderError', () => {
       mounted.has(name),
     );
     expect(overlap).toEqual([]);
+  });
+
+  it('accounts for EVERY provider native mounts and web does not', () => {
+    // R9-75 — the missing direction. The test above only proves no entry in the
+    // list is mounted on web; nothing proved the list was COMPLETE. So the day
+    // someone adds a context to app/_layout.tsx and not to _layout.web.tsx, the
+    // hook throws, `isMissingProviderError` returns false, and the route falls
+    // through to ErrorBoundary.web.tsx's generic "Algo salió mal" with a retry
+    // button that re-renders the same route and throws again — the exact
+    // symptom R9-14 existed to remove, silently reintroduced. A hand-enumerated
+    // list is the third known blind spot of this repo, and "the list is right
+    // today" is a note, not a gate. This is the gate: both layouts are on disk,
+    // so the difference between them is derivable, not trusted.
+    const native = providersMountedIn('_layout.tsx');
+    const web = providersMountedIn('_layout.web.tsx');
+    // Floors, not assertions about the app: a regex that half-broke would make
+    // everything below hold vacuously. Bump them deliberately.
+    expect(native.size).toBeGreaterThanOrEqual(18);
+    expect(web.size).toBeGreaterThanOrEqual(10);
+    // And the specific half-break worth pinning: `ServicesProvider` is the one
+    // provider here written WITH a prop, so a pattern anchored on `>` drops it
+    // and every future prop-taking provider with it — shrinking this set
+    // without failing anything.
+    expect([...native]).toContain('ServicesProvider');
+
+    const unmountedOnWeb = [...native].filter(name => !web.has(name));
+    expect(unmountedOnWeb.length).toBeGreaterThanOrEqual(7);
+
+    const unaccounted = unmountedOnWeb.filter(
+      name =>
+        !WEB_UNMOUNTED_PROVIDERS.has(name) &&
+        !(name in UNMOUNTED_BUT_NEVER_THROWS),
+    );
+    expect(unaccounted).toEqual([]);
+  });
+
+  it('has no entry for a provider the native tree does not mount either', () => {
+    // The staleness half. An entry that outlives the context it names stops
+    // being documentation and starts being a hole in the "is this claim TRUE"
+    // reasoning, exactly like the parity gate's ALLOWED_NATIVE_ONLY.
+    const native = providersMountedIn('_layout.tsx');
+    expect(native.size).toBeGreaterThanOrEqual(18);
+    const stale = [...WEB_UNMOUNTED_PROVIDERS].filter(
+      name => !native.has(name),
+    );
+    expect(stale).toEqual([]);
   });
 
   it('recognizes what the six real unmounted-on-web contexts actually throw', () => {
