@@ -200,6 +200,7 @@ arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) →
 | 8      | Revisión del diff de la 7 + merge y push a `main`         | `8fe24f1`           |
 | 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas              | `b3d73e1`→`e75eca3` |
 | 9      | Revisión del diff de la 8: **2 defectos reales** + merge  | `3e780c6`→`d800a24` |
+| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35` (sin mergear)     | `0a4f0fc`→`c41c9cb` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
