@@ -22,11 +22,15 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 
+const crypto = require('crypto');
+
 const {
   buildPack,
   verifyRedLetterAlignment,
+  readPreviousManifest,
   shrinkComplaints,
   assertNoShrink,
+  main,
 } = require('../scripts/build-web-packs.js');
 
 const JOHN_316 =
@@ -204,8 +208,13 @@ describe('a run that would SHRINK what is already published', () => {
     ).toThrow(/2077 spans -> 900/);
   });
 
-  it('says NOTHING was written, so the message is actionable', () => {
-    expect(() =>
+  it('says NOTHING was written AND warns about an earlier run leftovers', () => {
+    // R9-72: this used to pin a claim that was FALSE — both .sqlite packs had
+    // already been written into the output directory by the time this threw. The
+    // staging rewrite made the claim true; the second half pins the other half
+    // of honesty, because an ABORTED run still leaves the PREVIOUS run's files
+    // sitting there, and publishing is a manual upload of that directory.
+    const shrunk = () =>
       assertNoShrink(
         PUBLISHED,
         SAME_PACKS,
@@ -214,8 +223,10 @@ describe('a run that would SHRINK what is already published', () => {
           {versionId: 'RVR1960', entries: 3, spans: 3},
         ],
         false,
-      ),
-    ).toThrow(/NOTHING was written/);
+      );
+    expect(shrunk).toThrow(/NOTHING was written/);
+    expect(shrunk).toThrow(/EARLIER run/);
+    expect(shrunk).toThrow(/sha256/);
   });
 
   it('continues with --allow-shrink, because an editorial removal is legitimate', () => {
@@ -289,5 +300,352 @@ describe('a run that would SHRINK what is already published', () => {
       expect.stringContaining('2059 entries -> 5'),
       expect.stringContaining('2077 spans -> 5'),
     ]);
+  });
+});
+
+/**
+ * R9-73 — a version that VANISHES is the largest shrink there is, and the
+ * count loops above cannot see it, because they walk the NEW list. That is the
+ * same vice R9-66 was about: a loop body that never runs for the thing that
+ * went missing.
+ *
+ * It is not hypothetical either. `redLetterSpecs` is a hand-maintained list —
+ * the third known blind spot of this repo — and the last time it was short of
+ * RVR1960, red-letter was silently dead in Spanish on the web for a month
+ * (that IS R9-13). Worse, the run would then rewrite web-bootstrap.json
+ * without the missing version, erasing the only baseline the next run has.
+ */
+describe('a run that would DROP a version that is already published', () => {
+  const PUBLISHED = {
+    packs: [
+      {id: 'RVR1960', verseCount: 31102},
+      {id: 'WEB', verseCount: 31098},
+    ],
+    redLetter: [
+      {versionId: 'WEB', entries: 2059, spans: 2077},
+      {versionId: 'RVR1960', entries: 2057, spans: 2077},
+    ],
+  };
+
+  it('is refused when a red-letter pack disappears entirely', () => {
+    expect(
+      shrinkComplaints(PUBLISHED, PUBLISHED.packs, [
+        {versionId: 'WEB', entries: 2059, spans: 2077},
+      ]),
+    ).toEqual([expect.stringContaining('RVR1960')]);
+  });
+
+  it('is refused when a .sqlite pack disappears entirely', () => {
+    expect(
+      shrinkComplaints(
+        PUBLISHED,
+        [{id: 'WEB', verseCount: 31098}],
+        PUBLISHED.redLetter,
+      ),
+    ).toEqual([expect.stringContaining('RVR1960')]);
+  });
+
+  it('is refused when EVERYTHING disappears', () => {
+    // The extreme of the same shape, and the one a bare count loop is most
+    // sure to miss: with nothing to iterate, there is nothing to compare.
+    expect(shrinkComplaints(PUBLISHED, [], [])).toHaveLength(4);
+  });
+
+  it('names what went missing, not just that something did', () => {
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        PUBLISHED.packs,
+        [{versionId: 'WEB', entries: 2059, spans: 2077}],
+        false,
+      ),
+    ).toThrow(/RVR1960[\s\S]*NO PACK/);
+  });
+
+  it('still lets a DELIBERATE removal through with --allow-shrink', () => {
+    // Same escape hatch as a count going down: retiring a version is an
+    // editorial decision, and the flag in the shell history records it.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(() =>
+      assertNoShrink(
+        PUBLISHED,
+        PUBLISHED.packs,
+        [{versionId: 'WEB', entries: 2059, spans: 2077}],
+        true,
+      ),
+    ).not.toThrow();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('says nothing when a version is ADDED (the control)', () => {
+    // Without this, a check that complained about any difference in the
+    // version list would block every new pack.
+    expect(
+      shrinkComplaints(
+        PUBLISHED,
+        [...PUBLISHED.packs, {id: 'KJV', verseCount: 31100}],
+        [...PUBLISHED.redLetter, {versionId: 'KJV', entries: 1, spans: 1}],
+      ),
+    ).toEqual([]);
+  });
+});
+
+/**
+ * R9-74 — `readPreviousManifest` used to swallow EVERY error into `null`, and a
+ * `null` baseline turns the whole shrink check off. Silently: the run printed
+ * not one word about having skipped it, and then overwrote the file.
+ *
+ * "Absent" really is fine — a first run has nothing to compare against.
+ * "Present but unreadable" is not the same thing, and it is reachable: this
+ * script writes that file with a single writeFileSync, so its own interrupted
+ * run leaves a truncated JSON, and a bad merge leaves conflict markers. Either
+ * way the NEXT run would be unable to refuse a shrink and unable to say so.
+ */
+describe('readPreviousManifest tells absent apart from unreadable', () => {
+  let dir;
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'essb-manifest-'));
+  });
+  afterEach(() => fs.rmSync(dir, {recursive: true, force: true}));
+
+  it('returns null for a manifest that is simply ABSENT (first run)', () => {
+    expect(readPreviousManifest(path.join(dir, 'nope.json'))).toBeNull();
+  });
+
+  it('THROWS on a truncated manifest instead of quietly returning null', () => {
+    const file = path.join(dir, 'web-bootstrap.json');
+    fs.writeFileSync(file, '{ "schema": 1, "packs": [');
+    expect(() => readPreviousManifest(file)).toThrow(/PARSE|baseline/i);
+  });
+
+  it('THROWS on a manifest with no `packs` array at all', () => {
+    // Valid JSON, useless as a baseline: every count comparison would find
+    // nothing to compare and pass. That is the bug, not a first run.
+    const file = path.join(dir, 'web-bootstrap.json');
+    fs.writeFileSync(file, '{"schema": 1}');
+    expect(() => readPreviousManifest(file)).toThrow(/packs/);
+  });
+
+  it('returns the parsed manifest when it is readable (the control)', () => {
+    const file = path.join(dir, 'web-bootstrap.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({schema: 1, packs: [{id: 'WEB', verseCount: 7}]}),
+    );
+    expect(readPreviousManifest(file).packs[0].verseCount).toBe(7);
+  });
+});
+
+/**
+ * R9-72 — the ORDER of the writes, pinned end to end against the real main().
+ *
+ * The abort message claims "no pack file was emitted, so nothing here is
+ * publishable yet". That was false: only the red-letter JSON writes were
+ * deferred, while buildPack() had already written both .sqlite packs into the
+ * output directory. Publishing is a MANUAL upload of whatever sits in that
+ * directory, so a message that asserts the directory is untouched is worse
+ * than no message at all.
+ *
+ * These run the REAL main() against a 66-verse fixture corpus — the smallest
+ * thing verifyPack's floors accept (n === expectCount, 66 distinct books, ids
+ * 1..66, no blank text, John 3:16 present) — so the ordering is exercised in
+ * milliseconds instead of parsing the 8 MB generated data files. A property of
+ * main() cannot be pinned by testing the pure helpers around it.
+ */
+describe('main() emits nothing at all when it aborts', () => {
+  const JOHN_FIXTURE = 'Jesus said these words aloud.';
+  let dir;
+  let world;
+
+  function writeVerseSource(file, arrayName, johnText) {
+    const rows = [];
+    for (let book = 1; book <= 66; book++) {
+      rows.push(
+        book === 43
+          ? {
+              book_id: 43,
+              book_name: 'Juan',
+              chapter: 3,
+              verse: 16,
+              text: johnText,
+            }
+          : {
+              book_id: book,
+              book_name: 'B' + book,
+              chapter: 1,
+              verse: 1,
+              text: 'Verse of book ' + book,
+            },
+      );
+    }
+    fs.writeFileSync(
+      file,
+      'export const ' + arrayName + ' = ' + JSON.stringify(rows) + ';\n',
+      'utf8',
+    );
+  }
+
+  function writeRedLetterSource(file, arrayName) {
+    const entries = [{book_id: 43, chapter: 3, verse: 16, spans: [[0, 5]]}];
+    fs.writeFileSync(
+      file,
+      'export const ' + arrayName + ' = ' + JSON.stringify(entries) + ';\n',
+      'utf8',
+    );
+  }
+
+  function buildWorld(johnText) {
+    const src = path.join(dir, 'src');
+    fs.mkdirSync(src, {recursive: true});
+    writeVerseSource(path.join(src, 'rvr.ts'), 'RVR1960_DATA', johnText);
+    writeVerseSource(path.join(src, 'web.ts'), 'WEB_DATA', johnText);
+    writeRedLetterSource(path.join(src, 'rvr-rl.ts'), 'RVR1960_RED_LETTER');
+    writeRedLetterSource(path.join(src, 'web-rl.ts'), 'WEB_RED_LETTER');
+    return {
+      out: path.join(dir, 'out'),
+      manifestFile: path.join(dir, 'web-bootstrap.json'),
+      specs: [
+        {
+          id: 'RVR1960',
+          file: path.join(src, 'rvr.ts'),
+          arrayName: 'RVR1960_DATA',
+        },
+        {id: 'WEB', file: path.join(src, 'web.ts'), arrayName: 'WEB_DATA'},
+      ],
+      redLetterSpecs: [
+        {
+          versionId: 'WEB',
+          source: path.join(src, 'web-rl.ts'),
+          out: 'web-red-letter.json',
+        },
+        {
+          versionId: 'RVR1960',
+          source: path.join(src, 'rvr-rl.ts'),
+          out: 'rvr1960-red-letter.json',
+        },
+      ],
+    };
+  }
+
+  /** Only the files a human would upload — never the staging scratch. */
+  function publishable(outDir) {
+    if (!fs.existsSync(outDir)) return [];
+    return fs
+      .readdirSync(outDir)
+      .filter(name => /\.(sqlite|json)$/.test(name))
+      .sort();
+  }
+
+  /** A baseline that makes RVR1960 look bigger than this run can produce. */
+  function writeInflatedBaseline(file) {
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        schema: 1,
+        packs: [
+          {id: 'RVR1960', verseCount: 99999},
+          {id: 'WEB', verseCount: 66},
+        ],
+        redLetter: [
+          {versionId: 'WEB', entries: 1, spans: 1},
+          {versionId: 'RVR1960', entries: 1, spans: 1},
+        ],
+      }),
+    );
+  }
+
+  beforeEach(() => {
+    dir = fs.mkdtempSync(path.join(os.tmpdir(), 'essb-main-'));
+    world = buildWorld(JOHN_FIXTURE);
+  });
+  afterEach(() => fs.rmSync(dir, {recursive: true, force: true}));
+
+  it('writes all four packs and the manifest on a clean run (the control)', () => {
+    // Without this, a main() that aborted unconditionally would satisfy every
+    // case below and emit nothing, ever.
+    main(world);
+    expect(publishable(world.out)).toEqual([
+      'rvr1960-red-letter.json',
+      'rvr1960.sqlite',
+      'web-red-letter.json',
+      'web.sqlite',
+    ]);
+    expect(readPreviousManifest(world.manifestFile).packs).toHaveLength(2);
+  });
+
+  it('leaves the output directory EMPTY when a count shrank', () => {
+    // The finding. Before the fix this directory held two freshly written
+    // .sqlite packs while the error said none had been emitted.
+    writeInflatedBaseline(world.manifestFile);
+    expect(() => main(world)).toThrow(/went DOWN/);
+    expect(publishable(world.out)).toEqual([]);
+  });
+
+  it('leaves the output directory EMPTY when a version disappeared', () => {
+    fs.writeFileSync(
+      world.manifestFile,
+      JSON.stringify({
+        schema: 1,
+        packs: [
+          {id: 'RVR1960', verseCount: 66},
+          {id: 'WEB', verseCount: 66},
+        ],
+        redLetter: [
+          {versionId: 'WEB', entries: 1, spans: 1},
+          {versionId: 'RVR1960', entries: 1, spans: 1},
+        ],
+      }),
+    );
+    expect(() =>
+      main({
+        ...world,
+        redLetterSpecs: world.redLetterSpecs.filter(
+          rl => rl.versionId !== 'RVR1960',
+        ),
+      }),
+    ).toThrow(/NO PACK/);
+    expect(publishable(world.out)).toEqual([]);
+  });
+
+  it('leaves the output directory EMPTY when the baseline is unreadable', () => {
+    fs.writeFileSync(world.manifestFile, '{ "schema": 1, "packs": [');
+    expect(() => main(world)).toThrow(/PARSE|baseline/i);
+    expect(publishable(world.out)).toEqual([]);
+  });
+
+  it('does not clobber an EARLIER run’s packs when it aborts', () => {
+    // The consequence that makes the false message dangerous: publishing is a
+    // manual upload of whatever sits in this directory, so an abort must leave
+    // the previous, GOOD bytes exactly as they were — not half-replace them
+    // with the bytes of a run that was judged unpublishable.
+    main(world);
+    const before = crypto
+      .createHash('sha256')
+      .update(fs.readFileSync(path.join(world.out, 'web.sqlite')))
+      .digest('hex');
+
+    // A source that changed AND a baseline that says the count must not fall.
+    const changed = buildWorld('Jesus said something else entirely here.');
+    writeInflatedBaseline(changed.manifestFile);
+    expect(() => main({...changed, out: world.out})).toThrow(/went DOWN/);
+
+    const after = crypto
+      .createHash('sha256')
+      .update(fs.readFileSync(path.join(world.out, 'web.sqlite')))
+      .digest('hex');
+    expect(after).toBe(before);
+  });
+
+  it('leaves no staging scratch behind on a clean run OR an abort', () => {
+    main(world);
+    expect(fs.readdirSync(world.out).filter(n => n.startsWith('.'))).toEqual(
+      [],
+    );
+    writeInflatedBaseline(world.manifestFile);
+    expect(() => main(world)).toThrow();
+    expect(fs.readdirSync(world.out).filter(n => n.startsWith('.'))).toEqual(
+      [],
+    );
   });
 });

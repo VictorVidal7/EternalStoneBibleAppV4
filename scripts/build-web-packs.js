@@ -31,9 +31,15 @@
  * version's verse text, so checking RVR1960 spans against web.sqlite would
  * be meaningless. That verification also refuses to pass on an empty array
  * or on entries with no spans (R9-66) — see verifyRedLetterAlignment — and
- * the run as a whole refuses to emit anything if a count went DOWN vs the
- * published manifest, unless --allow-shrink says the removal is deliberate
- * (see assertNoShrink).
+ * the run as a whole refuses to emit anything if a count went DOWN or a whole
+ * version WENT MISSING vs the published manifest (R9-73), unless
+ * --allow-shrink says the removal is deliberate (see assertNoShrink).
+ *
+ * Nothing reaches the output directory until that gate has passed: every file
+ * is built into a scratch directory and moved in afterwards (R9-72). That
+ * ordering is load-bearing rather than tidy — publishing is a MANUAL upload of
+ * whatever sits in the output directory, so a run that judged itself
+ * unpublishable must not leave anything there that looks publishable.
  *
  * RVR1960 was missing here until 2026-09-15, which is why red-letter worked
  * on web only in English: native reads both arrays straight from the bundle,
@@ -242,15 +248,57 @@ function verifyRedLetterAlignment(entries, dbFile, versionId) {
 
 /**
  * The manifest this script wrote LAST time, which is committed and describes
- * what is actually published. Absent or unreadable is not an error: the very
- * first run has nothing to compare against.
+ * what is actually published — the ONLY baseline assertNoShrink has.
+ *
+ * R9-74: ABSENT and UNREADABLE are not the same thing, and this used to
+ * collapse both (plus every IO error) into `null`. A `null` baseline turns the
+ * entire shrink check off, and it did so in complete silence: the run printed
+ * not one word about having skipped the comparison, then overwrote the file.
+ * Absent really is fine — a first run has nothing to compare against, and it
+ * says so out loud below. Present-but-unreadable is a different animal and it
+ * is reachable: this script writes that file with a single writeFileSync, so
+ * its OWN interrupted run leaves a truncated JSON behind, and a bad merge
+ * leaves conflict markers. Either way the next run could neither refuse a
+ * shrink nor tell anyone it had stopped looking, which is exactly the
+ * pass-in-a-vacuum shape R9-66 was about. So this refuses instead.
  */
 function readPreviousManifest(file) {
+  let raw;
   try {
-    return JSON.parse(fs.readFileSync(file, 'utf8'));
-  } catch {
-    return null;
+    raw = fs.readFileSync(file, 'utf8');
+  } catch (error) {
+    if (error.code === 'ENOENT') return null; // announced by assertNoShrink
+    throw new Error(
+      `Could not READ the published manifest ${file}: ${error.message}\n\n` +
+        'That file is the only baseline the shrink check has, and continuing ' +
+        'without it would silently disable the check, so this stops instead. ' +
+        'Restore it (git checkout web/packs/web-bootstrap.json), or move it ' +
+        'aside deliberately if this really is a first run.',
+    );
   }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(
+      `Could not PARSE the published manifest ${file}: ${error.message}\n\n` +
+        'A truncated or conflict-marked baseline reads as "nothing to compare ' +
+        'against", which would let a shrink through unnoticed. Restore it ' +
+        '(git checkout web/packs/web-bootstrap.json) before rebuilding.',
+    );
+  }
+  if (!parsed || typeof parsed !== 'object' || !Array.isArray(parsed.packs)) {
+    throw new Error(
+      `The published manifest ${file} parsed but carries no \`packs\` array, ` +
+        'so every count comparison below would have nothing to compare ' +
+        'against and pass vacuously. Restore it before rebuilding.',
+    );
+  }
+  console.log(
+    `  baseline: ${file} (${parsed.packs.length} packs, ` +
+      `${Array.isArray(parsed.redLetter) ? parsed.redLetter.length : parsed.redLetter ? 1 : 0} red-letter)`,
+  );
+  return parsed;
 }
 
 /**
@@ -273,6 +321,14 @@ function shrinkComplaints(previous, packs, redLetter) {
   if (!previous) return complaints;
 
   const previousPacks = Array.isArray(previous.packs) ? previous.packs : [];
+  // `redLetter` was a single OBJECT until 2026-09-15 and is an ARRAY now, so a
+  // manifest written before that date still has to be readable here.
+  const previousRedLetter = Array.isArray(previous.redLetter)
+    ? previous.redLetter
+    : previous.redLetter
+      ? [{versionId: 'WEB', ...previous.redLetter}]
+      : [];
+
   for (const pack of packs) {
     const before = previousPacks.find(x => x.id === pack.id);
     if (!before || typeof before.verseCount !== 'number') continue;
@@ -284,13 +340,6 @@ function shrinkComplaints(previous, packs, redLetter) {
     }
   }
 
-  // `redLetter` was a single OBJECT until 2026-09-15 and is an ARRAY now, so a
-  // manifest written before that date still has to be readable here.
-  const previousRedLetter = Array.isArray(previous.redLetter)
-    ? previous.redLetter
-    : previous.redLetter
-      ? [{versionId: 'WEB', ...previous.redLetter}]
-      : [];
   for (const entry of redLetter) {
     const before = previousRedLetter.find(x => x.versionId === entry.versionId);
     if (!before) continue;
@@ -304,12 +353,58 @@ function shrinkComplaints(previous, packs, redLetter) {
       }
     }
   }
+
+  // R9-73. Both loops above walk the NEW lists, so a version that VANISHES
+  // from PACK_SPECS/RED_LETTER_SPECS produces no complaint at all — and that is
+  // the LARGEST shrink there is, 2057 entries down to none. Same vice as R9-66,
+  // one level out: a loop body that never runs for the thing that went missing.
+  // It is also the accident that already happened here. Both lists are
+  // hand-maintained (the third known blind spot of this repo), and the last
+  // time RED_LETTER_SPECS was short of RVR1960, red-letter was silently dead in
+  // Spanish on the web for a month — that IS R9-13. Worse, the run would then
+  // rewrite the manifest without the missing version, erasing the only
+  // baseline the NEXT run has to notice with. So the disappearance has to be
+  // read off the PREVIOUS lists, which is the only place it is still visible.
+  for (const before of previousPacks) {
+    if (!before || typeof before.id !== 'string') continue;
+    if (packs.some(p => p.id === before.id)) continue;
+    complaints.push(
+      `${before.id}: published with ${before.verseCount ?? '?'} verses, and ` +
+        'this run emits NO PACK for it at all',
+    );
+  }
+  for (const before of previousRedLetter) {
+    if (!before || typeof before.versionId !== 'string') continue;
+    if (redLetter.some(e => e.versionId === before.versionId)) continue;
+    complaints.push(
+      `${before.versionId} red-letter: published with ` +
+        `${before.entries ?? '?'} entries, and this run emits NO PACK for it ` +
+        'at all',
+    );
+  }
   return complaints;
 }
 
 function assertNoShrink(previous, packs, redLetter, allowShrink) {
   const complaints = shrinkComplaints(previous, packs, redLetter);
-  if (complaints.length === 0) return;
+  // R9-74: say which of the two happened. Silence used to be the success
+  // signal AND the skipped-entirely signal, so an operator had no way to tell a
+  // verified run from one that never compared anything.
+  if (!previous) {
+    console.log(
+      '  shrink check SKIPPED: no published manifest to compare against ' +
+        '(first run for this output). Nothing pins these counts.',
+    );
+    return;
+  }
+  if (complaints.length === 0) {
+    console.log(
+      `  shrink check: ${packs.length} packs and ${redLetter.length} ` +
+        'red-letter packs compared against the published manifest, nothing ' +
+        'went down and nothing went missing',
+    );
+    return;
+  }
   if (allowShrink) {
     console.warn(
       '\n  ⚠️  Counts went DOWN vs the published manifest, continuing because ' +
@@ -321,29 +416,100 @@ function assertNoShrink(previous, packs, redLetter, allowShrink) {
   throw new Error(
     'Pack counts went DOWN vs the published manifest:\n  ' +
       complaints.join('\n  ') +
-      '\n\nNOTHING was written to web/packs/web-bootstrap.json and no pack ' +
-      'file was emitted, so nothing here is publishable yet. Check that the ' +
-      'source arrays regenerated correctly. If the removal IS deliberate, ' +
-      're-run with --allow-shrink.',
+      '\n\nNOTHING was written: the run aborted before anything left its ' +
+      'staging directory, so no pack file was emitted into the output ' +
+      'directory and the manifest was not touched.\n' +
+      'CAREFUL: files ALREADY sitting in the output directory are from an ' +
+      'EARLIER run — this run did not refresh them. Check their sha256 ' +
+      'against the manifest before publishing anything.\n' +
+      'Check that the source arrays regenerated correctly. If the removal IS ' +
+      'deliberate, re-run with --allow-shrink.',
   );
 }
 
-function main() {
-  fs.mkdirSync(OUT, {recursive: true});
+/** The two .sqlite packs, in manifest order. */
+const PACK_SPECS = [
+  {
+    id: 'RVR1960',
+    file: path.join(ROOT, 'src/lib/database/bible-data-rvr1960.ts'),
+    arrayName: 'RVR1960_DATA',
+  },
+  {
+    id: 'WEB',
+    file: path.join(ROOT, 'src/lib/database/bible-data-web.ts'),
+    arrayName: 'WEB_DATA',
+  },
+];
 
-  const specs = [
-    {
-      id: 'RVR1960',
-      file: path.join(ROOT, 'src/lib/database/bible-data-rvr1960.ts'),
-      arrayName: 'RVR1960_DATA',
-    },
-    {
-      id: 'WEB',
-      file: path.join(ROOT, 'src/lib/database/bible-data-web.ts'),
-      arrayName: 'WEB_DATA',
-    },
-  ];
+// One pack per version WITH red-letter data. Keep this list in sync with
+// RED_LETTER_PACKS in src/lib/reading/redLetterText.web.ts (the filenames
+// below are exactly what that module fetches) and with
+// redLetterByVersion in src/lib/reading/redLetterText.ts (native). A
+// version present in the native map and missing here reads red-letter-free
+// on web while claiming otherwise — that was the RVR1960 bug.
+const RED_LETTER_SPECS = [
+  {
+    versionId: 'WEB',
+    source: 'src/lib/database/bible-data-web-redletter.ts',
+    out: 'web-red-letter.json',
+  },
+  {
+    versionId: 'RVR1960',
+    source: 'src/lib/database/bible-data-rvr1960-redletter.ts',
+    out: 'rvr1960-red-letter.json',
+  },
+];
 
+/**
+ * Every argument is injectable so __tests__/buildWebPacks.test.js can run the
+ * REAL main() end to end against tiny fixtures, in a temp directory, with its
+ * own throwaway manifest. The ORDER of the writes in here is itself a
+ * load-bearing property (R9-72), and a property of main() cannot be pinned by
+ * testing the pure helpers around it.
+ */
+function main(options = {}) {
+  const {
+    out = OUT,
+    allowShrink = ALLOW_SHRINK,
+    manifestFile = WEB_PACKS_JSON,
+    specs = PACK_SPECS,
+    redLetterSpecs = RED_LETTER_SPECS,
+  } = options;
+
+  fs.mkdirSync(out, {recursive: true});
+
+  // R9-72. EVERYTHING is built into a scratch directory first and moved into
+  // `out` only once assertNoShrink has passed. Before this, only the
+  // red-letter JSON writes were deferred: buildPack() had already written both
+  // .sqlite packs straight into `out`, so the abort message's "no pack file was
+  // emitted, so nothing here is publishable yet" was FALSE, and it was false in
+  // the worst possible way — publishing is a MANUAL upload of whatever sits in
+  // that directory, and the directory is known to hold stale packs from earlier
+  // runs. A message that ASSERTS the directory is untouched is worse than no
+  // message. Proven before the fix: a source that quietly lost 492 Psalms
+  // verses satisfies every verifyPack floor (they pin the DB against the same
+  // shrunken SOURCE), aborts in assertNoShrink, and leaves a 30 606-verse
+  // web.sqlite sitting in `out` looking exactly like a good one.
+  //
+  // The scratch lives INSIDE `out` so the moves are same-volume renames (a
+  // rename across volumes fails with EXDEV on Windows), and the `finally`
+  // removes it on every path, abort included.
+  const staging = fs.mkdtempSync(path.join(out, '.staging-'));
+  try {
+    emit({staging, out, manifestFile, allowShrink, specs, redLetterSpecs});
+  } finally {
+    fs.rmSync(staging, {recursive: true, force: true});
+  }
+}
+
+function emit({
+  staging,
+  out,
+  manifestFile,
+  allowShrink,
+  specs,
+  redLetterSpecs,
+}) {
   const manifest = [];
   for (const s of specs) {
     console.log(`Building ${s.id} from ${path.basename(s.file)}…`);
@@ -357,7 +523,7 @@ function main() {
       verse: r.verse,
       text: r.text,
     }));
-    const dbFile = path.join(OUT, s.id.toLowerCase() + '.sqlite');
+    const dbFile = path.join(staging, s.id.toLowerCase() + '.sqlite');
     buildPack(rows, dbFile);
     verifyPack(dbFile, rows.length);
     const buf = fs.readFileSync(dbFile);
@@ -374,36 +540,21 @@ function main() {
     });
   }
 
-  // One pack per version WITH red-letter data. Keep this list in sync with
-  // RED_LETTER_PACKS in src/lib/reading/redLetterText.web.ts (the filenames
-  // below are exactly what that module fetches) and with
-  // redLetterByVersion in src/lib/reading/redLetterText.ts (native). A
-  // version present in the native map and missing here reads red-letter-free
-  // on web while claiming otherwise — that was the RVR1960 bug.
-  const redLetterSpecs = [
-    {
-      versionId: 'WEB',
-      source: 'src/lib/database/bible-data-web-redletter.ts',
-      out: 'web-red-letter.json',
-    },
-    {
-      versionId: 'RVR1960',
-      source: 'src/lib/database/bible-data-rvr1960-redletter.ts',
-      out: 'rvr1960-red-letter.json',
-    },
-  ];
-
-  // Parse, verify and COUNT every red-letter pack before writing any of them,
-  // so the shrink check below can refuse the whole run rather than leaving
-  // half-written packs in the output directory looking publishable.
+  // Parse, verify and COUNT every red-letter pack before anything is moved
+  // into `out`, so the shrink check below can refuse the whole run.
   const redLetterManifest = [];
-  const pendingWrites = [];
   for (const rl of redLetterSpecs) {
     console.log(`Building ${rl.out} from ${path.basename(rl.source)}…`);
-    const entries = parseTsArray(path.join(ROOT, rl.source));
+    // `path.resolve`, not `path.join`: a spec may carry an ABSOLUTE source
+    // path (the fixtures in __tests__/buildWebPacks.test.js do), and joining
+    // an absolute path onto ROOT concatenates instead of honouring it.
+    const entries = parseTsArray(path.resolve(ROOT, rl.source));
     // Against ITS OWN pack, never web.sqlite: spans are offsets into this
     // version's text.
-    const ownDbFile = path.join(OUT, rl.versionId.toLowerCase() + '.sqlite');
+    const ownDbFile = path.join(
+      staging,
+      rl.versionId.toLowerCase() + '.sqlite',
+    );
     verifyRedLetterAlignment(entries, ownDbFile, rl.versionId);
     const body = Buffer.from(JSON.stringify(entries), 'utf8');
     const sha = crypto.createHash('sha256').update(body).digest('hex');
@@ -412,7 +563,7 @@ function main() {
       `  ${rl.versionId} red-letter: ${entries.length} entries, ${spanCount} ` +
         `spans -> ${body.length} bytes, sha256 ${sha.slice(0, 16)}…`,
     );
-    pendingWrites.push({file: path.join(OUT, rl.out), body});
+    fs.writeFileSync(path.join(staging, rl.out), body);
     redLetterManifest.push({
       versionId: rl.versionId,
       file: rl.out,
@@ -424,16 +575,21 @@ function main() {
   }
 
   assertNoShrink(
-    readPreviousManifest(WEB_PACKS_JSON),
+    readPreviousManifest(manifestFile),
     manifest,
     redLetterManifest,
-    ALLOW_SHRINK,
+    allowShrink,
   );
 
-  for (const w of pendingWrites) fs.writeFileSync(w.file, w.body);
+  // Past this line the run is judged publishable, so now — and only now —
+  // does anything appear in `out`. A rename over an existing file replaces it
+  // atomically enough that a reader never sees a half-written pack.
+  for (const name of fs.readdirSync(staging)) {
+    fs.renameSync(path.join(staging, name), path.join(out, name));
+  }
 
   fs.writeFileSync(
-    WEB_PACKS_JSON,
+    manifestFile,
     JSON.stringify(
       {
         schema: 1,
@@ -456,9 +612,9 @@ function main() {
 
   console.log('\nDone.');
   for (const s of specs)
-    console.log(`  ${path.join(OUT, s.id.toLowerCase() + '.sqlite')}`);
-  for (const rl of redLetterSpecs) console.log(`  ${path.join(OUT, rl.out)}`);
-  console.log(`  ${WEB_PACKS_JSON} written`);
+    console.log(`  ${path.join(out, s.id.toLowerCase() + '.sqlite')}`);
+  for (const rl of redLetterSpecs) console.log(`  ${path.join(out, rl.out)}`);
+  console.log(`  ${manifestFile} written`);
   console.log(
     '  Upload the *.sqlite AND *-red-letter.json to the Pages repo under ' +
       '/packs/ (Victor — no gh CLI access from this session).',
@@ -476,7 +632,10 @@ module.exports = {
   buildPack,
   verifyPack,
   verifyRedLetterAlignment,
+  readPreviousManifest,
   shrinkComplaints,
   assertNoShrink,
   main,
+  PACK_SPECS,
+  RED_LETTER_SPECS,
 };
