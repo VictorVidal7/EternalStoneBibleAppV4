@@ -1,9 +1,12 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: Modo A · fila `A4`.** Sesión 2 cerró todo el Modo B P0. Sesión 3
-> (2026-09-03) cerró **6 filas del Modo A P0** (`A1`, `A2`, `A3`, `A5`, `A6`, `A7`) con
-> **24 hallazgos nuevos** (`R9-9`..`R9-32`), de los cuales **9 son P0**. Siguiente
-> `PENDIENTE`: `A4` (`SyncEngine`, donde ya apuntan `R9-11` y `R9-22`), luego `A8`–`A12`.
+> **Frontera actual: Modo A · fila `A12`, que está `EN CURSO` (parcial).** Sesión 2 cerró
+> todo el Modo B P0. Sesión 3 cerró 6 filas del Modo A P0 (`R9-9`..`R9-32`, 9 P0). Sesiones
+> 4 y 5 cerraron `A4` (`R9-33`..`R9-39`, 6 P0) y registraron 4 reportes de campo
+> (`R9-40`..`R9-43`). **Sesión 6 (2026-09-14) cerró `A8`, `A9`, `A10` y `A11` con
+> 21 hallazgos nuevos (`R9-44`..`R9-64`), 6 de ellos P0** — y dejó `A12` empezada a
+> propósito. **Total: 21 P0 abiertos.** Siguiente: terminar `A12` (hay 3 hilos ya abiertos
+> en su detalle), y con eso **queda cerrado el bloque P0 entero del Modo A**.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -98,6 +101,22 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
   `feedback_essb-theme-and-navigation-patterns`.
 - **Piso de sync aceptado a propósito:** `reviewCard()` en `MemoryDeckContext` dispara
   una escritura Firestore por repaso real — evaluado y aceptado, no es un hallazgo.
+- **La suite es estructuralmente CIEGA al horario de verano** (sesión 6, fila `A11`).
+  Ninguna prueba del repo fija `TZ`, y el CI y la máquina de Victor corren en
+  `America/Mexico_City`, **que abolió el DST en 2022** → ningún test puede detectar jamás
+  un bug de cambio de hora. Es un **cuarto punto ciego**, junto a la resolución de módulos
+  por plataforma, la dirección inversa de cada flujo y las listas enumeradas a mano.
+  Cualquier área que agrupe por día/semana/mes merece esa lente. Gotcha: `TZ=... npx jest`
+  **no** propaga la variable desde Bash en Windows; usar
+  `$env:TZ = 'Europe/Madrid'; npx jest <ruta>` en PowerShell.
+- **Hay 5 adaptadores de sync, no 3** (corrección de la sesión 6): `notes`, `highlights`,
+  `reviewEvents` (`registerOfflineAdapters.ts:17-19`), **`favorites`**
+  (`FavoritesContext.tsx:228`) y **`memoryDeck`** (`MemoryDeckContext.tsx:267`) — los dos
+  últimos se registran desde sus contextos. Las 8 colecciones Firestore están enumeradas en
+  `deleteAccountData.ts:22-43`. **Ninguna es progreso de lectura, racha, planes ni logros:
+  eso NO viaja entre dispositivos**, solo por respaldo manual.
+- **La Mesa no vive en `src/features/prep/`** (esa carpeta está vacía): los stores están en
+  `src/features/study/` y las pantallas en `app/features/prep/`.
 
 ---
 
@@ -108,15 +127,15 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A1  | Premium: `PremiumContext` + RevenueCat + entitlements              | P0        | 🐛 BUG    | `A1-premium-revenuecat`         |
 | A2  | Ofrenda/Donación: `offeringService`, `giftCodeService`             | P0        | 🐛 BUG    | `A2-ofrenda-donacion-giftcodes` |
 | A3  | Auth: `AuthContext` + borrado de cuenta                            | P0        | 🐛 BUG    | `A3-auth-borrado-cuenta`        |
-| A4  | Sync: `SyncEngine.ts` (1378 L) y colas de escritura                | P0        | PENDIENTE | —                               |
+| A4  | Sync: `SyncEngine.ts` (1378 L) y colas de escritura                | P0        | 🐛 BUG    | `A4-syncengine`                 |
 | A5  | Auditoría de TODAS las escrituras a Firestore (call sites)         | P0        | 🐛 BUG    | `A5-escrituras-firestore`       |
 | A6  | Paridad web/native (`*.web.tsx` premium/offering/memory)           | P0        | 🐛 BUG    | `A6-paridad-web-native`         |
 | A7  | `services/BackupService.ts` (1526 L) — respaldar/restaurar         | P0        | 🐛 BUG    | `A7-backupservice`              |
-| A8  | Persistencia de notas y subrayados (`lib/notes`, `lib/highlights`) | P0        | PENDIENTE | —                               |
-| A9  | Persistencia/autoguardado de la Mesa (`features/prep`)             | P0        | PENDIENTE | —                               |
-| A10 | Memoria/SRS: `MemoryDeckContext`, `lib/memory`                     | P0        | PENDIENTE | —                               |
-| A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | PENDIENTE | —                               |
-| A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | PENDIENTE | —                               |
+| A8  | Persistencia de notas y subrayados (`lib/notes`, `lib/highlights`) | P0        | 🐛 BUG    | `A8-notas-subrayados`           |
+| A9  | Persistencia/autoguardado de la Mesa (`features/prep`)             | P0        | 🐛 BUG    | `A9-mesa-persistencia`          |
+| A10 | Memoria/SRS: `MemoryDeckContext`, `lib/memory`                     | P0        | 🐛 BUG    | `A10-memoria-srs`               |
+| A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | 🐛 BUG    | `A11-progreso-rachas`           |
+| A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | EN CURSO  | `A12-superficies-crash`         |
 | A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | PENDIENTE | —                               |
 | A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | PENDIENTE | —                               |
 | A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | PENDIENTE | —                               |
@@ -278,6 +297,13 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   índice con 137 filas (A 46 · B 10 · C 71 · D 10) y `BUGS.md`. Hallazgo colateral: la
   semilla BUG-10 del charter estaba obsoleta — ya está arreglada en `b17ec99`. Nada
   revisado. Siguiente: fila `A1` (o `B1` si se prefiere empezar por lo barato).
+- **Sesión 2 — 2026-09-03.** Modo B. **Cerrado el bloque P0 entero** (`B1`, `B1b`,
+  `B2`–`B5`) → `R9-1`..`R9-8`, **ninguno un bug de la app**: son propuestas de
+  endurecimiento. Resultado limpio: **0 vulnerabilidades alcanzables**, **0 secretos
+  filtrados jamás** (5558/5558 blobs del historial), **0 paths abiertos** en las reglas de
+  Firestore. Commits `2f32aa9` (el bloque), `8b64c11` (`CONTINUAR.md` + correcciones al
+  charter) y `af64ce1` (`R9-7` **RESUELTO**: `functions/` no se despliega a propósito —
+  plan Blaze—, y ahora está documentado).
 - **Sesión 3 — 2026-09-03.** Modo A. **6 filas cerradas** (`A1`, `A5` por el
   orquestador; `A2`, `A3`, `A6`, `A7` por fan-out de agentes en worktree) → **24 hallazgos
   `R9-9`..`R9-32`, 9 de ellos P0.** `A1` y `A5` se verificaron con **sondas ejecutables**
@@ -289,3 +315,40 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   `src/lib/backup/`). **Patrón que atraviesa la sesión:** las tres compuertas verdes
   (`tsc`, jest, CI) comparten puntos ciegos —resolución por plataforma, y la dirección
   "quitar acceso"/"restaurar"— y ahí es donde estaban casi todos los P0.
+- **Sesión 4 — 2026-09-03.** Modo A, fila `A4` (`SyncEngine`). Se leyó el módulo entero
+  más sus 12 archivos satélite y se montó una **sonda ejecutable** de 7 casos en
+  `_scratch/`. **Se cortó a mitad del checkpoint:** escribió `detail/A4-syncengine.md`
+  pero **no** la fila del índice ni las entradas de `BUGS.md`, así que el índice dijo
+  `A4 · PENDIENTE` durante 4 días teniendo el detalle escrito. De ahí sale la regla de
+  "checkpoint COMPLETO o fila en `EN CURSO`" del §5 de `CONTINUAR.md`.
+- **Sesión 5 — 2026-09-07.** Cierre de `A4` + campo. En vez de creerle al informe
+  heredado, se **corrió su sonda contra el `SyncEngine` real: 7/7 pasan** y los números
+  coinciden al dígito; además se re-verificaron a mano los 5 `grep` portantes, y los 5 se
+  sostuvieron. Eso convirtió 7 afirmaciones en 7 hechos → `R9-33`..`R9-39` (**6 P0**),
+  entre ellos `R9-33` (una escritura se **descarta en silencio** tras 8 reintentos sin
+  espera mientras Ajustes dice «sincronizado») y `R9-35` (un `updatedAt` **en el futuro**
+  detiene la bajada para siempre). La sonda se sacó de la suite renombrándola a
+  `_scratch/a4probe.ts.txt` — estuvo 4 días dentro de `npm test` sin aparecer en
+  `git status`. A mitad del cierre Victor mandó **5 capturas del OnePlus**; atenderlas
+  primero (regla de preempción) dio 4 hallazgos de campo más,
+  `R9-40`..`R9-43` → `detail/CAMPO-victor-2026-09-07.md`. Ninguno P0.
+- **Sesión 6 — 2026-09-14.** Modo A. Arranque: cerrada la incoherencia que dejó la sesión 4
+  (fila `A4`, frontera, y bitácora de las sesiones 2, 4 y 5 — la 2 **también** faltaba).
+  Después, **fan-out de 4 agentes en worktree** sobre `A8`, `A9`, `A10` y `A11`, las 4
+  cerradas → **21 hallazgos `R9-44`..`R9-64`, 6 de ellos P0**, con lo que el bloque P0 del
+  Modo A queda a **una sola fila** de cerrarse. **Los 4 agentes probaron sus hallazgos
+  portantes con sondas ejecutables** contra el código real, no por lectura — el patrón que
+  la sesión 5 había convertido en regla se aplicó por defecto y rindió: 19 de los 21
+  hallazgos tienen sonda. **PENDIENTE y anotado en cada `detail/`: la re-verificación a mano
+  del orquestador** sobre los `grep` portantes de los 6 P0 nuevos; no se hizo en esta sesión
+  porque Victor pidió a mitad de camino bajar el ritmo para no agotar el límite de uso, y se
+  prefirió volcar todo a disco y commitear antes que verificar la mitad. `A12` se empezó en
+  el árbol principal y quedó **`EN CURSO` con 3 hilos abiertos** por la misma razón.
+  **Tres cosas que cambian el mapa, más allá de los bugs sueltos:** (a) una **raíz común**
+  detrás de `R9-44`/`R9-45`/`R9-50` — `pushOne` escribe con `{merge:true}`, y bajo merge un
+  campo opcional es **imposible de desasignar por sync**, así que toda omisión local se
+  vuelve divergencia permanente con la nube; (b) **la suite es ciega al DST** (cuarto punto
+  ciego, ver arriba); (c) **la racha y el progreso de lectura no viajan entre dispositivos**,
+  y el anzuelo de inicio de sesión promete lo contrario. Y una nota agridulce: **ninguno de
+  los ~4027 tests escribe jamás en un campo de nota de la Mesa**, lo que explica por qué
+  `R9-47` llevaba ahí sin verse.

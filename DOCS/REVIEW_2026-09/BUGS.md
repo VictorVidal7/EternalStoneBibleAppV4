@@ -158,6 +158,190 @@
   desaparece sin toast, sin error, sin log. Mismo patrón en `ReadingProgressContext`,
   preferencias de lector, tema y planes. Detalle: `detail/A7-backupservice.md`.
 
+- **`R9-33` (A4, `SyncEngine`) — 🐛 no hay backoff: una escritura se descarta en silencio
+  tras 8 intentos, y Ajustes dice «sincronizado».** Severidad **alta**.
+  `src/lib/sync/SyncEngine.ts:1255-1276`. El backoff que la documentación promete **no
+  existe**: `queuedAt` está documentado en `types.ts:98` como _"Used for retry backoff"_ y
+  `netinfo.ts:66` justifica haber aflojado la puerta de red diciendo que _"our own queue
+  retries with backoff"_ — pero `queuedAt` se **escribe** en 3 sitios (`:402`, `:426`,
+  `:1186`) y **no se lee en ninguno** (`grep` verificado a mano). Agotados los 8 intentos,
+  el `splice` borra la entrada y `persistQueue()` graba el descarte. **Y el usuario no
+  recibe señal alguna:** `lastError` tiene **cero** consumidores fuera de `src/lib/sync/`
+  (verificado a mano), y el indicador de Ajustes (`app/(tabs)/settings.tsx:87-112`) se
+  construye solo con `pendingWrites`/`isOnline`/`lastSyncedAt` — no tiene rama de error.
+  Al descartarse la última entrada `pendingWrites` cae a 0 y la UI afirma «Sincronizado
+  hace un momento» en el mismo instante en que el motor tiró la escritura.
+  **Repro (sonda ejecutable, re-corrida esta sesión contra el `SyncEngine` real):** con
+  `doc.set()` rechazando siempre, `attempts` recorre `[1..7]` y a la 8ª la cola queda
+  vacía; `mockDocSets` = 0; `pendingWrites` = 0. **Tiempo en agotar los 8 reintentos: 1
+  ms** — la prueba más directa de que no hay espera de ninguna clase. Detalle:
+  `detail/A4-syncengine.md`.
+
+- **`R9-34` (A4, `SyncEngine`) — 🐛 la rama de ERROR de `flush()` pisa la reedición con el
+  snapshot viejo (gemelo de `R9-11`).** Severidad **media-alta**.
+  `src/lib/sync/SyncEngine.ts:1256-1263`. `R9-11` es la rama de éxito; ésta es la de
+  error, otra línea y otro arreglo. `item` viene del snapshot `items = [...this.queue]`
+  tomado al empezar el flush; si el usuario reeditó el documento mientras `pushOne` estaba
+  en vuelo, `this.queue[idx] = {...item, attempts: item.attempts + 1}` **sobrescribe la
+  entrada nueva con la vieja**. Es **peor que `R9-11`**: allí la versión nueva seguía en el
+  almacén local y solo la nube se quedaba atrás; aquí retrocede **la cola misma**, así que
+  ni un reintento posterior con éxito subirá la edición nueva. **Repro (sonda):** cola
+  antes del fallo `{"value":"v2-REEDITADO","updatedAt":2000}`; después del rechazo
+  `{"value":"v1","updatedAt":1000,"attempts":1}`. Conviene arreglarlo junto con `R9-11`.
+  Detalle: `detail/A4-syncengine.md`.
+
+- **`R9-35` (A4, `SyncEngine`) — 🐛 un `updatedAt` en el futuro fija el cursor por delante
+  del reloj y la bajada se detiene para siempre.** Severidad **media-alta**.
+  `src/lib/sync/SyncEngine.ts:800-826` (`advanceCursor`) + `:588` (el suelo de la query).
+  `advanceCursor` valida finito, positivo y mayor que el actual, pero **no que no esté en
+  el futuro** (verificado a mano: no hay techo). `updatedAt` es reloj de **cliente**
+  (`queueWrite:396-400`), y `handleSnapshot` incorpora al cursor también los ecos de las
+  propias escrituras del dispositivo (`:684-697`), así que un teléfono con la hora
+  adelantada se envenena a sí mismo. Corregido el reloj, toda escritura posterior cae
+  **por debajo** del suelo `cursor - 5min` y el listener deja de entregar. El cursor nunca
+  retrocede por diseño y **no existe ninguna ruta que lo resetee** (`grep` de
+  `cursorStorageKey|sync_cursor` fuera de `SyncEngine.ts`: **cero**, verificado a mano) →
+  el único remedio es reinstalar. **Acaba en pérdida de datos:** mientras A no recibe, el
+  usuario edita en A un documento que ya cambió en B; el `updatedAt` de A es más nuevo y
+  el siguiente push **machaca en la nube el cambio de B**. **Repro (sonda):** con un doc a
+  `ahora + 30 días`, tras reiniciar con el reloj correcto el suelo queda 30 días en el
+  futuro y una nota legítima de hoy **no llega nunca**. Detalle: `detail/A4-syncengine.md`.
+
+- **`R9-36` (A4, conflictos) — 🐛 «conservar lo mío» empuja el snapshot de la detección y
+  revierte lo que el usuario escribió después.** Severidad **media**.
+  `src/lib/sync/SyncEngine.ts:1020-1023` + `app/(tabs)/conflicts.tsx:89,120,230,371`.
+  `conflict.localVersion` es una foto del documento **en el momento de detectarse** el
+  conflicto (`types.ts:130`); `resolveConflict('keepMine')` la reenvía re-sellada con
+  `updatedAt: now` y no toca el almacén local, apoyándose en el comentario _"local store
+  already has this value"_ — cierto **solo** si el usuario no tocó el documento desde
+  entonces, cosa que nada garantiza (los conflictos esperan a que entre a la pantalla). La
+  pantalla tampoco relee lo local: pinta y siembra el borrador de fusión desde el mismo
+  snapshot. Si la edición intermedia fue hace más de `CONFLICT_WINDOW_MS` (30 s) no se
+  detecta conflicto nuevo y LWW aplica el valor viejo encima: **el botón «conservar lo
+  mío» destruye justamente "lo mío"**. **Repro (sonda):** local al pulsar
+  `"parrafo original + PARRAFO NUEVO QUE ACABO DE ESCRIBIR"`; empujado
+  `{"value":"parrafo original","updatedAt":1000}`. **Alcance acotado** (hacen falta dos
+  dispositivos dentro de 30 s), por eso media pese a ser pérdida de texto escrito a mano.
+  Detalle: `detail/A4-syncengine.md`.
+
+- **`R9-38` (A4, `SyncEngine`) — 🐛 lo que se edita con la sesión cerrada no se sube nunca,
+  y nada lo reconcilia después.** Severidad **media**.
+  `src/lib/sync/SyncEngine.ts:388`, `:413` + `:1163-1170`. `queueWrite`/`queueDelete` son
+  no-op sin `uid` — correcto como diseño local-first (`A5` lo dio OK) — pero **no hay
+  ninguna pasada de reconciliación posterior**. El único mecanismo que sube el estado local
+  completo es `maybeRunInitialBulkPush`, que corta si el flag por uid vale `'2'`/`'skip'`,
+  justo lo que quedó grabado en la primera sesión. Verificado a mano:
+  `@sync_first_push_done:` y `@sync_queue_v1` **solo aparecen dentro de `SyncEngine.ts`** —
+  ni el cierre de sesión, ni el borrado de cuenta, ni el reset de Ajustes los tocan.
+  **Escenario:** cierra sesión, usa la app una semana (notas, subrayados, tarjetas) y
+  vuelve a entrar **con la misma cuenta**: esa semana se queda solo en el teléfono, y como
+  LWW compara timestamps lo local es más nuevo y nada delata la divergencia. **Repro
+  (sonda):** flag = `'2'`, 3 notas con el motor detenido, cola = 0 entradas, documentos
+  empujados tras `start()` = `[]`. Detalle: `detail/A4-syncengine.md`.
+
+- **`R9-39` (A4, conflictos) — 🐛 un conflicto pendiente lo entierra el cursor que adelanta
+  cualquier OTRO documento de la misma colección.** Severidad **media**.
+  `src/lib/sync/SyncEngine.ts:698-708` + `:360-363`. El motor retiene a propósito del
+  cursor la marca del documento en conflicto, pero **la retención es inefectiva**: el
+  cursor es un escalar por colección y `maxSeenUpdatedAt` recoge el máximo de **todos los
+  demás** documentos, así que basta con que llegue uno más nuevo para saltar por encima del
+  conflictivo. Y `stop()` borra la lista de conflictos apoyándose en una promesa explícita
+  del comentario (_"fresh onSnapshot events will re-detect any still-divergent docs"_) que
+  **es falsa** en cuanto el cursor haya adelantado. El conflicto desaparece sin resolver,
+  sin aviso y sin registro, y los dispositivos quedan divergentes hasta que alguien toque
+  el documento — momento en el que LWW **elimina en silencio el otro lado**, que es
+  exactamente lo que el sistema de conflictos existe para evitar. **Repro (sonda):**
+  conflicto detectado y cursor retenido en 0; llega otra nota cualquiera y el cursor salta;
+  tras reiniciar, conflictos re-detectados = **0**. Detalle: `detail/A4-syncengine.md`.
+
+> **`R9-44`..`R9-64` vienen del fan-out de 4 de la sesión 6** (filas `A8`–`A11`). Están
+> **probados con sondas ejecutables de los agentes** pero **PENDIENTES de la
+> re-verificación a mano del orquestador** (regla fija de `CONTINUAR.md` §5: los agentes
+> aciertan el mecanismo y fallan el detalle). Trátalos como más que una lectura y menos que
+> un hecho re-verificado hasta que esa pasada ocurra.
+
+- **`R9-44` (A8, subrayados) — 🐛 cambiar el color de un subrayado desde el lector BORRA la
+  nota y la categoría que el usuario le había escrito.** Severidad **alta**.
+  `app/(tabs)/verse/[book]/[chapter].tsx:1504-1510` llama `addHighlight(...)` con **5
+  argumentos**, omitiendo `category` y `note`; `HighlightService.ts:56-104` hace
+  `INSERT OR REPLACE` sobre `UNIQUE(verse_id)` escribiendo `category || null` y `note || null`
+  (`:94-95`) → **pisa con `NULL`**. Sin lectura previa, sin confirmación, y el lector ni
+  siquiera indica que ese versículo tiene nota. También resetea `created_at`. **Agravante:**
+  el payload sube sin la nota y `pushOne` usa `{merge:true}` (`SyncEngine.ts:1323`), así que
+  **Firestore conserva la vieja** → el teléfono la pierde, la nube la mantiene, un
+  dispositivo nuevo la resucita. **Repro (sonda, 9/9):** `params[6]`/`params[7]` a `null` en
+  la llamada literal de `:1504`. Detalle: `detail/A8-notas-subrayados.md`.
+- **`R9-45` (A8, sync) — 🐛 una lápida en `highlights` nunca se limpia: volver a resaltar el
+  MISMO versículo no llega jamás a los otros dispositivos.** Severidad **alta**. El adaptador
+  usa el `verseId` como id de documento —**clave natural REUTILIZABLE**, decisión documentada
+  en `adapters/highlights.ts:19-25`—, `queueDelete` pone `deleted:true`
+  (`SyncEngine.ts:412-429`) y el `queueWrite` posterior **nunca pone `deleted:false`**
+  (`:387-406`); bajo `merge:true` (`:1323`) el doc queda con color nuevo **y** `deleted:true`
+  para siempre, y todo otro dispositivo lo lee como lápida (`:669`). **Se extiende a NOTAS**
+  por `BackupService.ts:993-995` (restaurar un respaldo que contiene una nota ya borrada).
+  **Repro (sonda):** tras `queueDelete` + `queueWrite`, `doc.color === '#A5D6A7'` **y**
+  `doc.deleted === true`; ese doc en un segundo engine produce `DELETE FROM highlights` y
+  ningún `INSERT`. Detalle: `detail/A8-notas-subrayados.md`.
+- **`R9-46` (A8, sync) — 🐛 `notesSyncAdapter.getLocal` falla ABIERTO: si la BD aún no está
+  lista, una copia remota VIEJA pisa la nota local más nueva.** Severidad **alta**.
+  `adapters/notes.ts:50-56` es **el único de los 4 métodos del adaptador que NO llama
+  `bibleDB.initialize()`** (los otros sí, `:77`/`:109`/`:122`; el de subrayados lo hace en los
+  cuatro). `getNotes()` lanza `"Database not initialized"` y `findNoteById` **captura y
+  devuelve `null`**, indistinguible de "no existe" → el motor **se salta el LWW y la detección
+  de conflictos** (`SyncEngine.ts:716`, `:744-747`). **La ventana está abierta en cada arranque
+  en frío:** los efectos de React corren de hijo a padre, así que `SyncEngineProvider` arranca
+  antes de que `ServicesProvider` llame `database.initialize()` (`app/_layout.tsx:433-435`,
+  `ServicesContext.tsx:94`), y esa init copia un `bible.db` de varios MB. **Repro (sonda, con
+  el motor y el adaptador reales):** local `updatedAt=9_000_000` vs remoto `5_000_000` → se
+  ejecuta `INSERT OR REPLACE INTO notes` con el texto viejo; el control con la BD sana no
+  inserta nada. Detalle: `detail/A8-notas-subrayados.md`.
+- **`R9-47` (A9, Mesa) — 🐛 `load()` no tiene guarda de obsolescencia: una carga vieja que
+  llega tarde pisa los `drafts`, y el siguiente `onBlur` escribe esa prosa ajena (o vacía)
+  sobre la clave del pasaje visible.** Severidad **alta**. Es dato irreemplazable: el sermón
+  escrito a mano. `app/features/prep/index.tsx:464` es un `useCallback` con deps
+  `[table, params.version]` en un `useEffect` **sin cleanup**; cada toque del stepper arranca
+  una carga nueva sin cancelar la anterior (no hay request-id ni comprobación de pasaje) y
+  `setDrafts` (`:592`) / `setTemplate` (`:598`) se aplican incondicionalmente. `handleNoteBlur`
+  (`:1053-1065`) no lee el `TextInput` sino el estado, y escribe `drafts[section] ?? ''` **bajo
+  `table.passageKey`**; el `?? ''` convierte una prosa ausente en un **borrado**
+  (`prepNotes.ts:157-170`). **Repro (3 sondas, 3 consecuencias):** con dos toques («+ Fin»,
+  «− Fin») la nota queda **borrada**; o **reemplazada por el sermón del otro rango**; o la
+  carga arrastra el **template ajeno** y lo que se escriba queda bajo un id de sección que la
+  plantilla nunca devuelve → **invisible para siempre** (no se re-renderiza, no sale en PDF, ni
+  en «copiar esquema», ni en el Historial). **Segundo disparador sin carrera:** `table` depende
+  de `isPremium` (`:328`), así que un cambio de titularidad de RevenueCat re-corre `load()`
+  sobre el mismo pasaje. Detalle: `detail/A9-mesa-persistencia.md`.
+- **`R9-48` (A10, identidad) — 🐛 el log de repasos nunca se borra al cerrar sesión: el
+  historial del usuario A se escribe dentro de la cuenta del usuario B y destruye su
+  agregado.** Severidad **alta**. `AuthContext.tsx:471` (y `:572`) solo llama
+  `clearMemoryStatsFloor()`; su docstring lo admite: _"Does NOT touch the local review-event
+  log"_ (`memoryStatsSync.ts:176`). La tabla `review_events` **nunca está uid-scoped** y nada
+  la borra fuera de `BackupService` (`grep "DELETE FROM review_events" src/` → 1 hit). Rompe
+  las dos mitades: el floor de B **no se siembra nunca** (`:89-90`), y
+  `maybeWriteMemoryStatsSummary()` combina `getActiveUid()`=B con los eventos de A y hace
+  `.set()` — **sobrescritura total, no merge** (`:140-143`). Como `reviewEvents` ya no
+  sincroniza, ese doc era **el único ancla de B en la nube**. **Mecanismo DISTINTO de
+  `R9-22`/`R9-23`** (no pasa por la cola del `SyncEngine`): **namespacear la cola no lo
+  arregla.** **Repro (sonda):** `mockDocGet` nunca llamado; se escribe a
+  `users/uid-B/memoryStats` con `longestStreak: 5` donde B tenía `400`. Detalle:
+  `detail/A10-memoria-srs.md`.
+- **`R9-49` (A11, respaldo) — 🐛 los 4 logs de lectura no pueden marcarse "degradados", así
+  que un fallo transitorio de SQLite produce un archivo que al importar BORRA la racha y los
+  ledgers.** Severidad **alta**. `safeQuery` (`BackupService.ts:356-371`) solo marca degradado
+  desde su `catch`, pero `getReadingLog()`, `getCompletedBooks()`, `getBookReadingLog()` y
+  `getChaptersReadLog()` (`AchievementService.ts:855`/`:879`/`:912`/`:944`) **se tragan su
+  propia excepción** y devuelven `[]` → la bandera `degradedSections` es **código
+  físicamente inalcanzable** para las 4 secciones que contienen toda la historia de lectura.
+  Al importar, `allRowsFailedValidation` exige `sourceLen > 0` (`:937-942`), con `[]` da falso,
+  y `restoreBackup` ejecuta **`DELETE FROM reading_streak_log`** con 0 inserts (`:1054-1063`).
+  **Remate:** `recomputeReadingStreak()` corre en **cada** `initialize()` (`:128`) y hace
+  `UPDATE user_stats SET longest_streak = ?` **sin `MAX()`** (`:530-533`), así que el récord
+  restaurado se sobrescribe con 0 en el arranque siguiente. **Canal distinto y peor que
+  `R9-27`** (allí la marca existe y no llega al archivo; aquí **no se levanta nunca**):
+  **arreglar `R9-27` NO cierra esto.** **Repro (sonda):** con un `db` que siempre lanza, los 4
+  getters devuelven `[]` y `degradedSections` sale vacío, mientras `getRawUserStats()` sí se
+  marca. Detalle: `detail/A11-progreso-rachas.md`.
+
 ---
 
 ## P1 — núcleo de la app
@@ -229,6 +413,138 @@
   facts/journeys/profecías/kids/quiz. Solo 6 colecciones existen en Firestore, así que todo
   eso **no tiene ninguna ruta de recuperación**, contra lo que promete la UI
   (`translations.ts:4176`).
+
+- **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
+  dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
+  `src/lib/sync/SyncEngine.ts:553-556` (la guarda) vs. `:603-627` (el `set`). Entre el
+  `if (this.unsubs.has(...)) return` y el `this.unsubs.set(...)` hay un `await
+loadCursor()` (lectura de AsyncStorage). Dos invocaciones concurrentes para la misma
+  colección pasan las dos la guarda, las dos llaman a `onSnapshot`, y la segunda pisa el
+  unsub de la primera: el primer listener queda vivo y sin referencia, fuera del alcance de
+  `stop()` y de `unregister()`. La guarda `uidAtAttach` (`:582`) no protege aquí — el uid
+  es el mismo. **Camino realista:** `src/context/SyncEngineContext.tsx:112-125` documenta
+  (y dice haber confirmado en vivo el 2026-07-09) que `user` atraviesa transitoriamente
+  `null`/anónimo durante la rehidratación de Firebase Auth en arranque en frío para una
+  cuenta que sigue con sesión; ese parpadeo produce `stop()` + `start(mismo uid)`.
+  **Consecuencia:** cada cambio remoto se procesa dos veces y **se factura dos veces la
+  lectura de Firestore**, anulando parte del ahorro que justifica todo el trabajo de
+  cursores. No hay riesgo de fuga entre cuentas: las reglas (`request.auth.uid == uid`,
+  verificadas en `B4`) rechazan al huérfano en cuanto cambia el usuario. **Repro (sonda),
+  parcial:** con `loadCursor` colgado y dos `register()` seguidos, `onSnapshot` se llama
+  **2 veces** y `unsubs` retiene una sola. La mitad "el huérfano sigue entregando tras
+  `stop()`" es **inferencia sobre el SDK real, no medición** (el arnés comparte un único
+  `snapshotCb`). Detalle: `detail/A4-syncengine.md`.
+
+- **`R9-40` (campo, catálogo de versiones) — 🐛 ningún `fetch` de la app tiene timeout:
+  «Buscando versiones disponibles…» se cuelga para siempre.** Severidad **media**.
+  `src/lib/database/version-download-service.ts:34`. `fetchVersionCatalog` hace
+  `await fetch(CATALOG_URL + '?t=' + Date.now())` **sin `AbortController` ni señal de
+  timeout**; el `fetch` de React Native no tiene timeout por defecto, así que en una red
+  que acepta la conexión y no responde (portal cautivo, wifi degradado) la promesa **nunca
+  se asienta**. `ManageVersionsSection.tsx:59-68` deja `loading = true` en ese caso y el
+  `finally` no llega nunca: el spinner queda indefinido, sin rama de error y **sin botón
+  de reintentar** (el «Reintentar» solo aparece por `loadError`, que requiere que el
+  `fetch` haya rechazado). **Reportado en vivo por Victor (2026-09-07, OnePlus 11)** con
+  las dos manifestaciones: spinner colgado y, en otro momento, el error de catálogo con
+  «Reintentar»; al día siguiente funcionaba — el patrón intermitente que predice la falta
+  de timeout. **Alcance mayor que esta pantalla:** `grep` de `AbortController|
+AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites de
+  `fetch` de la app — incluido `src/lib/offering/giftCodeService.ts:158`, que es la ruta de
+  **dinero** (canje de código regalo): un cuelgue ahí deja el canje girando sin salida.
+  **Arreglo (no aplicado):** `AbortSignal.timeout(~10s)` en los 6 call sites, y en el
+  catálogo tratar el abort como `loadError` para que aparezca «Reintentar». Detalle:
+  `detail/CAMPO-victor-2026-09-07.md`.
+
+- **`R9-41` (campo, lector) — 🐛 con el tema de lectura «Crepúsculo» la barra de acciones
+  del versículo queda texto casi blanco sobre panel casi blanco.** Severidad **media-alta**
+  (inutiliza 8 acciones en un tema **premium**). `app/(tabs)/verse/[book]/[chapter].tsx:719-722`
+  y `:3076-3080`. El fondo de la barra flotante se elige con `readerIsDark`, que **enumera
+  a mano** los temas oscuros:
+  `readerPrefs.theme === 'night' || readerPrefs.theme === 'high-contrast'`.
+  `crepusculo` —añadido después, en T6.3, como exclusivo de ofrenda— **es un tema
+  true-dark** (`readerThemes.ts`: `background '#0D1220'`, `text '#DCE3F0'`) y **no está en
+  esa lista**, así que `readerIsDark` da `false`, el fondo cae a
+  `staticColors.glassWhite98` (`rgba(255,255,255,0.98)`) y encima se dibuja
+  `effectiveColors.text = '#DCE3F0'` → contraste ≈ **1.2:1**. Las etiquetas
+  («Escuchar», «Copiar», «Compartir», «Nota», «Favoritos», «Resaltar», «Comparar»,
+  «Imagen») quedan ilegibles. **Reportado en vivo por Victor (2026-09-07)** con captura.
+  El comentario del propio código dice que `readerIsDark` existe _"so its
+  `effectiveColors.text` stays legible when the reading theme differs from the app theme"_
+  — la intención es correcta, el que falló es el mantenimiento de la lista al añadir un
+  tema. **`readerIsDark` no tiene ningún test** (verificado a mano) y es su **único**
+  consumidor. **Arreglo (no aplicado):** derivar la oscuridad de la paleta en vez de
+  enumerarla — un campo `isDark` en `ReaderThemeColors`, o calcular la luminancia de
+  `background` en `readerThemes.ts`, de modo que añadir un tema nuevo no pueda volver a
+  olvidarse. Detalle: `detail/CAMPO-victor-2026-09-07.md`.
+
+- **`R9-50` (A8, subrayados) — 🐛 borrar la nota o la categoría de un subrayado es un no-op
+  completo, y la UI dice «Guardado».** Severidad **alta**. `updateHighlight`
+  (`HighlightService.ts:119-135`) solo incluye un campo en el `SET` si es `!== undefined`,
+  pero `saveEditor` traduce "campo vacío" a **`undefined`** (`highlights.tsx:190-193` y
+  `:602`). Mienten tres capas: SQLite conserva el valor viejo; el `queueWrite` va sin el campo
+  y `pushOne` usa `{merge:true}`, así que **Firestore también lo conserva** (bajo merge un
+  campo opcional es **imposible de desasignar**); y `toast.success` (`:209`) lo da por
+  guardado. Al volver a la pantalla, `useFocusEffect` relee y **la nota reaparece intacta**.
+  **No existe ninguna forma de quitar una nota de resaltado en toda la app.** **Repro
+  (sonda):** `{note: undefined, category: undefined}` →
+  `UPDATE highlights SET updated_at = ? WHERE verse_id = ?`, sin tocar ningún dato. Detalle:
+  `detail/A8-notas-subrayados.md`.
+- **`R9-51` (A8, notas) — 🐛 dos dispositivos pueden crear DOS notas para el mismo versículo,
+  y el lector solo alcanza una.** Severidad **media**. La tabla `notes`
+  (`database/index.ts:521-532`) tiene **solo `id TEXT PRIMARY KEY`**, sin restricción sobre
+  `(book_name, chapter, verse)`, y los ids se generan con `note_${Date.now()}_${random}`
+  (`:2085`). El adaptador usa el **id de la nota** como clave de sync — **la decisión contraria
+  a la del adaptador de subrayados**, que eligió `verseId` a propósito _"porque el id generado
+  por el servicio lleva un timestamp y cambia entre dispositivos"_
+  (`adapters/highlights.ts:19-25`). Tras sincronizar hay dos filas y el motor nunca las ve como
+  conflicto; `getNoteForVerse` (`:2151-2158`) usa `getFirstAsync` **sin `ORDER BY`** y devuelve
+  una arbitraria. La otra queda huérfana: duplicada en la pestaña _Notas_, inalcanzable desde
+  el lector, y contada doble por `getNotesCount()`. Sin sonda (requiere SQLite real). Detalle:
+  `detail/A8-notas-subrayados.md`.
+- **`R9-52` (A9, Mesa) — 🐛 toda falla de escritura de una nota se traga en silencio y
+  `savePrepNote` la reporta como éxito.** Severidad **media**. `prepNotesStore.ts:76-81`:
+  `writeQueue.then(run).catch(log)` y `return writeQueue` → **resuelve, nunca rechaza**; los 4
+  llamadores son fire-and-forget o `await Promise.all` sin `try`. Y la Mesa **no tiene ningún
+  afordance de guardado**: los únicos 2 toasts de sus 3467 líneas son de error de PDF.
+  Agravante: `@prep_notes` es **una sola clave JSON con todos los sermones de toda la vida**, y
+  `AsyncStorage_db_size_in_MB` no está configurado en ningún lado (0 hits), así que rige el
+  techo de **6 MB por defecto de Android** para toda la base, compartido con progreso, mazo,
+  ilustraciones y series. **Repro (sonda):** con `setItem` rechazando,
+  `savePrepNote(...)` → `resolves.toBeUndefined()` y el storage queda vacío. Detalle:
+  `detail/A9-mesa-persistencia.md`.
+- **`R9-53` (A10, respaldo) — 🐛 restaurar un respaldo rompe la invariante de disyunción del
+  _floor_: la retención se duplica y la corrupción se re-escribe a la nube, acumulándose.**
+  Severidad **media**. `memoryStats.ts:20-22` declara la invariante (_"The floor is disjoint
+  from local events […], so summing retention bands never double-counts"_), pero `importBackup`
+  hace `DELETE FROM review_events` y reinserta el log **sin tocar el floor**
+  (`BackupService.ts:1377-1394`); a partir de ahí `mergeRetentionBands` y
+  `retentionByIntervalWithFloor` **suman los mismos repasos dos veces**. Peor: al pasar a
+  segundo plano se escriben las bandas duplicadas de vuelta a `users/{uid}/memoryStats/summary`,
+  y ese doc corrupto siembra el floor del **siguiente** dispositivo fresco → ×3, ×4… **y no hay
+  forma de resetearlo desde la UI** (ver `R9-61`). Acotación honesta: solo `retentionBands` se
+  corrompe; `recentDays` y `longestStreak` son idempotentes. **Repro (sonda):** floor de
+  `d1:{total:10}` + los mismos 10 eventos → lectura 20, escritura 20, segundo ciclo 30.
+  Detalle: `detail/A10-memoria-srs.md`.
+- **`R9-54` (A11, planes) — 🐛 descompletar un día de un plan no se sostiene: vuelve solo en la
+  siguiente lectura de CUALQUIER capítulo, con notificación falsa.** Severidad
+  **media-alta**. `toggleDay` (`ReadingPlanProgressContext.tsx:211-246`) quita el día de
+  `completedDays` pero **no toca `@reading_plan_read_chapters`**, y el escaneo de
+  `markChapterRead` (`:299-327`) re-completa cualquier día cuyos capítulos sigan marcados. Que
+  el equipo conoce el mecanismo lo prueba `restartPlan` (`:436-457`), que **sí** limpia esas
+  banderas _"FIRST — otherwise the very next chapter read anywhere in the app would… instantly
+  auto-complete the 'restarted' plan again"_; la misma limpieza no se aplicó al caso de un solo
+  día. **Repro (sonda):** destildar el día 1 y luego leer **Génesis 1** (nada que ver con el
+  plan) → `newlyCompleted: [{planId:'iam-7', day:1}]` y toast «¡Día 1 completado!». Detalle:
+  `detail/A11-progreso-rachas.md`.
+- **`R9-55` (A11, planes) — 🐛 editar un plan propio a menos días arrastra números de día que
+  ya no existen: la pantalla muestra 250%.** Severidad **media**. `migratePlanProgress`
+  (`ReadingPlanProgressContext.tsx:259-272`) copia `completedDays` **verbatim, sin recortar al
+  `duration` nuevo**, y `plan/[id].tsx:279` calcula
+  `Math.round((completed / effectiveDuration) * 100)` sobre el `length` crudo. **`planPace` sí
+  filtra** (`planPace.ts:88-90`) y devuelve 100%: las dos cifras se contradicen en la misma
+  pantalla y **se pinta la mala**, que además alimenta el ancho de la barra (`width: '250%'`).
+  **Repro (sonda):** 5 días completados, plan editado a 2 → `250%` en pantalla vs `100%` en
+  `planPace`. Detalle: `detail/A11-progreso-rachas.md`.
 
 ---
 
@@ -407,6 +723,124 @@
   de `R9-1`): `uuid@11.1.1` trae build dual (`exports.node.require → ./dist/cjs/index.js`)
   y la **raíz ya lo corre con ese mismo override** con `npm run validate` en verde.
   Verificar con un canje real contra el endpoint desplegado antes de darlo por cerrado.
+
+- **`R9-42` (campo, lector) — 💡 el ícono de bocina del versículo que se está narrando
+  queda a **0 px** del borde de la tarjeta.** `app/(tabs)/verse/[book]/[chapter].tsx:2583-2591`.
+  El ícono es `position: 'absolute'` con `left: -(fontSizes.sm + spacing['0.5'])` = **-16**,
+  dentro de un `verseItem` cuyo `paddingHorizontal` es `spacing.md` = **16**
+  (`:3742-3750`). Es decir: el ícono consume **exactamente** todo el canalón y su borde
+  izquierdo cae justo sobre el borde de la tarjeta, con el único 1 espacio disponible (2 px)
+  asignado al lado derecho. **Pedido por Victor (2026-09-07)** con la preocupación
+  explícita de no reabrir la saga del recorte de palabras. **Esa preocupación se puede
+  descartar para el ajuste del `left`:** el ícono es `position: 'absolute'` +
+  `pointerEvents="none"`, o sea **fuera de flujo**, y el anti-recorte vive en el
+  `paddingRight`/`textBreakStrategy` del `<Text>` (Sprint 110/112) — mover el ícono no
+  puede tocarlo. **La restricción real es de espacio:** el canalón mide 16 px y el ícono 14,
+  así que hay **2 px de holgura total**; no caben márgenes a ambos lados sin ampliar el
+  canalón (subir `verseItem.paddingLeft` a ~20-22, que **sí** reflowa el texto, aunque solo
+  estrecha la columna sin tocar la holgura derecha) o achicar el ícono. Es una decisión de
+  diseño, no un arreglo mecánico. Detalle: `detail/CAMPO-victor-2026-09-07.md`.
+
+- **`R9-43` (campo, Mesa) — 🐛 en «Comparar versiones» el número de versículo se encima
+  con la fila de chips: no hay separación vertical ninguna.**
+  `app/features/prep/index.tsx:2160-2222`. En la rama premium de la tarjeta, los tres hijos
+  se apilan sin margen alguno: `sectionCard` (`:3121-3126`) **no tiene `gap`** (solo
+  `padding` y `marginBottom`), `helpMeta` es `{fontSize: fontSizes.xs}` pelado (`:3249`),
+  `chipWrap` es `{flexDirection:'row', flexWrap:'wrap', gap: spacing.sm}` **sin
+  `marginTop`/`marginBottom`** (`:3273`), y `compareVerseBlock` tiene `marginBottom` y
+  `gap` internos pero **no `marginTop`** (`:3360`). Resultado: el texto de ayuda queda
+  pegado a los chips y el número de versículo («23» en la captura) queda pegado bajo el
+  chip, leyéndose como encimado. **Reportado en vivo por Victor (2026-09-07)** con captura.
+  Nota: las otras ramas de la misma tarjeta no sufren esto porque usan contenedores con
+  `gap` propio. **Arreglo (no aplicado):** un `gap` en `sectionCard` (arriesga tocar todas
+  las tarjetas de la Mesa) o, más acotado, `marginTop` en `compareVerseBlock` +
+  `marginTop`/`marginBottom` en `chipWrap` dentro de esta tarjeta. Detalle:
+  `detail/CAMPO-victor-2026-09-07.md`.
+
+- **`R9-56` (A8, notas) — 🐛 la pestaña Notas muestra la referencia en el idioma de la versión
+  activa y el versículo congelado en el idioma de cuando se creó la nota.** Severidad **baja**.
+  `notes.tsx:276` usa `localizeBook(item.book)`, que sigue a `selectedVersion.language` a
+  propósito (`:270-273`), pero `item.text` es el `verse_text` congelado al crear la nota y
+  `updateNote` solo toca `note`/`updated_at` (`database/index.ts:2107-2115`). Crear notas en
+  RVR1960 y pasar a KJV muestra **"John 3:16"** sobre **"Porque de tal manera amó Dios al
+  mundo…"**, también en la imagen para compartir (`:435`), que es contenido público.
+  `HighlightsScreen` **sí** re-resuelve contra la versión activa (`highlights.tsx:96-101`) —
+  la asimetría confirma que es un olvido. Detalle: `detail/A8-notas-subrayados.md`.
+- **`R9-57` (A8, lector) — 🐛 no existe forma de borrar una nota desde el lector, y el botón
+  atrás descarta el borrador sin avisar.** Severidad **media**. Vaciar el campo deshabilita
+  «Guardar» (`NoteEditorModal.tsx:290`) y `saveNote` corta con `!noteText.trim()`
+  (`verse/[book]/[chapter].tsx:1049`), así que el gesto natural no hace nada; el único borrado
+  vive en la pestaña _Notas_. Y el borrador vive **solo** en el `useState` del padre —el propio
+  comentario lo admite (`:147-150`)— así que la X o el atrás de Android (`onRequestClose`,
+  `:169`) lo descartan **sin confirmación**. **Sin verificar en dispositivo:** si el
+  `BackHandler` del `Modal` de RN gana sobre el `useBackHandlerStep` de la pantalla
+  (`:1287-1296`), que no consulta `noteModalVisible`; si perdiera, el atrás además navegaría de
+  capítulo. Requiere Modo C. Detalle: `detail/A8-notas-subrayados.md`.
+- **`R9-58` (A9, Mesa) — 🐛 matar la app (o cerrar la pestaña en web) pierde hasta 700 ms de
+  tecleo: `use-debounce` expone `flushOnExit` y no se usa.** Severidad **baja**.
+  `prep/index.tsx:1024-1042`. **El resto de los caminos de salida están bien** y se auditaron
+  uno por uno (desmontar, blur, púlpito, ilustraciones, historial, series, cambio de pasaje):
+  todos persisten, y el `flush()` de `:1042` **funciona** —confirmado desminificando
+  `use-debounce@10.1.1` y con sonda—. Lo único descubierto es el proceso que muere (swipe-away,
+  OOM, cierre de pestaña). Detalle: `detail/A9-mesa-persistencia.md`.
+- **`R9-59` (A9, privacidad local) — 🐛 `@prep_notes` no se limpia al cerrar sesión ni al
+  cambiar de cuenta: en un teléfono compartido, el sermón sin terminar del predicador anterior
+  queda a la vista del siguiente.** Severidad **baja**. No existe ningún
+  `removeItem`/`multiRemove` sobre `@prep_notes`, `@prep_series`, `@prep_illustrations` ni
+  `@prep_self_review` en todo el repo, y la clave no está namespaceada por uid. El módulo se
+  presenta como _"privacy-first"_ (`prepNotes.ts:12-15`), pero la garantía solo se cumple
+  contra la nube. **Mecanismo distinto de `R9-22`/`R9-23`** (aquí no hay sync ninguno).
+  **Severidad honesta:** P2 y no P0 porque no hay fuga **hacia afuera** del dispositivo y el
+  repo trata progreso y logros con la misma política device-scoped (documentada en
+  `deleteAccountData.ts:12-13`). **Decisión de producto para Victor:** si «device-local» debe
+  significar también «visible para cualquiera que use el aparato». Detalle:
+  `detail/A9-mesa-persistencia.md`.
+- **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
+  mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
+  enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y
+  faltan `@memory_daily_goal`, `@memory_weekly_target` y `@memory_celebrated_milestones`
+  (`goalStore.ts:19-20`, `weeklyTargetStore.ts:16`) — mientras que `@app_theme_mode`,
+  `@reader_preferences`, `@prep_notes` y el bloque de `achievements`, **igual de device-local**,
+  sí se respaldan. Al restaurar, la meta diaria vuelve a 10 y el reto semanal a 3 en silencio, y
+  se **re-celebran todos los hitos de racha ya celebrados**.
+  `@memory_stats_floor`/`_banner_pending` quedan fuera **correctamente** (caché derivable;
+  respaldarlas empeoraría `R9-53`). Detalle: `detail/A10-memoria-srs.md`.
+- **`R9-61` (A10, recuperación) — 🐛 `resetDeck` está en la API pública del contexto y no tiene
+  ni un solo llamador: no hay forma de que el usuario borre sus datos de memoria.** Severidad
+  **baja**. Declarado, documentado (_"handy for 'Reset' affordance"_), implementado
+  (`MemoryDeckContext.tsx:88`, `:339-348`) y duplicado como no-op en el stub web (`:74-76`);
+  `grep -rn "resetDeck" app/ src/` fuera del contexto → **cero**. **Sube la severidad efectiva
+  de `R9-48` y `R9-53`**: un usuario con estadísticas contaminadas o duplicadas no tiene
+  ninguna acción en la app para limpiar. O se cablea a Ajustes, o se quita de la interfaz para
+  que no aparente una vía de escape que no existe. Detalle: `detail/A10-memoria-srs.md`.
+- **`R9-62` (A10, hitos) — 🐛 el recorte FIFO de hitos celebrados expulsa las claves de racha y
+  le re-celebra al usuario «¡3 días!» cuando lleva 156.** Severidad **baja**.
+  `goalStore.ts:66-80` recorta con `merged.slice(-MAX_CELEBRATED)` y `MAX_CELEBRATED = 60`; el
+  recorte quita **las más antiguas**, que son siempre las `streak:*`, porque las
+  `goal:YYYY-MM-DD` se añaden al final una por día. El comentario de `:63-64` afirma que es
+  seguro _"porque una clave de racha solo re-dispara cuando la racha realmente se reconstruye"_:
+  **es falso**. **Repro (sonda):** cascada de 6 días seguidos —`streak:3`, `7`, `14`, `30`,
+  `60`, `100`— con la racha real en 156-161. Cosmético, pero trivializa el mecanismo de
+  retención. Detalle: `detail/A10-memoria-srs.md`.
+- **`R9-63` (A11, recap) — 🐛 el recap semanal se rompe en el cambio de horario: 6 días en vez
+  de 7, y un día contado dos veces.** Severidad **baja-media**. `weeklyRecap.ts:85-86` (y el
+  mismo patrón en `listeningStats.ts:156-157`) hace `listeningDateKey(now - i * MS_PER_DAY)` —
+  bloques fijos de 24 h con clave de día local—, así que en un día de 25 h dos valores de `i`
+  caen en la misma fecha. El hermano `weekComparison.ts:57-61` hace lo correcto
+  (`d.setDate(d.getDate() - 7)`): **la forma buena ya existe en la misma carpeta**. Afecta a
+  una tarjeta **compartible** y se propaga al delta semana-a-semana. **Repro (sonda, requiere
+  PowerShell):** `$env:TZ = 'Europe/Madrid'; npx jest …` con
+  `now = 2026-10-25T23:30:00+01:00` → tira de 7 días con `2026-10-25` repetido, 60 versículos
+  donde hay 50, 3 días activos donde hay 2. Pasa en `America/Mexico_City` (caso de control).
+  Detalle: `detail/A11-progreso-rachas.md`.
+- **`R9-64` (A11, planes) — 🐛 `migratePlanProgress` BORRA el progreso de origen cuando el
+  destino ya tiene el suyo, en vez de fusionarlo.** Severidad **baja**.
+  `ReadingPlanProgressContext.tsx:264-268`: `if (!next[toId]) next[toId] = current;` protege el
+  destino, pero `delete next[fromId];` se ejecuta **incondicionalmente**, así que cuando la
+  rama protectora se activa el progreso de origen se destruye sin ir a ningún lado. Alcanzable
+  al editar un plan propio hasta que su id derivado del contenido colapse con el de otro.
+  **Repro (sonda):** tras migrar, `getCompletedDays(BIG.id)` → `[]`. Detalle:
+  `detail/A11-progreso-rachas.md`.
 
 ---
 
