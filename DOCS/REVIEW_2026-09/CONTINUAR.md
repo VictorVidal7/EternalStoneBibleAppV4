@@ -93,8 +93,14 @@ bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO toc
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
 
-**(d) Saldar la deuda de la sesión 8** — corta y concreta: la prueba que le falta a `R9-28`,
-y la verificación en dispositivo (Modo C) de `R9-47` y de la rama del lector de `R9-44`.
+**(d) Saldar la deuda de la sesión 8** — corta y concreta. Ojo: la parte de dispositivo es
+Modo C y **necesita emulador + APK debug**, nunca el OnePlus de Victor:
+
+> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Quiero saldar la deuda que dejó la sesión 8:
+> escribí la prueba de regresión que le falta a `R9-28` (la señal de restauración y la
+> re-hidratación de los providers) — es el único de los 11 arreglos que no tiene ninguna.
+> Acordate de que no vale hasta que la veas fallar sin el arreglo. Si queda margen, seguí con
+> la verificación en dispositivo de `R9-47` y de la rama del lector de `R9-44`.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
