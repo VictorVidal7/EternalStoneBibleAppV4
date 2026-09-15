@@ -108,12 +108,28 @@ export function hasRedLetterData(versionId: string): boolean {
  * for RVR1960 while WEB is already cached, and must not get WEB's spans.
  *
  * Fails open: any failure (network error, non-200, bad JSON) is logged via
- * console.warn and settles that version as an empty Map rather than
- * throwing — a missing red-letter file must never break chapter reading, it
- * should just render with no red-letter highlighting, consistent with this
- * feature's "silently inert where there is no data" precedent from the
- * native implementation. A version with no pack at all settles the same way,
- * without a fetch.
+ * console.warn and leaves that version UNSETTLED rather than throwing — a
+ * missing red-letter file must never break chapter reading, it should just
+ * render with no red-letter highlighting, consistent with this feature's
+ * "silently inert where there is no data" precedent from the native
+ * implementation.
+ *
+ * R9-71: unsettled, not settled-empty, and the distinction is the whole
+ * point. A failure used to `spansByVersion.set(versionId, new Map())`, which
+ * is indistinguishable from "loaded, and this version has no spans" — so
+ * nothing ever retried and red-letter stayed dead for the rest of the page's
+ * life, while `hasRedLetterData` kept the preferences switch enabled and the
+ * reader kept painting plain text with no explanation. One dropped request on
+ * a flaky connection was enough, and it is easier to hit than it looks: a
+ * GitHub Pages 404 is served with NO CORS header, so a cross-origin fetch
+ * that receives one rejects with `TypeError: Failed to fetch` and lands in
+ * this same catch. Now the in-flight entry is dropped instead, so the next
+ * caller — the reader's effect on the next mount, version switch or toggle —
+ * tries again. Retries are bounded by those call sites, not by a timer.
+ *
+ * A version with no pack AT ALL still settles for good, without a fetch:
+ * that is a fact about the version, not a failure, and retrying it would walk
+ * this path on every render.
  */
 export async function loadRedLetterSpans(versionId: string): Promise<void> {
   if (spansByVersion.has(versionId)) return;
@@ -143,14 +159,24 @@ export async function loadRedLetterSpans(versionId: string): Promise<void> {
       spansByVersion.set(versionId, map);
     } catch (error) {
       console.warn(
-        `⚠️ [web] Red-letter pack load failed for ${versionId} (continuing without red-letter highlighting):`,
+        `⚠️ [web] Red-letter pack load failed for ${versionId} (continuing without red-letter highlighting, will retry on the next request):`,
         error,
       );
-      spansByVersion.set(versionId, new Map());
+      // Deliberately NOT settled into spansByVersion — see R9-71 above.
     }
   })();
 
   loadPromises.set(versionId, promise);
+  // Dropped once settled, either way. On success `spansByVersion.has()`
+  // short-circuits before this map is consulted again; on failure this is what
+  // lets the next caller retry instead of awaiting a promise that already
+  // lost. Registered OUT here rather than in a `finally` inside the closure on
+  // purpose: the closure body runs synchronously up to its first `await`, so a
+  // `fetch` that threw synchronously would run that `finally` BEFORE the
+  // `loadPromises.set` above and leave the entry stuck forever — the exact
+  // no-retry bug this is fixing, reintroduced through the back door. A `.then`
+  // callback can only ever run in a later microtask, so the set always wins.
+  void promise.then(() => loadPromises.delete(versionId));
   return promise;
 }
 

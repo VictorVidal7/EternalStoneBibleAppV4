@@ -3,11 +3,12 @@
  * redLetterText.ts, which fetches red-letter spans at runtime instead of
  * statically importing WEB_RED_LETTER.
  *
- * redLetterByKey/loadPromise are module-level singletons (by design — see
- * the source file's doc comment), so each test below gets a FRESH module
- * instance via jest.resetModules() + require() rather than the static
- * top-of-file import — otherwise a successful load in one test would leak
- * into and mask the "before load" / "fails open" assertions of later tests.
+ * spansByVersion/loadPromises are module-level singletons keyed by version id
+ * (by design — see the source file's doc comment), so each test below gets a
+ * FRESH module instance via jest.resetModules() + require() rather than the
+ * static top-of-file import — otherwise a successful load in one test would
+ * leak into and mask the "before load" / "fails open" assertions of later
+ * tests.
  */
 import {getBookByName} from '../src/constants/bible';
 import type {LinkifiedSegment} from '../src/lib/references/parseReference';
@@ -306,6 +307,94 @@ describe('one pack per version', () => {
       [0, 130],
     ]);
     expect(warnSpy).toHaveBeenCalled();
+  });
+
+  it('a TRANSIENT failure is not permanent: the next call retries and succeeds', async () => {
+    // R9-71. The failure path used to settle the version as an empty Map,
+    // which is indistinguishable from "loaded, and this version genuinely has
+    // no spans" — so nothing ever retried and red-letter stayed dead for the
+    // rest of the page's life, while `hasRedLetterData` kept the switch
+    // enabled and the reader kept painting plain text with no explanation.
+    // One dropped request on a flaky connection was enough. It is easier to
+    // hit than it looks: a GitHub Pages 404 is served with NO CORS header, so
+    // a cross-origin fetch that receives one rejects with
+    // `TypeError: Failed to fetch` and lands in this same catch.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    (global.fetch as jest.Mock).mockRejectedValueOnce(
+      new TypeError('Failed to fetch'),
+    );
+
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+    expect(
+      redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16),
+    ).toBeUndefined();
+    expect(warnSpy).toHaveBeenCalled();
+
+    // The reader asks again on the next mount / version switch / toggle.
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 145]]},
+      ],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16)).toEqual([
+      [0, 145],
+    ]);
+  });
+
+  it('retries even when fetch throws SYNCHRONOUSLY', async () => {
+    // The cleanup cannot live in a `finally` inside the loader closure: that
+    // body runs synchronously up to its first `await`, so a synchronous throw
+    // would run the cleanup BEFORE the in-flight entry is recorded, leaving it
+    // stuck forever — the no-retry bug re-entering through the back door.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    (global.fetch as jest.Mock).mockImplementationOnce(() => {
+      throw new TypeError('Failed to fetch');
+    });
+
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+    expect(warnSpy).toHaveBeenCalled();
+
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 145]]},
+      ],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+
+    expect(redLetterTextWeb.getRedLetterSpans('RVR1960', 43, 3, 16)).toEqual([
+      [0, 145],
+    ]);
+  });
+
+  it('a SUCCESSFUL load is still never re-fetched (the control for the retry above)', async () => {
+    // Without this, "always retry" would pass the test above and turn every
+    // render into a network request. Success must still settle for good.
+    mockFetchOnce({
+      ok: true,
+      json: async () => [
+        {book_id: 43, chapter: 3, verse: 16, spans: [[0, 145]]},
+      ],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+    await redLetterTextWeb.loadRedLetterSpans('RVR1960');
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('a version with no pack still settles for good, without ever fetching', async () => {
+    // The other control. "No pack at all" is a FACT about the version, not a
+    // failure, so it must NOT be retried — otherwise every render of a
+    // red-letter-free version would walk this path again.
+    await redLetterTextWeb.loadRedLetterSpans('KJV');
+    await redLetterTextWeb.loadRedLetterSpans('KJV');
+
+    expect(global.fetch).not.toHaveBeenCalled();
   });
 
   it('a version with no pack settles as empty WITHOUT fetching anything', async () => {
