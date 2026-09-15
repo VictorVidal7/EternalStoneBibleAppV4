@@ -12,13 +12,20 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-lector-web-paridad` (sesión 12).** Victor
-pidió explícitamente que no se mergeara sin preguntarle, así que **lo primero es preguntarle
-si la mergea**, no seguir de largo. Lleva `R9-13`, `R9-15` y la mitad estructural de `R9-14`,
-con las tres compuertas verdes: **358 suites, 4123 pruebas** (desde 356/4086), `tsc` limpio,
-0 errores de lint, Prettier conforme. Las cinco `fix/review-p0-*` anteriores sí están dentro
-de `main`. No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve,
+**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
+pendiente. Las seis `fix/review-p0-*` están dentro de `main`, la última
+(`fix/review-p0-lector-web-paridad`, sesión 12) en fast-forward y con los gates corridos
+**sobre `main` ya mergeado** antes de publicar: **360 suites, 4136 pruebas** (desde
+356/4086). No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve,
 así que cualquier SHA escrito aquí nace obsoleto.
+
+**⚠️ PERO HAY UN PASO MANUAL PENDIENTE DE VICTOR, y sin él media función queda muerta: subir
+`rvr1960-red-letter.json` al repo de Pages bajo `/packs/`** (copia lista en
+`~/Desktop/web-packs/`). Es el único archivo NUEVO; los otros cuatro packs recién construidos
+son byte a byte idénticos a los publicados, comprobado por sha256 contra la URL en vivo.
+Hasta que suba, la letra roja en español no aparece en web — el módulo **falla abierto**, que
+es su diseño, así que no hay regresión respecto a antes, solo la mejora sin efecto. **Si
+arrancás una sesión nueva, preguntale si ya lo subió.**
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -108,21 +115,24 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 12 y decidir el merge.** Es el patrón que
-ya pagó cuatro veces seguidas (sesiones 8, 9, 10 y 11 encontraron defectos reales en el diff
-de ARREGLOS de la sesión anterior, y dos de esas veces eran pérdidas de datos nuevas).
+**(a) RECOMENDADA — revisar el diff de la sesión 12 (ya mergeado).** Es el patrón que ya
+pagó cinco veces seguidas (sesiones 8, 9, 10 y 11 encontraron defectos reales en el diff de
+ARREGLOS de la sesión anterior, y dos de esas veces eran pérdidas de datos nuevas). Que ya
+esté en `main` no lo hace menos útil: lo que salga se arregla encima.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Hay una rama sin mergear, `fix/review-p0-lector-web-paridad` (sesión 12: `R9-13`, `R9-15`
-> y la mitad estructural de `R9-14`). Revisá su diff **antes** de mergear nada, con el mismo
-> criterio de las sesiones 8-11: buscá si algún arreglo cierra el caso que su prueba cubre y
-> deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el
-> arreglo, corré, restaurá — y `diff` el revert para confirmar que tocó la línea que creés).
-> Prestá atención especial a la prueba de paridad de superficie
-> (`__tests__/webNativeModuleParity.test.ts`): es un escaneo de texto, no un `require`, así
-> que preguntate qué formas de `export` NO ve y si su lista blanca de una entrada está bien
-> justificada. Cuando termines, decime qué encontraste y si la mergeo.
+> Revisá el diff de la sesión 12 en `main` (`R9-13`, `R9-15` y `R9-14`, el bloque web), con
+> el mismo criterio de las sesiones 8-11: buscá si algún arreglo cierra el caso que su prueba
+> cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad
+> (revertí el arreglo, corré, restaurá — y `diff` el revert para confirmar que tocó la línea
+> que creés). Tres sitios donde mirar con lupa: (1)
+> `__tests__/webNativeModuleParity.test.ts` es un escaneo de TEXTO, no un `require` —
+> preguntate qué formas de `export` no ve, y si su lista blanca de una entrada está bien
+> justificada; (2) `redLetterText.web.ts` pasó a un mapa POR VERSIÓN con promesas en vuelo
+> por versión — buscá carreras entre cambiar de idioma y una carga a medias; (3)
+> `isMissingProviderError` detecta por mensaje, así que buscá qué error legítimo podría
+> colarse y hacerse pasar por «esta sección no está en la web».
 
 **(a-bis) Si preferís seguir arreglando en vez de revisar:** quedan `R9-36`, `R9-38` y
 `R9-39` (P0) y los 4 de campo. Ojo: **los P1/P2 siguen sin re-verificar**, así que verificá
@@ -199,8 +209,8 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 ## 2. Estado esperado de git
 
 **Hay 12 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
-sesiones 7 a 11), **`fix/review-p0-lector-web-paridad` SIN MERGEAR** (sesión 12: el bloque
-web) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
+sesiones 7 a 12) y **seis ramas de arreglos YA MERGEADAS** que se pueden borrar:
+`fix/review-p0-lector-web-paridad`,
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos`. Más las 5 de siempre: `audio/tts-caps-hyphen`,
@@ -214,9 +224,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de las sesiones 7 a 11 **ya están todos en `main` y pusheados**, todos los merges
-en fast-forward. **La única deuda de git es la rama de la sesión 12**, que espera el OK de
-Victor.
+Los arreglos de las sesiones 7 a 12 **ya están todos en `main` y pusheados**, todos los merges
+en fast-forward. **No queda deuda de git** — la que queda es de DESPLIEGUE: el pack de
+`rvr1960-red-letter.json` sin subir (bloque ⛔ 1).
 
 ## 3. Dónde va la revisión
 
@@ -248,7 +258,7 @@ arreglos** — ver la nota al principio de esa sección.
 | 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
 | 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
 | 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
-| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | sin mergear         |
+| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | mergeado a `main`   |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -418,6 +428,21 @@ Alternativas legítimas:
   mismo diff y parece que se refuerzan. Antídoto barato: meterle a la prueba un **control del
   mecanismo** (`expect(...attempts).toBe(1)`) que falle ruidosamente si la carrera deja de
   ocurrir.
+- **La paridad de SUPERFICIE no ve la paridad de COMPORTAMIENTO.** Segunda mitad de la
+  sesión 12: la prueba nueva de aislamiento de rutas web pasaba en verde ejercitando el
+  `ErrorBoundary` **nativo**, porque los dos layouts importan el especificador pelado
+  `@components/ErrorBoundary`. Misma clase que `R9-15`, y
+  `webNativeModuleParity.test.ts` **no puede** cazarla: ambos archivos exportan
+  `ErrorBoundary`, lo que difiere es lo que hace. **Regla: si una prueba dice «árbol web»,
+  redirigí TODOS los especificadores pelados que la pantalla importe, no solo los que
+  sospechás.**
+- **Cuando algo queda «dicho, no arreglado», preguntá si el camino barato es el honesto.**
+  La letra roja de web se iba a cerrar corrigiendo la COPIA para que describiera la carencia
+  («solo en inglés»). El camino bueno era quitar la carencia: un pack por versión. Coste
+  real, un rato; resultado, la función existe en español. Contraste con el otro caso de la
+  misma sesión: en `R9-14` la opción cara (montar 5 providers) NO era la buena, porque habría
+  renderizado pantallas vacías. **Lo barato no es siempre lo malo ni lo caro siempre lo
+  bueno: preguntá cuál de los dos deja al usuario con algo cierto.**
 - **Un mock con factoría literal no COMPRUEBA la superficie de un módulo: la SUSTITUYE.**
   La trampa de la sesión 12. `chapterReaderWebFontPicker.test.tsx` mockeaba
   `@lib/reading/redLetterText.web` con un objeto escrito a mano de 3 claves, así que ese

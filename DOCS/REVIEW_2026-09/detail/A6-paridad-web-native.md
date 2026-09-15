@@ -96,12 +96,33 @@ especificador pelado contra el **nativo** (trampa ya documentada en
 `app/_layout.web.tsx:7-11`), y jest corre con preset nativo.
 
 **Arreglo — ✅ APLICADO en la sesión 12, y en las dos mitades que pedía esta línea.**
-`redLetterText.web.ts` exporta `hasRedLetterData` sobre un `Set` de módulo (`['WEB']`),
-síncrono y **sin depender de que el pack haya llegado**, que es justo lo que este párrafo
-anticipaba: si dependiera, el interruptor de la hoja pasaría de deshabilitado a habilitado un
-instante después de abrirla. Solo `WEB` —no `RVR1960`— porque `scripts/build-web-packs.js`
-emite un único pack, y es el mismo gate que el lector web ya aplicaba por su cuenta
-(`chapter].web.tsx:110`).
+`redLetterText.web.ts` exporta `hasRedLetterData` sobre un mapa de módulo, síncrono y **sin
+depender de que el pack haya llegado**, que es justo lo que este párrafo anticipaba: si
+dependiera, el interruptor de la hoja pasaría de deshabilitado a habilitado un instante
+después de abrirla.
+
+**Primero se hizo solo para `WEB`, y eso resultó ser media respuesta.** Con la UI en español
+el web selecciona `RVR1960` (`useBibleVersion.tsx:82-88`), así que la letra roja quedaba
+muerta en español mientras el subtítulo de la hoja la seguía prometiendo. La tentación era
+corregir la COPIA para que describiera la carencia; lo que se hizo fue **quitar la carencia**:
+
+- `scripts/build-web-packs.js` emite ahora **un pack por versión**, verificando cada uno span
+  por span **contra su PROPIO `.sqlite`** — un span es un desplazamiento de caracteres dentro
+  de ESA traducción, así que verificar RVR1960 contra `web.sqlite` no querría decir nada.
+  Salida real: 2057 entradas, 2077 spans, todos no-vacíos y en rango.
+- El módulo web pasa a **un mapa por versión** con su promesa en vuelo por versión, y
+  `getRedLetterSpans` recibe `versionId` primero, con lo que queda **idéntico en firma al
+  nativo**. Esa asimetría de aridad era una mina: el especificador pelado resuelve aquí en
+  web, así que una llamada nativa de 4 argumentos habría leído el `versionId` como número de
+  libro y devuelto `undefined` para todo verso, en silencio.
+- El lector web deja de comparar `selectedVersion.id === 'WEB'` a mano y pregunta
+  `hasRedLetterData(...)` — la misma fuente de verdad que usa la hoja para habilitar el
+  interruptor, así que ya no pueden discrepar.
+
+**Verificado en navegador:** Juan 3 en RVR1960 pinta de rojo la cita de Jesús y deja en
+blanco la narración y a Nicodemo. **Falta un paso manual: subir `rvr1960-red-letter.json` al
+repo de Pages.** Es el único archivo nuevo; los otros cuatro packs son byte a byte idénticos
+a los publicados (sha256 comprobado contra la URL en vivo).
 
 Y la segunda mitad, la que mata la clase: `__tests__/webNativeModuleParity.test.ts` compara
 los **14 pares**. Con una corrección respecto a lo que decía esta línea: **no** por
@@ -187,6 +208,31 @@ grepearon archivos de ruta. (a) cierra las 7 conocidas; (b) acota la clase enter
 las que no están en ninguna lista. Y (a) tiene una pregunta de producto dentro —qué ve un
 visitante web sin cuenta en `/features/together`— que no es de ingeniería. **Las 7 rutas
 siguen sin funcionar en web; ahora fallan localmente en vez de llevarse la SPA.**
+
+**Y la segunda mitad, misma sesión: además de fallar localmente, ahora lo DICEN.** Caer en la
+pantalla genérica «Algo salió mal» era activamente engañoso aquí, porque su único botón
+—«Reintentar»— vuelve a renderizar la misma ruta y vuelve a lanzar: un callejón sin salida
+disfrazado de error transitorio. `ErrorBoundary.web.tsx` reconoce ahora la clase concreta
+(`isMissingProviderError`, en `src/lib/errors/`) y muestra **«Esta sección no está en la
+versión web»** con un botón **«Ir a la Biblia»** que sí sale. Verificado en navegador con un
+servidor que replica el rewrite catch-all de `firebase.json`: `/features/timeline` por URL
+directa da la pantalla honesta, y el botón devuelve a la app viva.
+
+Tres decisiones dentro de ese arreglo que conviene no re-discutir:
+
+1. **Se detecta por MENSAJE, no por subclase de `Error`.** Los 6 contextos lanzan `Error`
+   pelados con texto a mano, y convertirlos todos a una clase propia sería una edición mucho
+   más ancha de lo que este arreglo justifica. El riesgo es que alguien reescriba un mensaje
+   y esto degrade en silencio a la pantalla genérica — así que la prueba **no lista strings**:
+   llama a los 6 hooks fuera de su provider y comprueba lo que sale de verdad.
+2. **Hay un control explícito.** Un error corriente (`Cannot read properties of undefined`)
+   tiene que seguir dando la pantalla genérica con «Reintentar». Sin él, la rama nueva se
+   tragaría el próximo crash de la clase `R9-13` y lo haría pasar por decisión de producto.
+3. **La prueba de aislamiento estaba CIEGA, y se cazó al escribir esto.** Los dos layouts
+   importan `@components/ErrorBoundary` **pelado**, que bajo el preset nativo de jest es el
+   archivo NATIVO: las pruebas decían «árbol web» y ejercitaban el otro boundary. Misma clase
+   que `R9-15` — y **la compuerta de paridad no puede verla**, porque ambos archivos exportan
+   `ErrorBoundary`; lo que difiere es el comportamiento, no la superficie.
 
 ---
 
@@ -275,10 +321,12 @@ web` + un servidor estático sobre `dist/` → Génesis 1 **renderiza**, la hoja
      `http.server` de python el botón «Clear data & reload» a veces no basta. Si vas a repetir
      esta verificación, **navegá SIEMPRE dentro de la SPA** — sin rewrite catch-all, una URL
      profunda da 404 y volver deja el lock tomado.
-- **`R9-14` puede quedarse corto.** Solo se grepearon los hooks que lanzan en los
-  **archivos de ruta** de `app/`. Un componente de `src/` que llame `useAuth()` y sea
-  renderizado por una ruta web-alcanzable produce el mismo crash sin salir en la tabla. El
-  conteo real es **≥ 7**.
+- **`R9-14` puede quedarse corto — y por eso se arregló la CLASE, no la lista.** Solo se
+  grepearon los hooks que lanzan en los **archivos de ruta** de `app/`. Un componente de
+  `src/` que llame `useAuth()` y sea renderizado por una ruta web-alcanzable produce el mismo
+  crash sin salir en la tabla. El conteo real es **≥ 7**. El arreglo de la sesión 12 (un
+  `ErrorBoundary` por ruta + una rama que reconoce la clase de error) no depende de esta
+  lista: cubre también las que no están en ella.
 - **No se auditaron en profundidad las 4 pantallas `.web.tsx` de `(tabs)`** como pantallas,
   solo en lo que toca a paridad de módulos.
 - **Cosmético, no es hallazgo:** en web el usuario ve CTAs de desbloqueo premium cuyo

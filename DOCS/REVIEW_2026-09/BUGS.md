@@ -194,12 +194,34 @@ function` ni error de boundary en consola. El bundle confirma además la resoluc
   `loadRedLetterSpans` y `web-red-letter.json`, y **no** trae
   `redLetterByVersion`/`buildSpanMap`/`RVR1960_RED_LETTER` — o sea que el especificador
   pelado resolvió al `.web`, como decía el diagnóstico.
-  **Queda DICHO, no arreglado:** con la UI en español el web selecciona `RVR1960`
-  (`useBibleVersion.tsx:82-88`), y ahí el interruptor sale **deshabilitado** mientras su
-  subtítulo sigue diciendo «Disponible leyendo en inglés (WEB) o español (RVR1960)».
-  Deshabilitado es el estado honesto —habilitarlo sería un no-op—, pero la copia no lo
-  refleja. Arreglarlo de verdad es publicar un pack de letra roja de RVR1960 para web
-  (`build-web-packs.js` + subida al repo de Pages): **decisión de contenido, de Victor.**
+  **Y la segunda mitad, también cerrada en la sesión 12 (Victor pidió el mejor camino, no
+  el barato).** El problema era que con la UI en español el web selecciona `RVR1960`
+  (`useBibleVersion.tsx:82-88`) y ahí la letra roja no existía: `hasRedLetterData` devolvía
+  `false`, el interruptor salía deshabilitado, y el subtítulo seguía prometiendo «Disponible
+  leyendo en inglés (WEB) o español (RVR1960)». **En vez de corregir la copia para que
+  describiera la carencia, se quitó la carencia.**
+  - `scripts/build-web-packs.js` emite ahora **un pack por versión**, y verifica cada uno
+    span por span **contra su PROPIO `.sqlite`** (un span es un desplazamiento de caracteres
+    dentro de ESA traducción; verificar RVR1960 contra `web.sqlite` no querría decir nada).
+    Salida real: `rvr1960-red-letter.json`, 2057 entradas, 2077 spans, todos no-vacíos y en
+    rango.
+  - `redLetterText.web.ts` pasa de un mapa único a **uno por versión**, con su propia promesa
+    en vuelo, y `getRedLetterSpans` recibe `versionId` primero — con lo que queda
+    **idéntico en firma al nativo**. Esa asimetría de aridad era una mina: el especificador
+    pelado resuelve aquí en web, así que una llamada nativa de 4 argumentos habría leído el
+    `versionId` como número de libro y devuelto `undefined` para todo verso, en silencio.
+  - El lector web deja de preguntar `selectedVersion.id === 'WEB'` y pregunta
+    `hasRedLetterData(...)`, la misma fuente de verdad que usa la hoja para habilitar o
+    apagar el interruptor: ya no pueden discrepar.
+    **Verificado en navegador** (bundle real, packs servidos en local): Juan 3 en RVR1960
+    pinta de rojo la cita de Jesús y deja en blanco la narración y a Nicodemo.
+    **⚠️ FALTA UN PASO MANUAL DE VICTOR: subir `rvr1960-red-letter.json` al repo de Pages bajo
+    `/packs/`.** Es el **único** archivo nuevo — `web.sqlite`, `rvr1960.sqlite` y
+    `web-red-letter.json` recién construidos son **byte a byte idénticos** a los publicados
+    (comprobado por sha256 contra la URL en vivo), así que no hace falta resubirlos. Hasta que
+    suba, el fetch da 404, el módulo **falla abierto** (es su diseño) y la letra roja en español
+    simplemente no aparece — o sea, exactamente lo de antes, sin regresión. Copia lista en
+    `~/Desktop/web-packs/`.
 
 - **`R9-14` (A6, web) — 🐛 7 rutas web-alcanzables lanzan "must be used within a
   …Provider".** Severidad **media** (código P0, impacto acotado). El árbol web no monta
@@ -223,11 +245,34 @@ function` ni error de boundary en consola. El bundle confirma además la resoluc
   solo se grepearon los archivos de ruta — (a) arregla las 7 conocidas, (b) acota la clase
   entera, incluidas las que no están en ninguna lista. Y monta menos: los stubs de `Auth` /
   `ReadingProgress` / `Together` arrastran dependencias nativas reales.
-  **Lo que NO arregla, dicho en voz alta: las 7 rutas siguen sin funcionar en web.** Ahora
-  fallan localmente en vez de llevarse la SPA. Que rendericen algo útil —o que digan «esta
-  sección no está en la versión web» en vez del error genérico— es la opción (a), y sigue
-  **pendiente de decisión de Victor**: qué ve un visitante web sin cuenta en
-  `/features/together` es producto, no ingeniería.
+  **Y la mitad que quedaba dicha, cerrada también en la sesión 12.** Las 7 rutas siguen sin
+  funcionar en web —eso es la decisión de producto de origen: el build web es una cáscara de
+  lectura y esos providers arrastran dependencias nativas— pero **ya no mienten sobre por
+  qué**. Antes caían en la pantalla genérica «Algo salió mal», cuyo único botón vuelve a
+  renderizar la misma ruta y vuelve a lanzar: un callejón sin salida disfrazado de error
+  transitorio. Ahora `ErrorBoundary.web.tsx` reconoce la clase concreta
+  (`isMissingProviderError`, en `src/lib/errors/`) y muestra **«Esta sección no está en la
+  versión web»** con un botón **«Ir a la Biblia»** que sí sale. Se descartó la opción (a)
+  —montar 5 stubs de provider— porque no resuelve nada real: rendería pantallas vacías y
+  llevaba dentro una pregunta de producto que no es de ingeniería.
+  **Tres detalles que importan:**
+  1. Se detecta por **mensaje**, no por subclase de `Error` — los 6 contextos lanzan `Error`
+     pelados con texto a mano. El riesgo obvio es que alguien reescriba un mensaje y esto
+     degrade en silencio a la pantalla genérica, así que la prueba **no lista strings**:
+     llama a los 6 hooks fuera de su provider y comprueba lo que sale de verdad.
+  2. Hay un **control** explícito: un error corriente (`Cannot read properties of
+undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin él, la
+     rama nueva se tragaría el próximo crash de la clase `R9-13` y lo haría pasar por
+     decisión de producto.
+  3. **La prueba de aislamiento estaba ciega y se cazó al escribir esto:** los dos layouts
+     importan el `@components/ErrorBoundary` **pelado**, que bajo el preset nativo de jest es
+     el archivo NATIVO, así que las pruebas decían «árbol web» y ejercitaban el otro
+     boundary. Es exactamente la clase de `R9-15` — y **la compuerta de paridad no puede
+     verla**, porque ambos archivos exportan `ErrorBoundary`: lo que difiere es el
+     comportamiento, no la superficie.
+     **Verificado en navegador**, con un servidor que replica el rewrite catch-all de
+     `firebase.json`: `/features/timeline` por URL directa muestra la pantalla honesta, y «Ir a
+     la Biblia» devuelve a la app viva.
 
 - **`R9-22` (A3, sync) — 🐛 la cola de escrituras pendientes no está namespaceada por uid:
   lo que quedó sin subir de la cuenta A se escribe en la nube de la cuenta B.** Severidad

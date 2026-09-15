@@ -36,6 +36,15 @@
 > `A6` dejaba abierta desde la sesión 3: verificado en un navegador de verdad**, sobre el
 > bundle real de `expo export --platform web`.
 >
+> **Segunda mitad de la sesión 12: las dos cosas que habían quedado «dichas, no arregladas»
+> se arreglaron de verdad.** (1) La letra roja en web ya no es solo en inglés: el build emite
+> un pack **por versión**, el módulo web carga el que toca, y el lector pregunta
+> `hasRedLetterData` en vez de comparar contra `'WEB'` a mano. **Queda un paso manual de
+> Victor: subir `rvr1960-red-letter.json` al repo de Pages.** (2) Las 7 rutas de `R9-14`
+> siguen sin funcionar en web —eso es de diseño— pero ya lo **dicen**, con «Esta sección no
+> está en la versión web» y un botón que sale, en vez de un «Algo salió mal» cuyo
+> «Reintentar» no puede funcionar. Las dos verificadas en navegador.
+>
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
 > Hallazgos: **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
