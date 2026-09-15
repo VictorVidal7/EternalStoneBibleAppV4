@@ -37,6 +37,7 @@ import {
   ReactNode,
 } from 'react';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
 import {getSyncEngine, deleteAllCloudData} from '@lib/sync';
 import {useLanguage} from '@hooks/useLanguage';
@@ -65,6 +66,46 @@ export interface AuthContextValue {
   signInWithGoogle: () => Promise<AuthUser | null>;
   signOut: () => Promise<void>;
   deleteAccount: () => Promise<void>;
+}
+
+/**
+ * R9-23 — which signed-in account the local SQLite/AsyncStorage store last
+ * belonged to. Local data deliberately survives sign-out, so on a shared
+ * phone the store can outlive its owner: Ana signs out, an anonymous session
+ * starts on top of HER data, and Beto signs in with a Google account that has
+ * never touched this app. `linkWithCredential` then SUCCEEDS — it keeps the
+ * anonymous uid and upgrades it — and the success branch asked nothing, so
+ * `maybeRunInitialBulkPush` uploaded every one of Ana's private notes to
+ * `users/{beto}/`, where she can no longer reach or delete them.
+ *
+ * The collision branch (`auth/credential-already-in-use`) already prompts;
+ * that one fires when the Google account is ALREADY bound to a Firebase uid,
+ * which is precisely the case this marker cannot be needed for. The success
+ * branch is the one a brand-new Google account takes, and it had no guard at
+ * all. Comparing the stored owner against the uid about to own the store
+ * routes that case through the SAME `askMigration()` prompt.
+ */
+const LOCAL_STORE_OWNER_KEY = '@local_store_owner_uid';
+
+async function getLocalStoreOwner(): Promise<string | null> {
+  try {
+    return await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY);
+  } catch {
+    // Unreadable marker: behave as before this existed rather than
+    // interrogating a user who may well be the rightful owner.
+    return null;
+  }
+}
+
+async function claimLocalStore(uid: string): Promise<void> {
+  try {
+    await AsyncStorage.setItem(LOCAL_STORE_OWNER_KEY, uid);
+  } catch (err) {
+    logger.warn('AuthProvider: could not record local-store owner', {
+      component: 'AuthProvider',
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -342,6 +383,40 @@ export function AuthProvider({children}: AuthProviderProps) {
       try {
         await authMod.linkWithCredential(current, credential);
 
+        // R9-23 — the link SUCCEEDED, so this Google account has never been
+        // used with this app. If the local store still belongs to a DIFFERENT
+        // account, the person in front of the phone is not the one whose
+        // notes are on it, and the engine is about to bulk-push all of them
+        // into this brand-new account. Route it through the same prompt the
+        // collision branch below already uses; declining marks the device
+        // already-migrated so only the (empty) remote side is pulled.
+        const previousOwner = await getLocalStoreOwner();
+        if (previousOwner !== null && previousOwner !== current.uid) {
+          const engine = getSyncEngine();
+          if (engine) {
+            try {
+              const localData = await engine.exportLocalData();
+              const total = localData.reduce((acc, d) => acc + d.count, 0);
+              if (total > 0 && !(await askMigration(total))) {
+                engine.queueSkipNextBulkPush();
+                logger.info(
+                  'AuthProvider: declined migrating a previous owner’s local data',
+                  {component: 'AuthProvider', localItems: total},
+                );
+              }
+            } catch (exportErr) {
+              logger.warn('AuthProvider: owner-change migration check failed', {
+                component: 'AuthProvider',
+                error:
+                  exportErr instanceof Error
+                    ? exportErr.message
+                    : String(exportErr),
+              });
+            }
+          }
+        }
+        await claimLocalStore(current.uid);
+
         // linkWithCredential doesn't copy the Google profile onto the
         // Firebase user the way a fresh signInWithCredential does, so
         // without this the account UI would show "Guest"/"Invitado"
@@ -428,6 +503,8 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
 
     await authMod().signInWithCredential(credential);
+    const signedIn = authMod().currentUser;
+    if (signedIn?.uid) await claimLocalStore(signedIn.uid);
     // Same reasoning as the linked-anonymous-account return above: return
     // the fresh user directly instead of making the caller read `user`
     // from context, which won't reflect this sign-in until the

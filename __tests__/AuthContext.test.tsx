@@ -17,6 +17,7 @@
  */
 
 import React from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Text} from 'react-native';
 import {act, render, waitFor, fireEvent} from '@testing-library/react-native';
 
@@ -156,7 +157,8 @@ function flushListenerWith(user: unknown) {
   });
 }
 
-beforeEach(() => {
+beforeEach(async () => {
+  await AsyncStorage.clear();
   mockListeners.length = 0;
   mockCurrentUser = null;
   mockOnAuthStateChanged.mockClear();
@@ -450,6 +452,125 @@ describe('AuthProvider', () => {
     expect(mockExportLocalData).toHaveBeenCalledTimes(1);
     expect(mockQueueSkipNextBulkPush).toHaveBeenCalledTimes(1);
     expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+
+    mockEngineStub = null;
+  });
+
+  it('R9-23 — a NEW Google account inheriting another owner’s local store is prompted', async () => {
+    // Ana signed out (local data survives by design), an anonymous session
+    // started on top of her store, and Beto signs in with a Google account
+    // that has never touched this app — so linkWithCredential SUCCEEDS and
+    // the pre-fix success branch asked nothing before bulk-pushing her notes
+    // into his account.
+    await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+    const {ref, onReady} = captureAuthApi();
+    mockEngineStub = {
+      exportLocalData: mockExportLocalData,
+      queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+    };
+    mockExportLocalData.mockResolvedValueOnce([
+      {collection: 'notes', count: 12},
+    ]);
+
+    const {getByText} = render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {
+      uid: 'anon-beto',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-beto'));
+
+    let signInPromise!: Promise<AuthUser | null>;
+    act(() => {
+      signInPromise = ref.current!.signInWithGoogle();
+    });
+    const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
+    await act(async () => {
+      fireEvent.press(cancelBtn);
+      await signInPromise;
+    });
+
+    expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
+    expect(mockExportLocalData).toHaveBeenCalledTimes(1);
+    expect(mockQueueSkipNextBulkPush).toHaveBeenCalledTimes(1);
+    // The store now belongs to whoever just claimed it.
+    expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+      'anon-beto',
+    );
+
+    mockEngineStub = null;
+  });
+
+  it('R9-23 — a first-ever sign-in is NOT interrogated (no previous owner)', async () => {
+    const {ref, onReady} = captureAuthApi();
+    mockEngineStub = {
+      exportLocalData: mockExportLocalData,
+      queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+    };
+    mockExportLocalData.mockResolvedValueOnce([
+      {collection: 'notes', count: 12},
+    ]);
+
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {
+      uid: 'anon-fresh',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-fresh'));
+
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+
+    // This is the ordinary upgrade path — the data IS theirs. No prompt, no
+    // export probe, and the bulk push proceeds.
+    expect(mockExportLocalData).not.toHaveBeenCalled();
+    expect(mockQueueSkipNextBulkPush).not.toHaveBeenCalled();
+    expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+      'anon-fresh',
+    );
+
+    mockEngineStub = null;
+  });
+
+  it('R9-23 — the same owner signing in again is NOT interrogated', async () => {
+    await AsyncStorage.setItem('@local_store_owner_uid', 'anon-same');
+    const {ref, onReady} = captureAuthApi();
+    mockEngineStub = {
+      exportLocalData: mockExportLocalData,
+      queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+    };
+
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {
+      uid: 'anon-same',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-same'));
+
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+
+    expect(mockExportLocalData).not.toHaveBeenCalled();
+    expect(mockQueueSkipNextBulkPush).not.toHaveBeenCalled();
 
     mockEngineStub = null;
   });
