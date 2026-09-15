@@ -4,10 +4,13 @@
 la 12: el **bloque WEB** (`R9-13`, `R9-15`, `R9-14`), 6 commits, 19 archivos — el más ancho
 del programa, y el único que toca **datos ya publicados**.
 
-**Veredicto: los tres arreglos se sostienen y sus pruebas discriminan.** Los cinco defectos
-están en los **bordes** de esos arreglos: dos compuertas que se pueden pasar en vacío, un
-detector que se traga errores legítimos, una carrera de un render, y el vecino de `R9-13` un
-nivel más abajo. Ninguno es P0. Los cinco arreglados en
+**Veredicto: los tres arreglos se sostienen y sus pruebas discriminan.** Los defectos están
+en los **bordes** de esos arreglos: dos compuertas que se pueden pasar en vacío, un detector
+que se traga errores legítimos, una carrera de un render, y el vecino de `R9-13` un nivel
+más abajo. Ninguno es P0.
+
+**Seis en total: `R9-66`..`R9-71`.** Los cinco de la revisión, más `R9-71` — que salió de la
+lista de «queda dicho, sin hacer» cuando Victor pidió cerrarla entera. Todos en
 `fix/review-s13-revision-diff-s12`.
 
 ---
@@ -70,10 +73,70 @@ bucle (`spanCount === 0`). El script pasa a ser requerible
   idénticos a los del manifiesto ya publicado y `web/packs/web-bootstrap.json` no cambia ni
   un byte. El arreglo no altera la salida, solo se niega a producirla vacía.
 
-**Queda dicho, sin hacer:** el piso es de CERO. Una regeneración que caiga de 2057 entradas a
-3 seguiría pasando. El manifiesto anterior está commiteado y trae el conteo previo, así que
-detectar una **caída** es posible — pero necesitaría una vía de escape para una supresión
-editorial legítima, y eso ya es otra decisión. Es de Victor.
+### Segunda mitad, cerrada en la misma sesión
+
+Los pisos de arriba son pisos de **cero**: cazan un archivo fuente que se regeneró a nada, y
+nada más. Una regeneración que dé 3 entradas en vez de 2057 es el mismo accidente con un número
+menos conveniente, y pasaba entera. Victor pidió cerrarlo.
+
+Había un punto de referencia gratis: **`web/packs/web-bootstrap.json` está commiteado y describe
+lo que de verdad está publicado.** Así que un conteo que **BAJA** aborta la corrida. Cubre las
+tres cifras, no solo la que saltó en la revisión — `verseCount` de cada `.sqlite` (cuyos pisos
+existentes fijan la BASE contra la FUENTE, así que una fuente que perdió versículos los satisface
+a los dos) y `entries`/`spans` de cada pack de letra roja.
+
+No es un muro, es una señal de alto: las supresiones editoriales deliberadas existen de verdad
+(`decisions/*.json` es un pase humano), así que **`--allow-shrink`** continúa con un aviso, y el
+flag en el historial de la shell es el registro de la decisión.
+
+Tres detalles que no son accidentales:
+
+- **La comprobación corre ANTES de escribir nada publicable.** El bucle de letra roja pasa a
+  parsear, verificar y contar los dos packs primero, y solo escribe después — si no, un fallo
+  dejaría packs a medio escribir en el directorio de salida con pinta de publicables.
+- **`OUT` pasa a ser el primer argumento QUE NO SEA UN FLAG**, para que `--allow-shrink` no se
+  confunda con una ruta.
+- **Sabe leer el manifiesto en su forma VIEJA** (`redLetter` era un objeto hasta el 2026-09-15).
+  Un comprobador que solo entendiera la nueva compararía contra nada y pasaría **en vacío** —
+  que es exactamente el bug que esto arregla.
+
+**Vistas fallar primero:** neutralizando `shrinkComplaints` para que devuelva `[]` caen 6, y los
+3 controles puros (conteos iguales, conteos que CRECEN, primera corrida de una versión nueva)
+siguen verdes a ambos lados. **Y probado de punta a punta con el script de verdad**, no solo la
+función pura: inflando el manifiesto a 9999 entradas la corrida revienta con
+«`RVR1960 red-letter: 9999 entries -> 2057 (7942 fewer)`» y **no reescribe el manifiesto**; con
+`--allow-shrink` avisa y continúa; y una corrida normal sigue dando los cuatro sha256 idénticos
+a los publicados, con el manifiesto sin cambiar un byte.
+
+## `R9-71` (P2) — un fallo transitorio mataba la letra roja el resto de la sesión
+
+Salió de la lista de «queda dicho» de esta misma revisión. **Es preexistente**, no lo introdujo
+el diff de la sesión 12.
+
+La rama de fallo de `loadRedLetterSpans` hacía `spansByVersion.set(versionId, new Map())`, que es
+**indistinguible** de «cargado, y esta versión no tiene spans». Así que nada reintentaba nunca:
+la letra roja quedaba muerta el resto de la vida de la página mientras `hasRedLetterData` mantenía
+el interruptor de preferencias habilitado y el lector seguía pintando texto plano sin explicación.
+Una sola petición perdida bastaba.
+
+Y es **más fácil de disparar de lo que parece**: un 404 de GitHub Pages se sirve **sin cabecera
+CORS**, así que un `fetch` cruzado que lo reciba rechaza con `TypeError: Failed to fetch` y cae en
+ese mismo `catch`.
+
+**Arreglado:** el fallo deja la versión **sin asentar** y suelta la entrada en vuelo, así que el
+siguiente que pregunte —el efecto del lector en el próximo montaje, cambio de versión o toque del
+interruptor— reintenta. Los reintentos quedan acotados por esos sitios de llamada, no por un
+temporizador. Con **dos controles**: una carga con éxito sigue sin re-pedirse nunca (si no, cada
+render sería una petición de red) y una versión **sin pack** sigue asentando para siempre y sin
+fetch, porque eso es un hecho de la versión, no un fallo.
+
+**El detalle que costó pensarlo:** la limpieza NO puede vivir en un `finally` dentro del closure.
+Ese cuerpo corre síncronamente hasta su primer `await`, así que un `fetch` que tirara de forma
+**síncrona** ejecutaría el `finally` **antes** del `loadPromises.set` y dejaría la entrada
+atascada para siempre — el mismo bug de no-reintento entrando por la puerta de atrás. Un callback
+de `.then` solo puede correr en un microtask posterior, así que el `set` siempre gana. Tiene su
+prueba, y discrimina: volviendo a la forma del `finally` dentro falla **exactamente esa y ninguna
+otra**.
 
 ## `R9-67` (P1) — la compuerta de paridad se ponía verde ante `export {x}`
 
@@ -235,16 +298,18 @@ formas privadas de cada archivo (`Props`/`State`, los `*ProviderProps`, `SpanMap
 - `redLetter` del manifiesto **no lo lee nadie en runtime** (`data-loader.web.ts` solo lee
   `packs`), así que el cambio de objeto a array es seguro, tal como decía el comentario.
 
-## Dicho en voz alta, sin acción
+## Lo que quedó dicho — y se cerró a pedido de Victor
 
-- **`loadRedLetterSpans` cachea el fallo para siempre, por versión.** Un fetch fallido
-  transitorio deja la letra roja muerta el resto de la sesión mientras `hasRedLetterData`
-  mantiene el interruptor habilitado. **Es preexistente**, no lo introdujo este diff — pero
-  con la trampa del **404 sin cabecera CORS** de GitHub Pages ya documentada, es más fácil de
-  disparar de lo que parece.
-- El piso antivacío de `R9-66` es de **cero**, no de «parecido a la vez pasada» (ver arriba).
-- Óxido de documentación: el encabezado de `redLetterTextWeb.test.ts` todavía habla de
-  `redLetterByKey`/`loadPromise`, que ya no existen.
+Las tres cosas que esta revisión había dejado anotadas sin hacer se hicieron en la misma sesión,
+después de reportarlas:
+
+- ~~`loadRedLetterSpans` cachea el fallo para siempre~~ → **`R9-71`, arreglado** (arriba).
+- ~~El piso antivacío de `R9-66` es de cero, no de «parecido a la vez pasada»~~ → **segunda
+  mitad de `R9-66`, arreglada** (arriba).
+- ~~Óxido: el encabezado de `redLetterTextWeb.test.ts` nombra `redLetterByKey`/`loadPromise`~~
+  → corregido a `spansByVersion`/`loadPromises`.
+
+**No queda nada dicho sin hacer de esta sesión.**
 
 ---
 

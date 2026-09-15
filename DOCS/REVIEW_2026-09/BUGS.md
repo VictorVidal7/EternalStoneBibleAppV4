@@ -50,8 +50,8 @@
 > pendiente.
 
 > **Sesión 13 (2026-09-15).** Revisó el diff de la 12 (el bloque WEB, 6 commits, 19 archivos)
-> y encontró **5 defectos, ninguno P0** — todos en los BORDES de esos arreglos, no en ellos:
-> `R9-66`, `R9-67` (P1) y `R9-68`, `R9-69`, `R9-70` (P2). Los tres arreglos de la 12 se
+> y encontró **6 defectos, ninguno P0** — todos en los BORDES de esos arreglos, no en ellos:
+> `R9-66`, `R9-67` (P1) y `R9-68`, `R9-69`, `R9-70`, `R9-71` (P2). Los tres arreglos de la 12 se
 > sostienen y sus pruebas discriminan (verificado revirtiendo cada uno, con el `diff` del
 > revert a la vista). Detalle completo en `detail/S13-revision-del-diff.md`. **La forma común
 > de los dos P1:** una verificación cuyo cuerpo entero es un bucle **pasa cuando no hay nada
@@ -625,10 +625,18 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   funciones REALES. Vistas fallar primero las 2 de vacío, con **4 controles** que pasan en
   ambos lados para que el piso no se confunda con toda la verificación. Y corrido de punta a
   punta contra los datos de verdad: los cuatro sha256 salen **idénticos** a los del manifiesto
-  ya publicado y el manifiesto no cambia ni un byte. **Queda dicho:** el piso es de CERO — una
-  caída de 2057 entradas a 3 seguiría pasando; detectarla necesitaría una vía de escape para
-  una supresión editorial legítima, y eso es decisión de Victor. Detalle:
-  `detail/S13-revision-del-diff.md`.
+  ya publicado y el manifiesto no cambia ni un byte.
+  **✅ Y la SEGUNDA MITAD también cerrada, en la misma sesión 13** (Victor lo pidió): los
+  pisos de cero no cazan una caída de 2057 entradas a 3, que es el mismo accidente con un
+  número menos conveniente. El manifiesto commiteado ya dice qué hay publicado, así que
+  ahora un conteo que **BAJA** aborta la corrida — cubriendo las tres cifras (`verseCount`
+  de cada `.sqlite`, y `entries`/`spans` de cada pack de letra roja), **antes de escribir
+  nada publicable**, y con `--allow-shrink` como vía de escape para una supresión editorial
+  deliberada. Sabe leer el manifiesto en su forma VIEJA (`redLetter` era un objeto antes del
+  2026-09-15), porque un comprobador que solo entendiera la nueva compararía contra nada y
+  pasaría en vacío — el bug mismo. Probado de punta a punta: inflando el manifiesto a 9999
+  entradas revienta con «9999 entries -> 2057 (7942 fewer)» y **no reescribe el manifiesto**.
+  Detalle: `detail/S13-revision-del-diff.md`.
 
 - **`R9-67` (S13, tests) — 🐛 la compuerta de paridad web/nativo se ponía verde ante la forma
   `export {x}`.** `webNativeModuleParity.test.ts` —la compuerta que la sesión 12 creó
@@ -890,6 +898,27 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-71` (S13, lector web) — 🐛 un fallo transitorio de red mataba la letra roja el resto
+  de la sesión.** La rama de fallo de `loadRedLetterSpans` hacía
+  `spansByVersion.set(versionId, new Map())`, que es **indistinguible** de «cargado, y esta
+  versión no tiene spans» — así que nada reintentaba nunca: la letra roja quedaba muerta el
+  resto de la vida de la página mientras `hasRedLetterData` mantenía el interruptor habilitado
+  y el lector pintaba texto plano sin explicación. Una sola petición perdida bastaba. Y es más
+  fácil de disparar de lo que parece: **un 404 de GitHub Pages se sirve SIN cabecera CORS**,
+  así que un `fetch` cruzado que lo reciba rechaza con `TypeError: Failed to fetch` y cae en
+  ese mismo `catch`. **Preexistente**, no lo introdujo el diff de la sesión 12 — quedó dicho en
+  la revisión y Victor pidió cerrarlo. **✅ ARREGLADO en la sesión 13:** el fallo deja la
+  versión **sin asentar** y suelta la entrada en vuelo, así que el siguiente que pregunte
+  reintenta; los reintentos quedan acotados por los sitios de llamada (montaje, cambio de
+  versión, toque del interruptor), no por un temporizador. Con **dos controles**: una carga con
+  éxito sigue sin re-pedirse nunca, y una versión sin pack sigue asentando para siempre sin
+  fetch. **Detalle que costó pensarlo:** la limpieza NO puede vivir en un `finally` dentro del
+  closure — ese cuerpo corre síncronamente hasta su primer `await`, así que un `fetch` que
+  tirara de forma SÍNCRONA ejecutaría el `finally` **antes** del `loadPromises.set` y dejaría la
+  entrada atascada para siempre, o sea el mismo bug entrando por la puerta de atrás. Va con su
+  prueba, que discrimina: volviendo a la forma del `finally` dentro falla exactamente esa y
+  ninguna otra. Detalle: `detail/S13-revision-del-diff.md`.
 
 - **`R9-68` (S13, web) — 🐛 `isMissingProviderError` se tragaba errores legítimos y los
   presentaba como decisión de producto.** Detectaba por mensaje con `\w*Provider`, o sea

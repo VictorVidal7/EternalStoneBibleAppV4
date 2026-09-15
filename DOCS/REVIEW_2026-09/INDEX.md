@@ -36,8 +36,8 @@
 > `A6` dejaba abierta desde la sesión 3: verificado en un navegador de verdad**, sobre el
 > bundle real de `expo export --platform web`.
 >
-> **Sesión 13 (2026-09-15) revisó el diff de la 12 y encontró 5 defectos, ninguno P0**
-> (`R9-66`, `R9-67` en P1; `R9-68`, `R9-69`, `R9-70` en P2). Los tres arreglos de la 12 se
+> **Sesión 13 (2026-09-15) revisó el diff de la 12 y encontró 6 defectos, ninguno P0**
+> (`R9-66`, `R9-67` en P1; `R9-68`, `R9-69`, `R9-70`, `R9-71` en P2). Los tres arreglos de la 12 se
 > sostienen y sus pruebas discriminan — verificado revirtiendo cada uno. **Los cinco defectos
 > están en los BORDES de esos arreglos**, y los dos P1 comparten forma: _una verificación cuyo
 > cuerpo entero es un bucle pasa cuando no hay nada que recorrer, imprimiendo un mensaje de
@@ -511,7 +511,11 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   que el stub web nunca implementa). Los cinco arreglados en
   `fix/review-s13-revision-diff-s12`, cada uno con su prueba **vista fallar primero**, y
   `R9-66` además corrido de punta a punta contra los datos reales: los cuatro sha256 salen
-  idénticos a los del manifiesto ya publicado. **Detalle completo, incluido lo que se comprobó
+  idénticos a los del manifiesto ya publicado. **A pedido de Victor se cerraron también las
+  dos cosas que la revisión había dejado DICHAS sin hacer:** la segunda mitad de `R9-66` (un
+  conteo que BAJA respecto del manifiesto publicado aborta la corrida, con `--allow-shrink`
+  para la supresión editorial deliberada) y `R9-71` (el fallo transitorio que mataba la letra
+  roja el resto de la sesión, preexistente). **Detalle completo, incluido lo que se comprobó
   y está BIEN y lo que queda dicho sin hacer: `detail/S13-revision-del-diff.md`.**
   **La lección de método:** las cuatro sesiones anteriores encontraron defectos en los
   ARREGLOS; esta los encontró en las **compuertas** de los arreglos. El antídoto cabe en una

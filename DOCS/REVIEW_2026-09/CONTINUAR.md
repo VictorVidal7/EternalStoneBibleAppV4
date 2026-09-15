@@ -12,14 +12,12 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. SÍ HAY UNA RAMA SIN MERGEAR: `fix/review-s13-revision-diff-s12`.** Esto CAMBIÓ respecto
-de lo que decía este archivo hasta la sesión 12. Lleva los **5 arreglos de la sesión 13**
-(`R9-66`..`R9-70`), 5 commits, con las tres compuertas verdes: **361 suites, 4188 pruebas**
-(desde 360/4136), `tsc --noEmit` limpio y el árbol formateado. **Victor todavía no dio el OK
-para mergearla** — pedíselo antes de tocar `main`. Todo lo anterior (las seis ramas
-`fix/review-p0-*` de las sesiones 7 a 12) sí está dentro de `main` y pusheado. No se pone el
-SHA del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA
-escrito aquí nace obsoleto.
+**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
+pendiente. Las **siete** ramas de arreglos de las sesiones 7 a 13 están todas dentro de
+`main`, la última (`fix/review-s13-revision-diff-s12`, sesión 13) en fast-forward y con los
+gates corridos **sobre `main` ya mergeado** antes de publicar: **361 suites, 4201 pruebas**
+(desde 360/4136). No se pone el SHA del tip a propósito — el propio commit del checkpoint lo
+mueve, así que cualquier SHA escrito aquí nace obsoleto.
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
 `eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15), verificado en vivo
@@ -59,9 +57,9 @@ otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-
 
 **Quedan 3 P0 abiertos:** `R9-36`, `R9-38`, `R9-39`. Todo lo demás de la sección P0 va
 marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Los
-**5 hallazgos de la sesión 13** (`R9-66`..`R9-70`) son P1/P2, así que el conteo de P0 no se
-mueve — y los cinco ya están arreglados en la rama del bloque ⛔ 1.
-Hallazgos totales: **70**.
+**6 hallazgos de la sesión 13** (`R9-66`..`R9-71`) son P1/P2, así que el conteo de P0 no se
+mueve — y los seis ya están arreglados y mergeados.
+Hallazgos totales: **71**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -150,10 +148,12 @@ vas a arreglar alguno, verificalo primero.
 **(a) RECOMENDADA — revisar el diff de la sesión 13 y, si aguanta, mergearlo.** Es el patrón
 que ya pagó **cinco** veces seguidas: las sesiones 8, 9, 10, 11 y 13 encontraron defectos
 reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran **pérdidas de
-datos nuevas**. El diff de la 13 es chico (5 commits) pero toca dos cosas delicadas: el script
-que genera **datos que se publican** y la compuerta de paridad que protege a todo el árbol
-web. Ojo con que la sesión 13 reescribió esa compuerta de un escaneo de texto a un parseo de
-AST — es más código, y código nuevo sin revisar.
+datos nuevas**. El diff de la 13 son 8 commits y toca dos cosas delicadas: el script que
+genera **datos que se publican** y la compuerta de paridad que protege a todo el árbol web.
+Ojo con dos cosas: la sesión 13 reescribió esa compuerta de un escaneo de texto a un parseo
+de **AST** (es más código, y código nuevo sin revisar), y `build-web-packs.js` cambió el
+orden de sus escrituras para poder abortar antes de emitir nada — verificado byte a byte
+contra el manifiesto publicado, pero es exactamente el sitio donde un error se publica.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -247,7 +247,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 12 ramas locales**, una de ellas SIN MERGEAR (`fix/review-s13-revision-diff-s12`, bloque ⛔ 1). `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+**Hay 12 ramas locales**, todas mergeadas (`fix/review-s13-revision-diff-s12` incluida). `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
 sesiones 7 a 12) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
@@ -298,7 +298,7 @@ arreglos** — ver la nota al principio de esa sección.
 | 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
 | 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
 | 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | mergeado a `main`   |
-| 13     | Revisión del diff de la 12: **5 defectos** + arreglos     | rama SIN mergear    |
+| 13     | Revisión del diff de la 12: **6 defectos** + arreglos     | mergeado a `main`   |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
