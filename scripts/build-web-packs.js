@@ -29,7 +29,8 @@
  * just-built .sqlite before being written out. Verifying each against its
  * own pack is the whole point: a span is a character offset into that
  * version's verse text, so checking RVR1960 spans against web.sqlite would
- * be meaningless.
+ * be meaningless. That verification also refuses to pass on an empty array
+ * or on entries with no spans (R9-66) — see verifyRedLetterAlignment.
  *
  * RVR1960 was missing here until 2026-09-15, which is why red-letter worked
  * on web only in English: native reads both arrays straight from the bundle,
@@ -136,12 +137,32 @@ function verifyPack(dbFile, expectCount) {
 }
 
 /**
- * Verify every red-letter span against the ACTUAL text stored in the
- * just-built web.sqlite (not the source .ts file) — a hard failure here
- * means a span would render as garbled/wrong-highlighted text for real
+ * Verify every red-letter span against the ACTUAL text stored in that
+ * version's just-built .sqlite (not the source .ts file) — a hard failure
+ * here means a span would render as garbled/wrong-highlighted text for real
  * users, so this throws rather than warns.
+ *
+ * R9-66: the two floors below come FIRST and LAST because everything between
+ * them is a per-entry loop, and a loop over nothing collects no failures. An
+ * empty array used to print "ALL slices non-blank and in-range" and pass; the
+ * caller would then write a 2-byte `[]` pack, hash it, and record
+ * `entries: 0, spans: 0` in web-bootstrap.json. Published, that is red-letter
+ * silently dead for that version on the web — the exact symptom of R9-13,
+ * with the build's blessing on it. Both source arrays are AUTO-GENERATED
+ * (bible-data-rvr1960-redletter.ts from decisions/*.json), so a regeneration
+ * that yields nothing is the ordinary way in, not a hypothetical. The .sqlite
+ * half of this script has had a floor all along (`n === expectCount`,
+ * `books === 66`, the 1..66 id range, zero blank verses); this half had none.
  */
 function verifyRedLetterAlignment(entries, dbFile, versionId) {
+  if (!Array.isArray(entries) || entries.length === 0) {
+    throw new Error(
+      `Red-letter alignment verification FAILED for ${versionId}: the source ` +
+        'array parsed to NO ENTRIES at all. Nothing below this line can fail ' +
+        'on an empty list, so this has to. Check that the source .ts still ' +
+        'holds its generated array before publishing anything.',
+    );
+  }
   const db = new DatabaseSync(dbFile, {readOnly: true});
   const stmt = db.prepare(
     'SELECT text FROM verses WHERE book_id=? AND chapter=? AND verse=?',
@@ -177,6 +198,17 @@ function verifyRedLetterAlignment(entries, dbFile, versionId) {
       'Red-letter alignment verification FAILED ' +
         `(${failures.length} of ${spanCount} spans across ${entries.length} entries):\n` +
         failures.slice(0, 10).join('\n'),
+    );
+  }
+  if (spanCount === 0) {
+    // The same hole in its second shape: rows present, every `spans` array
+    // empty. Zero spans checked is zero spans verified, and the pack renders
+    // exactly as red-letter-free as an empty one would.
+    db.close();
+    throw new Error(
+      `Red-letter alignment verification FAILED for ${versionId}: ` +
+        `${entries.length} entries carry NO SPANS between them, so nothing ` +
+        'was actually verified and the pack would render red-letter-free.',
     );
   }
   console.log(
@@ -324,4 +356,16 @@ function main() {
   );
 }
 
-main();
+// Only when run as a script. Exported below so __tests__/buildWebPacks.test.js
+// can exercise the verification functions directly — they are the only thing
+// standing between a bad regeneration and DATA THAT GETS PUBLISHED, so they
+// need a gate of their own.
+if (require.main === module) main();
+
+module.exports = {
+  parseTsArray,
+  buildPack,
+  verifyPack,
+  verifyRedLetterAlignment,
+  main,
+};
