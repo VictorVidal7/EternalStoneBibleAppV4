@@ -247,7 +247,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 12 ramas locales**, todas mergeadas (`fix/review-s13-revision-diff-s12` incluida). `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+**Hay 11 ramas locales.** La de la sesion 13 (`fix/review-s13-revision-diff-s12`) ya se borro tras mergearla, igual que la de la 12, asi que en local no la vas a ver. `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
 sesiones 7 a 12) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
