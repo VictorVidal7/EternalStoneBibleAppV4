@@ -229,7 +229,13 @@ describe('OfferingSheet', () => {
   });
 
   it('shows the already-unlocked state instead of tiers when isPremium is true', async () => {
-    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    // R9-9 — «ya desbloqueado» tiene que venir de la entitlement REAL. Estas
+    // dos pruebas sembraban solo un 'true' viejo en la cache y pasaban porque
+    // el bug hacia que `initialize()` NUNCA corrigiera la direccion que quita
+    // el acceso: RevenueCat decia «inactiva» y la cache se quedaba en 'true'.
+    // Arreglado eso, sembrar la cache da (correctamente) «no premium», asi que
+    // el escenario hay que montarlo como es: con la entitlement activa.
+    mockPurchases.__setCustomerInfo(activeEntitlementInfo);
     __setApiKeyForTests('test-key');
     await initialize();
     mockPurchases.__setOfferings({
@@ -246,7 +252,13 @@ describe('OfferingSheet', () => {
   });
 
   it('shows what unlocks even when already unlocked, with no pricing/purchase UI', async () => {
-    await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+    // R9-9 — «ya desbloqueado» tiene que venir de la entitlement REAL. Estas
+    // dos pruebas sembraban solo un 'true' viejo en la cache y pasaban porque
+    // el bug hacia que `initialize()` NUNCA corrigiera la direccion que quita
+    // el acceso: RevenueCat decia «inactiva» y la cache se quedaba en 'true'.
+    // Arreglado eso, sembrar la cache da (correctamente) «no premium», asi que
+    // el escenario hay que montarlo como es: con la entitlement activa.
+    mockPurchases.__setCustomerInfo(activeEntitlementInfo);
     __setApiKeyForTests('test-key');
     await initialize();
     mockPurchases.__setOfferings({

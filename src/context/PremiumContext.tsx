@@ -20,6 +20,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
   ReactNode,
 } from 'react';
@@ -50,20 +51,38 @@ interface PremiumProviderProps {
 export const PremiumProvider: React.FC<PremiumProviderProps> = ({children}) => {
   const [isPremium, setIsPremium] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  /**
+   * R9-10 — whether RevenueCat has already spoken in this mount. The cache is
+   * only ever a bridge value for the first paint (see the module docstring:
+   * CustomerInfo "wins over anything written here"), but the mount read was
+   * applied UNCONDITIONALLY when it resolved, so whichever of the two landed
+   * last won. A slow first keystore access on a cold start — exactly the case
+   * `expo-secure-store` is slow in — inverts the order and the stale cache
+   * overwrites the live value for the whole session.
+   *
+   * Paired with R9-9 on purpose: R9-9 makes the revocation actually arrive,
+   * and without this it would arrive and then be thrown away. Fixing one
+   * without the other leaves the refunded user with their paid access.
+   */
+  const revenueCatSpokeRef = useRef(false);
 
   useEffect(() => {
     let mounted = true;
-    (async () => {
-      const unlocked = await getPremiumUnlocked();
-      if (mounted) {
-        setIsPremium(unlocked);
-        setIsLoading(false);
-      }
-    })();
 
+    // Subscribe BEFORE kicking off the cache read: an entitlement change that
+    // lands in between would otherwise reach no listener at all.
     const unsubscribe = onEntitlementChange(unlocked => {
+      revenueCatSpokeRef.current = true;
       if (mounted) setIsPremium(unlocked);
     });
+
+    (async () => {
+      const unlocked = await getPremiumUnlocked();
+      if (!mounted) return;
+      // Only bridge the first paint if nothing truer has arrived meanwhile.
+      if (!revenueCatSpokeRef.current) setIsPremium(unlocked);
+      setIsLoading(false);
+    })();
 
     return () => {
       mounted = false;

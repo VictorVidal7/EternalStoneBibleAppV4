@@ -104,6 +104,66 @@ describe('PremiumContext', () => {
     await waitFor(() => expect(captured!.isPremium).toBe(false));
   });
 
+  describe('R9-9 / R9-10 — quitar el acceso tambien tiene que llegar a la pantalla', () => {
+    it('la revocacion apaga premium en la MISMA sesion, sin esperar a otro arranque', async () => {
+      // La mitad visible de R9-9: corregir la cache en disco no sirve de nada
+      // si `isPremium` sigue en `true` toda la sesion. El usuario reembolsado
+      // conserva el acceso de pago hasta que le apetezca reiniciar la app.
+      await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      __setApiKeyForTests('test-key');
+
+      await mountAndSettle();
+      expect(captured!.isPremium).toBe(true); // arranque en frio: la cache manda
+
+      await act(async () => {
+        await initialize(); // RevenueCat responde: entitlement INACTIVA
+      });
+
+      await waitFor(() => expect(captured!.isPremium).toBe(false));
+      await expect(
+        SecureStore.getItemAsync(ENTITLEMENT_CACHE_KEY),
+      ).resolves.toBe('false');
+    });
+
+    it('una lectura de cache lenta no puede resucitar el premium ya revocado', async () => {
+      // El vecino: con R9-9 arreglado la verdad SI llega, pero el `setIsPremium`
+      // incondicional de la lectura de cache la pisa si esa lectura resuelve
+      // despues (R9-10). El primer acceso al keystore de Android en un arranque
+      // en frio es justo el caso lento, y ahi el orden se invierte. Sin esto,
+      // arreglar R9-9 no cambia nada para el usuario en esta sesion.
+      await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      __setApiKeyForTests('test-key');
+
+      // Diferimos a mano la lectura de cache del montaje para que el push de
+      // RevenueCat gane la carrera.
+      let releaseCache!: (value: string | null) => void;
+      (SecureStore.getItemAsync as jest.Mock).mockImplementationOnce(
+        () =>
+          new Promise<string | null>(resolve => {
+            releaseCache = resolve;
+          }),
+      );
+
+      render(
+        <PremiumProvider>
+          <Capture />
+        </PremiumProvider>,
+      );
+
+      await act(async () => {
+        await initialize(); // revocada: el listener dice `false`
+      });
+      expect(captured!.isPremium).toBe(false);
+
+      await act(async () => {
+        releaseCache('true'); // ...y AHORA llega la cache vieja
+      });
+
+      await waitFor(() => expect(captured?.isLoading).toBe(false));
+      expect(captured!.isPremium).toBe(false);
+    });
+  });
+
   it('setPremium is a no-op outside __DEV__', async () => {
     const original = __DEV__;
     // __DEV__ is declared as a read-only constant in RN's types/eslint

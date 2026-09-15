@@ -334,4 +334,63 @@ describe('offeringService', () => {
       await expect(refreshEntitlement()).resolves.toBeUndefined();
     });
   });
+
+  describe('R9-9 — la revocacion tiene que propagarse', () => {
+    it('un arranque en frio con la entitlement ya revocada corrige la cache Y avisa', async () => {
+      // Pago, y le reembolsaron. En disco quedo su compra.
+      await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      mockPurchases.__setCustomerInfo(noEntitlementInfo);
+      __setApiKeyForTests('test-key');
+
+      const seen: boolean[] = [];
+      onEntitlementChange(unlocked => seen.push(unlocked));
+      await initialize();
+
+      // Pre-fix `lastKnownUnlocked` arrancaba en `false` en CADA arranque del
+      // proceso, asi que el dedupe `false === false` cortaba ANTES de escribir
+      // la cache y ANTES de avisar a los listeners. El 'true' viejo no se
+      // corregia jamas: solo lo borraba desinstalar la app.
+      await expect(getCachedEntitlement()).resolves.toBe(false);
+      expect(seen).toEqual([false]);
+      expect(getLastKnownEntitlement()).toBe(false);
+    });
+
+    it('si el arranque no pudo resolver, la primera respuesta que llegue corrige igual', async () => {
+      // El vecino del caso de arriba: el defecto NO es de `initialize()`, es
+      // del dedupe, asi que el arreglo tiene que estar en el punto de paso
+      // —`handleCustomerInfo`— y no en un llamador. Aqui `initialize()` deja
+      // el SDK configurado pero sin resolver (arranque sin red), y quien
+      // resuelve primero es `linkUser`: el telefono compartido, con Beto
+      // entrando sobre la compra de Ana.
+      await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      __setApiKeyForTests('test-key');
+      mockPurchases.getCustomerInfo.mockRejectedValueOnce(new Error('sin red'));
+      await initialize();
+
+      // Nada se resolvio todavia, asi que la cache NO se toca: 'true' aqui
+      // significa «no lo se», no «premium confirmado».
+      await expect(getCachedEntitlement()).resolves.toBe(true);
+
+      await linkUser('uid-beto');
+      await expect(getCachedEntitlement()).resolves.toBe(false);
+      expect(getLastKnownEntitlement()).toBe(false);
+    });
+
+    it('sigue sin avisar dos veces de lo mismo', async () => {
+      // Control: el dedupe tiene que seguir haciendo su trabajo. Lo que estaba
+      // mal no era deduplicar, era tomar `false` por estado CONOCIDO cuando en
+      // realidad era «todavia no se».
+      __setApiKeyForTests('test-key');
+      await initialize();
+      const seen: boolean[] = [];
+      onEntitlementChange(unlocked => seen.push(unlocked));
+      mockPurchases.__setCustomerInfo(noEntitlementInfo);
+      await Promise.resolve();
+      await Promise.resolve();
+      mockPurchases.__setCustomerInfo(noEntitlementInfo);
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(seen).toEqual([]);
+    });
+  });
 });

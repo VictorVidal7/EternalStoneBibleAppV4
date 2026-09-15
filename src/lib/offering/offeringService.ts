@@ -103,13 +103,28 @@ function getPurchases(): PurchasesStatic | null {
 export function __resetForTests(): void {
   _purchases = undefined;
   configured = false;
-  lastKnownUnlocked = false;
+  lastKnownUnlocked = null;
   listeners.clear();
   apiKey = '';
 }
 
 let configured = false;
-let lastKnownUnlocked = false;
+/**
+ * R9-9 — `null` means "RevenueCat has not answered yet in this process", and
+ * that is NOT the same as "not unlocked". This used to be a plain `boolean`
+ * initialised to `false` on every process start, which made the dedupe below
+ * read `false === false` on the first answer of any launch where the
+ * entitlement was INACTIVE — so it returned early, before writing the cache
+ * and before notifying. A stale `'true'` in the secure cache was therefore
+ * never corrected: paid access survived a refund, and the second user of a
+ * shared phone inherited the first one's premium. Only uninstalling cleared
+ * it (`grep` of SecureStore: `entitlementCache.ts` is the sole writer, and
+ * neither sign-out, nor delete-account, nor the Settings reset touch it).
+ *
+ * The defect was asymmetric — only the direction that TAKES ACCESS AWAY
+ * failed — which is exactly why no test and no manual pass caught it.
+ */
+let lastKnownUnlocked: boolean | null = null;
 const listeners = new Set<EntitlementListener>();
 
 function isEntitlementActive(info: CustomerInfo): boolean {
@@ -118,6 +133,9 @@ function isEntitlementActive(info: CustomerInfo): boolean {
 
 async function handleCustomerInfo(info: CustomerInfo): Promise<void> {
   const unlocked = isEntitlementActive(info);
+  // R9-9 — deduping was never the problem; taking `false` for a KNOWN state
+  // was. The first answer of a process is always a change (`null` !== either
+  // boolean), so it always reaches the cache write and the listeners below.
   if (unlocked === lastKnownUnlocked) return;
   lastKnownUnlocked = unlocked;
   await setCachedEntitlement(unlocked);
@@ -374,7 +392,11 @@ export function onEntitlementChange(cb: EntitlementListener): () => void {
   };
 }
 
-/** The last entitlement state seen from RevenueCat (not the persisted cache). */
+/**
+ * The last entitlement state seen from RevenueCat (not the persisted cache).
+ * Reports `false` while still unresolved (R9-9's `null`): callers asking
+ * "is this unlocked" must never be told `true` on a guess.
+ */
 export function getLastKnownEntitlement(): boolean {
-  return lastKnownUnlocked;
+  return lastKnownUnlocked === true;
 }
