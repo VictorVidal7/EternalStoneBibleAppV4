@@ -13,20 +13,31 @@
 ## ⛔ LEE ESTO ANTES DE NADA
 
 **1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
-pendiente. Las seis `fix/review-p0-*` están dentro de `main`, la última
-(`fix/review-p0-lector-web-paridad`, sesión 12) en fast-forward y con los gates corridos
-**sobre `main` ya mergeado** antes de publicar: **360 suites, 4136 pruebas** (desde
-356/4086). No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve,
+pendiente. Las **seis** ramas `fix/review-p0-*` de las sesiones 7 a 12 están todas dentro de
+`main`, la última (`fix/review-p0-lector-web-paridad`, sesión 12) en fast-forward y con los
+gates corridos **sobre `main` ya mergeado** antes de publicar: **360 suites, 4136 pruebas**
+(desde 356/4086). Esa última ya se borró, así que en local vas a ver **cinco**, no seis (§2). No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve,
 así que cualquier SHA escrito aquí nace obsoleto.
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
 `eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15), verificado en vivo
 por sha256 contra el manifiesto. **No queda ningún paso pendiente de despliegue**: la letra
-roja en español está activa en la web. Si vas a tocar packs, el runbook está en
-`reference_essb-github-pages-pack-publishing`, con dos avisos que ya costaron un rato — el
-push imprime un aviso de renombrado de la org y aun así funciona, y **`~/Desktop/web-packs/`
-tiene `.sqlite` VIEJOS (de julio)**, así que comprobá el sha256 antes de publicar nada desde
-ahí.
+roja en español está activa en la web. **Si vas a tocar packs, leé
+`reference_essb-github-pages-pack-publishing` antes** — se le añadieron 4 trampas que
+costaron un rato. Las dos que más:
+
+- **Metro cachea la `EXPO_PUBLIC_*` inlineada POR MÓDULO.** Tras construir una vez con
+  `EXPO_PUBLIC_WEB_PACKS_BASE_URL` apuntando a un servidor local, un `expo export` posterior
+  **sin** la variable dejó la URL local dentro de `redLetterText.web.ts` mientras
+  `data-loader.web.ts` sí usaba la buena — y el síntoma es **idéntico al de un pack ausente**.
+  Usá `expo export --clear` y confirmá con `grep` que no queda ninguna URL local en el bundle.
+- **Un 404 de GitHub Pages se sirve SIN cabecera CORS**, así que un `fetch` cruzado que lo
+  reciba falla con `TypeError: Failed to fetch`, no con «HTTP 404»; y Fastly lo cachea 10
+  minutos, así que **sondear la URL antes de publicar envenena el edge** y hace parecer roto
+  algo que ya está bien.
+
+Y ojo: **`~/Desktop/web-packs/` tiene `.sqlite` VIEJOS (de julio)** — comprobá el sha256
+antes de publicar nada desde ahí.
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -117,9 +128,11 @@ vas a arreglar alguno, verificalo primero.
 ## Mensaje para pegar en el chat nuevo
 
 **(a) RECOMENDADA — revisar el diff de la sesión 12 (ya mergeado).** Es el patrón que ya
-pagó cinco veces seguidas (sesiones 8, 9, 10 y 11 encontraron defectos reales en el diff de
-ARREGLOS de la sesión anterior, y dos de esas veces eran pérdidas de datos nuevas). Que ya
-esté en `main` no lo hace menos útil: lo que salga se arregla encima.
+pagó **cuatro** veces seguidas: las sesiones 8, 9, 10 y 11 encontraron defectos reales en el
+diff de ARREGLOS de la sesión anterior, y dos de esas veces eran **pérdidas de datos nuevas**.
+Que ya esté en `main` no lo hace menos útil: lo que salga se arregla encima. Y la sesión 12
+es la más ancha de todas — **6 commits, 19 archivos**, e incluye lo único de todo el programa
+que toca DATOS PUBLICADOS (`scripts/build-web-packs.js` y el pack ya subido a Pages).
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -133,7 +146,11 @@ esté en `main` no lo hace menos útil: lo que salga se arregla encima.
 > justificada; (2) `redLetterText.web.ts` pasó a un mapa POR VERSIÓN con promesas en vuelo
 > por versión — buscá carreras entre cambiar de idioma y una carga a medias; (3)
 > `isMissingProviderError` detecta por mensaje, así que buscá qué error legítimo podría
-> colarse y hacerse pasar por «esta sección no está en la web».
+> colarse y hacerse pasar por «esta sección no está en la web». Y un cuarto, el único que
+> toca datos ya publicados: (4) `scripts/build-web-packs.js` ahora emite un pack de letra
+> roja **por versión** y verifica cada uno contra su propio `.sqlite` — comprobá que esa
+> verificación no se pueda pasar en vacío (¿qué pasa si el array viene vacío, o si el
+> `.sqlite` de esa versión no existe?).
 
 **(a-bis) Si preferís seguir arreglando en vez de revisar:** quedan `R9-36`, `R9-38` y
 `R9-39` (P0) y los 4 de campo. Ojo: **los P1/P2 siguen sin re-verificar**, así que verificá
@@ -209,15 +226,15 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 12 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
-sesiones 7 a 12) y **seis ramas de arreglos YA MERGEADAS** que se pueden borrar:
-`fix/review-p0-lector-web-paridad`,
+**Hay 11 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+sesiones 7 a 12) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos`. Más las 5 de siempre: `audio/tts-caps-hyphen`,
 `audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`, `feature/red-letter-web`,
-`research/a4-chico-spanish-availability`. Árbol limpio. Si no coincide, dilo antes de
-empezar.
+`research/a4-chico-spanish-availability`. (La de la sesión 12,
+`fix/review-p0-lector-web-paridad`, ya se borró tras mergearla.) Árbol limpio. Si no coincide,
+dilo antes de empezar.
 
 La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a76c` → `b5a9afa` →
 `6ac10e3` → `894deb5` → `4e45f69` → **`f791749`** (sesión 6: `A4` y los reportes de campo de
