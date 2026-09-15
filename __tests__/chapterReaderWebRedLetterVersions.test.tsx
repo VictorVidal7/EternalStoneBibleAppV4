@@ -23,6 +23,12 @@ import {render, waitFor} from '@testing-library/react-native';
 
 // eslint-disable-next-line no-var
 var mockVersion = {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'};
+// Which version the verses currently in state came from, and one entry per
+// span lookup pairing "offsets asked for" with "text on screen" (R9-69).
+// eslint-disable-next-line no-var
+var mockVersesFrom: string | null = null;
+// eslint-disable-next-line no-var
+var mockSpanPairs: Array<{offsetsFor: string; textFrom: string | null}> = [];
 
 jest.mock('expo-router', () => ({
   useRouter: () => ({push: jest.fn(), replace: jest.fn()}),
@@ -44,6 +50,23 @@ jest.mock('@context/OfferingSheetContext', () =>
 jest.mock('@lib/reading/redLetterText', () =>
   require('@lib/reading/redLetterText.web'),
 );
+// R9-69: the real module, with getRedLetterSpans wrapped so the test can see
+// WHICH version's offsets each render asked for, and which version's text was
+// on screen when it asked. `act()` flushes effects before anything can be
+// read back off the tree, so the rendered output cannot show the one-frame
+// mispairing — the lookup itself is the observable.
+jest.mock('@lib/reading/redLetterText.web', () => {
+  const actual = jest.requireActual('@lib/reading/redLetterText.web');
+  return {
+    ...actual,
+    getRedLetterSpans: (versionId: string, ...rest: unknown[]) => {
+      mockSpanPairs.push({offsetsFor: versionId, textFrom: mockVersesFrom});
+      return (
+        actual as {getRedLetterSpans: (...a: unknown[]) => unknown}
+      ).getRedLetterSpans(versionId, ...rest);
+    },
+  };
+});
 
 // RVR1960 John 3:16 — the span is the whole verse (Jesus speaking), and its
 // end offset is 145 here vs 130 in WEB. Those numbers are not
@@ -62,17 +85,22 @@ jest.mock('@lib/database', () => ({
   __esModule: true,
   default: {
     initialize: jest.fn(async () => undefined),
-    getChapter: jest.fn(async () => [
-      {
-        book: 'Juan',
-        chapter: 3,
-        verse: 16,
-        text:
-          mockVersion.id === 'RVR1960'
-            ? 'Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.'
-            : 'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.',
+    getChapter: jest.fn(
+      async (_book: number, _ch: number, versionId: string) => {
+        mockVersesFrom = versionId;
+        return [
+          {
+            book: 'Juan',
+            chapter: 3,
+            verse: 16,
+            text:
+              versionId === 'RVR1960'
+                ? 'Porque de tal manera amó Dios al mundo, que ha dado a su Hijo unigénito, para que todo aquel que en él cree, no se pierda, mas tenga vida eterna.'
+                : 'For God so loved the world, that he gave his only born Son, that whoever believes in him should not perish, but have eternal life.',
+          },
+        ];
       },
-    ]),
+    ),
   },
 }));
 
@@ -137,6 +165,7 @@ import {
   LEGACY_RED_LETTER_LIGHT,
   LEGACY_RED_LETTER_DARK,
 } from '../src/styles/readerThemes';
+import {loadRedLetterSpans} from '@lib/reading/redLetterText.web';
 
 // The two providers the screen genuinely needs, resolved through the SAME
 // mocked specifiers above — i.e. these ARE the real .web stubs Metro would
@@ -173,6 +202,8 @@ beforeEach(() => {
   // under test is keyed BY VERSION, and each test below uses a different
   // version id, so there is nothing to reset anyway.
   mockVersion = {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'};
+  mockVersesFrom = null;
+  mockSpanPairs = [];
   global.fetch = jest.fn();
 });
 
@@ -246,5 +277,73 @@ describe('web reader — red letters by version', () => {
       );
     });
     expect(global.fetch).not.toHaveBeenCalled();
+  });
+});
+
+/**
+ * R9-69 — switching the reading version must never pair one translation's
+ * offsets with another's text, not even for one render.
+ *
+ * The screen resets its "loaded" flag inside a useEffect, and an effect runs
+ * AFTER the render that caused it (and, in a browser, after that render has
+ * painted). So the first render that sees the NEW version id still sees the
+ * OLD `verses` and the OLD flag. Keying `getRedLetterSpans` by version only
+ * saves that render while the new version's pack has not been fetched yet —
+ * and once the user has switched languages once, it has.
+ *
+ * `act()` flushes effects before the tree can be read back, so the mispainted
+ * frame itself is not observable here. The LOOKUP is: if a render ever asks
+ * for version X's offsets while the verses in state came from version Y, the
+ * mispairing happened.
+ */
+describe('web reader — switching version never mixes offsets with the wrong text', () => {
+  it('asks for no spans at all until the version it loaded matches the version on screen', async () => {
+    (global.fetch as jest.Mock).mockImplementation(async (url: string) => ({
+      ok: true,
+      json: async () =>
+        url.includes('rvr1960')
+          ? [{book_id: 43, chapter: 3, verse: 16, spans: [[0, RVR_SPAN_END]]}]
+          : [
+              {
+                book_id: 43,
+                chapter: 3,
+                verse: 16,
+                spans: [[0, WEB_JOHN_316.length]],
+              },
+            ],
+    }));
+
+    // A reader who has already switched languages once has BOTH packs cached.
+    // That is the state in which the version-keyed map stops protecting, so
+    // it is the state this test has to start from.
+    await loadRedLetterSpans('WEB');
+    await loadRedLetterSpans('RVR1960');
+
+    mockVersion = {id: 'WEB', language: 'en', abbreviation: 'WEB'};
+    const {findByTestId, rerender} = renderScreen();
+    await findByTestId('web-verse-text-16');
+    await waitFor(() => expect(mockSpanPairs.length).toBeGreaterThan(0));
+
+    mockSpanPairs = [];
+    mockVersion = {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'};
+    rerender(
+      <PremiumProvider>
+        <OfferingSheetProvider>
+          <ChapterReaderWeb />
+        </OfferingSheetProvider>
+      </PremiumProvider>,
+    );
+    await findByTestId('web-verse-text-16');
+
+    const mismatched = mockSpanPairs.filter(p => p.offsetsFor !== p.textFrom);
+    expect(mismatched).toEqual([]);
+
+    // Control: without this the assertion above would also pass if the
+    // screen simply stopped looking up spans altogether after a switch.
+    expect(
+      mockSpanPairs.some(
+        p => p.offsetsFor === 'RVR1960' && p.textFrom === 'RVR1960',
+      ),
+    ).toBe(true);
   });
 });

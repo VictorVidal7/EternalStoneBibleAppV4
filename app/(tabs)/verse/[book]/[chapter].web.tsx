@@ -114,21 +114,30 @@ export default function ChapterReaderWeb() {
   // grey out the switch, so the two can no longer disagree.
   const redLetterActive =
     preferences.redLetterWords && hasRedLetterData(selectedVersion.id);
-  const [redLetterLoaded, setRedLetterLoaded] = useState(false);
+  // R9-69: WHICH version has loaded, not merely THAT one has. This used to be
+  // a boolean reset to false at the top of the effect below, and a reset
+  // inside an effect lands one render too late: the effect runs after the
+  // render that changed the version (and, in a browser, after that render has
+  // painted), so the first render seeing the NEW version id still saw the OLD
+  // `true` — and the OLD `verses`, because their reload is async too. Keying
+  // `getRedLetterSpans` by version only covered that render while the new
+  // version's pack had not been fetched yet; once the reader has switched
+  // languages once it HAS been, and the lookup returned real offsets for
+  // text from the other translation. Comparing against `selectedVersion.id`
+  // is derived during render, so there is no stale window to be one render
+  // behind on.
+  const [redLetterLoadedFor, setRedLetterLoadedFor] = useState<string | null>(
+    null,
+  );
+  const redLetterReady =
+    redLetterActive && redLetterLoadedFor === selectedVersion.id;
 
   useEffect(() => {
     if (!redLetterActive) return;
     let cancelled = false;
-    // `redLetterLoaded` is reset to false first because the version can
-    // change under us (switching the UI language switches the reading
-    // version — useBibleVersion.tsx): leaving it true would let the render
-    // below look up the NEW version's spans in a map that has not loaded
-    // yet, and, worse, a stale true across a switch would briefly pair one
-    // version's text with the other's offsets.
-    setRedLetterLoaded(false);
     const versionId = selectedVersion.id;
     loadRedLetterSpans(versionId).then(() => {
-      if (!cancelled) setRedLetterLoaded(true);
+      if (!cancelled) setRedLetterLoadedFor(versionId);
     });
     return () => {
       cancelled = true;
@@ -276,22 +285,21 @@ export default function ChapterReaderWeb() {
             </Text>
           ) : (
             verses.map(v => {
-              // Red-letter (Words of Christ): gated on redLetterLoaded so
-              // we skip the lookup entirely until the async span data has
-              // resolved — before then (or when the toggle/version don't
-              // qualify) this falls through to the plain {v.text} below,
-              // identical to pre-red-letter behavior. The versionId
-              // argument is what keeps offsets and text from different
-              // translations from ever meeting.
-              const spans =
-                redLetterActive && redLetterLoaded
-                  ? getRedLetterSpans(
-                      selectedVersion.id,
-                      bookInfo.id,
-                      chapter,
-                      v.verse,
-                    )
-                  : undefined;
+              // Red-letter (Words of Christ): gated on redLetterReady, which
+              // is true only once the pack that finished loading is the one
+              // the screen is currently showing. Before then (or when the
+              // toggle/version don't qualify) this falls through to the plain
+              // {v.text} below, identical to pre-red-letter behavior — which
+              // is also what a version switch falls back to for the render or
+              // two it takes the new pack and the new verses to land.
+              const spans = redLetterReady
+                ? getRedLetterSpans(
+                    selectedVersion.id,
+                    bookInfo.id,
+                    chapter,
+                    v.verse,
+                  )
+                : undefined;
               // No reference-linkification on this screen, so the whole
               // verse is one implicit plain (ref-less) segment for
               // mergeRedLetterSpans to split on the red-letter span
