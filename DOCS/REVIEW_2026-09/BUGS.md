@@ -254,11 +254,15 @@
   conflicto detectado y cursor retenido en 0; llega otra nota cualquiera y el cursor salta;
   tras reiniciar, conflictos re-detectados = **0**. Detalle: `detail/A4-syncengine.md`.
 
-> **`R9-44`..`R9-64` vienen del fan-out de 4 de la sesión 6** (filas `A8`–`A11`). Están
-> **probados con sondas ejecutables de los agentes** pero **PENDIENTES de la
-> re-verificación a mano del orquestador** (regla fija de `CONTINUAR.md` §5: los agentes
-> aciertan el mecanismo y fallan el detalle). Trátalos como más que una lectura y menos que
-> un hecho re-verificado hasta que esa pasada ocurra.
+> **`R9-44`..`R9-64` vienen del fan-out de 4 de la sesión 6** (filas `A8`–`A11`), probados
+> con sondas ejecutables de los agentes.
+>
+> **Los 6 P0 (`R9-44`..`R9-49`) YA ESTÁN RE-VERIFICADOS A MANO** por el orquestador
+> (sesión 6, segunda mitad): **los 6 se sostienen**, con 3 correcciones y 2 refuerzos
+> anotados en cada entrada. La corrección que importa está en `R9-46` — el defecto es real
+> pero el mecanismo de alcanzabilidad que daba el informe era falso. **Los P1 y P2
+> (`R9-50`..`R9-64`) siguen sin re-verificar**; trátalos como más que una lectura y menos que
+> un hecho.
 
 - **`R9-44` (A8, subrayados) — 🐛 cambiar el color de un subrayado desde el lector BORRA la
   nota y la categoría que el usuario le había escrito.** Severidad **alta**.
@@ -266,7 +270,12 @@
   argumentos**, omitiendo `category` y `note`; `HighlightService.ts:56-104` hace
   `INSERT OR REPLACE` sobre `UNIQUE(verse_id)` escribiendo `category || null` y `note || null`
   (`:94-95`) → **pisa con `NULL`**. Sin lectura previa, sin confirmación, y el lector ni
-  siquiera indica que ese versículo tiene nota. También resetea `created_at`. **Agravante:**
+  siquiera indica que ese versículo tiene nota. También resetea `created_at`.
+  **Re-verificado:** el `id` es nuevo en cada llamada (`highlight_${verseId}_${now}`,
+  `:66`), así que el `REPLACE` **no** pisa por clave primaria — pisa por la restricción
+  **`UNIQUE(verse_id)`**, que está en `HighlightService.ts:35`. (Corrección al informe: la
+  tabla `highlights` se crea ahí, en `HighlightService.ts:24-36`, **no** en
+  `database/index.ts`, donde solo está `notes`.) **Agravante:**
   el payload sube sin la nota y `pushOne` usa `{merge:true}` (`SyncEngine.ts:1323`), así que
   **Firestore conserva la vieja** → el teléfono la pierde, la nube la mantiene, un
   dispositivo nuevo la resucita. **Repro (sonda, 9/9):** `params[6]`/`params[7]` a `null` en
@@ -281,20 +290,41 @@
   por `BackupService.ts:993-995` (restaurar un respaldo que contiene una nota ya borrada).
   **Repro (sonda):** tras `queueDelete` + `queueWrite`, `doc.color === '#A5D6A7'` **y**
   `doc.deleted === true`; ese doc en un segundo engine produce `DELETE FROM highlights` y
-  ningún `INSERT`. Detalle: `detail/A8-notas-subrayados.md`.
+  ningún `INSERT`. **Re-verificado, con evidencia más fuerte que la del informe:**
+  `highlightToRemote` (`adapters/highlights.ts:56-68`) **no incluye `deleted`** en el payload,
+  y un `grep` de `deleted: false` sobre **todo `src/`** (sin tests) da **CERO resultados** —
+  nada en la app limpia una lápida jamás, en ninguna colección. **Matiz de alcanzabilidad:**
+  `queueDelete` llama `void this.flush()` de inmediato, así que quitar y volver a poner el
+  subrayado **muy rápido** coalesce en la cola (`upsertQueueEntry`) y **no** dispara el bug;
+  hace falta que el borrado alcance a subir. Deshacer rápido funciona, rehacer más tarde
+  rompe. Detalle: `detail/A8-notas-subrayados.md`.
 - **`R9-46` (A8, sync) — 🐛 `notesSyncAdapter.getLocal` falla ABIERTO: si la BD aún no está
   lista, una copia remota VIEJA pisa la nota local más nueva.** Severidad **alta**.
   `adapters/notes.ts:50-56` es **el único de los 4 métodos del adaptador que NO llama
   `bibleDB.initialize()`** (los otros sí, `:77`/`:109`/`:122`; el de subrayados lo hace en los
   cuatro). `getNotes()` lanza `"Database not initialized"` y `findNoteById` **captura y
   devuelve `null`**, indistinguible de "no existe" → el motor **se salta el LWW y la detección
-  de conflictos** (`SyncEngine.ts:716`, `:744-747`). **La ventana está abierta en cada arranque
-  en frío:** los efectos de React corren de hijo a padre, así que `SyncEngineProvider` arranca
-  antes de que `ServicesProvider` llame `database.initialize()` (`app/_layout.tsx:433-435`,
-  `ServicesContext.tsx:94`), y esa init copia un `bible.db` de varios MB. **Repro (sonda, con
-  el motor y el adaptador reales):** local `updatedAt=9_000_000` vs remoto `5_000_000` → se
-  ejecuta `INSERT OR REPLACE INTO notes` con el texto viejo; el control con la BD sana no
-  inserta nada. Detalle: `detail/A8-notas-subrayados.md`.
+  de conflictos**: las dos viven dentro de `if (local && data)` en `applyRemoteChange`
+  (`SyncEngine.ts:715-749`), así que con `local === null` la ejecución cae directo a
+  `applyRemoteUpsert`. **Cuándo se abre la ventana — CORREGIDO en la re-verificación:** el
+  informe original decía "en cada arranque en frío, porque los efectos de React corren de hijo
+  a padre". **Eso es falso**: `engine.start()` no está en un efecto de orden de montaje sino en
+  uno **gated por auth** (`SyncEngineContext.tsx:92-128`, deps `[engine, user]`, guardado por
+  `if (user && !user.isAnonymous)`), que por diseño **no** dispara en la primera pasada — el
+  propio comentario del archivo dice que `user` pasa por `null` durante la rehidratación. Lo
+  cierto, y **peor**, es que **no existe ningún orden garantizado**: `database.initialize()` y
+  `engine.start()` son dos cadenas async independientes lanzadas por dos providers distintos, y
+  **nada hace esperar al motor por SQLite**. La carrera real es rehidratación de Firebase Auth
+  (disco, rápida) + `start` + primer snapshot de caché offline **contra**
+  `_performInitialization()` → `seedFromBundleIfMissing()` (`database/index.ts:375`), que copia
+  un `bible.db` de varios MB. **Así que la ventana es más ancha justo en una instalación nueva
+  o una reinstalación** — que es exactamente cuando baja el grueso de las notas remotas.
+  **Repro (sonda, con el motor y el adaptador reales):** local `updatedAt=9_000_000` vs remoto
+  `5_000_000` → se ejecuta `INSERT OR REPLACE INTO notes` con el texto viejo; el control con la
+  BD sana no inserta nada. **Nota de alcance:** el adaptador de subrayados **también** devuelve
+  `null` al fallar (`adapters/highlights.ts:81-88`); lo que hace único a `notes` es que su
+  ventana se abre sola, sin que `initialize()` tenga que fallar. Detalle:
+  `detail/A8-notas-subrayados.md`.
 - **`R9-47` (A9, Mesa) — 🐛 `load()` no tiene guarda de obsolescencia: una carga vieja que
   llega tarde pisa los `drafts`, y el siguiente `onBlur` escribe esa prosa ajena (o vacía)
   sobre la clave del pasaje visible.** Severidad **alta**. Es dato irreemplazable: el sermón
@@ -310,7 +340,14 @@
   plantilla nunca devuelve → **invisible para siempre** (no se re-renderiza, no sale en PDF, ni
   en «copiar esquema», ni en el Historial). **Segundo disparador sin carrera:** `table` depende
   de `isPremium` (`:328`), así que un cambio de titularidad de RevenueCat re-corre `load()`
-  sobre el mismo pasaje. Detalle: `detail/A9-mesa-persistencia.md`.
+  sobre el mismo pasaje. **Re-verificado, los 5 puntos se sostienen**, y con un detalle que
+  el informe no vio: el comentario de `:593-597` justifica que el `setTemplate` sea
+  **incondicional** _"para nunca arrastrar una plantilla obsoleta"_ — es el autor razonando
+  sobre este peligro exacto y quedándose a un paso, porque sin guarda de obsolescencia en la
+  **carga**, incondicional es justo lo que hace aterrizar la plantilla ajena. Y el docstring
+  de `setMapSectionNote` (`prepNotes.ts:162-165`) confirma el borrado: _"An edit that empties
+  the last section drops the passage entry entirely."_ Detalle:
+  `detail/A9-mesa-persistencia.md`.
 - **`R9-48` (A10, identidad) — 🐛 el log de repasos nunca se borra al cerrar sesión: el
   historial del usuario A se escribe dentro de la cuenta del usuario B y destruye su
   agregado.** Severidad **alta**. `AuthContext.tsx:471` (y `:572`) solo llama
@@ -323,8 +360,14 @@
   sincroniza, ese doc era **el único ancla de B en la nube**. **Mecanismo DISTINTO de
   `R9-22`/`R9-23`** (no pasa por la cola del `SyncEngine`): **namespacear la cola no lo
   arregla.** **Repro (sonda):** `mockDocGet` nunca llamado; se escribe a
-  `users/uid-B/memoryStats` con `longestStreak: 5` donde B tenía `400`. Detalle:
-  `detail/A10-memoria-srs.md`.
+  `users/uid-B/memoryStats` con `longestStreak: 5` donde B tenía `400`. **Re-verificado:**
+  `signOut` (`AuthContext.tsx:462-472`) solo llama `clearMemoryStatsFloor()`; el `.set()` de
+  `memoryStatsSync.ts:141-143` va **sin `{merge:true}`** (a diferencia de `pushOne`), o sea
+  sobrescritura total; y la puerta de frescura es literal `if (events.length > 0) return`
+  (`:89-90`). Corrección menor al informe: hay **dos** sitios que borran de `review_events`,
+  no uno — `BackupService.ts:1377` (masivo) y `reviewEventStore.ts:132` (una fila por id);
+  **ninguno está atado a un límite de sesión o de cuenta**, así que el hallazgo no cambia.
+  Detalle: `detail/A10-memoria-srs.md`.
 - **`R9-49` (A11, respaldo) — 🐛 los 4 logs de lectura no pueden marcarse "degradados", así
   que un fallo transitorio de SQLite produce un archivo que al importar BORRA la racha y los
   ledgers.** Severidad **alta**. `safeQuery` (`BackupService.ts:356-371`) solo marca degradado
@@ -340,7 +383,17 @@
   `R9-27`** (allí la marca existe y no llega al archivo; aquí **no se levanta nunca**):
   **arreglar `R9-27` NO cierra esto.** **Repro (sonda):** con un `db` que siempre lanza, los 4
   getters devuelven `[]` y `degradedSections` sale vacío, mientras `getRawUserStats()` sí se
-  marca. Detalle: `detail/A11-progreso-rachas.md`.
+  marca. **Re-verificado, la cadena entera se sostiene:** los 4 getters cierran con
+  `} catch { return []; }` literal (`:841`, `:866`, `:892`, `:926` son sus firmas);
+  `safeQuery` solo hace `degraded?.push(label)` **dentro de su `catch`**;
+  `allRowsFailedValidation` es literal `sourceLen > 0 && survivedLen === 0`;
+  `recomputeReadingStreak()` está en `initialize()` con el comentario _"Self-heal the reading
+  streak from the per-day log **on every launch**"_; y el `UPDATE` de `:531-533` no tiene
+  `MAX()`. **Y el propio código se delata:** el docstring de `allRowsFailedValidation`
+  distingue a propósito "fallo genuino" de "sección legítimamente vacía" para que **solo el
+  primero** bloquee el `DELETE` destructivo — pero los 4 getters hacen que un fallo genuino
+  **se vea** como vacío legítimo, así que la distinción se derrota aguas arriba. Detalle:
+  `detail/A11-progreso-rachas.md`.
 
 ---
 

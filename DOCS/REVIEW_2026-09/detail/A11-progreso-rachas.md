@@ -5,8 +5,7 @@
 >
 > **Procedencia y estado de verificación.** Fila ejecutada por un agente en worktree
 > aislado dentro del fan-out de 4 de la sesión 6. **Los 5 hallazgos están probados con sonda
-> ejecutable** (4 archivos de sonda). **PENDIENTE: la re-verificación a mano del
-> orquestador** sobre los `grep` portantes del P0 (regla fija de `CONTINUAR.md` §5).
+> ejecutable** (4 archivos de sonda). **RE-VERIFICADO a mano por el orquestador** (sesión 6, segunda mitad): `R9-49` **se sostiene** en toda su cadena; las comprobaciones y los refuerzos están anotados en su entrada de `BUGS.md`. **R9-54, R9-55, R9-63 y R9-64 siguen SIN re-verificar.**
 
 **Resumen del veredicto.** La matemática **pura** de esta fila está en muy buen estado:
 `computeStreaks`, `planPace`, `planReflow`, `planCompletion`, `chapterProgress`,

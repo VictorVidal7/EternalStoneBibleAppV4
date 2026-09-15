@@ -15,14 +15,17 @@
 sí se respaldó: `main` = `origin/main`, sin nada suelto. Si `git status` sale sucio, es algo
 tuyo, no herencia.
 
-**2. Hay una deuda concreta y es lo primero que hay que pagar: los 6 P0 nuevos
-(`R9-44`..`R9-49`) están probados con sondas de los AGENTES pero NO re-verificados a mano
-por el orquestador.** La regla de `§5` dice que hay que comprobar a mano cada afirmación de
-la que cuelgue un P0, y en la sesión 6 no se hizo (Victor pidió bajar el ritmo por el límite
-de uso, y se prefirió volcar todo a disco y commitear antes que verificar la mitad). Está
-anotado como PENDIENTE en el encabezado de los 4 `detail/` nuevos y en `BUGS.md`. **Son
-`grep` baratos y son el prerrequisito honesto de cualquier sesión de arreglos.** Hazlo
-antes de tocar nada.
+**2. Los 6 P0 nuevos (`R9-44`..`R9-49`) YA ESTÁN RE-VERIFICADOS a mano, y los 6 se
+sostienen.** Se hizo en la segunda mitad de la sesión 6. Salieron **3 correcciones y 2
+refuerzos**, todos incorporados a `BUGS.md` y a los `detail/`. **La que importa está en
+`R9-46`:** el defecto es real, pero el mecanismo de alcanzabilidad que daba el informe
+("los efectos de React corren de hijo a padre") **era falso** — `engine.start()` está en un
+efecto gated por auth, no de orden de montaje. Lo cierto y peor es que **no hay ningún orden
+garantizado** entre la BD y el motor, y la ventana es **más ancha en una reinstalación**,
+que es justo cuando bajan las notas. Es el caso de manual de por qué existe la regla de §5.
+
+**Lo que SIGUE sin re-verificar son los P1 y P2 (`R9-50`..`R9-64`).** Menos urgente, pero
+si vas a arreglar alguno, verificalo primero.
 
 **3. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
 con **3 hilos abiertos y verificados por `grep`, pero sin escenario de fallo alcanzable**,
@@ -46,10 +49,10 @@ revisión:
 
 > Quiero arreglar los bugs P0 que encontró la revisión profunda, no seguir revisando.
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` para el contexto y `DOCS/REVIEW_2026-09/BUGS.md`
-> para los hallazgos. Empezá re-verificando a mano los 6 P0 de la sesión 6 (`R9-44`..`R9-49`),
-> que están probados por agentes pero no por el orquestador. Después proponé un orden de
-> ataque y arrancá por el primero. Ojo: esta sesión SÍ toca código de la app, así que va en
-> rama con los gates en verde — no aplica el "solo revisar y reportar" del charter.
+> para los hallazgos. Los 6 P0 de la sesión 6 ya están re-verificados; los P1/P2 no, así que
+> verificá el que vayas a tocar antes de tocarlo. Proponé un orden de ataque y arrancá por el
+> primero. Ojo: esta sesión SÍ toca código de la app, así que va en rama con los gates en
+> verde — no aplica el "solo revisar y reportar" del charter.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
@@ -167,8 +170,8 @@ El hilo más prometedor ya está localizado: `CustomPlansContext.tsx:69` parsea 
 Alternativas legítimas:
 
 - **Una sesión de ARREGLOS.** Con **21 P0** abiertos pesa más que nunca. Es decisión de
-  Victor. **Empezá siempre por la re-verificación a mano de `R9-44`..`R9-49`.** Orden
-  sugerido después: `R9-49`/`R9-27`/`R9-28` (pérdida irreversible al restaurar) →
+  Victor, y los 6 P0 más nuevos ya están re-verificados, así que el camino está despejado.
+  Orden sugerido: `R9-49`/`R9-27`/`R9-28` (pérdida irreversible al restaurar) →
   `R9-47`/`R9-44`/`R9-46` (prosa del usuario) → `R9-22`/`R9-23`/`R9-48` (mezcla entre
   cuentas) → `R9-33`/`R9-35`/`R9-45` (sync que descarta en silencio) → `R9-9` (dinero) →
   `R9-13` **antes de volver a desplegar la web**. Los 4 de campo (`R9-40`..`R9-43`) son
@@ -203,7 +206,9 @@ Alternativas legítimas:
   distinto y mejor. Cuando una sonda contradice tu lectura, gana la sonda.
 - **Los agentes aciertan el mecanismo y fallan el detalle: re-verificá lo portante.**
   **Comprobá a mano cada afirmación de la que cuelgue un P0** antes de darla por buena;
-  cuestan un `grep` cada una. **Deuda viva: los 6 P0 de la sesión 6 no pasaron por esto.**
+  cuestan un `grep` cada una. **Rindió otra vez en la sesión 6:** al re-verificar los 6 P0
+  del fan-out, los 6 se sostuvieron pero salieron 3 correcciones, y una (`R9-46`) invalidaba
+  el argumento de alcanzabilidad entero. El defecto sobrevivió; la explicación, no.
 - **Borrá las sondas ejecutables al cerrar la fila, o sacalas de `testMatch`.**
   `_scratch/` está gitignoreado pero **NO** jest-ignoreado: un `*.test.ts` olvidado ahí se
   suma a `npm test` sin aparecer jamás en `git status`. El truco barato: renombrar a

@@ -6,8 +6,7 @@
 > **Procedencia y estado de verificación.** Fila ejecutada por un agente en worktree
 > aislado dentro del fan-out de 4 de la sesión 6. El P0 está **probado con 3 sondas
 > ejecutables** (`A9probe`, `A9probe_b`, `A9probe_c`) montadas sobre la pantalla real con el
-> mock stateful de AsyncStorage; el P1 también. **PENDIENTE: la re-verificación a mano del
-> orquestador** sobre los `grep` portantes del P0 (regla fija de `CONTINUAR.md` §5).
+> mock stateful de AsyncStorage; el P1 también. **RE-VERIFICADO a mano por el orquestador** (sesión 6, segunda mitad): `R9-47` **se sostiene** en toda su cadena; las comprobaciones y los refuerzos están anotados en su entrada de `BUGS.md`. **R9-52, R9-58 y R9-59 siguen SIN re-verificar.**
 
 ## Alcance
 

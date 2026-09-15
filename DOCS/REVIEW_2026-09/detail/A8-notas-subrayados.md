@@ -7,10 +7,12 @@
 > aislado dentro del fan-out de 4 de la sesión 6. Los 3 P0 y los 2 P1 están **probados con
 > una sonda ejecutable de 9 casos (9/9 verde)** contra el `SyncEngine`, el
 > `notesSyncAdapter`, el `highlightsSyncAdapter` y el `HighlightService` **reales**.
-> **PENDIENTE: la re-verificación a mano del orquestador** sobre los `grep` portantes de
-> los 3 P0 (regla fija de `CONTINUAR.md` §5 — los agentes aciertan el mecanismo y fallan el
-> detalle). Hasta que eso ocurra, trátalos como **probados por sonda ajena**, que es más
-> que una lectura y menos que un hecho re-verificado.
+> **RE-VERIFICADO a mano por el orquestador** (sesión 6, segunda mitad): **los 3 P0 se
+> sostienen**, con dos correcciones y un refuerzo, todos incorporados abajo. La corrección
+> que importa está en `R9-46`: el defecto es real, pero **el mecanismo de alcanzabilidad que
+> daba el informe era falso** — es justo el caso de "los agentes aciertan el mecanismo y
+> fallan el detalle" que motiva la regla de `CONTINUAR.md` §5. **`R9-50`, `R9-51`, `R9-56` y
+> `R9-57` siguen SIN re-verificar.**
 
 ## Alcance
 
@@ -22,8 +24,9 @@
 (~700 L) · `src/components/reading/NoteEditorModal.tsx` · `src/lib/sync/timeUtils.ts` ·
 `src/lib/sync/sanitize.ts` · `src/lib/sync/types.ts`.
 
-**Leídos en las partes que tocan al área:** `src/lib/database/index.ts` → tablas
-`notes`/`highlights` (`:521-532`), NOTE OPERATIONS (`:2081-2162`),
+**Leídos en las partes que tocan al área:** `src/lib/database/index.ts` → tabla `notes`
+(`:521-532` — **corrección: la tabla `highlights` NO se crea aquí**, sino en
+`HighlightService.ts:24-36`, con su `UNIQUE(verse_id)` en `:35`), NOTE OPERATIONS (`:2081-2162`),
 `migrateCanonicalBookKeys` (`:2163-2250`), `clearAllData` (`:2407-2415`) ·
 `app/(tabs)/verse/[book]/[chapter].tsx` → `saveNote` (`:1048-1110`),
 `handleApplyHighlight` (`:1480-1535`), `handleNoteSelected` (`:1722-1756`), carga de
@@ -179,14 +182,35 @@ cualquier error y devuelve `null`**, indistinguible de "no existe la fila". El m
 `local === null`, **se salta entera la comparación LWW y la detección de conflictos** y
 aplica el upsert remoto sin condiciones.
 
-**La ventana está abierta en cada arranque en frío.** En `app/_layout.tsx:433-435`
-`ServicesProvider` envuelve a `SyncEngineProvider`, pero los efectos de React corren **de
-hijo a padre**: el `useEffect` de `SyncEngineProvider` (registro de adaptadores +
-`engine.start`) corre **antes** que el de `ServicesProvider`, que es quien llama
-`database.initialize()` (`ServicesContext.tsx:94`). Y `SyncEngine.start()` engancha los
-listeners (`:335-339`) **antes** del bulk push (`:345`), sin esperar nada de SQLite.
-`bibleDB.initialize()` incluye `seedFromBundleIfMissing()` (copia de un `bible.db` de
-varios MB) + schema + siembra de referencias cruzadas: la ventana es de **segundos**.
+**Cuándo se abre la ventana — ⚠️ CORREGIDO en la re-verificación.**
+
+El informe original decía: _"los efectos de React corren de hijo a padre, así que el
+`useEffect` de `SyncEngineProvider` corre antes que el de `ServicesProvider`"_. **Eso es
+falso y no hay que repetirlo.** `engine.start()` **no** está en un efecto de orden de
+montaje: está en uno **gated por auth** (`SyncEngineContext.tsx:92-128`, deps
+`[engine, user]`, guardado por `if (user && !user.isAnonymous)`), que **por diseño no
+dispara en la primera pasada** — el propio comentario del archivo (`:112-118`) explica que
+`user` pasa transitoriamente por `null`/anónimo durante la rehidratación de Firebase Auth en
+todo arranque en frío.
+
+**Lo que sí es cierto, y es peor: no existe ningún orden garantizado.**
+`database.initialize()` y `engine.start()` son **dos cadenas async independientes**,
+lanzadas por dos providers distintos, y **nada hace esperar al motor por SQLite**. La
+carrera real es:
+
+| Lado                    | Qué tarda                                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Motor** (puede ganar) | rehidratación de Firebase Auth desde disco (rápida) → `engine.start(uid)` → primer snapshot desde la **caché offline** de Firestore (casi instantáneo)                         |
+| **BD** (puede perder)   | `_performInitialization()` → **`await seedFromBundleIfMissing()`** (`database/index.ts:375`), que copia un `bible.db` de varios MB, + schema + siembra de referencias cruzadas |
+
+Y `SyncEngine.start()` engancha los listeners (`:335-339`) **antes** del bulk push (`:345`),
+sin esperar nada de SQLite.
+
+**Consecuencia práctica, que reordena la prioridad:** la ventana es **más ancha justo en una
+instalación nueva o una reinstalación**, cuando el `seed` cuesta segundos y la BD pierde la
+carrera casi seguro — que es **exactamente** el momento en que baja el grueso de las notas
+remotas. En un arranque tibio (BD ya sembrada) la carrera es mucho más cerrada. **El P0
+sobrevive a la corrección y, en el peor caso, se agrava.**
 
 **Escenario de fallo.** El usuario reescribe su nota de Juan 3:16 en el teléfono sin
 conexión (local `updatedAt` = hoy). El otro dispositivo tiene una versión más vieja de esa

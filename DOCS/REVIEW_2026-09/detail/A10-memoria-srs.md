@@ -6,8 +6,7 @@
 > **Procedencia y estado de verificación.** Fila ejecutada por un agente en worktree
 > aislado dentro del fan-out de 4 de la sesión 6. Sonda ejecutable de 6 casos, **6/6 verde**
 > (2,4 s), contra el `memoryStatsSync`, el `goalStore`, el `goals`, el `srs` y el `history`
-> **reales**. **PENDIENTE: la re-verificación a mano del orquestador** sobre los `grep`
-> portantes del P0 (regla fija de `CONTINUAR.md` §5).
+> **reales**. **RE-VERIFICADO a mano por el orquestador** (sesión 6, segunda mitad): `R9-48` **se sostiene** en toda su cadena; las comprobaciones y los refuerzos están anotados en su entrada de `BUGS.md`. **R9-53, R9-60, R9-61 y R9-62 siguen SIN re-verificar.**
 
 ## Alcance
 

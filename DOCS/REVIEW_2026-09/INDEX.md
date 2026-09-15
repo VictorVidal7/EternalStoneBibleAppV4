@@ -339,11 +339,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   Modo A queda a **una sola fila** de cerrarse. **Los 4 agentes probaron sus hallazgos
   portantes con sondas ejecutables** contra el código real, no por lectura — el patrón que
   la sesión 5 había convertido en regla se aplicó por defecto y rindió: 19 de los 21
-  hallazgos tienen sonda. **PENDIENTE y anotado en cada `detail/`: la re-verificación a mano
-  del orquestador** sobre los `grep` portantes de los 6 P0 nuevos; no se hizo en esta sesión
-  porque Victor pidió a mitad de camino bajar el ritmo para no agotar el límite de uso, y se
-  prefirió volcar todo a disco y commitear antes que verificar la mitad. `A12` se empezó en
-  el árbol principal y quedó **`EN CURSO` con 3 hilos abiertos** por la misma razón.
+  hallazgos tienen sonda. En la **segunda mitad de la sesión** se pagó la deuda de
+  verificación: **los 6 P0 nuevos re-verificados a mano, y los 6 se sostienen**, con 3
+  correcciones y 2 refuerzos. **La corrección que importa es `R9-46`:** su defecto es real,
+  pero el mecanismo de alcanzabilidad que daba el informe ("los efectos de React corren de
+  hijo a padre, así que el motor arranca antes que la BD") **era falso** — `engine.start()`
+  vive en un efecto gated por auth, no de orden de montaje. Lo cierto y **peor** es que no
+  hay **ningún** orden garantizado entre `database.initialize()` y el motor, y la ventana es
+  más ancha **en una reinstalación**, justo cuando baja el grueso de las notas remotas. Caso
+  de manual de por qué existe esa regla. **Los P1/P2 (`R9-50`..`R9-64`) siguen sin
+  re-verificar.** `A12` se empezó en el árbol principal y quedó **`EN CURSO` con 3 hilos
+  abiertos**, porque Victor pidió a mitad de camino bajar el ritmo para no agotar el límite
+  de uso.
   **Tres cosas que cambian el mapa, más allá de los bugs sueltos:** (a) una **raíz común**
   detrás de `R9-44`/`R9-45`/`R9-50` — `pushOne` escribe con `{merge:true}`, y bajo merge un
   campo opcional es **imposible de desasignar por sync**, así que toda omisión local se
