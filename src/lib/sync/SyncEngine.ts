@@ -893,11 +893,27 @@ export class SyncEngine {
         const stillConflicted = this.conflicts.some(
           c => c.collection === adapter.collection && c.docId === id,
         );
-        if (
-          !stillConflicted &&
-          typeof remote.updatedAt === 'number' &&
-          remote.updatedAt > maxSeenUpdatedAt
-        ) {
+        if (typeof remote.updatedAt !== 'number') {
+          // No timestamp to reason about either way.
+        } else if (stillConflicted) {
+          // R9-65 — withholding it from `maxSeenUpdatedAt` was never enough,
+          // for exactly the reason R9-46 documents above: the cursor is ONE
+          // value for the whole batch, so a newer sibling that applied fine
+          // drags the query floor past the held conflict anyway. And a
+          // conflict is more fragile than a skipped doc — `stop()` clears
+          // `this.conflicts` because they are transient, so a restart before
+          // the user picks a winner loses the conflict AND finds the cursor
+          // already past it: the remote change is gone silently.
+          //
+          // Hold the batch cursor below it, same as an unapplied doc. The
+          // cost is re-reading this batch until the user resolves it, which
+          // `resolveConflict` ends by advancing the cursor itself; and
+          // `recordConflict` dedupes by doc id, so the redeliveries just
+          // refresh the snapshot instead of piling up.
+          if (remote.updatedAt < lowestUnappliedUpdatedAt) {
+            lowestUnappliedUpdatedAt = remote.updatedAt;
+          }
+        } else if (remote.updatedAt > maxSeenUpdatedAt) {
           maxSeenUpdatedAt = remote.updatedAt;
         }
       }
@@ -1557,16 +1573,33 @@ export class SyncEngine {
       for (const item of items) {
         try {
           await this.pushOne(fn, item);
-          // Success — remove from queue (by reference match on
-          // collection+id, the only stable key).
-          this.queue = this.queue.filter(
+          // Success — drop this entry, but only if it is STILL the entry we
+          // just pushed.
+          //
+          // R9-11 — the twin of the R9-34 note below, on the branch that
+          // actually fires most of the time: pushes usually succeed. Removing
+          // by `uid+collection+id` alone deleted whatever occupied that slot,
+          // so a re-edit that landed while `pushOne` was in flight was thrown
+          // away AS IF it had been uploaded — local ends up green, Firestore
+          // stays yellow forever, and nothing ever retries because the queue
+          // is empty. A queued DELETE was worse: the tombstone vanished and
+          // the row came back on every other device the account owns.
+          //
+          // Identity is exact here and costs nothing: `items` came from
+          // `this.queue.filter(...)`, which preserves the SAME object
+          // references, while `upsertQueueEntry` always assigns a fresh
+          // object. So `!== item` means precisely "someone replaced this
+          // while I was pushing" — leave it queued and let the next flush
+          // send it.
+          const doneIdx = this.queue.findIndex(
             q =>
-              !(
-                q.uid === item.uid &&
-                q.collection === item.collection &&
-                q.id === item.id
-              ),
+              q.uid === item.uid &&
+              q.collection === item.collection &&
+              q.id === item.id,
           );
+          if (doneIdx >= 0 && this.queue[doneIdx] === item) {
+            this.queue.splice(doneIdx, 1);
+          }
           this.updateState({
             pendingWrites: this.pendingForActiveUid(),
             lastSyncedAt: Date.now(),

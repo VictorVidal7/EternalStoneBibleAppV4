@@ -1928,6 +1928,129 @@ describe('R9-34 — la rama de error no puede hacer retroceder la cola', () => {
   });
 });
 
+describe('R9-11 — la rama de EXITO tampoco puede tragarse una reedicion', () => {
+  // Gemelo de R9-34, pero en la rama comun: los push normalmente FUNCIONAN, asi
+  // que esta es la que se dispara de verdad. La rama de exito borraba de la cola
+  // por `uid+collection+id` sin mirar version, de modo que la entrada NUEVA se
+  // eliminaba como si se hubiera subido ella.
+  //
+  // La carrera se monta igual que la de R9-34 reescrita: `queueWrite` llama a
+  // `void this.flush()` de forma SINCRONA y `flush()` corre hasta su primer
+  // `await` —el de `pushOne`— antes de devolver el control, asi que al volver de
+  // la primera linea el push ya esta en vuelo e `items` ya quedo capturado. NO
+  // metas un `await` entre las dos llamadas o no hay carrera ninguna.
+  async function settle(): Promise<void> {
+    // El re-flush de la cola del final de `flush()` es fire-and-forget, asi que
+    // hace falta mas de un turno para que la segunda subida aterrice.
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  it('una reedicion durante un push EXITOSO acaba llegando a Firestore', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+
+    engine.queueWrite('test', 'doc1', {value: 'amarillo', updatedAt: 1000});
+    // El usuario recolorea mientras se sube.
+    engine.queueWrite('test', 'doc1', {value: 'verde', updatedAt: 2000});
+    await settle();
+
+    // Pre-fix solo subia 'amarillo': local quedaba verde y Firestore amarillo
+    // PARA SIEMPRE, porque la cola ya no tenia nada que reintentar y el
+    // telefono que lo origino nunca vuelve a mandar ese cambio.
+    const pushed = mockDocSets
+      .filter(d => d.id === 'doc1')
+      .map(d => (d.data as {value: string}).value);
+    expect(pushed).toEqual(['amarillo', 'verde']);
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+
+  it('un borrado encolado durante un push EXITOSO no pierde la lapida', async () => {
+    // El vecino, y es peor que el de arriba: aqui lo que se traga la rama de
+    // exito es un TOMBSTONE. Sin el, el borrado no viaja nunca, y la fila
+    // resucita en todos los demas dispositivos de la cuenta en su siguiente
+    // bajada — el usuario borra algo y le vuelve solo.
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+
+    engine.queueWrite('test', 'doc1', {value: 'texto', updatedAt: 1000});
+    engine.queueDelete('test', 'doc1', {value: 'texto'});
+    await settle();
+
+    const tombstones = mockDocSets.filter(
+      d => d.id === 'doc1' && (d.data as {deleted?: boolean}).deleted === true,
+    );
+    expect(tombstones).toHaveLength(1);
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+
+  it('sin reedicion, una subida con exito SI vacia la cola', async () => {
+    // Control: el arreglo no puede dejar entradas colgadas en el caso normal,
+    // que es la inmensa mayoria de los push.
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+
+    engine.queueWrite('test', 'doc1', {value: 'una sola vez', updatedAt: 1000});
+    await settle();
+
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+    expect(mockDocSets.filter(d => d.id === 'doc1')).toHaveLength(1);
+    expect(engine.getState().pendingWrites).toBe(0);
+  });
+});
+
+describe('R9-65 — un doc en conflicto tambien tiene que frenar el cursor', () => {
+  it('un hermano mas nuevo del mismo lote no arrastra el suelo por delante del conflicto', async () => {
+    const uid = 'uid-conflicto-cursor';
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    // Copia local que va a chocar con la remota dentro de la ventana de 30 s.
+    localStore.set('doc-conflicto', {value: 'lo mio', updatedAt: 500_000});
+    engine.register(adapter);
+    await engine.start(uid);
+
+    fireRemote(uid, [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-conflicto',
+          exists: true,
+          data: () => ({value: 'lo suyo', updatedAt: 505_000}),
+        },
+      },
+      {
+        // MISMO lote, mucho mas nuevo, y este si se aplica.
+        type: 'modified',
+        doc: {
+          id: 'doc-nuevo',
+          exists: true,
+          data: () => ({value: 'sin conflicto', updatedAt: 9_000_000}),
+        },
+      },
+    ]);
+    await flush();
+
+    // Control: si no hubo conflicto, esta prueba no esta probando lo que cree.
+    expect(engine.__getConflictsForTests()).toHaveLength(1);
+
+    // El cursor es UNO para el lote entero. Retener el conflicto de
+    // `maxSeenUpdatedAt` no basta: el hermano nuevo lo empujaba igual a
+    // 9_000_000, y el suelo de la proxima consulta (`cursor - 5 min` =
+    // 8_700_000) deja al doc en conflicto por debajo para siempre. Y como
+    // `stop()` limpia `this.conflicts` por transitorios, un reinicio antes de
+    // resolverlo pierde el conflicto Y el cursor ya paso de largo: el cambio
+    // remoto se cae en silencio.
+    expect(engine.__getCursorForTests('test')).toBeLessThan(505_000);
+  });
+});
+
 describe('R9-35 — el cursor no puede quedar por delante del reloj', () => {
   it('un updatedAt en el futuro no empuja el cursor al futuro', async () => {
     const engine = new SyncEngine();
