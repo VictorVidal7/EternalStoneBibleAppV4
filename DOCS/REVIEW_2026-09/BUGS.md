@@ -12,9 +12,18 @@
 > revisión haga aparecer es una regresión real.**
 >
 > **Sesión 7 (2026-09-14) fue de ARREGLOS, no de revisión** — la primera. Cerró **7 P0 de
-> pérdida irreversible de datos** en `fix/review-p0-perdida-datos` (`7f8e666`), cada uno con
-> prueba de regresión y con las tres compuertas en verde: `R9-27`, `R9-28`, `R9-44`, `R9-45`,
-> `R9-47`, `R9-49` y `R9-50`. Van marcados **✅ ARREGLADO** dentro de su propia entrada, que
+> pérdida irreversible de datos** en `fix/review-p0-perdida-datos` (`7f8e666`), con las tres
+> compuertas en verde: `R9-27`, `R9-28`, `R9-44`, `R9-45`, `R9-47`, `R9-49` y `R9-50`.
+> **La rama se MERGEÓ y se pusheó a `main` en la sesión 8** (`8fe24f1`), tras revisar el diff
+> con ojo fresco; el detalle de esa revisión está en `detail/S8-revision-del-diff.md`.
+>
+> **Corrección de la sesión 8 — no los 7 traían prueba de regresión.** La redacción anterior
+> decía «cada uno con prueba de regresión» y era falsa. El estado real: `R9-27`, `R9-45`,
+> `R9-47` y `R9-49` sí (las cuatro re-verificadas fallando sin el arreglo). `R9-50` estaba a
+> medias (solo la raíz del sanitizador). **`R9-28` y `R9-44` no tenían ninguna.** La sesión 8
+> cubrió la mitad que faltaba de `R9-50` y el mecanismo de `R9-44`
+> (`highlightServiceTriState.test.ts`). **Sigue sin prueba `R9-28`**, y la rama del lector de
+> `R9-44` es verificación en dispositivo (Modo C), no jest. Van marcados **✅ ARREGLADO** dentro de su propia entrada, que
 > se conserva íntegra a propósito: el diagnóstico es lo que explica por qué el arreglo es ese
 > y no otro. **Quedan 14 P0 abiertos.**
 
