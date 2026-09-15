@@ -157,30 +157,55 @@ contra el manifiesto publicado, pero es exactamente el sitio donde un error se p
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Revisá el diff de la sesión 12 en `main` (`R9-13`, `R9-15` y `R9-14`, el bloque web), con
-> el mismo criterio de las sesiones 8-11: buscá si algún arreglo cierra el caso que su prueba
+> No hay ninguna rama pendiente: `main` está pusheado y al día, así que no busques una.
+> Tampoco queda nada de despliegue ni nada «dicho sin hacer».
+>
+> Revisá el diff de la sesión 13 en `main` (`R9-66`..`R9-71`: 8 commits, 16 archivos), con el
+> mismo criterio de las sesiones 8-13 — buscá si algún arreglo cierra el caso que su prueba
 > cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad
-> (revertí el arreglo, corré, restaurá — y `diff` el revert para confirmar que tocó la línea
-> que creés). Tres sitios donde mirar con lupa: (1)
-> `__tests__/webNativeModuleParity.test.ts` es un escaneo de TEXTO, no un `require` —
-> preguntate qué formas de `export` no ve, y si su lista blanca de una entrada está bien
-> justificada; (2) `redLetterText.web.ts` pasó a un mapa POR VERSIÓN con promesas en vuelo
-> por versión — buscá carreras entre cambiar de idioma y una carga a medias; (3)
-> `isMissingProviderError` detecta por mensaje, así que buscá qué error legítimo podría
-> colarse y hacerse pasar por «esta sección no está en la web». Y un cuarto, el único que
-> toca datos ya publicados: (4) `scripts/build-web-packs.js` ahora emite un pack de letra
-> roja **por versión** y verifica cada uno contra su propio `.sqlite` — comprobá que esa
-> verificación no se pueda pasar en vacío (¿qué pasa si el array viene vacío, o si el
-> `.sqlite` de esa versión no existe?).
+> (revertí el arreglo, corré, restaurá, y `diff` el revert para confirmar que tocó la línea
+> que creés).
+>
+> La sesión 13 encontró sus 6 defectos en las COMPUERTAS, no en el código de la app, así que
+> el riesgo de su propio diff es que las compuertas nuevas tengan el mismo vicio. Cinco
+> sitios donde mirar con lupa:
+>
+> 1. `__tests__/webNativeModuleParity.test.ts` se reescribió de un escaneo de texto a un
+>    parseo de AST con `ts.createSourceFile`. Es el archivo con más código nuevo del diff.
+>    Preguntate qué exporta un módulo que un recorrido de `sourceFile.statements` de PRIMER
+>    NIVEL no ve, y si `unresolvable` de verdad atrapa todo lo que dice atrapar.
+> 2. `scripts/build-web-packs.js` es lo único del programa que toca DATOS YA PUBLICADOS, y
+>    ahora tiene una compuerta nueva que puede abortar la corrida. Mirá `readPreviousManifest`
+>    con mala fe: devuelve `null` ante CUALQUIER error de lectura o de parseo, y un `null`
+>    desactiva la detección de caída entera **en silencio**. ¿Es eso lo correcto, o es
+>    exactamente el vicio que la sesión 13 dice haber arreglado?
+> 3. El mismo archivo cambió el ORDEN de sus escrituras para poder abortar antes de emitir
+>    nada. Se verificó que la salida sale byte-idéntica, pero comprobalo vos: los cuatro
+>    sha256 tienen que coincidir con `web/packs/web-bootstrap.json`.
+> 4. `isMissingProviderError` pasó de un regex a una LISTA de siete providers escrita a mano.
+>    Las listas enumeradas a mano son el tercer punto ciego conocido de este repo (§3 de
+>    `CONTINUAR.md`). ¿Qué pasa el día que alguien añada un contexto nuevo que la web no
+>    monte? ¿Falla algo, o se degrada callado?
+> 5. `redLetterText.web.ts` ya no asienta la versión cuando falla, así que REINTENTA. Buscá
+>    quién puede llamar a `loadRedLetterSpans` en bucle, y si un reintento puede solaparse con
+>    una carga que ya venía en vuelo.
+>
+> Y ojo con el punto ciego que la propia sesión 13 se cazó a sí misma: **una verificación
+> cuyo cuerpo entero es un bucle PASA cuando no hay nada que recorrer, y lo hace imprimiendo
+> un mensaje de éxito.** Ante cada compuerta nueva, preguntate qué entrada hace que no ejecute
+> ninguna aserción.
+>
+> Decime qué encontraste antes de tocar nada.
 
 **(a-bis) Si preferís seguir arreglando en vez de revisar:** quedan `R9-36`, `R9-38` y
 `R9-39` (P0) y los 4 de campo. Ojo: **los P1/P2 siguen sin re-verificar**, así que verificá
 contra el código antes de tocar. Y acordate de que una prueba de regresión no vale hasta que
 la viste fallar sin el arreglo: si un commit lleva dos arreglos, uno puede estar desarmando la
 prueba del otro; si una prueba encadena el mecanismo y su consecuencia, el revert la tumba en
-la primera aserción y la segunda no prueba nada; y un mock con factoría literal **sustituye**
-la superficie del módulo en vez de comprobarla. Va todo en rama con gates verdes; no mergees
-nada sin preguntarme.
+la primera aserción y la segunda no prueba nada; un mock con factoría literal **sustituye** la
+superficie del módulo en vez de comprobarla; **una comprobación que solo recorre un bucle pasa
+en vacío**; y **si el efecto dura un solo render, `act()` te lo esconde — instrumentá la
+llamada, no el árbol**. Va todo en rama con gates verdes; no mergees nada sin preguntarme.
 
 **(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
 
