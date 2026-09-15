@@ -54,6 +54,10 @@ import {
   BACKUP_FORMAT_VERSION,
   type BackupPayload,
 } from '../src/services/BackupService';
+import {
+  subscribeBackupRestored,
+  __resetBackupRestoredListenersForTests,
+} from '../src/lib/backup/restoreSignal';
 
 interface MockDbInstance {
   initialize: jest.Mock;
@@ -598,5 +602,94 @@ describe('importBackup — Bug 1: AsyncStorage write fails after SQLite already 
     expect(await AsyncStorage.getItem('@bible_search_history')).toBeNull();
 
     multiSetSpy.mockRestore();
+  });
+});
+
+describe('R9-28 — la senal de restauracion', () => {
+  it('avisa a los providers, y SOLO cuando ya termino de escribir en los dos motores', async () => {
+    // El unico de los 15 arreglos que se habia quedado sin prueba. El defecto:
+    // `importBackup` escribe directo a SQLite y a AsyncStorage por detras de
+    // cada provider que hidrato de esas mismas claves una vez, al montarse, y
+    // lleva el resultado en `useState` desde entonces. Los que persisten en
+    // cada cambio reescriben su copia PRE-import encima de lo restaurado a la
+    // primera interaccion — sin toast, sin error y sin log, justo despues de
+    // decirle al usuario que la importacion salio bien.
+    __resetBackupRestoredListenersForTests();
+    (AsyncStorage.multiSet as jest.Mock).mockClear();
+
+    let fired = 0;
+    let sqlAlSonar = -1;
+    let multiSetAlSonar = -1;
+    const unsubscribe = subscribeBackupRestored(() => {
+      fired += 1;
+      sqlAlSonar = mockExecuteSql.mock.calls.length;
+      // Ojo: AsyncStorage se escribe con UN solo `multiSet`, no con
+      // `setItem` — es deliberado (ver el docstring de importBackup).
+      multiSetAlSonar = (AsyncStorage.multiSet as jest.Mock).mock.calls.length;
+    });
+
+    try {
+      await importBackup(
+        basePayload({
+          // Las dos formas se copian tal cual de las pruebas de arriba que ya
+          // pasan: un favorito (motor SQLite) y el tema (motor AsyncStorage).
+          // Hacen falta LOS DOS para que la afirmacion de «emitida la ultima»
+          // signifique algo.
+          bible: {
+            favorites: [
+              {
+                id: 'fav-1',
+                verseId: 'John-3-16',
+                book: 'John',
+                chapter: 3,
+                verse: 16,
+                text: 'For God so loved the world',
+                category: 'other',
+                rating: 5,
+                tags: [],
+                createdAt: 1,
+                updatedAt: 1,
+              },
+            ] as never,
+            notes: [],
+            highlights: [],
+            lastReadPosition: {
+              book: 'John',
+              chapter: 3,
+              verse: 16,
+              timestamp: '2026-01-01T00:00:00.000Z',
+            },
+            chapterProgressMap: null,
+          },
+          user: {
+            readingPlanProgress: undefined,
+            readingPlanReadChapters: undefined,
+            searchHistory: undefined,
+            readerPreferences: {sideBySide: true},
+            readerPreferencesFull: null,
+            appTheme: {mode: 'dark', colorTheme: 'default'},
+          },
+        }),
+      );
+    } finally {
+      unsubscribe();
+    }
+
+    expect(fired).toBe(1);
+
+    // Emitida LA ULTIMA, que es lo que promete su docstring: un listener que
+    // re-leyera a mitad de escritura cachearia un estado a medio restaurar, y
+    // eso es peor que no avisar. Comparar el conteo AL SONAR con el total
+    // final es exactamente esa afirmacion.
+    expect(sqlAlSonar).toBe(mockExecuteSql.mock.calls.length);
+    expect(multiSetAlSonar).toBe(
+      (AsyncStorage.multiSet as jest.Mock).mock.calls.length,
+    );
+
+    // Y control de que la prueba no pasa en vacio: si no se hubiera escrito
+    // nada en ninguno de los dos motores, los dos `toBe` de arriba se
+    // cumplirian solos con 0 === 0.
+    expect(sqlAlSonar).toBeGreaterThan(0);
+    expect(multiSetAlSonar).toBeGreaterThan(0);
   });
 });

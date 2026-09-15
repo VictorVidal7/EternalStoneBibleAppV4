@@ -33,6 +33,10 @@ import {
   useMemoryDeck,
   type MemoryDeckContextValue,
 } from '../src/context/MemoryDeckContext';
+import {
+  emitBackupRestored,
+  __resetBackupRestoredListenersForTests,
+} from '../src/lib/backup/restoreSignal';
 import {DEFAULT_EASE as SRS_DEFAULT_EASE} from '../src/lib/memory/srs';
 
 /** `count` interval-bearing review events, all recalled (retention = 1.0). */
@@ -124,5 +128,98 @@ describe('MemoryDeckContext — calibrated ease prior', () => {
     await waitFor(() => expect(captured!.cards.length).toBe(1));
 
     expect(captured!.cards[0].ease).toBe(SRS_DEFAULT_EASE);
+  });
+});
+
+describe('R9-28 — un respaldo importado no puede ser pisado por la copia en memoria', () => {
+  /** Una tarjeta tal y como queda en `@memory_deck`: mapa por verseKey. */
+  function storedDeck(verseKey: string, bookName: string, chapter: number) {
+    return {
+      [verseKey]: {
+        verseKey,
+        bookName,
+        chapter,
+        verse: 1,
+        text: 'texto',
+        version: 'KJV',
+        box: 1,
+        dueAt: '2026-01-01T00:00:00.000Z',
+        addedAt: '2026-01-01T00:00:00.000Z',
+        lastReviewedAt: null,
+        reviewCount: 0,
+        lapseCount: 0,
+        updatedAt: 1,
+      },
+    };
+  }
+
+  beforeEach(async () => {
+    captured = null;
+    mockGetAllReviewEvents.mockReset();
+    mockGetAllReviewEvents.mockResolvedValue([]);
+    await AsyncStorage.clear();
+    __resetBackupRestoredListenersForTests();
+  });
+
+  afterEach(() => {
+    cleanup();
+  });
+
+  /**
+   * Monta con el mazo PRE-import —el que el provider lee al montarse y lleva en
+   * `useState` desde entonces— y despues hace lo que hace `importBackup`:
+   * escribe `@memory_deck` DIRECTAMENTE, por detras del provider, y avisa una
+   * vez que termino con los dos motores.
+   */
+  async function montarYRestaurar(): Promise<void> {
+    await AsyncStorage.setItem(
+      '@memory_deck',
+      JSON.stringify(storedDeck('Psalms/23/1', 'Psalms', 23)),
+    );
+    await mountAndSettle();
+    expect(captured!.cards.map(c => c.verseKey)).toEqual(['Psalms/23/1']);
+
+    await AsyncStorage.setItem(
+      '@memory_deck',
+      JSON.stringify(storedDeck('John/3/16', 'John', 3)),
+    );
+    await act(async () => {
+      emitBackupRestored();
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+  }
+
+  it('re-hidrata al aviso en vez de seguir con el mazo pre-import', async () => {
+    await montarYRestaurar();
+    expect(captured!.cards.map(c => c.verseKey)).toEqual(['John/3/16']);
+  });
+
+  it('y por eso la siguiente interaccion ya no pisa lo restaurado', async () => {
+    // Va en una prueba APARTE a proposito: si comparte cuerpo con la de arriba,
+    // el revert la tumba en la primera asercion y esta —la que reproduce la
+    // PERDIDA DE DATOS, no la pantalla obsoleta— nunca llega a evaluarse, asi
+    // que no probaria nada por si sola.
+    await montarYRestaurar();
+
+    // Sin re-hidratar, el efecto de persistir re-serializa el mazo viejo encima
+    // de lo restaurado a la primera interaccion. Sin toast, sin error y sin
+    // log, justo despues de decirle al usuario «Copia de seguridad importada
+    // correctamente».
+    await act(async () => {
+      captured!.addCard({
+        bookName: 'Mark',
+        chapter: 1,
+        verse: 1,
+        text: 'El principio del evangelio',
+        version: 'KJV',
+      });
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    const raw = await AsyncStorage.getItem('@memory_deck');
+    expect(Object.keys(JSON.parse(raw!)).sort()).toEqual([
+      'John/3/16',
+      'Mark/1/1',
+    ]);
   });
 });
