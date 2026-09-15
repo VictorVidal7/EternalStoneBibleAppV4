@@ -55,8 +55,17 @@
 > está en la versión web» y un botón que sale, en vez de un «Algo salió mal» cuyo
 > «Reintentar» no puede funcionar. Las dos verificadas en navegador.
 >
+> **Sesión 14 (2026-09-15) revisó el diff de la 13 y encontró 5 defectos, ninguno P0**
+> (`R9-72`, `R9-73` en P1; `R9-74`, `R9-75`, `R9-76` en P2). **Los 6 arreglos de la 13 se
+> sostienen y sus 6 pruebas discriminan**, y los cuatro sha256 de los packs siguen idénticos al
+> manifiesto publicado. Los 5 defectos están otra vez en las **compuertas**, y los dos P1
+> repiten la forma de `R9-66`: un bucle que recorre la lista NUEVA no ve lo que falta de la
+> vieja. Los otros tres son la misma familia: **un discriminador que depende de lo que decida
+> el propio código vigilado, y un silencio que significa a la vez «verificado» y «no miré»**.
+> Los 5 arreglados en la misma sesión.
+>
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
-> Hallazgos: **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> Hallazgos: **76**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
 >
 > Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
@@ -523,3 +532,44 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 14 — 2026-09-15. Revisar el diff de la 13 (las COMPUERTAS), ya mergeado.** Sexta
+  sesión seguida de revisión adversarial sobre un diff de arreglos, y la sexta que paga. 8
+  commits, 16 archivos. **Veredicto: los 6 arreglos de la sesión 13 se sostienen y sus 6
+  pruebas DISCRIMINAN**, verificado revirtiendo cada uno con el `diff` del revert a la vista:
+  quitar los dos pisos de `verifyRedLetterAlignment` → 2 rojas y los 4 controles verdes;
+  neutralizar `shrinkComplaints` → 6 rojas y los 3 controles puros verdes; un par sintético
+  `export {x}` contra la compuerta de AST → cazado, y `export * from` → ruidoso; volver al
+  regex de `isMissingProviderError` → 3 rojas; volver al booleano del lector → roja con
+  `{offsetsFor:"RVR1960", textFrom:"WEB"}`; revertir los tres contratos de `R9-70` → **exactamente
+  los 2 huecos vivos** y silencio en los otros 12 pares; volver a asentar el fallo de
+  `loadRedLetterSpans` → 2 rojas con los dos controles verdes. **Y los cuatro sha256 de los
+  packs vuelven a salir idénticos al manifiesto publicado, con el manifiesto sin cambiar un
+  byte.**
+  **Los 5 defectos están otra vez en las COMPUERTAS**, y los dos P1 repiten la forma que la
+  propia sesión 13 se cazó a sí misma: `R9-72` (el mensaje de abort **mentía** — solo los JSON
+  de letra roja se habían aplazado, los dos `.sqlite` ya estaban escritos en el directorio de
+  salida; probado con una fuente que pierde 492 versículos de Salmos, que satisface todos los
+  pisos de `verifyPack` y deja un `web.sqlite` de 30 606 versículos donde el error jura que no
+  se emitió nada) y `R9-73` (la compuerta de encogimiento **no ve una versión que desaparece**,
+  que es el encogimiento máximo: los bucles recorren la lista NUEVA, y quitar RVR1960 da `[]`).
+  Los otros tres son la misma familia una capa más fina: `R9-74` (un baseline ilegible apaga
+  la compuerta entera **sin decir una palabra**, y el silencio era a la vez la señal de
+  «verificado» y la de «no comparé nada»), `R9-75` (la lista de providers tenía compuerta en
+  **una sola dirección**: nadie comprobaba que estuviera COMPLETA) y `R9-76` (el discriminador
+  de la compuerta de `R9-70` —«¿lo exporta el nativo?»— está **en manos del archivo vigilado**,
+  que es literalmente el estado en que estaba `OfferingSheetContextValue` antes de ese mismo
+  arreglo). Los 5 arreglados en `fix/review-s14-revision-diff-s13`, cada uno con su prueba
+  **vista fallar primero** (11 rojas de golpe en el bloque de packs, con 8 controles verdes a
+  los dos lados) y `R9-72` corrido de punta a punta contra los datos reales.
+  **Detalle completo, incluido lo que se comprobó y está BIEN:
+  `detail/S14-revision-del-diff.md`.**
+  **La lección de método:** la 13 encontró los defectos en las compuertas; la 14 los encontró
+  en **el mismo sitio otra vez**, lo que dice que una compuerta nueva merece la misma
+  desconfianza que el código que vigila. Y afina el antídoto de la 13 con dos preguntas más:
+  _¿de quién depende el discriminador de esta compuerta?_ — si de quien podría infringirla, no
+  es una compuerta — y **_¿qué significa su silencio?_** Si el mismo silencio sirve para
+  «verificado» y para «no miré», no hay compuerta. Tercer corolario: **un mensaje de error que
+  AFIRMA un estado del mundo es una aserción, y hay que probarla como tal** — el de `R9-66`
+  decía «no pack file was emitted» con 9,5 MB de packs recién escritos, y había una prueba que
+  fijaba esa frase.

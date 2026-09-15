@@ -49,6 +49,17 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 14 (2026-09-15).** Revisó el diff de la 13 (8 commits, 16 archivos) y encontró
+> **5 defectos, ninguno P0**: `R9-72`, `R9-73` (P1) y `R9-74`, `R9-75`, `R9-76` (P2). **Los
+> 6 arreglos de la sesión 13 se sostienen y sus 6 pruebas DISCRIMINAN** (verificado revirtiendo
+> cada uno, con el `diff` del revert a la vista), y los cuatro sha256 de los packs siguen
+> saliendo idénticos al manifiesto publicado. Los defectos están otra vez en las COMPUERTAS, y
+> los dos P1 vuelven a ser la forma de `R9-66`: **un bucle que no recorre nada no encuentra
+> nada**, esta vez porque la lista nueva es más corta que la publicada. Los otros tres son la
+> misma familia: **una compuerta cuyo discriminador depende de lo que decida el propio código
+> vigilado, o cuyo silencio significa a la vez «verificado» y «no miré»**. Los 5 arreglados en
+> la misma sesión. Detalle: `detail/S14-revision-del-diff.md`.
+
 > **Sesión 13 (2026-09-15).** Revisó el diff de la 12 (el bloque WEB, 6 commits, 19 archivos)
 > y encontró **6 defectos, ninguno P0** — todos en los BORDES de esos arreglos, no en ellos:
 > `R9-66`, `R9-67` (P1) y `R9-68`, `R9-69`, `R9-70`, `R9-71` (P2). Los tres arreglos de la 12 se
@@ -606,6 +617,50 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ## P1 — núcleo de la app
 
+- **`R9-72` (S14, build de packs) — 🐛 el mensaje de abort de `R9-66` MENTÍA: los dos
+  `.sqlite` ya estaban escritos.** Encontrado al revisar el diff de la sesión 13. El
+  reordenamiento que esa sesión hizo para «abortar antes de emitir nada» solo aplazó los JSON
+  de letra roja (`pendingWrites`); `buildPack()` seguía escribiendo `rvr1960.sqlite` y
+  `web.sqlite` **directo al directorio de salida**, dentro del primer bucle, antes de
+  `assertNoShrink`. Así que el error decía literalmente «_no pack file was emitted, so nothing
+  here is publishable yet_» con dos packs de 4,7 MB recién escritos ahí dentro, y la entrada
+  de `R9-66` afirmaba «antes de escribir nada publicable». **Probado de punta a punta antes
+  del arreglo:** truncando la fuente WEB en 492 versículos de Salmos —que satisface **todos**
+  los pisos de `verifyPack`, porque fijan la base contra la MISMA fuente encogida, y no toca
+  ningún span de letra roja, así que la alineación no se entera— la corrida aborta con «WEB:
+  31098 verses -> 30606 (492 fewer)» y deja un `web.sqlite` de 4 796 416 bytes con **30 606
+  versículos** en el directorio, indistinguible de uno bueno salvo por el sha256. Y publicar
+  es una **subida MANUAL** de lo que haya ahí, en un directorio del que ya se sabe que guarda
+  `.sqlite` viejos: un mensaje que **AFIRMA** que está intacto es peor que ninguno. Peor aún,
+  `__tests__/buildWebPacks.test.js` **fijaba esa frase falsa** (`says NOTHING was written, so
+the message is actionable`). **✅ ARREGLADO en la sesión 14:** todo se construye en un
+  directorio de escenario **dentro** de `out` (mismo volumen, porque un `rename` entre
+  volúmenes falla con `EXDEV` en Windows) y se mueve con `renameSync` **solo** después de
+  pasar la compuerta, con `finally` que lo limpia en todos los caminos, abort incluido. El
+  mensaje además avisa de que lo que ya estaba ahí es de una corrida ANTERIOR y que hay que
+  comprobarle el sha256. Vista fallar primero, y **corrido de punta a punta contra los datos
+  de verdad: los cuatro sha256 salen IDÉNTICOS a los del manifiesto publicado**,
+  `web/packs/web-bootstrap.json` no cambia ni un byte, y no queda scratch.
+  Detalle: `detail/S14-revision-del-diff.md`.
+
+- **`R9-73` (S14, build de packs) — 🐛 la compuerta de encogimiento no veía una versión que
+  DESAPARECE, que es el encogimiento máximo y el que ya pasó.** Los dos bucles de conteo de
+  `shrinkComplaints` recorren las listas **NUEVAS**, así que quitar RVR1960 de
+  `RED_LETTER_SPECS` daba **cero quejas**. Sondeado: pack de letra roja que desaparece → `[]`;
+  el `.sqlite` que desaparece → `[]`; **todo** desaparece → `[]`; y `assertNoShrink` **no
+  lanza**, la corrida pasa, y el manifiesto se reescribe **sin** esa versión, borrando la
+  única base que tenía la corrida siguiente para notarlo. Es **la misma forma que `R9-66`, un
+  nivel afuera**: un cuerpo de bucle que no corre para lo que falta, y la pregunta «¿qué
+  entrada hace que esto no ejecute ninguna aserción?» tiene respuesta trivial: una lista
+  nueva más corta. Y no es hipotético — las dos listas son **a mano** (el tercer punto ciego
+  del repo) y la última vez que a `RED_LETTER_SPECS` le faltaba RVR1960, la letra roja estuvo
+  **muerta en español en la web un mes**: eso ES `R9-13`. La compuerta que existe justamente
+  para parar «un conteo que baja» no habría parado la bajada de 2057 a **ninguno**.
+  **✅ ARREGLADO en la sesión 14:** la ausencia se lee de las listas **PREVIAS**, que es el
+  único sitio donde sigue visible, con `--allow-shrink` como la misma vía de escape (retirar
+  una versión es una decisión editorial legítima). Vista fallar primero, con el control de que
+  **AÑADIR** una versión sigue sin quejarse. Detalle: `detail/S14-revision-del-diff.md`.
+
 - **`R9-66` (S13, build de packs) — 🐛 la verificación de spans de letra roja pasaba EN
   VACÍO, y es lo único del programa que toca DATOS YA PUBLICADOS.** Encontrado al revisar el
   diff de la sesión 12. Todo el cuerpo de `verifyRedLetterAlignment`
@@ -898,6 +953,61 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-74` (S14, build de packs) — 🐛 `readPreviousManifest` devolvía `null` ante CUALQUIER
+  error, y un `null` apagaba la compuerta entera en silencio total.** El comentario decía
+  «absent or unreadable is not an error: the very first run has nothing to compare against»,
+  y mezclaba dos cosas distintas. **Ausente** sí es legítimo. **Presente pero ilegible** no, y
+  es alcanzable: el script escribe ese archivo con **un solo `fs.writeFileSync`**, así que su
+  propia corrida interrumpida (Ctrl-C, disco lleno) deja un JSON truncado, y un merge malo
+  deja marcadores de conflicto. **Sondeado:** con el manifiesto truncado a
+  `{ "schema": 1, "packs": [`, la corrida **no imprime una sola palabra** sobre haberse
+  salteado la comparación, y reescribe el archivo. Y en el camino de éxito tampoco imprimía
+  nada, así que **el silencio era a la vez la señal de «verificado» y la de «no comparé
+  nada»**. **✅ ARREGLADO en la sesión 14:** distingue `ENOENT` de todo lo demás (un baseline
+  ilegible **aborta**, con la instrucción de restaurarlo), exige un `packs` array —un
+  manifiesto sin él compararía contra nada y pasaría en vacío, que es el bug— y
+  `assertNoShrink` **DICE** cuál de los dos casos ocurrió. Vista fallar primero, con el control
+  de que un manifiesto simplemente ausente sigue devolviendo `null`.
+  Detalle: `detail/S14-revision-del-diff.md`.
+
+- **`R9-75` (S14, web) — 🐛 la lista de providers de `R9-68` tenía compuerta en UNA sola
+  dirección.** `WEB_UNMOUNTED_PROVIDERS` es una lista **a mano** de siete nombres, y la prueba
+  que la sesión 13 dejó (`never claims a provider app/_layout.web.tsx actually mounts`)
+  comprueba que ninguna entrada esté montada en web — **nadie comprobaba que la lista estuviera
+  COMPLETA**. La lista está bien **hoy** (verificado: el árbol nativo monta 19 providers, el web
+  11, la diferencia es 8 = los 7 de la lista + `ServicesProvider`, excluido a propósito porque
+  su `createContext` tiene un default real y su hook no lanza nunca). Pero «está bien hoy» es
+  una nota, no una compuerta — el corolario de `R9-67`, al pie de la letra. El día que alguien
+  añada un contexto a `app/_layout.tsx` y no a `_layout.web.tsx`: el hook lanza,
+  `isMissingProviderError` devuelve `false`, y la ruta cae en la genérica «Algo salió mal» de
+  `ErrorBoundary.web.tsx:135` **con un botón de reintentar que re-renderiza la misma ruta y
+  vuelve a lanzar** — el síntoma exacto que `R9-14` existía para quitar, reintroducido en
+  silencio. Lo mismo si alguien **QUITA** un provider del árbol web. **✅ ARREGLADO en la
+  sesión 14:** los dos layouts están en disco, así que la diferencia es **derivable**. Dos
+  pruebas: que toda la diferencia nativo-menos-web esté en la lista o en un conjunto de
+  excepciones **con su razón**, y que ninguna entrada nombre un provider que el nativo ya no
+  monta (la mitad de obsolescencia, igual que `ALLOWED_NATIVE_ONLY` en la compuerta de
+  paridad). Detalle que no es accidental: el regex pasa a `[\s>]`, porque el nativo escribe
+  `<ServicesProvider database={bibleDB}>` y un patrón anclado en `>` **se salta todo provider
+  que reciba un prop**; va con su propia aserción para que no pueda volver atrás en silencio.
+  Vistas fallar primero con **tres** sondas. Detalle: `detail/S14-revision-del-diff.md`.
+
+- **`R9-76` (S14, paridad web/nativo) — 🐛 el discriminador de la compuerta de `R9-70` estaba
+  en manos del archivo vigilado.** Marca un tipo redeclarado en el stub web **solo si el
+  hermano nativo lo EXPORTA** — y eso es una decisión que toma el propio código ofensor: si el
+  nativo mantiene el tipo privado, la compuerta se calla. **No es teórico: es exactamente el
+  estado en que estaba `OfferingSheetContextValue`** hasta que `R9-70` lo arregló a mano (su
+  propia entrada lo dice: «el nativo no lo exportaba»), así que **el tercer caso del arreglo es
+  justo el que su compuerta nueva no podía cazar**. Sondeado con par sintético: nativo mantiene
+  `FiveContextValue` privado, el stub web declara una copia con un miembro menos, compuerta
+  **verde**. **✅ ARREGLADO en la sesión 14:** un nombre `…ContextValue` cuenta como contrato
+  compartido exporte el nativo o no — ese sufijo no es una convención casual, es cómo se
+  **llama** el contrato provider/hook en los cuatro pares de contexto. La estrechez se conserva
+  y va con control: un `Props` privado y divergente en los dos lados sigue **sin** marcarse
+  (segundo par sintético), porque marcar las formas privadas enterraría la señal. Vista fallar
+  primero: con la condición vieja los 82 casos pasan y la sonda se cuela.
+  Detalle: `detail/S14-revision-del-diff.md`.
 
 - **`R9-71` (S13, lector web) — 🐛 un fallo transitorio de red mataba la letra roja el resto
   de la sesión.** La rama de fallo de `loadRedLetterSpans` hacía

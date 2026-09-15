@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 13 (revisión del diff de la 12 + 5 arreglos).**
+> **Última actualización: 2026-09-15, fin de la sesión 14 (revisión del diff de la 13 + 5 arreglos).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,12 +12,13 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
-pendiente. Las **siete** ramas de arreglos de las sesiones 7 a 13 están todas dentro de
-`main`, la última (`fix/review-s13-revision-diff-s12`, sesión 13) en fast-forward y con los
-gates corridos **sobre `main` ya mergeado** antes de publicar: **361 suites, 4201 pruebas**
-(desde 360/4136). No se pone el SHA del tip a propósito — el propio commit del checkpoint lo
-mueve, así que cualquier SHA escrito aquí nace obsoleto.
+**1. HAY UNA RAMA SIN MERGEAR: `fix/review-s14-revision-diff-s13` (sesión 14).** Lleva los 5
+arreglos de esta sesión (`R9-72`..`R9-76`) más el checkpoint del ledger, con las compuertas
+verdes: **361 suites, 4219 pruebas** (desde 361/4201), `tsc`, lint y `format:check`.
+**Victor no ha dado el OK de merge todavía** — pregúntaselo antes de tocarla. Las **siete**
+ramas de las sesiones 7 a 13 sí están todas dentro de `main` y pusheadas. No se pone el SHA
+del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA escrito
+aquí nace obsoleto.
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
 `eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15), verificado en vivo
@@ -59,7 +60,9 @@ otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-
 marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Los
 **6 hallazgos de la sesión 13** (`R9-66`..`R9-71`) son P1/P2, así que el conteo de P0 no se
 mueve — y los seis ya están arreglados y mergeados.
-Hallazgos totales: **71**.
+Los **5 hallazgos de la sesión 14** (`R9-72`..`R9-76`) también son P1/P2, así que el conteo
+de P0 tampoco se mueve — y los cinco ya están arreglados (en la rama, sin mergear).
+Hallazgos totales: **76**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -100,6 +103,31 @@ comprobación no ejecute ninguna aserción?_** Si esa entrada es alcanzable, hac
 — y el piso necesita su propio control, o se convierte en la comprobación entera. Corolario:
 **un comentario que dice «verificado que hoy nadie hace X; si alguien empieza, arréglalo» no
 es una compuerta, es una nota.** O lo detecta algo, o no existe.
+
+**La lección de la sesión 14, que es la que conviene llevarse AHORA:** la 13 encontró sus
+defectos en las compuertas; la 14 los encontró **en el mismo sitio otra vez**. O sea: una
+compuerta recién escrita merece exactamente la misma desconfianza que el código que vigila, y
+**no menos por ser una prueba**. A la pregunta de la 13 se le suman dos:
+
+> **¿De quién depende el discriminador de esta compuerta?** Si depende de una decisión que toma
+> quien podría infringirla, no es una compuerta. (`R9-76`: la paridad de contratos solo miraba
+> los tipos que el hermano nativo EXPORTA — mantenelo privado y se calla. Era el estado exacto
+> de `OfferingSheetContextValue` antes del arreglo que creó esa compuerta.)
+
+> **¿Qué significa su SILENCIO?** Si el mismo silencio sirve para «verificado» y para «no
+> miré», no hay compuerta. (`R9-74`: un baseline ilegible apagaba la detección de encogimiento
+> entera sin imprimir una palabra, y el camino de éxito tampoco imprimía nada.)
+
+Y dos corolarios que valen por sí solos:
+
+> **Un mensaje de error que AFIRMA un estado del mundo es una aserción, y hay que probarla como
+> tal.** El de `R9-66` decía «no pack file was emitted» con 9,5 MB de packs recién escritos en
+> el directorio de salida — y había una prueba **fijando esa frase**. Una prueba puede
+> certificar una mentira si solo comprueba que el texto está ahí.
+
+> **Un bucle que recorre la lista NUEVA no puede ver lo que falta de la VIEJA.** (`R9-73`.) Es
+> la variante de «un bucle en vacío pasa» que se le escapó a la propia sesión 13: si una
+> comprobación compara dos colecciones, tiene que recorrer **las dos**.
 
 **4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
@@ -145,55 +173,56 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 13 y, si aguanta, mergearlo.** Es el patrón
-que ya pagó **cinco** veces seguidas: las sesiones 8, 9, 10, 11 y 13 encontraron defectos
+**(a) RECOMENDADA — revisar el diff de la sesión 14 y, si aguanta, mergearlo.** Es el patrón
+que ya pagó **seis** veces seguidas: las sesiones 8, 9, 10, 11, 13 y 14 encontraron defectos
 reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran **pérdidas de
-datos nuevas**. El diff de la 13 son 8 commits y toca dos cosas delicadas: el script que
-genera **datos que se publican** y la compuerta de paridad que protege a todo el árbol web.
-Ojo con dos cosas: la sesión 13 reescribió esa compuerta de un escaneo de texto a un parseo
-de **AST** (es más código, y código nuevo sin revisar), y `build-web-packs.js` cambió el
-orden de sus escrituras para poder abortar antes de emitir nada — verificado byte a byte
-contra el manifiesto publicado, pero es exactamente el sitio donde un error se publica.
+datos nuevas**. **Ojo, esta vez la rama NO está mergeada** (`fix/review-s14-revision-diff-s13`):
+el diff a revisar está ahí, no en `main`. Son 3 commits de arreglo + el checkpoint, y vuelve a
+tocar el sitio más delicado del programa: `scripts/build-web-packs.js`, que es lo único que
+produce **datos que se publican**, y esta vez le **reordenó las escrituras de verdad** —
+ahora todo se construye en un directorio de escenario y se mueve al final.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> No hay ninguna rama pendiente: `main` está pusheado y al día, así que no busques una.
-> Tampoco queda nada de despliegue ni nada «dicho sin hacer».
+> La rama `fix/review-s14-revision-diff-s13` está SIN mergear y es la que hay que revisar (no
+> `main`). No queda nada de despliegue pendiente.
 >
-> Revisá el diff de la sesión 13 en `main` (`R9-66`..`R9-71`: 8 commits, 16 archivos), con el
-> mismo criterio de las sesiones 8-13 — buscá si algún arreglo cierra el caso que su prueba
-> cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad
-> (revertí el arreglo, corré, restaurá, y `diff` el revert para confirmar que tocó la línea
-> que creés).
+> Revisá el diff de la sesión 14 (`R9-72`..`R9-76`), con el mismo criterio de las sesiones
+> 8-14 — buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
+> comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré, restaurá, y
+> `diff` el revert para confirmar que tocó la línea que creés).
 >
-> La sesión 13 encontró sus 6 defectos en las COMPUERTAS, no en el código de la app, así que
-> el riesgo de su propio diff es que las compuertas nuevas tengan el mismo vicio. Cinco
-> sitios donde mirar con lupa:
+> Las sesiones 13 y 14 encontraron sus defectos en las COMPUERTAS, así que asumí que el riesgo
+> de este diff está ahí también. Cinco sitios donde mirar con lupa:
 >
-> 1. `__tests__/webNativeModuleParity.test.ts` se reescribió de un escaneo de texto a un
->    parseo de AST con `ts.createSourceFile`. Es el archivo con más código nuevo del diff.
->    Preguntate qué exporta un módulo que un recorrido de `sourceFile.statements` de PRIMER
->    NIVEL no ve, y si `unresolvable` de verdad atrapa todo lo que dice atrapar.
-> 2. `scripts/build-web-packs.js` es lo único del programa que toca DATOS YA PUBLICADOS, y
->    ahora tiene una compuerta nueva que puede abortar la corrida. Mirá `readPreviousManifest`
->    con mala fe: devuelve `null` ante CUALQUIER error de lectura o de parseo, y un `null`
->    desactiva la detección de caída entera **en silencio**. ¿Es eso lo correcto, o es
->    exactamente el vicio que la sesión 13 dice haber arreglado?
-> 3. El mismo archivo cambió el ORDEN de sus escrituras para poder abortar antes de emitir
->    nada. Se verificó que la salida sale byte-idéntica, pero comprobalo vos: los cuatro
->    sha256 tienen que coincidir con `web/packs/web-bootstrap.json`.
-> 4. `isMissingProviderError` pasó de un regex a una LISTA de siete providers escrita a mano.
->    Las listas enumeradas a mano son el tercer punto ciego conocido de este repo (§3 de
->    `CONTINUAR.md`). ¿Qué pasa el día que alguien añada un contexto nuevo que la web no
->    monte? ¿Falla algo, o se degrada callado?
-> 5. `redLetterText.web.ts` ya no asienta la versión cuando falla, así que REINTENTA. Buscá
->    quién puede llamar a `loadRedLetterSpans` en bucle, y si un reintento puede solaparse con
->    una carga que ya venía en vuelo.
+> 1. `main()` de `scripts/build-web-packs.js` se partió en `main()` + `emit()` y ahora
+>    construye todo en un directorio de escenario (`.staging-XXXXXX` **dentro** del directorio
+>    de salida) que se mueve con `renameSync` al final y se borra en un `finally`. Preguntate
+>    qué pasa si dos corridas se solapan, si el `finally` puede borrar algo que sí había que
+>    conservar, y si un `renameSync` a medias puede dejar el directorio de salida con dos
+>    packs nuevos y dos viejos. **Y comprobá los cuatro sha256 contra
+>    `web/packs/web-bootstrap.json`: tienen que seguir coincidiendo.**
+> 2. `main()` pasó a ser **parametrizable** (`out`, `allowShrink`, `manifestFile`, `specs`,
+>    `redLetterSpecs`) para que la prueba pueda correrlo de verdad. Eso significa que los
+>    valores por defecto son ahora la única cosa que ata el script real a los datos reales:
+>    ¿puede una prueba escribir en `web/packs/web-bootstrap.json` por accidente? ¿Y ejercitan
+>    las pruebas las listas REALES, o solo las de mentira?
+> 3. La detección de desaparición de `R9-73` recorre las listas PREVIAS. Preguntate qué pasa
+>    con un manifiesto en la forma VIEJA (`redLetter` era un objeto), y si `--allow-shrink`
+>    sigue siendo la vía de escape correcta para retirar una versión a propósito.
+> 4. `readPreviousManifest` ahora LANZA. Eso convierte un archivo corrupto en una corrida que
+>    no produce nada: ¿es siempre lo que querés, o hay un camino legítimo (una primera corrida
+>    en una máquina nueva, un `out` distinto) que ahora queda bloqueado?
+> 5. Las dos compuertas nuevas de pruebas (`missingProviderError.test.ts` lee los dos layouts
+>    como TEXTO; `webNativeModuleParity.test.ts` decide por el sufijo `ContextValue`) son
+>    heurísticas sobre texto. Preguntate qué escritura legítima las rompe, y si romperlas
+>    FALLA o se degrada callado.
 >
-> Y ojo con el punto ciego que la propia sesión 13 se cazó a sí misma: **una verificación
-> cuyo cuerpo entero es un bucle PASA cuando no hay nada que recorrer, y lo hace imprimiendo
-> un mensaje de éxito.** Ante cada compuerta nueva, preguntate qué entrada hace que no ejecute
-> ninguna aserción.
+> Y ojo con el punto ciego que las sesiones 13 y 14 se cazaron a sí mismas: **una verificación
+> cuyo cuerpo entero es un bucle PASA cuando no hay nada que recorrer** — y su variante de la
+> 14, **un bucle que recorre la lista NUEVA no ve lo que falta de la VIEJA**. Ante cada
+> compuerta, preguntate qué entrada hace que no ejecute ninguna aserción, **de quién depende su
+> discriminador**, y **qué significa su silencio**.
 >
 > Decime qué encontraste antes de tocar nada.
 
@@ -272,7 +301,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 11 ramas locales.** La de la sesion 13 (`fix/review-s13-revision-diff-s12`) ya se borro tras mergearla, igual que la de la 12, asi que en local no la vas a ver. `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+**Hay 12 ramas locales.** La de la sesion 14, `fix/review-s14-revision-diff-s13`, **existe y esta SIN mergear** — es la del trabajo mas reciente. Las de las sesiones 12 y 13 ya se borraron tras mergearlas, asi que en local no las vas a ver. `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
 sesiones 7 a 12) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
@@ -324,6 +353,7 @@ arreglos** — ver la nota al principio de esa sección.
 | 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
 | 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | mergeado a `main`   |
 | 13     | Revisión del diff de la 12: **6 defectos** + arreglos     | mergeado a `main`   |
+| 14     | Revisión del diff de la 13: **5 defectos** + arreglos     | rama SIN mergear    |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
