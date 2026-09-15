@@ -3923,6 +3923,10 @@ export const translations = {
       offline: 'Sin conexión',
       offlineWithQueue: 'Sin conexión — {{count}} cambios encolados',
       offlineWithQueueSingular: 'Sin conexión — 1 cambio encolado',
+      dropped: '{{count}} cambios no se pudieron guardar en la nube',
+      droppedSingular: '1 cambio no se pudo guardar en la nube',
+      droppedA11y:
+        'Cambios que no se pudieron guardar en la nube. Toca para descartar este aviso.',
     },
 
     conflicts: {
@@ -10459,6 +10463,10 @@ export const translations = {
       offline: 'Offline',
       offlineWithQueue: 'Offline — {{count}} changes queued',
       offlineWithQueueSingular: 'Offline — 1 change queued',
+      dropped: '{{count}} changes could not be saved to the cloud',
+      droppedSingular: '1 change could not be saved to the cloud',
+      droppedA11y:
+        'Changes that could not be saved to the cloud. Tap to dismiss this notice.',
     },
 
     conflicts: {

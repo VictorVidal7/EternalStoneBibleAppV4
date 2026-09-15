@@ -84,6 +84,12 @@ export default function SettingsScreen() {
     return () => clearInterval(id);
   }, [user]);
 
+  // R9-33 — writes the engine gave up on. Shown until the user taps it:
+  // each one is a local change that never reached the cloud, and before this
+  // the only trace was a log line nobody reads.
+  const droppedWrites =
+    user && !user.isAnonymous ? (syncCtx?.state.droppedWrites ?? 0) : 0;
+
   const syncIndicator = useMemo(() => {
     if (!syncCtx || !user || user.isAnonymous) return null;
     const {state} = syncCtx;
@@ -590,6 +596,37 @@ export default function SettingsScreen() {
                       {syncIndicator}
                     </Text>
                   </View>
+                ) : null}
+                {droppedWrites > 0 ? (
+                  <TouchableOpacity
+                    style={[
+                      styles.conflictsBadge,
+                      {
+                        borderColor: colors.error,
+                        backgroundColor: colors.error + '15',
+                      },
+                    ]}
+                    onPress={() => {
+                      void syncCtx?.engine.acknowledgeDroppedWrites();
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={t.sync.droppedA11y}>
+                    <Ionicons
+                      name="cloud-offline"
+                      size={18}
+                      color={colors.error}
+                    />
+                    <Text
+                      style={[styles.conflictsBadgeText, {color: colors.error}]}
+                      numberOfLines={2}>
+                      {droppedWrites === 1
+                        ? t.sync.droppedSingular
+                        : t.sync.dropped.replace(
+                            '{{count}}',
+                            String(droppedWrites),
+                          )}
+                    </Text>
+                  </TouchableOpacity>
                 ) : null}
                 {conflicts.length > 0 ? (
                   <TouchableOpacity
