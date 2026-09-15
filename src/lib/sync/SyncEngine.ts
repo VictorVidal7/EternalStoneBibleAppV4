@@ -177,6 +177,35 @@ export function cursorStorageKey(collection: string, uid: string): string {
   return `${CURSOR_STORAGE_PREFIX}${collection}:${uid}`;
 }
 
+const DROPPED_STORAGE_PREFIX = '@sync_dropped_';
+
+/** R9-33 — where the give-up counter lives. Per-uid, like the cursors: one
+ *  account's lost writes are not the other's business. */
+export function droppedStorageKey(uid: string): string {
+  return `${DROPPED_STORAGE_PREFIX}${uid}`;
+}
+
+/**
+ * R9-33 — the retry backoff that `types.ts` and `netinfo.ts` both already
+ * CLAIMED existed. It did not: `queuedAt` was written in three places and
+ * read in none, so the 8 allowed attempts were spent as fast as something
+ * called `flush()` — measured at **1 ms end to end** — and the write was
+ * thrown away. With the periodic flush alone, a plain few-minute outage was
+ * enough to lose it.
+ *
+ * Exponential from the last ATTEMPT, capped: 30s, 1m, 2m, 4m, 8m, 16m, 30m,
+ * 30m — about an hour and a half of real wall-clock before a write is given
+ * up on, instead of milliseconds.
+ */
+export const RETRY_BASE_DELAY_MS = 30 * 1000;
+export const RETRY_MAX_DELAY_MS = 30 * 60 * 1000;
+
+export function retryDelayMs(attempts: number): number {
+  if (attempts <= 0) return 0;
+  const exponential = RETRY_BASE_DELAY_MS * 2 ** (attempts - 1);
+  return Math.min(exponential, RETRY_MAX_DELAY_MS);
+}
+
 /** Deep equality good enough for our small payloads (text, tags arrays, etc).
  *  null and undefined are treated as equivalent — SQLite NULL surfaces as
  *  null locally while an absent Firestore field surfaces as undefined,
@@ -236,6 +265,7 @@ export class SyncEngine {
     pendingWrites: 0,
     lastSyncedAt: null,
     lastError: null,
+    droppedWrites: 0,
     conflicts: [],
   };
 
@@ -302,6 +332,18 @@ export class SyncEngine {
     this.updateState({isActive: true, lastError: null});
 
     await this.hydrateQueue();
+    // R9-22 follow-up — `hydrateQueue()` returns early once the queue has
+    // been read from disk, so on a SECOND `start()` in the same app session
+    // (one account signs out, another signs in) nothing recomputed this for
+    // the new uid — and `stop()` keeps the old count on purpose, because the
+    // queue is persisted. Settings would then tell the arriving user they
+    // have N changes syncing that are not theirs and that they can do nothing
+    // about, and it would never say "sincronizado" again. Recompute here, on
+    // every start, not only on the first one.
+    this.updateState({
+      pendingWrites: this.pendingForActiveUid(),
+      droppedWrites: await this.loadDroppedWrites(uid),
+    });
     this.subscribeNetInfo();
     this.startPeriodicFlush();
 
@@ -514,6 +556,58 @@ export class SyncEngine {
     if (droppedOnHydrate) await this.persistQueue();
   }
 
+  /**
+   * R9-33 — the give-up counter survives a restart on purpose. A dropped
+   * write is permanent data loss; a notice the user happens to miss because
+   * the app was backgrounded is no notice at all. Cleared only by
+   * `acknowledgeDroppedWrites()`, i.e. when the user has actually seen it.
+   */
+  private async loadDroppedWrites(uid: string): Promise<number> {
+    try {
+      const raw = await AsyncStorage.getItem(droppedStorageKey(uid));
+      const parsed = raw != null ? Number(raw) : NaN;
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+    } catch (err) {
+      logger.warn('SyncEngine: failed to read dropped-write count', {
+        component: 'SyncEngine',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return 0;
+    }
+  }
+
+  private async recordDroppedWrite(): Promise<void> {
+    const uid = this.uid;
+    if (!uid) return;
+    const next = this.state.droppedWrites + 1;
+    this.updateState({droppedWrites: next});
+    try {
+      await AsyncStorage.setItem(droppedStorageKey(uid), String(next));
+    } catch (err) {
+      // Best-effort: the in-memory count still drives the UI for THIS
+      // session, which is the case that matters most.
+      logger.warn('SyncEngine: failed to persist dropped-write count', {
+        component: 'SyncEngine',
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  /** R9-33 — the user has seen the notice; stop showing it. */
+  async acknowledgeDroppedWrites(): Promise<void> {
+    const uid = this.uid;
+    this.updateState({droppedWrites: 0});
+    if (!uid) return;
+    try {
+      await AsyncStorage.removeItem(droppedStorageKey(uid));
+    } catch (err) {
+      logger.warn('SyncEngine: failed to clear dropped-write count', {
+        component: 'SyncEngine',
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   private async persistQueue(): Promise<void> {
     try {
       await AsyncStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
@@ -538,6 +632,33 @@ export class SyncEngine {
     const activeUid = this.uid;
     if (!activeUid) return 0;
     return this.queue.reduce((n, q) => (q.uid === activeUid ? n + 1 : n), 0);
+  }
+
+  /**
+   * R9-33 — how many of this account's queued writes are actually DUE right
+   * now, i.e. past their backoff window.
+   *
+   * Kept separate from `pendingForActiveUid()` on purpose. That one answers
+   * "how much unflushed work does this user have" and drives the Settings
+   * label, which must keep counting a write that is merely waiting out its
+   * backoff — it is still pending. THIS one drives loop control, and it must
+   * NOT count a deferred entry: the re-flush at the tail of `flush()` fires
+   * whenever the loop ended cleanly and the queue is non-empty, so counting a
+   * backed-off entry there would re-enter `flush()` forever — the same hot
+   * spin the uid filter had to avoid (see the R9-22 note at the tail).
+   */
+  private flushableCount(now: number = Date.now()): number {
+    const activeUid = this.uid;
+    if (!activeUid) return 0;
+    return this.queue.reduce(
+      (n, q) => (this.isDue(q, activeUid, now) ? n + 1 : n),
+      0,
+    );
+  }
+
+  private isDue(entry: PendingWrite, activeUid: string, now: number): boolean {
+    if (entry.uid !== activeUid) return false;
+    return now >= (entry.lastAttemptAt ?? 0) + retryDelayMs(entry.attempts);
   }
 
   private upsertQueueEntry(entry: PendingWrite): void {
@@ -899,7 +1020,40 @@ export class SyncEngine {
           cursorStorageKey(collection, this.uid),
         );
         const parsed = raw != null ? Number(raw) : NaN;
-        if (Number.isFinite(parsed) && parsed > 0) value = parsed;
+        if (Number.isFinite(parsed) && parsed > 0) {
+          // R9-35 — a cursor that sits in the FUTURE is poisoned, and the
+          // device cannot recover on its own: the query floor is
+          // `cursor - CURSOR_SAFETY_MARGIN_MS`, so every legitimate change
+          // from now on falls below it and the listener simply stops
+          // delivering. The cursor never moves backward by design and
+          // nothing anywhere resets it, so before this the only remedy was
+          // reinstalling the app.
+          //
+          // Clamping it to "now" is NOT enough: the changes missed during
+          // the poisoned window are older than now - 5 min and would stay
+          // below the floor forever. A poisoned cursor is simply not
+          // trustworthy, so we throw it away and re-read the collection
+          // once — exactly what a new device does, and it is self-limiting
+          // because `advanceCursor` can no longer be pushed into the future.
+          if (parsed > Date.now() + CURSOR_SAFETY_MARGIN_MS) {
+            logger.warn(
+              'SyncEngine: discarding a sync cursor dated in the future — ' +
+                'resyncing this collection once to recover what it hid',
+              {
+                component: 'SyncEngine',
+                collection,
+                cursor: parsed,
+                now: Date.now(),
+              },
+            );
+            value = 0;
+            await AsyncStorage.removeItem(
+              cursorStorageKey(collection, this.uid),
+            );
+          } else {
+            value = parsed;
+          }
+        }
       } catch (err) {
         logger.warn('SyncEngine: failed to read sync cursor', {
           component: 'SyncEngine',
@@ -928,13 +1082,21 @@ export class SyncEngine {
   ): Promise<void> {
     if (!this.uid) return;
     if (!Number.isFinite(seenUpdatedAt) || seenUpdatedAt <= 0) return;
+    // R9-35 — the cursor may never run ahead of our own clock. `updatedAt`
+    // is a CLIENT timestamp (`queueWrite`), and `handleSnapshot` folds in the
+    // echoes of this device's own writes too, so a phone with its clock set
+    // forward poisons itself: once the clock is corrected, every later write
+    // falls below the `cursor - CURSOR_SAFETY_MARGIN_MS` floor and the pull
+    // stops for good. Capping costs nothing — at worst we re-read a
+    // future-dated doc on the next reattach, and LWW ignores it.
+    const capped = Math.min(seenUpdatedAt, Date.now());
     const current = this.cursors.get(collection) ?? 0;
-    if (seenUpdatedAt <= current) return;
-    this.cursors.set(collection, seenUpdatedAt);
+    if (capped <= current) return;
+    this.cursors.set(collection, capped);
     try {
       await AsyncStorage.setItem(
         cursorStorageKey(collection, this.uid),
-        String(seenUpdatedAt),
+        String(capped),
       );
     } catch (err) {
       logger.warn('SyncEngine: failed to persist sync cursor', {
@@ -1350,7 +1512,11 @@ export class SyncEngine {
     if (this.flushInFlight) return;
     if (!this.uid) return;
     if (!this.state.isOnline) return;
-    if (this.queue.length === 0) return;
+    // R9-33 — nothing DUE, not merely nothing queued. Testing the raw queue
+    // here would flip `isSyncing` on and off on every periodic tick for a
+    // user whose only entries are another account's parked writes or their
+    // own writes waiting out a backoff.
+    if (this.flushableCount() === 0) return;
     const fn = getFirestore();
     if (!fn) return;
 
@@ -1370,8 +1536,14 @@ export class SyncEngine {
       // now, and for the natural-key adapters (memoryCards on the verseKey,
       // highlights on the verseId) a parked tombstone would delete the
       // current user's row on every device they own.
+      //
+      // R9-33 — and only the entries whose backoff window has elapsed. A
+      // permanently-failing entry therefore stops blocking the ones behind
+      // it: the loop still breaks on its error, but on the next flush it is
+      // skipped entirely and the rest get their turn.
       const activeUid = this.uid;
-      const items = this.queue.filter(q => q.uid === activeUid);
+      const dueAt = Date.now();
+      const items = this.queue.filter(q => this.isDue(q, activeUid, dueAt));
       for (const item of items) {
         try {
           await this.pushOne(fn, item);
@@ -1401,9 +1573,18 @@ export class SyncEngine {
               q.id === item.id,
           );
           if (idx >= 0) {
+            // R9-34 — spread the entry as it is in the queue RIGHT NOW, not
+            // the `item` snapshot taken when this flush started. If the user
+            // re-edited the doc while `pushOne` was in flight, `upsertQueueEntry`
+            // already replaced this slot with the newer payload; spreading
+            // `item` would put the OLD one back and no later retry could ever
+            // recover the newer edit, because the queue itself had regressed.
+            const live = this.queue[idx];
             this.queue[idx] = {
-              ...item,
-              attempts: item.attempts + 1,
+              ...live,
+              attempts: live.attempts + 1,
+              // R9-33 — stamp the attempt so the backoff has a baseline.
+              lastAttemptAt: Date.now(),
             };
             if (this.queue[idx].attempts >= MAX_RETRY_ATTEMPTS) {
               logger.error(
@@ -1417,6 +1598,12 @@ export class SyncEngine {
                 },
               );
               this.queue.splice(idx, 1);
+              // R9-33 — a dropped write is a local change that will never
+              // reach the cloud. Record it so the UI can SAY so: without
+              // this, dropping the last queued write takes `pendingWrites`
+              // to 0 and Settings switches to "Sincronizado hace un momento"
+              // in the same instant the change was thrown away.
+              void this.recordDroppedWrite();
             }
           }
           this.updateState({
@@ -1448,9 +1635,14 @@ export class SyncEngine {
     // drain; testing `this.queue.length` would see a permanently non-empty
     // queue, conclude "genuinely-new work" and re-enter flush() forever —
     // a hot spin for as long as the app is open.
+    //
+    // R9-33 — and it must count only entries that are DUE. An entry waiting
+    // out its retry backoff is pending but not flushable; counting it here
+    // would re-enter flush() immediately, find nothing to do, and come
+    // straight back — a hot spin for as long as the backoff lasts.
     if (
       !erroredOut &&
-      this.pendingForActiveUid() > 0 &&
+      this.flushableCount() > 0 &&
       this.uid &&
       this.state.isOnline
     ) {

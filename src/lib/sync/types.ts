@@ -123,6 +123,16 @@ export interface PendingWrite {
   queuedAt: number;
   /** How many push attempts we've made. */
   attempts: number;
+  /**
+   * R9-33 — epoch ms of the last PUSH ATTEMPT, so the retry backoff has
+   * something to measure from. `queuedAt` cannot serve: it is the moment the
+   * write was created and never moves, so a write queued while offline hours
+   * ago would be "due" on every single tick.
+   *
+   * Optional because entries persisted before this existed have none; those
+   * read as `0` and are simply due immediately, which is the old behaviour.
+   */
+  lastAttemptAt?: number;
 }
 
 /** Snapshot of the engine state, surfaced to UI consumers. */
@@ -139,6 +149,18 @@ export interface SyncEngineState {
   lastSyncedAt: number | null;
   /** Last error message, if any (cleared on next success). */
   lastError: string | null;
+  /**
+   * R9-33 — how many writes the engine has GIVEN UP on for this account
+   * (`MAX_RETRY_ATTEMPTS` exhausted). Each one is a local change that will
+   * never reach the cloud, so this is permanent, silent data loss unless the
+   * UI says so: when the last queued write is dropped, `pendingWrites` falls
+   * to 0 and the Settings indicator says "Sincronizado hace un momento" in
+   * the very instant the engine threw the write away.
+   *
+   * Persisted per-uid and surfaced until the user acknowledges it — a drop
+   * the user never saw is the bug, not the drop itself.
+   */
+  droppedWrites: number;
   /** Sprint 43 — pending conflicts awaiting user resolution. */
   conflicts: readonly ConflictRecord[];
 }

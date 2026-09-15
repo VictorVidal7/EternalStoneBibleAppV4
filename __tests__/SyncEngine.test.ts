@@ -57,6 +57,8 @@ interface MockCollRef {
 
 const mockCollections = new Map<string, MockCollRef>();
 const mockDocSets: Array<{path: string; id: string; data: unknown}> = [];
+/** R9-33 — when true, every `doc.set()` rejects. Reset in beforeEach. */
+let mockSetShouldFail = false;
 const mockDocDeletes: Array<{path: string; id: string}> = [];
 /** Sprint 49 — docs returned by a collection-level `.get()` (one-shot read),
  *  keyed by collection path. Set per-test for fetchResolvedConflicts.
@@ -117,6 +119,9 @@ function mockMakeCollection(path: string): MockCollRef {
       if (cached) return cached;
       const ref: MockDocRef = {
         set: jest.fn(async (data: unknown) => {
+          // R9-33 — lets a test make every push fail, which is the only way
+          // to exercise the retry/backoff/give-up path at all.
+          if (mockSetShouldFail) throw new Error('permission-denied');
           mockDocSets.push({path, id, data});
         }),
         get: jest.fn(async () => ({exists: false, id, data: () => undefined})),
@@ -285,6 +290,7 @@ beforeEach(async () => {
   await AsyncStorage.clear();
   mockCollections.clear();
   mockDocSets.length = 0;
+  mockSetShouldFail = false;
   mockDocDeletes.length = 0;
   mockCollDocs.clear();
   mockNetListeners.length = 0;
@@ -1788,5 +1794,182 @@ describe('quota hardening — cursor change does not break 30s conflict detectio
     const conflicts = engine.__getConflictsForTests();
     expect(conflicts).toHaveLength(1);
     expect(conflicts[0].docId).toBe('doc-live');
+  });
+});
+
+describe('R9-33 — retry backoff y la senal de descarte', () => {
+  it('no quema los 8 intentos en una rafaga de flushes', async () => {
+    // Pre-fix `queuedAt` se escribia en 3 sitios y no se leia en ninguno, asi
+    // que los 8 intentos se gastaban tan rapido como algo llamara a flush():
+    // la sonda del ledger los agoto en 1 ms. Un corte de red de unos minutos,
+    // con el flush periodico solo, bastaba para perder la escritura.
+    mockSetShouldFail = true;
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    engine.queueWrite('test', 'doc1', {value: 'no se pierde', updatedAt: 100});
+    await flush();
+    for (let i = 0; i < 12; i++) {
+      await engine.__flushForTests();
+      await flush();
+    }
+    // Sigue en la cola: la espera la protegio de su propio reintento.
+    expect(engine.__getQueueForTests()).toHaveLength(1);
+    expect(engine.getState().droppedWrites).toBe(0);
+    // Y un solo intento real, no doce.
+    expect(engine.__getQueueForTests()[0].attempts).toBe(1);
+  });
+
+  it('se rinde solo cuando las esperas pasan de verdad, y LO DICE', async () => {
+    mockSetShouldFail = true;
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    engine.queueWrite('test', 'doc1', {value: 'se pierde', updatedAt: 100});
+    await flush();
+
+    // Cada intento con una hora de por medio: supera cualquier ventana.
+    const realNow = Date.now();
+    const nowSpy = jest.spyOn(Date, 'now');
+    for (let i = 0; i < 10; i++) {
+      nowSpy.mockReturnValue(realNow + i * 60 * 60 * 1000);
+      await engine.__flushForTests();
+      await flush();
+    }
+    nowSpy.mockRestore();
+
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+    // Lo que faltaba: pendingWrites cae a 0 igual, asi que el indicador de
+    // Ajustes pasaba a «Sincronizado hace un momento» en el mismo instante en
+    // que el motor tiraba la escritura. Por eso hace falta un contador aparte.
+    expect(engine.getState().pendingWrites).toBe(0);
+    expect(engine.getState().droppedWrites).toBe(1);
+    // Y sobrevive a un reinicio: un aviso que el usuario no llego a ver no es
+    // un aviso.
+    expect(await AsyncStorage.getItem('@sync_dropped_uid')).toBe('1');
+  });
+
+  it('el aviso se limpia solo cuando el usuario lo reconoce', async () => {
+    await AsyncStorage.setItem('@sync_dropped_uid', '3');
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    await flush();
+    expect(engine.getState().droppedWrites).toBe(3);
+    await engine.acknowledgeDroppedWrites();
+    expect(engine.getState().droppedWrites).toBe(0);
+    expect(await AsyncStorage.getItem('@sync_dropped_uid')).toBeNull();
+  });
+});
+
+describe('R9-34 — la rama de error no puede hacer retroceder la cola', () => {
+  it('una reedicion durante el push en vuelo sobrevive al fallo', async () => {
+    mockSetShouldFail = true;
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    engine.queueWrite('test', 'doc1', {value: 'v1', updatedAt: 1000});
+    await flush();
+
+    // Reedicion mientras pushOne esta en vuelo: el mock rechaza en una
+    // microtarea, asi que encolar aqui replica la carrera real.
+    const pending = engine.__flushForTests();
+    engine.queueWrite('test', 'doc1', {value: 'v2-REEDITADO', updatedAt: 2000});
+    await pending;
+    await flush();
+
+    // Pre-fix la rama de error escribia `{...item}` —el snapshot tomado al
+    // empezar el flush— encima de la entrada nueva, asi que ni un reintento
+    // con exito podia subir ya la edicion nueva: retrocedia la cola misma.
+    const queued = engine.__getQueueForTests();
+    expect(queued).toHaveLength(1);
+    expect((queued[0].data as unknown as {value: string}).value).toBe(
+      'v2-REEDITADO',
+    );
+  });
+});
+
+describe('R9-35 — el cursor no puede quedar por delante del reloj', () => {
+  it('un updatedAt en el futuro no empuja el cursor al futuro', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    const future = Date.now() + 30 * 24 * 60 * 60 * 1000; // 30 dias
+    const coll = mockCollections.get('users/uid/test')!;
+    (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire([
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc1',
+          exists: true,
+          data: () => ({value: 'reloj adelantado', updatedAt: future}),
+        },
+      },
+    ]);
+    await flush();
+    const raw = await AsyncStorage.getItem('@sync_cursor_test:uid');
+    // Corregido el reloj, un cursor 30 dias por delante deja TODA escritura
+    // posterior por debajo del suelo `cursor - 5 min` y la bajada se para para
+    // siempre; el cursor nunca retrocede y nada lo resetea.
+    expect(Number(raw)).toBeLessThanOrEqual(Date.now());
+  });
+
+  it('un cursor ya envenenado se descarta al cargarlo y la bajada vuelve', async () => {
+    const future = Date.now() + 30 * 24 * 60 * 60 * 1000;
+    await AsyncStorage.setItem('@sync_cursor_test:uid', String(future));
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    await flush();
+    // El suelo de la consulta vuelve a 0: se re-lee la coleccion una vez, que
+    // es lo unico que recupera lo que el cursor envenenado escondio. Antes de
+    // esto el unico remedio era reinstalar la app.
+    const coll = mockCollections.get('users/uid/test')!;
+    const floor = coll.__whereClauses.find(c => c.field === 'updatedAt');
+    expect(floor === undefined || Number(floor.value) === 0).toBe(true);
+    expect(await AsyncStorage.getItem('@sync_cursor_test:uid')).toBeNull();
+  });
+});
+
+describe('R9-22 — el conteo de pendientes al cambiar de cuenta', () => {
+  it('no le muestra a la cuenta nueva los pendientes de la anterior', async () => {
+    await AsyncStorage.setItem(
+      '@sync_queue_v1',
+      JSON.stringify([
+        {
+          uid: 'uid-ana',
+          collection: 'test',
+          id: 'juan-3-16',
+          data: {value: 'de ana', updatedAt: 1},
+          queuedAt: 0,
+          attempts: 0,
+        },
+      ]),
+    );
+    // La escritura de Ana tiene que seguir PENDIENTE al salir ella: si se
+    // sube bien, la cola se vacia sola y la prueba no discrimina nada.
+    mockSetShouldFail = true;
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-ana');
+    await flush();
+    expect(engine.getState().pendingWrites).toBe(1);
+    engine.stop();
+    mockSetShouldFail = false;
+
+    // Beto entra en la MISMA sesion de la app: hydrateQueue sale temprano por
+    // queueHydrated y stop() conserva el conteo a proposito, asi que nadie lo
+    // recalculaba. Ajustes le decia «Sincronizando 1 cambio…» para siempre,
+    // por algo que no es suyo y que no puede resolver.
+    await engine.start('uid-beto');
+    await flush();
+    expect(engine.getState().pendingWrites).toBe(0);
   });
 });
