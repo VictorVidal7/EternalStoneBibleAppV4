@@ -14,8 +14,8 @@
 
 **1. NO QUEDA NINGUNA RAMA SIN MERGEAR.** `fix/review-p0-notas-cuentas` se revisó con ojo
 fresco en la sesión 9 y **se mergeó a `main`** en fast-forward. La de la sesión 7 ya estaba
-dentro desde la 8 (`63f124c..8fe24f1`, pusheada). **Pero `main` está 10 commits POR DELANTE
-de `origin/main`: sin pushear.** Es la única decisión de estado pendiente.
+dentro desde la 8 (`63f124c..8fe24f1`, pusheada). **Pero `main` está POR DELANTE de
+`origin/main`: sin pushear** (`git rev-list --count origin/main..main` te da el número). Es la única decisión de estado pendiente.
 
 **2. La revisión de la sesión 9 encontró DOS defectos reales en los arreglos de la 8**, los
 dos de pérdida de datos, los dos ya remateados antes de mergear (`3e780c6`, `29a9449`), cada
@@ -147,7 +147,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 8 ramas locales.** `main` (**10 commits por delante de `origin/main`, sin pushear**;
+**Hay 8 ramas locales.** `main` (**por delante de `origin/main`, sin pushear**;
 lleva ya los arreglos de las sesiones 7, 8 y 9), `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos` (**las dos ya mergeadas** — se pueden borrar), y las 5 de
 siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
