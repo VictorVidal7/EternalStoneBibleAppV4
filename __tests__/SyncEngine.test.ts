@@ -420,6 +420,68 @@ describe('applyRemoteChange — LWW', () => {
     expect(localStore.get('doc1')?.value).toBe('local');
   });
 
+  it('R9-46 — a THROWING getLocal must not let an older remote overwrite local', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteUpsertCalls} = makeAdapter({
+      // The exact shape of the bug: the notes adapter skipped
+      // `bibleDB.initialize()`, so on a cold start `getNotes()` threw
+      // "Database not initialized" and the adapter's catch turned that into
+      // `null` — indistinguishable from "this note does not exist here".
+      async getLocal() {
+        throw new Error('Database not initialized. Call initialize() first.');
+      },
+    });
+    // Local holds the NEWER note. It must survive.
+    localStore.set('doc1', {value: 'local-new', updatedAt: 2000});
+    engine.register(adapter);
+    await engine.start('uid');
+    const coll = mockCollections.get('users/uid/test')!;
+    (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire([
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc1',
+          exists: true,
+          data: () => ({value: 'remote-STALE', updatedAt: 1000}),
+        },
+      },
+    ]);
+    await flush();
+    // Pre-fix: `local` was null, so BOTH the LWW guard and the conflict
+    // check (which live inside `if (local && data)`) were skipped and the
+    // stale remote copy was upserted straight over the newer local note.
+    expect(remoteUpsertCalls).toHaveLength(0);
+    expect(localStore.get('doc1')?.value).toBe('local-new');
+  });
+
+  it('R9-46 — a doc skipped that way does not advance the sync cursor', async () => {
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter({
+      async getLocal() {
+        throw new Error('Database not initialized. Call initialize() first.');
+      },
+    });
+    engine.register(adapter);
+    await engine.start('uid');
+    const coll = mockCollections.get('users/uid/test')!;
+    (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire([
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc1',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 5000}),
+        },
+      },
+    ]);
+    await flush();
+    // The change was never applied, so the query floor must NOT move past
+    // it — otherwise a future reattach filters it out and the change is
+    // lost for good. It has to come back on the next reattach.
+    const cursor = await AsyncStorage.getItem('@sync_cursor_test:uid');
+    expect(cursor).toBeNull();
+  });
+
   it('applies a remote change newer than local', async () => {
     const engine = new SyncEngine();
     const {adapter, localStore, remoteUpsertCalls} = makeAdapter();

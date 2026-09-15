@@ -47,25 +47,42 @@ function noteToRemote(n: Note): SyncEntity<RemoteNote> {
   });
 }
 
+/**
+ * R9-46 — this lookup must answer "does note `id` exist locally?" and must
+ * NEVER answer "no" when the honest answer is "I could not find out".
+ *
+ * Two things used to make it lie. It was the ONLY one of the adapter's four
+ * methods that skipped `bibleDB.initialize()` (the highlights adapter calls
+ * it in all four), so on a cold start it hit `getDb()` before the database
+ * was open and threw `Database not initialized`; and the `catch` then turned
+ * that throw into `null`, which is indistinguishable from "the note isn't
+ * here". `SyncEngine.applyRemoteChange` keeps BOTH its last-write-wins guard
+ * and its conflict detection inside `if (local && data)`, so a `null` local
+ * skips straight to `applyRemoteUpsert` — an OLDER remote copy silently
+ * overwrites a NEWER local note. The window is widest on a reinstall, which
+ * is exactly when notes are being pulled down.
+ *
+ * So: initialize first (idempotent, and it coalesces concurrent callers), and
+ * let a genuine read failure PROPAGATE. The engine now skips a doc whose
+ * local state it couldn't establish instead of blind-upserting it, and
+ * withholds that doc's cursor contribution so it is redelivered later.
+ */
 async function findNoteById(id: string): Promise<Note | null> {
   // bibleDB doesn't expose a getNoteById, so scan getNotes(). The
   // notes table is tiny (manual user content), so the scan is fine —
   // and centralizing the lookup here avoids touching the DB layer.
-  try {
-    const all = await bibleDB.getNotes();
-    return all.find(n => n.id === id) ?? null;
-  } catch (err) {
-    logger.warn('notes adapter: getNotes failed', {
-      component: 'sync/notes',
-      error: err instanceof Error ? err.message : String(err),
-    });
-    return null;
-  }
+  await bibleDB.initialize();
+  const all = await bibleDB.getNotes();
+  return all.find(n => n.id === id) ?? null;
 }
 
 export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
   collection: 'notes',
 
+  // Deliberately NOT wrapped in a try/catch that returns `null` (R9-46):
+  // "I couldn't read the database" must not masquerade as "the note does not
+  // exist here", because the engine treats the latter as permission to
+  // overwrite local data with whatever the server has.
   async getLocal(id) {
     const note = await findNoteById(id);
     if (!note) return null;

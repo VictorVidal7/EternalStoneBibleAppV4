@@ -682,7 +682,13 @@ export class SyncEngine {
           data: remote,
           deleted: remote.deleted === true,
         };
-        await this.applyRemoteChange(adapter, remoteChange);
+        const localKnown = await this.applyRemoteChange(adapter, remoteChange);
+        if (!localKnown) {
+          // R9-46 — the doc was NOT applied. Skip the cursor fold below so
+          // the query floor never moves past a change this device never
+          // took; the next reattach redelivers it.
+          continue;
+        }
 
         // Quota hardening — withhold this doc's contribution to the
         // cursor if it is STILL a pending conflict after the call above.
@@ -720,12 +726,41 @@ export class SyncEngine {
     }
   }
 
+  /**
+   * Returns `false` when the local state of this doc could NOT be
+   * established (R9-46). The caller must then leave the doc alone AND
+   * withhold its contribution to the sync cursor, so it gets redelivered on
+   * the next reattach instead of being skipped forever.
+   *
+   * The alternative — treating an unreadable local row as "absent" — is what
+   * made a failed `getLocal` destructive: both the last-write-wins guard and
+   * the conflict check below live inside `if (local && data)`, so a `null`
+   * local falls straight through to `applyRemoteUpsert` and an OLDER remote
+   * copy overwrites a NEWER local one.
+   */
   private async applyRemoteChange(
     adapter: AnyAdapter,
     change: RemoteChange<Record<string, unknown>>,
-  ): Promise<void> {
+  ): Promise<boolean> {
     const {id, data, deleted} = change;
-    const local = await adapter.getLocal(id);
+    let local: SyncEntity<Record<string, unknown>> | null;
+    try {
+      local = (await adapter.getLocal(id)) as SyncEntity<
+        Record<string, unknown>
+      > | null;
+    } catch (err) {
+      logger.warn(
+        'SyncEngine: getLocal failed — skipping this doc rather than ' +
+          'overwriting local data with the remote copy',
+        {
+          component: 'SyncEngine',
+          collection: adapter.collection,
+          id,
+          error: err instanceof Error ? err.message : String(err),
+        },
+      );
+      return false;
+    }
 
     if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;
@@ -751,13 +786,13 @@ export class SyncEngine {
             differingFields: differing,
             detectedAt: Date.now(),
           });
-          return;
+          return true;
         }
       }
 
       if (remoteTs <= localTs) {
         // LWW: local is at least as fresh, ignore the remote change.
-        return;
+        return true;
       }
     }
 
@@ -768,6 +803,7 @@ export class SyncEngine {
         adapter.applyRemoteUpsert(id, data),
       );
     }
+    return true;
   }
 
   // ---------- private: sync cursor (quota hardening) ----------
