@@ -219,7 +219,22 @@ export function AppContent() {
       screenOptions={{
         headerShown: false,
         animation: reduceMotion ? 'none' : 'slide_from_right',
-      }}>
+      }}
+      // R9-14: one ErrorBoundary per SCREEN, not just the single root one
+      // below. Every route under app/features/** is reachable by direct URL
+      // through firebase.json's catch-all SPA rewrite even though nothing on
+      // web links to it, and several call hooks whose provider this tree
+      // deliberately never mounts (useAuth, useReadingProgress,
+      // useReadingPlanProgress, useCustomPlans, useTogether,
+      // useDonationSheet — all of which throw rather than degrade). Caught
+      // only at the root, one such throw blanked the entire deployed SPA;
+      // caught here, it blanks that one screen and the rest of the app —
+      // navigation included — keeps working. This also caps the blast radius
+      // of the whole class rather than the seven routes that were counted:
+      // the audit only grepped route files, so a component under src/ that
+      // calls a provider-less hook has the same effect without appearing in
+      // any list.
+      screenLayout={({children}) => <ErrorBoundary>{children}</ErrorBoundary>}>
       <Stack.Screen name="(tabs)" />
     </Stack>
   );

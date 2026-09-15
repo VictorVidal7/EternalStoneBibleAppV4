@@ -3,12 +3,29 @@ import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {Ionicons} from '@expo/vector-icons';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
+import {ErrorBoundary} from '@components/ErrorBoundary';
 
 /**
  * Web nav shell (T21) — replaces native's bottom Tabs bar with a lightweight
  * top bar (Biblia + Ajustes only, per Victor's confirmed "reduced web nav"
  * choice). Slot renders whichever web route matched with no extra chrome —
  * each screen owns its own header/back button.
+ *
+ * R9-14: the Slot — and ONLY the Slot — is wrapped in its own ErrorBoundary.
+ * firebase.json serves a catch-all SPA rewrite, so every route under
+ * app/(tabs)/ is reachable by direct URL even though this bar only offers two
+ * destinations, and several of them call hooks whose provider the web tree
+ * deliberately never mounts (app/(tabs)/plan/[id].tsx: useReadingPlanProgress
+ * / useTogether / useCustomPlans). Those hooks throw, and with only the root
+ * boundary in app/_layout.web.tsx the throw took the whole SPA down —
+ * including this bar, which is the user's only way out. Keeping the bar
+ * OUTSIDE the boundary turns "the web app is dead" into "this one page failed,
+ * click Biblia".
+ *
+ * `key={pathname}` is load-bearing: a React error boundary latches its error
+ * state, and Slot reuses the same element position for every route, so
+ * without a per-route key the fallback would persist after navigating away
+ * and a single bad URL would still poison the session.
  */
 export default function TabLayoutWeb() {
   const {colors} = useTheme();
@@ -42,7 +59,9 @@ export default function TabLayoutWeb() {
         </TouchableOpacity>
       </View>
       <View style={styles.content}>
-        <Slot />
+        <ErrorBoundary key={pathname}>
+          <Slot />
+        </ErrorBoundary>
       </View>
     </View>
   );
