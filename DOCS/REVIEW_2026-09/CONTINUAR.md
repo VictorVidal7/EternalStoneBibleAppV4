@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 9 (revisión del diff de la 8 + 3 P0).**
+> **Última actualización: 2026-09-15, fin de la sesión 10 (revisión del diff de la 9 + los 2 P0 de dinero).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,43 +12,53 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-sync-descarta-silencio`** (`0a4f0fc` →
-el cierre del ledger), con `R9-33`, `R9-34` y `R9-35` arreglados y los gates en verde
-(**356 suites, 4073 pruebas**). Victor pidió no mergear nada sin preguntarle, así que lo
-primero es que él decida. Lo de antes ya está todo dentro: `fix/review-p0-notas-cuentas` se revisó con ojo
-fresco en la sesión 9 y **se mergeó a `main`** en fast-forward. La de la sesión 7 ya estaba
-dentro desde la 8 (`63f124c..8fe24f1`, pusheada). **`main` está PUSHEADO** al día de la sesión 9
-(`8fe24f1..653c7b3`).
+**1. HAY UNA RAMA SIN MERGEAR: `fix/review-p0-dinero-entitlement`** (`bb3b25b`), con `R9-9`
+y `R9-10` arreglados y los gates en verde (**356 suites, 4079 pruebas**). Victor pidió no
+mergear nada sin preguntarle, así que lo primero es que él decida.
 
-**2. La revisión de la sesión 9 encontró DOS defectos reales en los arreglos de la 8**, los
-dos de pérdida de datos, los dos ya remateados antes de mergear (`3e780c6`, `29a9449`), cada
-uno con su prueba vista fallar primero. **Los dos son la misma clase de error, y es la que
-hay que buscar de aquí en adelante: el arreglo cierra exactamente el caso que su prueba cubre
-y deja abierto el vecino.** Detalle completo en `detail/S9-revision-del-diff.md`, que además
-lista **las 5 cosas comprobadas a mano que están BIEN** (no re-verificar) y **las 5 que se
-decidió NO tocar** por caer fuera del alcance de ese diff.
+**⚠️ Y `main` tiene 7 commits SIN PUSHEAR.** La sesión 10 mergeó
+`fix/review-p0-sync-descarta-silencio` a `main` en fast-forward (era lo que Victor pidió),
+pero **no pusheó**, porque publicar no estaba en el encargo. Lo primero de la próxima sesión,
+después de que Victor decida sobre la rama de dinero, es preguntarle si pushea. Lo de antes
+ya está todo dentro de `main`: las sesiones 7, 8 y la 9 entera.
 
-Lo mismo vale para `detail/S8-revision-del-diff.md`, con las cinco cosas portantes que esa
-revisión fijó.
+**2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
+causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
+que introduce el primero dejó ciega a la prueba del segundo.** El `await flush()` de esa
+prueba gastaba un intento fallido, lo que arma el backoff; el `flush()` siguiente salía por
+el `flushableCount() === 0` recién añadido sin empujar nada, así que no había push en vuelo y
+la carrera que dice probar **no ocurría**. Pasaba en verde por la razón trivial. Reescrita y
+vista fallar (`Received: "v1"`), más un hueco menor de `stop()` — todo remateado en `2bfa126`
+antes de mergear. Detalle completo en `detail/S10-revision-del-diff.md`, que además lista
+**las 5 cosas comprobadas por revert que SÍ discriminan**, **las 5 comprobadas a mano que
+están BIEN** y **las 5 que se decidió NO tocar**.
 
-**Quedan 8 P0 abiertos:** `R9-9`, `R9-10`, `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`,
-`R9-39`. Todo lo demás de la sección P0 va marcado **✅ ARREGLADO** dentro de su entrada de
-`BUGS.md`. **No los vuelvas a atacar.** Hallazgos totales: **65** — `R9-65` es nuevo.
+**Es una variante nueva de la clase que venimos cazando** (_el arreglo cierra el caso que su
+prueba cubre y deja abierto el vecino_): aquí el vecino no era otro caso, era **otro arreglo
+del mismo diff**. Si un commit lleva dos arreglos, pregúntate si uno desarma la prueba del
+otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-del-diff.md`.
+
+**Quedan 6 P0 abiertos:** `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`. Todo lo demás
+de la sección P0 va marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los
+vuelvas a atacar.** Hallazgos totales: **65**.
 
 **⚠️ Y no re-derives el conteo contando arreglos: cuenta las entradas de la sección P0.** Las
 sesiones 7 y 8 contaban `R9-50` como P0 cerrado, pero vive en **P1**, así que su «quedan 10»
 eran 11. La nota está al principio de la sección P0 de `BUGS.md`.
 
-**3. Lo que queda del orden de ataque de arreglos:** `R9-9` (dinero) → `R9-13` **antes de
-volver a desplegar la web**. `R9-33`/`R9-34`/`R9-35` ya están cerrados (sesión 9). Los 4 de campo
+**3. Lo que queda del orden de ataque de arreglos:** `R9-13` **antes de volver a desplegar la
+web** — es el único que bloquea algo. `R9-9`/`R9-10` (dinero) ya están cerrados (sesión 10),
+igual que `R9-33`/`R9-34`/`R9-35` (sesión 9). **`R9-11` es ahora el más barato y el de
+contexto más fresco:** es el gemelo de `R9-34` en la rama de ÉXITO de `flush()`, y la sesión
+10 dejó **el arreglo exacto localizado** (ver el punto 4). Los 4 de campo
 (`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar una sesión. Y **`R9-65` se
 arregla con UNA LÍNEA** (la misma cota de cursor de `R9-46`, extendida a los conflictos), es
 bug **preexistente en `main`** y sigue sin decidir.
 
-**4. Deuda conocida de las sesiones 8 y 9, dicha en voz alta:**
+**4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
 - **`R9-28` sigue sin prueba de regresión** (la señal de restauración + la re-hidratación de
-  los providers). Es el único de los 13 arreglados que no tiene ninguna.
+  los providers). Es el único de los **15** arreglados que no tiene ninguna.
 - **La rama del lector de `R9-44`** (recolorear preserva la nota) es **verificación en
   dispositivo, Modo C**. El MECANISMO sí está fijado en `highlightServiceTriState.test.ts`
   (que `addHighlight` con 5 argumentos escribe NULL sobre categoría y nota), pero la rama de
@@ -63,9 +73,19 @@ bug **preexistente en `main`** y sigue sin decidir.
   dispositivo.** Es la mitad visible de `R9-33`: si no se ve, la pérdida de datos sigue
   siendo silenciosa en la práctica. Modo C, emulador + APK debug — **nunca el OnePlus de
   Victor**.
-- **`R9-11` quedó abierto a propósito** al cerrar `R9-34`: es su gemelo en la rama de ÉXITO
-  de `flush()` (allí la entrada se elimina por clave, no se sobrescribe), y es otro arreglo.
-  Barato, y ahora que `R9-34` está hecho, el contexto está fresco.
+- **`R9-11` sigue abierto, y la sesión 10 le dejó el arreglo localizado.** Es el gemelo de
+  `R9-34` en la rama de **ÉXITO** de `flush()` — que es **la rama común**, porque los push
+  normalmente funcionan: borra por `uid+collection+id` sin mirar versión, así que una
+  reedición llegada durante el push en vuelo se elimina como si se hubiera subido. **Sale
+  gratis con una comparación de identidad:** `items` viene de `this.queue.filter(...)`, que
+  conserva las **mismas referencias**, y `upsertQueueEntry` asigna un **objeto nuevo**, así
+  que `this.queue[idx] !== item` distingue exactamente «me reemplazaron mientras empujaba».
+  La prueba tiene que montar la carrera como la de `R9-34` reescrita (dos `queueWrite`
+  seguidos, **sin `await` en medio**) — con un `await` de por medio no hay push en vuelo.
+- **`R9-59` sigue abierta** (ver más abajo) y **el `entitlementCache` nunca se limpia al
+  cerrar sesión ni al borrar la cuenta.** Con `R9-9` arreglado ya no importa para el dinero
+  —la siguiente respuesta de RevenueCat lo corrige— pero un dispositivo que no vuelva a tener
+  red nunca se corrige. Es diseño («última verdad conocida»), no bug; queda dicho.
 - **`R9-59` sigue abierta y ahora toca de cerca:** el arreglo de `R9-48` decide que el log de
   repasos se **traspasa** (se limpia) cuando entra otra cuenta, pero **no** decide que cerrar
   sesión deba borrarlo. Eso sigue siendo de Victor.
@@ -86,24 +106,26 @@ vas a arreglar alguno, verificalo primero.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-sync-descarta-silencio`, con
-> `R9-33`, `R9-34` y `R9-35` arreglados. Revisá el diff con ojo crítico —toca la cola de
-> escrituras y el cursor de sync— decime si ves algo mal, y si está bien mergeala a `main`
-> con los gates en verde.
+> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-dinero-entitlement`, con
+> `R9-9` y `R9-10` arreglados. Revisá el diff con ojo crítico —es dinero, toca la entitlement
+> de RevenueCat y el arranque de `PremiumContext`— decime si ves algo mal, y si está bien
+> mergeala a `main` con los gates en verde. Decime también si pusheo `main`, que lleva
+> commits sin publicar.
 >
-> Después seguí con `R9-9` (dinero). Verificá cada hallazgo contra el código antes de tocarlo
-> —los P1/P2 no están re-verificados— y acordate de que una prueba de regresión no vale hasta
-> que la viste fallar sin el arreglo, **y de que una prueba de un solo caso no prueba el
-> mecanismo**: preguntate siempre qué vecino del caso probado sigue roto. Va todo en rama con
-> gates verdes; no mergees nada más sin preguntarme.
+> Después seguí con `R9-11`, que es el gemelo de `R9-34` en la rama de éxito de `flush()` y
+> tiene el arreglo ya localizado en `CONTINUAR.md`. Verificá cada hallazgo contra el código
+> antes de tocarlo —los P1/P2 no están re-verificados— y acordate de que una prueba de
+> regresión no vale hasta que la viste fallar sin el arreglo, **y de que si un commit lleva
+> dos arreglos, uno puede estar desarmando la prueba del otro**. Va todo en rama con gates
+> verdes; no mergees nada más sin preguntarme.
 
 **(b) Corto: revisar y mergear la rama, y rematar `R9-65`**, si querés media hora:
 
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de
-> `fix/review-p0-sync-descarta-silencio` con ojo crítico, decime si ves algo mal, y si está
-> bien mergeala con los gates en verde. Si queda margen, arreglá `R9-65` —es una línea, la
-> misma cota de cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista
-> fallar primero.
+> `fix/review-p0-dinero-entitlement` con ojo crítico, decime si ves algo mal, y si está bien
+> mergeala con los gates en verde. Si queda margen, arreglá `R9-65` —es una línea, la misma
+> cota de cursor de `R9-46` extendida a los docs en conflicto— con su prueba vista fallar
+> primero.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
 bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
@@ -111,12 +133,12 @@ bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO toc
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
 
-**(d) Saldar la deuda acumulada (sesiones 7-9)** — corta y concreta. Ojo: la parte de
+**(d) Saldar la deuda acumulada (sesiones 7-10)** — corta y concreta. Ojo: la parte de
 dispositivo es Modo C y **necesita emulador + APK debug**, nunca el OnePlus de Victor:
 
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Quiero saldar la deuda acumulada, en este orden:
 > (1) la prueba de regresión que le falta a `R9-28` (la señal de restauración y la
-> re-hidratación de los providers) — es el único de los 13 arreglos sin ninguna; (2) la
+> re-hidratación de los providers) — es el único de los 15 arreglos sin ninguna; (2) la
 > verificación en dispositivo de la insignia nueva de Ajustes (`droppedWrites`, la mitad
 > visible de `R9-33`: si no se ve, la pérdida de datos sigue siendo silenciosa); (3) si queda
 > margen, `R9-47` y la rama del lector de `R9-44`, también en dispositivo. Acordate de que
@@ -166,10 +188,11 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 9 ramas locales.** `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
-sesiones 7, 8 y la primera mitad de la 9), **`fix/review-p0-sync-descarta-silencio`** (la
-segunda mitad de la 9, **sin mergear**), `fix/review-p0-notas-cuentas` y
-`fix/review-p0-perdida-datos` (**las dos ya mergeadas** — se pueden borrar), y las 5 de
+**Hay 10 ramas locales.** `main` (**7 commits POR DELANTE de `origin/main`, sin pushear**;
+lleva los arreglos de las sesiones 7, 8 y la 9 entera),
+**`fix/review-p0-dinero-entitlement`** (la 10, **sin mergear**),
+`fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
+`fix/review-p0-perdida-datos` (**las tres ya mergeadas** — se pueden borrar), y las 5 de
 siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
 `chore/worklets-bundle-mode`, `feature/red-letter-web`,
 `research/a4-chico-spanish-availability`. Árbol limpio. Si no coincide, dilo antes de
@@ -181,9 +204,10 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de la sesión 7 (`7f8e666`) **ya están en `main`** (`8fe24f1`, pusheado). Los de
-la sesión 8 van aparte, fuera de `main`, en **`fix/review-p0-notas-cuentas`**: `b3d73e1` →
-`36ae78b` → `a9785be` → `67af8c9` → `e75eca3`.
+Los arreglos de las sesiones 7, 8 y 9 **ya están todos en `main`**; el último merge fue el de
+la sesión 10 (`653c7b3` → `daad3a9`, fast-forward), y de ahí salen los **7 commits sin
+pushear**. Los de la sesión 10 van aparte, fuera de `main`, en
+**`fix/review-p0-dinero-entitlement`**: `bb3b25b`.
 
 ## 3. Dónde va la revisión
 
@@ -209,7 +233,9 @@ arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) →
 | 8      | Revisión del diff de la 7 + merge y push a `main`         | `8fe24f1`           |
 | 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas              | `b3d73e1`→`e75eca3` |
 | 9      | Revisión del diff de la 8: **2 defectos reales** + merge  | `3e780c6`→`d800a24` |
-| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35` (sin mergear)     | `0a4f0fc`→`c41c9cb` |
+| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                   | `0a4f0fc`→`c41c9cb` |
+| 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
+| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero (sin mergear)      | `bb3b25b`           |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -258,10 +284,11 @@ Alternativas legítimas:
 
 - **Seguir la sesión de ARREGLOS.** La 7 hizo el primer tramo (`R9-49`/`R9-27`/`R9-28`,
   `R9-47`, y `R9-44`/`R9-45`/`R9-50` juntos por su raíz); la 8 hizo `R9-46` y **el bloque
-  entero de mezcla entre cuentas** (`R9-22`/`R9-48`/`R9-23`). **Lo que queda del orden:**
-  `R9-33`/`R9-35` (sync que descarta en silencio) → `R9-9` (dinero) → `R9-13` **antes de
-  volver a desplegar la web**. Los 4 de campo (`R9-40`..`R9-43`) son baratos y muy visibles:
-  buenos para cerrar la sesión.
+  entero de mezcla entre cuentas** (`R9-22`/`R9-48`/`R9-23`); la 9, el bloque de **sync que
+  descarta en silencio** (`R9-33`/`R9-34`/`R9-35`); la 10, el de **dinero**
+  (`R9-9`+`R9-10`). **Lo que queda del orden:** `R9-11` (el más barato, contexto fresco, con
+  el arreglo ya localizado) → `R9-13` **antes de volver a desplegar la web**. Los 4 de campo
+  (`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar la sesión.
 - **`B6`–`B10`** (Modo B, P1/P2) si preferís terminar el Modo B de una: permisos Android,
   `npm outdated`, `expo-doctor`, deps sin usar, licencias. Baratas, sin entorno. Ojo:
   extendé `B9`/`B10` a `functions/` y `vercel/`, no solo a la raíz.
@@ -368,6 +395,28 @@ Alternativas legítimas:
   se vuelva preguntona, o que se borre de más). Distinguí esas de las discriminantes al
   escribirlas, o te vas a creer cubierto sin estarlo — le pasó a la primera versión del test
   de `R9-44`.
+- **Si un commit lleva DOS arreglos, preguntá si uno desarma la prueba del otro.** Pasó en la
+  sesión 9 y lo cazó la 10: el backoff de `R9-33` hacía que el `flush()` de la prueba de
+  `R9-34` saliera temprano, así que la carrera que decía probar no llegaba a ocurrir y la
+  prueba pasaba en verde por la razón trivial. **Es la variante más traicionera de «una
+  prueba de un solo caso no prueba el mecanismo»**, porque el arreglo culpable está en el
+  mismo diff y parece que se refuerzan. Antídoto barato: meterle a la prueba un **control del
+  mecanismo** (`expect(...attempts).toBe(1)`) que falle ruidosamente si la carrera deja de
+  ocurrir.
+- **Revertir un `let` de módulo NO discrimina si hay un `__resetForTests()` que lo
+  reasigna.** En la sesión 10, revertir `lastKnownUnlocked = false` en su declaración dejó las
+  33 pruebas en verde, porque el `beforeEach` llama a `__resetForTests()` y **es ese** el que
+  fija el valor inicial bajo jest. Hay que revertir **los dos sitios**. Corolario al derecho:
+  un arreglo que toque solo el helper de reset **pasa los tests y deja producción rota**.
+- **Una prueba vieja que se pone roja al arreglar un bug puede estar encodificando el bug.**
+  En la sesión 10, dos pruebas de `OfferingSheet` montaban «ya desbloqueado» sembrando un
+  `'true'` viejo en la caché con RevenueCat reportando inactiva — o sea, el escenario exacto
+  de `R9-9`. Estaban verdes **gracias** al defecto. Antes de «adaptar» una prueba que se cae,
+  preguntá si lo que afirmaba era cierto.
+- **Un hallazgo de severidad media pegado a uno P0 puede ser el que DESANDA al P0.** `R9-10`
+  estaba catalogado como «media, se auto-repara en el siguiente arranque»; en realidad
+  anulaba el arreglo de `R9-9` entero (la revocación llegaba y la lectura de caché la
+  pisaba). Arreglar el P0 solo no le habría cambiado nada a ningún usuario.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
 
 ## 6. Hechos duros que ya no hay que volver a averiguar

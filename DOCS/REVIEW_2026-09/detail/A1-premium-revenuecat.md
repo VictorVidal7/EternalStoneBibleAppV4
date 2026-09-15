@@ -2,6 +2,28 @@
 
 > Modo A (auditoría estática) · Prioridad **P0** · Sesión 3 (2026-09-03) · Estado
 > **🐛 BUG** (2 hallazgos P0: `R9-9`, `R9-10`)
+>
+> **✅ LOS DOS ARREGLADOS en la sesión 10 (2026-09-15, `bb3b25b`), en el mismo commit y a
+> propósito.** El diagnóstico de abajo se conserva íntegro porque es lo que explica por qué el
+> arreglo es ese; lo que cambió con respecto a lo que decía esta fila:
+>
+> - **Se eligió la opción (c)** de las tres que proponía `R9-9` (`boolean | null`, con `null`
+>   = «todavía no sé»), y se puso en `handleCustomerInfo` —el punto de paso— y no en
+>   `initialize()`, para cubrir a los seis llamadores. Una prueba lo fija por la vía de
+>   `linkUser` con el arranque sin resolver, que es el caso del teléfono compartido.
+> - **`R9-10` no era «media, se auto-repara en el siguiente arranque»: era el que anulaba a
+>   `R9-9`.** Con la revocación ya llegando, el `setIsPremium` incondicional de la lectura de
+>   caché la tiraba a la basura si resolvía después, y el usuario reembolsado conservaba su
+>   acceso de pago **toda la sesión**. Arreglar `R9-9` solo no le cambiaba nada a nadie. Si
+>   vuelve a aparecer un hallazgo «medio» pegado a uno P0, esta es la pregunta: ¿el medio
+>   **desanda** al grave?
+> - **Dos pruebas de `OfferingSheet` estaban verdes gracias al bug de `R9-9`** y cayeron al
+>   arreglarlo: montaban «ya desbloqueado» sembrando solo un `'true'` viejo en la caché con
+>   RevenueCat reportando inactiva. Reparadas montando la entitlement activa de verdad.
+> - **Trampa de método, nueva:** revertir el `let lastKnownUnlocked = false` del módulo **no
+>   discrimina**, porque `__resetForTests()` lo reasigna en cada `beforeEach` y es ese el que
+>   manda bajo jest. El primer revert «pasó» las 33 pruebas. Para un singleton de módulo con
+>   helper de reset, **hay que revertir los dos sitios**.
 
 ## Alcance
 

@@ -17,13 +17,17 @@
 > (`R9-46` + el bloque entero de mezcla entre cuentas: `R9-22`, `R9-23`, `R9-48`).
 > **Sesión 9 (2026-09-15) revisó ESE diff, encontró 2 defectos reales, los arregló y mergeó**
 > — y después cerró `R9-33`, `R9-34` y `R9-35`.
-> **Quedan 8 P0 abiertos** (`R9-9`, `R9-10`, `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`,
-> `R9-39`). Hallazgos: **65** (`R9-65` es nuevo, P1). **El conteo venía mal desde la sesión
-> 7** — ver la nota al principio de la sección P0 de `BUGS.md`.
+> **Sesión 10 (2026-09-15) revisó el diff de la 9 y encontró que la prueba de `R9-34` no
+> discriminaba** (el backoff de `R9-33`, del mismo commit, hacía que la carrera no ocurriera);
+> la reescribió, remató un hueco de `stop()`, mergeó a `main` — y después cerró **los 2 P0 de
+> dinero, `R9-9` y `R9-10`, juntos**, porque el segundo anulaba el arreglo del primero.
+> **Quedan 6 P0 abiertos** (`R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`). Hallazgos:
+> **65**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de la sección
+> P0 de `BUGS.md`.
 >
-> Siguiente: `R9-9` (dinero) → `R9-13` **antes del próximo deploy web**. O terminar `A12`
-> (hay 3 hilos ya abiertos en su detalle), con lo que **queda cerrado el bloque P0 entero del
-> Modo A**.
+> Siguiente: `R9-11` (barato, con el arreglo ya localizado en `CONTINUAR.md`) → `R9-13`
+> **antes del próximo deploy web**. O terminar `A12` (hay 3 hilos ya abiertos en su detalle),
+> con lo que **queda cerrado el bloque P0 entero del Modo A**.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**

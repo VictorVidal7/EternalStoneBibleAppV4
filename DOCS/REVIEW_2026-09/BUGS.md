@@ -32,13 +32,20 @@
 > `R9-22` (`a9785be`), `R9-48` (`67af8c9`) y `R9-23` (`e75eca3`). Cada uno con su prueba de
 > regresión **vista fallar sin el arreglo**, esta vez una por una. **Quedan 10 P0 abiertos.**
 > Va todo en `fix/review-p0-notas-cuentas`, **sin mergear**.
+>
+> **Sesión 10 (2026-09-15).** Revisó el diff de la 9 —el defecto estaba en una PRUEBA que no
+> discriminaba, ver `detail/S10-revision-del-diff.md`— lo remató (`2bfa126`) y **mergeó
+> `fix/review-p0-sync-descarta-silencio` a `main`** en fast-forward. Después cerró **los 2 P0
+> de dinero**: `R9-9` y `R9-10` juntos (`bb3b25b`), porque arreglar el primero sin el segundo
+> no cambia nada para el usuario. **Quedan 6 P0 abiertos.** Va en
+> `fix/review-p0-dinero-entitlement`, **sin mergear**.
 
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, corregido en la sesión 9. Esta sección tiene 21 entradas: 13 ARREGLADAS y
-> 8 ABIERTAS** (`R9-9`, `R9-10`, `R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`).
+> **Conteo, al día tras la sesión 10. Esta sección tiene 21 entradas: 15 ARREGLADAS y
+> 6 ABIERTAS** (`R9-11`, `R9-13`, `R9-14`, `R9-36`, `R9-38`, `R9-39`).
 >
 > **Las sesiones 7 y 8 venían contando mal.** Su lista de «arreglados» incluía `R9-50`, que
 > vive en **P1**, no aquí — así que el «quedan 10» de la sesión 8 eran en realidad **11**.
@@ -80,6 +87,18 @@
   `initialize()`; (b) escribir siempre la caché y dejar el dedupe solo para la
   notificación; (c) `lastKnownUnlocked: boolean | null` con `null` = sin resolver.
   Detalle completo en `detail/A1-premium-revenuecat.md`.
+  **✅ ARREGLADO en la sesión 10** (`bb3b25b`), por la opción (c): `lastKnownUnlocked` pasa a
+  `boolean | null`, con `null` = «RevenueCat todavía no ha contestado en este proceso», que
+  **no es lo mismo que «no desbloqueado»**. Deduplicar nunca fue el problema; tomar `false`
+  por estado CONOCIDO, sí. La primera respuesta de cada proceso es siempre un cambio, así que
+  siempre llega a escribir la caché y a avisar. Va en `handleCustomerInfo`, el **punto de
+  paso**, no en `initialize()`: así cubre a sus seis llamadores (`initialize`, `linkUser`,
+  `restore`, `refreshEntitlement`, `purchaseUnlock` y el listener), y una prueba lo fija por
+  la vía de `linkUser` con el arranque sin resolver — el teléfono compartido.
+  **Se arregló junto con `R9-10` a propósito: sin él, este arreglo no cambia nada para el
+  usuario** (la verdad llegaba y la lectura de caché la pisaba). Y **dos pruebas de
+  `OfferingSheet` estaban verdes GRACIAS a este bug**: montaban «ya desbloqueado» sembrando
+  solo un `'true'` viejo en la caché con RevenueCat reportando inactiva. Reparadas.
 
 - **`R9-10` (A1, `PremiumContext`) — 🐛 la lectura tardía de la caché pisa el valor real
   de RevenueCat.** Severidad **media** (se auto-repara en el siguiente arranque), pero el
@@ -101,6 +120,13 @@
   **Arreglo sugerido (no aplicado):** ignorar el resultado de la lectura de caché si un
   valor del listener ya llegó (basta un `ref` de "ya resuelto por RevenueCat"), en vez del
   `setIsPremium` incondicional de la línea 59.
+  **✅ ARREGLADO en la sesión 10** (`bb3b25b`), exactamente ese arreglo. **Su severidad era
+  más alta de lo que decía esta entrada:** no solo «se auto-repara en el siguiente arranque»
+  — es que **anulaba el arreglo de `R9-9`**. Con la revocación ya llegando bien, este
+  `setIsPremium` incondicional la tiraba a la basura si la lectura de caché resolvía después,
+  y el usuario reembolsado conservaba su acceso de pago toda la sesión. Por eso van en el
+  mismo commit. De paso, la suscripción a `onEntitlementChange` pasa **antes** de lanzar la
+  lectura: un cambio que cayera entre medias no llegaba a ningún listener.
 
 - **`R9-11` (A5/A4, `SyncEngine`) — 🐛 una edición hecha durante un flush en vuelo se
   descarta en silencio.** Severidad **media-alta**. `SyncEngine.ts:1243-1247` borra de la
@@ -212,7 +238,7 @@
   ms** — la prueba más directa de que no hay espera de ninguna clase. Detalle:
   `detail/A4-syncengine.md`.
 
-  **✅ ARREGLADO en la sesión 9** (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO INTENTO — campo nuevo `lastAttemptAt`, porque `queuedAt` no se mueve nunca y una escritura encolada sin conexión estaría «vencida» en cada tick. Exponencial 30s→30min con tope: **hora y media de reloj real** antes de rendirse, no milisegundos. Una entrada que falla siempre deja además de bloquear a las de atrás. (b) La señal: contador `droppedWrites` **persistido por uid** y una insignia en Ajustes que se limpia solo cuando el usuario la toca. **Ojo para el futuro: `pendingWrites` SÍ tiene consumidor** (`app/(tabs)/settings.tsx:87`); un `grep` limitado a `src/` no lo ve.
+  **✅ ARREGLADO en la sesión 9** (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO INTENTO — campo nuevo `lastAttemptAt`, porque `queuedAt` no se mueve nunca y una escritura encolada sin conexión estaría «vencida» en cada tick. Exponencial 30s→30min con tope: **61,5 min de reloj real** antes de rendirse, no milisegundos (la sesión 10 rehízo la cuenta: 30s+1+2+4+8+16+30 min entre los 8 intentos; el comentario decía «hora y media» y ya está corregido en el código). Una entrada que falla siempre deja además de bloquear a las de atrás. (b) La señal: contador `droppedWrites` **persistido por uid** y una insignia en Ajustes que se limpia solo cuando el usuario la toca. **Ojo para el futuro: `pendingWrites` SÍ tiene consumidor** (`app/(tabs)/settings.tsx:87`); un `grep` limitado a `src/` no lo ve.
 
 - **`R9-34` (A4, `SyncEngine`) — 🐛 la rama de ERROR de `flush()` pisa la reedición con el
   snapshot viejo (gemelo de `R9-11`).** Severidad **media-alta**.
