@@ -356,4 +356,6 @@ De `essb-master-backlog` — **no** son hallazgos de esta revisión, no los regi
 tales: lanzamiento público en Play Store (Track 2, bloqueado por la puerta de Google de 12
 testers × 14 días; Victor dijo "hablémoslo" y **sigue sin empezar**) · licencia NLT/Tyndale
 sin respuesta · registro de marca IMPI · mapa geográfico real para "Rutas bíblicas"
-(diferido a propósito) · merge de `chore/release-3.2.62` a `main`.
+(diferido a propósito). **Ya NO está abierto el merge de `chore/release-3.2.62`:** se
+mergeó en `19fee16` y la rama se borró — `main` lleva `3.2.62` / `versionCode 74`
+(verificado contra `git log` el 2026-09-14). Si alguna memoria dice lo contrario, miente.

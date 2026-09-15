@@ -91,7 +91,9 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
   Google 12 testers × 14 días) · licencia NLT/Tyndale sin respuesta · registro de marca
   IMPI (tarea legal de Victor) · mapa geográfico real para "Rutas bíblicas" (diferido
   a propósito por Victor — el estilo riel-con-nodos actual es su elección, no un
-  placeholder) · merge de `chore/release-3.2.62` a `main`.
+  placeholder). **El merge de `chore/release-3.2.62` YA NO está abierto** — se hizo en
+  `19fee16` y la rama se borró; `main` lleva `3.2.62` / `versionCode 74` (verificado
+  contra `git log` el 2026-09-14).
 - **Comportamientos del emulador que NO son bugs de la app:** el AVD silencia
   `expo-speech` (`AudioHardening`), y `expo-av` está en `package.json` pero nada en
   `src/` lo importa — el audio es `expo-speech`. Ver la memoria de device-testing.
