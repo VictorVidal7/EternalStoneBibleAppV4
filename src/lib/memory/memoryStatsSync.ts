@@ -114,11 +114,6 @@ export async function seedMemoryStatsFloorIfFresh(uid: string): Promise<void> {
   const fn = getFirestore();
   if (!fn) return; // no-op fast — never touches SQLite when sync is disabled
   try {
-    // Never refetch/overwrite an existing floor — it's a one-time snapshot,
-    // and its immutability keeps the write-side merge from double-counting.
-    const existing = await AsyncStorage.getItem(FLOOR_KEY);
-    if (existing != null) return;
-
     // R9-48 — a log owned by ANOTHER account is handed over here, at the one
     // point where a new uid is known to have signed in. Leaving it in place
     // is what caused the bug in both directions: its rows made this user look
@@ -130,10 +125,25 @@ export async function seedMemoryStatsFloorIfFresh(uid: string): Promise<void> {
     // recoverable — their aggregate is in their own cloud doc and re-seeds as
     // their floor when they sign back in, the same path a new device takes.
     // Ownership is claimed only if the clear actually succeeded.
+    //
+    // This MUST run before the `existing != null` guard below. `signOut` fires
+    // `clearMemoryStatsFloor()` without awaiting it (`void`, AuthContext), so
+    // a kill right after sign-out leaves the previous owner's floor on disk —
+    // and behind that guard the handover would never run, on this launch or
+    // any later one, since nothing else retries it. The new account would then
+    // be refused by the write-side guard forever: `memoryStats/summary` is
+    // their ONLY cloud anchor now that reviewEvents no longer syncs, so a
+    // later device of theirs would restore an empty floor and their history
+    // would be gone for real.
     const owner = await getReviewLogOwner();
     if (owner !== null && owner !== uid) {
       try {
         await clearAllReviewEvents();
+        // The floor is a snapshot of the PREVIOUS owner's cloud aggregate; an
+        // owner change is proof it is not ours. Dropping it lets the seed
+        // below restore THIS account's own floor instead of silently adopting
+        // the other account's numbers as this user's baseline.
+        await AsyncStorage.multiRemove([FLOOR_KEY, RESTORE_BANNER_KEY]);
         await AsyncStorage.setItem(REVIEW_LOG_OWNER_KEY, uid);
         logger.info(
           'memoryStatsSync: review log handed over to the account signing in',
@@ -150,6 +160,11 @@ export async function seedMemoryStatsFloorIfFresh(uid: string): Promise<void> {
         return;
       }
     }
+
+    // Never refetch/overwrite an existing floor — it's a one-time snapshot,
+    // and its immutability keeps the write-side merge from double-counting.
+    const existing = await AsyncStorage.getItem(FLOOR_KEY);
+    if (existing != null) return;
 
     // Fresh-device signal: no local review history to restore over.
     const events = await getAllReviewEvents();

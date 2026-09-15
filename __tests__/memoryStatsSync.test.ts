@@ -292,6 +292,34 @@ describe('R9-48 — one account’s review log cannot reach another’s cloud do
     expect(floor?.longestStreak).toBe(7);
   });
 
+  it('R9-48 — a leftover floor from the previous owner does not block the handover', async () => {
+    await AsyncStorage.setItem(OWNER_KEY, 'ana');
+    // Ana's stale floor. `signOut` fires `clearMemoryStatsFloor()` WITHOUT
+    // awaiting it (`void`, AuthContext), so a kill right after sign-out
+    // leaves it on disk.
+    await AsyncStorage.setItem(
+      FLOOR_KEY,
+      JSON.stringify({...SAMPLE_SUMMARY, longestStreak: 99}),
+    );
+    let rows = [mkEvent(86400000)];
+    mockGetAllReviewEvents.mockImplementation(async () => rows);
+    mockClearAllReviewEvents.mockImplementation(async () => {
+      rows = [];
+    });
+    mockSummaryDoc = SAMPLE_SUMMARY; // Beto's OWN cloud aggregate
+
+    await seedMemoryStatsFloorIfFresh('beto');
+
+    // Pre-fix the handover sat BELOW `if (existing != null) return;`, so it
+    // never ran — not on this launch and not on any later one, since nothing
+    // else retries it. The write-side guard then refused Beto's aggregate on
+    // every app-background forever, freezing his only cloud anchor.
+    expect(mockClearAllReviewEvents).toHaveBeenCalledTimes(1);
+    expect(await AsyncStorage.getItem(OWNER_KEY)).toBe('beto');
+    // …and he gets HIS floor restored, not Ana's numbers as his baseline.
+    expect((await getMemoryStatsFloor())?.longestStreak).toBe(7);
+  });
+
   it('keeps ownership with the previous account if the clear fails', async () => {
     await AsyncStorage.setItem(OWNER_KEY, 'ana');
     mockClearAllReviewEvents.mockRejectedValue(new Error('SQLite busy'));
