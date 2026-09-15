@@ -23,9 +23,15 @@
 > medias (solo la raíz del sanitizador). **`R9-28` y `R9-44` no tenían ninguna.** La sesión 8
 > cubrió la mitad que faltaba de `R9-50` y el mecanismo de `R9-44`
 > (`highlightServiceTriState.test.ts`). **Sigue sin prueba `R9-28`**, y la rama del lector de
-> `R9-44` es verificación en dispositivo (Modo C), no jest. Van marcados **✅ ARREGLADO** dentro de su propia entrada, que
-> se conserva íntegra a propósito: el diagnóstico es lo que explica por qué el arreglo es ese
-> y no otro. **Quedan 14 P0 abiertos.**
+> `R9-44` es verificación en dispositivo (Modo C), no jest. Van marcados **✅ ARREGLADO**
+> dentro de su propia entrada, que se conserva íntegra a propósito: el diagnóstico es lo que
+> explica por qué el arreglo es ese y no otro.
+>
+> **Sesión 8 (2026-09-15), la segunda de ARREGLOS.** Además de revisar y mergear lo anterior,
+> cerró **4 P0 más**: `R9-46` (`b3d73e1`) y **el bloque entero de mezcla entre cuentas** —
+> `R9-22` (`a9785be`), `R9-48` (`67af8c9`) y `R9-23` (`e75eca3`). Cada uno con su prueba de
+> regresión **vista fallar sin el arreglo**, esta vez una por una. **Quedan 10 P0 abiertos.**
+> Va todo en `fix/review-p0-notas-cuentas`, **sin mergear**.
 
 ---
 
@@ -138,6 +144,7 @@
   importar un respaldo (`BackupService.ts:973-1026` encola su biblioteca entera).
   **Contraste que lo delata:** los cursores **sí** están namespaceados por uid (`:177`) y el
   flag de bulk push también (`:1146`). Detalle: `detail/A3-auth-borrado-cuenta.md`.
+  **✅ ARREGLADO en la sesión 8** (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo incluye (Juan 3:16 colisiona entre dos cuentas por la clave natural); `flush()` solo empuja las del uid activo, y lo de Ana queda **aparcado** hasta que vuelva, no se tira; `pendingWrites` cuenta solo las del uid activo, o Ajustes le diría a Beto que tiene pendientes que no puede resolver. Una entrada sin `uid` (previa al arreglo) es de dueño indeterminable y se descarta al hidratar. **Ojo al defecto que introdujo el propio arreglo y cazó la prueba nueva:** la condición de re-flush del final de `flush()` miraba `this.queue.length`, que con una entrada aparcada de otro uid es permanentemente > 0 → re-entraba en `flush()` para siempre, un bucle caliente mientras la app estuviera abierta.
 
 - **`R9-23` (A3, identidad) — 🐛 los datos locales del usuario anterior se suben en silencio
   a una cuenta de Google _nueva_.** Severidad **alta**. El prompt de migración vive **dentro
@@ -149,6 +156,7 @@
   Ana ya no puede borrarlas. **Arreglo:** persistir `@local_store_owner_uid` y disparar el
   `askMigration()` que ya existe cuando el dueño difiere del uid entrante.
   Detalle: `detail/A3-auth-borrado-cuenta.md`.
+  **✅ ARREGLADO en la sesión 8** (`e75eca3`): exactamente ese arreglo. `@local_store_owner_uid` se reclama en cada inicio de sesión no-anónimo, y la rama de **ÉXITO** de `linkWithCredential` —la que toma una cuenta de Google nueva, la que no tenía guarda ninguna— enruta por el mismo `askMigration()` cuando el dueño previo difiere. Un primer inicio de sesión y el mismo dueño volviendo **no** se interrogan: esos datos sí son suyos.
 
 - **`R9-27` (A7, respaldo) — 🐛 una sección degradada en el export es indistinguible de una
   vacía, y al importar BORRA los datos buenos.** Severidad **alta**. Verificado:
@@ -345,6 +353,7 @@
   `null` al fallar (`adapters/highlights.ts:81-88`); lo que hace único a `notes` es que su
   ventana se abre sola, sin que `initialize()` tenga que fallar. Detalle:
   `detail/A8-notas-subrayados.md`.
+  **✅ ARREGLADO en la sesión 8** (`b3d73e1`): `findNoteById` inicializa primero (idempotente, coalesce llamadas concurrentes) y deja **propagar** un fallo real de lectura. Como propagar a secas habría abortado la tanda entera de `handleSnapshot` y podría parar el sync en silencio (la clase de `R9-33`/`R9-35`), `applyRemoteChange` devuelve ahora **si pudo establecer el estado local**: si no pudo, se salta ESE documento y **retiene su aporte al cursor**, para que se re-entregue en el próximo reattach en vez de perderse.
 - **`R9-47` (A9, Mesa) — 🐛 `load()` no tiene guarda de obsolescencia: una carga vieja que
   llega tarde pisa los `drafts`, y el siguiente `onBlur` escribe esa prosa ajena (o vacía)
   sobre la clave del pasaje visible.** Severidad **alta**. Es dato irreemplazable: el sermón
@@ -389,6 +398,7 @@
   no uno — `BackupService.ts:1377` (masivo) y `reviewEventStore.ts:132` (una fila por id);
   **ninguno está atado a un límite de sesión o de cuenta**, así que el hallazgo no cambia.
   Detalle: `detail/A10-memoria-srs.md`.
+  **✅ ARREGLADO en la sesión 8** (`67af8c9`): marca `@review_log_owner_uid`, en vez de scopear la tabla. Un log sin dueño lo reclama quien escribe primero; un log de OTRA cuenta no se sube nunca; y el traspaso ocurre **al iniciar sesión**, único punto donde se sabe que hay un uid nuevo: se limpia el log y se reclama. **Sin ese traspaso, la guarda sola dejaba al segundo usuario sin poder escribir su propio agregado para siempre.** Si la limpieza falla, la propiedad NO se reclama. **Que cerrar sesión deba además BORRAR el log local sigue siendo decisión de producto (`R9-59`) y no se decidió aquí.**
 - **`R9-49` (A11, respaldo) — 🐛 los 4 logs de lectura no pueden marcarse "degradados", así
   que un fallo transitorio de SQLite produce un archivo que al importar BORRA la racha y los
   ledgers.** Severidad **alta**. `safeQuery` (`BackupService.ts:356-371`) solo marca degradado

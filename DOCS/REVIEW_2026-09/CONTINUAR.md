@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-14, fin de la sesión 7 (la primera de ARREGLOS).**
+> **Última actualización: 2026-09-15, fin de la sesión 8 (la segunda de ARREGLOS).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,62 +12,79 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. Hay una rama de arreglos SIN MERGEAR: `fix/review-p0-perdida-datos` (`7f8e666`).**
-Es lo primero que tienes que mirar. La sesión 7 cerró ahí **7 P0 de pérdida irreversible de
-datos** con los gates en verde, pero **Victor todavía no la ha mergeado ni desplegado**. El
-árbol está limpio y todo commiteado; si `git status` sale sucio, es algo tuyo, no herencia.
+**1. La rama de la sesión 7 YA ESTÁ EN `main`.** Se revisó con ojo fresco, se mergeó en
+fast-forward y **se pusheó** (`63f124c..8fe24f1`). No queda ninguna decisión pendiente sobre
+ella. Lo que esa revisión verificó **a mano** está en `detail/S8-revision-del-diff.md` —
+cinco cosas portantes que **no hace falta volver a comprobar**.
 
-**Quedan 14 P0 abiertos, no 21.** Cerrados en código: `R9-27`, `R9-28`, `R9-44`, `R9-45`,
-`R9-47`, `R9-49`, `R9-50` — van marcados **✅ ARREGLADO** dentro de su entrada de `BUGS.md`,
-que se conserva entera a propósito. **No los vuelvas a atacar.**
+**2. Hay OTRA rama de arreglos sin mergear: `fix/review-p0-notas-cuentas`.** Lleva los 4 P0
+de la sesión 8, con gates verdes (**356 suites, 4064 pruebas**) y **el árbol limpio**:
 
-**2. Los 6 P0 nuevos (`R9-44`..`R9-49`) YA ESTÁN RE-VERIFICADOS a mano, y los 6 se
-sostienen.** Se hizo en la segunda mitad de la sesión 6. Salieron **3 correcciones y 2
-refuerzos**, todos incorporados a `BUGS.md` y a los `detail/`. **La que importa está en
-`R9-46`:** el defecto es real, pero el mecanismo de alcanzabilidad que daba el informe
-("los efectos de React corren de hijo a padre") **era falso** — `engine.start()` está en un
-efecto gated por auth, no de orden de montaje. Lo cierto y peor es que **no hay ningún orden
-garantizado** entre la BD y el motor, y la ventana es **más ancha en una reinstalación**,
-que es justo cuando bajan las notas. Es el caso de manual de por qué existe la regla de §5.
+- `R9-46` (`b3d73e1`) — el `getLocal` de notas dejó de fallar abierto.
+- `R9-22` (`a9785be`) — la cola de escrituras pendientes se namespacea por uid.
+- `R9-48` (`67af8c9`) — el log de repasos deja de contaminar la cuenta ajena.
+- `R9-23` (`e75eca3`) — una cuenta nueva ya no hereda en silencio el almacén ajeno.
 
-**Lo que SIGUE sin re-verificar son los P1 y P2 (`R9-51`..`R9-64`).** Menos urgente, pero
-si vas a arreglar alguno, verificalo primero. (`R9-50` ya no está en esa lista: la sesión 7
-lo verificó contra el código y lo arregló con los otros dos de su raíz.)
+Con esos tres últimos **cierra el bloque entero de mezcla entre cuentas**. Victor pidió
+explícitamente **no mergear nada más sin preguntarle**, así que lo primero es que él decida.
 
-**3. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
+**Quedan 10 P0 abiertos, no 14.** Cerrados en código hasta ahora: `R9-22`, `R9-23`, `R9-27`,
+`R9-28`, `R9-44`, `R9-45`, `R9-46`, `R9-47`, `R9-48`, `R9-49`, `R9-50`. Van marcados
+**✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.**
+
+**3. Lo que queda del orden de ataque de arreglos:** `R9-33`/`R9-35` (sync que descarta en
+silencio) → `R9-9` (dinero) → `R9-13` **antes de volver a desplegar la web**. Los 4 de campo
+(`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar una sesión.
+
+**4. Deuda conocida de la sesión 8, dicha en voz alta:**
+
+- **`R9-28` sigue sin prueba de regresión** (la señal de restauración + la re-hidratación de
+  los providers). Es el único de los 11 arreglados que no tiene ninguna.
+- **La rama del lector de `R9-44`** (recolorear preserva la nota) es **verificación en
+  dispositivo, Modo C**. El MECANISMO sí está fijado en `highlightServiceTriState.test.ts`
+  (que `addHighlight` con 5 argumentos escribe NULL sobre categoría y nota), pero la rama de
+  la pantalla que lo evita, no.
+- **`R9-47` sigue necesitando verificación en vivo** (Modo C), como ya decía la sesión 7.
+- **Dos cosas que la revisión del diff señaló y nadie ha decidido:** que el bulk push inicial
+  ahora puede **revivir** una fila que la nube tiene como lápida (defendible, es el momento
+  de «migrar mis datos a esta cuenta», pero no está documentado), y el `return` temprano por
+  `!table` en `load()` de la Mesa, que no incrementa `loadRunRef` (peor caso: pantalla
+  obsoleta, no pérdida).
+- **`R9-59` sigue abierta y ahora toca de cerca:** el arreglo de `R9-48` decide que el log de
+  repasos se **traspasa** (se limpia) cuando entra otra cuenta, pero **no** decide que cerrar
+  sesión deba borrarlo. Eso sigue siendo de Victor.
+
+**5. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
 con **3 hilos abiertos y verificados por `grep`, pero sin escenario de fallo alcanzable**,
 que es lo que falta para que sean hallazgos. No la re-empieces desde cero: lee ese archivo,
 que además dice por dónde seguir. **Cerrarla cierra el bloque P0 entero del Modo A.**
+
+**Lo que SIGUE sin re-verificar son los P1 y P2 (`R9-51`..`R9-64`).** Menos urgente, pero si
+vas a arreglar alguno, verificalo primero.
 
 ---
 
 ## Mensaje para pegar en el chat nuevo
 
-**Antes de elegir: hay una rama sin mergear.** `fix/review-p0-perdida-datos` lleva los 7 P0
-de pérdida de datos de la sesión 7, con los gates en verde, y **nadie la ha mergeado ni
-pusheado**. Las tres opciones de abajo la contemplan; lo que no tiene sentido es empezar una
-cuarta cosa dejándola colgada otra semana.
-
-**(a) RECOMENDADA — cerrar la rama y seguir arreglando.** Junta la decisión pendiente con el
-siguiente tramo del orden de ataque, y es el mejor uso de una sesión larga:
+**(a) RECOMENDADA — cerrar la rama y seguir arreglando.**
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-perdida-datos`, con 7 P0 de
-> pérdida de datos arreglados. Revisá el diff con ojo crítico (es código que toca respaldo,
-> restauración, sync y la Mesa), decime si ves algo mal, y si está bien mergeala a `main`
-> con los gates en verde.
+> Hay una rama sin mergear de la sesión anterior, `fix/review-p0-notas-cuentas`, con 4 P0
+> arreglados (`R9-46` y los tres de mezcla entre cuentas). Revisá el diff con ojo crítico
+> —toca sync, auth e identidad— decime si ves algo mal, y si está bien mergeala a `main` con
+> los gates en verde.
 >
-> Después seguí arreglando por donde toca: `R9-46` (el `getLocal` de notas que falla
-> abierto) y luego la mezcla entre cuentas, `R9-22`/`R9-23`/`R9-48`. Verificá cada hallazgo
-> contra el código antes de tocarlo — los P1/P2 no están re-verificados — y acordate de que
-> una prueba de regresión no vale hasta que la viste fallar sin el arreglo. Va todo en rama
-> con gates verdes; no mergees nada más sin preguntarme.
+> Después seguí arreglando por donde toca: `R9-33`/`R9-35` (el sync que descarta en silencio)
+> y luego `R9-9` (dinero). Verificá cada hallazgo contra el código antes de tocarlo — los
+> P1/P2 no están re-verificados — y acordate de que una prueba de regresión no vale hasta que
+> la viste fallar sin el arreglo. Va todo en rama con gates verdes; no mergees nada más sin
+> preguntarme.
 
-**(b) Solo cerrar la rama**, si querés una sesión corta y no abrir frente nuevo:
+**(b) Solo cerrar la rama**, si querés una sesión corta:
 
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Revisá el diff de la rama
-> `fix/review-p0-perdida-datos` con ojo crítico, decime si ves algo mal, y si está bien
+> `fix/review-p0-notas-cuentas` con ojo crítico, decime si ves algo mal, y si está bien
 > mergeala a `main` con los gates en verde. Nada más por ahora.
 
 **(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
@@ -75,6 +92,9 @@ bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO toc
 
 > Vamos a continuar la revisión profunda de la app. Lee
 > `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
+
+**(d) Saldar la deuda de la sesión 8** — corta y concreta: la prueba que le falta a `R9-28`,
+y la verificación en dispositivo (Modo C) de `R9-47` y de la rama del lector de `R9-44`.
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
@@ -120,11 +140,13 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Ojo: ahora hay 7 ramas locales, no 6.** La séptima es
-**`fix/review-p0-perdida-datos`**, la de la sesión 7, **sin mergear**. Las otras 6: `main`,
-`audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`,
-`feature/red-letter-web`, `research/a4-chico-spanish-availability`. `main` = `origin/main`,
-árbol limpio. Si no coincide, dilo antes de empezar.
+**Hay 8 ramas locales.** `main` (= `origin/main`, con los arreglos de la sesión 7 ya dentro),
+**`fix/review-p0-notas-cuentas`** (la de la sesión 8, **sin mergear**),
+`fix/review-p0-perdida-datos` (la de la 7, **ya mergeada** — se puede borrar), y las 5 de
+siempre: `audio/tts-caps-hyphen`, `audio/tts-pronunciation-sweep`,
+`chore/worklets-bundle-mode`, `feature/red-letter-web`,
+`research/a4-chico-spanish-availability`. Árbol limpio. Si no coincide, dilo antes de
+empezar.
 
 La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a76c` → `b5a9afa` →
 `6ac10e3` → `894deb5` → `4e45f69` → **`f791749`** (sesión 6: `A4` y los reportes de campo de
@@ -132,14 +154,16 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los **arreglos** van aparte, fuera de `main`: **`7f8e666`** en `fix/review-p0-perdida-datos`.
+Los arreglos de la sesión 7 (`7f8e666`) **ya están en `main`** (`8fe24f1`, pusheado). Los de
+la sesión 8 van aparte, fuera de `main`, en **`fix/review-p0-notas-cuentas`**: `b3d73e1` →
+`36ae78b` → `a9785be` → `67af8c9` → `e75eca3`.
 
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
 **Cerradas: 17** (todo el Modo B P0 + 11 filas del Modo A P0). **`A12` en curso.**
-**Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos de la sesión 7 no mueven
-ninguna fila, porque arreglar no es revisar — mueven el conteo de P0, de 21 a **14**.
+**Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+arreglar no es revisar — mueven el conteo de P0: 21 → **14** (sesión 7) → **10** (sesión 8).
 
 | Sesión | Qué se hizo                                                | Commit              |
 | ------ | ---------------------------------------------------------- | ------------------- |
@@ -154,7 +178,9 @@ ninguna fila, porque arreglar no es revisar — mueven el conteo de P0, de 21 a 
 | 5      | `A4` verificada + campo `R9-40`..`R9-43`                   | `f791749`           |
 | 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias  | `f791749`           |
 | 6      | Re-verificados a mano los 6 P0 nuevos                      | `c184a1c`/`9939e76` |
-| 7      | **ARREGLOS**: 7 P0 de pérdida de datos (rama, sin mergear) | `7f8e666`           |
+| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                     | `7f8e666`           |
+| 8      | Revisión del diff de la 7 + merge y push a `main`          | `8fe24f1`           |
+| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas (sin mergear) | `b3d73e1`→`e75eca3` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -201,13 +227,12 @@ El hilo más prometedor ya está localizado: `CustomPlansContext.tsx:69` parsea 
 
 Alternativas legítimas:
 
-- **Seguir la sesión de ARREGLOS.** La 7 hizo el primer tramo del orden sugerido —
-  `R9-49`/`R9-27`/`R9-28` y `R9-47`, más `R9-44`/`R9-45`/`R9-50` atacados juntos por su
-  raíz, que es exactamente lo que este archivo recomendaba. **Lo que queda del orden:**
-  `R9-46` (la otra mitad de la prosa: el `getLocal` de notas que falla abierto) →
-  `R9-22`/`R9-23`/`R9-48` (mezcla entre cuentas) → `R9-33`/`R9-35` (sync que descarta en
-  silencio) → `R9-9` (dinero) → `R9-13` **antes de volver a desplegar la web**. Los 4 de
-  campo (`R9-40`..`R9-43`) son baratos y muy visibles: buenos para cerrar la sesión.
+- **Seguir la sesión de ARREGLOS.** La 7 hizo el primer tramo (`R9-49`/`R9-27`/`R9-28`,
+  `R9-47`, y `R9-44`/`R9-45`/`R9-50` juntos por su raíz); la 8 hizo `R9-46` y **el bloque
+  entero de mezcla entre cuentas** (`R9-22`/`R9-48`/`R9-23`). **Lo que queda del orden:**
+  `R9-33`/`R9-35` (sync que descarta en silencio) → `R9-9` (dinero) → `R9-13` **antes de
+  volver a desplegar la web**. Los 4 de campo (`R9-40`..`R9-43`) son baratos y muy visibles:
+  buenos para cerrar la sesión.
 - **`B6`–`B10`** (Modo B, P1/P2) si preferís terminar el Modo B de una: permisos Android,
   `npm outdated`, `expo-doctor`, deps sin usar, licencias. Baratas, sin entorno. Ojo:
   extendé `B9`/`B10` a `functions/` y `vercel/`, no solo a la raíz.
@@ -304,6 +329,16 @@ Alternativas legítimas:
   silencio: los `assert` pasan, imprime el "ok", y el archivo queda igual. Descubierto en la
   sesión 7 tras cuatro intentos. Para ese archivo usá la herramienta de edición; para los
   demás el heredoc funcionó sin problema.
+- **Un revert mal hecho se ve EXACTAMENTE igual que una prueba que no discrimina.** En la
+  sesión 8, el primer revert de `R9-46` «pasó»: el `sed` había parcheado el `catch` de
+  `valuesEqual` en vez de `applyRemoteChange`, porque el patrón `return false;` aparecía
+  antes en el archivo. **Antes de concluir que una prueba no discrimina, `diff` el revert y
+  confirmá que tocó la línea que creías.**
+- **Una prueba de «no pasa nada» suele no discriminar, y eso está bien SI lo sabés.** Varias
+  de la sesión 8 pasan con y sin el arreglo a propósito (su trabajo es impedir que una guarda
+  se vuelva preguntona, o que se borre de más). Distinguí esas de las discriminantes al
+  escribirlas, o te vas a creer cubierto sin estarlo — le pasó a la primera versión del test
+  de `R9-44`.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
 
 ## 6. Hechos duros que ya no hay que volver a averiguar
