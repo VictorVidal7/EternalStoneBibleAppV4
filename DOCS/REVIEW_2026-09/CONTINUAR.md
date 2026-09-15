@@ -100,16 +100,21 @@ vas a arreglar alguno, verificalo primero.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> No hay ninguna rama pendiente: `main` está pusheado y al día. Empezá directo por `R9-13`,
-> el crash del lector web. Leete `R9-15` antes: el único test que
-> renderiza esa pantalla enmascara exactamente ese bug, así que hay que arreglar los dos o la
-> compuerta sigue ciega. Verificá cada hallazgo contra el código
-> antes de tocarlo —los P1/P2 no están re-verificados— y acordate de que una prueba de
-> regresión no vale hasta que la viste fallar sin el arreglo, **y de que si un commit lleva
-> dos arreglos, uno puede estar desarmando la prueba del otro**. Va todo en rama con gates
-> verdes; no mergees nada más sin preguntarme.
+> No hay ninguna rama pendiente: `main` está pusheado y al día, así que no busques una.
+>
+> Empezá por `R9-13`, el crash del lector web — es el único P0 que bloquea algo (el próximo
+> `firebase deploy`). Leete `R9-15` antes de tocarlo: el único test que renderiza esa pantalla
+> **enmascara exactamente ese bug**, así que hay que arreglar los dos o la compuerta se queda
+> igual de ciega. Si sobra margen, `R9-14`.
+>
+> Verificá cada hallazgo contra el código antes de tocarlo —los P1/P2 no están
+> re-verificados—, y acordate de que una prueba de regresión no vale hasta que la viste fallar
+> sin el arreglo: **si un commit lleva dos arreglos, uno puede estar desarmando la prueba del
+> otro**, y si una prueba encadena el mecanismo y su consecuencia, el revert la tumba en la
+> primera aserción y la segunda no prueba nada. Va todo en rama con gates verdes; no mergees
+> nada sin preguntarme.
 
-**(b) Corto: revisar y mergear la rama, y rematar `R9-65`**, si querés media hora:
+**(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
 
 > Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá los 4 reportes de campo de Victor
 > (`R9-40`..`R9-43`): son baratos, muy visibles y ninguno es P0. Cada uno con su prueba vista
