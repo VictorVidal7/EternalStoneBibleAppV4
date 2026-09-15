@@ -11,7 +11,10 @@
  * cannot work. This way, rewording a message fails a test instead.
  */
 import {renderHook} from '@testing-library/react-native';
-import {isMissingProviderError} from '../src/lib/errors/missingProviderError';
+import {
+  isMissingProviderError,
+  WEB_UNMOUNTED_PROVIDERS,
+} from '../src/lib/errors/missingProviderError';
 
 describe('isMissingProviderError', () => {
   it('matches the three article shapes the app actually uses', () => {
@@ -86,6 +89,70 @@ describe('isMissingProviderError', () => {
         message: 'useTogether must be used within a TogetherProvider',
       }),
     ).toBe(true);
+  });
+
+  it('does NOT dress up an internal expo-router error as a product decision', () => {
+    // R9-68. These are real strings from the installed expo-router, two of
+    // which literally end in "This is likely a bug in Expo Router." Matching
+    // any `…Provider` message swept them up, so a library bug reached the
+    // user as "this section is not in the web version" — an affirmative,
+    // wrong explanation — with the retry button removed and only a link out.
+    const expoRouterInternals = [
+      'useFrameSize must be used within a FrameSizeProvider',
+      'useRouterCompositionOptions must be used within a ' +
+        'RouterCompositionOptionsProvider. This is likely a bug in Expo Router.',
+      'useLinkPreviewContext must be used within a LinkPreviewContextProvider. ' +
+        'This is likely a bug in Expo Router.',
+    ];
+    for (const message of expoRouterInternals) {
+      expect([message, isMissingProviderError(new Error(message))]).toEqual([
+        message,
+        false,
+      ]);
+    }
+  });
+
+  it('does NOT dress up a provider the web tree DOES mount', () => {
+    // The other half of R9-68, and the more likely one. Every provider below
+    // is mounted in app/_layout.web.tsx, so if one of them ever throws it is
+    // a genuine bug in the web tree — the user needs the generic screen with
+    // its retry, not a calm "this section lives in the Android app".
+    const mountedOnWeb = [
+      'useReaderPreferences must be used within a ReaderPreferencesProvider',
+      'useBibleVersion must be used within BibleVersionProvider',
+      'useToast must be used within a ToastProvider',
+      'usePremium must be used within a PremiumProvider',
+      'useFavorites must be used within a FavoritesProvider',
+      'useMemoryDeck must be used within a MemoryDeckProvider',
+      'useOfferingSheet must be used within an OfferingSheetProvider',
+      'useAudioPlayer must be used within an AudioPlayerProvider',
+    ];
+    for (const message of mountedOnWeb) {
+      expect([message, isMissingProviderError(new Error(message))]).toEqual([
+        message,
+        false,
+      ]);
+    }
+  });
+
+  it('never claims a provider app/_layout.web.tsx actually mounts', () => {
+    // Derived, not hand-checked: the day someone mounts one of these for
+    // real on web, the detector would start lying about it, and this fails
+    // instead. Reads the layout the browser really runs.
+    const layout = require('fs').readFileSync(
+      require('path').join(__dirname, '..', 'app', '_layout.web.tsx'),
+      'utf8',
+    );
+    const mounted = new Set(
+      [...layout.matchAll(/<([A-Za-z]+Provider)>/g)].map(m => m[1]),
+    );
+    // Control: if the regex ever stops matching, the disjointness below
+    // would hold vacuously.
+    expect(mounted.size).toBeGreaterThanOrEqual(10);
+    const overlap = [...WEB_UNMOUNTED_PROVIDERS].filter(name =>
+      mounted.has(name),
+    );
+    expect(overlap).toEqual([]);
   });
 
   it('recognizes what the six real unmounted-on-web contexts actually throw', () => {
