@@ -559,7 +559,7 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   **una sola dirección**: nadie comprobaba que estuviera COMPLETA) y `R9-76` (el discriminador
   de la compuerta de `R9-70` —«¿lo exporta el nativo?»— está **en manos del archivo vigilado**,
   que es literalmente el estado en que estaba `OfferingSheetContextValue` antes de ese mismo
-  arreglo). Los 5 arreglados en `fix/review-s14-revision-diff-s13`, cada uno con su prueba
+  arreglo). Los 5 arreglados en `fix/review-s14-revision-diff-s13`, **ya mergeada en fast-forward a `main` y pusheada** (la rama se borró), cada uno con su prueba
   **vista fallar primero** (11 rojas de golpe en el bloque de packs, con 8 controles verdes a
   los dos lados) y `R9-72` corrido de punta a punta contra los datos reales.
   **Detalle completo, incluido lo que se comprobó y está BIEN:

@@ -12,12 +12,11 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. HAY UNA RAMA SIN MERGEAR: `fix/review-s14-revision-diff-s13` (sesión 14).** Lleva los 5
-arreglos de esta sesión (`R9-72`..`R9-76`) más el checkpoint del ledger, con las compuertas
-verdes: **361 suites, 4219 pruebas** (desde 361/4201), `tsc`, lint y `format:check`.
-**Victor no ha dado el OK de merge todavía** — pregúntaselo antes de tocarla. Las **siete**
-ramas de las sesiones 7 a 13 sí están todas dentro de `main` y pusheadas. No se pone el SHA
-del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA escrito
+**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
+pendiente. Las **ocho** ramas de arreglos de las sesiones 7 a 14 están todas dentro de `main`,
+la última (`fix/review-s14-revision-diff-s13`, sesión 14) en fast-forward y con los gates
+corridos **sobre `main` ya mergeado** antes de publicar: **361 suites, 4219 pruebas** (desde
+361/4201), `tsc`, lint y `format:check`. No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA escrito
 aquí nace obsoleto.
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
@@ -61,7 +60,7 @@ marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a 
 **6 hallazgos de la sesión 13** (`R9-66`..`R9-71`) son P1/P2, así que el conteo de P0 no se
 mueve — y los seis ya están arreglados y mergeados.
 Los **5 hallazgos de la sesión 14** (`R9-72`..`R9-76`) también son P1/P2, así que el conteo
-de P0 tampoco se mueve — y los cinco ya están arreglados (en la rama, sin mergear).
+de P0 tampoco se mueve — y los cinco ya están arreglados y mergeados.
 Hallazgos totales: **76**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
@@ -176,18 +175,18 @@ vas a arreglar alguno, verificalo primero.
 **(a) RECOMENDADA — revisar el diff de la sesión 14 y, si aguanta, mergearlo.** Es el patrón
 que ya pagó **seis** veces seguidas: las sesiones 8, 9, 10, 11, 13 y 14 encontraron defectos
 reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran **pérdidas de
-datos nuevas**. **Ojo, esta vez la rama NO está mergeada** (`fix/review-s14-revision-diff-s13`):
-el diff a revisar está ahí, no en `main`. Son 3 commits de arreglo + el checkpoint, y vuelve a
+datos nuevas**. Son 3 commits de arreglo + 2 de checkpoint, **ya en `main`**, y vuelven a
 tocar el sitio más delicado del programa: `scripts/build-web-packs.js`, que es lo único que
 produce **datos que se publican**, y esta vez le **reordenó las escrituras de verdad** —
 ahora todo se construye en un directorio de escenario y se mueve al final.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> La rama `fix/review-s14-revision-diff-s13` está SIN mergear y es la que hay que revisar (no
-> `main`). No queda nada de despliegue pendiente.
+> No hay ninguna rama pendiente: `main` está pusheado y al día, así que no busques una.
+> Tampoco queda nada de despliegue ni nada «dicho sin hacer».
 >
-> Revisá el diff de la sesión 14 (`R9-72`..`R9-76`), con el mismo criterio de las sesiones
+> Revisá el diff de la sesión 14 en `main` (`R9-72`..`R9-76`: 5 commits, 8 archivos), con el
+> mismo criterio de las sesiones
 > 8-14 — buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
 > comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré, restaurá, y
 > `diff` el revert para confirmar que tocó la línea que creés).
@@ -304,7 +303,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 12 ramas locales.** La de la sesion 14, `fix/review-s14-revision-diff-s13`, **existe y esta SIN mergear** — es la del trabajo mas reciente. Las de las sesiones 12 y 13 ya se borraron tras mergearlas, asi que en local no las vas a ver. `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
+**Hay 11 ramas locales.** La de la sesion 14 (`fix/review-s14-revision-diff-s13`) ya se borro tras mergearla, igual que las de las sesiones 12 y 13, asi que en local no las vas a ver. `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
 sesiones 7 a 12) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
@@ -356,7 +355,7 @@ arreglos** — ver la nota al principio de esa sección.
 | 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
 | 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | mergeado a `main`   |
 | 13     | Revisión del diff de la 12: **6 defectos** + arreglos     | mergeado a `main`   |
-| 14     | Revisión del diff de la 13: **5 defectos** + arreglos     | rama SIN mergear    |
+| 14     | Revisión del diff de la 13: **5 defectos** + arreglos     | mergeado a `main`   |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos

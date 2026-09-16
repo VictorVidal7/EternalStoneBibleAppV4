@@ -8,8 +8,9 @@
 > en las **compuertas** de esos arreglos — el mismo sitio donde la sesión 13 encontró los
 > suyos, lo que es el dato de método de esta sesión.
 >
-> Arreglos en `fix/review-s14-revision-diff-s13`. Compuertas al cerrar: **361 suites, 4219
-> pruebas** (desde 361/4201), `tsc`, lint y `format:check` verdes.
+> Arreglos en `fix/review-s14-revision-diff-s13`, **mergeada en fast-forward a `main` y
+> pusheada** con los gates corridos **sobre `main` ya mergeado**: **361 suites, 4219 pruebas**
+> (desde 361/4201), `tsc`, lint y `format:check` verdes. La rama se borró tras mergearla.
 
 ---
 
