@@ -275,16 +275,18 @@ vas a arreglar alguno, verificalo primero.
 
 **(a) RECOMENDADA — revisar el diff de la sesión 17, ya mergeado.** Es el patrón que ya
 pagó **nueve** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16 y 17 encontraron defectos
-reales en el diff de ARREGLOS de la sesión anterior. Son **10 arreglos en 3 commits**, y esta vez
-la mitad NO es código de la app sino **compuertas y tubería**: un escáner de workflow reescrito de
-cero, el piso de `engines`, un paso nuevo en CI, y tres mensajes del script de packs. Un error ahí
-no se ve en ninguna prueba local — se ve en el siguiente push.
+reales en el diff de ARREGLOS de la sesión anterior. Son **10 arreglos en 3 commits de código**
+(más dos de checkpoint), y esta vez la mitad NO es código de la app sino **compuertas y
+tubería**: un escáner de workflow reescrito de cero, el piso de `engines`, un paso nuevo en CI, y
+tres mensajes del script de packs. Un error ahí no se ve en ninguna prueba local — se ve en el
+siguiente push.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
 > **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a revisar
-> son los 10 arreglos de la sesión 17, ya dentro de `main`: **`git log 31132d2..6ec5e49`**
-> (4 commits). El run `35137876566` se verificó EN EL LOG: Node v24.20.0, 363 suites / 4278
+> son los 10 arreglos de la sesión 17, ya dentro de `main`: **`git log 31132d2..25e1b00`**
+> (5 commits: 3 de código y 2 de checkpoint; los de código son `15bdd38`, `bd4d520` y
+> `5359a77`). El run `35137876566` se verificó EN EL LOG: Node v24.20.0, 363 suites / 4278
 > pruebas, cero «Test suite failed to run», y `npm outdated` con cero filas `MISSING`.
 >
 > Revisá ese diff con el mismo criterio de las sesiones 8-17 — buscá si algún arreglo cierra el
@@ -325,9 +327,14 @@ no se ve en ninguna prueba local — se ve en el siguiente push.
 > RESPONDER la pregunta que otra prueba hacía**.
 >
 > **Comprobá además los cuatro sha256 contra `web/packs/web-bootstrap.json` y contra lo que
-> sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.** Y como esta rama
+> sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.** Y como este diff
 > toca `scripts/build-web-packs.js`, corré el `main()` REAL contra los datos REALES en un
 > directorio temporal y confirmá que los cuatro packs siguen saliendo byte a byte.
+>
+> **Dos cosas que la 17 dejó SIN decidir a propósito, y son de Victor, no bugs:** que npm 10 →
+> npm 11 materialice **1851 → 1827 paquetes** desde el MISMO lockfile (que no registra el
+> cambio), y el aviso nuevo `allowScripts` (3 paquetes ejecutan scripts al instalar; `re2`
+> compila nativo). Están en «Dicho y NO hecho» de `detail/S17-revision-del-diff.md`.
 >
 > Decime qué encontraste antes de tocar nada.
 
