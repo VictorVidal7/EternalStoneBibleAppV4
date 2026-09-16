@@ -1329,6 +1329,110 @@ describe('main() emits nothing at all when it aborts', () => {
     expect(message).not.toMatch(/IS coherent/);
   });
 
+  /**
+   * Fail every rename, so the abort is always the FIRST FILE one, and hand back
+   * what it said. Shared by the two cases below.
+   */
+  function messageWhenTheFirstRenameFails() {
+    const spy = jest.spyOn(fs, 'renameSync');
+    spy.mockImplementation(() => {
+      throw new Error('EPERM: operation not permitted');
+    });
+    let message = '';
+    try {
+      const changed = buildWorld('Jesus said something else entirely here.');
+      try {
+        main({...changed, out: world.out});
+      } catch (error) {
+        message = error.message;
+      }
+    } finally {
+      spy.mockRestore();
+    }
+    return message;
+  }
+
+  it('does NOT call an output directory with files MISSING "one run, whole"', () => {
+    // R9-97. R9-93 replaced an unchecked claim with a checked one, and then
+    // checked it in one direction only: it walks the files that ARE in `out`
+    // and asks the manifest about each. Nothing walks the manifest asking the
+    // directory, so a file the manifest pins and the directory does not have
+    // is invisible - and `[]` back from that loop is printed as "Checked, not
+    // assumed ... it IS coherent - one run, whole".
+    //
+    // That is R9-73's shape (a loop over the NEW list cannot see what is
+    // missing from the OLD) wearing R9-74's consequence (the vacuum prints
+    // success), inside the gate written to stop exactly that.
+    //
+    // Two of four is the dangerous half, not the empty one: "whole" sends its
+    // owner to upload a directory holding half a run, and data-loader.web.ts
+    // then fetches a pack that is not there - a GitHub Pages 404 is served
+    // with no CORS header, so the browser sees `TypeError: Failed to fetch`
+    // rather than anything legible.
+    main(world);
+    const removed = publishable(world.out).slice(0, 2);
+    for (const name of removed) fs.rmSync(path.join(world.out, name));
+    expect(publishable(world.out)).toHaveLength(2);
+
+    const message = messageWhenTheFirstRenameFails();
+    expect(message).toMatch(/FAILED ON THE FIRST FILE/);
+    expect(message).not.toMatch(/IS coherent/);
+    expect(message).not.toMatch(/one run, whole/);
+    // Named, not merely alleged.
+    for (const name of removed) expect(message).toContain(name);
+  });
+
+  it('does NOT call an EMPTY output directory "one run, whole" either', () => {
+    // R9-97, the end of the same range: zero files, and the loop that decides
+    // whether to say "coherent" has nothing to iterate at all. This is the
+    // ordinary first run into a fresh output directory whose first rename
+    // loses the race R9-81 documents.
+    main(world);
+    for (const name of publishable(world.out))
+      fs.rmSync(path.join(world.out, name));
+    expect(publishable(world.out)).toEqual([]);
+
+    const message = messageWhenTheFirstRenameFails();
+    expect(message).toMatch(/FAILED ON THE FIRST FILE/);
+    expect(message).not.toMatch(/IS coherent/);
+    expect(message).not.toMatch(/one run, whole/);
+  });
+
+  it('still reads a LEGACY object-shaped manifest on that same path', () => {
+    // R9-98. `readPreviousManifest` accepts a `redLetter` that is a single
+    // OBJECT on purpose - web/packs/web-bootstrap.json carried that shape until
+    // 2026-09-15, and this file already has `previousRedLetterOf` to normalize
+    // it (R9-77). `filesNotPinnedBy` spreads the raw field instead, and
+    // spreading a plain object throws.
+    //
+    // The consequence is the one R9-95 removed two hundred lines above, put
+    // back by the same commit: the throw happens INSIDE the rename's catch, so
+    // it replaces the entire FIRST FILE message with
+    // `TypeError: (previous.redLetter ?? []) is not iterable` and the operator
+    // never learns what state the directory is in.
+    main(world);
+    const current = JSON.parse(fs.readFileSync(world.manifestFile, 'utf8'));
+    expect(Array.isArray(current.redLetter)).toBe(true);
+    fs.writeFileSync(
+      world.manifestFile,
+      JSON.stringify({
+        schema: 1,
+        packs: current.packs,
+        redLetter: current.redLetter.find(e => e.versionId === 'WEB'),
+      }),
+    );
+
+    const message = messageWhenTheFirstRenameFails();
+    expect(message).not.toMatch(/is not iterable/);
+    expect(message).toMatch(/FAILED ON THE FIRST FILE/);
+    // And it really did CHECK rather than merely survive: the legacy object
+    // describes WEB's red-letter pack and nothing else, so both .sqlite packs
+    // still match and `rvr1960-red-letter.json` is the one file the manifest
+    // has no entry for. Naming it is the proof the normalizer ran.
+    expect(message).toMatch(/NOT coherent/);
+    expect(message).toContain('rvr1960-red-letter.json');
+  });
+
   it('still moves every file when nothing is in the way (the control)', () => {
     // Without this, a preflight that refused unconditionally would satisfy both
     // cases above and never publish anything again.

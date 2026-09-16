@@ -476,40 +476,66 @@ function shrinkComplaints(previous, packs, redLetter) {
 }
 
 /**
- * The publishable files sitting in `out` whose bytes the published manifest
- * does NOT pin — or `null` when there is no manifest able to answer.
+ * Every way `out` disagrees with the published manifest — or `null` when there
+ * is no manifest able to answer.
  *
  * R9-93. `null` and `[]` are deliberately different answers: `[]` means
  * "checked, every byte matches", `null` means "could not check". Collapsing
  * them is how a message ends up asserting coherence it never established,
  * which is the defect this exists to stop.
+ *
+ * R9-97: and it has to disagree in BOTH directions, because the sentence it
+ * feeds says "one run, WHOLE". The first draft walked only the files that are
+ * in `out` and asked the manifest about each, so a file the manifest pins and
+ * the directory does not have was invisible — R9-73's shape (a loop over the
+ * NEW list cannot see what went missing from the OLD) with R9-74's consequence
+ * (the vacuum prints success). Measured: two of the four files removed, and the
+ * message still called the directory coherent and whole; with ALL four removed
+ * it said the same about an empty one. Uploading half a run is worse than
+ * uploading none, since a GitHub Pages 404 is served with no CORS header and
+ * reaches the reader as `TypeError: Failed to fetch`.
+ *
+ * R9-98: and the two lists are read through the normalizers, not off the raw
+ * fields. `redLetter` is a single OBJECT in any manifest written before
+ * 2026-09-15 — a shape readPreviousManifest accepts on purpose — and spreading
+ * a plain object throws. This runs INSIDE the rename's catch, so that throw
+ * replaced the whole abort message with `TypeError: ... is not iterable`: the
+ * exact defect R9-95 removed from main(), two hundred lines up.
  */
 function filesNotPinnedBy(out, previous) {
   if (!previous) return null;
   const pinned = new Map();
   for (const entry of [
-    ...(previous.packs ?? []),
-    ...(previous.redLetter ?? []),
+    ...previousPacksOf(previous),
+    ...previousRedLetterOf(previous),
   ]) {
     if (entry && entry.file && entry.sha256)
       pinned.set(entry.file, entry.sha256);
   }
   if (pinned.size === 0) return null;
-  const mismatched = [];
+  const problems = [];
+  const present = new Set();
   for (const name of fs.readdirSync(out)) {
     if (!/\.(sqlite|json)$/.test(name)) continue;
+    present.add(name);
     const expected = pinned.get(name);
     if (!expected) {
-      mismatched.push(`${name} (the manifest does not mention it)`);
+      problems.push(`${name} (the manifest does not mention it)`);
       continue;
     }
     const actual = crypto
       .createHash('sha256')
       .update(fs.readFileSync(path.join(out, name)))
       .digest('hex');
-    if (actual !== expected) mismatched.push(name);
+    if (actual !== expected) problems.push(name);
   }
-  return mismatched;
+  // The other direction, which is the one "whole" is a claim about.
+  for (const name of pinned.keys()) {
+    if (!present.has(name)) {
+      problems.push(`${name} (the manifest pins it, but it is NOT there)`);
+    }
+  }
+  return problems;
 }
 
 function assertNoShrink(previous, packs, redLetter, allowShrink, manifestFile) {
