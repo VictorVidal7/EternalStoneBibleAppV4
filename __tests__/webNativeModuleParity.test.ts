@@ -223,6 +223,36 @@ function surfaceOf(absoluteFile: string): ExportSurface {
   return exportSurface(absoluteFile, fs.readFileSync(absoluteFile, 'utf8'));
 }
 
+/**
+ * Types the WEB file declares that are really a SHARED contract, so a local
+ * copy of one lets the two sides drift with `tsc` green (see the R9-70 case
+ * below for the mechanism).
+ *
+ * R9-79: the discriminator cannot ask the native sibling anything, because the
+ * shared contract does not have to live there. `AudioPlayerContext.tsx` imports
+ * `AudioPlayerContextValue` from `../types/audio` — so the native sibling
+ * neither declares nor exports it, and both of the older rules go quiet. That
+ * is one of the four context pairs this gate's own comment cites as its
+ * justification, and it was found by probe: a diverged local copy in
+ * AudioPlayerContext.web.tsx left the suite at 72/72.
+ *
+ * So the rule for a `…ContextValue` is now unconditional: a `.web` file has no
+ * business DECLARING one at all. That name is what a provider/hook contract is
+ * called here, in all four pairs, and the remedy is a one-line type-only import
+ * from wherever the contract already lives. Every other name still needs the
+ * native sibling to EXPORT it, which keeps a private `Props`/`State`/
+ * `…ProviderProps`/`SpanMap`/`ChapterItem` that both files happen to name the
+ * same out of the way — flagging those would bury the signal.
+ */
+function redeclaredSharedTypes(
+  native: ExportSurface,
+  web: ExportSurface,
+): string[] {
+  return [...web.declaredTypes].filter(
+    name => native.exportedTypes.has(name) || /ContextValue$/.test(name),
+  );
+}
+
 function nativeSiblingOf(webFile: string): string | null {
   const base = webFile.replace(/\.web\.tsx?$/, '');
   for (const ext of ['.ts', '.tsx']) {
@@ -312,31 +342,84 @@ describe('web/native module surface parity', () => {
       // the same is genuinely local to each, and flagging those would bury the
       // signal.
       //
-      // R9-76: but "does the native sibling EXPORT it" cannot be the only
-      // discriminator, because that is a decision the offending code makes
-      // itself. Keep the native type private and the gate goes quiet — which
-      // is precisely the state `OfferingSheetContextValue` was in right up until
-      // R9-70 fixed it by hand ("el nativo no lo exportaba"), so the fix's own
-      // third case is the one its new gate could not catch. Probed with a
-      // synthetic pair: native keeps `FiveContextValue` private, the web stub
-      // declares a diverged copy, gate green.
-      //
-      // So a `…ContextValue` name counts as a shared contract whether the native
-      // sibling exports it or not. That name is not a convention this repo
-      // happens to follow — it is what a provider/hook contract is CALLED here,
-      // in all four context pairs.
+      // R9-76 widened this from "the native sibling EXPORTS it" to "…or
+      // declares it privately", because whether it exports is a decision the
+      // offending code makes for itself. R9-79 widened it again for the same
+      // reason one level further out — the contract need not be in the native
+      // sibling AT ALL. See redeclaredSharedTypes above, and the synthetic
+      // cases at the bottom of this file, which are the only positive examples
+      // there are: after R9-70 no real pair trips this, so without them the
+      // rule is fourteen comparisons that all come back empty.
       const nativeFile = nativeSiblingOf(webFile as string);
       if (!nativeFile) return; // reported by the case above
-      const native = surfaceOf(nativeFile);
-      const web = surfaceOf(webFile as string);
-      const redeclared = [...web.declaredTypes].filter(
-        name =>
-          native.exportedTypes.has(name) ||
-          (native.declaredTypes.has(name) && /ContextValue$/.test(name)),
-      );
-      expect(redeclared).toEqual([]);
+      expect(
+        redeclaredSharedTypes(
+          surfaceOf(nativeFile),
+          surfaceOf(webFile as string),
+        ),
+      ).toEqual([]);
     },
   );
+
+  describe('the rule itself, against synthetic pairs (its only positive cases)', () => {
+    // Every real pair passes this rule, which is the point of having fixed
+    // them — and it also means the fourteen comparisons above prove nothing
+    // about whether the rule still WORKS. These are the control.
+    const surface = (source: string, name = 'probe.tsx'): ExportSurface =>
+      exportSurface(name, source);
+
+    it('flags a ContextValue the native sibling only IMPORTS (R9-79)', () => {
+      // The live shape: AudioPlayerContext.tsx imports its contract from
+      // ../types/audio, so asking the native sibling to declare or export it
+      // gets a "no" that means nothing.
+      const native = surface(
+        "import {AudioPlayerContextValue} from '../types/audio';\n" +
+          'export const AudioPlayerProvider = () => null;\n',
+      );
+      const web = surface(
+        'interface AudioPlayerContextValue { state: number }\n' +
+          'export const AudioPlayerProvider = () => null;\n',
+      );
+      expect(redeclaredSharedTypes(native, web)).toEqual([
+        'AudioPlayerContextValue',
+      ]);
+    });
+
+    it('flags a ContextValue the native sibling keeps PRIVATE (R9-76)', () => {
+      // Pinned rather than merely probed: this was the state
+      // OfferingSheetContextValue was in until R9-70 fixed it by hand.
+      const native = surface('interface FiveContextValue { a: number }\n');
+      const web = surface('interface FiveContextValue { }\n');
+      expect(redeclaredSharedTypes(native, web)).toEqual(['FiveContextValue']);
+    });
+
+    it('flags any type the native sibling EXPORTS (R9-70)', () => {
+      const native = surface('export interface SpanShape { a: number }\n');
+      const web = surface('interface SpanShape { }\n');
+      expect(redeclaredSharedTypes(native, web)).toEqual(['SpanShape']);
+    });
+
+    it('does NOT flag a private shape both files happen to name the same', () => {
+      // The narrowness control. Without it the rule could be widened to "any
+      // repeated type name" and would bury the signal under Props/State.
+      const native = surface(
+        'interface Props { a: number }\ninterface SpanMap { b: number }\n',
+      );
+      const web = surface(
+        'interface Props { a: number }\ninterface SpanMap { b: number }\n',
+      );
+      expect(redeclaredSharedTypes(native, web)).toEqual([]);
+    });
+
+    it('does NOT flag a web file that declares no types at all', () => {
+      expect(
+        redeclaredSharedTypes(
+          surface('export interface AContextValue { a: number }\n'),
+          surface('export const x = 1;\n'),
+        ),
+      ).toEqual([]);
+    });
+  });
 
   it('has no stale entries in the native-only allowlist', () => {
     // An allowlist that outlives its reason stops being documentation and
