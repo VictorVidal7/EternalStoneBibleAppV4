@@ -2,7 +2,7 @@
 
 > **Sesión 15, 2026-09-15.** Revisión adversarial del diff de ARREGLOS de la sesión 14, ya
 > mergeado en `main`. 5 commits, 4 archivos de código.
-> Rama: `fix/review-s15-revision-diff-s14`: **6 commits de código + este checkpoint, todas
+> Rama: `fix/review-s15-revision-diff-s14`: **6 commits de código + 2 de checkpoint, todas
 > las compuertas verdes (362 suites, 4250 pruebas, `tsc`, lint y `format:check`).**
 
 ---
