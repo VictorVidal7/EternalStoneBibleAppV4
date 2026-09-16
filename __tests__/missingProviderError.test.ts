@@ -99,37 +99,63 @@ function scanLayout(absoluteFile: string): LayoutScan {
 
 const APP_ROOT = path.join(__dirname, '..', 'app');
 
+interface LayoutVariants {
+  /** `_layout.tsx` — what metro falls back to on every platform. */
+  base?: string;
+  /** `_layout.web.tsx` — wins over `base` on web. */
+  web?: string;
+  /** `_layout.native.tsx` — wins over `base` everywhere BUT web. */
+  native?: string;
+  /** Any other platform suffix. Reported, never guessed at. */
+  unknown: string[];
+}
+
 /**
- * Every `_layout.tsx` / `_layout.web.tsx` in the app, FOUND rather than listed.
+ * Every layout file in the app, FOUND rather than listed, grouped by directory
+ * and keyed by the platform suffix metro reads.
  *
  * R9-86, the other half: the scanner only ever opened `app/_layout.tsx` and
  * `app/_layout.web.tsx`. `app/(tabs)/_layout.tsx` and its `.web` sibling exist
  * and were never read, so "the providers this app mounts" was a claim about two
- * of the four files that decide it. Nothing mounts a provider in the nested
- * pair today - but "checked today, nobody does X" is a note, not a gate, and
- * this file exists precisely because a hand-maintained claim rots in silence.
+ * of the four files that decide it.
+ *
+ * R9-92: and then it matched those two names LITERALLY, so a directory holding
+ * only `_layout.native.tsx` did not reach this map at all — not as an entry, not
+ * as an error. Measured: a probe directory with one `<ProbeOnlyProvider>` in a
+ * `.native` layout left this file at 15/15 green while native really did mount
+ * it, which puts the provider outside `native`, therefore outside
+ * `unmountedOnWeb`, therefore outside anything that requires it to be declared —
+ * and that is R9-14/R9-75/R9-80's crash walking back in through a side door.
+ * The neighbouring case already failed loudly (`.native` + `.web` with no plain
+ * `_layout.tsx` trips the "needs a layout native will render" assertion), so the
+ * gate's check was right and simply never reached that row. "A gate that never
+ * EXECUTED looks exactly like one that passed" — session 16's lesson, one loop
+ * iteration down.
+ *
+ * Nothing in `app/` uses `.native` today. It is one step from convention: five
+ * route files here already carry a `.web` suffix.
  */
-function layoutFilesByDirectory(): Map<
-  string,
-  {native?: string; web?: string}
-> {
-  const byDirectory = new Map<string, {native?: string; web?: string}>();
+function layoutFilesByDirectory(): Map<string, LayoutVariants> {
+  const byDirectory = new Map<string, LayoutVariants>();
   const walk = (directory: string): void => {
     for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
       const full = path.join(directory, entry.name);
       if (entry.isDirectory()) {
         walk(full);
-      } else if (entry.name === '_layout.tsx') {
-        byDirectory.set(directory, {
-          ...(byDirectory.get(directory) ?? {}),
-          native: full,
-        });
-      } else if (entry.name === '_layout.web.tsx') {
-        byDirectory.set(directory, {
-          ...(byDirectory.get(directory) ?? {}),
-          web: full,
-        });
+        continue;
       }
+      const parsed = entry.name.match(/^_layout(?:\.([a-z]+))?\.(?:[jt]sx?)$/);
+      if (!parsed) continue;
+      const platform = parsed[1];
+      const variants = byDirectory.get(directory) ?? {unknown: []};
+      if (platform === undefined) variants.base = full;
+      else if (platform === 'web') variants.web = full;
+      else if (platform === 'native') variants.native = full;
+      // `.ios`, `.android`, or anything else metro may learn: this scanner
+      // cannot collapse it into one "native" answer, so it says so rather than
+      // dropping the file. Teach the scanner, never the reverse.
+      else variants.unknown.push(full);
+      byDirectory.set(directory, variants);
     }
   };
   walk(APP_ROOT);
@@ -143,12 +169,16 @@ function layoutFilesByDirectory(): Map<
  * On web, metro resolves `_layout.web.tsx` where there is one and falls back to
  * `_layout.tsx` where there is not - so a nested layout with no `.web` sibling
  * is part of the WEB tree too, and treating it as native-only would invent a
- * provider that web supposedly does not mount.
+ * provider that web supposedly does not mount. R9-92: the mirror of that is
+ * `_layout.native.tsx`, which wins over the plain file everywhere BUT web.
  */
 function providersMountedOn(platform: 'native' | 'web'): Set<string> {
   const mounted = new Set<string>();
-  for (const pair of layoutFilesByDirectory().values()) {
-    const file = platform === 'web' ? (pair.web ?? pair.native) : pair.native;
+  for (const variants of layoutFilesByDirectory().values()) {
+    const file =
+      platform === 'web'
+        ? (variants.web ?? variants.base)
+        : (variants.native ?? variants.base);
     if (!file) continue;
     for (const name of scanLayout(file).mounted) mounted.add(name);
   }
@@ -297,11 +327,18 @@ describe('isMissingProviderError', () => {
     // Floor: a walker that found nothing would make the loop below hold
     // vacuously, which is the shape this whole review keeps finding.
     expect(directories.length).toBeGreaterThanOrEqual(2);
-    for (const [directory, pair] of directories) {
-      // Every layout directory needs a NATIVE layout: a `.web` orphan would
-      // mean the native tree renders no layout there at all.
-      expect([directory, Boolean(pair.native)]).toEqual([directory, true]);
-      for (const file of [pair.native, pair.web]) {
+    for (const [directory, variants] of directories) {
+      // R9-92: a platform suffix this scanner does not model is REPORTED. It
+      // cannot be folded into `native` (an `.ios` layout says nothing about
+      // Android) and dropping it is how the `.native` blind spot happened.
+      expect([directory, variants.unknown]).toEqual([directory, []]);
+      // Every layout directory needs a layout the NATIVE tree will render: a
+      // `.web` orphan would mean native renders no layout there at all.
+      expect([directory, Boolean(variants.base ?? variants.native)]).toEqual([
+        directory,
+        true,
+      ]);
+      for (const file of [variants.base, variants.native, variants.web]) {
         if (!file) continue;
         expect([file, scanLayout(file).unreadable]).toEqual([file, []]);
       }
