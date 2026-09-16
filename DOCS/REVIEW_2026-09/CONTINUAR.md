@@ -327,7 +327,7 @@ vas a arreglar alguno, verificalo primero.
 **(a) RECOMENDADA — revisar el diff de la sesión 18, ya mergeado.** Es el
 patrón que ya pagó **diez** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16, 17 y 18
 encontraron defectos reales en el diff de ARREGLOS de la sesión anterior. Son **5 arreglos en 2
-commits**, y esta vez **ninguno es código de la app**: los cinco son compuertas, tres de ellas
+commits de código** (más dos de checkpoint), y esta vez **ninguno es código de la app**: los cinco son compuertas, tres de ellas
 recién reescritas por segunda vez. Un error ahí no se ve en ninguna prueba local — se ve en el
 siguiente push, o en el siguiente `build-web-packs`.
 
@@ -335,8 +335,8 @@ siguiente push, o en el siguiente `build-web-packs`.
 >
 > **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a
 > revisar son los 5 arreglos de la sesión 18, ya dentro de `main`:
-> **`git log 0da86ce..2b65a12`** (3 commits: 2 de código, `2a442dd` y `f477c19`, y uno de
-> checkpoint). Gates verdes en local (363 suites / 4289 pruebas), y el `main()` real corrió
+> **`git log 0da86ce..f280d0f`** (4 commits: **2 de código**, `2a442dd` y `f477c19`, y dos de
+> checkpoint, `2b65a12` y `f280d0f`). Gates verdes en local (363 suites / 4289 pruebas), y el `main()` real corrió
 > contra los datos reales después del cambio: los 4 packs byte a byte. El run
 > `35163372377` se verificó EN EL LOG.
 >
