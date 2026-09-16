@@ -762,6 +762,54 @@ describe('main() emits nothing at all when it aborts', () => {
   }
 
   /**
+   * The manifest on disk, checked against the BYTES in the output directory.
+   *
+   * R9-87: the clean-run control below used to pin `main()`'s manifest write
+   * with `readPreviousManifest(...).packs.toHaveLength(2)`, and that
+   * discriminated only because the file did not exist yet, so the call threw.
+   * R9-83's beforeEach now writes a baseline carrying exactly two packs, so the
+   * FIXTURE answers the question the assertion was asking and a main() that
+   * never writes the manifest at all stays green. Measured, whole repo, with
+   * the write disabled: 363 suites / 4263 tests, all passing.
+   *
+   * That write is not a detail: data-loader.web.ts treats the manifest sha256
+   * as the ONLY signal that a new pack exists, so a manifest that stops being
+   * rewritten leaves every already-booted web reader on the old pack forever,
+   * in silence.
+   *
+   * So this asks the world instead of the shape. Every entry has to name a file
+   * that is really in `out`, with the byte count and the sha256 those bytes
+   * really have. The fixture baseline carries no `file`, no `bytes` and no
+   * `sha256`, so it cannot satisfy this by accident - and neither can a stale
+   * manifest left by an earlier run whose packs have since changed.
+   */
+  function manifestAgainstDisk(outDir, manifestFile) {
+    if (!fs.existsSync(manifestFile)) {
+      return {compared: 0, problems: [`no manifest at ${manifestFile}`]};
+    }
+    const manifest = JSON.parse(fs.readFileSync(manifestFile, 'utf8'));
+    const entries = [...(manifest.packs ?? []), ...(manifest.redLetter ?? [])];
+    const problems = [];
+    for (const entry of entries) {
+      const name = entry.id ?? entry.versionId ?? '(unnamed)';
+      const packFile = entry.file ? path.join(outDir, entry.file) : null;
+      if (!packFile || !fs.existsSync(packFile)) {
+        problems.push(`${name}: manifest names no file that exists in out`);
+        continue;
+      }
+      const buf = fs.readFileSync(packFile);
+      if (entry.bytes !== buf.length) {
+        problems.push(`${entry.file}: bytes ${entry.bytes} != ${buf.length}`);
+      }
+      const sha = crypto.createHash('sha256').update(buf).digest('hex');
+      if (entry.sha256 !== sha) {
+        problems.push(`${entry.file}: sha256 does not match the bytes on disk`);
+      }
+    }
+    return {compared: entries.length, problems};
+  }
+
+  /**
    * A baseline that matches exactly what this fixture world produces, so the
    * ordinary cases below run the way the real script does: against a manifest
    * that PINS every count. Before R9-83 these cases ran with no baseline at
@@ -820,7 +868,14 @@ describe('main() emits nothing at all when it aborts', () => {
       'web-red-letter.json',
       'web.sqlite',
     ]);
-    expect(readPreviousManifest(world.manifestFile).packs).toHaveLength(2);
+    // R9-87: against the WORLD, not against the shape - see
+    // manifestAgainstDisk. The old `.packs.toHaveLength(2)` is satisfied by the
+    // fixture baseline itself.
+    const written = manifestAgainstDisk(world.out, world.manifestFile);
+    // Floor: a manifest with no entries would make that loop hold vacuously,
+    // which is the shape this whole review keeps finding.
+    expect(written.compared).toBe(4);
+    expect(written.problems).toEqual([]);
   });
 
   it('leaves the output directory EMPTY when a count shrank', () => {
@@ -1088,6 +1143,192 @@ describe('main() emits nothing at all when it aborts', () => {
     ).toEqual(before);
   });
 
+  describe('a failing cleanup never SPEAKS FOR the run (R9-95)', () => {
+    /**
+     * Make only the staging SWEEP fail.
+     *
+     * `recursive` is the discriminator, not the path: buildPack removes each
+     * .sqlite it is about to write, and those live inside the staging
+     * directory, so matching on the name alone breaks the build long before
+     * the cleanup and the test measures the wrong failure. (It did, first try:
+     * the run died in buildPack and the message under test was the mock's own.)
+     *
+     * R9-85's lesson applies verbatim: `realRm` is captured BEFORE the spy, so
+     * the passthrough cannot re-enter the mock.
+     */
+    function breakStagingCleanup() {
+      const realRm = fs.rmSync;
+      const spy = jest.spyOn(fs, 'rmSync');
+      spy.mockImplementation((target, options) => {
+        if (options?.recursive && String(target).includes('.staging-')) {
+          throw new Error('EBUSY: resource busy or locked, rmdir');
+        }
+        return realRm(target, options);
+      });
+      return spy;
+    }
+
+    it('keeps the REASON the run aborted', () => {
+      // The one that matters. A `finally` that throws replaces the exception
+      // the `try` was throwing, so the shrink check could catch a shrinking
+      // pack and the operator would read only `EBUSY ... rmdir`. Measured
+      // before the fix: "mentions the real reason (went DOWN)? false".
+      writeInflatedBaseline(world.manifestFile);
+      const spy = breakStagingCleanup();
+      let message = '';
+      try {
+        main(world);
+      } catch (error) {
+        message = error.message;
+      } finally {
+        spy.mockRestore();
+      }
+      expect(message).toMatch(/went DOWN/);
+      // And the cleanup problem is reported too, not swallowed in its place.
+      expect(message).toMatch(/scratch directory[\s\S]*could NOT be removed/);
+      expect(message).toMatch(/EBUSY/);
+      expect(publishable(world.out)).toEqual([]);
+    });
+
+    it('does not report a SUCCESSFUL run as a bare EBUSY', () => {
+      // The mirror. Everything published, manifest rewritten, and the only
+      // thing the operator saw was a directory-removal error.
+      const spy = breakStagingCleanup();
+      let message = '';
+      try {
+        main(world);
+      } catch (error) {
+        message = error.message;
+      } finally {
+        spy.mockRestore();
+      }
+      expect(message).toMatch(/build itself SUCCEEDED/);
+      expect(message).toMatch(/scratch directory[\s\S]*could NOT be removed/);
+      // Checked against the world, not the sentence: it really did publish.
+      expect(publishable(world.out)).toEqual([
+        'rvr1960-red-letter.json',
+        'rvr1960.sqlite',
+        'web-red-letter.json',
+        'web.sqlite',
+      ]);
+      const written = manifestAgainstDisk(world.out, world.manifestFile);
+      expect(written.compared).toBe(4);
+      expect(written.problems).toEqual([]);
+    });
+  });
+
+  it('says what state it left behind when the MANIFEST write fails', () => {
+    // R9-96. The renames land, then the manifest write fails: `out` now holds
+    // THIS run's bytes while the committed manifest still pins the previous
+    // ones. Every other abort in this script explains itself; this one raised
+    // a bare `EPERM: ... open ...web-bootstrap.json` — and it is the only path
+    // where "those files are an EARLIER run's" would be a lie.
+    main(world);
+    const realWrite = fs.writeFileSync;
+    const spy = jest.spyOn(fs, 'writeFileSync');
+    spy.mockImplementation((target, data, options) => {
+      if (String(target) === world.manifestFile) {
+        throw new Error('EPERM: operation not permitted, open');
+      }
+      return realWrite(target, data, options);
+    });
+    let message = '';
+    try {
+      const changed = buildWorld('Jesus said something else entirely here.');
+      try {
+        main({...changed, out: world.out});
+      } catch (error) {
+        message = error.message;
+      }
+    } finally {
+      spy.mockRestore();
+    }
+
+    expect(message).toMatch(/WRITING THE MANIFEST[\s\S]*FAILED/);
+    expect(message).toMatch(/NOT an earlier run/);
+    expect(message).toMatch(/Do NOT upload from it as-is/);
+
+    // And the claim checked against the world: `out` really did get refreshed
+    // while the manifest really did stay behind.
+    const stale = manifestAgainstDisk(world.out, world.manifestFile);
+    expect(stale.compared).toBe(4);
+    expect(stale.problems.length).toBeGreaterThan(0);
+  });
+
+  it('does NOT call it coherent when an EARLIER run left it mixed', () => {
+    // R9-93, and the exact neighbour R9-84 left open. R9-84 stopped the message
+    // saying MIXED when nothing had moved; this stops the replacement saying
+    // "coherent - one run, whole - and its sha256 are still the ones the
+    // manifest pins" when an earlier run already mixed the directory. Both
+    // halves of that sentence are claims about the world, and on this path the
+    // world says otherwise.
+    //
+    // The sequence is three runs, and every step of it is the race R9-81
+    // documents as the one its preflight cannot close:
+    //   1. a clean run, so the manifest pins all four files;
+    //   2. a run that fails on a LATER rename - `out` is now mixed, and the
+    //      manifest was never rewritten, so it describes neither state;
+    //   3. a run that fails on the FIRST rename.
+    // Run 3 used to reassure its operator about the very directory run 2 told
+    // them not to upload.
+    main(world);
+
+    const realRename = fs.renameSync;
+    const failOn = attempt => {
+      const spy = jest.spyOn(fs, 'renameSync');
+      let calls = 0;
+      spy.mockImplementation((from, to) => {
+        calls += 1;
+        if (calls === attempt)
+          throw new Error('EPERM: operation not permitted');
+        return realRename(from, to);
+      });
+      let message = '';
+      try {
+        const changed = buildWorld('Jesus said something else entirely here.');
+        try {
+          main({...changed, out: world.out});
+        } catch (error) {
+          message = error.message;
+        }
+      } finally {
+        spy.mockRestore();
+      }
+      return message;
+    };
+
+    // Run 2: mixed, and the message is right about it.
+    expect(failOn(3)).toMatch(/FAILED HALFWAY[\s\S]*MIXED/);
+
+    // The world, before believing any message about it: the manifest still
+    // pins run 1, and `out` no longer matches it everywhere.
+    const pinned = new Map(
+      [
+        ...readPreviousManifest(world.manifestFile).packs,
+        ...readPreviousManifest(world.manifestFile).redLetter,
+      ].map(entry => [entry.file, entry.sha256]),
+    );
+    const drifted = publishable(world.out).filter(
+      name =>
+        crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(path.join(world.out, name)))
+          .digest('hex') !== pinned.get(name),
+    );
+    expect(drifted.length).toBeGreaterThan(0);
+
+    // Run 3: first rename fails. It must NOT call this coherent.
+    const message = failOn(1);
+    expect(message).toMatch(/FAILED ON THE FIRST FILE/);
+    expect(message).toMatch(/NOT coherent/);
+    expect(message).toMatch(/MIXED/);
+    expect(message).toMatch(/Do NOT upload anything from it/);
+    // Named, not merely alleged: the file it reports is the one that really
+    // drifted, checked against the manifest above.
+    for (const name of drifted) expect(message).toContain(name);
+    expect(message).not.toMatch(/IS coherent/);
+  });
+
   it('still moves every file when nothing is in the way (the control)', () => {
     // Without this, a preflight that refused unconditionally would satisfy both
     // cases above and never publish anything again.
@@ -1136,6 +1377,13 @@ describe('main() emits nothing at all when it aborts', () => {
       'web-red-letter.json',
       'web.sqlite',
     ]);
+    // R9-87, the half no other case can pin: this is the ONLY test in the file
+    // where the manifest is guaranteed ABSENT before main() runs, so it is the
+    // one place that can prove main() CREATES it rather than leaving whatever
+    // was already there.
+    const written = manifestAgainstDisk(world.out, world.manifestFile);
+    expect(written.compared).toBe(4);
+    expect(written.problems).toEqual([]);
     expect(warnSpy).toHaveBeenCalled();
     warnSpy.mockRestore();
   });

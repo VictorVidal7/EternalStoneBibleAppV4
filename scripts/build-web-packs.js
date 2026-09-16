@@ -45,7 +45,8 @@
  * on web only in English: native reads both arrays straight from the bundle,
  * but the web build fetches packs, and nobody emitted the Spanish one.
  *
- * Requires Node ≥ 22 (node:sqlite). Usage:
+ * Requires Node >= 22.13 (node:sqlite is unflagged there; it exists from
+ * 22.5 but throws without --experimental-sqlite until 22.13). Usage:
  *   node --experimental-sqlite scripts/build-web-packs.js [outDir] [--allow-shrink]
  *   (default outDir: %USERPROFILE%/Desktop/web-packs)
  *
@@ -474,6 +475,43 @@ function shrinkComplaints(previous, packs, redLetter) {
   return complaints;
 }
 
+/**
+ * The publishable files sitting in `out` whose bytes the published manifest
+ * does NOT pin — or `null` when there is no manifest able to answer.
+ *
+ * R9-93. `null` and `[]` are deliberately different answers: `[]` means
+ * "checked, every byte matches", `null` means "could not check". Collapsing
+ * them is how a message ends up asserting coherence it never established,
+ * which is the defect this exists to stop.
+ */
+function filesNotPinnedBy(out, previous) {
+  if (!previous) return null;
+  const pinned = new Map();
+  for (const entry of [
+    ...(previous.packs ?? []),
+    ...(previous.redLetter ?? []),
+  ]) {
+    if (entry && entry.file && entry.sha256)
+      pinned.set(entry.file, entry.sha256);
+  }
+  if (pinned.size === 0) return null;
+  const mismatched = [];
+  for (const name of fs.readdirSync(out)) {
+    if (!/\.(sqlite|json)$/.test(name)) continue;
+    const expected = pinned.get(name);
+    if (!expected) {
+      mismatched.push(`${name} (the manifest does not mention it)`);
+      continue;
+    }
+    const actual = crypto
+      .createHash('sha256')
+      .update(fs.readFileSync(path.join(out, name)))
+      .digest('hex');
+    if (actual !== expected) mismatched.push(name);
+  }
+  return mismatched;
+}
+
 function assertNoShrink(previous, packs, redLetter, allowShrink, manifestFile) {
   const complaints = shrinkComplaints(previous, packs, redLetter);
   // R9-74: say which of the two happened. Silence used to be the success
@@ -687,11 +725,42 @@ function main(options = {}) {
   // rename across volumes fails with EXDEV on Windows), and the `finally`
   // removes it on every path, abort included.
   const staging = fs.mkdtempSync(path.join(out, '.staging-'));
+
+  // R9-95: this used to be a plain `finally { fs.rmSync(...) }`, and a throw
+  // from a `finally` REPLACES the exception the `try` was throwing. So a run
+  // where a gate did its job — caught a shrink, refused to publish — could
+  // report `EBUSY: resource busy or locked, rmdir` and nothing else, with the
+  // real reason destroyed on the way out. That is this whole review's subject
+  // wearing yet another hat: the gate fired and the operator never heard it.
+  // The mirror case is just as wrong — a run that emitted all four packs AND
+  // rewrote the manifest reporting a bare EBUSY looks like a failed run.
+  //
+  // Not hypothetical plumbing: `staging` lives inside `out`, `out` defaults to
+  // the Desktop, and a sync client holding a freshly written 9.5 MB .sqlite is
+  // the same cause R9-81 was written for.
+  let failure = null;
   try {
     emit({staging, out, manifestFile, allowShrink, specs, redLetterSpecs});
-  } finally {
-    fs.rmSync(staging, {recursive: true, force: true});
+  } catch (error) {
+    failure = error;
   }
+  try {
+    fs.rmSync(staging, {recursive: true, force: true});
+  } catch (cleanupError) {
+    const note =
+      `\n\nSEPARATELY: the scratch directory ${staging} could NOT be removed ` +
+      `(${cleanupError.message}). It sits INSIDE the output directory, so ` +
+      'delete it by hand before publishing. Something is holding it open — a ' +
+      'sync client or a SQLite browser is the usual cause.';
+    if (failure) failure.message += note;
+    else
+      failure = new Error(
+        'The build itself SUCCEEDED: all packs were moved into ' +
+          `${out} and the manifest was written. Only the cleanup failed.` +
+          note,
+      );
+  }
+  if (failure) throw failure;
 }
 
 function emit({
@@ -766,8 +835,12 @@ function emit({
     });
   }
 
+  // Kept in a name rather than passed inline: the rename catch below needs it
+  // to CHECK a claim it used to simply make (R9-93).
+  const previous = readPreviousManifest(manifestFile);
+
   assertNoShrink(
-    readPreviousManifest(manifestFile),
+    previous,
     manifest,
     redLetterManifest,
     allowShrink,
@@ -831,14 +904,35 @@ function emit({
       // pins, and telling its owner it is MIXED and unpublishable is R9-66's
       // defect from the other side. The two paths get two messages.
       if (moved.length === 0) {
+        // R9-93: whether that directory is COHERENT is an assertion about the
+        // world, and this message used to make it without looking. Nothing
+        // moved on THIS run - but an EARLIER run may have failed halfway, and
+        // then `out` is already mixed. Telling its owner it is "coherent - one
+        // run, whole" there contradicts, word for word, the FAILED HALFWAY
+        // message that produced the state, and sends them to upload precisely
+        // what that message forbade. Same class as R9-66 and R9-84: a message
+        // that states the world has to be proven against the world.
+        //
+        // The manifest is already in hand, so checking costs four hashes.
+        const unpinned = filesNotPinnedBy(out, previous);
         throw new Error(
           `Moving the built packs into ${out} FAILED ON THE FIRST FILE ` +
             `(${stranded[0]}): ${error.message}\n\n` +
-            'NOTHING was written: not one file moved, so that directory is ' +
-            'exactly as an EARLIER run left it and the manifest was not ' +
-            'touched. It is coherent - one run, whole - and its sha256 are ' +
-            'still the ones the manifest pins.\n' +
-            'CAREFUL: those files are that EARLIER run, NOT this one. Fix the ' +
+            'NOTHING was written by THIS run: not one file moved, so that ' +
+            'directory is exactly as an EARLIER run left it and the manifest ' +
+            'was not touched.\n' +
+            (unpinned === null
+              ? 'There is no usable manifest to check it against, so whether ' +
+                'it is coherent CANNOT be established from here. Check before ' +
+                'publishing anything.\n'
+              : unpinned.length === 0
+                ? 'Checked, not assumed: every file in it matches the sha256 ' +
+                  'the manifest pins, so it IS coherent - one run, whole.\n'
+                : 'CAREFUL: it is NOT coherent. An EARLIER run left this ' +
+                  'directory MIXED - these do not match the sha256 the ' +
+                  `manifest pins: ${unpinned.join(', ')}.\n` +
+                  'Do NOT upload anything from it.\n') +
+            'Either way those files are an EARLIER run, NOT this one. Fix the ' +
             'cause and re-run.',
         );
       }
@@ -854,8 +948,16 @@ function emit({
     moved.push(name);
   }
 
-  fs.writeFileSync(
-    manifestFile,
+  // R9-96: every other failure in this file arrives wrapped in a sentence that
+  // says what state the world is in. This one did not, and it is the ONLY
+  // failure where "the files in `out` are an EARLIER run's" is FALSE and "the
+  // manifest was not touched" is the problem rather than the consolation: the
+  // four renames already landed, so `out` holds THIS run's bytes while the
+  // committed manifest still pins the previous ones. Publishing from there
+  // uploads packs whose sha256 the manifest contradicts — and data-loader.web.ts
+  // reads that sha256 as the only signal a new pack exists, so browsers would
+  // be told nothing changed. A bare EPERM does not say any of that.
+  const manifestBody =
     JSON.stringify(
       {
         schema: 1,
@@ -873,8 +975,23 @@ function emit({
       },
       null,
       2,
-    ) + '\n',
-  );
+    ) + '\n';
+  try {
+    fs.writeFileSync(manifestFile, manifestBody);
+  } catch (error) {
+    throw new Error(
+      `The packs were moved into ${out}, but WRITING THE MANIFEST ` +
+        `${manifestFile} FAILED: ${error.message}\n\n` +
+        'This is the one abort where the output directory is NOT an earlier ' +
+        "run: it holds THIS run's bytes, and the manifest still describes the " +
+        'PREVIOUS ones.\n' +
+        'Do NOT upload from it as-is. The manifest is what pins the sha256 ' +
+        'the web reader uses to notice a new pack, so publishing packs it ' +
+        'does not describe leaves every browser on the old data.\n' +
+        'Fix the cause (a read-only file, a lock, a full disk) and re-run: a ' +
+        'clean run rewrites both and costs nothing.',
+    );
+  }
 
   console.log('\nDone.');
   for (const s of specs)
