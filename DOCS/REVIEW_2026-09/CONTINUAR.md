@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 14 (revisión del diff de la 13 + 5 arreglos).**
+> **Última actualización: 2026-09-15, fin de la sesión 15 (revisión del diff de la 14 + 5 arreglos).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,19 +12,24 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. NO HAY NINGUNA RAMA SIN MERGEAR, y `main` ESTÁ PUSHEADO.** No busques una rama
-pendiente. Las **ocho** ramas de arreglos de las sesiones 7 a 14 están todas dentro de `main`,
-la última (`fix/review-s14-revision-diff-s13`, sesión 14) en fast-forward y con los gates
-corridos **sobre `main` ya mergeado** antes de publicar: **361 suites, 4219 pruebas** (desde
-361/4201), `tsc`, lint y `format:check`. No se pone el SHA del tip a propósito — el propio commit del checkpoint lo mueve, así que cualquier SHA escrito
-aquí nace obsoleto.
+**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s15-revision-diff-s14`.** Seis commits, los
+cinco arreglos de la sesión 15 (`R9-77`..`R9-81`) más un remate menor. **`main` está pusheado
+y al día**; las **ocho** ramas de arreglos de las sesiones 7 a 14 están todas dentro de él. La
+de la 15 **no**, a propósito: la regla fija es que no se mergea nada sin preguntarle a Victor.
+Gates corridos sobre la rama antes de parar: **362 suites, 4250 pruebas** (desde 361/4219),
+`tsc` limpio, lint con 0 errores y `format:check` verde.
+
+> **Si Victor mergea esa rama antes de abrir el chat nuevo, este bloque pasa a ser falso** —
+> cambiarlo a «no hay rama pendiente» y regenerar el mensaje de abajo. Es la lección de
+> proceso de la sesión 14: **mergear y el prompt del chat nuevo NO son independientes**.
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
-`eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15), verificado en vivo
-por sha256 contra el manifiesto. **No queda ningún paso pendiente de despliegue**: la letra
-roja en español está activa en la web. **Si vas a tocar packs, leé
-`reference_essb-github-pages-pack-publishing` antes** — se le añadieron 4 trampas que
-costaron un rato. Las dos que más:
+`eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15). **No queda ningún paso
+pendiente de despliegue**: la letra roja en español está activa en la web, y la sesión 15
+volvió a verificar los cuatro sha256 **dos veces** —contra el manifiesto y contra lo que hoy
+sirve GitHub Pages, antes y después de sus arreglos— con el build real corriendo contra los
+datos reales. Idénticos las dos veces. **Si vas a tocar packs, leé
+`reference_essb-github-pages-pack-publishing` antes.** Las dos trampas que más costaron:
 
 - **Metro cachea la `EXPO_PUBLIC_*` inlineada POR MÓDULO.** Tras construir una vez con
   `EXPO_PUBLIC_WEB_PACKS_BASE_URL` apuntando a un servidor local, un `expo export` posterior
@@ -32,12 +37,9 @@ costaron un rato. Las dos que más:
   `data-loader.web.ts` sí usaba la buena — y el síntoma es **idéntico al de un pack ausente**.
   Usá `expo export --clear` y confirmá con `grep` que no queda ninguna URL local en el bundle.
 - **Un 404 de GitHub Pages se sirve SIN cabecera CORS**, así que un `fetch` cruzado que lo
-  reciba falla con `TypeError: Failed to fetch`, no con «HTTP 404»; y Fastly lo cachea 10
-  minutos, así que **sondear la URL antes de publicar envenena el edge** y hace parecer roto
-  algo que ya está bien.
-
-Y ojo: **`~/Desktop/web-packs/` tiene `.sqlite` VIEJOS (de julio)** — comprobá el sha256
-antes de publicar nada desde ahí.
+  reciba rechaza con `TypeError: Failed to fetch`, no con un 404 legible — y Fastly lo cachea
+  unos 10 minutos, así que después de subir un archivo hay que esperar o forzar el refresco
+  antes de publicar nada desde ahí.
 
 **2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -61,7 +63,9 @@ marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a 
 mueve — y los seis ya están arreglados y mergeados.
 Los **5 hallazgos de la sesión 14** (`R9-72`..`R9-76`) también son P1/P2, así que el conteo
 de P0 tampoco se mueve — y los cinco ya están arreglados y mergeados.
-Hallazgos totales: **76**.
+Los **5 hallazgos de la sesión 15** (`R9-77`..`R9-81`) también son P1/P2, así que el conteo
+de P0 sigue igual — y los cinco están arreglados, en la rama sin mergear.
+Hallazgos totales: **81**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -103,7 +107,7 @@ comprobación no ejecute ninguna aserción?_** Si esa entrada es alcanzable, hac
 **un comentario que dice «verificado que hoy nadie hace X; si alguien empieza, arréglalo» no
 es una compuerta, es una nota.** O lo detecta algo, o no existe.
 
-**La lección de la sesión 14, que es la que conviene llevarse AHORA:** la 13 encontró sus
+**La lección de la sesión 14**, que sigue vigente entera: la 13 encontró sus
 defectos en las compuertas; la 14 los encontró **en el mismo sitio otra vez**. O sea: una
 compuerta recién escrita merece exactamente la misma desconfianza que el código que vigila, y
 **no menos por ser una prueba**. A la pregunta de la 13 se le suman dos:
@@ -127,6 +131,31 @@ Y dos corolarios que valen por sí solos:
 > **Un bucle que recorre la lista NUEVA no puede ver lo que falta de la VIEJA.** (`R9-73`.) Es
 > la variante de «un bucle en vacío pasa» que se le escapó a la propia sesión 13: si una
 > comprobación compara dos colecciones, tiene que recorrer **las dos**.
+
+**La lección de la sesión 15, que es la que conviene llevarse AHORA:** la 13 encontró sus
+defectos en las compuertas, la 14 en el mismo sitio, y la 15 **otra vez** — tres seguidas. Con
+eso ya hay bastante como para nombrar la forma:
+
+> **Una compuerta escrita para cerrar un caso cierra ese caso y deja abierto el vecino que la
+> motivó.** `R9-73` lee las listas PREVIAS —que era lo correcto— y no le pone piso a la lista
+> previa, así que una vacía la apaga entera (`R9-77`); y **no puede ver el `R9-13` que cita
+> por su nombre**, porque una versión que nunca tuvo pack no tiene entrada de la que faltar
+> (`R9-78`). `R9-76` mueve el discriminador de «lo exporta» a «lo declara» y deja fuera el par
+> donde el contrato vive en un tercer archivo (`R9-79`). `R9-75` deriva la lista de providers
+> leyendo el layout como TEXTO, o sea confiando en un comentario (`R9-80`). `R9-72` establece
+> que nada llega a `out` sin pasar la compuerta, y la mudanza final son cuatro operaciones
+> (`R9-81`).
+
+Y un corolario nuevo, del otro lado del `if` respecto al de la sesión 14:
+
+> **Un mensaje de ÉXITO que afirma cuánto comparó es una aserción, y hay que probarla contra
+> el MUNDO.** `assertNoShrink` decía «2 packs and 2 red-letter packs compared against the
+> published manifest» habiendo comparado **cero**. Las dos cifras coinciden en toda corrida
+> buena — **por eso nadie las miró en la mala**.
+
+Y una gotcha de plataforma que costó una prueba roja por el camino equivocado: **Windows abre
+tan campante un DIRECTORIO con `open(…, 'r+')`**, así que un preflight de «¿puedo reemplazar
+este archivo?» necesita además `statSync().isFile()`.
 
 **4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
@@ -172,56 +201,64 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 14 y, si aguanta, mergearlo.** Es el patrón
-que ya pagó **seis** veces seguidas: las sesiones 8, 9, 10, 11, 13 y 14 encontraron defectos
-reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran **pérdidas de
-datos nuevas**. Son 3 commits de arreglo + 2 de checkpoint, **ya en `main`**, y vuelven a
-tocar el sitio más delicado del programa: `scripts/build-web-packs.js`, que es lo único que
-produce **datos que se publican**, y esta vez le **reordenó las escrituras de verdad** —
-ahora todo se construye en un directorio de escenario y se mueve al final.
+**(a) RECOMENDADA — revisar el diff de la sesión 15 y, si aguanta, mergearlo.** Es el patrón
+que ya pagó **siete** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14 y 15 encontraron
+defectos reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran
+**pérdidas de datos nuevas**. Son 6 commits **en la rama `fix/review-s15-revision-diff-s14`,
+sin mergear**, y vuelven a tocar el sitio más delicado del programa:
+`scripts/build-web-packs.js`, que es lo único que produce **datos que se publican**. Esta vez
+le metieron un **piso nuevo a la compuerta de encogimiento** y un **preflight a la mudanza
+final**, o sea dos cosas que pueden ABORTAR una publicación legítima — el riesgo cambió de
+lado: antes era que dejara pasar, ahora también es que no deje.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> No hay ninguna rama pendiente: `main` está pusheado y al día, así que no busques una.
-> Tampoco queda nada de despliegue ni nada «dicho sin hacer».
+> **Hay una rama sin mergear: `fix/review-s15-revision-diff-s14` (6 commits).** `main` está
+> pusheado y al día, pero esa rama NO está dentro. Tampoco queda nada de despliegue.
 >
-> Revisá el diff de la sesión 14 en `main` (`R9-72`..`R9-76`: 5 commits, 8 archivos), con el
-> mismo criterio de las sesiones
-> 8-14 — buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
-> comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré, restaurá, y
-> `diff` el revert para confirmar que tocó la línea que creés).
+> Revisá ese diff (`R9-77`..`R9-81`, 6 archivos de código) con el mismo criterio de las
+> sesiones 8-15 — buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino
+> abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré,
+> restaurá, y `diff` el revert para confirmar que tocó la línea que creés). **Los arreglos van
+> de a varios por commit, así que preguntate si uno desarma la prueba del otro.**
 >
-> Las sesiones 13 y 14 encontraron sus defectos en las COMPUERTAS, así que asumí que el riesgo
-> de este diff está ahí también. Cinco sitios donde mirar con lupa:
+> Tres sesiones seguidas encontraron sus defectos en las COMPUERTAS, así que asumí que el
+> riesgo de este diff está ahí también — **y esta vez las compuertas nuevas pueden BLOQUEAR
+> una publicación buena, no solo dejar pasar una mala.** Cinco sitios donde mirar con lupa:
 >
-> 1. `main()` de `scripts/build-web-packs.js` se partió en `main()` + `emit()` y ahora
->    construye todo en un directorio de escenario (`.staging-XXXXXX` **dentro** del directorio
->    de salida) que se mueve con `renameSync` al final y se borra en un `finally`. Preguntate
->    qué pasa si dos corridas se solapan, si el `finally` puede borrar algo que sí había que
->    conservar, y si un `renameSync` a medias puede dejar el directorio de salida con dos
->    packs nuevos y dos viejos. **Y comprobá los cuatro sha256 contra
->    `web/packs/web-bootstrap.json`: tienen que seguir coincidiendo.**
-> 2. `main()` pasó a ser **parametrizable** (`out`, `allowShrink`, `manifestFile`, `specs`,
->    `redLetterSpecs`) para que la prueba pueda correrlo de verdad. Eso significa que los
->    valores por defecto son ahora la única cosa que ata el script real a los datos reales:
->    ¿puede una prueba escribir en `web/packs/web-bootstrap.json` por accidente? ¿Y ejercitan
->    las pruebas las listas REALES, o solo las de mentira?
-> 3. La detección de desaparición de `R9-73` recorre las listas PREVIAS. Preguntate qué pasa
->    con un manifiesto en la forma VIEJA (`redLetter` era un objeto), y si `--allow-shrink`
->    sigue siendo la vía de escape correcta para retirar una versión a propósito.
-> 4. `readPreviousManifest` ahora LANZA. Eso convierte un archivo corrupto en una corrida que
->    no produce nada: ¿es siempre lo que querés, o hay un camino legítimo (una primera corrida
->    en una máquina nueva, un `out` distinto) que ahora queda bloqueado?
-> 5. Las dos compuertas nuevas de pruebas (`missingProviderError.test.ts` lee los dos layouts
->    como TEXTO; `webNativeModuleParity.test.ts` decide por el sufijo `ContextValue`) son
->    heurísticas sobre texto. Preguntate qué escritura legítima las rompe, y si romperlas
->    FALLA o se degrada callado.
+> 1. El piso nuevo de `assertNoShrink` (`baselineComparisonCounts`) se dispara cuando la base
+>    no fija **ni una** de las entradas que la corrida emite. Preguntate qué corrida legítima
+>    cae ahí sin que nadie lo espere: ¿un `out` nuevo? ¿añadir una versión mientras se retira
+>    otra? ¿un manifiesto con los conteos como cadena en vez de número? Y si `--allow-shrink`
+>    —que dice «el encogimiento es deliberado»— es de verdad la salida correcta para «esta es
+>    la primera vez que emito esta categoría», o si estar usando una sola palanca para dos
+>    decisiones distintas hace que aprobar una apruebe la otra sin querer.
+> 2. El preflight de `R9-81` abre cada destino con `open(…, 'r+')` **y lo cierra**. Preguntate
+>    qué pasa entre ese cierre y el `renameSync` (la carrera que el propio arreglo admite no
+>    cerrar), si abrir en `r+` puede **modificar** algo o tocar mtime, y qué ocurre si el
+>    destino es un enlace simbólico o está en un volumen distinto. Y si `existsSync` +
+>    `openSync` es la pregunta correcta, o solo la que Windows contesta.
+> 3. `R9-78` añade `redLetterVersionIds()` a los DOS hermanos y exporta `RED_LETTER_PACKS`
+>    desde el web. Eso es superficie pública nueva creada para que una prueba pueda mirar:
+>    preguntate si la compuerta de paridad ahora exige algo que no debería, y si la prueba
+>    compara las listas de verdad o solo las que ella misma construye.
+> 4. `R9-79` marca **cualquier** `…ContextValue` declarado en un archivo `.web`, sin escape.
+>    Preguntate qué escritura legítima queda prohibida por eso y si el remedio es siempre de
+>    una línea, o si acabamos de plantar un muro donde hacía falta una señal de alto.
+> 5. `R9-80` cambió un regex por un recorrido del AST. Preguntate qué forma de montar un
+>    provider sigue sin ver (`<Ctx.Provider>` lo reporta, ¿y un componente envolvente? ¿un
+>    `.map`? ¿un provider montado en `app/(tabs)/_layout.tsx`, que este escáner ni abre?), y si
+>    la lista de `unreadable` **falla** o se degrada callado.
 >
-> Y ojo con el punto ciego que las sesiones 13 y 14 se cazaron a sí mismas: **una verificación
-> cuyo cuerpo entero es un bucle PASA cuando no hay nada que recorrer** — y su variante de la
-> 14, **un bucle que recorre la lista NUEVA no ve lo que falta de la VIEJA**. Ante cada
-> compuerta, preguntate qué entrada hace que no ejecute ninguna aserción, **de quién depende su
-> discriminador**, y **qué significa su silencio**.
+> Y ojo con los tres puntos ciegos que este programa ya se cazó a sí mismo: **una verificación
+> cuyo cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre
+> la lista NUEVA no ve lo que falta de la VIEJA**; y **un mensaje —de error o de éxito— que
+> AFIRMA un estado del mundo es una aserción, y hay que probarla mirando el MUNDO, no el
+> string**. Ante cada compuerta, preguntate qué entrada hace que no ejecute ninguna aserción,
+> **de quién depende su discriminador**, y **qué significa su silencio**.
+>
+> **Comprobá además los cuatro sha256 contra `web/packs/web-bootstrap.json` y contra lo que
+> sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.**
 >
 > Decime qué encontraste antes de tocar nada.
 
@@ -235,8 +272,10 @@ superficie del módulo en vez de comprobarla; **una comprobación que solo recor
 en vacío** —y su variante de la sesión 14, **un bucle que recorre la lista NUEVA no ve lo que
 falta de la VIEJA**—; **si el efecto dura un solo render, `act()` te lo esconde — instrumentá la
 llamada, no el árbol**; y **un mensaje de error que AFIRMA un estado del mundo es una aserción:
-probala mirando el mundo, no el string**. Va todo en rama con gates verdes; no mergees nada sin
-preguntarme.
+probala mirando el mundo, no el string** —y su gemelo de la sesión 15, **un mensaje de ÉXITO
+que afirma cuánto comparó es la misma aserción del otro lado del `if`**—; y **una compuerta
+escrita para cerrar un caso suele dejar abierto justo el vecino que la motivó**. Va todo en rama
+con gates verdes; no mergees nada sin preguntarme.
 
 **(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
 

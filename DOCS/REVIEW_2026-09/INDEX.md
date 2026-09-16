@@ -64,8 +64,18 @@
 > el propio código vigilado, y un silencio que significa a la vez «verificado» y «no miré»**.
 > Los 5 arreglados en la misma sesión.
 >
+> **Sesión 15 (2026-09-15) revisó el diff de la 14 y encontró 5 defectos, ninguno P0**
+> (`R9-77`, `R9-78` en P1; `R9-79`, `R9-80`, `R9-81` en P2). **Los 3 arreglos de la 14 se
+> sostienen y sus pruebas discriminan**, verificado revirtiendo cada uno **por separado** (4,
+> 6 y 3 rojas, controles verdes en los tres), y **ninguno desarma la prueba del otro** — que
+> era el riesgo concreto de un commit con tres arreglos dentro. Los cuatro sha256 siguen
+> idénticos al manifiesto **y a lo que hoy sirve GitHub Pages**. **Tercera sesión seguida con
+> todos los defectos en las COMPUERTAS**, y ya con una regularidad que se puede nombrar: **una
+> compuerta escrita para cerrar un caso cierra ese caso y deja abierto el vecino que la
+> motivó**. Los 5 arreglados en la misma sesión.
+>
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
-> Hallazgos: **76**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> Hallazgos: **81**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
 >
 > Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
@@ -532,6 +542,46 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 15 — 2026-09-15. Revisar el diff de la 14 (otra vez las COMPUERTAS), ya
+  mergeado.** Séptima sesión seguida de revisión adversarial sobre un diff de arreglos, y la
+  séptima que paga. 5 commits, 4 archivos de código. **Veredicto: los 3 arreglos de la sesión
+  14 se sostienen y sus pruebas DISCRIMINAN**, verificado revirtiendo cada uno **por separado**
+  —no los tres juntos, que es la lección de la sesión 10— con el `diff` del revert a la vista:
+  el escenario `staging` → `out` directo → 4 rojas; los dos bucles sobre las listas PREVIAS →
+  6; `readPreviousManifest` tragándose los errores → 3. **Ninguno desarma la prueba del otro.**
+  `R9-75` también discrimina (un `<ProbeOnlyProvider>` solo en el layout nativo la pone roja
+  **nombrándolo**). **Y los cuatro sha256 salen idénticos dos veces**: contra el manifiesto y
+  contra lo que hoy sirve `eternalstonebible.github.io`, antes de tocar nada y después de los
+  cinco arreglos.
+  **Los 5 defectos están en las COMPUERTAS por tercera sesión seguida**, y con una forma que ya
+  se repite lo bastante como para nombrarla: **una compuerta escrita para cerrar un caso cierra
+  ese caso y deja abierto el vecino que la motivó**. `R9-77` (P1: `R9-73` lee las listas
+  PREVIAS, que era lo correcto, y no le pone piso a la lista previa — una lista previa VACÍA
+  apaga los dos bucles de letra roja, y el manifiesto del repo **llevó exactamente esa forma**
+  hasta `a0782a6`; probado de punta a punta, el `R9-13` verbatim EMITE, imprime «nothing went
+  missing», y reescribe el manifiesto sin RVR1960). `R9-78` (P1: las tres listas de letra roja
+  solo estaban atadas por comentarios, y la compuerta de `R9-73` **no puede ver el `R9-13` que
+  cita por su nombre**, porque una versión que nunca tuvo pack no tiene entrada de la que
+  faltar). `R9-79` (el discriminador de `R9-76` sigue exigiendo que el contrato viva en el
+  hermano nativo, y en uno de los cuatro pares vive en un tercer archivo — sonda verde 72/72).
+  `R9-80` (la compuerta de `R9-75`, escrita para ser «derivada, no confiada», lee el layout
+  como TEXTO y cuenta como montado un provider nombrado en un **comentario** — sonda verde
+  11/11). `R9-81` (la mudanza final de `R9-72` son cuatro `renameSync`, y una a medias deja el
+  directorio de publicación MEZCLADO bajo un `EPERM` pelado). Los 5 arreglados en
+  `fix/review-s15-revision-diff-s14`, cada uno **visto fallar primero**, más un remate menor
+  (la prueba de hooks decía «six» con siete entradas en la lista, ahora con piso).
+  **Detalle completo, incluido lo comprobado y BIEN y lo dicho-y-no-hecho:
+  `detail/S15-revision-del-diff.md`.**
+  **La lección de método:** a las dos preguntas de la sesión 14 —_¿de quién depende el
+  discriminador?_ y _¿qué significa su silencio?_— se le suma una tercera, del otro lado del
+  `if`: **un mensaje de ÉXITO que afirma cuánto comparó es una aserción, y hay que probarla
+  contra el mundo.** `assertNoShrink` decía «2 packs and 2 red-letter packs compared against
+  the published manifest» habiendo comparado CERO; las dos cifras coinciden en toda corrida
+  buena, **y por eso nadie las miró en la mala**. Y una gotcha de plataforma que costó una
+  prueba roja por el camino equivocado: **Windows abre tan campante un DIRECTORIO con
+  `open(…, 'r+')`**, así que un preflight de «¿puedo reemplazar este archivo?» necesita además
+  `statSync().isFile()`.
 
 - **Sesión 14 — 2026-09-15. Revisar el diff de la 13 (las COMPUERTAS), ya mergeado.** Sexta
   sesión seguida de revisión adversarial sobre un diff de arreglos, y la sexta que paga. 8

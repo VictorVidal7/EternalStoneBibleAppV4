@@ -49,6 +49,20 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 15 (2026-09-15).** Revisó el diff de la 14 (5 commits, 4 archivos de código) y
+> encontró **5 defectos, ninguno P0**: `R9-77`, `R9-78` (P1) y `R9-79`, `R9-80`, `R9-81` (P2).
+> **Los tres arreglos de la sesión 14 se sostienen y sus pruebas DISCRIMINAN** — verificado
+> revirtiendo cada uno **por separado**, con el `diff` del revert a la vista (4, 6 y 3 rojas
+> respectivamente, controles verdes en los tres), y **ninguno desarma la prueba del otro**,
+> que era el riesgo concreto de un commit con tres arreglos dentro. Los cuatro sha256 siguen
+> saliendo idénticos al manifiesto **y a lo que hoy sirve GitHub Pages**. Los defectos están
+> **otra vez en las COMPUERTAS, tercera sesión seguida**, y con una regularidad que ya se
+> puede nombrar: **una compuerta escrita para cerrar un caso cierra ese caso y deja abierto el
+> vecino que la motivó** — `R9-73` no ve una lista previa VACÍA, y no ve el `R9-13` que cita
+> por su nombre; `R9-76` deja el discriminador en «el nativo lo declara»; `R9-75` deriva la
+> lista leyendo el layout como TEXTO; `R9-72` deja una mudanza de cuatro operaciones. Los 5
+> arreglados en la misma sesión. Detalle: `detail/S15-revision-del-diff.md`.
+
 > **Sesión 14 (2026-09-15).** Revisó el diff de la 13 (8 commits, 16 archivos) y encontró
 > **5 defectos, ninguno P0**: `R9-72`, `R9-73` (P1) y `R9-74`, `R9-75`, `R9-76` (P2). **Los
 > 6 arreglos de la sesión 13 se sostienen y sus 6 pruebas DISCRIMINAN** (verificado revirtiendo
@@ -617,6 +631,55 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ## P1 — núcleo de la app
 
+- **`R9-77` (S15, build de packs) — 🐛 una base que no fija NADA se reportaba como éxito.**
+  `readPreviousManifest` exige un array `packs` con un argumento explícito —sin él «_every
+  count comparison below would have nothing to compare against and pass vacuously_»— y **ese
+  mismo razonamiento no se aplicó a `redLetter`**. Con la lista previa de letra roja vacía, los
+  dos bucles que la recorren (el de conteos y el de desaparición de `R9-73`) no ejecutan ni una
+  aserción, y `assertNoShrink` imprime un mensaje de éxito. **Alcanzable, y no por poco: el
+  manifiesto del repo llevó exactamente esa forma** (`packs` sí, `redLetter` no) desde
+  `c3a9aac` (2026-07-08) hasta `a0782a6`, así que un `git checkout` de una revisión vieja, un
+  revert o un merge que se quede con el lado viejo aterrizan ahí — y `redLetter: []`, que es lo
+  que este mismo script escribe si la lista de specs se vacía una vez, es igual de vacío
+  pasando todas las comprobaciones de forma. **Probado de punta a punta contra el `main()`
+  real**, con esa base y RVR1960 fuera de `RED_LETTER_SPECS` (o sea `R9-13` palabra por
+  palabra): la corrida **EMITE**, imprime «_nothing went down and nothing went missing_», y
+  **reescribe el manifiesto sin RVR1960**, destruyendo la única base que tenía la corrida
+  siguiente — que es justo la cascada que el comentario de `R9-73` describe como su razón de
+  existir. Y el mensaje de éxito nombraba el tamaño de las listas NUEVAS como si fuera el
+  número de comparaciones: **las dos cifras coinciden en toda corrida buena, por eso nadie las
+  miró en la mala**. **✅ ARREGLADO en la sesión 15:** `baselineComparisonCounts` cuenta lo que
+  la base FIJA; si la corrida emite entradas de una categoría y la base no fija ni una, se
+  para. Señal de alto, no muro — `--allow-shrink` sigue siendo la salida, porque la PRIMERA
+  corrida que emite una categoría entera legítimamente no tiene nada que la fije (`a0782a6` fue
+  esa corrida). El mensaje dice cuántas comparaciones **hizo**. Y `readPreviousManifest`
+  rechaza un `redLetter` que no sea ni array ni objeto pero **no** su ausencia, porque ausente
+  es indistinguible de «nunca se publicó nada»: el piso vive donde la corrida sabe qué va a
+  emitir. Vistas fallar primero con **tres reverts por separado** (8, 10 y 1 rojas), 6
+  controles verdes en los tres. Detalle: `detail/S15-revision-del-diff.md`.
+
+- **`R9-78` (S15, letra roja web) — 🐛 las tres listas que DEBEN coincidir solo estaban atadas
+  por comentarios.** La disponibilidad de letra roja se declara en tres sitios y tres mundos:
+  `redLetterByVersion` (`redLetterText.ts`, nativo), `RED_LETTER_PACKS`
+  (`redLetterText.web.ts`, web, y los NOMBRES de archivo) y `RED_LETTER_SPECS`
+  (`scripts/build-web-packs.js`, lo único que los CONSTRUYE). Los tres llevaban un comentario
+  pidiéndole al siguiente que se acuerde y **nada detectaba el día que uno no se acordara** —
+  `R9-13` **es** ese día: RVR1960 estaba en el mapa nativo y ausente de los otros dos, así que
+  el lector web contestaba «sí, esta versión tiene palabras de Cristo», habilitaba el
+  interruptor y no pintaba ni una, en silencio, en español, un mes. **La compuerta de `R9-73`
+  no puede ver este caso**: una versión que nunca tuvo pack no tiene entrada en la base de la
+  que faltar — o sea que **su propio comentario cita `R9-13` por su nombre mientras construye
+  una compuerta que no lo vería**. Es el corolario de la sesión 13 en su forma más cara: un
+  comentario que pide sincronía es una nota, no una compuerta. **✅ ARREGLADO en la sesión
+  15:** las tres listas se comparan por valor —ids en las tres direcciones y nombres de archivo
+  entre las dos que los llevan— en `__tests__/redLetterPackParity.test.ts`. Los dos hermanos
+  exponen `redLetterVersionIds()` a propósito, así la compuerta de paridad exige que el web lo
+  siga teniendo (nativo ⊆ web). Con piso (las tres listas no vacías, por si un `require`
+  resolviera a otra cosa y dejara toda comparación en `[]` vs `[]`) y con control (que reaccione
+  en LAS DOS direcciones, no solo a una lista más corta). Vista fallar primero en las tres
+  direcciones del drift; **el estado real de `R9-13` sale rojo en la comparación de ids**.
+  Detalle: `detail/S15-revision-del-diff.md`.
+
 - **`R9-72` (S14, build de packs) — 🐛 el mensaje de abort de `R9-66` MENTÍA: los dos
   `.sqlite` ya estaban escritos.** Encontrado al revisar el diff de la sesión 13. El
   reordenamiento que esa sesión hizo para «abortar antes de emitir nada» solo aplazó los JSON
@@ -953,6 +1016,62 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-79` (S15, paridad web/nativo) — 🐛 el contrato compartido no tiene por qué vivir en el
+  hermano nativo.** `R9-76` amplió el discriminador de «el nativo lo EXPORTA» a «...o lo declara
+  en privado», con el argumento correcto —exportarlo es una decisión del propio código
+  ofensor—, **pero el mismo argumento vale un nivel más afuera**: el contrato no tiene por qué
+  estar en el hermano nativo en absoluto. `AudioPlayerContext.tsx` importa
+  `AudioPlayerContextValue` de `../types/audio`, así que el nativo ni lo declara ni lo exporta y
+  las dos reglas se callan — **y ése es uno de los cuatro pares de contexto que el comentario de
+  la compuerta cita como su justificación**. Sondeado: una copia local divergente en el stub web
+  dejaba la suite en **72/72**. **✅ ARREGLADO en la sesión 15:** para un `…ContextValue` la
+  regla es incondicional, un archivo `.web` no declara uno y punto; todo otro nombre sigue
+  necesitando que el nativo lo exporte, que es lo que mantiene fuera a un `Props`/`State`
+  privado. **Y con control, que es lo que le faltaba a `R9-76`**: tras `R9-70` ningún par real
+  dispara la regla, así que los catorce casos reales se ponen verdes sin comparar nada —
+  «sondeado a mano» no es lo mismo que «fijado». El predicado sale a una función y se ejercita
+  contra pares sintéticos: el caso de `R9-79`, el de `R9-76`, el de `R9-70` y los dos negativos
+  que conservan la estrechez. Detalle: `detail/S15-revision-del-diff.md`.
+
+- **`R9-80` (S15, web) — 🐛 la compuerta de `R9-75` contaba como montado un provider nombrado en
+  un comentario.** `providersMountedIn` era un regex sobre el TEXTO crudo del layout, y el texto
+  crudo no distingue un provider MONTADO de uno MENCIONADO. Sondeado contra la compuerta misma:
+  dejar de montar `<AudioPlayerProvider>` en `app/_layout.web.tsx` conservando el nombre dentro
+  de un comentario JSX dejaba el archivo entero en **11/11 verde**. El sentido del fallo es el
+  malo: el conjunto «montados en web» **CRECE** en silencio, `unmountedOnWeb` pierde esa
+  entrada, y nada exige anotarla en `WEB_UNMOUNTED_PROVIDERS` — así que `useAudioPlayer` lanza,
+  `isMissingProviderError` dice `false`, y el usuario recibe el «Algo salió mal» genérico con un
+  botón de reintentar que vuelve a renderizar la misma ruta y vuelve a lanzar: **exactamente el
+  síntoma que `R9-14` existe para quitar**. La compuerta escrita para ser «derivada, no
+  confiada» estaba confiando en un comentario, y su propio encabezado ya se preocupaba de que
+  ese conjunto encogiera en silencio — crece igual de callado. **✅ ARREGLADO en la sesión 15:**
+  recorre el ÁRBOL DE SINTAXIS, como el escáner de paridad después de `R9-67`, así que los
+  comentarios y los literales de cadena dejan de existir en vez de haber que quitarlos a mano; y
+  con la misma disciplina, una etiqueta que no puede atribuir a un identificador simple
+  (`<Ctx.Provider>`) se **reporta** en vez de descartarse. Con control sintético, que es lo único
+  positivo que hay: ningún layout real menciona un provider que no monte.
+  Detalle: `detail/S15-revision-del-diff.md`.
+
+- **`R9-81` (S15, build de packs) — 🐛 la mudanza a `out` no es atómica y podía dejarlo
+  MEZCLADO.** `R9-72` estableció la propiedad correcta —nada llega al directorio de salida hasta
+  que la compuerta pasa— pero la mudanza final son **cuatro** `renameSync`, no uno. Probado
+  bloqueando el último destino: un `rvr1960.sqlite` **nuevo** junto a un `web.sqlite` **viejo**,
+  el manifiesto sin escribir describiendo ninguno de los dos estados, el escenario ya barrido
+  por el `finally` —así que no queda nada que diga que la mudanza fue parcial— y un `EPERM`
+  pelado sin el «_CAREFUL: check their sha256 before publishing_» que llevan todos los demás
+  abortos de ahí. Y publicar es una subida MANUAL de lo que haya en ese directorio, que por
+  defecto es el **Escritorio**, justo donde un archivo se queda abierto por un cliente de
+  sincronización o un visor de SQLite. Río abajo tampoco lo caza nadie: `data-loader.web.ts` usa
+  el sha256 solo como token de caché y **nunca lo verifica contra los bytes**. **✅ ARREGLADO en
+  la sesión 15:** se comprueba que TODOS los destinos son reemplazables antes de mover el
+  primero —lo que cubre la causa realista entera con `out` todavía intacto— y si el rename falla
+  igual, el error dice exactamente qué se movió y qué no, y que ese directorio está MEZCLADO.
+  **Detalle que costó una prueba roja por el camino equivocado: Windows abre tan campante un
+  DIRECTORIO con `open(…, 'r+')`**, así que el preflight tiene que mirar además
+  `statSync().isFile()`. La rama del rename que falla después del preflight se fija espiando
+  `fs.renameSync`, que es la única forma determinista de llegar ahí.
+  Detalle: `detail/S15-revision-del-diff.md`.
 
 - **`R9-74` (S14, build de packs) — 🐛 `readPreviousManifest` devolvía `null` ante CUALQUIER
   error, y un `null` apagaba la compuerta entera en silencio total.** El comentario decía
