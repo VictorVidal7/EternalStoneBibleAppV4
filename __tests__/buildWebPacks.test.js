@@ -612,6 +612,39 @@ describe('a baseline that pins nothing cannot be reported as success', () => {
     ).not.toThrow();
   });
 
+  // R9-83 - the neighbour this very floor left open.
+  it('REFUSES an ABSENT baseline, which pins strictly less than an empty one', () => {
+    // The floor above stops a baseline that pins nothing and makes a human say
+    // --allow-shrink. A baseline that is not there at all pins LESS than that,
+    // and used to need no flag, print one reassuring line, and publish.
+    expect(() => assertNoShrink(null, PACKS, RED_LETTER, false)).toThrow(
+      /NO baseline/,
+    );
+  });
+
+  it('says NOTHING was written on that path too', () => {
+    expect(() => assertNoShrink(null, PACKS, RED_LETTER, false)).toThrow(
+      /NOTHING was written[\s\S]*EARLIER run/,
+    );
+  });
+
+  it('lets an absent baseline through with --allow-shrink (the control)', () => {
+    // Same escape hatch as every other stop sign here, so this is not a wall:
+    // a genuine first run against a brand-new manifest path says so on the
+    // command line, and the flag in the shell history is the record.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(() => assertNoShrink(null, PACKS, RED_LETTER, true)).not.toThrow();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('names the manifest it could not find when it is told one', () => {
+    // The actionable half: "restore THIS file" beats "restore the baseline".
+    expect(() =>
+      assertNoShrink(null, PACKS, RED_LETTER, false, '/tmp/web-bootstrap.json'),
+    ).toThrow(/web-bootstrap\.json/);
+  });
+
   it('reports how many comparisons it MADE, not how many packs it emits', () => {
     // The second half of the finding. Those two numbers agree on every good
     // run, which is exactly why the disagreement went unnoticed on the bad one.
@@ -728,6 +761,30 @@ describe('main() emits nothing at all when it aborts', () => {
       .sort();
   }
 
+  /**
+   * A baseline that matches exactly what this fixture world produces, so the
+   * ordinary cases below run the way the real script does: against a manifest
+   * that PINS every count. Before R9-83 these cases ran with no baseline at
+   * all, which is the one shape the shrink check cannot say anything about -
+   * so the "clean run" control was, strictly, a control of the vacuum.
+   */
+  function writeMatchingBaseline(file) {
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        schema: 1,
+        packs: [
+          {id: 'RVR1960', verseCount: 66},
+          {id: 'WEB', verseCount: 66},
+        ],
+        redLetter: [
+          {versionId: 'WEB', entries: 1, spans: 1},
+          {versionId: 'RVR1960', entries: 1, spans: 1},
+        ],
+      }),
+    );
+  }
+
   /** A baseline that makes RVR1960 look bigger than this run can produce. */
   function writeInflatedBaseline(file) {
     fs.writeFileSync(
@@ -749,6 +806,7 @@ describe('main() emits nothing at all when it aborts', () => {
   beforeEach(() => {
     dir = fs.mkdtempSync(path.join(os.tmpdir(), 'essb-main-'));
     world = buildWorld(JOHN_FIXTURE);
+    writeMatchingBaseline(world.manifestFile);
   });
   afterEach(() => fs.rmSync(dir, {recursive: true, force: true}));
 
@@ -965,6 +1023,41 @@ describe('main() emits nothing at all when it aborts', () => {
     expect(
       fs.readFileSync(path.join(world.out, 'web-red-letter.json'), 'utf8'),
     ).toContain('43');
+  });
+
+  it('leaves the output directory EMPTY when there is no baseline at all', () => {
+    // R9-83 end to end, and the reason it is a P1 and not a nicety: this is
+    // R9-13 verbatim (RVR1960 out of redLetterSpecs) against a manifest that is
+    // simply not there. Before the fix the run EMITTED, said only "shrink check
+    // SKIPPED ... (first run for this output)", and rewrote the manifest
+    // WITHOUT RVR1960 - destroying the one baseline the next run had.
+    fs.rmSync(world.manifestFile, {force: true});
+    expect(() =>
+      main({
+        ...world,
+        redLetterSpecs: world.redLetterSpecs.filter(
+          rl => rl.versionId !== 'RVR1960',
+        ),
+      }),
+    ).toThrow(/NO baseline/);
+    expect(publishable(world.out)).toEqual([]);
+    expect(fs.existsSync(world.manifestFile)).toBe(false);
+  });
+
+  it('still emits with no baseline when --allow-shrink says so (the control)', () => {
+    // Without this the stop sign is a wall, and a genuinely new manifest path
+    // could never be created at all.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    fs.rmSync(world.manifestFile, {force: true});
+    main({...world, allowShrink: true});
+    expect(publishable(world.out)).toEqual([
+      'rvr1960-red-letter.json',
+      'rvr1960.sqlite',
+      'web-red-letter.json',
+      'web.sqlite',
+    ]);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it('leaves no staging scratch behind on a clean run OR an abort', () => {

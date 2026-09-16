@@ -474,15 +474,57 @@ function shrinkComplaints(previous, packs, redLetter) {
   return complaints;
 }
 
-function assertNoShrink(previous, packs, redLetter, allowShrink) {
+function assertNoShrink(previous, packs, redLetter, allowShrink, manifestFile) {
   const complaints = shrinkComplaints(previous, packs, redLetter);
   // R9-74: say which of the two happened. Silence used to be the success
   // signal AND the skipped-entirely signal, so an operator had no way to tell a
   // verified run from one that never compared anything.
+  // R9-83: an ABSENT baseline is the same vacuum as one that pins nothing, one
+  // notch worse - and it used to cost nothing at all. R9-74 made this path
+  // ANNOUNCE itself instead of staying silent, which was the right half of the
+  // problem; the other half is that announcing it and publishing anyway leaves
+  // every comparison below unrun. Proven end to end: with no manifest and
+  // RVR1960 out of RED_LETTER_SPECS - R9-13 verbatim - the run emitted, printed
+  // one reassuring line, and rewrote the manifest WITHOUT RVR1960, destroying
+  // the only baseline the next run had to notice with.
+  //
+  // The old wording was wrong on its own terms too: `manifestFile` is the
+  // COMMITTED web/packs/web-bootstrap.json whatever `out` happens to be, so
+  // "first run for this output" was never the right description of it. Its
+  // absence is a deleted or moved file. And readPreviousManifest's own read
+  // error offers "move it aside deliberately if this really is a first run" as
+  // an escape - which, before this, switched off R9-66, R9-73 and R9-77 in one
+  // move, with no flag and no record.
+  //
+  // Stop sign, not wall: --allow-shrink is the same escape every other refusal
+  // here offers, and the flag in the shell history is the record of it.
   if (!previous) {
-    console.log(
-      '  shrink check SKIPPED: no published manifest to compare against ' +
-        '(first run for this output). Nothing pins these counts.',
+    if (!allowShrink) {
+      throw new Error(
+        'The shrink check has NO baseline: there is no published manifest' +
+          (manifestFile ? ` at ${manifestFile}` : '') +
+          '.\n\nNothing pins these counts, so every comparison below - ' +
+          'including the check for a version that VANISHED, which reads the ' +
+          'PREVIOUS list - would find nothing to compare against and pass in a ' +
+          'vacuum. An absent baseline pins strictly LESS than the empty one ' +
+          'the floor below refuses.\n' +
+          'web/packs/web-bootstrap.json is COMMITTED, so its absence is a ' +
+          'deleted or moved file, not a first run. Restore it ' +
+          '(git checkout web/packs/web-bootstrap.json).\n\n' +
+          'NOTHING was written: the run aborted before anything left its ' +
+          'staging directory, so no pack file was emitted into the output ' +
+          'directory and the manifest was not touched.\n' +
+          'CAREFUL: files ALREADY sitting in the output directory are from an ' +
+          'EARLIER run - this run did not refresh them.\n' +
+          'If this really IS a first run against a brand-new manifest path, ' +
+          're-run with --allow-shrink.',
+      );
+    }
+    console.warn(
+      '\n  WARNING: there is no published manifest' +
+        (manifestFile ? ` at ${manifestFile}` : '') +
+        ' to compare against, so NOTHING pins these counts. Continuing ' +
+        'because --allow-shrink was passed.',
     );
     return;
   }
@@ -729,6 +771,7 @@ function emit({
     manifest,
     redLetterManifest,
     allowShrink,
+    manifestFile,
   );
 
   // Past this line the run is judged publishable, so now — and only now —
