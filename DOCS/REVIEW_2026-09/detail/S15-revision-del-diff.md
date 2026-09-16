@@ -206,6 +206,12 @@ que ser igual al tamaño del conjunto. (Es inalcanzable hoy: todos los llamadore
 
 ## Dicho y NO hecho (decisión de Victor)
 
+- **`--allow-shrink` ahora sirve para DOS decisiones distintas** y lo hace con una sola
+  palanca: «el encogimiento es deliberado» (`R9-66`/`R9-73`) y «es la primera vez que emito
+  esta categoría» (`R9-77`). Las dos son «pará y confirmá», así que compartir bandera es
+  defendible — pero **aprobar una aprueba la otra sin querer**, que es justo la forma de
+  discriminador débil que esta sesión estuvo cazando. Separarlas en dos banderas es media hora;
+  **queda dicho, y es decisión de Victor.**
 - **Un Ctrl-C a media construcción se salta el `finally`** y deja un `.staging-XXXXXX` dentro
   de `out` para siempre. La prueba de limpieza cubre el camino limpio y los abortos, no un
   kill. Barato de cerrar (barrer `.staging-*` viejos al arrancar), pero no se tocó.
