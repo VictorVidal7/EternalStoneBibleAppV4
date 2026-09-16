@@ -243,8 +243,9 @@ roto de la forma tonta, no de las otras.)
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
 > **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a revisar
-> son los cinco arreglos de la sesión 16, ya dentro de `main`
-> (`git log 0aa92a7..531ffef`).
+> son los cinco arreglos de la sesión 16, ya dentro de `main`: **`git log cca7091..531ffef`**
+> (5 commits, 7 archivos). Ojo, `0aa92a7..531ffef` son QUINCE commits y mezcla la sesión 15,
+> que ya se revisó.
 >
 > Revisá el diff de la 16 (`R9-82`..`R9-86`) con el mismo criterio de las sesiones 8-16 —
 > buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
@@ -275,7 +276,9 @@ roto de la forma tonta, no de las otras.)
 >    una baseline. Preguntate a qué pruebas les cambió el significado sin que nadie lo note —
 >    una prueba que antes ejercitaba «sin base» y ahora ejercita «con base» puede haber dejado
 >    de probar lo suyo. Es exactamente la forma de la sesión 10 (un arreglo desarma la prueba
->    de otro), pero por la puerta del fixture.
+>    de otro), pero por la puerta del fixture. La 16 dice haberlas revisado una por una (está
+>    en «Comprobado y BIEN» de su detalle) — **esa afirmación es justo del tipo que este
+>    programa comprueba, no del que cree**.
 >
 > Y ojo con los puntos ciegos que este programa ya se cazó a sí mismo: **una verificación cuyo
 > cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre la
