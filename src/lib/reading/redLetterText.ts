@@ -72,6 +72,24 @@ export function hasRedLetterData(versionId: string): boolean {
   return redLetterByVersion.has(versionId);
 }
 
+/**
+ * Every version id that has red-letter data here, so the OTHER two lists that
+ * must agree with this one can be checked against it instead of against a
+ * comment (R9-78).
+ *
+ * There are three of them and they live in three different worlds:
+ * `redLetterByVersion` above (native, bundled arrays), `RED_LETTER_PACKS` in
+ * redLetterText.web.ts (web, fetched packs) and `RED_LETTER_SPECS` in
+ * scripts/build-web-packs.js (what actually gets BUILT). All three headers said
+ * "keep in sync" and nothing detected the day one drifted - which is precisely
+ * what R9-13 was: RVR1960 sat in this map with no pack behind it, so the web
+ * reader answered "yes, red-letter available" and rendered none, for a month.
+ * __tests__/redLetterPackParity.test.ts is the detector.
+ */
+export function redLetterVersionIds(): string[] {
+  return [...redLetterByVersion.keys()];
+}
+
 export function getRedLetterSpans(
   versionId: string,
   bookNumber: number,

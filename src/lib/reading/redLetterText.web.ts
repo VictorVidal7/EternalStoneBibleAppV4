@@ -15,11 +15,16 @@
  * Both versions, not just WEB, as of 2026-09-15. Until then this file knew
  * only about web-red-letter.json, so "Words of Christ" silently did nothing
  * for anyone reading in Spanish on the web — the native build has had
- * RVR1960 red-letter since 2026-08-18. Keep RED_LETTER_PACKS below in sync
- * with redLetterByVersion in redLetterText.ts (native) and with
- * redLetterSpecs in scripts/build-web-packs.js; a version in the native map
+ * RVR1960 red-letter since 2026-08-18. RED_LETTER_PACKS below must stay in
+ * sync with redLetterByVersion in redLetterText.ts (native) and with
+ * RED_LETTER_SPECS in scripts/build-web-packs.js; a version in the native map
  * with no pack here reads red-letter-free on web while the UI says otherwise,
  * which is exactly the bug that was fixed.
+ *
+ * R9-78: that used to be the whole of it - three files each carrying a comment
+ * asking the next person to remember, and nothing that DETECTED the day one of
+ * them forgot. R9-13 IS that day. __tests__/redLetterPackParity.test.ts now
+ * compares the three lists by value, ids and filenames both.
  *
  * `mergeRedLetterSpans` below is copied VERBATIM from redLetterText.ts — it
  * is a pure algorithm with no data dependency, so it needs no changes here.
@@ -61,7 +66,7 @@ const WEB_PACKS_BASE_URL =
  * both platforms. Filenames must match redLetterSpecs in
  * scripts/build-web-packs.js.
  */
-const RED_LETTER_PACKS: ReadonlyMap<string, string> = new Map([
+export const RED_LETTER_PACKS: ReadonlyMap<string, string> = new Map([
   ['WEB', 'web-red-letter.json'],
   ['RVR1960', 'rvr1960-red-letter.json'],
 ]);
@@ -96,6 +101,15 @@ const loadPromises = new Map<string, Promise<void>>();
  */
 export function hasRedLetterData(versionId: string): boolean {
   return RED_LETTER_PACKS.has(versionId);
+}
+
+/**
+ * The web half of native's `redLetterVersionIds` - see that function for why
+ * both sides expose it (R9-78). Exported on BOTH siblings on purpose: the
+ * parity gate then requires this one to keep existing, since native ⊆ web.
+ */
+export function redLetterVersionIds(): string[] {
+  return [...RED_LETTER_PACKS.keys()];
 }
 
 /**
