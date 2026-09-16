@@ -991,21 +991,101 @@ describe('main() emits nothing at all when it aborts', () => {
     // The residual race the preflight cannot close: the destination was
     // replaceable a moment ago and is not any more. It must not be silent.
     main(world);
+    // R9-85: the real renameSync has to be captured BEFORE the spy replaces it.
+    // `jest.requireActual('fs')` returns the SAME module object for a core
+    // module, so `jest.requireActual('fs').renameSync` is the spy itself
+    // (probed: SAME_MODULE=true, SAME_FN=true, IS_MOCK=true). The first rename
+    // therefore re-entered the mock, bumped the counter to 2 and threw, so
+    // `moved` was always EMPTY and this test - the one named for the halfway
+    // case - only ever exercised the nothing-moved one. The old regex only
+    // checked that the two LABELS were present, which they are either way.
+    const realRename = fs.renameSync;
     const renameSpy = jest.spyOn(fs, 'renameSync');
     let calls = 0;
     renameSpy.mockImplementation((from, to) => {
       calls += 1;
       if (calls === 2) throw new Error('EPERM: operation not permitted');
-      return jest.requireActual('fs').renameSync(from, to);
+      return realRename(from, to);
     });
+    let message = '';
     try {
       const changed = buildWorld('Jesus said something else entirely here.');
-      expect(() => main({...changed, out: world.out})).toThrow(
-        /FAILED HALFWAY[\s\S]*moved \(THIS run's bytes\)[\s\S]*not moved/,
-      );
+      try {
+        main({...changed, out: world.out});
+      } catch (error) {
+        message = error.message;
+      }
     } finally {
       renameSpy.mockRestore();
     }
+
+    // Named, not merely labelled: exactly one file moved and the other three
+    // did not, and the message has to say WHICH. `readdirSync` sorts, so the
+    // first name is the one that got through.
+    expect(calls).toBe(2);
+    expect(message).toMatch(/FAILED HALFWAY/);
+    expect(message).not.toMatch(/FIRST FILE/);
+    expect(message).toMatch(
+      /moved \(THIS run's bytes\):\s+rvr1960-red-letter\.json$/m,
+    );
+    expect(message).toMatch(
+      /not moved \(an EARLIER run's\):\s+rvr1960\.sqlite, web-red-letter\.json, web\.sqlite$/m,
+    );
+  });
+
+  it('does NOT call the directory MIXED when the FIRST rename fails', () => {
+    // R9-84. The message R9-81 added is an ASSERTION about the world, and on
+    // this path it asserted a falsehood: with `moved: none` it still said "That
+    // directory is MIXED ... Do NOT upload anything from it". Nothing moved, so
+    // the directory is a coherent EARLIER run whose sha256 are pinned in the
+    // manifest - the same class as R9-66's "no pack file was emitted" over
+    // 9.5 MB of freshly written packs, mirrored. R9-81's own test fails the
+    // SECOND rename, so the `'none'` branch - whose string literal is right
+    // there in the source - was never once executed.
+    main(world);
+    const before = Object.fromEntries(
+      publishable(world.out).map(name => [
+        name,
+        crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(path.join(world.out, name)))
+          .digest('hex'),
+      ]),
+    );
+
+    const renameSpy = jest.spyOn(fs, 'renameSync');
+    renameSpy.mockImplementation(() => {
+      throw new Error('EPERM: operation not permitted');
+    });
+    let message = '';
+    try {
+      const changed = buildWorld('Jesus said something else entirely here.');
+      try {
+        main({...changed, out: world.out});
+      } catch (error) {
+        message = error.message;
+      }
+    } finally {
+      renameSpy.mockRestore();
+    }
+
+    expect(message).toMatch(/FAILED ON THE FIRST FILE/);
+    expect(message).not.toMatch(/MIXED/);
+    expect(message).toMatch(/NOTHING was written[\s\S]*EARLIER run/);
+
+    // And the claim checked against the WORLD, not the string: every byte in
+    // that directory is still the earlier run's, so it really is publishable.
+    expect(
+      Object.fromEntries(
+        publishable(world.out).map(name => [
+          name,
+          crypto
+            .createHash('sha256')
+            .update(fs.readFileSync(path.join(world.out, name)))
+            .digest('hex'),
+        ]),
+      ),
+    ).toEqual(before);
   });
 
   it('still moves every file when nothing is in the way (the control)', () => {

@@ -824,9 +824,27 @@ function emit({
       fs.renameSync(path.join(staging, name), path.join(out, name));
     } catch (error) {
       const stranded = names.filter(n => !moved.includes(n));
+      // R9-84: which of the two states this left behind is an ASSERTION about
+      // the world, and the one-message version asserted the wrong one half the
+      // time. If the FIRST rename is the one that fails, nothing moved: the
+      // directory is a coherent EARLIER run whose sha256 the manifest still
+      // pins, and telling its owner it is MIXED and unpublishable is R9-66's
+      // defect from the other side. The two paths get two messages.
+      if (moved.length === 0) {
+        throw new Error(
+          `Moving the built packs into ${out} FAILED ON THE FIRST FILE ` +
+            `(${stranded[0]}): ${error.message}\n\n` +
+            'NOTHING was written: not one file moved, so that directory is ' +
+            'exactly as an EARLIER run left it and the manifest was not ' +
+            'touched. It is coherent - one run, whole - and its sha256 are ' +
+            'still the ones the manifest pins.\n' +
+            'CAREFUL: those files are that EARLIER run, NOT this one. Fix the ' +
+            'cause and re-run.',
+        );
+      }
       throw new Error(
         `Moving the built packs into ${out} FAILED HALFWAY: ${error.message}\n\n` +
-          `  moved (THIS run's bytes):        ${moved.join(', ') || 'none'}\n` +
+          `  moved (THIS run's bytes):        ${moved.join(', ')}\n` +
           `  not moved (an EARLIER run's):    ${stranded.join(', ')}\n\n` +
           'That directory is MIXED and the manifest was not written, so it ' +
           'describes neither state. Do NOT upload anything from it. Fix the ' +
