@@ -12,22 +12,24 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s17-revision-diff-s16` (3 commits).**
+**1. ✅ NO HAY NADA PENDIENTE DE GIT NI DE CI. `main` está al día, pusheado y VERDE.**
 
-Son los **10 arreglos de la sesión 17** (`R9-87`..`R9-96`), con las compuertas verdes en local
-(`npm run validate`: type-check + lint + format:check + **363 suites / 4278 pruebas**) y **cada
-arreglo visto fallar primero, con el `diff` del revert a la vista**. **NO está mergeada ni
-pusheada: Victor no lo había autorizado todavía.** `main` sigue en `31132d2` = `origin/main`,
-verde en CI.
+Las ramas de las sesiones 15, 16 y **17** se mergearon en fast-forward y se borraron
+(`0aa92a7..6ec5e49`). **`main` = `origin/main` = `6ec5e49`.** Árbol limpio.
 
-> **Ojo con dos de esos arreglos al mergear:** `R9-89` reescribe entera
-> `__tests__/ciNodeVersion.test.ts` (escáner estructural del workflow en vez de regex) y
-> `R9-94` añade un paso de instalación al job de seguridad de `ci.yml`, así que **el primer run
-> de CI tras el merge es el que hay que mirar en el LOG**, no en el check. `R9-88` sube
-> `engines.node` a `">=22.13.0"`, que es el piso verificado con binarios reales.
+Los **10 arreglos de la sesión 17** (`R9-87`..`R9-96`) están dentro, cada uno **visto fallar
+primero con el `diff` del revert a la vista**. Esa rama tocaba `ci.yml` y reescribía entera la
+compuerta del pin de Node, así que **el run se verificó en el LOG**:
 
-Las ramas de las sesiones 15 y 16 se mergearon en fast-forward y se borraron
-(`0aa92a7..531ffef`). **`main` = `origin/main`.** Árbol limpio salvo esa rama.
+- run **`35137876566`**, los tres jobs en verde, runner **Node v24.20.0**;
+- `PASS buildWebPacks.test.js`, `PASS missingProviderError.test.ts`,
+  `PASS ciNodeVersion.test.ts`, `PASS redLetterPackParity.test.ts`;
+- **363 suites / 4278 pruebas**, los mismos números que en local, y **cero** «Test suite failed
+  to run»;
+- **`R9-94` comprobado en el mundo: CERO filas `MISSING`** en `npm outdated`, con valores
+  `Current` reales (`@eslint/js 9.39.5`, `zod 3.25.76`) — antes eran las 57 en `MISSING`;
+- `npm audit` sigue diciendo lo mismo (`14 vulnerabilities (11 moderate, 3 high)`), y
+  **cero `EBADENGINE`** con el piso nuevo `">=22.13.0"`.
 
 **Y el verde está verificado contra el MUNDO, no contra el resumen**, que es la lección de la
 sesión 16: el runner usó **Node v24.20.0**, `buildWebPacks.test.js` sale **PASS** —la suite que
@@ -87,7 +89,7 @@ Los **5 hallazgos de la sesión 15** (`R9-77`..`R9-81`) también son P1/P2, así
 de P0 sigue igual — y los cinco ya están arreglados y mergeados.
 Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados y mergeados.
 Los **10 de la sesión 17** (`R9-87`..`R9-96`) también son P1/P2, así que el conteo de P0 sigue
-igual — arreglados, pero **en rama sin mergear** (ver punto 1).
+igual — y los diez ya están arreglados y mergeados.
 Hallazgos totales: **96**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
@@ -271,7 +273,7 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 17, que está SIN MERGEAR.** Es el patrón que ya
+**(a) RECOMENDADA — revisar el diff de la sesión 17, ya mergeado.** Es el patrón que ya
 pagó **nueve** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16 y 17 encontraron defectos
 reales en el diff de ARREGLOS de la sesión anterior. Son **10 arreglos en 3 commits**, y esta vez
 la mitad NO es código de la app sino **compuertas y tubería**: un escáner de workflow reescrito de
@@ -280,9 +282,10 @@ no se ve en ninguna prueba local — se ve en el siguiente push.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Hay una rama SIN MERGEAR: `fix/review-s17-revision-diff-s16`** (3 commits). Son los 10
-> arreglos de la sesión 17 (`R9-87`..`R9-96`), con `npm run validate` verde en local
-> (363 suites / 4278 pruebas) y cada arreglo visto fallar primero. `main` sigue en `31132d2`.
+> **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a revisar
+> son los 10 arreglos de la sesión 17, ya dentro de `main`: **`git log 31132d2..6ec5e49`**
+> (4 commits). El run `35137876566` se verificó EN EL LOG: Node v24.20.0, 363 suites / 4278
+> pruebas, cero «Test suite failed to run», y `npm outdated` con cero filas `MISSING`.
 >
 > Revisá ese diff con el mismo criterio de las sesiones 8-17 — buscá si algún arreglo cierra el
 > caso que su prueba cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA
