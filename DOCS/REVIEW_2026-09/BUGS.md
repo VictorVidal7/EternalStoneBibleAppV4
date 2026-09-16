@@ -49,6 +49,19 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 18 (2026-09-16).** Revisó el diff de la 17 (`31132d2..0da86ce`) y encontró **5
+> defectos, ninguno P0**: `R9-97`, `R9-98`, `R9-99` (P1) y `R9-100`, `R9-101` (P2). **Los diez
+> arreglos de la 17 se sostienen en su mecanismo** — `R9-92` verificado en las TRES direcciones y
+> `R9-87` visto discriminar (5 pruebas rojas con la escritura del manifiesto desactivada).
+> **Sexta sesión seguida con los defectos en las COMPUERTAS, y las tres compuertas nuevas enteras
+> de la 17 dejaron abierto el vecino que las motivó.** Lo que más vale: la comprobación que
+> `R9-93` puso en lugar de una afirmación mira en **una sola dirección**, así que sigue diciendo
+> «_it IS coherent - one run, whole_» sobre un directorio **vacío** (`R9-97`); y el escáner de
+> workflows decide qué es un job por su **FORMA**, así que un cuarto job sin ningún `setup-node`
+> pasa **15/15** con sólo llevar un comentario en su cabecera (`R9-99`) — que es `R9-89` reabierto
+> por su propio arreglo. La cadena de datos publicados se verificó entera contra el mundo, dos
+> veces. Los 5 arreglados en la misma sesión. Detalle: `detail/S18-revision-del-diff.md`.
+
 > **Sesión 17 (2026-09-16).** Revisó el diff de la 16 (`cca7091..531ffef`) y encontró **10
 > defectos, ninguno P0**: `R9-87`, `R9-88`, `R9-89` (P1) y `R9-90`..`R9-96` (P2). **Los cinco
 > arreglos de la 16 se sostienen** — `R9-85` y `R9-86` vistos discriminar por revert, y `R9-82`
@@ -1156,6 +1169,62 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   palabra por palabra** el aviso correcto del paso anterior. **Arreglado:** se comprueba (el
   manifiesto ya está en mano), y `null` («no pude comprobar») y `[]` («comprobado, cuadra») son
   respuestas **distintas** a propósito.
+
+- **`R9-97` (S18, build de packs) — 🐛 «coherent - one run, whole» sobre un directorio VACÍO.**
+  `filesNotPinnedBy` recorre los archivos que HAY en `out` y le pregunta al manifiesto por cada
+  uno; nada recorre el manifiesto preguntándole al directorio, así que un archivo que el
+  manifiesto pina y el directorio no tiene es **invisible**, y el `[]` de ese bucle se imprime
+  como «_Checked, not assumed: every file in it matches the sha256 the manifest pins, so it IS
+  coherent - one run, whole_». Es `R9-73` (un bucle sobre la lista NUEVA no ve lo que falta de la
+  VIEJA) con la consecuencia de `R9-74` (el vacío imprime éxito), **dentro de la compuerta escrita
+  contra eso** (`R9-93`). **Medido con el `main()` real:** con 2 de 4 archivos borrados dice eso;
+  con los 4 borrados, lo mismo de un directorio vacío. La mitad peligrosa es la primera: «whole»
+  manda a subir medio juego, y un 404 de GitHub Pages se sirve **sin CORS**, así que al lector le
+  llega `TypeError: Failed to fetch`. **Repro:** correr `main()`, borrar 2 archivos de `out`,
+  forzar el fallo del primer `renameSync`. **✅ ARREGLADO** (`2a442dd`): el bucle va en las dos
+  direcciones y nombra lo que falta. Detalle: `detail/S18-revision-del-diff.md`.
+
+- **`R9-98` (S18, build de packs) — 🐛 la forma LEGACY del manifiesto lanza DENTRO del `catch` y
+  borra el mensaje entero.** `filesNotPinnedBy` lee `previous.packs` / `previous.redLetter` en
+  crudo, pero `readPreviousManifest` acepta **a propósito** un `redLetter` que sea un OBJETO (la
+  forma que `web-bootstrap.json` tuvo hasta el 2026-09-15) y el archivo ya tiene
+  `previousRedLetterOf` para normalizarla. Esparcir un objeto plano lanza — y esto corre dentro
+  del `catch` del rename, así que reemplaza el mensaje `FIRST FILE` completo por
+  `TypeError: (previous.redLetter ?? []) is not iterable`. **Es el defecto que `R9-95` acababa de
+  quitarle a `main()` doscientas líneas más arriba, reintroducido por el mismo commit.**
+  **Repro:** reescribir el manifiesto en la forma legacy y forzar el fallo del primer
+  `renameSync`. **✅ ARREGLADO** (`2a442dd`): las dos listas por sus normalizadores.
+
+- **`R9-99` (S18, compuerta de CI) — 🐛 el escáner decidía qué es un job por su FORMA, y tres
+  formas de YAML ordinarias no lo eran.** La cabecera de job era `/^([A-Za-z_][\w-]*):\s*$/`
+  —acabar en el dos puntos, que es un **estilo**—; no lo cumplen un comentario al final
+  (`build: # only lint`), un id entrecomillado ni un ancla (`build: &common`). Y ninguna
+  **fallaba**: `job` se quedaba en el job ANTERIOR, así que los steps de debajo se archivaban bajo
+  un job que **sí** tiene pin. **Medido sobre el `ci.yml` REAL:** un cuarto job corriendo
+  `npm ci && npm test` **sin ningún `setup-node`** pasaba **15/15** con un comentario en su
+  cabecera, y se ponía rojo al quitárselo. Es `R9-89` reabierto por su propio arreglo, con la
+  misma consecuencia: dos suites que no cargan en CI. **✅ ARREGLADO** (`f477c19`): manda la
+  COLUMNA, y una línea en el nivel de job que no se pueda nombrar se REPORTA y limpia `job`.
+
+- **`R9-100` (S18, compuerta de CI) — 🐛 `jobs: # comentario` ciega un archivo entero, y el piso
+  era un conteo global.** `/^jobs:\s*$/` rechazaba el comentario, `inJobs` no se encendía y el
+  archivo volvía entero vacío — silencio idéntico al de un parseo limpio. El único piso contaba
+  jobs-que-corren-node **sobre todos los archivos**, así que `ci.yml` lo satisfacía en nombre del
+  archivo cegado: el número de hoy haciendo de cobertura. **Medido con un segundo workflow de
+  verdad:** un job corriendo `npm ci && npm run build:web` en `node-version: '20'` —`R9-82`
+  verbatim— pasaba **15/15**. **✅ ARREGLADO** (`f477c19`): el comentario se quita en toda línea y
+  el piso pasa a ser **por archivo** (`scan.jobs.length > 0`).
+
+- **`R9-101` (S18, compuerta de CI) — 🐛 el detector de `R9-91` no cruza de línea, y no casaba con
+  NADA.** El regex lleva `[^.\n]` entre «pins» y la versión, y la frase que se pudrió **cruzaba**:
+  es la de `databaseMigrations.test.ts`, la canónica, la que las otras cuatro citan como su razón.
+  **Medido devolviéndola verbatim al archivo real: la compuerta seguía VERDE.** Y como las cinco
+  frases se reescribieron en el mismo commit, el regex no casaba con nada en todo el repo — el
+  bucle recorría ~360 archivos sin llegar ni una vez a la comparación, así que un regex roto del
+  todo se veía idéntico. **✅ ARREGLADO** (`f477c19`): `nodePinClaims` como función sobre TEXTO con
+  cuatro sondas (incluido el control en pasado), aplanado de continuaciones, piso `checked >= 1`,
+  y las tres frases corregidas vueltas a hacer afirmaciones VIVAS («it pins Node 24 now»): de 0
+  comparaciones a 3.
 
 - **`R9-94` (S17, CI) — 🐛 `npm outdated` corría sin instalar: las 57 filas salían `MISSING`.**
   El job de seguridad es el único sin paso de instalación. `npm audit` lee el lockfile y no lo

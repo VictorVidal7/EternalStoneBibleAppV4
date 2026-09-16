@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-16, fin de la sesión 17 (revisión del diff de la 16 + 10 arreglos).**
+> **Última actualización: 2026-09-16, fin de la sesión 18 (revisión del diff de la 17 + 5 arreglos).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,14 +12,24 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ✅ NO HAY NADA PENDIENTE DE GIT NI DE CI. `main` está al día, pusheado y VERDE.**
+**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s18-revision-diff-s17`.**
 
-Las ramas de las sesiones 15, 16 y **17** se mergearon en fast-forward y se borraron
-(`0aa92a7..6ec5e49`). **`main` = `origin/main` = `6ec5e49`.** Árbol limpio.
+Son los **5 arreglos de la sesión 18** (`R9-97`..`R9-101`), dos commits
+(`2a442dd` + `f477c19`) sobre `0da86ce`. **Victor no ha dicho que se mergee**, así que
+**no la mergees sin preguntarle.** Gates verdes en local: **363 suites / 4289 pruebas**,
+`tsc --noEmit` limpio, `eslint` 0 errores, `prettier --check` limpio. Y como el diff toca
+`scripts/build-web-packs.js`, el `main()` REAL corrió contra los datos REALES **después** del
+cambio: los cuatro packs salen **byte a byte**, sha256 y `content-length` idénticos al
+manifiesto versionado **y** a lo que hoy sirve `eternalstonebible.github.io/packs/`.
 
-Los **10 arreglos de la sesión 17** (`R9-87`..`R9-96`) están dentro, cada uno **visto fallar
-primero con el `diff` del revert a la vista**. Esa rama tocaba `ci.yml` y reescribía entera la
-compuerta del pin de Node, así que **el run se verificó en el LOG**:
+**`main` sigue en `0da86ce`, pusheado y VERDE en CI.** Las ramas de las sesiones 15, 16 y 17 se
+mergearon en fast-forward y se borraron. **Esa rama nueva no ha corrido en CI todavía**, y toca
+la compuerta del pin de Node otra vez — así que cuando se mergee, **verificá el run EN EL LOG**,
+no en el check (la lección de la sesión 16).
+
+**Los 10 arreglos de la sesión 17** (`R9-87`..`R9-96`) están dentro de `main`, cada uno **visto
+fallar primero con el `diff` del revert a la vista**. Esa rama tocaba `ci.yml` y reescribía
+entera la compuerta del pin de Node, así que **el run se verificó en el LOG**:
 
 - run **`35137876566`**, los tres jobs en verde, runner **Node v24.20.0**;
 - `PASS buildWebPacks.test.js`, `PASS missingProviderError.test.ts`,
@@ -90,7 +100,9 @@ de P0 sigue igual — y los cinco ya están arreglados y mergeados.
 Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados y mergeados.
 Los **10 de la sesión 17** (`R9-87`..`R9-96`) también son P1/P2, así que el conteo de P0 sigue
 igual — y los diez ya están arreglados y mergeados.
-Hallazgos totales: **96**.
+Los **5 de la sesión 18** (`R9-97`..`R9-101`) igual: P1/P2, arreglados, **pero en una rama
+SIN MERGEAR** (ver el punto 1).
+Hallazgos totales: **101**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -191,7 +203,39 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
-**La lección de la sesión 17, que es la que conviene llevarse AHORA:** quinta seguida con los
+**La lección de la sesión 18, que es la que conviene llevarse AHORA:** sexta seguida con los
+defectos en las COMPUERTAS, y esta vez **las tres compuertas nuevas enteras de la 17 dejaron
+abierto el vecino que las motivó**. Tres formas, y las tres son sobre cómo se escribe una:
+
+> **Una comprobación que reemplaza una afirmación tiene que comprobar la afirmación ENTERA, no
+> la mitad que se ve.** `R9-93` sustituyó «_it IS coherent - one run, whole_» por una
+> verificación de sha256 — y verificó sólo los archivos que ESTÁN. «Whole» es la otra mitad, y
+> nadie la comprobó, así que el mensaje sigue diciendo exactamente lo mismo sobre un directorio
+> **vacío** (`R9-97`). Leé la frase que vas a dejar en pie y subrayá **cada** cosa que afirma.
+
+> **Decidir por la FORMA de una línea es decidir por un estilo.** El escáner de workflows pedía
+> que la cabecera de un job acabara en el dos puntos. Un comentario al final, un id
+> entrecomillado o un ancla no lo cumplen — y **no fallaban**: se archivaban bajo el job
+> anterior, o sea heredaban su pin. Un cuarto job sin ningún `setup-node` pasaba **15/15**
+> (`R9-99`). Lo que dice que algo es un job no es su forma, es su **columna**. Si un escáner
+> escrito a mano rechaza una forma, preguntá si la rechaza **ruidosamente** o si se la traga el
+> vecino de arriba.
+
+> **Una compuerta nueva que no casa con nada HOY no tiene discriminador.** El detector de
+> `R9-91` nació el mismo día en que se corrigieron las cinco frases que vigilaba, así que su
+> bucle recorría ~360 archivos sin llegar ni una vez a la comparación. Verde. Un regex roto del
+> todo se veía idéntico (`R9-101`). **Contá cuántas veces llega tu compuerta a comparar algo, y
+> ponle piso a ese número.**
+
+Y un corolario que vale por sí solo:
+
+> **Un piso puede ser un conteo GLOBAL cuando la pregunta es por unidad.** El escáner recorría
+> todo `.github/workflows/` —correcto— y su piso era «al menos un job que corre node **en total**»,
+> así que `ci.yml` lo satisfacía **en nombre** de un segundo archivo que el escáner no supo leer
+> (`R9-100`). Es la lección de la 17 —el piso es el número de hoy— por el eje del **reparto**:
+> preguntá siempre «¿por archivo, o sumando?».
+
+**La lección de la sesión 17:** quinta seguida con los
 defectos en las COMPUERTAS, y **cuatro de los cinco arreglos de la 16 dejaron abierto justo el
 vecino que los motivó**. Dos formas nuevas, y las dos son sobre cómo se escribe una compuerta:
 
@@ -273,68 +317,73 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 17, ya mergeado.** Es el patrón que ya
-pagó **nueve** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16 y 17 encontraron defectos
-reales en el diff de ARREGLOS de la sesión anterior. Son **10 arreglos en 3 commits de código**
-(más dos de checkpoint), y esta vez la mitad NO es código de la app sino **compuertas y
-tubería**: un escáner de workflow reescrito de cero, el piso de `engines`, un paso nuevo en CI, y
-tres mensajes del script de packs. Un error ahí no se ve en ninguna prueba local — se ve en el
-siguiente push.
+**(a) RECOMENDADA — revisar el diff de la sesión 18, que está en una rama SIN MERGEAR.** Es el
+patrón que ya pagó **diez** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16, 17 y 18
+encontraron defectos reales en el diff de ARREGLOS de la sesión anterior. Son **5 arreglos en 2
+commits**, y esta vez **ninguno es código de la app**: los cinco son compuertas, tres de ellas
+recién reescritas por segunda vez. Un error ahí no se ve en ninguna prueba local — se ve en el
+siguiente push, o en el siguiente `build-web-packs`.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a revisar
-> son los 10 arreglos de la sesión 17, ya dentro de `main`: **`git log 31132d2..25e1b00`**
-> (5 commits: 3 de código y 2 de checkpoint; los de código son `15bdd38`, `bd4d520` y
-> `5359a77`). El run `35137876566` se verificó EN EL LOG: Node v24.20.0, 363 suites / 4278
-> pruebas, cero «Test suite failed to run», y `npm outdated` con cero filas `MISSING`.
+> **Hay una rama SIN MERGEAR: `fix/review-s18-revision-diff-s17`** (`2a442dd` + `f477c19` sobre
+> `0da86ce`). Gates verdes en local (363 suites / 4289 pruebas, `tsc` limpio, eslint 0 errores,
+> prettier limpio), y el `main()` real corrió contra los datos reales después del cambio: los 4
+> packs byte a byte. **No la mergees sin preguntarme.**
 >
-> Revisá ese diff con el mismo criterio de las sesiones 8-17 — buscá si algún arreglo cierra el
+> Revisá ese diff con el mismo criterio de las sesiones 8-18 — buscá si algún arreglo cierra el
 > caso que su prueba cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA
 > de verdad (revertí el arreglo, corré, restaurá, y `diff` el revert para confirmar que tocó la
 > línea que creés).
 >
-> **Cinco sitios donde mirar con lupa, y los tres primeros son compuertas nuevas enteras:**
+> **Cinco sitios donde mirar con lupa:**
 >
-> 1. **`__tests__/ciNodeVersion.test.ts` está reescrito de cero.** Ya no es un regex: es un
->    escáner de la ESTRUCTURA del YAML, escrito a mano, sin librería. Preguntate qué forma
->    legítima de workflow lo rompe o lo ciega — ¿indentación de 4 espacios? ¿un `uses:` con
->    `with:` en flujo (`{node-version: '24'}`)? ¿un job dentro de un `strategy.matrix`? ¿un
->    workflow reutilizable (`uses: ./.github/workflows/x.yml`)? ¿`jobs:` apareciendo dentro de un
->    bloque de texto? Sus probes llaman a la función de verdad — comprobalo, no lo creas. Y
->    preguntate si el piso nuevo («cada job que corre node/npm tiene pin») **puede pasar en
->    vacío**: ¿qué pasa si `jobsRunningNode` sale vacío?
-> 2. **El detector de `R9-91` es un regex sobre PROSA**, y su propio comentario admite que solo
->    entiende la forma que el repo usó. Preguntate qué frase falsa se le escapa, y si excluir su
->    propio archivo (porque tiene que citar la frase mala) abre un agujero.
-> 3. **`R9-92` modela `base`/`web`/`native` y REPORTA lo demás.** Preguntate si el modelo de
->    resolución de metro es correcto —¿`.native` gana sobre `base` en iOS y Android?— y si
->    reportar `.ios` es lo correcto o solo lo cómodo.
-> 4. **`R9-87` comprueba el manifiesto contra el disco.** Preguntate si `manifestAgainstDisk`
->    puede pasar en vacío, si su piso (`compared === 4`) es el número de HOY —que es justamente
->    la lección de esta sesión— y si hay algún sabotaje del script que siga saliendo verde.
-> 5. **`R9-95` cambió el `finally` de `main()` por un `catch` + rethrow.** Preguntate qué pasa si
->    la excepción original no es un `Error` (mutar `.message` en un string tirado), y si el nuevo
->    camino puede **tragarse** algo que antes propagaba.
+> 1. **`filesNotPinnedBy` ahora recorre las DOS listas** (`R9-97`). Preguntate si la dirección
+>    nueva puede dar un falso «NO coherente» —un archivo legítimo que alguien dejó en `out`, un
+>    pack que el manifiesto pina y esta corrida ya no emite— y si el `[]` sigue significando
+>    exactamente una cosa. Y si la prueba nueva discrimina por lo que crees: borra 2 de 4
+>    archivos, ¿qué la pone roja, la dirección nueva o el sha256 de los que quedan?
+> 2. **`filesNotPinnedBy` pasa por `previousPacksOf` / `previousRedLetterOf`** (`R9-98`).
+>    `previousRedLetterOf` INVENTA `versionId: 'WEB'` para la forma legacy. Preguntate si eso es
+>    correcto aquí, donde lo que se compara es `file`, no `versionId`. ¿Queda alguna otra lectura
+>    en crudo del manifiesto en el archivo?
+> 3. **El escáner de workflows decide por COLUMNA** (`R9-99`). Es un cambio de control de flujo
+>    entero, no un regex. Preguntate qué forma legítima queda ahora fuera: ¿un job cuyo primer
+>    key está más indentado que el de sus hermanos? ¿un `run: |` cuyo contenido cae en la columna
+>    de los jobs? ¿`jobs:` seguido de un comentario a nivel 2? Y comprobá que los pins que el
+>    escáner SÍ ve siguen siendo los mismos que antes sobre el `ci.yml` real.
+> 4. **El piso nuevo es `scan.jobs.length > 0` POR ARCHIVO** (`R9-100`). Preguntate qué archivo
+>    legítimo de `.github/workflows/` no declara `jobs:` — ¿una acción compuesta mal colocada?
+>    ¿un fragmento compartido? — y si ese caso falla de forma útil o sólo ruidosa.
+> 5. **`nodePinClaims` aplana las continuaciones de bloque antes de casar** (`R9-101`).
+>    Preguntate qué falso positivo crea ese aplanado al unir dos líneas de CÓDIGO (no de
+>    comentario) que juntas dicen «pins … node … 20», y si el piso `checked >= 1` puede quedar
+>    satisfecho por una sola frase que nadie mantiene.
 >
 > Y ojo con los puntos ciegos que este programa ya se cazó a sí mismo: **una verificación cuyo
 > cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre la
 > lista NUEVA no ve lo que falta de la VIEJA**; **un mensaje —de error o de éxito— que AFIRMA un
-> estado del mundo es una aserción, y hay que probarla mirando el MUNDO, no el string**; **una
-> compuerta que nunca llegó a EJECUTARSE se ve igual que una que pasó, así que preguntá DÓNDE
-> corre**; y los dos de la 17, **el piso de una compuerta suele ser el número de HOY, así que
-> exige ese número en vez de cobertura**, y **un fixture añadido para una prueba nueva puede
-> RESPONDER la pregunta que otra prueba hacía**.
+> estado del mundo es una aserción, y hay que probarla mirando el MUNDO**; **una compuerta que
+> nunca llegó a EJECUTARSE se ve igual que una que pasó, así que preguntá DÓNDE corre**; **el
+> piso de una compuerta suele ser el número de HOY**; **un fixture añadido para una prueba nueva
+> puede RESPONDER la pregunta que otra prueba hacía**; y los tres de la 18, **una comprobación
+> que reemplaza una afirmación tiene que comprobar la afirmación ENTERA**, **decidir por la FORMA
+> de una línea es decidir por un estilo** y **una compuerta que no casa con nada hoy no tiene
+> discriminador**.
 >
 > **Comprobá además los cuatro sha256 contra `web/packs/web-bootstrap.json` y contra lo que
 > sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.** Y como este diff
 > toca `scripts/build-web-packs.js`, corré el `main()` REAL contra los datos REALES en un
 > directorio temporal y confirmá que los cuatro packs siguen saliendo byte a byte.
 >
-> **Dos cosas que la 17 dejó SIN decidir a propósito, y son de Victor, no bugs:** que npm 10 →
-> npm 11 materialice **1851 → 1827 paquetes** desde el MISMO lockfile (que no registra el
-> cambio), y el aviso nuevo `allowScripts` (3 paquetes ejecutan scripts al instalar; `re2`
-> compila nativo). Están en «Dicho y NO hecho» de `detail/S17-revision-del-diff.md`.
+> **Tres cosas que la 18 dejó SIN decidir a propósito, y están en «Dicho y NO hecho» de
+> `detail/S18-revision-del-diff.md`:** que `R9-95` con algo que no sea un `Error` sigue pudiendo
+> tragarse un `throw` falsy (inalcanzable hoy: todo lanza `new Error`); que un job que corre node
+> sólo dentro de una acción compuesta local no exige pin, y que el ORDEN de los steps no se
+> modela; y los tres de la 17 (npm 10 → 11 materializa **1851 → 1827** paquetes desde el MISMO
+> lockfile, el aviso `allowScripts`, y la deprecación de `actions/checkout@v4` /
+> `actions/setup-node@v4`, que el día que GitHub retire el runtime node20 deja los tres jobs sin
+> arrancar).
 >
 > Decime qué encontraste antes de tocar nada.
 
@@ -479,6 +528,8 @@ arreglos** — ver la nota al principio de esa sección.
 | 14     | Revisión del diff de la 13: **5 defectos** + arreglos       | mergeado a `main`   |
 | 15     | Revisión del diff de la 14: **5 defectos** + arreglos       | mergeado a `main`   |
 | 16     | Revisión del diff de la 15: **5 defectos** + `main` en rojo | mergeado a `main`   |
+| 17     | Revisión del diff de la 16: **10 defectos** + arreglos      | mergeado a `main`   |
+| 18     | Revisión del diff de la 17: **5 defectos** + arreglos       | **SIN MERGEAR**     |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos

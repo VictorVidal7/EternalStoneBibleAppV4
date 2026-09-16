@@ -87,6 +87,19 @@
 > pusheados** (`531ffef`), y **CI verde verificado en el log del run** (Node v24.20.0,
 > `buildWebPacks.test.js` PASS, 363/4263, cero «failed to run»).
 >
+> **Sesión 18 (2026-09-16) revisó el diff de la 17 y encontró 5 defectos, ninguno P0**
+> (`R9-97`, `R9-98`, `R9-99` en P1; `R9-100`, `R9-101` en P2). **Los 10 arreglos de la 17 se
+> sostienen en su mecanismo.** Sexta sesión seguida con los defectos en las COMPUERTAS, y **las
+> tres compuertas nuevas enteras de la 17 dejaron abierto el vecino que las motivó**. Lo que más
+> vale: la comprobación que `R9-93` puso en lugar de una afirmación mira en **una sola
+> dirección**, así que sigue diciendo «_it IS coherent - one run, whole_» sobre un directorio
+> **vacío** (`R9-97`); y el escáner de workflows decide qué es un job por su **FORMA**, así que
+> un cuarto job sin ningún `setup-node` pasa **15/15** con sólo llevar un comentario en su
+> cabecera (`R9-99`) — `R9-89` reabierto por su propio arreglo. Tres formas nuevas: **una
+> comprobación que reemplaza una afirmación tiene que comprobar la afirmación ENTERA**,
+> **decidir por la FORMA de una línea es decidir por un estilo** y **una compuerta que no casa
+> con nada hoy no tiene discriminador**. Los 5 arreglados en la misma sesión.
+>
 > **Sesión 17 (2026-09-16) revisó el diff de la 16 y encontró 10 defectos, ninguno P0**
 > (`R9-87`, `R9-88`, `R9-89` en P1; `R9-90`..`R9-96` en P2). **Los 5 arreglos de la 16 se
 > sostienen.** Quinta sesión seguida con los defectos en las COMPUERTAS, y **cuatro de los cinco
@@ -100,7 +113,7 @@
 > arreglados en la misma sesión.
 >
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
-> Hallazgos: **96**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> Hallazgos: **101**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
 >
 > Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
@@ -567,6 +580,35 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 18 — 2026-09-16. Revisar el diff de la 17 (`31132d2..0da86ce`).** Décima sesión
+  seguida de revisión adversarial sobre un diff de arreglos, y la décima que paga.
+  **Veredicto: los 10 arreglos de la sesión 17 se sostienen en su mecanismo** — `R9-92`
+  verificado en las **tres** direcciones (sonda `.native`: 15/15 verde antes, rojo después;
+  la misma sonda como `.ios`, reportada) y `R9-87` visto discriminar (5 pruebas rojas con la
+  escritura del manifiesto desactivada del todo).
+  **La cadena de datos publicados, entera y contra el mundo, dos veces** (antes y después de
+  tocar el script): los 4 packs **byte a byte**, con sha256 y `content-length` idénticos al
+  manifiesto versionado y a lo que **sirve** hoy GitHub Pages.
+  **5 hallazgos, `R9-97`..`R9-101`**, y las **tres compuertas nuevas enteras** de la 17
+  dejaron abierto el vecino que las motivó. Los que mandan: `R9-97` (P1) — la comprobación que
+  `R9-93` puso en lugar de una afirmación mira en **una sola dirección**, así que sigue
+  diciendo «_it IS coherent - one run, whole_» sobre un directorio con archivos **que faltan**,
+  y sobre uno **vacío**; `R9-98` (P1) — la misma función lee el manifiesto **en crudo**, y la
+  forma legacy lanza **dentro del `catch`**, que es el defecto que `R9-95` acababa de quitar
+  doscientas líneas más arriba; `R9-99` (P1) — el escáner de workflows decide qué es un job por
+  su **FORMA**, así que un cuarto job sin ningún `setup-node` pasa **15/15** con sólo llevar un
+  comentario en su cabecera, que es `R9-89` reabierto por su propio arreglo. Los dos P2 van en
+  `BUGS.md`.
+  **Detalle completo, incluido lo comprobado y BIEN y lo dicho-y-no-hecho:
+  `detail/S18-revision-del-diff.md`.**
+  **Las tres lecciones de método:** **una comprobación que reemplaza una afirmación tiene que
+  comprobar la afirmación ENTERA, no la mitad que se ve** (`R9-93` verificó los sha256 de los
+  archivos que están y dejó sin comprobar la palabra «whole»); **decidir por la FORMA de una
+  línea es decidir por un estilo** — lo que dice que algo es un job no es su forma, es su
+  **columna**, y una forma rechazada o falla ruidosamente o se la traga el vecino de arriba; y
+  **una compuerta nueva que no casa con nada hoy no tiene discriminador**, así que contá
+  cuántas veces llega a comparar algo y ponle piso a ese número.
 
 - **Sesión 17 — 2026-09-16. Revisar el diff de la 16 (`cca7091..531ffef`).** Novena sesión
   seguida de revisión adversarial sobre un diff de arreglos, y la novena que paga. **Veredicto:
