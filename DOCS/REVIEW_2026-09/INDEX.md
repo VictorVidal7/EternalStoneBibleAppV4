@@ -87,8 +87,20 @@
 > pusheados** (`531ffef`), y **CI verde verificado en el log del run** (Node v24.20.0,
 > `buildWebPacks.test.js` PASS, 363/4263, cero «failed to run»).
 >
+> **Sesión 17 (2026-09-16) revisó el diff de la 16 y encontró 10 defectos, ninguno P0**
+> (`R9-87`, `R9-88`, `R9-89` en P1; `R9-90`..`R9-96` en P2). **Los 5 arreglos de la 16 se
+> sostienen.** Quinta sesión seguida con los defectos en las COMPUERTAS, y **cuatro de los cinco
+> arreglos dejaron abierto justo el vecino que los motivó**. Lo que más vale: con la escritura
+> del manifiesto desactivada del todo **el repo ENTERO sale verde** — el `beforeEach` que
+> `R9-83` añadió RESPONDÍA la pregunta que la única aserción que la fijaba hacía (`R9-87`); y el
+> piso `">=22"` es **falso** (`node:sqlite` se desbanderó en **22.13.0**) mientras la compuerta
+> **prohibía** escribir el verdadero (`R9-88`). Dos formas nuevas: **el piso de una compuerta
+> suele ser el número de HOY, así que exige ese número en vez de cobertura**, y **un fixture
+> añadido para habilitar una prueba puede RESPONDER la pregunta que otra hacía**. Los 10
+> arreglados en la misma sesión.
+>
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
-> Hallazgos: **86**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> Hallazgos: **96**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
 >
 > Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
@@ -555,6 +567,33 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 17 — 2026-09-16. Revisar el diff de la 16 (`cca7091..531ffef`).** Novena sesión
+  seguida de revisión adversarial sobre un diff de arreglos, y la novena que paga. **Veredicto:
+  los 5 arreglos de la sesión 16 se sostienen** — `R9-85` y `R9-86` vistos discriminar por
+  revert con el `diff` del revert a la vista, y `R9-82` verificado **en el LOG del run**, no en
+  el check (`PASS buildWebPacks.test.js`, `PASS redLetterPackParity.test.ts`, 363/4263).
+  **La cadena de datos publicados, entera y contra el mundo, dos veces** (antes y después de
+  tocar el script): fuentes `.ts` → `main()` REAL → los 4 packs **byte a byte** → manifiesto
+  versionado → manifiesto **servido** (`diff` → `IDENTICAL`) → los 4 sha256 de los bytes
+  servidos; y los conteos que el manifiesto afirma, comprobados **abriendo los bytes
+  descargados**.
+  **10 hallazgos, `R9-87`..`R9-96`.** El que manda es `R9-87` (P1): el `beforeEach` que `R9-83`
+  añadió escribe una baseline con **exactamente dos packs**, y la única aserción que fijaba la
+  escritura del manifiesto decía `packs.toHaveLength(2)` — o sea que **el fixture responde la
+  pregunta que la aserción hacía**. Medido: con esa escritura desactivada del todo, **el repo
+  ENTERO sale verde, 363 suites / 4263 pruebas**. Y `data-loader.web.ts` usa ese sha256 como
+  ÚNICA señal de pack nuevo, así que la consecuencia es un lector web congelado en el pack
+  viejo, en silencio. Luego `R9-88` (el piso `">=22"` es falso: el real es **22.13.0**, y la
+  compuerta **prohibía** escribirlo) y `R9-89` (el detector veía una sola forma de escribir el
+  pin, y su piso era el número de jobs de hoy). Los siete P2 van en `BUGS.md`.
+  **Detalle completo, incluido lo comprobado y BIEN y lo dicho-y-no-hecho:
+  `detail/S17-revision-del-diff.md`.**
+  **Las dos lecciones de método:** **el piso de una compuerta suele ser exactamente el número de
+  HOY, así que acaba exigiendo ese número en vez de exigir cobertura** — no cuentes, emparejá; y
+  **un fixture añadido para habilitar una prueba nueva puede RESPONDER la pregunta que otra
+  prueba estaba haciendo**, que es la forma de la sesión 10 por la puerta del fixture, y más
+  traicionera porque el fixture parece inerte.
 
 - **Sesión 16 — 2026-09-16. Revisar el diff de la 15, que estaba SIN MERGEAR.** Octava
   sesión seguida de revisión adversarial sobre un diff de arreglos, y la octava que paga.

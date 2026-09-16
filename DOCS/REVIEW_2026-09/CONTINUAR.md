@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-16, fin de la sesión 16 (revisión del diff de la 15 + 5 arreglos).**
+> **Última actualización: 2026-09-16, fin de la sesión 17 (revisión del diff de la 16 + 10 arreglos).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,10 +12,22 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ✅ NO HAY NADA PENDIENTE DE GIT NI DE CI. `main` está al día, pusheado y VERDE.**
+**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s17-revision-diff-s16` (3 commits).**
+
+Son los **10 arreglos de la sesión 17** (`R9-87`..`R9-96`), con las compuertas verdes en local
+(`npm run validate`: type-check + lint + format:check + **363 suites / 4278 pruebas**) y **cada
+arreglo visto fallar primero, con el `diff` del revert a la vista**. **NO está mergeada ni
+pusheada: Victor no lo había autorizado todavía.** `main` sigue en `31132d2` = `origin/main`,
+verde en CI.
+
+> **Ojo con dos de esos arreglos al mergear:** `R9-89` reescribe entera
+> `__tests__/ciNodeVersion.test.ts` (escáner estructural del workflow en vez de regex) y
+> `R9-94` añade un paso de instalación al job de seguridad de `ci.yml`, así que **el primer run
+> de CI tras el merge es el que hay que mirar en el LOG**, no en el check. `R9-88` sube
+> `engines.node` a `">=22.13.0"`, que es el piso verificado con binarios reales.
 
 Las ramas de las sesiones 15 y 16 se mergearon en fast-forward y se borraron
-(`0aa92a7..531ffef`). **`main` = `origin/main`.** Árbol limpio.
+(`0aa92a7..531ffef`). **`main` = `origin/main`.** Árbol limpio salvo esa rama.
 
 **Y el verde está verificado contra el MUNDO, no contra el resumen**, que es la lección de la
 sesión 16: el runner usó **Node v24.20.0**, `buildWebPacks.test.js` sale **PASS** —la suite que
@@ -74,7 +86,9 @@ de P0 tampoco se mueve — y los cinco ya están arreglados y mergeados.
 Los **5 hallazgos de la sesión 15** (`R9-77`..`R9-81`) también son P1/P2, así que el conteo
 de P0 sigue igual — y los cinco ya están arreglados y mergeados.
 Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados y mergeados.
-Hallazgos totales: **86**.
+Los **10 de la sesión 17** (`R9-87`..`R9-96`) también son P1/P2, así que el conteo de P0 sigue
+igual — arreglados, pero **en rama sin mergear** (ver punto 1).
+Hallazgos totales: **96**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -175,6 +189,31 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
+**La lección de la sesión 17, que es la que conviene llevarse AHORA:** quinta seguida con los
+defectos en las COMPUERTAS, y **cuatro de los cinco arreglos de la 16 dejaron abierto justo el
+vecino que los motivó**. Dos formas nuevas, y las dos son sobre cómo se escribe una compuerta:
+
+> **El piso de una compuerta suele ser exactamente el número de HOY, así que acaba exigiendo ESE
+> NÚMERO en vez de exigir COBERTURA.** `pinned.length >= 3` con tres jobs no dice «todos los jobs
+> están cubiertos», dice «hay tres pines»: un cuarto job corriendo `npm test` en Node 20 pasaba
+> tan campante. **No cuentes — emparejá cada cosa con lo que tiene que cubrirla.**
+
+> **Un fixture añadido para habilitar una prueba nueva puede RESPONDER la pregunta que otra
+> prueba estaba haciendo.** Es la forma de la sesión 10 (un arreglo desarma la prueba de otro)
+> por la puerta del fixture, y es **más traicionera porque el fixture parece inerte**.
+> `writeMatchingBaseline` escribe dos packs; la aserción decía `packs.toHaveLength(2)`. La
+> pregunta y la respuesta llegaron por el mismo canal, y con la escritura del manifiesto
+> desactivada del todo **el repo ENTERO salía verde**.
+
+Y dos corolarios de método que valen por sí solos:
+
+> **Antes de creerte un arreglo de infraestructura, MEDILO.** El primer arreglo de `R9-94` fue
+> `npm outdated --package-lock-only`, que suena exacto y **no funciona**: sigue imprimiendo
+> `MISSING` las 57 filas. Lo cazó probarlo en un directorio pelado antes de comitearlo.
+
+> **Un comentario corregido no es una compuerta.** Las cinco frases de `R9-91` se podían
+> reescribir y volver a pudrirse igual. O lo detecta algo, o no existe.
+
 Y dos corolarios que valen por sí solos:
 
 > **Si una prueba nueva importa un script de build, preguntá qué necesita ese script al
@@ -232,63 +271,60 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 16, ya mergeado.** Es el patrón que ya pagó
-**ocho** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15 y 16 encontraron defectos reales
-en el diff de ARREGLOS de la sesión anterior. Son cinco arreglos, y esta vez **uno de ellos no
-es código de la app sino la tubería**: `ci.yml`, `package.json` y un `require` perezoso. Un
-error ahí no se ve en ninguna prueba local — se ve en el siguiente push. (El de la 16 **ya
-pasó** un push real: run `35130290791`, verde, Node v24.20.0, 363/4263. Eso descarta que esté
-roto de la forma tonta, no de las otras.)
+**(a) RECOMENDADA — revisar el diff de la sesión 17, que está SIN MERGEAR.** Es el patrón que ya
+pagó **nueve** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16 y 17 encontraron defectos
+reales en el diff de ARREGLOS de la sesión anterior. Son **10 arreglos en 3 commits**, y esta vez
+la mitad NO es código de la app sino **compuertas y tubería**: un escáner de workflow reescrito de
+cero, el piso de `engines`, un paso nuevo en CI, y tres mensajes del script de packs. Un error ahí
+no se ve en ninguna prueba local — se ve en el siguiente push.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a revisar
-> son los cinco arreglos de la sesión 16, ya dentro de `main`: **`git log cca7091..531ffef`**
-> (5 commits, 7 archivos). Ojo, `0aa92a7..531ffef` son QUINCE commits y mezcla la sesión 15,
-> que ya se revisó.
+> **Hay una rama SIN MERGEAR: `fix/review-s17-revision-diff-s16`** (3 commits). Son los 10
+> arreglos de la sesión 17 (`R9-87`..`R9-96`), con `npm run validate` verde en local
+> (363 suites / 4278 pruebas) y cada arreglo visto fallar primero. `main` sigue en `31132d2`.
 >
-> Revisá el diff de la 16 (`R9-82`..`R9-86`) con el mismo criterio de las sesiones 8-16 —
-> buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
-> comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré, restaurá, y
-> `diff` el revert para confirmar que tocó la línea que creés).
+> Revisá ese diff con el mismo criterio de las sesiones 8-17 — buscá si algún arreglo cierra el
+> caso que su prueba cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA
+> de verdad (revertí el arreglo, corré, restaurá, y `diff` el revert para confirmar que tocó la
+> línea que creés).
 >
-> **Y esta vez el arreglo más importante NO se puede verificar con las compuertas locales**,
-> porque es justamente la tubería que las corre. Cinco sitios donde mirar con lupa:
+> **Cinco sitios donde mirar con lupa, y los tres primeros son compuertas nuevas enteras:**
 >
-> 1. **El cambio de `ci.yml` a Node 24 ya pasó un push real y los tres jobs salieron verdes**,
->    así que `npm ci` con este lockfile y `npm audit` funcionan en 24. Lo que ESO no prueba:
->    si el job de Security Audit sigue significando lo mismo (¿`npm audit` reporta igual en
->    24 que en 20?), y si algún aviso nuevo del runner quedó tragado. Mirá el log, no el
->    check verde — es literalmente el hallazgo de la sesión que estás revisando.
-> 2. **`engines.node: ">=22"` es una afirmación sobre el mundo.** Se verificó corriendo la suite
->    en 22.23.2. Preguntate si `>=22` es cierto para TODO el 22.x (`node:sqlite` llegó en 22.5
->    detrás de `--experimental-sqlite`), y qué pasa con quien instale con npm y solo reciba un
->    warning. ¿El piso debería ser el que se verificó, o el que se cree?
-> 3. **`ciNodeVersion.test.ts` es una compuerta nueva sobre un archivo YAML leído con un
->    regex.** Preguntate qué forma legítima de escribir `node-version` no ve (¿una matriz?
->    ¿comillas dobles? ¿sin comillas? ¿una variable?), y si su piso (`>= 3` pins) sigue
->    valiendo el día que alguien añada un cuarto job — o si lo que hace es **exigir** que haya
->    tres.
-> 4. **El `require` perezoso mueve un fallo de carga a un fallo de ejecución.** Preguntate si
->    hay algún camino donde eso lo vuelva MÁS silencioso, y si `openDatabase(file, options)`
->    se comporta igual que el `new DatabaseSync(file)` de antes en los tres sitios.
-> 5. **`R9-83` cambió el `beforeEach` compartido de las pruebas de `main()`** para que escriba
->    una baseline. Preguntate a qué pruebas les cambió el significado sin que nadie lo note —
->    una prueba que antes ejercitaba «sin base» y ahora ejercita «con base» puede haber dejado
->    de probar lo suyo. Es exactamente la forma de la sesión 10 (un arreglo desarma la prueba
->    de otro), pero por la puerta del fixture. La 16 dice haberlas revisado una por una (está
->    en «Comprobado y BIEN» de su detalle) — **esa afirmación es justo del tipo que este
->    programa comprueba, no del que cree**.
+> 1. **`__tests__/ciNodeVersion.test.ts` está reescrito de cero.** Ya no es un regex: es un
+>    escáner de la ESTRUCTURA del YAML, escrito a mano, sin librería. Preguntate qué forma
+>    legítima de workflow lo rompe o lo ciega — ¿indentación de 4 espacios? ¿un `uses:` con
+>    `with:` en flujo (`{node-version: '24'}`)? ¿un job dentro de un `strategy.matrix`? ¿un
+>    workflow reutilizable (`uses: ./.github/workflows/x.yml`)? ¿`jobs:` apareciendo dentro de un
+>    bloque de texto? Sus probes llaman a la función de verdad — comprobalo, no lo creas. Y
+>    preguntate si el piso nuevo («cada job que corre node/npm tiene pin») **puede pasar en
+>    vacío**: ¿qué pasa si `jobsRunningNode` sale vacío?
+> 2. **El detector de `R9-91` es un regex sobre PROSA**, y su propio comentario admite que solo
+>    entiende la forma que el repo usó. Preguntate qué frase falsa se le escapa, y si excluir su
+>    propio archivo (porque tiene que citar la frase mala) abre un agujero.
+> 3. **`R9-92` modela `base`/`web`/`native` y REPORTA lo demás.** Preguntate si el modelo de
+>    resolución de metro es correcto —¿`.native` gana sobre `base` en iOS y Android?— y si
+>    reportar `.ios` es lo correcto o solo lo cómodo.
+> 4. **`R9-87` comprueba el manifiesto contra el disco.** Preguntate si `manifestAgainstDisk`
+>    puede pasar en vacío, si su piso (`compared === 4`) es el número de HOY —que es justamente
+>    la lección de esta sesión— y si hay algún sabotaje del script que siga saliendo verde.
+> 5. **`R9-95` cambió el `finally` de `main()` por un `catch` + rethrow.** Preguntate qué pasa si
+>    la excepción original no es un `Error` (mutar `.message` en un string tirado), y si el nuevo
+>    camino puede **tragarse** algo que antes propagaba.
 >
 > Y ojo con los puntos ciegos que este programa ya se cazó a sí mismo: **una verificación cuyo
 > cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre la
-> lista NUEVA no ve lo que falta de la VIEJA**; **un mensaje —de error o de éxito— que AFIRMA
-> un estado del mundo es una aserción, y hay que probarla mirando el MUNDO, no el string**; y
-> el de la 16, **una compuerta que nunca llegó a EJECUTARSE se ve igual que una que pasó, así
-> que preguntá DÓNDE corre y no solo qué comprueba**.
+> lista NUEVA no ve lo que falta de la VIEJA**; **un mensaje —de error o de éxito— que AFIRMA un
+> estado del mundo es una aserción, y hay que probarla mirando el MUNDO, no el string**; **una
+> compuerta que nunca llegó a EJECUTARSE se ve igual que una que pasó, así que preguntá DÓNDE
+> corre**; y los dos de la 17, **el piso de una compuerta suele ser el número de HOY, así que
+> exige ese número en vez de cobertura**, y **un fixture añadido para una prueba nueva puede
+> RESPONDER la pregunta que otra prueba hacía**.
 >
 > **Comprobá además los cuatro sha256 contra `web/packs/web-bootstrap.json` y contra lo que
-> sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.**
+> sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.** Y como esta rama
+> toca `scripts/build-web-packs.js`, corré el `main()` REAL contra los datos REALES en un
+> directorio temporal y confirmá que los cuatro packs siguen saliendo byte a byte.
 >
 > Decime qué encontraste antes de tocar nada.
 

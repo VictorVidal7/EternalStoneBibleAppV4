@@ -49,6 +49,19 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 17 (2026-09-16).** Revisó el diff de la 16 (`cca7091..531ffef`) y encontró **10
+> defectos, ninguno P0**: `R9-87`, `R9-88`, `R9-89` (P1) y `R9-90`..`R9-96` (P2). **Los cinco
+> arreglos de la 16 se sostienen** — `R9-85` y `R9-86` vistos discriminar por revert, y `R9-82`
+> verificado **en el LOG del run**, no en el check. **Quinta sesión seguida con los defectos en
+> las COMPUERTAS, y cuatro de los cinco arreglos dejaron abierto justo el vecino que los
+> motivó.** Lo que más vale: con la escritura del manifiesto desactivada del todo, **el repo
+> ENTERO sale verde (363 suites / 4263 pruebas)** — el `beforeEach` que `R9-83` añadió RESPONDÍA
+> la pregunta que la única aserción que la fijaba estaba haciendo (`R9-87`). Y el piso que la 16
+> declaró (`">=22"`) es **falso**: `node:sqlite` se desbanderó en **22.13.0**, y la compuerta
+> **prohibía** escribir el piso verdadero (`R9-88`). La cadena de datos publicados se verificó
+> entera contra el mundo, dos veces. Los 10 arreglados en la misma sesión. Detalle:
+> `detail/S17-revision-del-diff.md`.
+
 > **Sesión 16 (2026-09-16).** Revisó el diff de la 15 (que estaba **sin mergear**) y encontró
 > **5 defectos, ninguno P0**: `R9-82`, `R9-83` (P1) y `R9-84`, `R9-85`, `R9-86` (P2). **Los cinco
 > arreglos de la 15 se sostienen**, verificado revirtiendo cada uno por separado con el `diff` del
@@ -645,6 +658,49 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ## P1 — núcleo de la app
 
+- **`R9-87` (S17, prueba de packs) — 🐛 el `beforeEach` de `R9-83` desarmó la ÚNICA aserción que
+  fijaba que `main()` ESCRIBE el manifiesto.** El control de corrida limpia lo fijaba con
+  `readPreviousManifest(world.manifestFile).packs` → `toHaveLength(2)`, y eso discriminaba **solo
+  porque el archivo no existía** y la llamada reventaba. El `beforeEach` nuevo escribe una
+  baseline con **exactamente dos packs**, así que el FIXTURE responde la pregunta que la aserción
+  hacía. **Medido:** con `fs.writeFileSync(manifestFile, …)` desactivado del todo, **el repo
+  ENTERO sale verde — 363 suites / 4263 pruebas**. Río abajo importa:
+  `data-loader.web.ts:178` usa `manifestEntry.sha256` como **única** señal de «hay pack nuevo»,
+  así que un manifiesto que deja de reescribirse deja a todo lector web ya arrancado en el pack
+  viejo **para siempre y en silencio** — clase `R9-13` por el lado del transporte. Es la forma de
+  la sesión 10 (un arreglo desarma la prueba de otro) **por la puerta del fixture**.
+  **Arreglado:** se comprueba contra el MUNDO (`manifestAgainstDisk`: cada entrada tiene que
+  nombrar un archivo real en `out`, con sus `bytes` y su `sha256`), con piso, y también en el
+  control de `--allow-shrink` sin base, que es el único sitio donde el manifiesto está
+  garantizadamente ausente de antemano. Detalle: `detail/S17-revision-del-diff.md`.
+
+- **`R9-88` (S17, CI) — 🐛 `engines.node: ">=22"` es FALSO, y la compuerta PROHIBÍA corregirlo.**
+  `node:sqlite` llegó en 22.5 detrás de `--experimental-sqlite` y se **desbanderó en 22.13.0**
+  (nodejs/node#55890). **Medido con binarios reales:** 22.5.1…22.12.0 lanzan
+  `ERR_UNKNOWN_BUILTIN_MODULE`; 22.13.0 en adelante van; y 22.12.0 **con** la bandera va, o sea
+  que es la bandera y no la ausencia. De 22.0.0 a 22.12.x el módulo existe pero **no se puede
+  usar**, y ahí la suite del área da **56 fallos** — sin ni siquiera el aviso `EBADENGINE`,
+  porque `>=22` se cumple. En CI, `parseInt` compara majors, así que `'22.12.0'` pasaba. **Y la
+  compuerta bloqueaba su propia corrección:** `toBe('>=22')` es igualdad de CADENA, no «¿alcanza
+  el piso?», así que `">=22.13.0"` y `">=24"` FALLABAN. **Arreglado:** `MINIMUM_NODE = '22.13.0'`,
+  comparación de versiones enteras, y la prueba exige que el piso declarado **alcance**. Un major
+  pelado igual al del piso se rechaza a propósito. Detalle: `detail/S17-revision-del-diff.md`.
+
+- **`R9-89` (S17, CI) — 🐛 la compuerta del pin de Node veía UNA forma de escribirlo, y su piso
+  exigía tres.** El regex era `/node-version:\s*'([^']+)'/g`: solo comillas **simples**, y
+  `parseInt` da `NaN` para todo lo no numérico (`NaN < 22` es `false` → **pasa**). **Medido, cada
+  caso con el `diff` del revert a la vista:** `'lts/iron'` (Node 20) pasaba; `'${{ matrix.node }}'`
+  sobre una matriz `[20]` pasaba; `'22.12.0'` pasaba; y —el que manda— los tres jobs buenos más
+  un **CUARTO** corriendo `npm test` en `node-version: 20` sin comillas **también**, porque el
+  piso era `pinned.length >= 3` y había tres. **Un piso igual al número de hoy exige ESE NÚMERO,
+  no cobertura**: solo salva el caso «todos invisibles». Además `readWorkflow()` leía un nombre de
+  archivo fijo, así que un `deploy.yml` con Node 20 corriendo `build-web-packs.js` pasaba.
+  **Arreglado:** escáner de la ESTRUCTURA del workflow (`scanWorkflowSource(name, source)`, con
+  probes que llaman a esa misma función — la lección de `R9-86` aplicada al nacer), sobre todo
+  `.github/workflows/`, **correlacionando** cada job que corre node/npm con su pin, comparando
+  versiones enteras, y **reportando** toda forma que no sabe leer (disciplina de `R9-67`).
+  Detalle: `detail/S17-revision-del-diff.md`.
+
 - **`R9-82` (S16, CI) — 🐛 la compuerta de los packs NUNCA corrió en CI, y `main` llevaba un día
   en ROJO.** `scripts/build-web-packs.js` requiere `node:sqlite`, que no existe antes de Node 22;
   daba igual mientras el script solo se corriera a mano (Victor tiene 24.11.1), pero **la sesión
@@ -1061,6 +1117,72 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-90` (S17, CI) — 🐛 el control «still has a reason to require it» casaba TEXTO, y miraba 1
+  de los 9 archivos que lo necesitan.** `expect(script).toContain("require('node:sqlite')")` sobre
+  `build-web-packs.js`. **Medido en las dos direcciones:** migrado a `better-sqlite3` dejando un
+  comentario que mencionara el require, la compuerta seguía **verde** afirmando que el archivo lo
+  requiere; y quitando la mención decía que el piso estaba **rancio** cuando siguen requiriéndolo
+  **8 scripts más** (`rebuild-seed.js` incluido, que construye el seed nativo). **Arreglado:** se
+  deriva sobre `scripts/` con los comentarios quitados, y se exige `>= 2`.
+
+- **`R9-91` (S17, pruebas) — 🐛 cinco suites seguían AFIRMANDO que CI fija Node 20.**
+  `databaseMigrations`, `sanitizeFtsQuery`, `insertVersesBatchedSql`, `hebrewGlossEs`,
+  `quizVerseLookup`. No son notas de color: son la **justificación documentada** de por qué
+  simulan SQL a mano en vez de abrir `node:sqlite`. Esa razón caducó con `R9-82` y nadie lo notó,
+  **porque un comentario no es una compuerta: es una nota, y una nota no se pone roja.**
+  **Arreglado:** las cinco frases a pasado con el piso real, **más el detector**, que deriva los
+  pines reales del workflow y falla si alguna suite afirma en presente un pin que no existe.
+  Visto fallar devolviendo una de las cinco a presente.
+
+- **`R9-92` (S17, compuerta de providers) — 🐛 el escáner de layouts no veía
+  `_layout.native.tsx`, y no lo decía.** `R9-86` hizo que los layouts se BUSCARAN —correcto— y
+  luego casaba los dos nombres **literalmente**, así que un directorio con solo
+  `_layout.native.tsx` no llegaba al mapa: ni como entrada, ni como error. **Medido:** una sonda
+  con un `<ProbeOnlyProvider>` en un layout `.native` dejaba el archivo en **15/15 verde**
+  mientras el árbol nativo lo montaba de verdad → queda fuera de `native`, por tanto de
+  `unmountedOnWeb`, por tanto de todo lo que exige declararlo: el crash de
+  `R9-14`/`R9-75`/`R9-80` por una puerta lateral. **La asimetría es el hallazgo:** el caso vecino
+  (`.native` + `.web`) **sí** fallaba ruidosamente, o sea que la comprobación estaba BIEN y nunca
+  se **ejecutaba** para esa fila — la lección de la 16 una iteración de bucle más abajo.
+  **Arreglado:** el walker parsea el sufijo de plataforma; `.ios`/`.android` se **reportan**.
+
+- **`R9-93` (S17, build de packs) — 🐛 el mensaje FIRST FILE decía COHERENTE sobre un directorio
+  que puede estar MEZCLADO.** `R9-84` cerró «dice MIXED sin haber movido nada»; su reemplazo
+  afirma «_It is coherent - one run, whole - and its sha256 are still the ones the manifest
+  pins_», y eso es **falso** en cuanto una corrida anterior falló a medias. **Medido**, tres
+  corridas encadenadas: tras un `FAILED HALFWAY`, 1 de 4 archivos con sha256 que la base **no**
+  pina, y la corrida siguiente afirmando que el directorio es publicable — **contradiciendo
+  palabra por palabra** el aviso correcto del paso anterior. **Arreglado:** se comprueba (el
+  manifiesto ya está en mano), y `null` («no pude comprobar») y `[]` («comprobado, cuadra») son
+  respuestas **distintas** a propósito.
+
+- **`R9-94` (S17, CI) — 🐛 `npm outdated` corría sin instalar: las 57 filas salían `MISSING`.**
+  El job de seguridad es el único sin paso de instalación. `npm audit` lee el lockfile y no lo
+  necesita; **`npm outdated` sí**, porque su salida entera es la versión **instalada**. En el run
+  **verde** `35130290791`: las 57 dependencias directas en `MISSING` y `exit code 1` tragado por
+  `continue-on-error`, en todos los runs verdes desde que se escribió el job. **El primer arreglo
+  fue falso y lo cazó medirlo:** `--package-lock-only` **no** sustituye (sigue dando `MISSING` las
+  57). **Arreglado:** instalar antes, con la caché que el job ya tiene. Medido: 0 `MISSING`.
+  _(Distinto de `R9-5`, que dice que el job no puede fallar; eso presupone que el paso mide algo.)_
+
+- **`R9-95` (S17, build de packs) — 🐛 el `finally` de `main()` podía DESTRUIR el motivo del
+  aborto.** Un `throw` desde un `finally` **reemplaza** la excepción del `try`, así que una
+  corrida donde la compuerta hizo su trabajo —cazar un encogimiento, negarse a publicar— podía
+  reportar `EBUSY: resource busy or locked, rmdir` **y nada más**. La compuerta disparó y el
+  operador no se enteró. El espejo es igual de malo: una corrida que emitió los cuatro packs y
+  reescribió el manifiesto reportando un EBUSY pelado parece fallida. No es hipotético: `staging`
+  vive dentro de `out`, `out` es el Escritorio por defecto, y un cliente de sincronización sobre
+  9,5 MB de `.sqlite` recién escritos es la misma causa que motivó `R9-81`. **Arreglado:** la
+  excepción original se conserva y el problema de limpieza se **añade**.
+
+- **`R9-96` (S17, build de packs) — 🐛 la escritura del manifiesto era la ÚNICA operación sin
+  mensaje.** Y es el único fallo donde «los archivos de `out` son de una corrida anterior» es
+  **falso** y «el manifiesto no se tocó» es el problema en vez del consuelo: los cuatro renames ya
+  cayeron, así que `out` tiene los bytes de ESTA corrida mientras el manifiesto versionado pina
+  los anteriores. Publicar desde ahí sube packs cuyo sha256 el manifiesto contradice — y ese
+  sha256 es la única señal que `data-loader.web.ts` usa para notar un pack nuevo. **Alcanzabilidad
+  baja** (solo lectura, bloqueo, disco lleno); se arregla por la asimetría de disciplina.
 
 - **`R9-84` (S16, build de packs) — 🐛 el mensaje decía que el directorio estaba MEZCLADO sin
   haber movido nada.** El error que `R9-81` escribe cuando un rename falla es una **aserción sobre
