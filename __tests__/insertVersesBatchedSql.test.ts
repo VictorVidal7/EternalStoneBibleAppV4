@@ -14,7 +14,7 @@
  *  - `node:sqlite` was considered and rejected for the same reason
  *    databaseMigrations.test.ts rejected it: this repo's CI
  *    (.github/workflows/ci.yml) pinned Node 20 AT THE TIME (R9-91: it
- *    pins 24 now), and `node:sqlite` requires
+ *    pins Node 24 now), and `node:sqlite` requires
  *    Node >= 22.5 — it would pass on a newer local Node and fail in CI.
  *  - `sql.js` (pure JS, MIT, zero native compilation) has no such
  *    constraint: it runs identically on any Node version, so it's added

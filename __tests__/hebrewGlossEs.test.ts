@@ -35,7 +35,7 @@
  *
  * `node:sqlite` was considered for a REAL in-memory SQLite test (like
  * scripts/*.js use), but this repo's CI pinned Node 20 AT THE TIME
- * (R9-91: it pins 24 now) and `node:sqlite`
+ * (R9-91: it pins Node 24 now) and `node:sqlite`
  * requires Node >= 22.5 (see __tests__/databaseMigrations.test.ts's header
  * for the same reasoning) — so this follows that file's established
  * "fake handle, real business logic" idiom instead.
