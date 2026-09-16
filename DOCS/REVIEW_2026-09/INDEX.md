@@ -98,7 +98,8 @@
 > cabecera (`R9-99`) — `R9-89` reabierto por su propio arreglo. Tres formas nuevas: **una
 > comprobación que reemplaza una afirmación tiene que comprobar la afirmación ENTERA**,
 > **decidir por la FORMA de una línea es decidir por un estilo** y **una compuerta que no casa
-> con nada hoy no tiene discriminador**. Los 5 arreglados en la misma sesión.
+> con nada hoy no tiene discriminador**. Los 5 arreglados en la misma sesión, **mergeados
+> y pusheados** (`2b65a12`).
 >
 > **Sesión 17 (2026-09-16) revisó el diff de la 16 y encontró 10 defectos, ninguno P0**
 > (`R9-87`, `R9-88`, `R9-89` en P1; `R9-90`..`R9-96` en P2). **Los 5 arreglos de la 16 se

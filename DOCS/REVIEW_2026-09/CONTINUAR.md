@@ -12,24 +12,32 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s18-revision-diff-s17`.**
+**1. ✅ NO HAY NADA PENDIENTE DE GIT. `main` está al día y pusheado.**
 
-Son los **5 arreglos de la sesión 18** (`R9-97`..`R9-101`), dos commits
-(`2a442dd` + `f477c19`) sobre `0da86ce`. **Victor no ha dicho que se mergee**, así que
-**no la mergees sin preguntarle.** Gates verdes en local: **363 suites / 4289 pruebas**,
-`tsc --noEmit` limpio, `eslint` 0 errores, `prettier --check` limpio. Y como el diff toca
-`scripts/build-web-packs.js`, el `main()` REAL corrió contra los datos REALES **después** del
-cambio: los cuatro packs salen **byte a byte**, sha256 y `content-length` idénticos al
-manifiesto versionado **y** a lo que hoy sirve `eternalstonebible.github.io/packs/`.
+Las ramas de las sesiones 15, 16, 17 y **18** se mergearon en fast-forward y se borraron.
+**`main` = `origin/main` = `2b65a12`.** Árbol limpio.
 
-**`main` sigue en `0da86ce`, pusheado y VERDE en CI.** Las ramas de las sesiones 15, 16 y 17 se
-mergearon en fast-forward y se borraron. **Esa rama nueva no ha corrido en CI todavía**, y toca
-la compuerta del pin de Node otra vez — así que cuando se mergee, **verificá el run EN EL LOG**,
-no en el check (la lección de la sesión 16).
+Los **5 arreglos de la sesión 18** (`R9-97`..`R9-101`) están dentro (`2a442dd` + `f477c19`),
+cada uno **visto fallar primero**, y los tres de CI medidos **contra el mundo** y no solo
+contra una sonda: sobre el `ci.yml` REAL un cuarto job sin ningún `setup-node` pasaba 15/15
+con solo llevar un comentario en su cabecera, y un `deploy.yml` REAL en Node 20 pasaba igual.
+Gates en local: **363 suites / 4289 pruebas**, `tsc` limpio, eslint 0 errores, prettier limpio.
+Y como el diff toca `scripts/build-web-packs.js`, el `main()` REAL corrió contra los datos
+REALES **después** del cambio: los cuatro packs salen **byte a byte**, sha256 y
+`content-length` idénticos al manifiesto versionado **y** a lo que hoy sirve
+`eternalstonebible.github.io/packs/`.
 
-**Los 10 arreglos de la sesión 17** (`R9-87`..`R9-96`) están dentro de `main`, cada uno **visto
-fallar primero con el `diff` del revert a la vista**. Esa rama tocaba `ci.yml` y reescribía
-entera la compuerta del pin de Node, así que **el run se verificó en el LOG**:
+Esa rama volvía a tocar la compuerta del pin de Node, así que **el run se verificó EN EL LOG**
+(la lección de la sesión 16), no en el check: run **`35163372377`**, los tres jobs en verde,
+runner **Node v24.20.0**, **363 suites / 4289 pruebas** (los mismos números que en local, o sea
+que no se saltó nada en silencio), **cero** «Test suite failed to run», y `PASS` en las cuatro
+que importan: `buildWebPacks`, `ciNodeVersion`, `missingProviderError` y
+`redLetterPackParity`. El job de seguridad sigue en **cero filas `MISSING`** y
+`14 vulnerabilities (11 moderate, 3 high)`, con **cero `EBADENGINE`**.
+
+Los **10 arreglos de la sesión 17** (`R9-87`..`R9-96`) están dentro de `main` desde antes.
+Esa rama tocaba `ci.yml` y reescribía entera la compuerta del pin de Node, así que **su run
+también se verificó en el LOG**:
 
 - run **`35137876566`**, los tres jobs en verde, runner **Node v24.20.0**;
 - `PASS buildWebPacks.test.js`, `PASS missingProviderError.test.ts`,
@@ -100,8 +108,7 @@ de P0 sigue igual — y los cinco ya están arreglados y mergeados.
 Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados y mergeados.
 Los **10 de la sesión 17** (`R9-87`..`R9-96`) también son P1/P2, así que el conteo de P0 sigue
 igual — y los diez ya están arreglados y mergeados.
-Los **5 de la sesión 18** (`R9-97`..`R9-101`) igual: P1/P2, arreglados, **pero en una rama
-SIN MERGEAR** (ver el punto 1).
+Los **5 de la sesión 18** (`R9-97`..`R9-101`) igual: P1/P2, arreglados y mergeados.
 Hallazgos totales: **101**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
@@ -317,7 +324,7 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 18, que está en una rama SIN MERGEAR.** Es el
+**(a) RECOMENDADA — revisar el diff de la sesión 18, ya mergeado.** Es el
 patrón que ya pagó **diez** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16, 17 y 18
 encontraron defectos reales en el diff de ARREGLOS de la sesión anterior. Son **5 arreglos en 2
 commits**, y esta vez **ninguno es código de la app**: los cinco son compuertas, tres de ellas
@@ -326,10 +333,12 @@ siguiente push, o en el siguiente `build-web-packs`.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Hay una rama SIN MERGEAR: `fix/review-s18-revision-diff-s17`** (`2a442dd` + `f477c19` sobre
-> `0da86ce`). Gates verdes en local (363 suites / 4289 pruebas, `tsc` limpio, eslint 0 errores,
-> prettier limpio), y el `main()` real corrió contra los datos reales después del cambio: los 4
-> packs byte a byte. **No la mergees sin preguntarme.**
+> **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a
+> revisar son los 5 arreglos de la sesión 18, ya dentro de `main`:
+> **`git log 0da86ce..2b65a12`** (3 commits: 2 de código, `2a442dd` y `f477c19`, y uno de
+> checkpoint). Gates verdes en local (363 suites / 4289 pruebas), y el `main()` real corrió
+> contra los datos reales después del cambio: los 4 packs byte a byte. El run
+> `35163372377` se verificó EN EL LOG.
 >
 > Revisá ese diff con el mismo criterio de las sesiones 8-18 — buscá si algún arreglo cierra el
 > caso que su prueba cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA
@@ -529,7 +538,7 @@ arreglos** — ver la nota al principio de esa sección.
 | 15     | Revisión del diff de la 14: **5 defectos** + arreglos       | mergeado a `main`   |
 | 16     | Revisión del diff de la 15: **5 defectos** + `main` en rojo | mergeado a `main`   |
 | 17     | Revisión del diff de la 16: **10 defectos** + arreglos      | mergeado a `main`   |
-| 18     | Revisión del diff de la 17: **5 defectos** + arreglos       | **SIN MERGEAR**     |
+| 18     | Revisión del diff de la 17: **5 defectos** + arreglos       | mergeado a `main`   |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos

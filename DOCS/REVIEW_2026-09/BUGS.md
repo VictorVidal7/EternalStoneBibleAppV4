@@ -60,7 +60,8 @@
 > workflows decide qué es un job por su **FORMA**, así que un cuarto job sin ningún `setup-node`
 > pasa **15/15** con sólo llevar un comentario en su cabecera (`R9-99`) — que es `R9-89` reabierto
 > por su propio arreglo. La cadena de datos publicados se verificó entera contra el mundo, dos
-> veces. Los 5 arreglados en la misma sesión. Detalle: `detail/S18-revision-del-diff.md`.
+> veces. Los 5 arreglados en la misma sesión, **mergeados y pusheados** (`2b65a12`). Detalle:
+> `detail/S18-revision-del-diff.md`.
 
 > **Sesión 17 (2026-09-16).** Revisó el diff de la 16 (`cca7091..531ffef`) y encontró **10
 > defectos, ninguno P0**: `R9-87`, `R9-88`, `R9-89` (P1) y `R9-90`..`R9-96` (P2). **Los cinco
