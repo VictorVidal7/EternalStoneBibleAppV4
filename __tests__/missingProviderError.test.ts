@@ -12,6 +12,7 @@
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 import {renderHook} from '@testing-library/react-native';
 import {
   isMissingProviderError,
@@ -20,19 +21,61 @@ import {
 
 /**
  * Which `<XProvider …>` elements a layout file mounts, read off the file the
- * app really runs. `[\s>]` rather than `>`: app/_layout.tsx writes
- * `<ServicesProvider database={bibleDB}>`, and a pattern anchored on `>` would
- * skip every provider that takes a prop — silently shrinking the set this gate
- * compares against.
+ * app really runs.
+ *
+ * R9-80: this was a regex over the raw TEXT, and raw text cannot tell a mounted
+ * provider from a MENTIONED one. Probed against this very gate: removing
+ * `<AudioPlayerProvider>` from app/_layout.web.tsx while leaving the name
+ * inside a JSX comment left the whole file green at 11/11 — the set
+ * silently GREW to include a provider the web tree no longer mounts, so
+ * `unmountedOnWeb` lost it and nothing demanded it be accounted for. The
+ * consequence is the one R9-14 exists to prevent: `useAudioPlayer` throws,
+ * `isMissingProviderError` says false, and the user gets the generic "Algo
+ * salió mal" with a retry button that re-renders the same route and throws
+ * again. The header of the old version was already worried about this set
+ * silently shrinking; it grows just as quietly.
+ *
+ * So this walks the SYNTAX TREE instead, the same way webNativeModuleParity's
+ * scanner does after R9-67 — comments and string literals stop existing rather
+ * than having to be stripped. `ts.createSourceFile` builds the tree without
+ * type-checking, resolving a module, or executing a line.
+ *
+ * A tag this cannot attribute to a plain identifier (`<Ctx.Provider>`) is
+ * reported rather than dropped, for R9-67's reason: a form the scanner cannot
+ * read makes the comparison quietly weaker instead of failing.
  */
+function scanLayout(layoutFile: string): {
+  mounted: Set<string>;
+  unreadable: string[];
+} {
+  const file = path.join(__dirname, '..', 'app', layoutFile);
+  const sourceFile = ts.createSourceFile(
+    file,
+    fs.readFileSync(file, 'utf8'),
+    ts.ScriptTarget.Latest,
+    /* setParentNodes */ true,
+    ts.ScriptKind.TSX,
+  );
+  const mounted = new Set<string>();
+  const unreadable: string[] = [];
+
+  const visit = (node: ts.Node): void => {
+    if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+      const tag = node.tagName;
+      if (ts.isIdentifier(tag)) {
+        if (tag.text.endsWith('Provider')) mounted.add(tag.text);
+      } else if (tag.getText(sourceFile).endsWith('Provider')) {
+        unreadable.push(tag.getText(sourceFile));
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  ts.forEachChild(sourceFile, visit);
+  return {mounted, unreadable};
+}
+
 function providersMountedIn(layoutFile: string): Set<string> {
-  const source = fs.readFileSync(
-    path.join(__dirname, '..', 'app', layoutFile),
-    'utf8',
-  );
-  return new Set(
-    [...source.matchAll(/<([A-Za-z]+Provider)[\s>]/g)].map(m => m[1]),
-  );
+  return scanLayout(layoutFile).mounted;
 }
 
 /**
@@ -164,6 +207,49 @@ describe('isMissingProviderError', () => {
         false,
       ]);
     }
+  });
+
+  it('reads both layouts with no provider tag it cannot attribute', () => {
+    // R9-67's discipline applied here: `<SomeContext.Provider>` is a form this
+    // scanner cannot map to a provider NAME, and an unreadable mount weakens
+    // every comparison below instead of failing one. So it fails here, loudly,
+    // the day a layout starts using it. Teach the scanner, never the reverse.
+    expect(scanLayout('_layout.tsx').unreadable).toEqual([]);
+    expect(scanLayout('_layout.web.tsx').unreadable).toEqual([]);
+  });
+
+  it('counts a provider that is only MENTIONED as not mounted', () => {
+    // The R9-80 control, and the only positive case there is: no real layout
+    // mentions a provider it does not mount, so the cases below would report
+    // success whether this scanner distinguished the two or not.
+    const source =
+      'export default function Layout() {\n' +
+      '  return (\n' +
+      '    <RealProvider>\n' +
+      '      {/* <CommentedOutProvider> lives in the native tree only */}\n' +
+      '      <Slot />\n' +
+      '    </RealProvider>\n' +
+      '  );\n' +
+      '}\n';
+    const sourceFile = ts.createSourceFile(
+      'probe.tsx',
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+      ts.ScriptKind.TSX,
+    );
+    const found = new Set<string>();
+    const visit = (node: ts.Node): void => {
+      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
+        const tag = node.tagName;
+        if (ts.isIdentifier(tag) && tag.text.endsWith('Provider')) {
+          found.add(tag.text);
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    ts.forEachChild(sourceFile, visit);
+    expect([...found]).toEqual(['RealProvider']);
   });
 
   it('never claims a provider app/_layout.web.tsx actually mounts', () => {
