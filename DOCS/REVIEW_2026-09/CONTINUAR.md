@@ -12,32 +12,24 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ `main` ESTÁ EN ROJO EN CI, y hay DOS ramas sin mergear (una encima de la otra).**
+**1. ✅ NO HAY NADA PENDIENTE DE GIT NI DE CI. `main` está al día, pusheado y VERDE.**
 
-**Lo primero, porque es lo único que está roto ahora mismo:** `main` lleva desde el
-2026-09-15 fallando en CI, cuatro runs seguidos (`3982ea0`, `ff99435`, `e5c8ce4`, `0aa92a7`).
-La causa es `R9-82`: `scripts/build-web-packs.js` requiere `node:sqlite`, que no existe antes
-de Node 22, y `ci.yml` fijaba `node-version: '20'`, así que `buildWebPacks.test.js` **no
-carga** — la compuerta que vigila lo único que produce DATOS PUBLICADOS no se ha ejecutado en
-CI ni una vez desde la sesión 13. **El arreglo está en la rama de la sesión 16, no en `main`.**
+Las ramas de las sesiones 15 y 16 se mergearon en fast-forward y se borraron
+(`0aa92a7..531ffef`). **`main` = `origin/main`.** Árbol limpio.
 
-- `fix/review-s15-revision-diff-s14` — los cinco arreglos de la 15 (`R9-77`..`R9-81`).
-- `fix/review-s16-revision-diff-s15` — **sale de la anterior**, así que la contiene entera, y
-  le suma los cinco de la 16 (`R9-82`..`R9-86`) más el checkpoint. **Mergear esta mergea las
-  dos**, y es lo que pone `main` verde otra vez.
+**Y el verde está verificado contra el MUNDO, no contra el resumen**, que es la lección de la
+sesión 16: el runner usó **Node v24.20.0**, `buildWebPacks.test.js` sale **PASS** —la suite que
+NO CARGABA en CI desde la sesión 13— igual que `redLetterPackParity.test.ts` y
+`ciNodeVersion.test.ts`, el total es **363 suites / 4263 pruebas**, los mismos números que en
+local (o sea que no se saltó nada en silencio), y hay **cero** «Test suite failed to run».
+Run `35130290791`, los tres jobs en verde.
 
-**No se pone el número de commits ni el SHA a propósito** — el propio commit que escribe esta
-línea los mueve; `git log main..fix/review-s16-revision-diff-s15` lo dice sin equivocarse.
-Las **ocho** ramas de arreglos de las sesiones 7 a 14 sí están dentro de `main`. Estas dos no,
-a propósito: la regla fija es que no se mergea nada sin preguntarle a Victor.
-
-Gates corridos sobre la rama de la 16 antes de parar: **363 suites, 4263 pruebas, verdes en
-Node 24 Y en Node 22** (el piso que ahora declara `package.json`), `tsc` limpio, lint con 0
-errores y `format:check` verde.
-
-> **Si Victor mergea antes de abrir el chat nuevo, este bloque pasa a ser falso** — cambiarlo a
-> «no hay rama pendiente, `main` verde» y regenerar el mensaje de abajo. Es la lección de
-> proceso de la sesión 14: **mergear y el prompt del chat nuevo NO son independientes**.
+> **Antes de esto, `main` llevaba un día en rojo y nadie lo sabía** (cuatro runs: `3982ea0`,
+> `ff99435`, `e5c8ce4`, `0aa92a7`). Era `R9-82`: `scripts/build-web-packs.js` requiere
+> `node:sqlite`, que no existe antes de Node 22, y `ci.yml` fijaba `node-version: '20'`, así que
+> desde la sesión 13 **la compuerta que vigila lo único que produce DATOS PUBLICADOS no se
+> ejecutó en CI ni una vez**. Verde en local, roja donde importaba, y el silencio del repo era
+> idéntico en los dos casos. **Si escribís una compuerta nueva, preguntá DÓNDE corre.**
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
 `eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15). **No queda ningún paso
@@ -80,8 +72,8 @@ mueve — y los seis ya están arreglados y mergeados.
 Los **5 hallazgos de la sesión 14** (`R9-72`..`R9-76`) también son P1/P2, así que el conteo
 de P0 tampoco se mueve — y los cinco ya están arreglados y mergeados.
 Los **5 hallazgos de la sesión 15** (`R9-77`..`R9-81`) también son P1/P2, así que el conteo
-de P0 sigue igual — y los cinco están arreglados, en la rama sin mergear.
-Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados, en la rama de la 16.
+de P0 sigue igual — y los cinco ya están arreglados y mergeados.
+Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados y mergeados.
 Hallazgos totales: **86**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
@@ -240,18 +232,19 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 16 y, si aguanta, mergear.** Es el patrón que
-ya pagó **ocho** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15 y 16 encontraron defectos
-reales en el diff de ARREGLOS de la sesión anterior. Son cinco arreglos en
-`fix/review-s16-revision-diff-s15` (que **contiene** la rama de la 15), y esta vez **uno de
-ellos no es código de la app sino la tubería**: `ci.yml`, `package.json` y un `require`
-perezoso. Un error ahí no se ve en ninguna prueba local — se ve en el siguiente push.
+**(a) RECOMENDADA — revisar el diff de la sesión 16, ya mergeado.** Es el patrón que ya pagó
+**ocho** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15 y 16 encontraron defectos reales
+en el diff de ARREGLOS de la sesión anterior. Son cinco arreglos, y esta vez **uno de ellos no
+es código de la app sino la tubería**: `ci.yml`, `package.json` y un `require` perezoso. Un
+error ahí no se ve en ninguna prueba local — se ve en el siguiente push. (El de la 16 **ya
+pasó** un push real: run `35130290791`, verde, Node v24.20.0, 363/4263. Eso descarta que esté
+roto de la forma tonta, no de las otras.)
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Hay dos ramas sin mergear, una encima de la otra:** `fix/review-s15-revision-diff-s14` y
-> `fix/review-s16-revision-diff-s15`, que sale de la anterior y la contiene. **`main` está en
-> ROJO en CI** y el arreglo está en la rama de la 16, no en `main`.
+> **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a revisar
+> son los cinco arreglos de la sesión 16, ya dentro de `main`
+> (`git log 0aa92a7..531ffef`).
 >
 > Revisá el diff de la 16 (`R9-82`..`R9-86`) con el mismo criterio de las sesiones 8-16 —
 > buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
@@ -261,11 +254,11 @@ perezoso. Un error ahí no se ve en ninguna prueba local — se ve en el siguien
 > **Y esta vez el arreglo más importante NO se puede verificar con las compuertas locales**,
 > porque es justamente la tubería que las corre. Cinco sitios donde mirar con lupa:
 >
-> 1. **El cambio de `ci.yml` a Node 24 no lo prueba nada hasta que se pushea.** Preguntate qué
->    más cambia al subir de 20 a 24 además de `node:sqlite` (¿`npm ci` con este lockfile?
->    ¿`npm audit` del job de seguridad? ¿alguna dependencia con binarios?), y si el job de
->    Security Audit y el de Lint siguen significando lo mismo. La sesión 16 corrió la suite
->    entera en 22 y en 24 en local — **pero no corrió `npm ci` desde cero en un runner limpio**.
+> 1. **El cambio de `ci.yml` a Node 24 ya pasó un push real y los tres jobs salieron verdes**,
+>    así que `npm ci` con este lockfile y `npm audit` funcionan en 24. Lo que ESO no prueba:
+>    si el job de Security Audit sigue significando lo mismo (¿`npm audit` reporta igual en
+>    24 que en 20?), y si algún aviso nuevo del runner quedó tragado. Mirá el log, no el
+>    check verde — es literalmente el hallazgo de la sesión que estás revisando.
 > 2. **`engines.node: ">=22"` es una afirmación sobre el mundo.** Se verificó corriendo la suite
 >    en 22.23.2. Preguntate si `>=22` es cierto para TODO el 22.x (`node:sqlite` llegó en 22.5
 >    detrás de `--experimental-sqlite`), y qué pasa con quien instale con npm y solo reciba un
@@ -379,8 +372,10 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 11 ramas locales.** La de la sesion 14 (`fix/review-s14-revision-diff-s13`) ya se borro tras mergearla, igual que las de las sesiones 12 y 13, asi que en local no las vas a ver. `main` (**= `origin/main`, pusheado**; lleva los arreglos de las
-sesiones 7 a 12) y **cinco ramas de arreglos YA MERGEADAS** que se pueden borrar:
+**Hay 10 ramas locales.** Las de las sesiones 12, 13, 14, **15 y 16** ya se borraron tras
+mergearlas, así que en local no las vas a ver. `main` (**= `origin/main`, pusheado y VERDE en
+CI**; lleva los arreglos de las sesiones 7 a 16) y **cinco ramas de arreglos YA MERGEADAS** que
+se pueden borrar:
 `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
 `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
 `fix/review-p0-perdida-datos`. Más las 5 de siempre: `audio/tts-caps-hyphen`,
@@ -395,10 +390,10 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de las sesiones 7 a 14 **ya están todos en `main` y pusheados**, todos los merges
-en fast-forward. **No queda deuda de DESPLIEGUE** (el pack de `rvr1960-red-letter.json` se subió
-el 2026-09-15). La que queda es de git y de CI: las ramas de las sesiones **15 y 16** siguen
-fuera, y `main` está rojo hasta que entren — ver el bloque ⛔ 1.
+Los arreglos de las sesiones 7 a 16 **ya están todos en `main` y pusheados**, todos los merges
+en fast-forward. **No queda deuda de ningún tipo**: ni de git, ni de despliegue (el pack de
+`rvr1960-red-letter.json` se subió el 2026-09-15), ni de CI (verde desde `531ffef`, verificado
+en el log del run y no solo en el check).
 
 ## 3. Dónde va la revisión
 
@@ -409,32 +404,32 @@ arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de 
 tras la sesión 12 son **3** (`R9-36`, `R9-38`, `R9-39`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
 
-| Sesión | Qué se hizo                                               | Commit              |
-| ------ | --------------------------------------------------------- | ------------------- |
-| 1      | Solo el inventario (charter §5)                           | `18a3ffa`           |
-| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                | `2f32aa9`           |
-| 2      | Este prompt + correcciones al charter                     | `8b64c11`           |
-| 2      | `R9-7` resuelto: `functions/` documentada                 | `af64ce1`           |
-| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`               | `299a76c`           |
-| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`           | `b5a9afa`           |
-| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas          | `6ac10e3`/`894deb5` |
-| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint     | `f791749`           |
-| 5      | `A4` verificada + campo `R9-40`..`R9-43`                  | `f791749`           |
-| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias | `f791749`           |
-| 6      | Re-verificados a mano los 6 P0 nuevos                     | `c184a1c`/`9939e76` |
-| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                    | `7f8e666`           |
-| 8      | Revisión del diff de la 7 + merge y push a `main`         | `8fe24f1`           |
-| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas              | `b3d73e1`→`e75eca3` |
-| 9      | Revisión del diff de la 8: **2 defectos reales** + merge  | `3e780c6`→`d800a24` |
-| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                   | `0a4f0fc`→`c41c9cb` |
-| 10     | Revisión del diff de la 9: **1 prueba ciega** + merge     | `2bfa126`→`daad3a9` |
-| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push      | `bb3b25b`→`f9e184a` |
-| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`    | `261c053`→`952d456` |
-| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | mergeado a `main`   |
-| 13     | Revisión del diff de la 12: **6 defectos** + arreglos     | mergeado a `main`   |
-| 14     | Revisión del diff de la 13: **5 defectos** + arreglos     | mergeado a `main`   |
-| 15     | Revisión del diff de la 14: **5 defectos** + arreglos     | rama sin mergear    |
-| 16     | Revisión del diff de la 15: **5 defectos** + arreglos     | rama sin mergear    |
+| Sesión | Qué se hizo                                                 | Commit              |
+| ------ | ----------------------------------------------------------- | ------------------- |
+| 1      | Solo el inventario (charter §5)                             | `18a3ffa`           |
+| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                  | `2f32aa9`           |
+| 2      | Este prompt + correcciones al charter                       | `8b64c11`           |
+| 2      | `R9-7` resuelto: `functions/` documentada                   | `af64ce1`           |
+| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`                 | `299a76c`           |
+| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`             | `b5a9afa`           |
+| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas            | `6ac10e3`/`894deb5` |
+| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint       | `f791749`           |
+| 5      | `A4` verificada + campo `R9-40`..`R9-43`                    | `f791749`           |
+| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias   | `f791749`           |
+| 6      | Re-verificados a mano los 6 P0 nuevos                       | `c184a1c`/`9939e76` |
+| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                      | `7f8e666`           |
+| 8      | Revisión del diff de la 7 + merge y push a `main`           | `8fe24f1`           |
+| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas                | `b3d73e1`→`e75eca3` |
+| 9      | Revisión del diff de la 8: **2 defectos reales** + merge    | `3e780c6`→`d800a24` |
+| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                     | `0a4f0fc`→`c41c9cb` |
+| 10     | Revisión del diff de la 9: **1 prueba ciega** + merge       | `2bfa126`→`daad3a9` |
+| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push        | `bb3b25b`→`f9e184a` |
+| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`      | `261c053`→`952d456` |
+| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)      | mergeado a `main`   |
+| 13     | Revisión del diff de la 12: **6 defectos** + arreglos       | mergeado a `main`   |
+| 14     | Revisión del diff de la 13: **5 defectos** + arreglos       | mergeado a `main`   |
+| 15     | Revisión del diff de la 14: **5 defectos** + arreglos       | mergeado a `main`   |
+| 16     | Revisión del diff de la 15: **5 defectos** + `main` en rojo | mergeado a `main`   |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos

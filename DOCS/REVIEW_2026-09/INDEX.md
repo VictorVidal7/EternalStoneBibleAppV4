@@ -83,7 +83,9 @@
 > fijaba, así que la compuerta que vigila los datos publicados **nunca se ejecutó en CI** —
 > y la rama de la 15 añadía una segunda suite muerta (55 pruebas). Cuarta sesión seguida con
 > los defectos en las COMPUERTAS, y una forma nueva: **una compuerta que nunca llegó a
-> EJECUTARSE se ve igual que una que pasó**. Los 5 arreglados en la misma sesión.
+> EJECUTARSE se ve igual que una que pasó**. Los 5 arreglados en la misma sesión, **mergeados y
+> pusheados** (`531ffef`), y **CI verde verificado en el log del run** (Node v24.20.0,
+> `buildWebPacks.test.js` PASS, 363/4263, cero «failed to run»).
 >
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
 > Hallazgos: **86**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
@@ -576,7 +578,10 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   misma prueba **se llamaba a sí mismo** vía `jest.requireActual`, así que el caso «a medias»
   nunca se ejecutó). `R9-86` (el control de `R9-80` prueba una COPIA del escáner, y el escáner
   solo abría 2 de los 4 layouts). Los 5 arreglados en `fix/review-s16-revision-diff-s15`, cada
-  uno **visto fallar primero**.
+  uno **visto fallar primero**. **Mergeado y pusheado** (`0aa92a7..531ffef`, fast-forward), y
+  el primer run sobre `main` salió **verde de verdad**: Node v24.20.0, las tres suites que no
+  cargaban en PASS, 363 suites / 4263 pruebas —los mismos números que en local, o sea que no se
+  saltó nada— y cero «Test suite failed to run».
   **Detalle completo, incluido lo comprobado y BIEN y lo dicho-y-no-hecho:
   `detail/S16-revision-del-diff.md`.**
   **La lección de método, nueva y del tamaño de las otras:** **una compuerta que nunca llegó a
