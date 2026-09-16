@@ -18,7 +18,8 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 # Node 24, not 20: `scripts/build-web-packs.js` requires `node:sqlite`, which
-# does not exist before Node 22 — and `__tests__/buildWebPacks.test.js` plus
+# is unusable before Node 22.13 (it exists from 22.5 but throws
+# without --experimental-sqlite until then) — and `__tests__/buildWebPacks.test.js` plus
 # `__tests__/redLetterPackParity.test.ts` both load that script. On Node 20 the
 # two suites fail to LOAD, so the gate guarding the only thing in this repo that
 # produces published data reports nothing at all while the rest of the run looks
@@ -92,9 +93,26 @@ jobs:
           node-version: '24'
           cache: 'npm'
 
+      # `npm audit` reads the lockfile, so it needs no node_modules and this
+      # job deliberately skips installing for it. Verified equivalent across
+      # the Node 20 -> 24 move: same 14 advisories, same moderate/high split,
+      # same exit code.
       - name: Run npm audit
         run: npm audit --audit-level=moderate
         continue-on-error: true
+
+      # R9-94: `npm outdated` is NOT like `npm audit` — its whole output is the
+      # version each package is INSTALLED at, and this job never installed. So
+      # all 57 direct dependencies came back `MISSING`, the step exited 1 on
+      # THAT rather than on anything about versions, and `continue-on-error`
+      # swallowed it. It had run that way in every green run since the job was
+      # written. (`--package-lock-only` does NOT substitute: measured on a bare
+      # package.json + lockfile, it still prints `MISSING` for all 57.)
+      #
+      # So install first. The npm cache above makes it cheap, and the step now
+      # reports what it always claimed to.
+      - name: Install dependencies
+        run: npm ci --legacy-peer-deps --prefer-offline
 
       - name: Check for outdated packages
         run: npm outdated

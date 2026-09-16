@@ -7,7 +7,8 @@
  *
  * Fidelity source = the bundled RVR1960_DATA / WEB_DATA seed arrays — the same
  * arrays quizBank.test.ts trusts as ground truth (node:sqlite against
- * assets/bible-seed.db is gated behind Node >= 22.5, but CI pins Node 20, so
+ * assets/bible-seed.db is gated behind Node >= 22.13, but CI pinned Node 20
+ * at the time — R9-91: it pins 24 now — so
  * the DB-backed tests skip; the seed arrays ARE what bible-seed.db is built
  * from). We back a fake `bibleDB.getVerse` with those arrays — keyed by
  * `book_id` exactly like the real SQL `WHERE book_id = ?` — then assert the

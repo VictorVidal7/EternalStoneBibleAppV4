@@ -16,8 +16,14 @@
  * (`insertVersesBatchedSql.test.ts`, using `sql.js`'s `sql-asm.js` build)
  * precisely because a prior session needed a genuine SQLite engine and
  * rejected Node's built-in `node:sqlite` — this repo's CI
- * (.github/workflows/ci.yml) pins `node-version: 20`, and `node:sqlite`
- * requires Node >= 22.5, so it would pass locally and break CI. That harness
+ * (.github/workflows/ci.yml) pinned `node-version: 20` AT THE TIME, and
+ * `node:sqlite` is unusable before 22.13, so it would pass locally and
+ * break CI.
+ * R9-91: that constraint is GONE — session 16 moved CI to Node 24 (R9-82)
+ * and package.json now declares `engines.node: ">=22.13.0"`, enforced by
+ * __tests__/ciNodeVersion.test.ts. The choice below still stands on its own
+ * merits; what did not was the sentence asserting it, which outlived the
+ * world it described. That harness
  * was evaluated for reuse here and ruled out for FTS5 specifically: BOTH of
  * sql.js's builds (`sql-asm.js` and `sql-wasm.js`) ship without the fts5
  * module compiled in — confirmed directly:

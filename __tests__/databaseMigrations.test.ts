@@ -17,9 +17,15 @@
  *    around it.
  *
  * A REAL SQLite engine was evaluated for this (Node's built-in
- * `node:sqlite`), but this repo's CI (.github/workflows/ci.yml) pins
- * `node-version: 20`, and `node:sqlite` requires Node >= 22.5 — it would
- * have passed locally while breaking CI. Adding a new npm dependency
+ * `node:sqlite`), but this repo's CI (.github/workflows/ci.yml) pinned
+ * `node-version: 20` AT THE TIME, and `node:sqlite` is unusable before
+ * 22.13 (it exists from 22.5 but throws without `--experimental-sqlite`
+ * until then) — it would have passed locally while breaking CI.
+ * R9-91: that constraint is GONE — session 16 moved CI to Node 24 (R9-82)
+ * and package.json now declares `engines.node: ">=22.13.0"`, enforced by
+ * __tests__/ciNodeVersion.test.ts. The choice below still stands on its own
+ * merits; what did not was the sentence asserting it, which outlived the
+ * world it described. Adding a new npm dependency
  * (sql.js / better-sqlite3) was also ruled out: it would touch
  * package.json/package-lock.json, which is exactly the kind of shared-file
  * change likely to collide with the other agents working in parallel
