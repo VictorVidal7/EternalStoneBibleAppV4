@@ -233,8 +233,11 @@ la viste fallar sin el arreglo: si un commit lleva dos arreglos, uno puede estar
 prueba del otro; si una prueba encadena el mecanismo y su consecuencia, el revert la tumba en
 la primera aserción y la segunda no prueba nada; un mock con factoría literal **sustituye** la
 superficie del módulo en vez de comprobarla; **una comprobación que solo recorre un bucle pasa
-en vacío**; y **si el efecto dura un solo render, `act()` te lo esconde — instrumentá la
-llamada, no el árbol**. Va todo en rama con gates verdes; no mergees nada sin preguntarme.
+en vacío** —y su variante de la sesión 14, **un bucle que recorre la lista NUEVA no ve lo que
+falta de la VIEJA**—; **si el efecto dura un solo render, `act()` te lo esconde — instrumentá la
+llamada, no el árbol**; y **un mensaje de error que AFIRMA un estado del mundo es una aserción:
+probala mirando el mundo, no el string**. Va todo en rama con gates verdes; no mergees nada sin
+preguntarme.
 
 **(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
 
