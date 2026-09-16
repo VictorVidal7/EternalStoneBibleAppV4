@@ -49,6 +49,20 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 16 (2026-09-16).** Revisó el diff de la 15 (que estaba **sin mergear**) y encontró
+> **5 defectos, ninguno P0**: `R9-82`, `R9-83` (P1) y `R9-84`, `R9-85`, `R9-86` (P2). **Los cinco
+> arreglos de la 15 se sostienen**, verificado revirtiendo cada uno por separado con el `diff` del
+> revert a la vista (7, 3, 1, **0** y 2 rojas) — y ese **0** es `R9-86`: el arreglo de `R9-80`
+> funciona, pero su prueba nueva no lo protege porque **reimplementa el escáner en vez de
+> llamarlo**. Los cuatro sha256 siguen idénticos al manifiesto y a lo que sirve GitHub Pages, y el
+> `main()` real contra los datos reales reprodujo los cuatro packs byte a byte. **El hallazgo que
+> manda no estaba en el diff: `main` llevaba un día en ROJO en CI** porque `node:sqlite` no existe
+> en Node 20 y `ci.yml` lo fijaba, así que la compuerta que vigila los datos publicados **nunca se
+> ejecutó en CI** — y la rama de la 15 añadía una segunda suite muerta. Cuarta sesión seguida con
+> los defectos en las COMPUERTAS, y una forma nueva: **una compuerta que nunca llegó a EJECUTARSE
+> se ve igual que una que pasó**. Los 5 arreglados en la misma sesión. Detalle:
+> `detail/S16-revision-del-diff.md`.
+
 > **Sesión 15 (2026-09-15).** Revisó el diff de la 14 (5 commits, 4 archivos de código) y
 > encontró **5 defectos, ninguno P0**: `R9-77`, `R9-78` (P1) y `R9-79`, `R9-80`, `R9-81` (P2).
 > **Los tres arreglos de la sesión 14 se sostienen y sus pruebas DISCRIMINAN** — verificado
@@ -631,6 +645,37 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ## P1 — núcleo de la app
 
+- **`R9-82` (S16, CI) — 🐛 la compuerta de los packs NUNCA corrió en CI, y `main` llevaba un día
+  en ROJO.** `scripts/build-web-packs.js` requiere `node:sqlite`, que no existe antes de Node 22;
+  daba igual mientras el script solo se corriera a mano (Victor tiene 24.11.1), pero **la sesión
+  13 le puso una suite de jest delante** (`1d96a40`, el arreglo de `R9-66`) y `ci.yml` fijaba
+  `node-version: '20'` en los tres jobs, sin `engines` que lo contradijera. Desde ese día
+  `buildWebPacks.test.js` no CARGA en CI: `● Test suite failed to run — No such built-in module:
+node:sqlite`. Verde en local, rojo en CI en **cuatro pushes seguidos a `main`**
+  (`3982ea0`, `ff99435`, `e5c8ce4`, `0aa92a7`), y lo único que lo decía era un correo de GitHub.
+  **La rama de la sesión 15 lo empeoraba:** `redLetterPackParity.test.ts` importa el mismo script
+  en el cuerpo del módulo, así que moría igual → **55 pruebas que no se ejecutaban jamás**.
+  **Medido con binarios de verdad:** Node 20.20.2 → 2 suites no cargan, 4195 de 4250; 22.23.2 →
+  verde; 24.11.1 → verde. **Repro:** `<node20> ./node_modules/jest/bin/jest.js`.
+  **Arreglado:** CI a Node 24, `engines.node: ">=22"`, `require('node:sqlite')` perezoso, y
+  `__tests__/ciNodeVersion.test.ts` como detector (lee el workflow y el `engines`, con piso y con
+  control en la dirección contraria). Detalle: `detail/S16-revision-del-diff.md`.
+
+- **`R9-83` (S16, build de packs) — 🐛 una base AUSENTE no pedía ninguna palanca.** `R9-77` para la
+  corrida cuando el manifiesto no fija ni una de las entradas que emite; **una base que no existe
+  fija estrictamente menos** y salía gratis por el `return` temprano de `!previous`. **Probado de
+  punta a punta contra el `main()` real**, sin manifiesto y con RVR1960 fuera de `redLetterSpecs`
+  (`R9-13` palabra por palabra): emite sin el pack de RVR1960, dice solo «_shrink check SKIPPED:
+  no published manifest to compare against (first run for this output)_» y **reescribe el
+  manifiesto sin RVR1960**, destruyendo la única base de la corrida siguiente. El mensaje además
+  mentía: `manifestFile` es el `web/packs/web-bootstrap.json` **versionado**, así que «first run
+  for this output» nunca describió nada — su ausencia es un archivo borrado o movido, y el error
+  de lectura de `readPreviousManifest` **ofrece justamente moverlo** como escape, lo que apagaba
+  `R9-66`, `R9-73` y `R9-77` de una sola vez. **Arreglado:** señal de alto con `--allow-shrink`
+  como salida, mensaje que nombra el manifiesto que no encontró, y el mundo de pruebas de `main()`
+  pasa a tener baseline (antes su control de «corrida limpia» era un control del vacío). Detalle:
+  `detail/S16-revision-del-diff.md`.
+
 - **`R9-77` (S15, build de packs) — 🐛 una base que no fija NADA se reportaba como éxito.**
   `readPreviousManifest` exige un array `packs` con un argumento explícito —sin él «_every
   count comparison below would have nothing to compare against and pass vacuously_»— y **ese
@@ -1016,6 +1061,42 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-84` (S16, build de packs) — 🐛 el mensaje decía que el directorio estaba MEZCLADO sin
+  haber movido nada.** El error que `R9-81` escribe cuando un rename falla es una **aserción sobre
+  el mundo**, y si el que falla es el PRIMER rename la afirma al revés: con `moved: none` seguía
+  diciendo «_That directory is MIXED ... Do NOT upload anything from it_». No se movió nada, así
+  que el directorio es una corrida anterior **coherente** con los sha256 que el manifiesto todavía
+  fija — es el defecto de `R9-66` («no pack file was emitted» con 9,5 MB escritos) visto desde el
+  otro lado. **Repro:** forzar el fallo en la primera llamada a `renameSync`. Alcanzable por la
+  carrera que el propio `R9-81` admite no cerrar, cuando el bloqueo cae sobre el primer archivo.
+  **Arreglado:** dos estados, dos mensajes. Detalle: `detail/S16-revision-del-diff.md`.
+
+- **`R9-85` (S16, prueba de packs) — 🐛 el mock de `renameSync` se llamaba a sí mismo, así que la
+  prueba del caso «a medias» solo veía el caso «no se movió nada».** La prueba de `R9-81` hacía
+  `return jest.requireActual('fs').renameSync(from, to)` dentro del propio mock — y
+  `jest.requireActual` devuelve **el mismo objeto de módulo** para un módulo nativo, así que eso
+  ES el spy (sondeado: `SAME_MODULE=true SAME_FN=true IS_MOCK=true`). El primer rename reentraba,
+  el contador saltaba a 2 y lanzaba, de modo que `moved` estaba **siempre vacío**. Su regex solo
+  pedía que las dos ETIQUETAS estuvieran presentes, y lo están en los dos casos. Encontrado al
+  escribir la prueba de `R9-84`. **Arreglado:** capturar el `renameSync` real antes de espiar y
+  exigir que el mensaje NOMBRE los archivos (una movida, tres no).
+  Detalle: `detail/S16-revision-del-diff.md`.
+
+- **`R9-86` (S16, compuerta de providers) — 🐛 el control de `R9-80` probaba una COPIA del arreglo,
+  y el escáner solo abría 2 de los 4 layouts.** «counts a provider that is only MENTIONED as not
+  mounted» construía su propio `ts.createSourceFile`, su propio visitante y su propio `Set`: no
+  llamaba a `scanLayout` ni una vez. **Medido:** con `scanLayout` vuelto al regex el archivo
+  quedaba en **13/13 verde, ese caso incluido**, y el bug seguía alcanzable (sacar
+  `<AudioPlayerProvider>` de `app/_layout.web.tsx` dejando el nombre en un comentario JSX: seguía
+  13/13); lo único que se ponía rojo al restaurar el AST era una prueba **anterior**. Segunda
+  mitad: el escáner solo leía `app/_layout.tsx` y `app/_layout.web.tsx`, así que «los providers
+  que esta app monta» era una afirmación sobre la mitad de los archivos que lo deciden — estaba
+  como «dicho y NO hecho» en la 15. **Arreglado:** `scanSource(file, source)` + `scanLayout(path)`
+  (la forma que el hermano ya tenía desde `R9-67`), el control llama al escáner de verdad, y los
+  layouts se **buscan** en vez de enumerarse, con la resolución de metro bien puesta (un layout
+  anidado sin hermano `.web` es parte del árbol web también). Sin cambio de comportamiento hoy;
+  la diferencia es que ahora está derivado. Detalle: `detail/S16-revision-del-diff.md`.
 
 - **`R9-79` (S15, paridad web/nativo) — 🐛 el contrato compartido no tiene por qué vivir en el
   hermano nativo.** `R9-76` amplió el discriminador de «el nativo lo EXPORTA» a «...o lo declara

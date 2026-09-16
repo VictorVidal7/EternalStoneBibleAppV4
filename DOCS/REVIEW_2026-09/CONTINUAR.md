@@ -1,6 +1,6 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-15, fin de la sesión 15 (revisión del diff de la 14 + 5 arreglos).**
+> **Última actualización: 2026-09-16, fin de la sesión 16 (revisión del diff de la 15 + 5 arreglos).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,18 +12,31 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s15-revision-diff-s14`.** Lleva los cinco
-arreglos de la sesión 15 (`R9-77`..`R9-81`), un remate menor y el checkpoint. **No se pone el
-número de commits ni el SHA a propósito** — el propio commit que escribe esta línea los mueve,
-así que cualquiera de los dos nace obsoleto; `git log main..fix/review-s15-revision-diff-s14`
-lo dice sin equivocarse. **`main` está pusheado
-y al día**; las **ocho** ramas de arreglos de las sesiones 7 a 14 están todas dentro de él. La
-de la 15 **no**, a propósito: la regla fija es que no se mergea nada sin preguntarle a Victor.
-Gates corridos sobre la rama antes de parar: **362 suites, 4250 pruebas** (desde 361/4219),
-`tsc` limpio, lint con 0 errores y `format:check` verde.
+**1. ⚠️ `main` ESTÁ EN ROJO EN CI, y hay DOS ramas sin mergear (una encima de la otra).**
 
-> **Si Victor mergea esa rama antes de abrir el chat nuevo, este bloque pasa a ser falso** —
-> cambiarlo a «no hay rama pendiente» y regenerar el mensaje de abajo. Es la lección de
+**Lo primero, porque es lo único que está roto ahora mismo:** `main` lleva desde el
+2026-09-15 fallando en CI, cuatro runs seguidos (`3982ea0`, `ff99435`, `e5c8ce4`, `0aa92a7`).
+La causa es `R9-82`: `scripts/build-web-packs.js` requiere `node:sqlite`, que no existe antes
+de Node 22, y `ci.yml` fijaba `node-version: '20'`, así que `buildWebPacks.test.js` **no
+carga** — la compuerta que vigila lo único que produce DATOS PUBLICADOS no se ha ejecutado en
+CI ni una vez desde la sesión 13. **El arreglo está en la rama de la sesión 16, no en `main`.**
+
+- `fix/review-s15-revision-diff-s14` — los cinco arreglos de la 15 (`R9-77`..`R9-81`).
+- `fix/review-s16-revision-diff-s15` — **sale de la anterior**, así que la contiene entera, y
+  le suma los cinco de la 16 (`R9-82`..`R9-86`) más el checkpoint. **Mergear esta mergea las
+  dos**, y es lo que pone `main` verde otra vez.
+
+**No se pone el número de commits ni el SHA a propósito** — el propio commit que escribe esta
+línea los mueve; `git log main..fix/review-s16-revision-diff-s15` lo dice sin equivocarse.
+Las **ocho** ramas de arreglos de las sesiones 7 a 14 sí están dentro de `main`. Estas dos no,
+a propósito: la regla fija es que no se mergea nada sin preguntarle a Victor.
+
+Gates corridos sobre la rama de la 16 antes de parar: **363 suites, 4263 pruebas, verdes en
+Node 24 Y en Node 22** (el piso que ahora declara `package.json`), `tsc` limpio, lint con 0
+errores y `format:check` verde.
+
+> **Si Victor mergea antes de abrir el chat nuevo, este bloque pasa a ser falso** — cambiarlo a
+> «no hay rama pendiente, `main` verde» y regenerar el mensaje de abajo. Es la lección de
 > proceso de la sesión 14: **mergear y el prompt del chat nuevo NO son independientes**.
 
 **El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
@@ -68,7 +81,8 @@ Los **5 hallazgos de la sesión 14** (`R9-72`..`R9-76`) también son P1/P2, así
 de P0 tampoco se mueve — y los cinco ya están arreglados y mergeados.
 Los **5 hallazgos de la sesión 15** (`R9-77`..`R9-81`) también son P1/P2, así que el conteo
 de P0 sigue igual — y los cinco están arreglados, en la rama sin mergear.
-Hallazgos totales: **81**.
+Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados, en la rama de la 16.
+Hallazgos totales: **86**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -160,6 +174,28 @@ Y una gotcha de plataforma que costó una prueba roja por el camino equivocado: 
 tan campante un DIRECTORIO con `open(…, 'r+')`**, así que un preflight de «¿puedo reemplazar
 este archivo?» necesita además `statSync().isFile()`.
 
+**La lección de la sesión 16, que es la que conviene llevarse AHORA**, y es de otro tamaño
+porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
+
+> **Una compuerta que nunca llegó a EJECUTARSE se ve exactamente igual que una que pasó.**
+> «Gates verdes» era cierto — en **una sola máquina**. La suite entera estaba verde en local
+> (Node 24) y en CI una suite **no cargaba** (Node 20, sin `node:sqlite`), y el silencio del
+> repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
+> corre**, no solo qué comprueba.
+
+Y dos corolarios que valen por sí solos:
+
+> **Si una prueba nueva importa un script de build, preguntá qué necesita ese script al
+> CARGARSE.** Un `require` de nivel de módulo convierte un requisito del script en un requisito
+> de la suite entera, y un requisito de suite que el entorno no cumple no da un fallo: da un
+> «suite failed to run» con **cero aserciones**.
+
+> **`jest.requireActual('fs')` devuelve el MISMO objeto de módulo que `require('fs')`**, así
+> que dentro de un `jest.spyOn(fs, 'x')` eso **es el propio spy**, no el original. Un mock que
+> se llama a sí mismo se ve igual que uno que funciona (`R9-85`: el contador saltaba dos veces
+> en la primera llamada, y la prueba del caso «a medias» solo ejercitaba el caso «nada pasó»).
+> Capturá la función real **antes** de espiar.
+
 **4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
 - ~~`R9-28` sin prueba~~ — **saldado en la sesión 11** (`aa70be0`). Ya **no queda ningún
@@ -204,61 +240,56 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 15 y, si aguanta, mergearlo.** Es el patrón
-que ya pagó **siete** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14 y 15 encontraron
-defectos reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran
-**pérdidas de datos nuevas**. Son seis arreglos sobre siete archivos de código **en la rama
-`fix/review-s15-revision-diff-s14`, sin mergear**, y vuelven a tocar el sitio más delicado del programa:
-`scripts/build-web-packs.js`, que es lo único que produce **datos que se publican**. Esta vez
-le metieron un **piso nuevo a la compuerta de encogimiento** y un **preflight a la mudanza
-final**, o sea dos cosas que pueden ABORTAR una publicación legítima — el riesgo cambió de
-lado: antes era que dejara pasar, ahora también es que no deje.
+**(a) RECOMENDADA — revisar el diff de la sesión 16 y, si aguanta, mergear.** Es el patrón que
+ya pagó **ocho** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15 y 16 encontraron defectos
+reales en el diff de ARREGLOS de la sesión anterior. Son cinco arreglos en
+`fix/review-s16-revision-diff-s15` (que **contiene** la rama de la 15), y esta vez **uno de
+ellos no es código de la app sino la tubería**: `ci.yml`, `package.json` y un `require`
+perezoso. Un error ahí no se ve en ninguna prueba local — se ve en el siguiente push.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Hay una rama sin mergear: `fix/review-s15-revision-diff-s14`.** `main` está
-> pusheado y al día, pero esa rama NO está dentro. Tampoco queda nada de despliegue.
+> **Hay dos ramas sin mergear, una encima de la otra:** `fix/review-s15-revision-diff-s14` y
+> `fix/review-s16-revision-diff-s15`, que sale de la anterior y la contiene. **`main` está en
+> ROJO en CI** y el arreglo está en la rama de la 16, no en `main`.
 >
-> Revisá ese diff (`R9-77`..`R9-81`, más un remate menor: 7 archivos de código) con el mismo criterio de las
-> sesiones 8-15 — buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino
-> abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré,
-> restaurá, y `diff` el revert para confirmar que tocó la línea que creés). **Los arreglos van
-> de a varios por commit, así que preguntate si uno desarma la prueba del otro.**
+> Revisá el diff de la 16 (`R9-82`..`R9-86`) con el mismo criterio de las sesiones 8-16 —
+> buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino abierto, y
+> comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré, restaurá, y
+> `diff` el revert para confirmar que tocó la línea que creés).
 >
-> Tres sesiones seguidas encontraron sus defectos en las COMPUERTAS, así que asumí que el
-> riesgo de este diff está ahí también — **y esta vez las compuertas nuevas pueden BLOQUEAR
-> una publicación buena, no solo dejar pasar una mala.** Cinco sitios donde mirar con lupa:
+> **Y esta vez el arreglo más importante NO se puede verificar con las compuertas locales**,
+> porque es justamente la tubería que las corre. Cinco sitios donde mirar con lupa:
 >
-> 1. El piso nuevo de `assertNoShrink` (`baselineComparisonCounts`) se dispara cuando la base
->    no fija **ni una** de las entradas que la corrida emite. Preguntate qué corrida legítima
->    cae ahí sin que nadie lo espere: ¿un `out` nuevo? ¿añadir una versión mientras se retira
->    otra? ¿un manifiesto con los conteos como cadena en vez de número? Y si `--allow-shrink`
->    —que dice «el encogimiento es deliberado»— es de verdad la salida correcta para «esta es
->    la primera vez que emito esta categoría», o si estar usando una sola palanca para dos
->    decisiones distintas hace que aprobar una apruebe la otra sin querer.
-> 2. El preflight de `R9-81` abre cada destino con `open(…, 'r+')` **y lo cierra**. Preguntate
->    qué pasa entre ese cierre y el `renameSync` (la carrera que el propio arreglo admite no
->    cerrar), si abrir en `r+` puede **modificar** algo o tocar mtime, y qué ocurre si el
->    destino es un enlace simbólico o está en un volumen distinto. Y si `existsSync` +
->    `openSync` es la pregunta correcta, o solo la que Windows contesta.
-> 3. `R9-78` añade `redLetterVersionIds()` a los DOS hermanos y exporta `RED_LETTER_PACKS`
->    desde el web. Eso es superficie pública nueva creada para que una prueba pueda mirar:
->    preguntate si la compuerta de paridad ahora exige algo que no debería, y si la prueba
->    compara las listas de verdad o solo las que ella misma construye.
-> 4. `R9-79` marca **cualquier** `…ContextValue` declarado en un archivo `.web`, sin escape.
->    Preguntate qué escritura legítima queda prohibida por eso y si el remedio es siempre de
->    una línea, o si acabamos de plantar un muro donde hacía falta una señal de alto.
-> 5. `R9-80` cambió un regex por un recorrido del AST. Preguntate qué forma de montar un
->    provider sigue sin ver (`<Ctx.Provider>` lo reporta, ¿y un componente envolvente? ¿un
->    `.map`? ¿un provider montado en `app/(tabs)/_layout.tsx`, que este escáner ni abre?), y si
->    la lista de `unreadable` **falla** o se degrada callado.
+> 1. **El cambio de `ci.yml` a Node 24 no lo prueba nada hasta que se pushea.** Preguntate qué
+>    más cambia al subir de 20 a 24 además de `node:sqlite` (¿`npm ci` con este lockfile?
+>    ¿`npm audit` del job de seguridad? ¿alguna dependencia con binarios?), y si el job de
+>    Security Audit y el de Lint siguen significando lo mismo. La sesión 16 corrió la suite
+>    entera en 22 y en 24 en local — **pero no corrió `npm ci` desde cero en un runner limpio**.
+> 2. **`engines.node: ">=22"` es una afirmación sobre el mundo.** Se verificó corriendo la suite
+>    en 22.23.2. Preguntate si `>=22` es cierto para TODO el 22.x (`node:sqlite` llegó en 22.5
+>    detrás de `--experimental-sqlite`), y qué pasa con quien instale con npm y solo reciba un
+>    warning. ¿El piso debería ser el que se verificó, o el que se cree?
+> 3. **`ciNodeVersion.test.ts` es una compuerta nueva sobre un archivo YAML leído con un
+>    regex.** Preguntate qué forma legítima de escribir `node-version` no ve (¿una matriz?
+>    ¿comillas dobles? ¿sin comillas? ¿una variable?), y si su piso (`>= 3` pins) sigue
+>    valiendo el día que alguien añada un cuarto job — o si lo que hace es **exigir** que haya
+>    tres.
+> 4. **El `require` perezoso mueve un fallo de carga a un fallo de ejecución.** Preguntate si
+>    hay algún camino donde eso lo vuelva MÁS silencioso, y si `openDatabase(file, options)`
+>    se comporta igual que el `new DatabaseSync(file)` de antes en los tres sitios.
+> 5. **`R9-83` cambió el `beforeEach` compartido de las pruebas de `main()`** para que escriba
+>    una baseline. Preguntate a qué pruebas les cambió el significado sin que nadie lo note —
+>    una prueba que antes ejercitaba «sin base» y ahora ejercita «con base» puede haber dejado
+>    de probar lo suyo. Es exactamente la forma de la sesión 10 (un arreglo desarma la prueba
+>    de otro), pero por la puerta del fixture.
 >
-> Y ojo con los tres puntos ciegos que este programa ya se cazó a sí mismo: **una verificación
-> cuyo cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre
-> la lista NUEVA no ve lo que falta de la VIEJA**; y **un mensaje —de error o de éxito— que
-> AFIRMA un estado del mundo es una aserción, y hay que probarla mirando el MUNDO, no el
-> string**. Ante cada compuerta, preguntate qué entrada hace que no ejecute ninguna aserción,
-> **de quién depende su discriminador**, y **qué significa su silencio**.
+> Y ojo con los puntos ciegos que este programa ya se cazó a sí mismo: **una verificación cuyo
+> cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre la
+> lista NUEVA no ve lo que falta de la VIEJA**; **un mensaje —de error o de éxito— que AFIRMA
+> un estado del mundo es una aserción, y hay que probarla mirando el MUNDO, no el string**; y
+> el de la 16, **una compuerta que nunca llegó a EJECUTARSE se ve igual que una que pasó, así
+> que preguntá DÓNDE corre y no solo qué comprueba**.
 >
 > **Comprobá además los cuatro sha256 contra `web/packs/web-bootstrap.json` y contra lo que
 > sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.**
@@ -277,8 +308,11 @@ falta de la VIEJA**—; **si el efecto dura un solo render, `act()` te lo escond
 llamada, no el árbol**; y **un mensaje de error que AFIRMA un estado del mundo es una aserción:
 probala mirando el mundo, no el string** —y su gemelo de la sesión 15, **un mensaje de ÉXITO
 que afirma cuánto comparó es la misma aserción del otro lado del `if`**—; y **una compuerta
-escrita para cerrar un caso suele dejar abierto justo el vecino que la motivó**. Va todo en rama
-con gates verdes; no mergees nada sin preguntarme.
+escrita para cerrar un caso suele dejar abierto justo el vecino que la motivó**; y los dos de la
+sesión 16, **una compuerta que nunca llegó a EJECUTARSE se ve igual que una que pasó —
+preguntá dónde corre** y **`jest.requireActual('fs')` dentro de un `spyOn(fs, …)` te devuelve
+el propio spy, así que un mock puede llamarse a sí mismo sin que se note**. Va todo en rama con
+gates verdes; no mergees nada sin preguntarme.
 
 **(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
 
@@ -361,9 +395,10 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
 
-Los arreglos de las sesiones 7 a 12 **ya están todos en `main` y pusheados**, todos los merges
-en fast-forward. **No queda deuda de git** — la que queda es de DESPLIEGUE: el pack de
-`rvr1960-red-letter.json` sin subir (bloque ⛔ 1).
+Los arreglos de las sesiones 7 a 14 **ya están todos en `main` y pusheados**, todos los merges
+en fast-forward. **No queda deuda de DESPLIEGUE** (el pack de `rvr1960-red-letter.json` se subió
+el 2026-09-15). La que queda es de git y de CI: las ramas de las sesiones **15 y 16** siguen
+fuera, y `main` está rojo hasta que entren — ver el bloque ⛔ 1.
 
 ## 3. Dónde va la revisión
 
@@ -398,6 +433,8 @@ arreglos** — ver la nota al principio de esa sección.
 | 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)    | mergeado a `main`   |
 | 13     | Revisión del diff de la 12: **6 defectos** + arreglos     | mergeado a `main`   |
 | 14     | Revisión del diff de la 13: **5 defectos** + arreglos     | mergeado a `main`   |
+| 15     | Revisión del diff de la 14: **5 defectos** + arreglos     | rama sin mergear    |
+| 16     | Revisión del diff de la 15: **5 defectos** + arreglos     | rama sin mergear    |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -652,8 +689,12 @@ Alternativas legítimas:
   "Juntos" son locales).
 - **`/android` está gitignoreado.** La contraseña del keystore de release vive fuera de git
   y **nunca entró al historial** (verificado sobre los 5558 blobs).
-- **CI corre Node 20**, la máquina de Victor tiene **Node 24.11.1**, y `package.json` **no
-  declara `engines`**. Pendiente de mirar en `B8`.
+- **CI corre Node 24** desde la sesión 16 (antes 20, y eso es `R9-82`: `node:sqlite` no existe
+  antes de 22, así que `buildWebPacks.test.js` no CARGABA en CI y su compuerta nunca se
+  ejecutó). La máquina de Victor tiene **24.11.1** y `package.json` ya declara
+  `engines.node: ">=22"`. **La suite entera se verificó verde en 22.23.2 y en 24.11.1, y roja
+  en 20.20.2.** Para correrla en otra versión sin instalar nada:
+  `$N=$(npx --yes node@22 -e "process.stdout.write(process.execPath)"); & $N ./node_modules/jest/bin/jest.js`.
 - **`tsc` y jest resuelven SIEMPRE al archivo nativo**, nunca al `.web`. Las 14 parejas
   `*.web.*` solo están cubiertas donde alguien escribió a mano un `jest.mock` que redirige
   (patrón en `webStubProviders.test.tsx:516-532`; la pareja de `MemoryDeckContext` **sí** lo

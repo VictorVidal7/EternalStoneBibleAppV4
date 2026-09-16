@@ -74,8 +74,19 @@
 > compuerta escrita para cerrar un caso cierra ese caso y deja abierto el vecino que la
 > motivó**. Los 5 arreglados en la misma sesión.
 >
+> **Sesión 16 (2026-09-16) revisó el diff de la 15 y encontró 5 defectos, ninguno P0**
+> (`R9-82`, `R9-83` en P1; `R9-84`, `R9-85`, `R9-86` en P2). **Los 5 arreglos de la 15 se
+> sostienen** (7, 3, 1, **0** y 2 rojas al revertir cada uno por separado) — y ese **0** es
+> `R9-86`: el arreglo de `R9-80` funciona, pero su prueba **reimplementa el escáner en vez de
+> llamarlo**, así que no protege nada. **El hallazgo que manda no estaba en el diff:** `main`
+> llevaba un día en **ROJO en CI** porque `node:sqlite` no existe en Node 20 y `ci.yml` lo
+> fijaba, así que la compuerta que vigila los datos publicados **nunca se ejecutó en CI** —
+> y la rama de la 15 añadía una segunda suite muerta (55 pruebas). Cuarta sesión seguida con
+> los defectos en las COMPUERTAS, y una forma nueva: **una compuerta que nunca llegó a
+> EJECUTARSE se ve igual que una que pasó**. Los 5 arreglados en la misma sesión.
+>
 > **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
-> Hallazgos: **81**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> Hallazgos: **86**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
 >
 > Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
@@ -542,6 +553,36 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 16 — 2026-09-16. Revisar el diff de la 15, que estaba SIN MERGEAR.** Octava
+  sesión seguida de revisión adversarial sobre un diff de arreglos, y la octava que paga.
+  **Veredicto: los 5 arreglos de la sesión 15 se sostienen**, verificado revirtiendo cada uno
+  por separado con el `diff` del revert a la vista — `R9-77` → 7 rojas, `R9-78` → 3 (simulando
+  `R9-13` al pie de la letra), `R9-79` → 1, `R9-81` → 2, controles verdes en los cuatro. **Y
+  `R9-80` → 0**, que es el hallazgo `R9-86`. **Los cuatro sha256 salen idénticos dos veces**:
+  contra lo que hoy sirve GitHub Pages, y reconstruyendo los packs con el `main()` REAL contra
+  los datos REALES (byte a byte, con el manifiesto del repo intacto).
+  **El hallazgo que manda no estaba en el diff.** `R9-82` (P1): los cuatro correos de CI que
+  trajo Victor eran cuatro runs fallidos de `main`. `scripts/build-web-packs.js` requiere
+  `node:sqlite`, que no existe antes de Node 22, y `ci.yml` fijaba `node-version: '20'` — así
+  que desde `1d96a40` (el arreglo de `R9-66`, sesión 13) la compuerta que vigila **lo único que
+  produce datos publicados** no se ejecutó ni una vez en CI, y la rama de la 15 añadía una
+  segunda suite muerta. Medido con binarios de verdad: Node 20 → 2 suites no cargan, 4195 de
+  4250; Node 22 y 24 → verde. **55 pruebas que nunca corrían.**
+  Los otros cuatro: `R9-83` (P1: el piso de `R9-77` deja abierta la base **ausente**, que fija
+  estrictamente menos — probado de punta a punta, el `R9-13` verbatim emite y reescribe el
+  manifiesto sin RVR1960, sin pedir ninguna palanca). `R9-84` (el mensaje de `R9-81` dice que el
+  directorio está MEZCLADO cuando no se movió nada). `R9-85` (el mock de `renameSync` de esa
+  misma prueba **se llamaba a sí mismo** vía `jest.requireActual`, así que el caso «a medias»
+  nunca se ejecutó). `R9-86` (el control de `R9-80` prueba una COPIA del escáner, y el escáner
+  solo abría 2 de los 4 layouts). Los 5 arreglados en `fix/review-s16-revision-diff-s15`, cada
+  uno **visto fallar primero**.
+  **Detalle completo, incluido lo comprobado y BIEN y lo dicho-y-no-hecho:
+  `detail/S16-revision-del-diff.md`.**
+  **La lección de método, nueva y del tamaño de las otras:** **una compuerta que nunca llegó a
+  EJECUTARSE se ve exactamente igual que una que pasó.** «Gates verdes» era cierto — en una
+  sola máquina. Antes de creerle a una compuerta nueva, preguntá **dónde corre**, no solo qué
+  comprueba.
 
 - **Sesión 15 — 2026-09-15. Revisar el diff de la 14 (otra vez las COMPUERTAS), ya
   mergeado.** Séptima sesión seguida de revisión adversarial sobre un diff de arreglos, y la
