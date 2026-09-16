@@ -17,6 +17,15 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# Node 24, not 20: `scripts/build-web-packs.js` requires `node:sqlite`, which
+# does not exist before Node 22 — and `__tests__/buildWebPacks.test.js` plus
+# `__tests__/redLetterPackParity.test.ts` both load that script. On Node 20 the
+# two suites fail to LOAD, so the gate guarding the only thing in this repo that
+# produces published data reports nothing at all while the rest of the run looks
+# fine. That is exactly what happened for four consecutive pushes to `main` in
+# Sept 2026. `__tests__/ciNodeVersion.test.ts` is the detector; keep the two in
+# step (it also pins `engines` in package.json to the same floor).
+
 jobs:
   lint-and-type-check:
     name: Lint & Type Check
@@ -28,7 +37,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -53,7 +62,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Install dependencies
@@ -80,7 +89,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
 
       - name: Run npm audit

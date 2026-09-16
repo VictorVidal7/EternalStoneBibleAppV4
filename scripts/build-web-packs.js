@@ -55,7 +55,21 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const crypto = require('crypto');
-const {DatabaseSync} = require('node:sqlite');
+
+/**
+ * R9-82: `node:sqlite` is required HERE rather than at module load, and that is
+ * load-bearing rather than tidy. Two jest suites import this file — one for the
+ * shrink/vanish/pins gates, one purely to read RED_LETTER_SPECS and PACK_SPECS
+ * — and neither needs a database. With the require at the top, a Node without
+ * node:sqlite made both suites fail to LOAD, which reports zero assertions
+ * instead of a failure anyone can act on. CI is pinned to a Node that has it
+ * (see ciNodeVersion.test.ts); this makes sure that the day it is not, the gate
+ * logic still runs and only the cases that truly need a database complain.
+ */
+function openDatabase(dbFile, options) {
+  const {DatabaseSync} = require('node:sqlite');
+  return options ? new DatabaseSync(dbFile, options) : new DatabaseSync(dbFile);
+}
 
 const ROOT = path.resolve(__dirname, '..');
 const ARGS = process.argv.slice(2);
@@ -97,7 +111,7 @@ function parseTsArray(file) {
 
 function buildPack(rows, dbFile) {
   fs.rmSync(dbFile, {force: true});
-  const db = new DatabaseSync(dbFile);
+  const db = openDatabase(dbFile);
   db.exec('PRAGMA journal_mode=OFF; PRAGMA synchronous=OFF;');
   db.exec(
     `CREATE TABLE verses (book_id INTEGER NOT NULL, book_name TEXT NOT NULL,
@@ -117,7 +131,7 @@ function buildPack(rows, dbFile) {
 }
 
 function verifyPack(dbFile, expectCount) {
-  const db = new DatabaseSync(dbFile, {readOnly: true});
+  const db = openDatabase(dbFile, {readOnly: true});
   const n = db.prepare('SELECT COUNT(*) c FROM verses').get().c;
   const books = db
     .prepare('SELECT COUNT(DISTINCT book_id) b FROM verses')
@@ -178,7 +192,7 @@ function verifyRedLetterAlignment(entries, dbFile, versionId) {
         'holds its generated array before publishing anything.',
     );
   }
-  const db = new DatabaseSync(dbFile, {readOnly: true});
+  const db = openDatabase(dbFile, {readOnly: true});
   const stmt = db.prepare(
     'SELECT text FROM verses WHERE book_id=? AND chapter=? AND verse=?',
   );
