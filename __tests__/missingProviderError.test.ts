@@ -44,14 +44,33 @@ import {
  * reported rather than dropped, for R9-67's reason: a form the scanner cannot
  * read makes the comparison quietly weaker instead of failing.
  */
-function scanLayout(layoutFile: string): {
+interface LayoutScan {
   mounted: Set<string>;
   unreadable: string[];
-} {
-  const file = path.join(__dirname, '..', 'app', layoutFile);
+}
+
+/**
+ * The scanner itself, over SOURCE TEXT rather than a path.
+ *
+ * R9-86: this used to be inlined in `scanLayout`, which took a filename - so
+ * the one positive case R9-80 has (a provider MENTIONED in a comment) could not
+ * call it and hand-rolled its own copy of the walk instead. A test of a COPY of
+ * the fix protects nothing: reverting `scanLayout` to the old regex left this
+ * file at 13/13 green, that case included, with the real bug still reachable
+ * (verified: unmount `<AudioPlayerProvider>` in app/_layout.web.tsx, keep the
+ * name in a JSX comment - still 13/13). Its sibling
+ * webNativeModuleParity.test.ts already had the right shape,
+ * `exportSurface(file, source)` plus a thin `surfaceOf(path)`, and this is that
+ * shape.
+ *
+ * A tag it cannot attribute to a plain identifier (`<Ctx.Provider>`) is
+ * reported rather than dropped, for R9-67's reason: a form the scanner cannot
+ * read makes the comparison quietly weaker instead of failing.
+ */
+function scanSource(file: string, source: string): LayoutScan {
   const sourceFile = ts.createSourceFile(
     file,
-    fs.readFileSync(file, 'utf8'),
+    source,
     ts.ScriptTarget.Latest,
     /* setParentNodes */ true,
     ts.ScriptKind.TSX,
@@ -74,8 +93,66 @@ function scanLayout(layoutFile: string): {
   return {mounted, unreadable};
 }
 
-function providersMountedIn(layoutFile: string): Set<string> {
-  return scanLayout(layoutFile).mounted;
+function scanLayout(absoluteFile: string): LayoutScan {
+  return scanSource(absoluteFile, fs.readFileSync(absoluteFile, 'utf8'));
+}
+
+const APP_ROOT = path.join(__dirname, '..', 'app');
+
+/**
+ * Every `_layout.tsx` / `_layout.web.tsx` in the app, FOUND rather than listed.
+ *
+ * R9-86, the other half: the scanner only ever opened `app/_layout.tsx` and
+ * `app/_layout.web.tsx`. `app/(tabs)/_layout.tsx` and its `.web` sibling exist
+ * and were never read, so "the providers this app mounts" was a claim about two
+ * of the four files that decide it. Nothing mounts a provider in the nested
+ * pair today - but "checked today, nobody does X" is a note, not a gate, and
+ * this file exists precisely because a hand-maintained claim rots in silence.
+ */
+function layoutFilesByDirectory(): Map<
+  string,
+  {native?: string; web?: string}
+> {
+  const byDirectory = new Map<string, {native?: string; web?: string}>();
+  const walk = (directory: string): void => {
+    for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) {
+        walk(full);
+      } else if (entry.name === '_layout.tsx') {
+        byDirectory.set(directory, {
+          ...(byDirectory.get(directory) ?? {}),
+          native: full,
+        });
+      } else if (entry.name === '_layout.web.tsx') {
+        byDirectory.set(directory, {
+          ...(byDirectory.get(directory) ?? {}),
+          web: full,
+        });
+      }
+    }
+  };
+  walk(APP_ROOT);
+  return byDirectory;
+}
+
+/**
+ * The providers a whole platform's layout tree mounts, unioned over every
+ * layout in it.
+ *
+ * On web, metro resolves `_layout.web.tsx` where there is one and falls back to
+ * `_layout.tsx` where there is not - so a nested layout with no `.web` sibling
+ * is part of the WEB tree too, and treating it as native-only would invent a
+ * provider that web supposedly does not mount.
+ */
+function providersMountedOn(platform: 'native' | 'web'): Set<string> {
+  const mounted = new Set<string>();
+  for (const pair of layoutFilesByDirectory().values()) {
+    const file = platform === 'web' ? (pair.web ?? pair.native) : pair.native;
+    if (!file) continue;
+    for (const name of scanLayout(file).mounted) mounted.add(name);
+  }
+  return mounted;
 }
 
 /**
@@ -209,54 +286,77 @@ describe('isMissingProviderError', () => {
     }
   });
 
-  it('reads both layouts with no provider tag it cannot attribute', () => {
+  it('reads EVERY layout with no provider tag it cannot attribute', () => {
     // R9-67's discipline applied here: `<SomeContext.Provider>` is a form this
     // scanner cannot map to a provider NAME, and an unreadable mount weakens
     // every comparison below instead of failing one. So it fails here, loudly,
     // the day a layout starts using it. Teach the scanner, never the reverse.
-    expect(scanLayout('_layout.tsx').unreadable).toEqual([]);
-    expect(scanLayout('_layout.web.tsx').unreadable).toEqual([]);
+    //
+    // R9-86: EVERY layout, not the two at the root.
+    const directories = [...layoutFilesByDirectory().entries()];
+    // Floor: a walker that found nothing would make the loop below hold
+    // vacuously, which is the shape this whole review keeps finding.
+    expect(directories.length).toBeGreaterThanOrEqual(2);
+    for (const [directory, pair] of directories) {
+      // Every layout directory needs a NATIVE layout: a `.web` orphan would
+      // mean the native tree renders no layout there at all.
+      expect([directory, Boolean(pair.native)]).toEqual([directory, true]);
+      for (const file of [pair.native, pair.web]) {
+        if (!file) continue;
+        expect([file, scanLayout(file).unreadable]).toEqual([file, []]);
+      }
+    }
   });
 
   it('counts a provider that is only MENTIONED as not mounted', () => {
-    // The R9-80 control, and the only positive case there is: no real layout
-    // mentions a provider it does not mount, so the cases below would report
-    // success whether this scanner distinguished the two or not.
-    const source =
-      'export default function Layout() {\n' +
-      '  return (\n' +
-      '    <RealProvider>\n' +
-      '      {/* <CommentedOutProvider> lives in the native tree only */}\n' +
-      '      <Slot />\n' +
-      '    </RealProvider>\n' +
-      '  );\n' +
-      '}\n';
-    const sourceFile = ts.createSourceFile(
+    // The R9-80 control, through the REAL scanner. R9-86: it used to build its
+    // own ts.createSourceFile and its own visitor, so it tested a COPY of the
+    // fix - reverting scanLayout to the old regex left it green.
+    const {mounted, unreadable} = scanSource(
       'probe.tsx',
-      source,
-      ts.ScriptTarget.Latest,
-      true,
-      ts.ScriptKind.TSX,
+      'export default function Layout() {\n' +
+        '  return (\n' +
+        '    <RealProvider>\n' +
+        '      {/* <CommentedOutProvider> lives in the native tree only */}\n' +
+        '      <Slot />\n' +
+        '    </RealProvider>\n' +
+        '  );\n' +
+        '}\n',
     );
-    const found = new Set<string>();
-    const visit = (node: ts.Node): void => {
-      if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
-        const tag = node.tagName;
-        if (ts.isIdentifier(tag) && tag.text.endsWith('Provider')) {
-          found.add(tag.text);
-        }
-      }
-      ts.forEachChild(node, visit);
-    };
-    ts.forEachChild(sourceFile, visit);
-    expect([...found]).toEqual(['RealProvider']);
+    expect([...mounted]).toEqual(['RealProvider']);
+    expect(unreadable).toEqual([]);
+  });
+
+  it('reports a tag it cannot attribute instead of dropping it', () => {
+    // The only positive case the `unreadable` bucket has: no real layout uses
+    // `<Ctx.Provider>`, so the assertion that every layout has none is a
+    // handful of comparisons that all come back empty unless this exists.
+    const {mounted, unreadable} = scanSource(
+      'probe.tsx',
+      'export default function Layout() {\n' +
+        '  return <ThemeContext.Provider value={null} />;\n' +
+        '}\n',
+    );
+    expect(unreadable).toEqual(['ThemeContext.Provider']);
+    expect([...mounted]).toEqual([]);
+  });
+
+  it('does not mistake a mention inside a STRING for a mount either', () => {
+    const {mounted} = scanSource(
+      'probe.tsx',
+      "const hint = '<AuthProvider> is native-only';\n" +
+        'export default function Layout() {\n' +
+        '  return <RealProvider>{hint}</RealProvider>;\n' +
+        '}\n',
+    );
+    expect([...mounted]).toEqual(['RealProvider']);
   });
 
   it('never claims a provider app/_layout.web.tsx actually mounts', () => {
     // Derived, not hand-checked: the day someone mounts one of these for
     // real on web, the detector would start lying about it, and this fails
     // instead. Reads the layout the browser really runs.
-    const mounted = providersMountedIn('_layout.web.tsx');
+    const mounted = providersMountedOn('web');
     // Control: if the regex ever stops matching, the disjointness below
     // would hold vacuously.
     expect(mounted.size).toBeGreaterThanOrEqual(10);
@@ -277,8 +377,8 @@ describe('isMissingProviderError', () => {
     // list is the third known blind spot of this repo, and "the list is right
     // today" is a note, not a gate. This is the gate: both layouts are on disk,
     // so the difference between them is derivable, not trusted.
-    const native = providersMountedIn('_layout.tsx');
-    const web = providersMountedIn('_layout.web.tsx');
+    const native = providersMountedOn('native');
+    const web = providersMountedOn('web');
     // Floors, not assertions about the app: a regex that half-broke would make
     // everything below hold vacuously. Bump them deliberately.
     expect(native.size).toBeGreaterThanOrEqual(18);
@@ -304,7 +404,7 @@ describe('isMissingProviderError', () => {
     // The staleness half. An entry that outlives the context it names stops
     // being documentation and starts being a hole in the "is this claim TRUE"
     // reasoning, exactly like the parity gate's ALLOWED_NATIVE_ONLY.
-    const native = providersMountedIn('_layout.tsx');
+    const native = providersMountedOn('native');
     expect(native.size).toBeGreaterThanOrEqual(18);
     const stale = [...WEB_UNMOUNTED_PROVIDERS].filter(
       name => !native.has(name),
