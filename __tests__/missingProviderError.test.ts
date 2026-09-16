@@ -312,7 +312,7 @@ describe('isMissingProviderError', () => {
     expect(stale).toEqual([]);
   });
 
-  it('recognizes what the six real unmounted-on-web contexts actually throw', () => {
+  it('recognizes what EVERY listed unmounted-on-web context actually throws', () => {
     // Not a list of strings — the hooks themselves, called with no Provider.
     const hooks: ReadonlyArray<[string, () => unknown]> = [
       ['useAuth', () => require('../src/context/AuthContext').useAuth()],
@@ -338,7 +338,23 @@ describe('isMissingProviderError', () => {
         'useDonationSheet',
         () => require('../src/context/DonationSheetContext').useDonationSheet(),
       ],
+      [
+        // The seventh. The title used to say "six" while
+        // WEB_UNMOUNTED_PROVIDERS held seven, so this one entry's message was
+        // the only one nothing pinned - in a test whose whole reason for
+        // existing is that a hand-written list of message strings rots
+        // silently. Unreachable today (every caller uses the
+        // `useSyncEngineOptional` variant, which returns undefined instead of
+        // throwing), which is why it is in the list rather than in
+        // UNMOUNTED_BUT_NEVER_THROWS: the throwing hook exists and is exported.
+        'useSyncEngine',
+        () => require('../src/context/SyncEngineContext').useSyncEngine(),
+      ],
     ];
+
+    // Floor: every entry in the list has to be exercised here, or the "derived,
+    // not hand-checked" claim above covers only the ones someone remembered.
+    expect(hooks.length).toBe(WEB_UNMOUNTED_PROVIDERS.size);
 
     const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
     try {
