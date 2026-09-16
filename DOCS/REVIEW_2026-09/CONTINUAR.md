@@ -12,8 +12,11 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s15-revision-diff-s14`.** Ocho commits: los
-cinco arreglos de la sesión 15 (`R9-77`..`R9-81`), un remate menor, y dos de checkpoint. **`main` está pusheado
+**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s15-revision-diff-s14`.** Lleva los cinco
+arreglos de la sesión 15 (`R9-77`..`R9-81`), un remate menor y el checkpoint. **No se pone el
+número de commits ni el SHA a propósito** — el propio commit que escribe esta línea los mueve,
+así que cualquiera de los dos nace obsoleto; `git log main..fix/review-s15-revision-diff-s14`
+lo dice sin equivocarse. **`main` está pusheado
 y al día**; las **ocho** ramas de arreglos de las sesiones 7 a 14 están todas dentro de él. La
 de la 15 **no**, a propósito: la regla fija es que no se mergea nada sin preguntarle a Victor.
 Gates corridos sobre la rama antes de parar: **362 suites, 4250 pruebas** (desde 361/4219),
@@ -204,7 +207,7 @@ vas a arreglar alguno, verificalo primero.
 **(a) RECOMENDADA — revisar el diff de la sesión 15 y, si aguanta, mergearlo.** Es el patrón
 que ya pagó **siete** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14 y 15 encontraron
 defectos reales en el diff de ARREGLOS de la sesión anterior, y dos de esas veces eran
-**pérdidas de datos nuevas**. Son 8 commits (6 de código, 7 archivos) **en la rama
+**pérdidas de datos nuevas**. Son seis arreglos sobre siete archivos de código **en la rama
 `fix/review-s15-revision-diff-s14`, sin mergear**, y vuelven a tocar el sitio más delicado del programa:
 `scripts/build-web-packs.js`, que es lo único que produce **datos que se publican**. Esta vez
 le metieron un **piso nuevo a la compuerta de encogimiento** y un **preflight a la mudanza
@@ -213,10 +216,10 @@ lado: antes era que dejara pasar, ahora también es que no deje.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Hay una rama sin mergear: `fix/review-s15-revision-diff-s14` (8 commits).** `main` está
+> **Hay una rama sin mergear: `fix/review-s15-revision-diff-s14`.** `main` está
 > pusheado y al día, pero esa rama NO está dentro. Tampoco queda nada de despliegue.
 >
-> Revisá ese diff (`R9-77`..`R9-81`: 6 commits de código, 7 archivos) con el mismo criterio de las
+> Revisá ese diff (`R9-77`..`R9-81`, más un remate menor: 7 archivos de código) con el mismo criterio de las
 > sesiones 8-15 — buscá si algún arreglo cierra el caso que su prueba cubre y deja el vecino
 > abierto, y comprobá que cada prueba nueva DISCRIMINA de verdad (revertí el arreglo, corré,
 > restaurá, y `diff` el revert para confirmar que tocó la línea que creés). **Los arreglos van
