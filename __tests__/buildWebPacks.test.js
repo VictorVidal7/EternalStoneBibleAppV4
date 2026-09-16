@@ -888,6 +888,85 @@ describe('main() emits nothing at all when it aborts', () => {
     warnSpy.mockRestore();
   });
 
+  it('refuses BEFORE moving anything when a destination cannot be replaced', () => {
+    // R9-81. Moving four files is four operations, and one failure used to
+    // leave this directory holding two packs from this run and two from the
+    // last - under a raw EPERM with none of the guidance the other aborts
+    // carry, and with the staging scratch already swept away, so nothing was
+    // left to show the move had been partial.
+    main(world);
+    const before = Object.fromEntries(
+      publishable(world.out).map(name => [
+        name,
+        crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(path.join(world.out, name)))
+          .digest('hex'),
+      ]),
+    );
+
+    // A destination that cannot be replaced, the way a file held open by
+    // another process cannot be.
+    fs.rmSync(path.join(world.out, 'web.sqlite'));
+    fs.mkdirSync(path.join(world.out, 'web.sqlite'));
+
+    const changed = buildWorld('Jesus said something else entirely here.');
+    expect(() => main({...changed, out: world.out})).toThrow(
+      /Cannot replace[\s\S]*NOTHING was written/,
+    );
+
+    // The property that matters: the OTHER three are untouched, so the
+    // directory is still a single coherent run rather than two halves.
+    for (const [name, sha] of Object.entries(before)) {
+      if (name === 'web.sqlite') continue;
+      expect([
+        name,
+        crypto
+          .createHash('sha256')
+          .update(fs.readFileSync(path.join(world.out, name)))
+          .digest('hex'),
+      ]).toEqual([name, sha]);
+    }
+  });
+
+  it('names exactly what moved and what did not if a rename fails anyway', () => {
+    // The residual race the preflight cannot close: the destination was
+    // replaceable a moment ago and is not any more. It must not be silent.
+    main(world);
+    const renameSpy = jest.spyOn(fs, 'renameSync');
+    let calls = 0;
+    renameSpy.mockImplementation((from, to) => {
+      calls += 1;
+      if (calls === 2) throw new Error('EPERM: operation not permitted');
+      return jest.requireActual('fs').renameSync(from, to);
+    });
+    try {
+      const changed = buildWorld('Jesus said something else entirely here.');
+      expect(() => main({...changed, out: world.out})).toThrow(
+        /FAILED HALFWAY[\s\S]*moved \(THIS run's bytes\)[\s\S]*not moved/,
+      );
+    } finally {
+      renameSpy.mockRestore();
+    }
+  });
+
+  it('still moves every file when nothing is in the way (the control)', () => {
+    // Without this, a preflight that refused unconditionally would satisfy both
+    // cases above and never publish anything again.
+    main(world);
+    const changed = buildWorld('Jesus said something else entirely here.');
+    main({...changed, out: world.out});
+    expect(publishable(world.out)).toEqual([
+      'rvr1960-red-letter.json',
+      'rvr1960.sqlite',
+      'web-red-letter.json',
+      'web.sqlite',
+    ]);
+    expect(
+      fs.readFileSync(path.join(world.out, 'web-red-letter.json'), 'utf8'),
+    ).toContain('43');
+  });
+
   it('leaves no staging scratch behind on a clean run OR an abort', () => {
     main(world);
     expect(fs.readdirSync(world.out).filter(n => n.startsWith('.'))).toEqual(

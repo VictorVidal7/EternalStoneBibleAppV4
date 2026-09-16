@@ -720,8 +720,63 @@ function emit({
   // Past this line the run is judged publishable, so now — and only now —
   // does anything appear in `out`. A rename over an existing file replaces it
   // atomically enough that a reader never sees a half-written pack.
-  for (const name of fs.readdirSync(staging)) {
-    fs.renameSync(path.join(staging, name), path.join(out, name));
+  //
+  // R9-81: the LOOP, though, is not atomic. One failing rename leaves `out`
+  // holding some of this run's packs and some of the previous run's, with the
+  // manifest - written below - describing neither, and the staging directory
+  // already swept away by main()'s finally, so nothing survives to say the move
+  // was partial. Proven by blocking the last destination: a fresh
+  // rvr1960.sqlite sat beside a stale web.sqlite under a raw EPERM carrying
+  // none of the "check their sha256 before publishing" guidance every other
+  // abort here carries. And `out` defaults to the Desktop, which is exactly
+  // where a file gets held open by a sync client or a SQLite browser.
+  //
+  // So: prove every destination is replaceable BEFORE moving the first one -
+  // that covers the whole realistic cause while `out` is still untouched - and
+  // if a rename fails anyway, say precisely what moved and what did not.
+  const names = fs.readdirSync(staging);
+  for (const name of names) {
+    const destination = path.join(out, name);
+    if (!fs.existsSync(destination)) continue;
+    try {
+      // Two different ways a destination refuses to be replaced, and Windows
+      // only reports one of them from open(): a file held open by another
+      // process throws here, while a DIRECTORY sitting where a pack belongs
+      // opens perfectly happily and then fails the rename. Check both.
+      fs.closeSync(fs.openSync(destination, 'r+'));
+      if (!fs.statSync(destination).isFile()) {
+        throw new Error('destination is not a file');
+      }
+    } catch (error) {
+      throw new Error(
+        `Cannot replace ${destination}: ${error.message}\n\n` +
+          'Every destination has to be replaceable before the first one moves, ' +
+          'because moving them is not one operation: stopping halfway would ' +
+          'leave this directory holding some of this run and some of the last, ' +
+          'with nothing to tell them apart.\n' +
+          'NOTHING was written: the files in the output directory are exactly ' +
+          'as an EARLIER run left them, and the manifest was not touched. ' +
+          'Close whatever is holding that file (a SQLite browser, a sync ' +
+          'client, an antivirus scan) and re-run.',
+      );
+    }
+  }
+  const moved = [];
+  for (const name of names) {
+    try {
+      fs.renameSync(path.join(staging, name), path.join(out, name));
+    } catch (error) {
+      const stranded = names.filter(n => !moved.includes(n));
+      throw new Error(
+        `Moving the built packs into ${out} FAILED HALFWAY: ${error.message}\n\n` +
+          `  moved (THIS run's bytes):        ${moved.join(', ') || 'none'}\n` +
+          `  not moved (an EARLIER run's):    ${stranded.join(', ')}\n\n` +
+          'That directory is MIXED and the manifest was not written, so it ' +
+          'describes neither state. Do NOT upload anything from it. Fix the ' +
+          'cause and re-run - a clean run replaces all of them together.',
+      );
+    }
+    moved.push(name);
   }
 
   fs.writeFileSync(
