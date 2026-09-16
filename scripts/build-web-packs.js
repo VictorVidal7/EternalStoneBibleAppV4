@@ -294,11 +294,92 @@ function readPreviousManifest(file) {
         'against and pass vacuously. Restore it before rebuilding.',
     );
   }
+  // R9-77: same reasoning, applied to the OTHER list. `redLetter` may be an
+  // ARRAY (current), a single OBJECT (pre-2026-09-15) or absent (pre-red-letter
+  // entirely) — all three are shapes this file really carried — but a string or
+  // a number is a mangled baseline, not a historical one. Absence is NOT
+  // rejected here: it is indistinguishable from "nothing was ever published",
+  // so the floor that catches it lives in assertNoShrink, where the run knows
+  // what it is about to emit.
+  if (
+    parsed.redLetter !== undefined &&
+    parsed.redLetter !== null &&
+    !Array.isArray(parsed.redLetter) &&
+    typeof parsed.redLetter !== 'object'
+  ) {
+    throw new Error(
+      `The published manifest ${file} carries a \`redLetter\` field that is ` +
+        `neither an array nor an object (got ${typeof parsed.redLetter}), so ` +
+        'every red-letter comparison below would silently find nothing to ' +
+        'compare against. Restore it before rebuilding.',
+    );
+  }
   console.log(
     `  baseline: ${file} (${parsed.packs.length} packs, ` +
       `${Array.isArray(parsed.redLetter) ? parsed.redLetter.length : parsed.redLetter ? 1 : 0} red-letter)`,
   );
   return parsed;
+}
+
+/** The baseline's `packs` list, or an empty one if it carries none. */
+function previousPacksOf(previous) {
+  return previous && Array.isArray(previous.packs) ? previous.packs : [];
+}
+
+/**
+ * The baseline's red-letter list, normalized. `redLetter` was a single OBJECT
+ * until 2026-09-15 and is an ARRAY now, so a manifest written before that date
+ * still has to be readable here; before red-letter existed at all there was no
+ * field, which reads as an empty list.
+ */
+function previousRedLetterOf(previous) {
+  if (!previous) return [];
+  if (Array.isArray(previous.redLetter)) return previous.redLetter;
+  if (previous.redLetter && typeof previous.redLetter === 'object') {
+    return [{versionId: 'WEB', ...previous.redLetter}];
+  }
+  return [];
+}
+
+/**
+ * R9-77. How many of the entries this run EMITS the baseline actually pins a
+ * number for — which is not the same as how many this run emits, and that gap
+ * is the whole finding. Every comparison in shrinkComplaints skips silently
+ * when its `before` is missing or carries a non-numeric count, and
+ * assertNoShrink then printed the size of the NEW lists as if it were the
+ * number of comparisons made: "2 packs and 2 red-letter packs compared against
+ * the published manifest, nothing went down and nothing went missing" over
+ * ZERO actual comparisons.
+ *
+ * The reachable way in is a baseline with `packs` but NO `redLetter` key. That
+ * is not hypothetical: web/packs/web-bootstrap.json carried exactly that shape
+ * from c3a9aac (2026-07-08) until a0782a6, so a `git checkout` of an older
+ * revision, a revert, or a merge that takes the old side reproduces it — and
+ * `redLetter: []` (what this script itself writes if the spec list is ever
+ * emptied once) is just as vacuous while passing every shape check. With that
+ * baseline, dropping RVR1960 from RED_LETTER_SPECS — R9-13 verbatim — emits,
+ * reports success, and rewrites the manifest without RVR1960, destroying the
+ * only baseline the NEXT run had. Verified end to end against the real main().
+ *
+ * Counts a pin, never a match: a count that GREW is still pinned.
+ */
+function baselineComparisonCounts(previous, packs, redLetter) {
+  const previousPacks = previousPacksOf(previous);
+  const previousRedLetter = previousRedLetterOf(previous);
+  const pinnedPacks = packs.filter(pack => {
+    const before = previousPacks.find(x => x && x.id === pack.id);
+    return !!before && typeof before.verseCount === 'number';
+  }).length;
+  const pinnedRedLetter = redLetter.filter(entry => {
+    const before = previousRedLetter.find(
+      x => x && x.versionId === entry.versionId,
+    );
+    return (
+      !!before &&
+      (typeof before.entries === 'number' || typeof before.spans === 'number')
+    );
+  }).length;
+  return {packs: pinnedPacks, redLetter: pinnedRedLetter};
 }
 
 /**
@@ -320,14 +401,8 @@ function shrinkComplaints(previous, packs, redLetter) {
   const complaints = [];
   if (!previous) return complaints;
 
-  const previousPacks = Array.isArray(previous.packs) ? previous.packs : [];
-  // `redLetter` was a single OBJECT until 2026-09-15 and is an ARRAY now, so a
-  // manifest written before that date still has to be readable here.
-  const previousRedLetter = Array.isArray(previous.redLetter)
-    ? previous.redLetter
-    : previous.redLetter
-      ? [{versionId: 'WEB', ...previous.redLetter}]
-      : [];
+  const previousPacks = previousPacksOf(previous);
+  const previousRedLetter = previousRedLetterOf(previous);
 
   for (const pack of packs) {
     const before = previousPacks.find(x => x.id === pack.id);
@@ -397,11 +472,72 @@ function assertNoShrink(previous, packs, redLetter, allowShrink) {
     );
     return;
   }
+  // R9-77: BEFORE reporting on the complaints, establish that there was
+  // anything to complain WITH. A baseline that pins no numbers at all produces
+  // zero complaints for the same reason an empty loop does, and the line below
+  // used to call that success while naming the size of the NEW lists. This is a
+  // stop sign rather than a wall for the same reason the shrink itself is: the
+  // very first run that emits a whole new CATEGORY legitimately has nothing
+  // pinning it, and --allow-shrink is how a human says so.
+  const pinned = baselineComparisonCounts(previous, packs, redLetter);
+  const vacuous = [];
+  if (packs.length > 0 && pinned.packs === 0) {
+    vacuous.push(
+      `packs: this run emits ${packs.length} (${packs
+        .map(p => p.id)
+        .join(', ')}) and the published manifest pins a verseCount for NONE ` +
+        `of them (it lists ${previousPacksOf(previous).length})`,
+    );
+  }
+  if (redLetter.length > 0 && pinned.redLetter === 0) {
+    vacuous.push(
+      `red-letter: this run emits ${redLetter.length} (${redLetter
+        .map(e => e.versionId)
+        .join(
+          ', ',
+        )}) and the published manifest pins counts for NONE of them ` +
+        `(it lists ${previousRedLetterOf(previous).length})`,
+    );
+  }
+  if (vacuous.length > 0 && !allowShrink) {
+    throw new Error(
+      'The published manifest pins NOTHING about part of what this run ' +
+        'emits:\n  ' +
+        vacuous.join('\n  ') +
+        '\n\nEvery comparison for that part would have found nothing to ' +
+        'compare against and passed vacuously - including the check for a ' +
+        'version that VANISHED, which reads the PREVIOUS list and therefore ' +
+        'sees nothing when that list is empty. web/packs/web-bootstrap.json ' +
+        'really did carry `packs` with no `redLetter` until 2026-09-15, so an ' +
+        'older revision of it, a revert, or a merge that took the old side ' +
+        'lands here.\n\n' +
+        'NOTHING was written: the run aborted before anything left its ' +
+        'staging directory, so no pack file was emitted into the output ' +
+        'directory and the manifest was not touched.\n' +
+        'CAREFUL: files ALREADY sitting in the output directory are from an ' +
+        'EARLIER run - this run did not refresh them.\n' +
+        'Restore the baseline (git checkout web/packs/web-bootstrap.json). If ' +
+        'this really is the FIRST run to emit that part, re-run with ' +
+        '--allow-shrink.',
+    );
+  }
+  if (vacuous.length > 0) {
+    console.warn(
+      '\n  WARNING: the published manifest pins nothing about part of this ' +
+        'run, continuing because --allow-shrink was passed:\n    ' +
+        vacuous.join('\n    '),
+    );
+  }
+
   if (complaints.length === 0) {
+    // Says how many comparisons were actually MADE, not how many packs the run
+    // happens to emit. Those two numbers were the same on every good run, which
+    // is exactly why the difference went unnoticed on the bad one.
     console.log(
-      `  shrink check: ${packs.length} packs and ${redLetter.length} ` +
-        'red-letter packs compared against the published manifest, nothing ' +
-        'went down and nothing went missing',
+      `  shrink check: ${pinned.packs} of ${packs.length} packs and ` +
+        `${pinned.redLetter} of ${redLetter.length} red-letter packs were ` +
+        'PINNED by the published manifest, nothing went down and nothing ' +
+        'went missing',
     );
     return;
   }
@@ -634,6 +770,7 @@ module.exports = {
   verifyRedLetterAlignment,
   readPreviousManifest,
   shrinkComplaints,
+  baselineComparisonCounts,
   assertNoShrink,
   main,
   PACK_SPECS,

@@ -29,6 +29,7 @@ const {
   verifyRedLetterAlignment,
   readPreviousManifest,
   shrinkComplaints,
+  baselineComparisonCounts,
   assertNoShrink,
   main,
 } = require('../scripts/build-web-packs.js');
@@ -427,6 +428,36 @@ describe('readPreviousManifest tells absent apart from unreadable', () => {
     expect(() => readPreviousManifest(file)).toThrow(/packs/);
   });
 
+  it('THROWS on a `redLetter` field that is neither array nor object', () => {
+    // R9-77. Absent is a real historical shape and is handled downstream; a
+    // string is a mangled baseline, and swallowing it would put the red-letter
+    // comparisons back in the vacuum this whole file is about.
+    const file = path.join(dir, 'web-bootstrap.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({
+        schema: 1,
+        packs: [{id: 'WEB', verseCount: 7}],
+        redLetter: 'nope',
+      }),
+    );
+    expect(() => readPreviousManifest(file)).toThrow(/redLetter/);
+  });
+
+  it('still ACCEPTS a baseline with no `redLetter` key at all (the control)', () => {
+    // The shape web/packs/web-bootstrap.json really carried until a0782a6.
+    // Refusing it HERE would be wrong: absent is indistinguishable from
+    // "nothing was ever published", so the refusal belongs where the run knows
+    // what it is about to emit. Without this control the check above could be
+    // widened to reject absence and every genuine first run would break.
+    const file = path.join(dir, 'web-bootstrap.json');
+    fs.writeFileSync(
+      file,
+      JSON.stringify({schema: 1, packs: [{id: 'WEB', verseCount: 7}]}),
+    );
+    expect(readPreviousManifest(file).packs).toHaveLength(1);
+  });
+
   it('returns the parsed manifest when it is readable (the control)', () => {
     const file = path.join(dir, 'web-bootstrap.json');
     fs.writeFileSync(
@@ -434,6 +465,166 @@ describe('readPreviousManifest tells absent apart from unreadable', () => {
       JSON.stringify({schema: 1, packs: [{id: 'WEB', verseCount: 7}]}),
     );
     expect(readPreviousManifest(file).packs[0].verseCount).toBe(7);
+  });
+});
+
+/**
+ * R9-77 - a baseline that pins NOTHING still produced zero complaints, and
+ * zero complaints was printed as success.
+ *
+ * Every comparison in shrinkComplaints skips silently when its `before` is
+ * missing, and the R9-73 disappearance loops walk the PREVIOUS lists - so an
+ * EMPTY previous list makes both halves pass in a vacuum, which is R9-66's
+ * shape one level further out than R9-73 reached. The reachable way in is a
+ * manifest with `packs` and no `redLetter`: web/packs/web-bootstrap.json
+ * carried exactly that from c3a9aac (2026-07-08) until a0782a6, so an older
+ * revision of it, a revert, or a merge that takes the old side lands here. And
+ * the success line named `packs.length` - the size of the NEW list - as though
+ * it were the number of comparisons made, which it only is on a good run.
+ */
+describe('a baseline that pins nothing cannot be reported as success', () => {
+  const PINNED = {
+    packs: [
+      {id: 'RVR1960', verseCount: 31102},
+      {id: 'WEB', verseCount: 31098},
+    ],
+    redLetter: [
+      {versionId: 'WEB', entries: 2059, spans: 2077},
+      {versionId: 'RVR1960', entries: 2057, spans: 2077},
+    ],
+  };
+  const PACKS = [
+    {id: 'RVR1960', verseCount: 31102},
+    {id: 'WEB', verseCount: 31098},
+  ];
+  const RED_LETTER = [
+    {versionId: 'WEB', entries: 2059, spans: 2077},
+    {versionId: 'RVR1960', entries: 2057, spans: 2077},
+  ];
+  /** The shape the committed manifest really had before a0782a6. */
+  const NO_RED_LETTER_KEY = {schema: 1, packs: PINNED.packs};
+
+  // The MECHANISM, on its own, so a revert cannot take these down on an
+  // earlier assertion and leave the consequence below proving nothing.
+  it('counts what the baseline PINS, not what the run emits', () => {
+    expect(baselineComparisonCounts(PINNED, PACKS, RED_LETTER)).toEqual({
+      packs: 2,
+      redLetter: 2,
+    });
+    expect(
+      baselineComparisonCounts(NO_RED_LETTER_KEY, PACKS, RED_LETTER),
+    ).toEqual({packs: 2, redLetter: 0});
+    expect(
+      baselineComparisonCounts({packs: [], redLetter: []}, PACKS, RED_LETTER),
+    ).toEqual({packs: 0, redLetter: 0});
+  });
+
+  it('counts a version the baseline does not know as UNPINNED, not as compared', () => {
+    // The partial case, which must NOT trip the floor: two of the three are
+    // pinned, so the comparison is real even though the newcomer is not.
+    expect(
+      baselineComparisonCounts(PINNED, PACKS, [
+        ...RED_LETTER,
+        {versionId: 'KJV', entries: 1, spans: 1},
+      ]),
+    ).toEqual({packs: 2, redLetter: 2});
+  });
+
+  it('counts a legacy OBJECT-shaped redLetter baseline as a pin', () => {
+    expect(
+      baselineComparisonCounts(
+        {packs: PINNED.packs, redLetter: {entries: 2059, spans: 2077}},
+        PACKS,
+        RED_LETTER,
+      ),
+      // TWO emitted, ONE pinned: the legacy object only ever described WEB, so
+      // an expectation of 1 here is only meaningful while the run emits 2.
+    ).toEqual({packs: 2, redLetter: 1});
+  });
+
+  // The CONSEQUENCE.
+  it('REFUSES a baseline with no `redLetter` key while emitting red-letter packs', () => {
+    // The finding. Counts equal, nothing missing from the NEW list, and the old
+    // code called that "nothing went down and nothing went missing".
+    expect(() =>
+      assertNoShrink(NO_RED_LETTER_KEY, PACKS, RED_LETTER, false),
+    ).toThrow(/pins NOTHING/);
+  });
+
+  it('REFUSES an empty `redLetter` array just the same', () => {
+    // The same vacuum wearing a valid shape - and the shape this very script
+    // writes if the spec list is ever emptied once, so it survives a round trip.
+    expect(() =>
+      assertNoShrink(
+        {packs: PINNED.packs, redLetter: []},
+        PACKS,
+        RED_LETTER,
+        false,
+      ),
+    ).toThrow(/red-letter:[\s\S]*pins counts for NONE/);
+  });
+
+  it('REFUSES an empty `packs` array too, not just the red-letter half', () => {
+    expect(() =>
+      assertNoShrink(
+        {packs: [], redLetter: PINNED.redLetter},
+        PACKS,
+        RED_LETTER,
+        false,
+      ),
+    ).toThrow(/packs: this run emits 2[\s\S]*NONE/);
+  });
+
+  it('says NOTHING was written, like every other abort does', () => {
+    // The R9-72 honesty clause has to hold on this path too: it is a NEW way to
+    // abort, and the directory it aborts before touching is the same one a
+    // human uploads by hand.
+    expect(() =>
+      assertNoShrink(NO_RED_LETTER_KEY, PACKS, RED_LETTER, false),
+    ).toThrow(/NOTHING was written[\s\S]*EARLIER run/);
+  });
+
+  it('lets a genuine FIRST emission through with --allow-shrink', () => {
+    // The escape hatch, and the reason this is a stop sign and not a wall:
+    // a0782a6 really was a run that emitted red-letter packs for the first time
+    // against a baseline that pinned none.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(() =>
+      assertNoShrink(NO_RED_LETTER_KEY, PACKS, RED_LETTER, true),
+    ).not.toThrow();
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
+  });
+
+  it('does not fire when the run emits nothing of that kind at all', () => {
+    // Retiring red-letter entirely is not a vacuum, it is an empty emission -
+    // the floor is guarded on `redLetter.length > 0` and this pins that guard.
+    expect(() =>
+      assertNoShrink(NO_RED_LETTER_KEY, PACKS, [], false),
+    ).not.toThrow();
+  });
+
+  it('passes a fully pinned baseline (the control)', () => {
+    // Without this, a floor that threw unconditionally would satisfy every case
+    // above and block every ordinary rebuild.
+    expect(() =>
+      assertNoShrink(PINNED, PACKS, RED_LETTER, false),
+    ).not.toThrow();
+  });
+
+  it('reports how many comparisons it MADE, not how many packs it emits', () => {
+    // The second half of the finding. Those two numbers agree on every good
+    // run, which is exactly why the disagreement went unnoticed on the bad one.
+    // Here they genuinely differ: three red-letter packs emitted, two pinned.
+    assertNoShrink(
+      PINNED,
+      PACKS,
+      [...RED_LETTER, {versionId: 'KJV', entries: 1, spans: 1}],
+      false,
+    );
+    const said = logSpy.mock.calls.map(c => c.join(' ')).join('\n');
+    expect(said).toContain('2 of 2 packs');
+    expect(said).toContain('2 of 3 red-letter packs');
   });
 });
 
@@ -635,6 +826,66 @@ describe('main() emits nothing at all when it aborts', () => {
       .update(fs.readFileSync(path.join(world.out, 'web.sqlite')))
       .digest('hex');
     expect(after).toBe(before);
+  });
+
+  it('leaves the output directory EMPTY when the baseline pins no red-letter', () => {
+    // R9-77 end to end, and the reason it is a P1 rather than a tidiness
+    // complaint: this is the R9-13 accident verbatim - RVR1960 dropped from
+    // redLetterSpecs - against a baseline in the shape web/packs/
+    // web-bootstrap.json really carried until a0782a6. Before the floor, the
+    // run EMITTED, printed "nothing went down and nothing went missing", and
+    // rewrote the manifest without RVR1960, destroying the only baseline the
+    // next run had to notice with.
+    fs.writeFileSync(
+      world.manifestFile,
+      JSON.stringify({
+        schema: 1,
+        packs: [
+          {id: 'RVR1960', verseCount: 66},
+          {id: 'WEB', verseCount: 66},
+        ],
+      }),
+    );
+    expect(() =>
+      main({
+        ...world,
+        redLetterSpecs: world.redLetterSpecs.filter(
+          rl => rl.versionId !== 'RVR1960',
+        ),
+      }),
+    ).toThrow(/pins NOTHING/);
+    expect(publishable(world.out)).toEqual([]);
+    // And the baseline is still the baseline: an abort that rewrote the
+    // manifest would have erased the very evidence the next run needs.
+    expect(
+      JSON.parse(fs.readFileSync(world.manifestFile, 'utf8')).redLetter,
+    ).toBeUndefined();
+  });
+
+  it('still emits against that same baseline with --allow-shrink (the control)', () => {
+    // Without this the floor above could be a wall, and a0782a6 - the run that
+    // genuinely emitted red-letter packs for the first time - would have had no
+    // way through.
+    const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    fs.writeFileSync(
+      world.manifestFile,
+      JSON.stringify({
+        schema: 1,
+        packs: [
+          {id: 'RVR1960', verseCount: 66},
+          {id: 'WEB', verseCount: 66},
+        ],
+      }),
+    );
+    main({...world, allowShrink: true});
+    expect(publishable(world.out)).toEqual([
+      'rvr1960-red-letter.json',
+      'rvr1960.sqlite',
+      'web-red-letter.json',
+      'web.sqlite',
+    ]);
+    expect(warnSpy).toHaveBeenCalled();
+    warnSpy.mockRestore();
   });
 
   it('leaves no staging scratch behind on a clean run OR an abort', () => {
