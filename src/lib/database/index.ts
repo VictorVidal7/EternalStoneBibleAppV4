@@ -276,6 +276,23 @@ const SDEFS_IMPORT_SQL =
   `INSERT INTO strongs_defs (strongs, definition_en, definition_es) ` +
   `SELECT strongs, definition_en, definition_es FROM ${SDEFS_SCHEMA}.strongs_defs`;
 
+/** The `favorites` columns, aliased to the `Favorite` shape. Shared by every
+ *  read so a single row and the whole list can never disagree. */
+const FAVORITE_COLUMNS =
+  `id, verse_id as verseId, book_name as book, chapter, verse, text, ` +
+  `category, rating, tags, note, created_at as createdAt, updated_at as updatedAt`;
+
+type FavoriteRow = Omit<
+  import('../../context/FavoritesContext').Favorite,
+  'tags'
+> & {tags: string | null};
+
+function rowToFavorite(
+  row: FavoriteRow,
+): import('../../context/FavoritesContext').Favorite {
+  return {...row, tags: row.tags ? JSON.parse(row.tags) : []};
+}
+
 /**
  * Copy the bundled pre-seeded bible.db into expo-sqlite's storage
  * directory if it isn't already there. Returns true when a copy
@@ -2317,17 +2334,27 @@ class BibleDatabase {
   > {
     const db = this.getDb();
 
-    const result = await db.getAllAsync<any>(
-      `SELECT id, verse_id as verseId, book_name as book, chapter, verse, text,
-              category, rating, tags, note, created_at as createdAt, updated_at as updatedAt
+    const result = await db.getAllAsync<FavoriteRow>(
+      `SELECT ${FAVORITE_COLUMNS}
        FROM favorites
        ORDER BY created_at DESC`,
     );
 
-    return result.map(row => ({
-      ...row,
-      tags: row.tags ? JSON.parse(row.tags) : [],
-    }));
+    return result.map(rowToFavorite);
+  }
+
+  /** R9-102 — the row as it is on disk right now, for the sync payload. */
+  async getFavoriteById(
+    id: string,
+  ): Promise<import('../../context/FavoritesContext').Favorite | null> {
+    const db = this.getDb();
+    const row = await db.getFirstAsync<FavoriteRow>(
+      `SELECT ${FAVORITE_COLUMNS}
+       FROM favorites
+       WHERE id = ?`,
+      [id],
+    );
+    return row ? rowToFavorite(row) : null;
   }
 
   async getFavoritesCount(): Promise<number> {

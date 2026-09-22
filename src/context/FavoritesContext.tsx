@@ -376,21 +376,21 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
 
       await bibleDB.updateFavorite(id, updatedData);
 
-      let mergedForSync: Favorite | undefined;
       setFavorites(prev =>
-        prev.map(f => {
-          if (f.id !== id) return f;
-          const merged = {...f, ...updatedData};
-          mergedForSync = merged;
-          return merged;
-        }),
+        prev.map(f => (f.id === id ? {...f, ...updatedData} : f)),
       );
-      if (mergedForSync) {
-        getSyncEngine()?.queueWrite(
-          'favorites',
-          id,
-          favoriteToRemote(mergedForSync),
-        );
+      // R9-102 — the payload comes from the row just written, never from
+      // inside the updater above. This used to assign a variable IN the
+      // updater and queue only if it came back set, but React runs an updater
+      // on the spot only when the fiber has no pending work; otherwise it runs
+      // on the next render, and here the variable was still `undefined`. The
+      // edit showed on screen and never reached the queue. React state (or a
+      // ref copied from it) would also miss a favorite added a moment ago, or
+      // the previous edit of this one, if neither has rendered yet; SQLite has
+      // both. Payloads are complete rows, since `pushOne` merges.
+      const written = await bibleDB.getFavoriteById(id);
+      if (written) {
+        getSyncEngine()?.queueWrite('favorites', id, favoriteToRemote(written));
       }
 
       logger.info('Favorite updated successfully', {
