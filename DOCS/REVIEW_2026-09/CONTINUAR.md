@@ -1,7 +1,7 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-22, fin de la sesión 19 (revisión del diff de la 18, y de los de la
-> 10 y la 11, que nadie había revisado; solo revisión, la primera con Opus 5.5).**
+> **Última actualización: 2026-09-22, fin de la sesión 20 (ARREGLOS de `R9-102`..`R9-105`, con
+> Opus 5.5).** La 19 fue la revisión del diff de la 18 y de los de la 10 y la 11.
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -13,11 +13,14 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ✅ NO HAY NADA PENDIENTE DE GIT. `main` = `origin/main`, y no hay ninguna rama de la revisión
-sin mergear.**
+**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s19-p0-sync-favoritos`** (sesión 20). Lleva cuatro
+commits de código, uno por hallazgo (`8ea93b6` `R9-105`, `7aafc9c` `R9-103`, `cfa7c1c` `R9-104`,
+`00f69c4` `R9-102`), y el checkpoint de docs encima. `npm run validate` verde en su punta (364 /
+4299). **Si `git log origin/main` ya los tiene, Victor dio el OK y se mergeó**, y un commit de
+coherencia habrá actualizado esta frase. Si no, preguntale antes de mergear.
 
-La sesión 19 fue **solo de revisión** (Victor: «decime qué encontraste antes de tocar nada»), así
-que no trae ningún cambio de código. Su checkpoint (`ac9c7fd`: `BUGS.md`, `INDEX.md`, este archivo
+**Lo de la sesión 19, que sigue valiendo:** fue **solo de revisión** (Victor: «decime qué
+encontraste antes de tocar nada»), así que no trajo cambios de código. Su checkpoint (`ac9c7fd`: `BUGS.md`, `INDEX.md`, este archivo
 y `detail/S19-revision-del-diff.md`) **se mergeó en fast-forward y se pusheó**, junto con el commit
 de coherencia que lleva esta frase. Un commit no puede nombrar su propio hash: mirá
 `git log -1 origin/main`. La rama `docs/review-s19-checkpoint` se borró.
@@ -72,8 +75,8 @@ prueba cubre y deja abierto el vecino_): aquí el vecino no era otro caso, era *
 del mismo diff**. Si un commit lleva dos arreglos, pregúntate si uno desarma la prueba del
 otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-del-diff.md`.
 
-**Quedan 5 P0 abiertos:** `R9-36`, `R9-38`, `R9-39`, y los dos nuevos de la sesión 19, `R9-102`
-y `R9-103`. Todo lo demás de la sección P0 va
+**Quedan 3 P0 abiertos:** `R9-36`, `R9-38` y `R9-39`. Los dos de la sesión 19, `R9-102` y
+`R9-103`, se arreglaron en la 20. Todo lo demás de la sección P0 va
 marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Los
 **6 hallazgos de la sesión 13** (`R9-66`..`R9-71`) son P1/P2, así que el conteo de P0 no se
 mueve — y los seis ya están arreglados y mergeados.
@@ -86,7 +89,8 @@ Los **10 de la sesión 17** (`R9-87`..`R9-96`) también son P1/P2, así que el c
 igual — y los diez ya están arreglados y mergeados.
 Los **5 de la sesión 18** (`R9-97`..`R9-101`) igual: P1/P2, arreglados y mergeados.
 Los **22 de la sesión 19** (`R9-102`..`R9-123`) son 2 P0, 6 P1, 10 P2 y 4 entradas P3
-agrupadas, y **ninguno está arreglado**: la 19 fue solo de revisión.
+agrupadas. **La 20 arregló cuatro:** `R9-102`, `R9-103`, `R9-104` y `R9-105`. Los otros 18
+siguen abiertos.
 Hallazgos totales: **123**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
@@ -189,7 +193,20 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
-**La lección de la sesión 19, que es la que conviene llevarse AHORA.** Fue la primera sesión con
+**La lección de la sesión 20, que es la que conviene llevarse AHORA.** Fue de arreglos, y lo que más
+vale salió de medir el arreglo ANTES de escribirlo:
+
+> **Una propuesta de arreglo escrita en el ledger es una hipótesis, no una especificación.** La de
+> `R9-104` decía «sirve para las dos ramas». Aplicada tal cual, la rama «el `set()` no vuelve
+> nunca» seguía roja, y es la que toma el SDK de JS. **Un `await` que no vuelve no se arregla
+> mirando después del `await`.**
+
+> **Revertí cada PIEZA de un arreglo por separado, no el arreglo entero.** Entero, el de `R9-104`
+> tumbaba las 4 pruebas y parecía cubierto. Pieza por pieza salieron dos capas redundantes, una
+> guarda que no protegía nada (se quitó), una guarda sin prueba (se le escribió), y una aserción
+> cuyo comentario afirmaba algo que la aserción no medía.
+
+**La lección de la sesión 19.** Fue la primera sesión con
 Opus 5.5, y lo que más vale no estaba en el diff: estaba en lo que el programa creía de sí mismo.
 
 > **«N sesiones seguidas» era una afirmación sobre el mundo que nadie comprobó.** La 11 y la 12 no
@@ -329,11 +346,37 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-Hay dos opciones y **las dos hay que hacerlas**. La (a) va primero porque son P0 conocidos y los
-arreglos son chicos. La (b) es el pedido fijo de Victor, y puede ir justo después o en la sesión que
-revise el diff de la (a).
+Hay dos opciones y **las dos hay que hacerlas**. La (a) va primero porque la 20 fue de arreglos, y
+el programa revisa cada diff de arreglos en la sesión siguiente: la 19 encontró dos diffs que nadie
+había revisado, y de ahí salieron un P1 de dinero y uno de pérdida de conflictos. La (b) es el
+pedido fijo de Victor.
 
-**(a) RECOMENDADA: arreglar los dos P0 nuevos de la sesión 19, y lo chico que va con ellos.**
+**(a) RECOMENDADA: revisar el diff de la sesión 20.**
+
+> Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
+>
+> **Estado:** la sesión 20 arregló `R9-102`..`R9-105` en `fix/review-s19-p0-sync-favoritos`
+> (`8ea93b6`, `7aafc9c`, `cfa7c1c`, `00f69c4`). Comprobá en `git log origin/main` si ya está
+> mergeada, y en el log el run de CI de `origin/main`. El detalle está en
+> `detail/S20-arreglos-p0-sync-favoritos.md`.
+>
+> **Esta sesión es de REVISIÓN del diff de la 20.** Decime qué encontraste antes de tocar nada.
+> Mirá sobre todo:
+>
+> 1. **`R9-104` (`cfa7c1c`):** `stop()` ahora suelta el candado del flush con un push en vuelo.
+>    ¿Hay algún camino en que dos flushes de la MISMA sesión corran a la vez? ¿Y en
+>    `deleteAccount`, que hace `stop()` y puede volver a `start()` con el mismo uid?
+> 2. **`R9-103` (`7aafc9c`):** la supresión por (colección, id). ¿Hay algún eco que no sea del
+>    MISMO doc (un apply que escriba otro doc, un efecto de React que encole)?
+> 3. **`R9-102` (`00f69c4`):** `getFavoriteById` relee la fila tras escribirla. ¿Qué pasa si un
+>    apply remoto del mismo favorito cae entre la escritura y la relectura? ¿Y en web?
+> 4. **Las pruebas:** que cada una discrimine en `HEAD` (revertí, corré, restaurá, `diff` el
+>    revert), y que el mock de SQLite de `favoritesUpdateQueuesSync.test.tsx` no responda la
+>    pregunta que la prueba hace.
+>
+> Gates en verde (`npm run validate`), y no mergees nada sin preguntarme.
+
+**(a-bis) Lo que era la (a) hasta la sesión 20, ya HECHO.** Queda aquí como registro.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -451,15 +494,16 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 19 (2026-09-22).**
+**Medido al cerrar la sesión 20 (2026-09-22).**
 
-- **`main` = `origin/main`**, con el checkpoint de la 19 (`ac9c7fd`) y su commit de coherencia
-  encima, los dos solo de docs. El último código es `40160d7`, verde en CI y verificado en el log
-  del run `35163775542`.
-- **Ninguna rama de la revisión sin mergear.** `docs/review-s19-checkpoint` se borró tras el
-  fast-forward.
+- **`main` = `origin/main` = `25128b3`** (el checkpoint de la 19 y su coherencia, solo docs). El
+  último código en `main` es `40160d7`. **CI de `25128b3` verificado en el log al empezar la 20:**
+  run `35766748337`, intento 2, Node v24.20.0, 363/4289, cero «failed to run».
+- **UNA rama de la revisión sin mergear: `fix/review-s19-p0-sync-favoritos`**, con los cuatro
+  commits de código de la 20 y su checkpoint. Espera el OK de Victor. Si ya se mergeó, un commit de
+  coherencia habrá corregido esto.
 
-Las demás ramas locales, en total 11 contando `main`:
+Las demás ramas locales, en total 12 contando `main` y la de la 20:
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -494,34 +538,36 @@ arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de 
 tras la sesión 12 son **3** (`R9-36`, `R9-38`, `R9-39`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
 
-| Sesión | Qué se hizo                                                 | Commit              |
-| ------ | ----------------------------------------------------------- | ------------------- |
-| 1      | Solo el inventario (charter §5)                             | `18a3ffa`           |
-| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                  | `2f32aa9`           |
-| 2      | Este prompt + correcciones al charter                       | `8b64c11`           |
-| 2      | `R9-7` resuelto: `functions/` documentada                   | `af64ce1`           |
-| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`                 | `299a76c`           |
-| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`             | `b5a9afa`           |
-| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas            | `6ac10e3`/`894deb5` |
-| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint       | `f791749`           |
-| 5      | `A4` verificada + campo `R9-40`..`R9-43`                    | `f791749`           |
-| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias   | `f791749`           |
-| 6      | Re-verificados a mano los 6 P0 nuevos                       | `c184a1c`/`9939e76` |
-| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                      | `7f8e666`           |
-| 8      | Revisión del diff de la 7 + merge y push a `main`           | `8fe24f1`           |
-| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas                | `b3d73e1`→`e75eca3` |
-| 9      | Revisión del diff de la 8: **2 defectos reales** + merge    | `3e780c6`→`d800a24` |
-| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                     | `0a4f0fc`→`c41c9cb` |
-| 10     | Revisión del diff de la 9: **1 prueba ciega** + merge       | `2bfa126`→`daad3a9` |
-| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push        | `bb3b25b`→`f9e184a` |
-| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`      | `261c053`→`952d456` |
-| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)      | mergeado a `main`   |
-| 13     | Revisión del diff de la 12: **6 defectos** + arreglos       | mergeado a `main`   |
-| 14     | Revisión del diff de la 13: **5 defectos** + arreglos       | mergeado a `main`   |
-| 15     | Revisión del diff de la 14: **5 defectos** + arreglos       | mergeado a `main`   |
-| 16     | Revisión del diff de la 15: **5 defectos** + `main` en rojo | mergeado a `main`   |
-| 17     | Revisión del diff de la 16: **10 defectos** + arreglos      | mergeado a `main`   |
-| 18     | Revisión del diff de la 17: **5 defectos** + arreglos       | mergeado a `main`   |
+| Sesión | Qué se hizo                                                   | Commit              |
+| ------ | ------------------------------------------------------------- | ------------------- |
+| 1      | Solo el inventario (charter §5)                               | `18a3ffa`           |
+| 2      | Modo B P0 completo: `B1`, `B1b`, `B2`–`B5`                    | `2f32aa9`           |
+| 2      | Este prompt + correcciones al charter                         | `8b64c11`           |
+| 2      | `R9-7` resuelto: `functions/` documentada                     | `af64ce1`           |
+| 3      | `A1` (premium/RevenueCat) — `R9-9`, `R9-10`                   | `299a76c`           |
+| 3      | `A2`, `A3`, `A5`, `A6`, `A7` — `R9-11`..`R9-32`               | `b5a9afa`           |
+| 3      | Cierre de la sesión 3 + las 2 preguntas abiertas              | `6ac10e3`/`894deb5` |
+| 4      | `A4` (`SyncEngine`) — se cortó a mitad del checkpoint         | `f791749`           |
+| 5      | `A4` verificada + campo `R9-40`..`R9-43`                      | `f791749`           |
+| 6      | `A8`–`A11` por fan-out — `R9-44`..`R9-64`; `A12` a medias     | `f791749`           |
+| 6      | Re-verificados a mano los 6 P0 nuevos                         | `c184a1c`/`9939e76` |
+| 7      | **ARREGLOS**: 7 P0 de pérdida de datos                        | `7f8e666`           |
+| 8      | Revisión del diff de la 7 + merge y push a `main`             | `8fe24f1`           |
+| 8      | **ARREGLOS**: `R9-46` + mezcla entre cuentas                  | `b3d73e1`→`e75eca3` |
+| 9      | Revisión del diff de la 8: **2 defectos reales** + merge      | `3e780c6`→`d800a24` |
+| 9      | **ARREGLOS**: `R9-33`, `R9-34`, `R9-35`                       | `0a4f0fc`→`c41c9cb` |
+| 10     | Revisión del diff de la 9: **1 prueba ciega** + merge         | `2bfa126`→`daad3a9` |
+| 10     | **ARREGLOS**: `R9-9` + `R9-10`, dinero; merge + push          | `bb3b25b`→`f9e184a` |
+| 11     | **ARREGLOS**: `R9-11` + `R9-65` + la prueba de `R9-28`        | `261c053`→`952d456` |
+| 12     | **ARREGLOS**: `R9-13` + `R9-15` + `R9-14` (bloque web)        | mergeado a `main`   |
+| 13     | Revisión del diff de la 12: **6 defectos** + arreglos         | mergeado a `main`   |
+| 14     | Revisión del diff de la 13: **5 defectos** + arreglos         | mergeado a `main`   |
+| 15     | Revisión del diff de la 14: **5 defectos** + arreglos         | mergeado a `main`   |
+| 16     | Revisión del diff de la 15: **5 defectos** + `main` en rojo   | mergeado a `main`   |
+| 17     | Revisión del diff de la 16: **10 defectos** + arreglos        | mergeado a `main`   |
+| 18     | Revisión del diff de la 17: **5 defectos** + arreglos         | mergeado a `main`   |
+| 19     | Revisión del diff de la 18, y de los de la 10 y 11 (Opus 5.5) | `ac9c7fd`           |
+| 20     | **ARREGLOS**: `R9-102`..`R9-105` (Opus 5.5)                   | `8ea93b6`→`00f69c4` |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos

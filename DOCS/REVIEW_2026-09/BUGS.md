@@ -152,12 +152,27 @@
 > de los dos P1:** una verificación cuyo cuerpo entero es un bucle **pasa cuando no hay nada
 > que recorrer**, y lo hace imprimiendo un mensaje de éxito.
 
+> **Sesión 20 (2026-09-22), de ARREGLOS, con Opus 5.5.** Cerró los dos P0 de la 19 y los dos P1 que
+> iban con ellos, en `fix/review-s19-p0-sync-favoritos`, un commit por hallazgo:
+>
+> - `R9-105` (`8ea93b6`): la línea de `R9-9` ya tiene prueba, con módulo fresco y sin reset.
+> - `R9-103` (`7aafc9c`): la supresión de ecos pasa de global a por (colección, id).
+> - `R9-104` (`cfa7c1c`): `stop()` suelta el candado del flush, y el flush viejo no toca nada de
+>   la sesión siguiente.
+> - `R9-102` (`00f69c4`): editar un favorito encola la fila releída de SQLite.
+>
+> Cada prueba se vio fallar primero, y cada PIEZA de cada arreglo se revirtió por separado. **La
+> propuesta de arreglo de `R9-104` que traía este ledger era falsa:** «sirve para las dos ramas»
+> no se sostiene en la rama «el `set()` no vuelve nunca», que es la que toma el SDK de JS. Está
+> medido. **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`). Detalle:
+> `detail/S20-arreglos-p0-sync-favoritos.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 19. Esta sección tiene 23 entradas: 18 ARREGLADAS y
-> 5 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`, `R9-102`, `R9-103`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras la sesión 20. Esta sección tiene 23 entradas: 20 ARREGLADAS y
+> 3 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -213,7 +228,7 @@
   usuario** (la verdad llegaba y la lectura de caché la pisaba). Y **dos pruebas de
   `OfferingSheet` estaban verdes GRACIAS a este bug**: montaban «ya desbloqueado» sembrando
   solo un `'true'` viejo en la caché con RevenueCat reportando inactiva. Reparadas.
-  **⚠️ Sesión 19:** la línea exacta del bug no la protege ninguna prueba — ver `R9-105`; y cerrar sesión le quita el premium a quien pagó, al revés de lo que dicen los docstrings que esta entrada cita — ver `R9-119`.
+  **⚠️ Sesión 19:** la línea exacta del bug no la protege ninguna prueba — ver `R9-105` (✅ sesión 20); y cerrar sesión le quita el premium a quien pagó, al revés de lo que dicen los docstrings que esta entrada cita — ver `R9-119`.
 
 - **`R9-10` (A1, `PremiumContext`) — 🐛 la lectura tardía de la caché pisa el valor real
   de RevenueCat.** Severidad **media** (se auto-repara en el siguiente arranque), pero el
@@ -261,7 +276,7 @@
   es peor y tiene prueba propia: si lo encolado durante el push es un **borrado**, lo que se
   tragaba era la **lápida**, así que el borrado no viajaba nunca y la fila **resucitaba en
   todos los demás dispositivos** de la cuenta.
-  **⚠️ Sesión 19:** su premisa (`!== item` = «me reemplazó algo más nuevo») es falsa cuando lo que entró es la hidratación — ver `R9-115`. Y el mismo bucle no vuelve a mirar la cuenta tras cada `await` — ver `R9-104`.
+  **⚠️ Sesión 19:** su premisa (`!== item` = «me reemplazó algo más nuevo») es falsa cuando lo que entró es la hidratación — ver `R9-115`. Y el mismo bucle no vuelve a mirar la cuenta tras cada `await` — ver `R9-104` (✅ sesión 20).
 
 - **`R9-13` (A6, web) — 🐛 el lector web crashea en el primer render:
   `hasRedLetterData is not a function`.** Severidad **alta**.
@@ -409,7 +424,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **Contraste que lo delata:** los cursores **sí** están namespaceados por uid (`:177`) y el
   flag de bulk push también (`:1146`). Detalle: `detail/A3-auth-borrado-cuenta.md`.
   **✅ ARREGLADO en la sesión 8** (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo incluye (Juan 3:16 colisiona entre dos cuentas por la clave natural); `flush()` solo empuja las del uid activo, y lo de Ana queda **aparcado** hasta que vuelva, no se tira; `pendingWrites` cuenta solo las del uid activo, o Ajustes le diría a Beto que tiene pendientes que no puede resolver. Una entrada sin `uid` (previa al arreglo) es de dueño indeterminable y se descarta al hidratar. **Ojo al defecto que introdujo el propio arreglo y cazó la prueba nueva:** la condición de re-flush del final de `flush()` miraba `this.queue.length`, que con una entrada aparcada de otro uid es permanentemente > 0 → re-entraba en `flush()` para siempre, un bucle caliente mientras la app estuviera abierta.
-  **⚠️ Sesión 19:** la foto de `activeUid` protege el FILTRO, no el push: `pushOne` arma la ruta con el `this.uid` del momento — ver `R9-104`.
+  **⚠️ Sesión 19:** la foto de `activeUid` protege el FILTRO, no el push: `pushOne` arma la ruta con el `this.uid` del momento — ver `R9-104` (✅ sesión 20).
 
 - **`R9-23` (A3, identidad) — 🐛 los datos locales del usuario anterior se suben en silencio
   a una cuenta de Google _nueva_.** Severidad **alta**. El prompt de migración vive **dentro
@@ -729,6 +744,11 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **Arreglo:** calcular `merged` FUERA del actualizador, a partir de la fila que se acaba de
   escribir, y encolar siempre. La prueba tiene que forzar trabajo pendiente en la fibra antes de
   editar, o no discrimina. Detalle: `detail/S19-revision-del-diff.md`.
+  **✅ ARREGLADO en la sesión 20** (`00f69c4`): el payload sale de la fila recién escrita
+  (`bibleDB.getFavoriteById`), no del estado de React, que tampoco ve un favorito añadido hace un
+  instante. Prueba con la fibra ocupada (vista fallar: 0 encoladas) y la del vecino, que caza el
+  arreglo a medias hecho con un ref. El SQL nuevo, medido contra SQLite real. **Sigue sin
+  verificar en dispositivo.** Detalle: `detail/S20-arreglos-p0-sync-favoritos.md`.
 
 - **`R9-103` (S19, `SyncEngine`) — 🐛 una edición local durante una BAJADA en vuelo se descarta
   en silencio, en cualquier colección.**
@@ -750,6 +770,11 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
   **Arreglo:** suprimir por **(colección, id)** del doc que se está aplicando, no globalmente.
   Detalle: `detail/S19-revision-del-diff.md`.
+  **✅ ARREGLADO en la sesión 20** (`7aafc9c`): `suppressedDocs` por (colección, id), con
+  profundidad. Un apply de OTRO doc ya no suprime (vista fallar); el eco del MISMO doc sí, a
+  propósito. También podía tragarse el re-upload entero de un respaldo importado
+  (`pushImportedEntitiesToSync`) y el `queueWrite` de un `keepMine`. Queda, dicho en el código,
+  la edición del MISMO doc durante su propio apply.
 
 ## P1 — núcleo de la app
 
@@ -789,6 +814,22 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   cada `await` y cortar el bucle si no coincide. Y armar la ruta con `item.uid`, no con
   `this.uid`.
 
+  **❌ Corrección de la sesión 20: «sirve para las dos ramas» es FALSO, y está medido.** Aplicado
+  solo eso, la rama «no resuelve nunca» sigue roja: ese `await` no vuelve, así que nada de lo
+  que va después corre. Y es la rama que toma el SDK de JS 4.17 (leído en su fuente: el callback
+  de una escritura se guarda bajo el usuario que la emitió y, al cambiar de usuario, ni se
+  resuelve ni se rechaza).
+
+  **✅ ARREGLADO en la sesión 20** (`cfa7c1c`), para las dos ramas de verdad:
+  - una sesión de flush: `stop()` la incrementa y suelta el candado;
+  - el flush viejo no toca nada de la sesión siguiente, y deja intacta la entrada si su push
+    falló;
+  - `pushOne` arma la ruta con `item.uid` y se niega a escribir si no es la cuenta activa.
+
+  Cuatro pruebas con un `set()` retenido, vistas fallar, y una matriz de reverts pieza por
+  pieza. **Severidad: se queda en P1.** El SDK nativo no se midió (Modo C, sin dos cuentas de
+  prueba en el emulador), y la evidencia del de JS apunta a «no sincroniza», no a la mezcla.
+
 - **`R9-105` (S19, prueba de dinero) — 🐛 la línea exacta del bug de `R9-9` no la protege NINGUNA
   prueba.**
 
@@ -812,6 +853,10 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
 
   **Arreglo:** una prueba con módulo fresco y sin reset que fije el camino del reembolso desde el
   arranque.
+  **✅ ARREGLADO en la sesión 20** (`8ea93b6`). La prueba usa `jest.isolateModulesAsync`, sin
+  reset ni clave de prueba, y lleva un control de que el SDK se configuró. Revertido solo el
+  inicializador a `= false`, cae exactamente ella (`Expected: false / Received: true`) y las
+  otras 26 del archivo siguen verdes.
 
 - **`R9-106` (S19, `SyncEngine`) — 🐛 `R9-65` (y `R9-46`) solo frenan el cursor dentro de SU
   lote.** Los dos arreglos acotan `maxSeenUpdatedAt` por debajo del doc no aplicado o en conflicto

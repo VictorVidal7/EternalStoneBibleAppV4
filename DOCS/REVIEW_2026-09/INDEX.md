@@ -156,6 +156,23 @@
 > Siguen pendientes, además, `A12` (3 hilos ya abiertos en su detalle, con lo que queda cerrado el
 > bloque P0 del Modo A), `R9-36`/`R9-38`/`R9-39` y los 4 reportes de campo (`R9-40`..`R9-43`).
 > Orden completo en `CONTINUAR.md`.
+>
+> **Sesión 20 (2026-09-22): ARREGLOS, con Opus 5.5.** Cerró `R9-102` y `R9-103` (los dos P0 de
+> la 19), `R9-104` y `R9-105`, uno por commit, en `fix/review-s19-p0-sync-favoritos`. Cada
+> prueba se vio fallar primero, y cada PIEZA de cada arreglo se revirtió por separado. Compuertas
+> verdes: 364 suites / 4299 pruebas.
+>
+> **Lo que más vale:** la propuesta de arreglo de `R9-104` que traía el ledger («sirve para las
+> dos ramas») era **falsa**, y está medido. Mirar la cuenta después del `await` no sirve cuando el
+> `await` no vuelve, y el SDK de JS no lo devuelve nunca. Hizo falta que `stop()` suelte el
+> candado del flush.
+>
+> **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`). Detalle:
+> `detail/S20-arreglos-p0-sync-favoritos.md`.
+>
+> **Siguiente:** revisar el diff de la 20. Después, el doble check con Opus 5.5 que pidió Victor, y
+> la cadena de publicación (`R9-108`, `R9-109`). `R9-104` en Modo C solo si Victor lo autoriza,
+> porque la sonda barata escribe en el Firestore de producción.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
