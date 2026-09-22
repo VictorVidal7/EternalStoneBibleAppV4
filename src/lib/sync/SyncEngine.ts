@@ -248,6 +248,30 @@ export class SyncEngine {
   private queue: PendingWrite[] = [];
   private queueHydrated = false;
   private flushInFlight = false;
+  /**
+   * R9-104 — bumped by every `stop()`. A flush belongs to the session it
+   * started in, and once that session is gone it may not touch anything the
+   * next one owns: not the lock, not the state, not the next push.
+   *
+   * `flush()` used to snapshot the uid only to FILTER the queue, then
+   * `await pushOne(...)` item by item without looking again. When Ana signed
+   * out with a push in flight and Beto signed in, whatever ran after that
+   * `await` ran in Beto's session. There are two outcomes, depending on what
+   * the SDK does with a `set()` in flight when the user changes:
+   *  - it resolves after the switch → the rest of Ana's batch was written
+   *    under `users/<beto>`; and if it FAILED, it burned one of Ana's
+   *    retries, and on the last one dropped her write and recorded the drop
+   *    against Beto;
+   *  - it never resolves → `flushInFlight` stayed `true` and Beto uploaded
+   *    nothing until the app restarted (or Ana came back). Re-checking the
+   *    account AFTER the `await` cannot help here, because that `await` never
+   *    returns — so `stop()` releases the lock itself.
+   * The JS SDK (4.17, read in its source) takes the second branch: it keeps a
+   * write's callback under the user who issued it and, on a user change,
+   * neither resolves nor rejects it. The native SDK the app runs on Android
+   * was not measured; the fix does not depend on which branch it takes.
+   */
+  private flushSession = 0;
   /** The docs we are applying a remote change to RIGHT NOW, keyed by
    *  `suppressKey(collection, id)` → nesting depth. An adapter's own
    *  queueWrite/queueDelete for one of THESE docs is the echo of what is being
@@ -423,6 +447,11 @@ export class SyncEngine {
       this.netUnsub = null;
     }
     this.stopPeriodicFlush();
+    // R9-104 — a push still in flight belongs to the session that is ending.
+    // Release the lock here instead of waiting for it: it may never come back
+    // (see `flushSession`), and the next account must be able to flush.
+    this.flushSession += 1;
+    this.flushInFlight = false;
     this.uid = null;
     // Conflicts are transient — they snapshot the local doc at detection
     // time. If the user signs back in, fresh onSnapshot events will
@@ -1590,6 +1619,10 @@ export class SyncEngine {
 
     this.flushInFlight = true;
     this.updateState({isSyncing: true});
+    // R9-104 — the session this flush belongs to. Every `await` below can come
+    // back after `stop()`; from then on `isCurrent()` is false for good.
+    const session = this.flushSession;
+    const isCurrent = () => session === this.flushSession;
     // Sprint 47 — track whether the loop bailed on an error so we know
     // whether a non-empty queue afterwards is genuinely-new work (safe to
     // re-flush) vs. a failed push we must NOT hot-loop on.
@@ -1642,12 +1675,23 @@ export class SyncEngine {
           if (doneIdx >= 0 && this.queue[doneIdx] === item) {
             this.queue.splice(doneIdx, 1);
           }
+          // R9-104 — the push landed where it was issued, in `item.uid`'s
+          // cloud, so taking it off the queue above is right even after a
+          // `stop()`. Nothing else is: the rest of this batch, the state and
+          // the lock belong to whoever signed in next.
+          if (!isCurrent()) break;
           this.updateState({
             pendingWrites: this.pendingForActiveUid(),
             lastSyncedAt: Date.now(),
             lastError: null,
           });
         } catch (err) {
+          // R9-104 — a failure that comes back after `stop()` says nothing
+          // about the write: the sign-out may be exactly what made it fail.
+          // Leave the entry untouched for its owner's next session. Counting
+          // it would burn a retry, could drop the write, and the drop would be
+          // recorded against whoever is signed in NOW.
+          if (!isCurrent()) break;
           erroredOut = true;
           // Increment attempts; drop only after MAX_RETRY_ATTEMPTS so
           // a poisoned entry can't block the queue forever.
@@ -1702,8 +1746,12 @@ export class SyncEngine {
       }
       await this.persistQueue();
     } finally {
-      this.flushInFlight = false;
-      this.updateState({isSyncing: false});
+      // R9-104 — once `stop()` has run, the lock and `isSyncing` are the next
+      // session's; releasing them here would cut into its flush.
+      if (isCurrent()) {
+        this.flushInFlight = false;
+        this.updateState({isSyncing: false});
+      }
     }
 
     // Sprint 47 — if the loop completed cleanly but the queue still holds
@@ -1739,9 +1787,15 @@ export class SyncEngine {
     firestoreFn: FirestoreFn,
     item: PendingWrite,
   ): Promise<void> {
-    if (!this.uid) throw new Error('engine inactive during push');
+    // R9-104 — the path is the OWNER's, never "whoever is signed in by the
+    // time this line runs". `flush()` stops at the first `await` that comes
+    // back in another session, so today both are always the same uid; this
+    // makes it true by construction instead of by timing.
+    if (item.uid !== this.uid) {
+      throw new Error('engine inactive or on another account during push');
+    }
     const ref = firestoreFn()
-      .collection(`users/${this.uid}/${item.collection}`)
+      .collection(`users/${item.uid}/${item.collection}`)
       .doc(toDocId(item.id));
     // Sprint 78 — defense-in-depth: Firestore rejects `undefined` field
     // values and a rejected write would retry until the queue DROPS it

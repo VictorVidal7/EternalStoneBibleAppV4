@@ -59,6 +59,11 @@ const mockCollections = new Map<string, MockCollRef>();
 const mockDocSets: Array<{path: string; id: string; data: unknown}> = [];
 /** R9-33 — when true, every `doc.set()` rejects. Reset in beforeEach. */
 let mockSetShouldFail = false;
+/** R9-104 — when it returns a promise for a (path, id), that `doc.set()`
+ *  waits on it before landing (or rejects with it). It is the only way to hold
+ *  ONE push in flight across a `stop()` + `start()`. Reset in beforeEach. */
+let mockSetGate:
+  ((path: string, id: string) => Promise<void> | undefined) | null = null;
 const mockDocDeletes: Array<{path: string; id: string}> = [];
 /** Sprint 49 — docs returned by a collection-level `.get()` (one-shot read),
  *  keyed by collection path. Set per-test for fetchResolvedConflicts.
@@ -119,6 +124,8 @@ function mockMakeCollection(path: string): MockCollRef {
       if (cached) return cached;
       const ref: MockDocRef = {
         set: jest.fn(async (data: unknown) => {
+          const gate = mockSetGate?.(path, id);
+          if (gate) await gate;
           // R9-33 — lets a test make every push fail, which is the only way
           // to exercise the retry/backoff/give-up path at all.
           if (mockSetShouldFail) throw new Error('permission-denied');
@@ -291,6 +298,7 @@ beforeEach(async () => {
   mockCollections.clear();
   mockDocSets.length = 0;
   mockSetShouldFail = false;
+  mockSetGate = null;
   mockDocDeletes.length = 0;
   mockCollDocs.clear();
   mockNetListeners.length = 0;
@@ -2240,5 +2248,203 @@ describe('R9-103 — la supresion de ecos es por DOC, no global', () => {
     expect(applied.sort()).toEqual(['eco-borrado', 'eco-upsert']);
     expect(mockDocSets.filter(d => d.id.startsWith('eco-'))).toHaveLength(0);
     expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+});
+
+describe('R9-104 — un push en vuelo no puede cruzar a la cuenta que entra', () => {
+  // `flush()` toma una foto del uid para FILTRAR la cola (el arreglo de R9-22),
+  // pero despues hace `await pushOne(...)` item por item y nunca volvia a mirar
+  // la cuenta. Si Ana cierra sesion con un push en vuelo y entra Beto, lo que
+  // pase al volver ese `await` pasa ya en la sesion de Beto.
+  //
+  // Hay DOS ramas, segun lo que haga el SDK con un `set()` en vuelo cuando
+  // cambia el usuario, y cada una tiene su prueba:
+  //  - lo resuelve despues del cambio → el resto del lote de Ana se escribia
+  //    bajo `users/<beto>` (mezcla entre cuentas, la clase de R9-22);
+  //  - no lo resuelve nunca → `flushInFlight` quedaba en `true` y Beto no subia
+  //    nada hasta reiniciar la app. El SDK de JS 4.17 hace ESTO: guarda el
+  //    callback bajo el usuario que escribio y, al cambiar de usuario, ni lo
+  //    resuelve ni lo rechaza. Volver a mirar la cuenta DESPUES del `await` no
+  //    sirve aqui, porque ese `await` no vuelve.
+  //
+  // Las dos necesitan un `set()` retenido que siga en vuelo al hacer
+  // `stop()` + `start()`; sin eso no hay carrera y pasan por la razon trivial.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  const anaEntry = (id: string, value: string, attempts = 0) => ({
+    uid: 'uid-ana',
+    collection: 'test',
+    id,
+    data: {value, updatedAt: 1000, deleted: false},
+    queuedAt: 0,
+    attempts,
+    lastAttemptAt: 0,
+  });
+
+  /** Ana entra con `entries` ya en cola, y el push de `heldId` se queda en
+   *  vuelo hasta que la prueba decida. */
+  async function anaWithHeldPush(
+    entries: ReturnType<typeof anaEntry>[],
+    heldId: string,
+    gate: Promise<void>,
+  ): Promise<{engine: SyncEngine; heldSets: string[]}> {
+    await AsyncStorage.setItem('@sync_queue_v1', JSON.stringify(entries));
+    const heldSets: string[] = [];
+    mockSetGate = (_path, id) => {
+      if (id !== heldId) return undefined;
+      heldSets.push(id);
+      return gate;
+    };
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid-ana');
+    await settle();
+    return {engine, heldSets};
+  }
+
+  it('si el set de Ana resuelve DESPUES del cambio, el resto de su lote no cae en la nube de Beto', async () => {
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const {engine, heldSets} = await anaWithHeldPush(
+      [anaEntry('doc1', 'uno-de-ana'), anaEntry('doc2', 'dos-de-ana')],
+      'doc1',
+      gate,
+    );
+    // Control del mecanismo: doc1 tiene que estar EN VUELO, y nada subido aun.
+    expect(heldSets).toEqual(['doc1']);
+    expect(mockDocSets).toHaveLength(0);
+
+    engine.stop();
+    await engine.start('uid-beto');
+    release();
+    await settle();
+
+    // Pre-fix: `sets: [{path: 'users/uid-beto/test', id: 'doc2', value:
+    // 'dos-de-ana'}]`, y la cola de Ana vacia COMO SI se hubiera subido.
+    expect(
+      mockDocSets.filter(d => d.path.startsWith('users/uid-beto/')),
+    ).toEqual([]);
+    // doc1 aterrizo donde se emitio, en la nube de Ana: ese si salio de la cola.
+    expect(mockDocSets.map(d => [d.path, d.id])).toEqual([
+      ['users/uid-ana/test', 'doc1'],
+    ]);
+    // Y doc2 sigue aparcado para cuando vuelva Ana.
+    expect(
+      engine.__getQueueForTests().map(q => [q.uid, q.id, q.attempts]),
+    ).toEqual([['uid-ana', 'doc2', 0]]);
+  });
+
+  it('si el set de Ana no resuelve NUNCA, Beto igual sube lo suyo', async () => {
+    const {engine, heldSets} = await anaWithHeldPush(
+      [anaEntry('doc-ana', 'de-ana')],
+      'doc-ana',
+      new Promise<void>(() => {}),
+    );
+    expect(heldSets).toEqual(['doc-ana']);
+
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+    engine.queueWrite('test', 'doc-beto', {value: 'de-beto', updatedAt: 2000});
+    await settle();
+
+    // Pre-fix `flushInFlight` seguia en `true` por el push de Ana, que no iba
+    // a volver jamas: cada flush de Beto salia en la primera linea. Sus
+    // escrituras quedaban en cola y en disco, sin subir, hasta reiniciar.
+    expect(mockDocSets.map(d => [d.path, d.id])).toEqual([
+      ['users/uid-beto/test', 'doc-beto'],
+    ]);
+    expect(engine.getState().pendingWrites).toBe(0);
+    expect(engine.getState().isSyncing).toBe(false);
+    expect(engine.__getQueueForTests().map(q => [q.uid, q.id])).toEqual([
+      ['uid-ana', 'doc-ana'],
+    ]);
+  });
+
+  it('el flush viejo de Ana, al volver, no le suelta el candado al flush de Beto', async () => {
+    let releaseAna!: () => void;
+    const gateAna = new Promise<void>(resolve => {
+      releaseAna = resolve;
+    });
+    const {engine, heldSets} = await anaWithHeldPush(
+      [anaEntry('doc-ana', 'de-ana')],
+      'doc-ana',
+      gateAna,
+    );
+    expect(heldSets).toEqual(['doc-ana']);
+
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+
+    // Beto tambien tiene un push en vuelo cuando vuelve el de Ana.
+    let releaseBeto!: () => void;
+    const gateBeto = new Promise<void>(resolve => {
+      releaseBeto = resolve;
+    });
+    const betoSets: string[] = [];
+    mockSetGate = (_path, id) => {
+      if (id === 'doc-ana') return gateAna;
+      if (!id.startsWith('doc-beto')) return undefined;
+      betoSets.push(id);
+      return id === 'doc-beto-1' ? gateBeto : undefined;
+    };
+    engine.queueWrite('test', 'doc-beto-1', {value: 'uno', updatedAt: 2000});
+    await settle();
+    expect(betoSets).toEqual(['doc-beto-1']);
+
+    releaseAna();
+    await settle();
+
+    // Si el `finally` del flush de Ana soltara el candado, su re-flush final
+    // (o cualquier escritura de Beto) arrancaria un SEGUNDO flush en paralelo
+    // al de Beto, que volveria a subir doc-beto-1 porque sigue en la cola.
+    expect(betoSets).toEqual(['doc-beto-1']);
+
+    engine.queueWrite('test', 'doc-beto-2', {value: 'dos', updatedAt: 2001});
+    await settle();
+    releaseBeto();
+    await settle();
+
+    expect(betoSets).toEqual(['doc-beto-1', 'doc-beto-2']);
+    expect(engine.getState().isSyncing).toBe(false);
+    expect(engine.getState().pendingWrites).toBe(0);
+  });
+
+  it('si el set de Ana FALLA despues del cambio, no se gasta su intento ni se le cuenta a Beto', async () => {
+    let fail!: (err: Error) => void;
+    const gate = new Promise<void>((_resolve, reject) => {
+      fail = reject;
+    });
+    // A un intento de rendirse: si este fallo contara, el motor la tiraria.
+    const {engine, heldSets} = await anaWithHeldPush(
+      [anaEntry('doc-ana', 'de-ana', 7)],
+      'doc-ana',
+      gate,
+    );
+    expect(heldSets).toEqual(['doc-ana']);
+
+    engine.stop();
+    await engine.start('uid-beto');
+    fail(new Error('permission-denied'));
+    await settle();
+
+    // Pre-fix la rama de error contaba el intento, llegaba a 8, tiraba la
+    // escritura de Ana y apuntaba el descarte con `this.uid`, o sea a BETO: su
+    // insignia de Ajustes decia que el habia perdido un cambio, persistido
+    // bajo su clave, y Ana no se enteraba nunca.
+    expect(engine.getState().droppedWrites).toBe(0);
+    expect(await AsyncStorage.getItem('@sync_dropped_uid-beto')).toBeNull();
+    expect(await AsyncStorage.getItem('@sync_dropped_uid-ana')).toBeNull();
+    // Un fallo que causo el propio cambio de cuenta no dice nada de la
+    // escritura: sigue intacta para cuando vuelva Ana.
+    expect(
+      engine.__getQueueForTests().map(q => [q.uid, q.id, q.attempts]),
+    ).toEqual([['uid-ana', 'doc-ana', 7]]);
   });
 });
