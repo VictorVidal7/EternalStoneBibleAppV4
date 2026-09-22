@@ -394,3 +394,56 @@ describe('offeringService', () => {
     });
   });
 });
+
+describe('R9-105 — la linea exacta de R9-9 con el modulo RECIEN CARGADO', () => {
+  // El arreglo de R9-9 vive en el inicializador de nivel de modulo,
+  // `let lastKnownUnlocked: boolean | null = null`. Las pruebas de arriba NO lo
+  // ejercitan: su `beforeEach` llama a `__resetForTests()`, que pone `null` por
+  // su cuenta, asi que bajo jest ese inicializador no corria nunca. Revertido a
+  // `= false` —el P0 tal cual— la suite entera seguia en verde.
+  //
+  // Por eso esta prueba carga el modulo de cero con `isolateModulesAsync` y no
+  // llama ni a `__resetForTests()` ni a `__setApiKeyForTests()`: lo que corre es
+  // exactamente lo que corre al arrancar el proceso. Todo se pide DENTRO del
+  // registro aislado —tambien el mock de SecureStore y el de RevenueCat—, porque
+  // los de fuera son otras instancias con otro estado.
+  it('un arranque en frio con la entitlement revocada corrige la cache Y avisa', async () => {
+    await jest.isolateModulesAsync(async () => {
+      const isolatedSecureStore =
+        require('expo-secure-store') as typeof SecureStore;
+      const isolatedPurchases = require('react-native-purchases') as {
+        configure: jest.Mock;
+        __setCustomerInfo: (info: unknown) => void;
+      };
+      const service =
+        require('../src/lib/offering/offeringService') as typeof import('../src/lib/offering/offeringService');
+      const cache =
+        require('../src/lib/offering/entitlementCache') as typeof import('../src/lib/offering/entitlementCache');
+
+      // Pago, y le reembolsaron. En disco quedo su compra.
+      await isolatedSecureStore.setItemAsync(
+        cache.ENTITLEMENT_CACHE_KEY,
+        'true',
+      );
+      isolatedPurchases.__setCustomerInfo(noEntitlementInfo);
+
+      const seen: boolean[] = [];
+      service.onEntitlementChange(unlocked => seen.push(unlocked));
+      await service.initialize();
+
+      // Control del mecanismo: el modulo tiene que haber configurado el SDK con
+      // la clave de su propia constante. Si alguien lo deja dormido (clave
+      // vacia), `initialize()` sale antes de mirar RevenueCat y la cache sigue
+      // en 'true' — y entonces es ESTO lo que falla, no la asercion de abajo,
+      // que culparia a R9-9 de algo que no hizo.
+      expect(isolatedPurchases.configure).toHaveBeenCalledTimes(1);
+
+      // Con `= false` en el inicializador, la primera respuesta «inactiva» del
+      // proceso se deduplica contra ese `false`: sale antes de escribir la cache
+      // y antes de avisar. Queda `{cache: 'true', seen: []}` — premium despues
+      // del reembolso.
+      await expect(cache.getCachedEntitlement()).resolves.toBe(false);
+      expect(seen).toEqual([false]);
+    });
+  });
+});
