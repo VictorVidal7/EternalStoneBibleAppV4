@@ -140,7 +140,7 @@
 > **Pedido de Victor:** todo lo revisado antes de esta sesión se hizo con **Opus 5**, y una sesión
 > posterior tiene que re-verificarlo con **Opus 5.5**.
 >
-> Checkpoint en la rama `docs/review-s19-checkpoint`, **sin mergear**.
+> El checkpoint (`ac9c7fd`, solo docs) está **mergeado en fast-forward y pusheado**.
 >
 > **Quedan 5 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`, `R9-102`, `R9-103`) — **ninguno bloquea el
 > deploy web**. Hallazgos: **123**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de

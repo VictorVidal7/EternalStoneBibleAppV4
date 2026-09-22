@@ -13,16 +13,19 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ Hay UNA rama sin mergear, y es solo de docs: `docs/review-s19-checkpoint`.**
-
-**`main` = `origin/main` = `40160d7`**, en verde en CI, **verificado EN EL LOG**. El run
-`35163775542` corrió en Node v24.20.0, con 363 suites / 4289 pruebas y cero «Test suite failed to
-run».
+**1. ✅ NO HAY NADA PENDIENTE DE GIT. `main` = `origin/main`, y no hay ninguna rama de la revisión
+sin mergear.**
 
 La sesión 19 fue **solo de revisión** (Victor: «decime qué encontraste antes de tocar nada»), así
-que no trae ningún cambio de código. Su checkpoint vive en `docs/review-s19-checkpoint`, con
-`BUGS.md`, `INDEX.md`, este archivo y `detail/S19-revision-del-diff.md`. **Si todavía no está
-mergeada, preguntale a Victor antes de mergearla**, o trabajá encima de ella.
+que no trae ningún cambio de código. Su checkpoint (`ac9c7fd`: `BUGS.md`, `INDEX.md`, este archivo
+y `detail/S19-revision-del-diff.md`) **se mergeó en fast-forward y se pusheó**, junto con el commit
+de coherencia que lleva esta frase. Un commit no puede nombrar su propio hash: mirá
+`git log -1 origin/main`. La rama `docs/review-s19-checkpoint` se borró.
+
+El último código que corrió CI es el de `40160d7`, y está **verificado EN EL LOG**: run
+`35163775542`, Node v24.20.0, 363 suites / 4289 pruebas y cero «Test suite failed to run». Lo que
+vino después son solo docs. **Aun así, antes de empezar comprobá en el log el run de
+`origin/main`**, que es la lección de la 16.
 
 **2. 🚨 Lo más urgente de la 19 estaba FUERA del repo, y ya se atendió.**
 `C:\Users\victo\Desktop\web-packs\rvr1960.sqlite` (el `out` por defecto de `build-web-packs.js`)
@@ -334,10 +337,10 @@ revise el diff de la (a).
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Estado:** `main` = `origin/main` = `40160d7`, verde en CI. La sesión 19 (la primera con Opus
-> 5.5) fue solo de revisión, y su checkpoint está en la rama `docs/review-s19-checkpoint`: solo
-> docs. Si todavía no está mergeada, preguntame antes de mergearla, o trabajá encima de ella.
-> Encontró 22 hallazgos, `R9-102`..`R9-123`; el detalle está en
+> **Estado:** `main` = `origin/main`, sin ramas pendientes. El último código es `40160d7`, verde en
+> CI y verificado en el log. La sesión 19 (la primera con Opus 5.5) fue solo de revisión, y su
+> checkpoint ya está mergeado y pusheado. Antes de empezar, comprobá en el log el run de CI de
+> `origin/main`. Encontró 22 hallazgos, `R9-102`..`R9-123`; el detalle está en
 > `detail/S19-revision-del-diff.md`.
 >
 > **Esta sesión es de ARREGLOS**, en una rama nueva:
@@ -450,12 +453,13 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 **Medido al cerrar la sesión 19 (2026-09-22).**
 
-- **`main` = `origin/main` = `40160d7`**, en verde en CI (verificado en el log del run
-  `35163775542`).
-- **Una rama sin mergear: `docs/review-s19-checkpoint`**, con el checkpoint de la 19. Es solo
-  docs.
+- **`main` = `origin/main`**, con el checkpoint de la 19 (`ac9c7fd`) y su commit de coherencia
+  encima, los dos solo de docs. El último código es `40160d7`, verde en CI y verificado en el log
+  del run `35163775542`.
+- **Ninguna rama de la revisión sin mergear.** `docs/review-s19-checkpoint` se borró tras el
+  fast-forward.
 
-Las demás ramas locales, en total 12 con `main` y la de la 19:
+Las demás ramas locales, en total 11 contando `main`:
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
