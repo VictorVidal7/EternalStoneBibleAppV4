@@ -163,7 +163,7 @@ y la prueba ahora afirma eso. Salió solo por revertir la guarda **por separado*
   - **La severidad queda en P1:** la evidencia del SDK de JS apunta a la rama «no sincroniza», no
     a la de mezcla. El arreglo cubre las dos.
 - **`R9-102` sin verificar en dispositivo**, igual que su hallazgo.
-- **Nada de esta sesión está mergeado.** La rama espera el OK de Victor.
+- ~~La rama espera el OK de Victor.~~ Victor lo dio: se mergeó en fast-forward y se pusheó.
 
 ## Lecciones de la sesión
 

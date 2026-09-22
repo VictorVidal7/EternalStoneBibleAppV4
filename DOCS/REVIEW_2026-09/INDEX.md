@@ -167,8 +167,8 @@
 > `await` no vuelve, y el SDK de JS no lo devuelve nunca. Hizo falta que `stop()` suelte el
 > candado del flush.
 >
-> **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`). Detalle:
-> `detail/S20-arreglos-p0-sync-favoritos.md`.
+> **Mergeada en fast-forward y pusheada** con el OK de Victor. **Quedan 3 P0 abiertos** (`R9-36`,
+> `R9-38`, `R9-39`). Detalle: `detail/S20-arreglos-p0-sync-favoritos.md`.
 >
 > **Siguiente:** revisar el diff de la 20. Después, el doble check con Opus 5.5 que pidió Victor, y
 > la cadena de publicación (`R9-108`, `R9-109`). `R9-104` en Modo C solo si Victor lo autoriza,

@@ -13,11 +13,12 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ⚠️ HAY UNA RAMA SIN MERGEAR: `fix/review-s19-p0-sync-favoritos`** (sesión 20). Lleva cuatro
-commits de código, uno por hallazgo (`8ea93b6` `R9-105`, `7aafc9c` `R9-103`, `cfa7c1c` `R9-104`,
-`00f69c4` `R9-102`), y el checkpoint de docs encima. `npm run validate` verde en su punta (364 /
-4299). **Si `git log origin/main` ya los tiene, Victor dio el OK y se mergeó**, y un commit de
-coherencia habrá actualizado esta frase. Si no, preguntale antes de mergear.
+**1. ✅ NO HAY NADA PENDIENTE DE GIT. La rama de la sesión 20 se mergeó en fast-forward y se
+pusheó** (con el OK de Victor), y se borró. Lleva cuatro commits de código, uno por hallazgo
+(`8ea93b6` `R9-105`, `7aafc9c` `R9-103`, `cfa7c1c` `R9-104`, `00f69c4` `R9-102`), su
+checkpoint (`c5d3543`) y el commit de coherencia que lleva esta frase: mirá
+`git log -1 origin/main`. Las compuertas se corrieron sobre `main` YA mergeado antes de publicar.
+**Antes de empezar, comprobá en el LOG el run de CI de `origin/main`** (la lección de la 16).
 
 **Lo de la sesión 19, que sigue valiendo:** fue **solo de revisión** (Victor: «decime qué
 encontraste antes de tocar nada»), así que no trajo cambios de código. Su checkpoint (`ac9c7fd`: `BUGS.md`, `INDEX.md`, este archivo
@@ -356,8 +357,8 @@ pedido fijo de Victor.
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
 > **Estado:** la sesión 20 arregló `R9-102`..`R9-105` en `fix/review-s19-p0-sync-favoritos`
-> (`8ea93b6`, `7aafc9c`, `cfa7c1c`, `00f69c4`). Comprobá en `git log origin/main` si ya está
-> mergeada, y en el log el run de CI de `origin/main`. El detalle está en
+> (`8ea93b6`, `7aafc9c`, `cfa7c1c`, `00f69c4`), ya mergeada y pusheada. Comprobá en el log el
+> run de CI de `origin/main`. El detalle está en
 > `detail/S20-arreglos-p0-sync-favoritos.md`.
 >
 > **Esta sesión es de REVISIÓN del diff de la 20.** Decime qué encontraste antes de tocar nada.
@@ -499,11 +500,11 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 - **`main` = `origin/main` = `25128b3`** (el checkpoint de la 19 y su coherencia, solo docs). El
   último código en `main` es `40160d7`. **CI de `25128b3` verificado en el log al empezar la 20:**
   run `35766748337`, intento 2, Node v24.20.0, 363/4289, cero «failed to run».
-- **UNA rama de la revisión sin mergear: `fix/review-s19-p0-sync-favoritos`**, con los cuatro
-  commits de código de la 20 y su checkpoint. Espera el OK de Victor. Si ya se mergeó, un commit de
-  coherencia habrá corregido esto.
+- **Ninguna rama de la revisión sin mergear.** `fix/review-s19-p0-sync-favoritos` se mergeó en
+  fast-forward, se pusheó y se borró. `main` = `origin/main` lleva los cuatro commits de código
+  de la 20, su checkpoint y la coherencia.
 
-Las demás ramas locales, en total 12 contando `main` y la de la 20:
+Las demás ramas locales, en total 11 contando `main`:
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
