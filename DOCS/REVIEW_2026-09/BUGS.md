@@ -827,8 +827,15 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   - `pushOne` arma la ruta con `item.uid` y se niega a escribir si no es la cuenta activa.
 
   Cuatro pruebas con un `set()` retenido, vistas fallar, y una matriz de reverts pieza por
-  pieza. **Severidad: se queda en P1.** El SDK nativo no se midió (Modo C, sin dos cuentas de
-  prueba en el emulador), y la evidencia del de JS apunta a «no sincroniza», no a la mezcla.
+  pieza.
+
+  **Medido en el SDK NATIVO (Modo C, con el OK de Victor): se queda en P1.** En el emulador, con
+  una instancia secundaria de Firebase y cuentas anónimas, el `set()` de A queda **pendiente**
+  tras el cambio de usuario. Pasa tanto si se hizo sin red como si se hizo con red y `signOut`
+  en el acto. Y no llega al servidor (404), mientras que la escritura de B sí sube. **La mezcla
+  no apareció; la rama real es «no sincroniza hasta reiniciar»,** justo la que la propuesta de
+  arreglo de arriba no cubría. Limpieza verificada desde fuera. Detalle:
+  `detail/S20-arreglos-p0-sync-favoritos.md`.
 
 - **`R9-105` (S19, prueba de dinero) — 🐛 la línea exacta del bug de `R9-9` no la protege NINGUNA
   prueba.**

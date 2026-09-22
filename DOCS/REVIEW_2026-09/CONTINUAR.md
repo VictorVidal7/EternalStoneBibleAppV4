@@ -17,7 +17,10 @@
 pusheó** (con el OK de Victor), y se borró. Lleva cuatro commits de código, uno por hallazgo
 (`8ea93b6` `R9-105`, `7aafc9c` `R9-103`, `cfa7c1c` `R9-104`, `00f69c4` `R9-102`), su
 checkpoint (`c5d3543`) y el commit de coherencia que lleva esta frase: mirá
-`git log -1 origin/main`. Las compuertas se corrieron sobre `main` YA mergeado antes de publicar.
+`git log -1 origin/main`. Las compuertas se corrieron sobre `main` YA mergeado antes de publicar,
+y **el CI del merge está verificado EN EL LOG**: run `35793874042` sobre `47adfec`, Node v24.20.0,
+364/4299, cero «failed to run». Lo que vino después son solo docs: `R9-104` medido en el SDK
+nativo, en Modo C y con el OK de Victor.
 **Antes de empezar, comprobá en el LOG el run de CI de `origin/main`** (la lección de la 16).
 
 **Lo de la sesión 19, que sigue valiendo:** fue **solo de revisión** (Victor: «decime qué

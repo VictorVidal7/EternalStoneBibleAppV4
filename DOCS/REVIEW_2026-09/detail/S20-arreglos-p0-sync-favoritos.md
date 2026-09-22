@@ -14,6 +14,8 @@ cuatro commits de código (uno por hallazgo) sobre `25128b3`:
 4299 pruebas: las 363/4289 de `main` más 1 suite y 10 pruebas nuevas. Cero «Test suite failed to
 run», y lint con 0 errores. **CI de `origin/main` verificado EN EL LOG antes de empezar:** run
 `35766748337`, intento 2, commit `25128b3`, Node v24.20.0, 363/4289, cero «failed to run».
+**Y después del merge:** run `35793874042` sobre `47adfec`, los 3 jobs verdes, Node v24.20.0,
+364/4299, cero «failed to run», y `PASS` en las tres suites tocadas.
 
 **P0 abiertos tras esta sesión: 3** (`R9-36`, `R9-38`, `R9-39`).
 
@@ -63,9 +65,52 @@ id)`. `withLocalWriteSuppressed` recibe la colección y el id, y los 5 sitios de
   `waitForPendingWrites`.
 
 O sea: **una escritura del usuario anterior que no llegó a confirmarse ni se resuelve ni se
-rechaza** mientras haya otro usuario. Es la rama «queda pendiente». **El SDK nativo de Android,
-que es el que corre la app, NO se midió.** Victor pidió medirlo en Modo C, y eso necesita dos
-cuentas en el emulador; ver «Dicho y no hecho».
+rechaza** mientras haya otro usuario. Es la rama «queda pendiente».
+
+### Medido en el SDK NATIVO (Modo C, con el OK de Victor)
+
+**El SDK nativo de Android hace lo mismo.** Medido en el emulador con una sonda temporal
+(`app/probe-r9104.tsx`, que no se commiteó y se borró al terminar).
+
+**El entorno:**
+
+- AVD `Pixel_9_Pro`, API 36, con la build debug 3.2.61 / vc73. Desde esa build solo cambiaron
+  piezas de Metro y un plugin de build, así que no hay nada nativo nuevo.
+- El JS venía de Metro, sobre `47adfec`, con RNFirebase 26.2.0. **Nunca el teléfono de Victor.**
+- La sonda corre en una **instancia secundaria** de Firebase, para no tocar la sesión de la app
+  (ni `AuthContext` ni RevenueCat), contra el proyecto de producción.
+
+| Escenario                                                  | El `set()` de A          | ¿En el servidor? |
+| ---------------------------------------------------------- | ------------------------ | ---------------- |
+| CONTROL: A sin cambio de usuario, offline → online         | pendiente → **resuelto** | sí (200)         |
+| CASO 1: A offline, `signOut`, entra B, vuelve la red, 30 s | **pendiente**            | no (404)         |
+| (mismo caso) una escritura de B                            | resuelta                 | —                |
+| CASO 2: A online y `signOut` en el acto, entra B, 30 s     | **pendiente**            | no (404)         |
+
+**Qué significa:**
+
+- **La rama real es «queda pendiente» también en el SDK nativo**, y en los dos casos: la
+  escritura de A no se manda mientras B está dentro, y su promesa ni vuelve ni falla.
+  - Antes del arreglo, eso dejaba `flushInFlight` en `true` y a la cuenta siguiente sin
+    sincronizar hasta reiniciar la app.
+  - **La propuesta del ledger no habría arreglado el único caso que ocurre de verdad.**
+- **La mezcla entre cuentas no apareció en ninguno de los dos casos.** Por eso `R9-104` se queda
+  en **P1** («no sincroniza hasta reiniciar»), no en P0.
+- **Límite de la medición:** se hizo con usuarios ANÓNIMOS, que no pueden volver a entrar. Lo que
+  pasa cuando la cuenta anterior vuelve (Google, mismo uid) queda inferido y no medido. El SDK
+  mandaría la escritura aparcada y resolvería la promesa vieja. El flush viejo, con el arreglo,
+  la saca de la cola si es idéntica y no toca nada más.
+
+**Limpieza, verificada desde fuera.** La sonda creó **5 cuentas anónimas**: A0, A1, B1, A2 y B2
+(a Victor se le anunciaron dos). Creó también 4 documentos, en `users/<uid>/r9104probe/`.
+
+- Borró los documentos por REST, con el token de su dueño (todas las respuestas 200).
+- Borró las cuentas con `accounts:delete` y el ID token de cada una (todas 200).
+- Después se comprobó con el token de `firebase-tools`, solo con lecturas: las 5 subcolecciones
+  están vacías, y `accounts:lookup` de los 5 uid responde 200 sin encontrar ninguna.
+- En el emulador quedan dos escrituras aparcadas, en la persistencia local de la instancia
+  secundaria, a nombre de usuarios que ya no existen. Son inertes.
+- El onboarding de la app en el emulador quedó completado.
 
 ### La afirmación del ledger era falsa
 
@@ -155,13 +200,9 @@ y la prueba ahora afirma eso. Salió solo por revertir la guarda **por separado*
 
 ## Dicho y NO hecho
 
-- **`R9-104` no se midió con el SDK nativo (Modo C).** Hay AVDs y emulador, pero el motor solo
-  corre con cuentas de Google, y en el emulador no hay dos cuentas de prueba.
-  - **Alternativa barata sin Google:** una sonda con dos sesiones ANÓNIMAS (`set()` sin red,
-    `signOut`, `signInAnonymously`, ver si la promesa vuelve). Pero escribe en el Firestore de
-    PRODUCCIÓN y crea dos usuarios anónimos, así que queda para que Victor decida.
-  - **La severidad queda en P1:** la evidencia del SDK de JS apunta a la rama «no sincroniza», no
-    a la de mezcla. El arreglo cubre las dos.
+- ~~`R9-104` no se midió con el SDK nativo.~~ **Se midió en la misma sesión**, con el OK de
+  Victor (ver «Medido en el SDK NATIVO»). Lo que sigue sin medir es la vuelta de la cuenta
+  anterior.
 - **`R9-102` sin verificar en dispositivo**, igual que su hallazgo.
 - ~~La rama espera el OK de Victor.~~ Victor lo dio: se mergeó en fast-forward y se pusheó.
 

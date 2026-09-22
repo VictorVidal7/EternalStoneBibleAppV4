@@ -170,9 +170,13 @@
 > **Mergeada en fast-forward y pusheada** con el OK de Victor. **Quedan 3 P0 abiertos** (`R9-36`,
 > `R9-38`, `R9-39`). Detalle: `detail/S20-arreglos-p0-sync-favoritos.md`.
 >
+> **`R9-104`, medido en el SDK nativo** (Modo C, con el OK de Victor, en emulador): la escritura
+> de la cuenta anterior queda pendiente para siempre y no llega al servidor. O sea, «no
+> sincroniza hasta reiniciar» (P1), no mezcla. La propuesta del ledger no habría arreglado ese
+> caso. **CI del merge verificado en el log** (run `35793874042`, 364/4299).
+>
 > **Siguiente:** revisar el diff de la 20. Después, el doble check con Opus 5.5 que pidió Victor, y
-> la cadena de publicación (`R9-108`, `R9-109`). `R9-104` en Modo C solo si Victor lo autoriza,
-> porque la sonda barata escribe en el Firestore de producción.
+> la cadena de publicación (`R9-108`, `R9-109`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
