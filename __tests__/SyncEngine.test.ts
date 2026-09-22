@@ -2131,3 +2131,114 @@ describe('R9-22 — el conteo de pendientes al cambiar de cuenta', () => {
     expect(engine.getState().pendingWrites).toBe(0);
   });
 });
+
+describe('R9-103 — la supresion de ecos es por DOC, no global', () => {
+  // `suppressLocalWriteCount` era un contador GLOBAL: mientras CUALQUIER apply
+  // remoto esperaba a SQLite, `queueWrite` y `queueDelete` salian sin hacer
+  // nada para CUALQUIER doc. Ningun adaptador encola dentro de un apply, asi
+  // que lo unico que se tragaba de verdad eran las ediciones del USUARIO que
+  // coincidian con una bajada: cola vacia, nada subido, `pendingWrites 0` y
+  // `droppedWrites 0`. Y la ventana es ancha justo cuando mas se baja
+  // (dispositivo nuevo, reinstalacion, la re-descarga de R9-35).
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  function fireRemote(
+    changes: Array<{id: string; data: Record<string, unknown>}>,
+  ): void {
+    const coll = mockCollections.get('users/uid/test')!;
+    (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire(
+      changes.map(c => ({
+        type: 'added',
+        doc: {id: c.id, exists: true, data: () => c.data},
+      })),
+    );
+  }
+
+  it('una edicion y un borrado de OTRO doc durante una bajada en vuelo SI suben', async () => {
+    let releaseApply!: () => void;
+    const applyGate = new Promise<void>(resolve => {
+      releaseApply = resolve;
+    });
+    let applyInFlight = false;
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter({
+      async applyRemoteUpsert() {
+        // SQLite lento: el apply se queda esperando con la supresion puesta.
+        applyInFlight = true;
+        await applyGate;
+        applyInFlight = false;
+      },
+    });
+    engine.register(adapter);
+    await engine.start('uid');
+    await settle();
+
+    fireRemote([{id: 'de-la-nube', data: {value: 'remoto', updatedAt: 2000}}]);
+    await flush();
+    // Control del mecanismo: si la bajada NO estuviera en vuelo al editar, no
+    // habria nada que suprimir y la prueba pasaria con el bug puesto.
+    expect(applyInFlight).toBe(true);
+
+    engine.queueWrite('test', 'mio', {
+      value: 'editado a mano',
+      updatedAt: 3000,
+    });
+    engine.queueDelete('test', 'borrado', {value: 'adios'});
+
+    releaseApply();
+    await settle();
+
+    expect(applyInFlight).toBe(false);
+    const pushed = mockDocSets.filter(d => d.path === 'users/uid/test');
+    expect(pushed.find(d => d.id === 'mio')?.data).toMatchObject({
+      value: 'editado a mano',
+      deleted: false,
+    });
+    expect(pushed.find(d => d.id === 'borrado')?.data).toMatchObject({
+      deleted: true,
+    });
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+
+  it('el ECO del mismo doc se sigue suprimiendo, tambien el de un borrado', async () => {
+    // No discrimina contra R9-103, y es a proposito: su trabajo es impedir que
+    // el arreglo se pase de largo y quite la supresion entera. Un adaptador que
+    // al escribir en local dispara su propio queueWrite/queueDelete tiene que
+    // seguir sin rebotar a la nube lo que acaba de bajar.
+    const engine = new SyncEngine();
+    const applied: string[] = [];
+    const {adapter} = makeAdapter({
+      async applyRemoteUpsert(id, data) {
+        await Promise.resolve();
+        applied.push(id);
+        engine.queueWrite('test', id, data);
+      },
+      async applyRemoteDelete(id) {
+        await Promise.resolve();
+        applied.push(id);
+        engine.queueDelete('test', id, {value: 'eco'});
+      },
+    });
+    engine.register(adapter);
+    await engine.start('uid');
+    await settle();
+
+    fireRemote([
+      {id: 'eco-upsert', data: {value: 'remoto', updatedAt: 2000}},
+      {
+        id: 'eco-borrado',
+        data: {value: 'x', updatedAt: 2000, deleted: true},
+      },
+    ]);
+    await settle();
+
+    // Control: los dos applies tienen que haber corrido de verdad. Si la bajada
+    // no llegara (un filtro del cursor, un lote vacio), no habria eco ninguno
+    // y la asercion de abajo pasaria sin haber mirado nada.
+    expect(applied.sort()).toEqual(['eco-borrado', 'eco-upsert']);
+    expect(mockDocSets.filter(d => d.id.startsWith('eco-'))).toHaveLength(0);
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+});

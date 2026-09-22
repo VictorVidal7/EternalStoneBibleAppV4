@@ -165,6 +165,13 @@ function fromDocId(docId: string): string {
   return docId.replace(/~/g, '/');
 }
 
+/** R9-103 — the per-doc echo-suppression key. Collection names are fixed
+ *  identifiers in code and none carries a NUL, so no two (collection, id)
+ *  pairs can map to the same key. */
+function suppressKey(collection: string, id: string): string {
+  return `${collection}\u0000${id}`;
+}
+
 /**
  * Quota hardening — the AsyncStorage key a collection's sync cursor is
  * persisted under. Exported (not just internal) so tests can seed/assert
@@ -241,9 +248,24 @@ export class SyncEngine {
   private queue: PendingWrite[] = [];
   private queueHydrated = false;
   private flushInFlight = false;
-  /** True while we're applying a remote change to local — adapters
-   *  should NOT re-queue their writes during this window. */
-  private suppressLocalWriteCount = 0;
+  /** The docs we are applying a remote change to RIGHT NOW, keyed by
+   *  `suppressKey(collection, id)` → nesting depth. An adapter's own
+   *  queueWrite/queueDelete for one of THESE docs is the echo of what is being
+   *  applied and must not bounce back as a push.
+   *
+   *  R9-103 — this used to be one global counter, so while ANY apply awaited
+   *  SQLite every queueWrite/queueDelete returned early for EVERY doc. No
+   *  adapter queues inside an apply, so the only thing it ever swallowed was
+   *  the user's own edits that happened to coincide with a pull: queue empty,
+   *  nothing uploaded, `pendingWrites 0`, `droppedWrites 0` — and a lost
+   *  delete never reached the account's other devices. The window is widest exactly when the
+   *  most is being pulled: a new device, a reinstall, R9-35's re-download.
+   *
+   *  What remains, on purpose: a user edit to the SAME doc while its remote
+   *  copy is being applied is still dropped. The two writes race for the same
+   *  local row anyway, and telling them apart would take an async context JS
+   *  does not have. */
+  private suppressedDocs = new Map<string, number>();
   /** Sprint 43 — active conflicts awaiting user resolution. */
   private conflicts: ConflictRecord[] = [];
   /**
@@ -448,7 +470,7 @@ export class SyncEngine {
    */
   queueWrite(collection: string, id: string, data: object): void {
     if (!this.uid) return;
-    if (this.suppressLocalWriteCount > 0) return;
+    if (this.isSuppressed(collection, id)) return;
     const asRecord = data as Record<string, unknown>;
     const entity: SyncEntity<object> = {
       ...asRecord,
@@ -476,7 +498,7 @@ export class SyncEngine {
    */
   queueDelete(collection: string, id: string, lastKnownData?: object): void {
     if (!this.uid) return;
-    if (this.suppressLocalWriteCount > 0) return;
+    if (this.isSuppressed(collection, id)) return;
     const base = (lastKnownData as Record<string, unknown> | undefined) ?? {};
     const tombstone: SyncEntity<object> = {
       ...base,
@@ -496,18 +518,30 @@ export class SyncEngine {
   }
 
   /**
-   * Wrap an adapter mutation so the engine knows to ignore any
-   * `queueWrite` calls the adapter triggers as a side effect. Used
-   * internally by applyRemoteChange so a remote pull doesn't bounce
-   * back as a local push.
+   * Wrap an adapter mutation of ONE doc so the engine knows to ignore any
+   * `queueWrite`/`queueDelete` for that same doc the adapter triggers as a
+   * side effect. Used internally by applyRemoteChange so a remote pull
+   * doesn't bounce back as a local push — and scoped to the doc (R9-103), so
+   * it can't swallow the user's edits to every other one.
    */
-  private async withLocalWriteSuppressed<T>(fn: () => Promise<T>): Promise<T> {
-    this.suppressLocalWriteCount += 1;
+  private async withLocalWriteSuppressed<T>(
+    collection: string,
+    id: string,
+    fn: () => Promise<T>,
+  ): Promise<T> {
+    const key = suppressKey(collection, id);
+    this.suppressedDocs.set(key, (this.suppressedDocs.get(key) ?? 0) + 1);
     try {
       return await fn();
     } finally {
-      this.suppressLocalWriteCount -= 1;
+      const depth = (this.suppressedDocs.get(key) ?? 1) - 1;
+      if (depth > 0) this.suppressedDocs.set(key, depth);
+      else this.suppressedDocs.delete(key);
     }
+  }
+
+  private isSuppressed(collection: string, id: string): boolean {
+    return this.suppressedDocs.has(suppressKey(collection, id));
   }
 
   // ---------- private: queue persistence ----------
@@ -857,7 +891,7 @@ export class SyncEngine {
           // timestamp to advance the cursor by — safe to skip: a
           // genuinely-removed doc can never be re-delivered as "added"
           // by a future reattach anyway (it no longer exists).
-          await this.withLocalWriteSuppressed(() =>
+          await this.withLocalWriteSuppressed(adapter.collection, id, () =>
             adapter.applyRemoteDelete(id),
           );
           continue;
@@ -1015,9 +1049,11 @@ export class SyncEngine {
     }
 
     if (deleted) {
-      await this.withLocalWriteSuppressed(() => adapter.applyRemoteDelete(id));
+      await this.withLocalWriteSuppressed(adapter.collection, id, () =>
+        adapter.applyRemoteDelete(id),
+      );
     } else if (data) {
-      await this.withLocalWriteSuppressed(() =>
+      await this.withLocalWriteSuppressed(adapter.collection, id, () =>
         adapter.applyRemoteUpsert(id, data),
       );
     }
@@ -1330,22 +1366,28 @@ export class SyncEngine {
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     } else if (choice === 'keepTheirs') {
       resolvedValue = conflict.remoteVersion;
-      await this.withLocalWriteSuppressed(() =>
-        adapter.applyRemoteUpsert(
-          conflict.docId,
-          resolvedValue as SyncEntity<unknown>,
-        ),
+      await this.withLocalWriteSuppressed(
+        conflict.collection,
+        conflict.docId,
+        () =>
+          adapter.applyRemoteUpsert(
+            conflict.docId,
+            resolvedValue as SyncEntity<unknown>,
+          ),
       );
     } else {
       if (!mergedValue) {
         throw new Error('resolveConflict: merge choice requires mergedValue');
       }
       resolvedValue = {...mergedValue, updatedAt: now};
-      await this.withLocalWriteSuppressed(() =>
-        adapter.applyRemoteUpsert(
-          conflict.docId,
-          resolvedValue as SyncEntity<unknown>,
-        ),
+      await this.withLocalWriteSuppressed(
+        conflict.collection,
+        conflict.docId,
+        () =>
+          adapter.applyRemoteUpsert(
+            conflict.docId,
+            resolvedValue as SyncEntity<unknown>,
+          ),
       );
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     }
