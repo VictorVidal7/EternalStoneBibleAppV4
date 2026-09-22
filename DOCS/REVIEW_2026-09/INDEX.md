@@ -113,13 +113,49 @@
 > añadido para habilitar una prueba puede RESPONDER la pregunta que otra hacía**. Los 10
 > arreglados en la misma sesión.
 >
-> **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`) — **ninguno bloquea el deploy web ya**.
-> Hallazgos: **101**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
+> **Sesión 19 (2026-09-22): la primera con Opus 5.5, y solo de REVISIÓN.** No se arregló nada.
+>
+> **Qué revisó:**
+>
+> - El diff de la 18.
+> - Los diffs de las sesiones **10 y 11**, que **nunca se habían revisado**. La 11 y la 12 no
+>   revisaron ningún diff, así que «décima sesión seguida» era falso. Son el diff del dinero
+>   (`R9-9`/`R9-10`) y el de la cola y el cursor (`R9-11`/`R9-65`).
+>
+> **22 hallazgos (`R9-102`..`R9-123`):** 2 P0, 6 P1, 10 P2 y 4 entradas P3 agrupadas.
+>
+> **Los dos P0 están en código que el Modo A ya había pasado,** y los dos tienen el efecto de
+> `R9-11`: la edición se ve en pantalla y nunca sube.
+>
+> - **Editar un favorito** (`R9-102`): un efecto dentro de un actualizador de `setState`.
+> - **Una edición durante una bajada en vuelo** (`R9-103`): un contador de supresión global.
+>
+> **`R9-104` es candidato a P0.** El flush no vuelve a mirar la cuenta después de cada `await` y
+> puede escribir datos de Ana en `users/<beto>`. Falta medir el SDK real en Modo C.
+>
+> **Fuera del repo:** el directorio de publicación por defecto tenía el `rvr1960.sqlite` VIEJO,
+> con **texto de chatbot dentro de 2 Reyes 22:9**, junto al manifiesto que pina el bueno, y el
+> lector web no verifica el sha256 (`R9-109`). Se movió a cuarentena con permiso de Victor.
+>
+> **Pedido de Victor:** todo lo revisado antes de esta sesión se hizo con **Opus 5**, y una sesión
+> posterior tiene que re-verificarlo con **Opus 5.5**.
+>
+> Checkpoint en la rama `docs/review-s19-checkpoint`, **sin mergear**.
+>
+> **Quedan 5 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`, `R9-102`, `R9-103`) — **ninguno bloquea el
+> deploy web**. Hallazgos: **123**. **El conteo venía mal desde la sesión 7** — ver la nota al principio de
 > la sección P0 de `BUGS.md`.
 >
-> Siguiente: terminar `A12` (hay 3 hilos ya abiertos en su detalle), con lo que **queda
-> cerrado el bloque P0 entero del Modo A**. O los 3 P0 que quedan, o los 4 reportes de campo
-> (`R9-40`..`R9-43`), que son baratos y muy visibles.
+> **Siguiente (desde la sesión 19):**
+>
+> 1. **Arreglar los dos P0 nuevos** (`R9-102`, `R9-103`), que son chicos.
+> 2. **Medir `R9-104` en Modo C.** Si es alcanzable, pasa a P0.
+> 3. **La cadena de publicación** (`R9-108`, `R9-109`).
+> 4. **El doble check con Opus 5.5** que pidió Victor.
+>
+> Siguen pendientes, además, `A12` (3 hilos ya abiertos en su detalle, con lo que queda cerrado el
+> bloque P0 del Modo A), `R9-36`/`R9-38`/`R9-39` y los 4 reportes de campo (`R9-40`..`R9-43`).
+> Orden completo en `CONTINUAR.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -581,6 +617,40 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 19 — 2026-09-22. Revisar el diff de la 18 (`0da86ce..40160d7`), y los de la 10 y la
+  11, que nadie había revisado.** Primera sesión con **Opus 5.5**. Fue **solo de revisión**:
+  Victor pidió «decime qué encontraste antes de tocar nada».
+  - **Cómo se trabajó:** 9 agentes en worktrees aislados. Dos revisores, dos verificadores
+    adversariales, uno de docs y mensajes vecinos, uno del flujo real de publicación, uno de «CI
+    en el tiempo», y uno por cada diff sin revisar. Todo lo que sube a P0 o a P1 lo verificó
+    además el orquestador en el código o en los datos.
+  - **Veredicto: los arreglos discriminan al revertirlos, los de la 18 y los de la 10 y la 11.**
+    Con 2 de 4 archivos borrados, lo que pone roja la prueba de `R9-97` es la dirección nueva, no
+    el sha256 de los que quedan.
+  - **Contra el mundo:** los 4 sha256 coinciden entre el manifiesto y Pages, el `main()` real saca
+    los 4 packs byte a byte, y el CI de `HEAD` está verificado **en el log**.
+  - **22 hallazgos, `R9-102`..`R9-123`.** Los que mandan:
+    - `R9-102` y `R9-103` (P0): dos formas nuevas de que una edición local nunca suba.
+    - `R9-104` (P1, candidato a P0): mezcla entre cuentas en el flush.
+    - `R9-105` (P1): la línea exacta del bug de `R9-9`, que es P0 de dinero, no la protege ninguna
+      prueba; revertida, 57/57 suites verdes.
+    - `R9-107` (P1): «este job corre node» se decide por la FORMA de `run:`, y una plantilla
+      oficial de GitHub usa la forma que no se ve.
+    - `R9-108` y `R9-109` (P1): la cadena de publicación no se defiende de un pack que no coincide
+      con su manifiesto. En el mundo había uno así, con texto de chatbot en 2 Reyes 22:9, en el
+      directorio por defecto. Se movió a cuarentena.
+  - **Detalle completo, incluidas las cinco preguntas del prompt respondidas una por una:
+    `detail/S19-revision-del-diff.md`.**
+  - **Las lecciones de método:**
+    - **un helper de RESET en el `beforeEach` sustituye el valor inicial del módulo**, así que el
+      inicializador nunca corre bajo jest;
+    - **una compuerta verificada solo con spies no se midió contra el mundo**;
+    - **un efecto dentro de un actualizador de `setState` no corre cuando creés**;
+    - y la de programa: «N sesiones seguidas» era una afirmación que nadie comprobó, y escondía
+      **dos diffs sin revisar, uno de ellos de dinero**. Contá los `detail/S*`, no las sesiones.
+  - **Pedido de Victor para una sesión posterior:** doble check con **Opus 5.5** de todo lo que el
+    ledger revisó con Opus 5. El alcance propuesto está en el detalle.
 
 - **Sesión 18 — 2026-09-16. Revisar el diff de la 17 (`31132d2..0da86ce`).** Décima sesión
   seguida de revisión adversarial sobre un diff de arreglos, y la décima que paga.

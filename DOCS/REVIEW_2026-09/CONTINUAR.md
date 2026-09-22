@@ -1,6 +1,7 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-16, fin de la sesión 18 (revisión del diff de la 17 + 5 arreglos).**
+> **Última actualización: 2026-09-22, fin de la sesión 19 (revisión del diff de la 18, y de los de la
+> 10 y la 11, que nadie había revisado; solo revisión, la primera con Opus 5.5).**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -12,76 +13,47 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**1. ✅ NO HAY NADA PENDIENTE DE GIT. `main` está al día y pusheado.**
+**1. ⚠️ Hay UNA rama sin mergear, y es solo de docs: `docs/review-s19-checkpoint`.**
 
-Las ramas de las sesiones 15, 16, 17 y **18** se mergearon en fast-forward y se borraron.
-**`main` = `origin/main` = `2b65a12`.** Árbol limpio.
+**`main` = `origin/main` = `40160d7`**, en verde en CI, **verificado EN EL LOG**. El run
+`35163775542` corrió en Node v24.20.0, con 363 suites / 4289 pruebas y cero «Test suite failed to
+run».
 
-Los **5 arreglos de la sesión 18** (`R9-97`..`R9-101`) están dentro (`2a442dd` + `f477c19`),
-cada uno **visto fallar primero**, y los tres de CI medidos **contra el mundo** y no solo
-contra una sonda: sobre el `ci.yml` REAL un cuarto job sin ningún `setup-node` pasaba 15/15
-con solo llevar un comentario en su cabecera, y un `deploy.yml` REAL en Node 20 pasaba igual.
-Gates en local: **363 suites / 4289 pruebas**, `tsc` limpio, eslint 0 errores, prettier limpio.
-Y como el diff toca `scripts/build-web-packs.js`, el `main()` REAL corrió contra los datos
-REALES **después** del cambio: los cuatro packs salen **byte a byte**, sha256 y
-`content-length` idénticos al manifiesto versionado **y** a lo que hoy sirve
-`eternalstonebible.github.io/packs/`.
+La sesión 19 fue **solo de revisión** (Victor: «decime qué encontraste antes de tocar nada»), así
+que no trae ningún cambio de código. Su checkpoint vive en `docs/review-s19-checkpoint`, con
+`BUGS.md`, `INDEX.md`, este archivo y `detail/S19-revision-del-diff.md`. **Si todavía no está
+mergeada, preguntale a Victor antes de mergearla**, o trabajá encima de ella.
 
-Esa rama volvía a tocar la compuerta del pin de Node, así que **el run se verificó EN EL LOG**
-(la lección de la sesión 16), no en el check: run **`35163372377`**, los tres jobs en verde,
-runner **Node v24.20.0**, **363 suites / 4289 pruebas** (los mismos números que en local, o sea
-que no se saltó nada en silencio), **cero** «Test suite failed to run», y `PASS` en las cuatro
-que importan: `buildWebPacks`, `ciNodeVersion`, `missingProviderError` y
-`redLetterPackParity`. El job de seguridad sigue en **cero filas `MISSING`** y
-`14 vulnerabilities (11 moderate, 3 high)`, con **cero `EBADENGINE`**.
+**2. 🚨 Lo más urgente de la 19 estaba FUERA del repo, y ya se atendió.**
+`C:\Users\victo\Desktop\web-packs\rvr1960.sqlite` (el `out` por defecto de `build-web-packs.js`)
+era el pack de julio, **con texto de chatbot dentro de 2 Reyes 22:9** («_Claro, aquí tienes el
+texto continuado de 2 Reyes 22:10-20…_»).
 
-Los **10 arreglos de la sesión 17** (`R9-87`..`R9-96`) están dentro de `main` desde antes.
-Esa rama tocaba `ci.yml` y reescribía entera la compuerta del pin de Node, así que **su run
-también se verificó en el LOG**:
+- Pesaba exactamente lo mismo que el bueno, y estaba junto al manifiesto que pina el bueno.
+- El lector web **no verifica el sha256** de lo que descarga (`R9-109`). Subir «la carpeta» lo
+  republicaba sin que nada lo detectara, y **los navegadores que lo importaran no se curarían**.
+- **Se movió a `C:\Users\victo\essb-cuarentena\`** (con permiso de Victor y el sha verificado). En
+  `web-packs` quedan los otros cuatro archivos.
+- **Nunca publiques desde ahí sin volver a construir.** El pack bueno es el que sirve Pages, y una
+  corrida limpia lo regenera byte a byte.
+- Hay otro clon viejo de Pages en `C:\projects\_pages_pub` que tiene el mismo pack contaminado.
+  **No lo uses para publicar packs.**
 
-- run **`35137876566`**, los tres jobs en verde, runner **Node v24.20.0**;
-- `PASS buildWebPacks.test.js`, `PASS missingProviderError.test.ts`,
-  `PASS ciNodeVersion.test.ts`, `PASS redLetterPackParity.test.ts`;
-- **363 suites / 4278 pruebas**, los mismos números que en local, y **cero** «Test suite failed
-  to run»;
-- **`R9-94` comprobado en el mundo: CERO filas `MISSING`** en `npm outdated`, con valores
-  `Current` reales (`@eslint/js 9.39.5`, `zod 3.25.76`) — antes eran las 57 en `MISSING`;
-- `npm audit` sigue diciendo lo mismo (`14 vulnerabilities (11 moderate, 3 high)`), y
-  **cero `EBADENGINE`** con el piso nuevo `">=22.13.0"`.
+**3. ⚠️ PEDIDO FIJO DE VICTOR: doble check con Opus 5.5 de todo lo revisado ANTES de la sesión 19.**
+Todo lo que el ledger registra hasta la sesión 18 incluida se revisó con **Opus 5**. La 19 fue la
+primera con **Opus 5.5**, y encontró que esa pasada dejó huecos:
 
-**Y el verde está verificado contra el MUNDO, no contra el resumen**, que es la lección de la
-sesión 16: el runner usó **Node v24.20.0**, `buildWebPacks.test.js` sale **PASS** —la suite que
-NO CARGABA en CI desde la sesión 13— igual que `redLetterPackParity.test.ts` y
-`ciNodeVersion.test.ts`, el total es **363 suites / 4263 pruebas**, los mismos números que en
-local (o sea que no se saltó nada en silencio), y hay **cero** «Test suite failed to run».
-Run `35130290791`, los tres jobs en verde.
+- **dos diffs de arreglos nunca se habían revisado**: el del dinero (`R9-9`/`R9-10`) y el de la
+  cola y el cursor (`R9-11`/`R9-65`);
+- **dos P0 nuevos** en código que el Modo A ya había pasado;
+- **varias afirmaciones «comprobado y BIEN» que eran falsas**.
 
-> **Antes de esto, `main` llevaba un día en rojo y nadie lo sabía** (cuatro runs: `3982ea0`,
-> `ff99435`, `e5c8ce4`, `0aa92a7`). Era `R9-82`: `scripts/build-web-packs.js` requiere
-> `node:sqlite`, que no existe antes de Node 22, y `ci.yml` fijaba `node-version: '20'`, así que
-> desde la sesión 13 **la compuerta que vigila lo único que produce DATOS PUBLICADOS no se
-> ejecutó en CI ni una vez**. Verde en local, roja donde importaba, y el silencio del repo era
-> idéntico en los dos casos. **Si escribís una compuerta nueva, preguntá DÓNDE corre.**
+Victor pidió que **una sesión posterior vuelva a hacer doble check, con Opus 5.5, de lo ya
+revisado**. El alcance propuesto está en `detail/S19-revision-del-diff.md`, sección «Pedido de
+Victor», y es la opción **(b)** del mensaje para pegar. **Esto no se da por hecho hasta que una
+sesión lo haga y lo registre.**
 
-**El pack que faltaba YA ESTÁ PUBLICADO** (`rvr1960-red-letter.json`, en
-`eternalstonebible/eternalstonebible.github.io` `c0e3ed7`, 2026-09-15). **No queda ningún paso
-pendiente de despliegue**: la letra roja en español está activa en la web, y la sesión 15
-volvió a verificar los cuatro sha256 **dos veces** —contra el manifiesto y contra lo que hoy
-sirve GitHub Pages, antes y después de sus arreglos— con el build real corriendo contra los
-datos reales. Idénticos las dos veces. **Si vas a tocar packs, leé
-`reference_essb-github-pages-pack-publishing` antes.** Las dos trampas que más costaron:
-
-- **Metro cachea la `EXPO_PUBLIC_*` inlineada POR MÓDULO.** Tras construir una vez con
-  `EXPO_PUBLIC_WEB_PACKS_BASE_URL` apuntando a un servidor local, un `expo export` posterior
-  **sin** la variable dejó la URL local dentro de `redLetterText.web.ts` mientras
-  `data-loader.web.ts` sí usaba la buena — y el síntoma es **idéntico al de un pack ausente**.
-  Usá `expo export --clear` y confirmá con `grep` que no queda ninguna URL local en el bundle.
-- **Un 404 de GitHub Pages se sirve SIN cabecera CORS**, así que un `fetch` cruzado que lo
-  reciba rechaza con `TypeError: Failed to fetch`, no con un 404 legible — y Fastly lo cachea
-  unos 10 minutos, así que después de subir un archivo hay que esperar o forzar el refresco
-  antes de publicar nada desde ahí.
-
-**2. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
+**4. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
 que introduce el primero dejó ciega a la prueba del segundo.** El `await flush()` de esa
 prueba gastaba un intento fallido, lo que arma el backoff; el `flush()` siguiente salía por
@@ -97,7 +69,8 @@ prueba cubre y deja abierto el vecino_): aquí el vecino no era otro caso, era *
 del mismo diff**. Si un commit lleva dos arreglos, pregúntate si uno desarma la prueba del
 otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-del-diff.md`.
 
-**Quedan 3 P0 abiertos:** `R9-36`, `R9-38`, `R9-39`. Todo lo demás de la sección P0 va
+**Quedan 5 P0 abiertos:** `R9-36`, `R9-38`, `R9-39`, y los dos nuevos de la sesión 19, `R9-102`
+y `R9-103`. Todo lo demás de la sección P0 va
 marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Los
 **6 hallazgos de la sesión 13** (`R9-66`..`R9-71`) son P1/P2, así que el conteo de P0 no se
 mueve — y los seis ya están arreglados y mergeados.
@@ -109,7 +82,9 @@ Los **5 de la sesión 16** (`R9-82`..`R9-86`) igual: P1/P2, arreglados y mergead
 Los **10 de la sesión 17** (`R9-87`..`R9-96`) también son P1/P2, así que el conteo de P0 sigue
 igual — y los diez ya están arreglados y mergeados.
 Los **5 de la sesión 18** (`R9-97`..`R9-101`) igual: P1/P2, arreglados y mergeados.
-Hallazgos totales: **101**.
+Los **22 de la sesión 19** (`R9-102`..`R9-123`) son 2 P0, 6 P1, 10 P2 y 4 entradas P3
+agrupadas, y **ninguno está arreglado**: la 19 fue solo de revisión.
+Hallazgos totales: **123**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -118,7 +93,8 @@ navegador de verdad sobre el bundle real.
 sesiones 7 y 8 contaban `R9-50` como P0 cerrado, pero vive en **P1**, así que su «quedan 10»
 eran 11. La nota está al principio de la sección P0 de `BUGS.md`.
 
-**3. El orden de ataque de arreglos SE ACABÓ.** Todos los bloques están cerrados: sync
+**5. El orden de ataque ORIGINAL de arreglos se acabó; el nuevo, desde la sesión 19, es el del
+mensaje (a) de abajo.** Todos los bloques están cerrados: sync
 (`R9-33`/`R9-34`/`R9-35`, sesión 9), dinero (`R9-9`/`R9-10`, sesión 10), cola y cursor
 (`R9-11`+`R9-65`, sesión 11) y **web (`R9-13`+`R9-15`+`R9-14`, sesión 12)**. Lo que queda son
 tres P0 sueltos (`R9-36`, `R9-38`, `R9-39`) y los 4 reportes de campo (`R9-40`..`R9-43`), que
@@ -210,7 +186,33 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
-**La lección de la sesión 18, que es la que conviene llevarse AHORA:** sexta seguida con los
+**La lección de la sesión 19, que es la que conviene llevarse AHORA.** Fue la primera sesión con
+Opus 5.5, y lo que más vale no estaba en el diff: estaba en lo que el programa creía de sí mismo.
+
+> **«N sesiones seguidas» era una afirmación sobre el mundo que nadie comprobó.** La 11 y la 12 no
+> revisaron ningún diff, así que **los arreglos de dinero (`R9-9`/`R9-10`) y los de la cola y el
+> cursor (`R9-11`/`R9-65`) nunca se habían revisado**. Al revisarlos salieron un P1 de dinero
+> (`R9-105`) y un P1 de pérdida de conflictos (`R9-106`). **Contá los `detail/S*`, no las
+> sesiones.**
+
+Y tres formas nuevas, las tres sobre cómo una prueba o una compuerta se engaña a sí misma:
+
+> **Un helper de RESET en el `beforeEach` sustituye el valor inicial del módulo, así que el
+> inicializador nunca corre bajo jest** (`R9-105`). El arreglo del P0 de reembolso vive en un
+> `let … = null` de nivel de módulo, y `__resetForTests()` pone `null` por su cuenta. Revertido
+> el inicializador, que es el bug P0 tal cual, pasan **57/57 suites verdes**. Si el bug vive en el
+> estado de ARRANQUE de un módulo, probalo con `jest.isolateModulesAsync` y sin reset.
+
+> **Una compuerta verificada solo con spies no se midió contra el mundo** (`R9-113`). El preflight
+> de `R9-81` se probó espiando `renameSync`. Con procesos reales, un visor SQLite (incluso en
+> `readOnly`) pasa el preflight y rompe el rename a mitad. Si la compuerta nombra una causa del
+> mundo, reproducí ESA causa.
+
+> **Un efecto dentro de un actualizador de `setState` no corre cuando creés** (`R9-102`). React
+> solo lo ejecuta en el acto si la fibra no tiene trabajo pendiente. Si una variable de afuera se
+> asigna ahí dentro, en el flujo real vale `undefined`, y la edición nunca se encola.
+
+**La lección de la sesión 18:** sexta seguida con los
 defectos en las COMPUERTAS, y esta vez **las tres compuertas nuevas enteras de la 17 dejaron
 abierto el vecino que las motivó**. Tres formas, y las tres son sobre cómo se escribe una:
 
@@ -280,7 +282,7 @@ Y dos corolarios que valen por sí solos:
 > en la primera llamada, y la prueba del caso «a medias» solo ejercitaba el caso «nada pasó»).
 > Capturá la función real **antes** de espiar.
 
-**4. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
+**6. Deuda conocida de las sesiones 8, 9 y 10, dicha en voz alta:**
 
 - ~~`R9-28` sin prueba~~ — **saldado en la sesión 11** (`aa70be0`). Ya **no queda ningún
   arreglo sin prueba de regresión**. Cubre las dos mitades: que `importBackup` emite la señal
@@ -312,7 +314,7 @@ Y dos corolarios que valen por sí solos:
   repasos se **traspasa** (se limpia) cuando entra otra cuenta, pero **no** decide que cerrar
   sesión deba borrarlo. Eso sigue siendo de Victor.
 
-**5. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
+**7. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
 con **3 hilos abiertos y verificados por `grep`, pero sin escenario de fallo alcanzable**,
 que es lo que falta para que sean hallazgos. No la re-empieces desde cero: lee ese archivo,
 que además dice por dónde seguir. **Cerrarla cierra el bloque P0 entero del Modo A.**
@@ -324,116 +326,83 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-**(a) RECOMENDADA — revisar el diff de la sesión 18, ya mergeado.** Es el
-patrón que ya pagó **diez** veces seguidas: las sesiones 8, 9, 10, 11, 13, 14, 15, 16, 17 y 18
-encontraron defectos reales en el diff de ARREGLOS de la sesión anterior. Son **5 arreglos en 2
-commits de código** (más dos de checkpoint), y esta vez **ninguno es código de la app**: los cinco son compuertas, tres de ellas
-recién reescritas por segunda vez. Un error ahí no se ve en ninguna prueba local — se ve en el
-siguiente push, o en el siguiente `build-web-packs`.
+Hay dos opciones y **las dos hay que hacerlas**. La (a) va primero porque son P0 conocidos y los
+arreglos son chicos. La (b) es el pedido fijo de Victor, y puede ir justo después o en la sesión que
+revise el diff de la (a).
+
+**(a) RECOMENDADA: arreglar los dos P0 nuevos de la sesión 19, y lo chico que va con ellos.**
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **No hay ramas pendientes: `main` está al día, pusheado y VERDE en CI.** El diff a
-> revisar son los 5 arreglos de la sesión 18, ya dentro de `main`:
-> **`git log 0da86ce..f280d0f`** (4 commits: **2 de código**, `2a442dd` y `f477c19`, y dos de
-> checkpoint, `2b65a12` y `f280d0f`). Gates verdes en local (363 suites / 4289 pruebas), y el `main()` real corrió
-> contra los datos reales después del cambio: los 4 packs byte a byte. El run
-> `35163372377` se verificó EN EL LOG.
+> **Estado:** `main` = `origin/main` = `40160d7`, verde en CI. La sesión 19 (la primera con Opus
+> 5.5) fue solo de revisión, y su checkpoint está en la rama `docs/review-s19-checkpoint`: solo
+> docs. Si todavía no está mergeada, preguntame antes de mergearla, o trabajá encima de ella.
+> Encontró 22 hallazgos, `R9-102`..`R9-123`; el detalle está en
+> `detail/S19-revision-del-diff.md`.
 >
-> Revisá ese diff con el mismo criterio de las sesiones 8-18 — buscá si algún arreglo cierra el
-> caso que su prueba cubre y deja el vecino abierto, y comprobá que cada prueba nueva DISCRIMINA
-> de verdad (revertí el arreglo, corré, restaurá, y `diff` el revert para confirmar que tocó la
-> línea que creés).
+> **Esta sesión es de ARREGLOS**, en una rama nueva:
 >
-> **Cinco sitios donde mirar con lupa:**
+> 1. **`R9-102` (P0):** `FavoritesContext.updateFavorite` encola el push solo si una variable se
+>    asignó DENTRO del actualizador de `setFavorites`, y React no lo corre en el acto cuando la
+>    fibra tiene trabajo pendiente. La edición se ve en pantalla y nunca sube.
+> 2. **`R9-103` (P0):** `suppressLocalWriteCount` es global. Una edición del usuario durante una
+>    bajada en vuelo se descarta en silencio. Hay que suprimir por (colección, id).
+> 3. **`R9-104` (P1, candidato a P0):** el flush no vuelve a mirar la cuenta después de cada
+>    `await`. Hay que comprobar `item.uid === this.uid` tras cada push y armar la ruta con
+>    `item.uid`. El arreglo sirve para las dos ramas; si hay emulador, medí el SDK real en Modo C
+>    (nunca con mi teléfono).
+> 4. **`R9-105` (P1):** la línea exacta del bug de `R9-9` no la protege ninguna prueba. Hace falta
+>    una prueba con módulo fresco y sin `__resetForTests()`.
 >
-> 1. **`filesNotPinnedBy` ahora recorre las DOS listas** (`R9-97`). Preguntate si la dirección
->    nueva puede dar un falso «NO coherente» —un archivo legítimo que alguien dejó en `out`, un
->    pack que el manifiesto pina y esta corrida ya no emite— y si el `[]` sigue significando
->    exactamente una cosa. Y si la prueba nueva discrimina por lo que crees: borra 2 de 4
->    archivos, ¿qué la pone roja, la dirección nueva o el sha256 de los que quedan?
-> 2. **`filesNotPinnedBy` pasa por `previousPacksOf` / `previousRedLetterOf`** (`R9-98`).
->    `previousRedLetterOf` INVENTA `versionId: 'WEB'` para la forma legacy. Preguntate si eso es
->    correcto aquí, donde lo que se compara es `file`, no `versionId`. ¿Queda alguna otra lectura
->    en crudo del manifiesto en el archivo?
-> 3. **El escáner de workflows decide por COLUMNA** (`R9-99`). Es un cambio de control de flujo
->    entero, no un regex. Preguntate qué forma legítima queda ahora fuera: ¿un job cuyo primer
->    key está más indentado que el de sus hermanos? ¿un `run: |` cuyo contenido cae en la columna
->    de los jobs? ¿`jobs:` seguido de un comentario a nivel 2? Y comprobá que los pins que el
->    escáner SÍ ve siguen siendo los mismos que antes sobre el `ci.yml` real.
-> 4. **El piso nuevo es `scan.jobs.length > 0` POR ARCHIVO** (`R9-100`). Preguntate qué archivo
->    legítimo de `.github/workflows/` no declara `jobs:` — ¿una acción compuesta mal colocada?
->    ¿un fragmento compartido? — y si ese caso falla de forma útil o sólo ruidosa.
-> 5. **`nodePinClaims` aplana las continuaciones de bloque antes de casar** (`R9-101`).
->    Preguntate qué falso positivo crea ese aplanado al unir dos líneas de CÓDIGO (no de
->    comentario) que juntas dicen «pins … node … 20», y si el piso `checked >= 1` puede quedar
->    satisfecho por una sola frase que nadie mantiene.
+> Cada uno con su prueba **vista fallar primero**: revertí, corré, restaurá, y `diff` el revert.
+> La sesión 19 ya cazó las trampas de estos cuatro:
 >
-> Y ojo con los puntos ciegos que este programa ya se cazó a sí mismo: **una verificación cuyo
-> cuerpo entero es un bucle PASA cuando no hay nada que recorrer**; **un bucle que recorre la
-> lista NUEVA no ve lo que falta de la VIEJA**; **un mensaje —de error o de éxito— que AFIRMA un
-> estado del mundo es una aserción, y hay que probarla mirando el MUNDO**; **una compuerta que
-> nunca llegó a EJECUTARSE se ve igual que una que pasó, así que preguntá DÓNDE corre**; **el
-> piso de una compuerta suele ser el número de HOY**; **un fixture añadido para una prueba nueva
-> puede RESPONDER la pregunta que otra prueba hacía**; y los tres de la 18, **una comprobación
-> que reemplaza una afirmación tiene que comprobar la afirmación ENTERA**, **decidir por la FORMA
-> de una línea es decidir por un estilo** y **una compuerta que no casa con nada hoy no tiene
-> discriminador**.
+> - para `R9-102`, la prueba tiene que forzar trabajo pendiente en la fibra antes de editar, o
+>   pasa por la razón trivial;
+> - para `R9-105`, el reset del `beforeEach` tapa el inicializador, así que usá
+>   `jest.isolateModulesAsync`;
+> - para `R9-103`, un apply en vuelo de OTRO doc no tiene que suprimir, y un eco del MISMO doc sí;
+> - para `R9-104`, la prueba necesita un `set()` diferido que resuelva después de `stop()` +
+>   `start()`.
 >
-> **Comprobá además los cuatro sha256 contra `web/packs/web-bootstrap.json` y contra lo que
-> sirve `eternalstonebible.github.io/packs/`: tienen que seguir coincidiendo.** Y como este diff
-> toca `scripts/build-web-packs.js`, corré el `main()` REAL contra los datos REALES en un
-> directorio temporal y confirmá que los cuatro packs siguen saliendo byte a byte.
+> Si un commit lleva dos arreglos, comprobá que uno no desarme la prueba del otro. Gates en verde
+> (`npm run validate`), y no mergees nada sin preguntarme.
 >
-> **Tres cosas que la 18 dejó SIN decidir a propósito, y están en «Dicho y NO hecho» de
-> `detail/S18-revision-del-diff.md`:** que `R9-95` con algo que no sea un `Error` sigue pudiendo
-> tragarse un `throw` falsy (inalcanzable hoy: todo lanza `new Error`); que un job que corre node
-> sólo dentro de una acción compuesta local no exige pin, y que el ORDEN de los steps no se
-> modela; y los tres de la 17 (npm 10 → 11 materializa **1851 → 1827** paquetes desde el MISMO
-> lockfile, el aviso `allowScripts`, y la deprecación de `actions/checkout@v4` /
-> `actions/setup-node@v4`, que el día que GitHub retire el runtime node20 deja los tres jobs sin
-> arrancar).
+> **Pendiente fijo, NO para esta sesión salvo que te lo pida:** todo lo que el ledger revisó hasta
+> la sesión 18 se hizo con Opus 5, y quiero un **doble check con Opus 5.5**. Está en `CONTINUAR.md`,
+> punto 3.
+
+**(b) El doble check con Opus 5.5, pedido fijo de Victor.** Es solo revisión, sin tocar código.
+
+> Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Decime qué encontraste antes de tocar nada.
+> Todo lo que el ledger (`DOCS/REVIEW_2026-09/BUGS.md`) registró hasta la sesión 18 incluida se
+> revisó con **Opus 5**. La sesión 19 fue la primera con **Opus 5.5**, y encontró que esa pasada
+> dejó huecos:
+>
+> - dos diffs de arreglos (sesiones 10 y 11) nunca se habían revisado;
+> - dos P0 nuevos (`R9-102`, `R9-103`) en código que el Modo A ya había pasado;
+> - varias afirmaciones «comprobado y BIEN» que eran falsas.
+>
+> **Quiero un doble check, con Opus 5.5, de todo lo ya revisado.** El alcance está en
+> `detail/S19-revision-del-diff.md`, sección «Pedido de Victor»:
+>
+> 1. **Los P0 marcados ✅ ARREGLADO:** que cada arreglo se sostiene y que su prueba discrimina **en
+>    `HEAD`**, no en el commit donde nació (revertí, corré, restaurá, `diff` el revert).
+> 2. **Las filas ya cerradas del Modo A (`A1`..`A11`) y del Modo B:** re-leer el código con ojo
+>    fresco, sobre todo la dirección «quitar acceso / restaurar / cambiar de cuenta».
+> 3. **Los P1/P2 que nunca se re-verificaron** (`R9-51`..`R9-64`).
+> 4. **Las afirmaciones «comprobado y BIEN» de los `detail/S*`**, contra el mundo, no contra el
+>    texto.
+>
+> Usá agentes en worktrees aislados (uno por punto cabe), y verificá vos todo lo que suba a P0 o
+> P1 antes de reportarlo. Registrá lo nuevo como `R9-124` en adelante. Decime qué encontraste
+> antes de tocar nada.
 
-**(a-bis) Si preferís seguir arreglando en vez de revisar:** quedan `R9-36`, `R9-38` y
-`R9-39` (P0) y los 4 de campo. Ojo: **los P1/P2 siguen sin re-verificar**, así que verificá
-contra el código antes de tocar. Y acordate de que una prueba de regresión no vale hasta que
-la viste fallar sin el arreglo: si un commit lleva dos arreglos, uno puede estar desarmando la
-prueba del otro; si una prueba encadena el mecanismo y su consecuencia, el revert la tumba en
-la primera aserción y la segunda no prueba nada; un mock con factoría literal **sustituye** la
-superficie del módulo en vez de comprobarla; **una comprobación que solo recorre un bucle pasa
-en vacío** —y su variante de la sesión 14, **un bucle que recorre la lista NUEVA no ve lo que
-falta de la VIEJA**—; **si el efecto dura un solo render, `act()` te lo esconde — instrumentá la
-llamada, no el árbol**; y **un mensaje de error que AFIRMA un estado del mundo es una aserción:
-probala mirando el mundo, no el string** —y su gemelo de la sesión 15, **un mensaje de ÉXITO
-que afirma cuánto comparó es la misma aserción del otro lado del `if`**—; y **una compuerta
-escrita para cerrar un caso suele dejar abierto justo el vecino que la motivó**; y los dos de la
-sesión 16, **una compuerta que nunca llegó a EJECUTARSE se ve igual que una que pasó —
-preguntá dónde corre** y **`jest.requireActual('fs')` dentro de un `spyOn(fs, …)` te devuelve
-el propio spy, así que un mock puede llamarse a sí mismo sin que se note**. Va todo en rama con
-gates verdes; no mergees nada sin preguntarme.
-
-**(b) Corto: los 4 reportes de campo**, si querés media hora y algo que se vea:
-
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Arreglá los 4 reportes de campo de Victor
-> (`R9-40`..`R9-43`): son baratos, muy visibles y ninguno es P0. Cada uno con su prueba vista
-> fallar primero, en rama con gates verdes.
-
-**(c) Terminar el Modo A P0** — queda **una sola fila**, `A12`, y con ella se cierra el
-bloque P0 entero del Modo A. Ojo: es el **otro** protocolo (solo revisar, NO tocar código):
-
-> Vamos a continuar la revisión profunda de la app. Lee
-> `DOCS/REVIEW_2026-09/CONTINUAR.md` y sigue lo que dice ahí. Termina `A12`.
-
-**(d) Saldar la deuda de DISPOSITIVO (lo único que queda)** — corta y concreta. Ojo: la parte de
-dispositivo es Modo C y **necesita emulador + APK debug**, nunca el OnePlus de Victor:
-
-> Lee `DOCS/REVIEW_2026-09/CONTINUAR.md`. Quiero saldar la deuda acumulada, en este orden:
-> (1) la verificación en dispositivo de la insignia nueva de Ajustes (`droppedWrites`, la
-> mitad visible de `R9-33`: si no se ve, la pérdida de datos sigue siendo silenciosa); (2)
-> `R9-47`; (3) la rama del lector de `R9-44`. Las tres en dispositivo. Acordate de que
-> una prueba no vale hasta que la veas fallar sin el arreglo.
+**(c) Lo que ya estaba en cola antes de la 19**, sin cambios: terminar `A12` (3 hilos abiertos en
+su detalle, y con eso se cierra el bloque P0 del Modo A), los P0 viejos `R9-36`, `R9-38` y
+`R9-39`, los 4 reportes de campo (`R9-40`..`R9-43`), y la deuda de dispositivo (la insignia
+`droppedWrites`, `R9-47` y la rama del lector de `R9-44`, siempre en emulador).
 
 Eso es todo. Lo de abajo es para el chat que lo lea.
 
@@ -479,28 +448,38 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Hay 10 ramas locales.** Las de las sesiones 12, 13, 14, **15 y 16** ya se borraron tras
-mergearlas, así que en local no las vas a ver. `main` (**= `origin/main`, pusheado y VERDE en
-CI**; lleva los arreglos de las sesiones 7 a 16) y **cinco ramas de arreglos YA MERGEADAS** que
-se pueden borrar:
-`fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
-`fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
-`fix/review-p0-perdida-datos`. Más las 5 de siempre: `audio/tts-caps-hyphen`,
-`audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`, `feature/red-letter-web`,
-`research/a4-chico-spanish-availability`. (La de la sesión 12,
-`fix/review-p0-lector-web-paridad`, ya se borró tras mergearla.) Árbol limpio. Si no coincide,
-dilo antes de empezar.
+**Medido al cerrar la sesión 19 (2026-09-22).**
+
+- **`main` = `origin/main` = `40160d7`**, en verde en CI (verificado en el log del run
+  `35163775542`).
+- **Una rama sin mergear: `docs/review-s19-checkpoint`**, con el checkpoint de la 19. Es solo
+  docs.
+
+Las demás ramas locales, en total 12 con `main` y la de la 19:
+
+- **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
+  `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
+  `fix/review-p0-sync-descarta-silencio`, `fix/review-p0-notas-cuentas` y
+  `fix/review-p0-perdida-datos`.
+- **Las 5 de siempre:** `audio/tts-caps-hyphen` (también en el remoto),
+  `audio/tts-pronunciation-sweep`, `chore/worklets-bundle-mode`, `feature/red-letter-web` y
+  `research/a4-chico-spanish-availability`.
+
+Las ramas de las sesiones 12 a 18 ya se borraron tras mergearlas. Si no coincide, decilo antes
+de empezar.
+
+**Deuda fuera de git:**
+
+- **De despliegue: ninguna.** Pages sirve los 4 packs buenos, y la sesión 19 lo verificó por
+  sha256 y `content-length`.
+- **De CI:** el step de Codecov **nunca subió nada** (`R9-118`).
+- **Del mundo:** el pack contaminado está en cuarentena (punto 2 de arriba).
 
 La revisión va en `18a3ffa` → `2f32aa9` → `8b64c11` → `af64ce1` → `299a76c` → `b5a9afa` →
 `6ac10e3` → `894deb5` → `4e45f69` → **`f791749`** (sesión 6: `A4` y los reportes de campo de
 las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`) → **`c184a1c`**
 (la re-verificación a mano de los 6 P0) → **`9939e76`** (corrección de un "pendiente" falso)
 → `63f124c`.
-
-Los arreglos de las sesiones 7 a 16 **ya están todos en `main` y pusheados**, todos los merges
-en fast-forward. **No queda deuda de ningún tipo**: ni de git, ni de despliegue (el pack de
-`rvr1960-red-letter.json` se subió el 2026-09-15), ni de CI (verde desde `531ffef`, verificado
-en el log del run y no solo en el check).
 
 ## 3. Dónde va la revisión
 

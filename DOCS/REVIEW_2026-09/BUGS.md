@@ -49,6 +49,35 @@
 > ninguna. **Todo MERGEADO a `main` y PUSHEADO**: no queda ninguna rama de arreglos
 > pendiente.
 
+> **Sesión 19 (2026-09-22): la primera con Opus 5.5, y solo de REVISIÓN.** No se arregló nada.
+>
+> **Qué revisó:**
+>
+> - El diff de la 18 (`0da86ce..40160d7`).
+> - Los diffs de las sesiones 10 y 11, que **nunca se habían revisado**. La 11 y la 12 no revisaron
+>   ningún diff, así que «décima seguida» era falso. Esos diffs son los arreglos de dinero
+>   `R9-9`/`R9-10` (`bb3b25b`), el remate `2bfa126`, `R9-11`/`R9-65` (`261c053`) y la prueba de
+>   `R9-28` (`aa70be0`).
+>
+> **22 hallazgos, `R9-102`..`R9-123`:** 2 P0, 6 P1, 10 P2 y 4 entradas P3 agrupadas.
+>
+> **Los dos P0 no están en ningún diff:** están en código que el Modo A ya había pasado, y los dos
+> tienen el mismo efecto que `R9-11`.
+>
+> - **Editar un favorito a menudo no se sube nunca** (`R9-102`).
+> - **Una edición durante una bajada en vuelo se descarta** (`R9-103`).
+>
+> **Y fuera del repo:** el directorio de publicación por defecto tenía el `rvr1960.sqlite` VIEJO, con
+> **texto de chatbot dentro de 2 Reyes 22:9**, junto al manifiesto que pina el bueno. El lector web
+> no verifica el sha256 (`R9-109`). Se movió a cuarentena con permiso de Victor.
+>
+> **Los arreglos de la 18, de la 10 y de la 11 discriminan al revertirlos**; lo roto está otra vez
+> en sus vecinos. `R9-97`..`R9-99` pasaron de P2 a P1, donde el resumen de la 18 ya las ponía.
+> Detalle: `detail/S19-revision-del-diff.md`.
+>
+> **⚠️ Pedido de Victor:** todo lo anterior a esta sesión se revisó con **Opus 5**. Una sesión
+> posterior tiene que re-verificarlo con **Opus 5.5**; el alcance propuesto está en el detalle.
+
 > **Sesión 18 (2026-09-16).** Revisó el diff de la 17 (`31132d2..0da86ce`) y encontró **5
 > defectos, ninguno P0**: `R9-97`, `R9-98`, `R9-99` (P1) y `R9-100`, `R9-101` (P2). **Los diez
 > arreglos de la 17 se sostienen en su mecanismo** — `R9-92` verificado en las TRES direcciones y
@@ -127,8 +156,8 @@
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 12. Esta sección tiene 21 entradas: 18 ARREGLADAS y
-> 3 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras la sesión 19. Esta sección tiene 23 entradas: 18 ARREGLADAS y
+> 5 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`, `R9-102`, `R9-103`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -184,6 +213,7 @@
   usuario** (la verdad llegaba y la lectura de caché la pisaba). Y **dos pruebas de
   `OfferingSheet` estaban verdes GRACIAS a este bug**: montaban «ya desbloqueado» sembrando
   solo un `'true'` viejo en la caché con RevenueCat reportando inactiva. Reparadas.
+  **⚠️ Sesión 19:** la línea exacta del bug no la protege ninguna prueba — ver `R9-105`; y cerrar sesión le quita el premium a quien pagó, al revés de lo que dicen los docstrings que esta entrada cita — ver `R9-119`.
 
 - **`R9-10` (A1, `PremiumContext`) — 🐛 la lectura tardía de la caché pisa el valor real
   de RevenueCat.** Severidad **media** (se auto-repara en el siguiente arranque), pero el
@@ -231,6 +261,7 @@
   es peor y tiene prueba propia: si lo encolado durante el push es un **borrado**, lo que se
   tragaba era la **lápida**, así que el borrado no viajaba nunca y la fila **resucitaba en
   todos los demás dispositivos** de la cuenta.
+  **⚠️ Sesión 19:** su premisa (`!== item` = «me reemplazó algo más nuevo») es falsa cuando lo que entró es la hidratación — ver `R9-115`. Y el mismo bucle no vuelve a mirar la cuenta tras cada `await` — ver `R9-104`.
 
 - **`R9-13` (A6, web) — 🐛 el lector web crashea en el primer render:
   `hasRedLetterData is not a function`.** Severidad **alta**.
@@ -378,6 +409,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **Contraste que lo delata:** los cursores **sí** están namespaceados por uid (`:177`) y el
   flag de bulk push también (`:1146`). Detalle: `detail/A3-auth-borrado-cuenta.md`.
   **✅ ARREGLADO en la sesión 8** (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo incluye (Juan 3:16 colisiona entre dos cuentas por la clave natural); `flush()` solo empuja las del uid activo, y lo de Ana queda **aparcado** hasta que vuelva, no se tira; `pendingWrites` cuenta solo las del uid activo, o Ajustes le diría a Beto que tiene pendientes que no puede resolver. Una entrada sin `uid` (previa al arreglo) es de dueño indeterminable y se descarta al hidratar. **Ojo al defecto que introdujo el propio arreglo y cazó la prueba nueva:** la condición de re-flush del final de `flush()` miraba `this.queue.length`, que con una entrada aparcada de otro uid es permanentemente > 0 → re-entraba en `flush()` para siempre, un bucle caliente mientras la app estuviera abierta.
+  **⚠️ Sesión 19:** la foto de `activeUid` protege el FILTRO, no el push: `pushOne` arma la ruta con el `this.uid` del momento — ver `R9-104`.
 
 - **`R9-23` (A3, identidad) — 🐛 los datos locales del usuario anterior se suben en silencio
   a una cuenta de Google _nueva_.** Severidad **alta**. El prompt de migración vive **dentro
@@ -416,6 +448,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   desaparece sin toast, sin error, sin log. Mismo patrón en `ReadingProgressContext`,
   preferencias de lector, tema y planes. Detalle: `detail/A7-backupservice.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que se suscriben los cuatro providers que podían **destruir** lo restaurado escribiendo su copia pre-import encima — mazo de memoria, los dos de progreso de lectura y preferencias del lector. Para lo que la señal no alcanza (pantallas ya montadas), Ajustes **sí** muestra ahora el aviso bloqueante de cerrar y reabrir que el docstring llevaba tiempo afirmando que existía.
+  **⚠️ Sesión 19:** la prueba cubre 1 de los 4 providers (`R9-116`), y `FavoritesContext` no escucha la señal (`R9-117`).
 
 - **`R9-33` (A4, `SyncEngine`) — 🐛 no hay backoff: una escritura se descarta en silencio
   tras 8 intentos, y Ajustes dice «sincronizado».** Severidad **alta**.
@@ -452,6 +485,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   Detalle: `detail/A4-syncengine.md`.
 
   **✅ ARREGLADO en la sesión 9** (`0a4f0fc`): la rama de error hace el spread de la entrada **viva** de la cola, no del snapshot `item`. Cayó del mismo cambio que `R9-33` porque hay que sellar `lastAttemptAt` en esa misma línea, y se dice aparte en vez de colarlo. **`R9-11`, su gemelo en la rama de ÉXITO, sigue ABIERTO** — es otro arreglo (allí la entrada se elimina por clave, no se sobrescribe).
+  **⚠️ Sesión 19:** el control de su prueba reescrita (`2bfa126`) no controla — ver `R9-114`.
 
 - **`R9-35` (A4, `SyncEngine`) — 🐛 un `updatedAt` en el futuro fija el cursor por delante
   del reloj y la bajada se detiene para siempre.** Severidad **media-alta**.
@@ -594,6 +628,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   `detail/A8-notas-subrayados.md`.
   **✅ ARREGLADO en la sesión 8** (`b3d73e1`): `findNoteById` inicializa primero (idempotente, coalesce llamadas concurrentes) y deja **propagar** un fallo real de lectura. Como propagar a secas habría abortado la tanda entera de `handleSnapshot` y podría parar el sync en silencio (la clase de `R9-33`/`R9-35`), `applyRemoteChange` devuelve ahora **si pudo establecer el estado local**: si no pudo, se salta ESE documento y **retiene su aporte al cursor**, para que se re-entregue en el próximo reattach en vez de perderse.
   **⚠️ COMPLETADO en la sesión 9** (`3e780c6`): el retiro del cursor de abajo estaba **a medias** — `handleSnapshot` guarda UN solo `maxSeenUpdatedAt` por lote, así que un hermano más nuevo del MISMO lote arrastraba el piso por delante del doc saltado y el siguiente reattach ya no lo entregaba (medido: piso `8_700_000` sobre un saltado en `1_000_000`). El cursor del lote se acota ahora por debajo del `updatedAt` más bajo no aplicado. Ver `detail/S9-revision-del-diff.md`.
+  **⚠️ Sesión 19:** el retiro del cursor solo vale dentro del lote — ver `R9-106`.
 - **`R9-47` (A9, Mesa) — 🐛 `load()` no tiene guarda de obsolescencia: una carga vieja que
   llega tarde pisa los `drafts`, y el siguiente `onBlur` escribe esa prosa ajena (o vacía)
   sobre la clave del pasaje visible.** Severidad **alta**. Es dato irreemplazable: el sermón
@@ -670,7 +705,246 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ---
 
+- **`R9-102` (S19, favoritos / sync) — 🐛 editar un favorito a menudo NO se encola: la edición
+  se ve en pantalla y nunca llega a la nube.** Pasa en `FavoritesContext.tsx:379-394`.
+  **El mecanismo:**
+  - `updateFavorite` escribe en SQLite, y solo encola el push si `mergedForSync` quedó asignado
+    **dentro del actualizador** de `setFavorites`.
+  - React solo ejecuta ese actualizador en el acto (el atajo de «eager state») cuando la fibra
+    no tiene trabajo pendiente. Si lo tiene, lo corre en el próximo render, y en la línea
+    siguiente `mergedForSync` vale `undefined` → **no hay `queueWrite`**.
+
+  **Medido con el reconciliador REAL de React 19.2.3** y el provider real:
+  - En el flujo ordinario (tick del motor → foco en la pestaña Favoritos, que llama a
+    `refreshFavorites` → 3 ediciones) salen encoladas `[0,0,0]`, y la pantalla muestra el cambio.
+  - La primera edición tras montar, y dos seguidas: también 0.
+  - Control del mecanismo: con un tick del contexto del motor antes de cada edición, `[1,1,1]`.
+
+  **El efecto es el de `R9-11`:** `pendingWrites` queda en 0, la nube nunca recibe el cambio, y
+  la siguiente edición del mismo favorito desde otro dispositivo gana por LWW y lo pisa.
+  - Llamadores: `AddToCollectionSheet.tsx:89` y `app/collections/[name].tsx:114`, o sea que
+    también afecta a las colecciones.
+  - Existe desde `1b94b78` (Sprint 42) y ninguna prueba lo cubre. **Sin verificar en dispositivo.**
+
+  **Arreglo:** calcular `merged` FUERA del actualizador, a partir de la fila que se acaba de
+  escribir, y encolar siempre. La prueba tiene que forzar trabajo pendiente en la fibra antes de
+  editar, o no discrimina. Detalle: `detail/S19-revision-del-diff.md`.
+
+- **`R9-103` (S19, `SyncEngine`) — 🐛 una edición local durante una BAJADA en vuelo se descarta
+  en silencio, en cualquier colección.**
+  **El mecanismo:**
+  - `suppressLocalWriteCount` (`SyncEngine.ts:246`) es un contador **global**.
+    `applyRemoteUpsert` lo sube mientras espera a SQLite (`:505-509`), y mientras está arriba
+    `queueWrite` y `queueDelete` salen sin hacer nada (`:451`, `:479`).
+  - La supresión existe para no volver a encolar el eco de lo que se está aplicando. Pero
+    **ningún adaptador llama a `queueWrite` dentro de un apply** (verificado), así que su único
+    efecto real es tragarse las ediciones del USUARIO que coinciden en el tiempo.
+
+  **Medido con el motor real:** tres ediciones durante una bajada en vuelo dan cola `[]`, nada
+  subido, `pendingWrites 0` y `droppedWrites 0`. Sin bajada en vuelo, las mismas tres suben.
+
+  **El efecto es el de `R9-11`, lápida incluida:** un borrado local que se pierde reaparece en
+  todos los dispositivos. La ventana es **ancha** justo cuando más se baja: dispositivo nuevo,
+  reinstalación, o la re-descarga de `R9-35`. Las revisiones `A4` y `A5` lo daban por «bien
+  hecho».
+
+  **Arreglo:** suprimir por **(colección, id)** del doc que se está aplicando, no globalmente.
+  Detalle: `detail/S19-revision-del-diff.md`.
+
 ## P1 — núcleo de la app
+
+- **`R9-104` (S19, `SyncEngine`) — 🐛 el flush no vuelve a mirar la cuenta después de cada
+  `await`, así que puede escribir datos de Ana en la nube de Beto.** **Candidato a P0** (clase
+  `R9-22`); más abajo, cómo decidirlo.
+
+  **El mecanismo:**
+  - `flush()` toma una foto `activeUid = this.uid` y filtra la cola con ella (`:1569-1571`). Eso
+    es el arreglo de `R9-22`.
+  - Dentro del bucle hace `await this.pushOne(...)` ítem por ítem, y **`pushOne` arma la ruta
+    con el `this.uid` DEL MOMENTO** (`:1702`). Su guarda (`:1700`) solo comprueba que haya
+    _algún_ uid.
+
+  **Medido con el motor real** (Firestore mockeado y `set()` diferido). Ana tiene `doc1` y `doc2`
+  en cola, y `doc1` resuelve después de `stop()` + `start('uid-beto')`. Resultado: `sets:
+[{path: "users/uid-beto/test", id: "doc2", value: "dos-de-ana"}]`, y la cola de Ana queda vacía
+  **como si se hubiera subido**. Lo encontraron **dos revisiones por separado** (la del diff de
+  la 10 y la del de la 11). Con una lápida en cola, es un `deleted:true` de Ana en un doc de Beto.
+
+  **Otros efectos del mismo defecto:**
+  - Si el push en vuelo **falla** tras `stop()`, `recordDroppedWrite` (`:589-592`) lo atribuye
+    con `this.uid`. El descarte de Ana se pierde sin aviso (`droppedWrites 0` al volver Ana) o
+    **aparece en la sesión de Beto, de forma persistente**.
+  - Lo que afirma `S10-revision-del-diff.md:128-129` («flush() tampoco corre sin uid, así que no
+    hay camino») es falso.
+
+  **Cómo decidirlo (no medido):** depende de qué haga el SDK real con un `set()` en vuelo cuando
+  cambia el usuario.
+  - Si lo resuelve después del cambio: mezcla entre cuentas, **P0**.
+  - Si lo deja pendiente: `flushInFlight` se queda en `true` y Beto no sube nada hasta reiniciar.
+    Sus escrituras quedan en cola y en disco.
+  - Se mide en Modo C, con emulador y dos cuentas de prueba, cortando la red con un push en
+    vuelo. **Nunca con el teléfono de Victor.**
+
+  **Arreglo (sirve para las dos ramas):** volver a comprobar `item.uid === this.uid` después de
+  cada `await` y cortar el bucle si no coincide. Y armar la ruta con `item.uid`, no con
+  `this.uid`.
+
+- **`R9-105` (S19, prueba de dinero) — 🐛 la línea exacta del bug de `R9-9` no la protege NINGUNA
+  prueba.**
+
+  **El mecanismo:**
+  - El arreglo cambió el inicializador del módulo a `let lastKnownUnlocked: boolean | null =
+null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el primer «inactivo»
+    de cada arranque se deduplicaba contra `false`, y la caché `'true'` sobrevivía al reembolso.
+  - Pero **toda prueba llama a `__resetForTests()` en su `beforeEach`, y esa función pone `null`
+    por su cuenta** (`:106`). Bajo jest el inicializador **nunca se ejecuta**.
+
+  **Medido:**
+  - Revertido solo el inicializador a `false`, que es el P0 tal cual: **57/57 suites que tocan
+    premium y 405/405 pruebas, en verde**.
+  - Una sonda con `jest.isolateModulesAsync` (módulo fresco, sin reset) sí discrimina: `HEAD` da
+    `{"cache":"false","seen":[false]}`, y el revert da `{"cache":"true","seen":[]}`.
+  - El commit lo vio, pero lo anotó como «nota de método» («hay que revertir los dos sitios») y no
+    como hueco de cobertura.
+
+  Es la forma de la sesión 12 (un mock con factoría literal sustituye la superficie), **esta vez
+  por la puerta del reset**.
+
+  **Arreglo:** una prueba con módulo fresco y sin reset que fije el camino del reembolso desde el
+  arranque.
+
+- **`R9-106` (S19, `SyncEngine`) — 🐛 `R9-65` (y `R9-46`) solo frenan el cursor dentro de SU
+  lote.** Los dos arreglos acotan `maxSeenUpdatedAt` por debajo del doc no aplicado o en conflicto
+  **del mismo lote** (`SyncEngine.ts:847-926`). Nada impide que un lote POSTERIOR de la misma
+  colección lo empuje por delante.
+
+  **Medido con el motor real:**
+  - Llega un conflicto en T. Un lote siguiente trae otro doc en T+10 min (puede ser el eco de una
+    edición propia), y el cursor pasa a T+595000.
+  - Tras reiniciar, el piso de la consulta queda en T+295000 y **el conflicto no vuelve a llegar**
+    (`conflictsTrasReinicio: 0`). El local se queda con «lo mío» y el cambio remoto se pierde:
+    **exactamente la pérdida que `R9-65` describe**.
+  - Resolver UN conflicto con `keepMine` avanza el cursor a «ahora» (`:1366`), así que se pierde
+    otro conflicto pendiente de la misma colección.
+  - Control: con el conflicto y el hermano en el MISMO lote, sí se vuelve a detectar.
+
+  **Lo que afirman el commit y la entrada de `R9-65` («se re-lee ese lote hasta que el usuario
+  resuelva») es falso.**
+
+  **Arreglo:** persistir el piso por colección como «el menor no asentado» (conflictos y saltados),
+  y respetarlo en todos los lotes y en `resolveConflict`, no solo en el lote donde nació.
+
+- **`R9-107` (S19, compuerta de CI) — 🐛 si un job corre node se decide por la FORMA de la línea
+  `run:`, y un job con npm sin `setup-node` pasa en silencio.**
+
+  **El mecanismo:** `ciNodeVersion.test.ts:263` usa `/^-?\s*run:\s*(.*)$/`, con el comando en la
+  **misma** línea. Si `run:` lleva el valor en la línea SIGUIENTE, el comando queda vacío y el job
+  nunca entra en `jobsRunningNode`, así que no se le exige pin.
+
+  **Medido sobre el `ci.yml` REAL**, con un cuarto job `smoke` sin `setup-node:` **23/23 en 14
+  formas de YAML válido** (oráculo `yaml` 2.9 y `js-yaml`):
+  - el valor en la línea siguiente, también bajo `- name:`;
+  - un escalar plano, o entre comillas dobles, de varias líneas, con `npm` desde la 2.ª línea;
+  - `"run":` y `'run':`, y `run :`;
+  - `- {run: …}` y `steps: [{…}]`;
+  - el job entero en flujo, que además cuenta en `scan.jobs` y satisface el piso por archivo;
+  - un step alias.
+
+  Control (`smoke: # added in a hurry` con un `run:` normal): **rojo**.
+
+  **Es una forma ordinaria, no exótica:** la plantilla OFICIAL `code-scanning/rust-clippy.yml:45`
+  de `actions/starter-workflows` usa exactamente `run:` con el valor plano en la línea siguiente.
+  Las otras formas aparecen 0 veces en las 172 plantillas.
+
+  **Ya existía antes** (el escáner de `0da86ce` da lo mismo). La 18 arregló la cabecera del job y
+  dejó la otra mitad de la misma correlación, y su «comprobado y BIEN» revisó las formas de **pin**,
+  nunca las de **run**. Es otra vez «decidir por la FORMA es decidir por un estilo».
+
+  **Arreglo:** leer el workflow con un parser YAML de verdad (`yaml` ya está en `node_modules`;
+  falta confirmar si es dependencia directa) y recorrer `jobs.*.steps[*].run` como datos.
+
+- **`R9-108` (S19, build de packs) — 🐛 el «Done.» no manda subir el manifiesto.**
+  `build-web-packs.js:1027-1030` imprime «_Upload the \*.sqlite AND \*-red-letter.json to the Pages
+  repo under /packs/_», y el manifiesto se escribe en `web/packs/` del repo, fuera de `out`.
+
+  **Por qué importa:** Pages sirve `web-bootstrap.json`, y `data-loader.web.ts:128` lo pide ahí.
+  Su sha256 es **la única señal** de que hay un pack nuevo: `:175-184` se salta la reimportación si
+  coincide, y `dataLoaderWebVersionGate.test.ts:141` fija ese comportamiento.
+  - **Quien siga la instrucción al pie de la letra deja a todos los navegadores ya arrancados con
+    el texto VIEJO, para siempre y en silencio.** Es la consecuencia de `R9-96`/`R9-87`, pero
+    causada por el propio mensaje de éxito.
+  - La letra roja (`redLetterText.web.ts:161`) no depende del manifiesto, así que esos
+    navegadores recibirían **spans nuevos sobre texto viejo**: rojo desalineado, sin error.
+
+  **Es alcanzable:** `60444ab` (2 Reyes 22:9) cambió el sha de RVR1960. En las 4 publicaciones
+  reales se evitó solo porque el operador lo sabía por la memoria. La línea nació en `c3a9aac`, y
+  `b18eedc` la tocó sin añadir el manifiesto.
+
+  **Arreglo:** nombrar el manifiesto en el «Done.», con su ruta real, y decir que va **al final**,
+  después de los packs.
+
+- **`R9-109` (S19, lector web) — 🐛 el lector web no verifica el sha256 de lo que descarga, y un
+  pack malo NO se cura.** `importWebPack` (`data-loader.web.ts:59-94`) baja los bytes, los
+  deserializa e inserta (`INSERT OR REPLACE`) sin hashearlos. Después guarda como versión **el sha
+  que dice el manifiesto** (`:194-199`), no el de los bytes.
+  - `sha256Hex` existe y el nativo lo usa (`version-download-service.ts:135`); la web no.
+  - `R9-81` ya lo dijo de pasada («usa el sha256 solo como token de caché»), pero nunca se
+    registró.
+
+  **Por qué ahora es P1: el mundo.** El `out` por defecto (`Desktop\web-packs`) tenía el
+  `rvr1960.sqlite` de julio **con texto de chatbot dentro de 2 Reyes 22:9** («_Claro, aquí tienes
+  el texto continuado de 2 Reyes 22:10-20…_», verificado con `grep -a`). Era del **mismo tamaño**
+  que el bueno y estaba **junto al manifiesto actual**.
+  - Subir la carpeta lo republicaba, y los navegadores nuevos lo importarían guardando la versión
+    «buena».
+  - **Re-subir después el pack bueno no los cura.**
+  - **Se movió a cuarentena en la sesión 19** (`C:\Users\victo\essb-cuarentena\`, con permiso de
+    Victor).
+
+  Además, si el manifiesto publicado no trae una versión, esa versión se reimporta **en cada
+  arranque**: 4,7 MB cada vez (`:175-193`).
+
+  **Arreglo:** hashear los bytes antes de importar, y rechazar si no coinciden con el manifiesto.
+  El fallo es ruidoso y recuperable: el siguiente arranque reintenta.
+
+- **`R9-97` (S18, build de packs) — 🐛 «coherent - one run, whole» sobre un directorio VACÍO.**
+  `filesNotPinnedBy` recorre los archivos que HAY en `out` y le pregunta al manifiesto por cada
+  uno; nada recorre el manifiesto preguntándole al directorio, así que un archivo que el
+  manifiesto pina y el directorio no tiene es **invisible**, y el `[]` de ese bucle se imprime
+  como «_Checked, not assumed: every file in it matches the sha256 the manifest pins, so it IS
+  coherent - one run, whole_». Es `R9-73` (un bucle sobre la lista NUEVA no ve lo que falta de la
+  VIEJA) con la consecuencia de `R9-74` (el vacío imprime éxito), **dentro de la compuerta escrita
+  contra eso** (`R9-93`). **Medido con el `main()` real:** con 2 de 4 archivos borrados dice eso;
+  con los 4 borrados, lo mismo de un directorio vacío. La mitad peligrosa es la primera: «whole»
+  manda a subir medio juego, y un 404 de GitHub Pages se sirve **sin CORS**, así que al lector le
+  llega `TypeError: Failed to fetch`. **Repro:** correr `main()`, borrar 2 archivos de `out`,
+  forzar el fallo del primer `renameSync`. **✅ ARREGLADO** (`2a442dd`): el bucle va en las dos
+  direcciones y nombra lo que falta. Detalle: `detail/S18-revision-del-diff.md`.
+  **⚠️ Sesión 19:** en el `out` real la rama «IS coherent» es inalcanzable (`R9-111`), el encabezado afirma una causa que no comprobó (`R9-112`), y una entrada sin `sha256` lo reabre (`R9-120`).
+
+- **`R9-98` (S18, build de packs) — 🐛 la forma LEGACY del manifiesto lanza DENTRO del `catch` y
+  borra el mensaje entero.** `filesNotPinnedBy` lee `previous.packs` / `previous.redLetter` en
+  crudo, pero `readPreviousManifest` acepta **a propósito** un `redLetter` que sea un OBJETO (la
+  forma que `web-bootstrap.json` tuvo hasta el 2026-09-15) y el archivo ya tiene
+  `previousRedLetterOf` para normalizarla. Esparcir un objeto plano lanza — y esto corre dentro
+  del `catch` del rename, así que reemplaza el mensaje `FIRST FILE` completo por
+  `TypeError: (previous.redLetter ?? []) is not iterable`. **Es el defecto que `R9-95` acababa de
+  quitarle a `main()` doscientas líneas más arriba, reintroducido por el mismo commit.**
+  **Repro:** reescribir el manifiesto en la forma legacy y forzar el fallo del primer
+  `renameSync`. **✅ ARREGLADO** (`2a442dd`): las dos listas por sus normalizadores.
+  **⚠️ Sesión 19:** el vecino sigue abierto — un error de E/S en el mismo `catch` (`R9-110`); y su prueba legacy no demuestra que el normalizador corrió (`R9-120`).
+
+- **`R9-99` (S18, compuerta de CI) — 🐛 el escáner decidía qué es un job por su FORMA, y tres
+  formas de YAML ordinarias no lo eran.** La cabecera de job era `/^([A-Za-z_][\w-]*):\s*$/`
+  —acabar en el dos puntos, que es un **estilo**—; no lo cumplen un comentario al final
+  (`build: # only lint`), un id entrecomillado ni un ancla (`build: &common`). Y ninguna
+  **fallaba**: `job` se quedaba en el job ANTERIOR, así que los steps de debajo se archivaban bajo
+  un job que **sí** tiene pin. **Medido sobre el `ci.yml` REAL:** un cuarto job corriendo
+  `npm ci && npm test` **sin ningún `setup-node`** pasaba **15/15** con un comentario en su
+  cabecera, y se ponía rojo al quitárselo. Es `R9-89` reabierto por su propio arreglo, con la
+  misma consecuencia: dos suites que no cargan en CI. **✅ ARREGLADO** (`f477c19`): manda la
+  COLUMNA, y una línea en el nivel de job que no se pueda nombrar se REPORTA y limpia `job`.
+  **⚠️ Sesión 19:** la otra mitad de la misma correlación —qué step corre node— se decide por la FORMA de `run:` (`R9-107`); y su sonda titular no discrimina la columna (`R9-121`).
 
 - **`R9-87` (S17, prueba de packs) — 🐛 el `beforeEach` de `R9-83` desarmó la ÚNICA aserción que
   fijaba que `main()` ESCRIBE el manifiesto.** El control de corrida limpia lo fijaba con
@@ -906,6 +1180,7 @@ the message is actionable`). **✅ ARREGLADO en la sesión 14:** todo se constru
   hasta que el usuario resuelva el conflicto. Lo cierra `resolveConflict` avanzando el cursor,
   y `recordConflict` **deduplica por id de doc**, así que las re-entregas refrescan el
   snapshot en vez de acumularse. Verificado a mano antes de aceptar el coste.
+  **⚠️ Sesión 19:** «se re-lee ese lote hasta que el usuario resuelva» es falso: un lote posterior o un `keepMine` avanzan el cursor — ver `R9-106`.
 
 - **`R9-15` (A6, tests) — 🐛 el único test que renderiza el lector web enmascara
   exactamente `R9-13`.** `__tests__/chapterReaderWebFontPicker.test.tsx:41` mockea el
@@ -1132,6 +1407,281 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 
 ## P2 — resto + pulido
 
+- **`R9-110` (S19, build de packs) — 🐛 un error de E/S dentro del `catch` de FIRST FILE vuelve a
+  borrar el mensaje entero.** Es el vecino de `R9-98`: aquel quitó UNA forma de lanzar dentro del
+  `catch` del rename, pero `filesNotPinnedBy` (llamada sin protección en `build-web-packs.js:943`)
+  sigue haciendo `readdirSync(out)` y `readFileSync` de cada pack.
+
+  **Medido con el `main()` real y procesos REALES:**
+  - Un `pwsh` que abre `rvr1960-red-letter.json` con `FileShare.ReadWrite` y lo bloquea por rango
+    de bytes pasa el preflight, y deja al operador con `EBUSY: resource busy or locked, read`,
+    **sin ruta siquiera**.
+  - Un directorio con el nombre de un pack pinado que la corrida ya no emite (`--allow-shrink`)
+    da `EISDIR: illegal operation on a directory, read`. El preflight solo mira lo que la corrida
+    emite.
+  - Si `out` se borra entre el preflight y el rename, sale `ENOENT … scandir`.
+
+  Es la tercera vez con la forma de `R9-95`/`R9-98`. Queda en P2 porque no se encontró ninguna
+  herramienta del flujo real que tome un bloqueo de rango sobre un `.json`: SQLite bloquea en el
+  offset 1 GiB, y con un visor la lectura sale bien.
+
+  **Arreglo:** `filesNotPinnedBy` dentro de su propio `try`, que degrade a `null` («no pude
+  comprobar») con el motivo.
+
+- **`R9-111` (S19, build de packs) — 🐛 en el `out` REAL, «IS coherent» es inalcanzable: la rama
+  que protegen las pruebas de `R9-97` solo existe en los fixtures.** El directorio de publicación
+  contiene `web-bootstrap.json` (tiene que estar: es lo que se sube a Pages). Como
+  `filesNotPinnedBy` recorre todo `.json`, lo reporta siempre como «_web-bootstrap.json (the
+  manifest does not mention it)_».
+
+  **Medido con el `main()` real, los datos reales y una copia del directorio real, tras una
+  corrida limpia:** «_CAREFUL: it is NOT coherent. An EARLIER run left this directory MIXED - …
+  web-bootstrap.json (the manifest does not mention it). Do NOT upload anything from it._»
+
+  Ningún `out` de fixture lleva la copia del manifiesto: el fixture responde la pregunta. Es la
+  clase de `R9-84` (llamar MIXED a lo coherente).
+
+  **Arreglo:** excluir el manifiesto por nombre (o compararlo con el del repo), y añadir un fixture
+  que lo contenga.
+
+- **`R9-112` (S19, build de packs) — 🐛 FIRST FILE y FAILED HALFWAY afirman una CAUSA que no
+  comprobaron.**
+  - **FIRST FILE, rama «NOT coherent»** (`:957-959`). El encabezado dice «_An EARLIER run left
+    this directory MIXED_ … _those files are an EARLIER run_», y ahora encabeza también los
+    archivos faltantes y los ajenos. Medido, lo dice de:
+    - un `out` **vacío**, que es el primer caso que cita la prueba de `R9-97`;
+    - un `out` con una corrida **entera** sin pinar (tras `R9-96`);
+    - el directorio de una sola corrida con manifiesto legacy, que la prueba de `R9-98` fija como
+      `NOT coherent`.
+  - **FAILED HALFWAY** (`:965-972`) dice «_not moved (an EARLIER run's)_» sin mirar. En un `out`
+    recién creado nombra 3 archivos «de una corrida anterior» que no existen, y con las fuentes sin
+    cambiar llama MIXED a 4 archivos idénticos al manifiesto. La comprobación está 20 líneas más
+    arriba.
+
+  El consejo («Do NOT upload») es seguro en todos los casos; lo falso es la causa. Es vecino de
+  `R9-93` y de `R9-84`.
+
+- **`R9-113` (S19, build de packs) — 🐛 el preflight de `R9-81` no caza la causa que él mismo
+  nombra: un visor de SQLite.** El preflight abre cada destino con `openSync(dest, 'r+')`
+  (`build-web-packs.js:885-919`), y su error dice «_Close whatever is holding that file (a SQLite
+  browser, …)_».
+
+  **Medido con procesos REALES, sin mocks,** reteniendo `web.sqlite`:
+  - Pasan el preflight todos estos: `node:sqlite` RW, `node:sqlite` `readOnly: true`,
+    `fs.openSync('r')`/`'r+'` y .NET `FileShare.ReadWrite[, Delete]`.
+  - En todos, el `main()` real termina en `FAILED HALFWAY: EPERM` con 3 archivos movidos:
+    `rvr1960.sqlite` con bytes de la corrida 2, y el manifiesto pinando los de la 1.
+  - Solo lo caza quien **niega la escritura** (`FileShare.Read`).
+  - Con las fuentes reales sobre una copia de `Desktop\web-packs`, sale el mismo HALFWAY.
+
+  **Son falsas estas afirmaciones:**
+  - la entrada de `R9-81` («cubre la causa realista entera»);
+  - el comentario del script en `:891` («_covers the whole realistic cause_»);
+  - el de `:898-900` («_a file held open by another process throws here_»);
+  - el de la prueba en `:1046` («_The residual race_»): no es una carrera, pasa siempre;
+  - la frase del ledger «espiar `renameSync` es la única forma determinista de llegar ahí».
+
+  El mensaje de HALFWAY sí dice la verdad; por eso es P2. **Lección: una compuerta verificada solo
+  con spies no se midió contra el mundo.**
+
+  **Arreglo:** que el preflight haga un rename real de ida y vuelta (o un `renameSync` a un nombre
+  temporal en el mismo directorio) en vez de `open`.
+
+- **`R9-114` (S19, prueba de sync) — 🐛 el «control de que la carrera ocurrió» de la prueba de
+  `R9-34` no controla nada.** `SyncEngine.test.ts:1914-1918` fija `attempts === 1` como prueba de
+  que hubo un push fallido **de v1**. Pero la reedición `v2` estrena `attempts: 0`, y su propio
+  push fallido también la deja en 1.
+
+  **Medido:**
+  - Revertido `R9-34` y reproducida la forma envenenada original, pasan el control **y** el valor:
+    `{"attempts":1,"value":"v2-REEDITADO","pushesIntentados":["v1","v2-REEDITADO"]}`.
+  - Con un refactor de una línea que difiere el `flush()` de `queueWrite` (`:470`), y `R9-34`
+    revertido, **la prueba comprometida pasa en verde**.
+  - El comentario de `:1916` («no habría intento ninguno») es falso.
+
+  Hoy la prueba sí cae con `R9-34` revertido; lo que no protege es su propia premisa.
+
+  **Arreglo:** controlar con el registro de llamadas a `set()`, que con la carrera es solo `['v1']`.
+
+- **`R9-115` (S19, `SyncEngine`) — 🐛 la premisa del arreglo de `R9-11` es falsa: `!== item` no
+  significa «me reemplazó una edición más NUEVA».** `hydrateQueue` (`:515-526`) también mete
+  objetos en la cola, y los trae del DISCO, o sea viejos.
+
+  **Medido:** X está persistido como `"viejo"` y se reedita a `"nuevo"` mientras `start()`
+  hidrata. Con el arreglo se sube `["nuevo","viejo"]` y **la nube acaba en `"viejo"`**; con `R9-11`
+  revertido, solo `["nuevo"]`. La ventana es estrecha: el arranque, con una entrada pendiente del
+  mismo id.
+
+  Pariente preexistente, P3: una escritura hecha durante la hidratación cuyo primer push falla
+  desaparece de la cola y del disco, con `pending 0` y `dropped 0`.
+
+  **Arreglo:** que la hidratación no pise una entrada en memoria más nueva (comparar `updatedAt`, o
+  hidratar antes de aceptar escrituras).
+
+- **`R9-116` (S19, prueba de respaldo) — 🐛 la prueba de `R9-28` cubre 1 de los 4 providers del
+  arreglo.** El arreglo suscribe a la señal de restauración (`subscribeBackupRestored`) a
+  `MemoryDeck`, `ReaderPreferences`, `ReadingPlanProgress` y `ReadingProgress`.
+
+  **Medido:** quitadas a la vez las suscripciones de los tres últimos, **la suite entera sigue
+  verde (363 suites / 4289 pruebas)**. La frase «ya no queda ningún arreglo sin prueba»
+  (`BUGS.md`, `CONTINUAR.md`) es cierta para `MemoryDeck` y no para los otros tres. Es la lección
+  de la 18: comprobar la afirmación ENTERA.
+
+  **Arreglo:** una prueba parametrizada sobre los cuatro providers.
+
+- **`R9-117` (S19, favoritos / respaldo) — 🐛 `FavoritesContext` no escucha la señal de
+  restauración, y pisa lo restaurado.** No está entre los suscriptores de
+  `subscribeBackupRestored` (verificado).
+
+  **Medido:**
+  - Tras importar, la memoria sigue con `"nota PRE-import"` mientras SQLite tiene
+    `"nota RESTAURADA"`.
+  - Cuando la siguiente edición de ese favorito sí sube (ver `R9-102`), la nube recibe
+    `note: "nota PRE-import"` y `rating: 2` con `updatedAt` = ahora, y eso **gana en los demás
+    dispositivos**.
+  - El aviso de reiniciar se cierra con «Entendido» y lo presenta como pantallas desactualizadas,
+    no como un riesgo.
+
+  Es el vecino de `R9-28` (P0) que ninguna prueba mira.
+
+  **Arreglo:** suscribir `FavoritesContext` como los otros cuatro, y meterlo en la prueba
+  parametrizada de `R9-116`.
+
+- **`R9-118` (S19, CI) — 🐛 Codecov nunca recibió NADA, y el step sale verde.**
+  - El log del run `35163775542` (y el de uno de rama del 09-03) dice «_Branch `main` is protected
+    but no token was provided_» y tres veces «_Token required - not valid tokenless upload_».
+  - El step pasa por `fail_ci_if_error: false` (`ci.yml:81`).
+  - La API pública de Codecov da `count: 0` para el repo, y el badge dice «unknown».
+
+  **Es un step que promete algo y no lo entrega en el 100 % de los pushes.**
+  `detail/B5-seguridad-ci.md:45` afirma que el upload tokenless está «permitido en repos
+  públicos», y eso es falso en la práctica: con `main` protegida, Codecov exige token. Además, el
+  step baja el CLI de Codecov en «_Running version latest_», sin fijar.
+
+  **Decisión de Victor:** darle token (un secreto) o quitar el step. Lo que no vale es un verde que
+  no mide nada.
+
+- **`R9-119` (S19, premium) — 🐛 cerrar sesión le quita el premium a quien pagó, y dos docstrings
+  dicen lo contrario.** Los docstrings son `offeringService.ts:218-223` y `AuthContext.tsx:335-338`
+  («_never revoked on sign-out_»), y la entrada de `R9-9` los cita como hecho.
+
+  **Medido con `AuthProvider` y el servicio reales:** `logIn calls =
+[["uid-ana"],["anon-nuevo"]]`, `isPremium = false`, caché `false`. El motivo es que el anónimo
+  que se crea al cerrar sesión llama a `linkUser`.
+  - Da idéntico con `bb3b25b^`: es **preexistente**, no una regresión.
+  - La semántica de RevenueCat («un appUserID nuevo no tiene compras») está simulada en el mock.
+  - Se recupera volviendo a iniciar sesión.
+
+  **Quién es dueño del premium (la cuenta o el dispositivo) es decisión de producto de Victor.** Lo
+  que hoy sí es un defecto es que el comentario miente.
+
+- **`R9-120` (S19, build de packs — P3, agrupado).** Todo medido con el `main()` real:
+  1. La prueba legacy de `R9-98` no demuestra que el normalizador corrió, aunque su comentario diga
+     «_Naming it is the proof the normalizer ran_». Si se ignora el objeto legacy en silencio, da
+     **63/63 verde**: el mensaje pasa a nombrar `rvr1960-red-letter.json` **y** `web-red-letter.json`,
+     y el `toContain` se cumple igual. Falta `not.toContain('web-red-letter.json')`.
+  2. Una entrada del manifiesto sin `sha256` se descarta (`:512`).
+     - Si el archivo está presente, sale «_the manifest does not mention it_», que es una razón falsa.
+     - Si está ausente, con 3 de 4 archivos dice «_IS coherent - one run, whole_»: `R9-97`
+       reabierto.
+     - Hoy es inalcanzable: las 6 revisiones históricas llevan `file` y `sha256`.
+  3. Manifiesto con disco lleno: `:1011-1018` dice «_the manifest still describes the PREVIOUS ones
+     … costs nothing_». Pero con `O_TRUNC` + `ENOSPC` el manifiesto queda en 0 bytes, y la
+     re-corrida aborta con «Could not PARSE».
+  4. Preflight con un directorio donde va un pack: el mensaje dice «_Close whatever is holding that
+     file … and re-run_», y la re-corrida da el mismo error.
+  5. `verifyPack` nombra `out/.staging-…/rvr1960.sqlite`, que `main()` ya borró cuando el operador
+     lo lee.
+  6. `packs: [null, …]` da un `TypeError` pelado desde `shrinkComplaints:423` (y `:434`), que no se
+     protegen contra `null` como sí lo hacen `:385` y `:512`.
+  7. El consejo del error READ (`:287-291`, «move it aside … first run») lleva, desde `R9-83`, a
+     «_its absence is a deleted or moved file, not a first run_».
+  8. Un abort con fallo de limpieza dice «_no pack file was emitted into the output directory_»
+     mientras `out/.staging-X/` tiene los 4 packs. Es `R9-72` por el camino de `R9-95`; la nota
+     final lo mitiga.
+  9. «_ALL slices non-blank and in-range_» deja pasar un span `[-5,29]`: el verificador comprueba
+     `slice(-5,29)` y el render (`redLetterText.ts:134`) pinta `[0,29]`. Solo es alcanzable con un
+     bug del generador.
+
+- **`R9-121` (S19, compuerta de CI — P3, agrupado).** Todo medido contra las funciones reales y el
+  `ci.yml` real:
+  1. Cualquier línea `node-version:` dentro del job cuenta como pin (`:283`). Incluye la que el
+     bucle externo relee DENTRO de un bloque `run: |`, porque `:280` hace `continue` sin avanzar
+     `i`. Con un job sin `setup-node` dan 23/23:
+     - un heredoc que escribe `node-version: 24`;
+     - un `config: |` de otra acción;
+     - `env:`;
+     - el `with:` de `actions/cache`.
+
+     Es preexistente, y ninguna de esas formas aparece en las plantillas.
+
+  2. El piso por archivo de `R9-100` (`:611-613`) no tiene sonda propia: quitarlo deja 23/23.
+     - Su mensaje es solo `["deploy.yml", false]`, sin el porqué.
+     - El caso del commit no lo aísla: con el strip y sin el piso sale rojo igual, por «bare major».
+     - La única entrada que lo necesita es un `jobs:` ilegible (`jobs: &deploy_jobs`), y ninguna
+       sonda la tiene.
+  3. `checked >= 1` (`:709`) lo alimentan SOLO las tres frases «it pins Node 24 now» que escribió
+     el mismo arreglo (`hebrewGlossEs.test.ts:38`, `insertVersesBatchedSql.test.ts:16-17`,
+     `quizVerseLookup.test.ts:11`). Revertirlas da `Expected: >= 1, Received: 0`, que parece «el
+     regex se rompió». Sí caza un recorrido de directorio roto (medido).
+  4. `nodePinClaims` devuelve `[]` para «pins Node.js 20» y «pins Node v20», que están dentro de su
+     alcance declarado, y también para «is pinned to Node 20» y «CI uses Node 20».
+  5. La sonda titular de `R9-99` (`bad: # added in a hurry`) no discrimina la lógica de COLUMNA: si
+     se revierte solo la columna sigue verde, porque la sostiene `stripTrailingComment`. El id
+     entrecomillado y el ancla que cita el commit no tienen sonda.
+  6. Tres casos más que pasan sin que la compuerta los vea:
+     - el orden de los steps no se modela: un `npm test` ANTES del `setup-node '24'` pasa;
+     - `shell: node {0}` sin `setup-node` pasa;
+     - un comando armado con `${{ … }}` (plantilla oficial de Pages `nextjs.yml:75`) solo se
+       detecta por casualidad.
+  7. Pisos de Node rancios que ningún detector ve:
+     - `README.md:82` dice `node >= 18.0.0`, y `engines` exige `>=22.13.0`;
+     - «Requires Node ≥ 22 (node:sqlite)» en `build-hebrew-lemma-gloss-es.js:50` y en
+       `research/generate-a4-override-positions.js:62`, falso para 22.0–22.12;
+     - la misma frase en cuatro scripts más que llevan `--experimental-sqlite`, donde es falsa solo
+       para 22.0–22.4;
+     - «`node:sqlite` requires Node >= 22.5», sin la bandera, en `hebrewGlossEs.test.ts:39` y en
+       `insertVersesBatchedSql.test.ts:17-18`.
+
+- **`R9-122` (S19, dinero y sync — P3, agrupado).**
+  1. «La suscripción pasa ANTES de la lectura» (`PremiumContext.tsx:72-73`, y el commit y el ledger
+     de `R9-9`) arregla una ventana que no existe: la IIFE async corre síncrona hasta su primer
+     `await`. Revertido solo el orden: 42/42 verdes.
+  2. La aserción intermedia `PremiumContext.test.tsx:156` es vacua: `false` es el estado inicial de
+     `useState`, así que con `R9-9` revertido pasa, y la prueba cae recién en `:163`. Además, el
+     commit dice «las 5 vistas fallar», pero con los dos arreglos revertidos caen **4**: la quinta
+     es un control.
+  3. Un `stop()` que cae durante un `start()` en vuelo se deshace:
+     `{"trasStop":0,"alResolverStart":2,"isActive":false}`. En la práctica solo pasa con la misma
+     cuenta.
+  4. Un lote de Ana que termina después de `start('beto')` escribe su máximo bajo la clave de
+     cursor de Beto (`:1124`; medido `cursorBeto null → tsDeAna`).
+
+- **`R9-123` (S19, docs de la revisión — P3, agrupado).** Afirmaciones falsas o rancias en los
+  propios docs, medidas contra git y contra el código:
+  1. «Décima sesión seguida» (`S18:3`, `INDEX.md`, `CONTINUAR.md`) era falso. **La 11 y la 12 no
+     revisaron ningún diff**, así que los de la 10 y la 11 nunca se habían revisado. Ya lo están:
+     los revisó esta sesión.
+  2. `R9-97`..`R9-99` estaban bajo `## P2` siendo P1. **Se movieron a P1 en esta sesión.**
+  3. `CONTINUAR.md` tenía tres errores, **reescritos en esta sesión**:
+     - `:18` decía `main` = `2b65a12`, y era `40160d7`;
+     - el prompt de arranque daba rangos que se dejaban fuera a sí mismos (un commit no puede
+       nombrar su propio hash) y decía «dos de checkpoint» cuando eran tres;
+     - hablaba de «Tres cosas» sin decidir, cuando «Dicho y NO hecho» lista 5.
+  4. Dos afirmaciones de `S18` son falsas:
+     - `:92-94`, «limpie el directorio … como le dijo el mensaje FAILED HALFWAY»: HALFWAY solo dice
+       «re-run»;
+     - `:94-95`, «la rama `unpinned.length === 0` no la ejercitaba ninguna prueba»: la de `R9-84` sí
+       pasa por ahí. Lo cierto es «ninguna la asertaba».
+  5. `S10:128-129` («flush() tampoco corre sin uid, así que no hay camino») es falso: ver `R9-104`.
+  6. `B5-seguridad-ci.md:45` (upload tokenless a Codecov «permitido») es falso: ver `R9-118`.
+  7. El orden de las lecciones va 16→18→17 en `CONTINUAR.md` e `INDEX.md`, y dos corolarios de la
+     16 cuelgan de la 17.
+  8. Cifras rancias heredadas en las secciones 1-9 de `CONTINUAR.md`: «10 ramas» enumerando 11,
+     «7 a 16», 4263 pruebas, 64 hallazgos, «abiertos son 14», y 19 detalles cuando hay 28. También
+     `INDEX.md:52-53` («subir `rvr1960-red-letter.json`», ya publicado). **Sin corregir una por
+     una.**
+
 - **`R9-90` (S17, CI) — 🐛 el control «still has a reason to require it» casaba TEXTO, y miraba 1
   de los 9 archivos que lo necesitan.** `expect(script).toContain("require('node:sqlite')")` sobre
   `build-web-packs.js`. **Medido en las dos direcciones:** migrado a `better-sqlite3` dejando un
@@ -1171,42 +1721,6 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   manifiesto ya está en mano), y `null` («no pude comprobar») y `[]` («comprobado, cuadra») son
   respuestas **distintas** a propósito.
 
-- **`R9-97` (S18, build de packs) — 🐛 «coherent - one run, whole» sobre un directorio VACÍO.**
-  `filesNotPinnedBy` recorre los archivos que HAY en `out` y le pregunta al manifiesto por cada
-  uno; nada recorre el manifiesto preguntándole al directorio, así que un archivo que el
-  manifiesto pina y el directorio no tiene es **invisible**, y el `[]` de ese bucle se imprime
-  como «_Checked, not assumed: every file in it matches the sha256 the manifest pins, so it IS
-  coherent - one run, whole_». Es `R9-73` (un bucle sobre la lista NUEVA no ve lo que falta de la
-  VIEJA) con la consecuencia de `R9-74` (el vacío imprime éxito), **dentro de la compuerta escrita
-  contra eso** (`R9-93`). **Medido con el `main()` real:** con 2 de 4 archivos borrados dice eso;
-  con los 4 borrados, lo mismo de un directorio vacío. La mitad peligrosa es la primera: «whole»
-  manda a subir medio juego, y un 404 de GitHub Pages se sirve **sin CORS**, así que al lector le
-  llega `TypeError: Failed to fetch`. **Repro:** correr `main()`, borrar 2 archivos de `out`,
-  forzar el fallo del primer `renameSync`. **✅ ARREGLADO** (`2a442dd`): el bucle va en las dos
-  direcciones y nombra lo que falta. Detalle: `detail/S18-revision-del-diff.md`.
-
-- **`R9-98` (S18, build de packs) — 🐛 la forma LEGACY del manifiesto lanza DENTRO del `catch` y
-  borra el mensaje entero.** `filesNotPinnedBy` lee `previous.packs` / `previous.redLetter` en
-  crudo, pero `readPreviousManifest` acepta **a propósito** un `redLetter` que sea un OBJETO (la
-  forma que `web-bootstrap.json` tuvo hasta el 2026-09-15) y el archivo ya tiene
-  `previousRedLetterOf` para normalizarla. Esparcir un objeto plano lanza — y esto corre dentro
-  del `catch` del rename, así que reemplaza el mensaje `FIRST FILE` completo por
-  `TypeError: (previous.redLetter ?? []) is not iterable`. **Es el defecto que `R9-95` acababa de
-  quitarle a `main()` doscientas líneas más arriba, reintroducido por el mismo commit.**
-  **Repro:** reescribir el manifiesto en la forma legacy y forzar el fallo del primer
-  `renameSync`. **✅ ARREGLADO** (`2a442dd`): las dos listas por sus normalizadores.
-
-- **`R9-99` (S18, compuerta de CI) — 🐛 el escáner decidía qué es un job por su FORMA, y tres
-  formas de YAML ordinarias no lo eran.** La cabecera de job era `/^([A-Za-z_][\w-]*):\s*$/`
-  —acabar en el dos puntos, que es un **estilo**—; no lo cumplen un comentario al final
-  (`build: # only lint`), un id entrecomillado ni un ancla (`build: &common`). Y ninguna
-  **fallaba**: `job` se quedaba en el job ANTERIOR, así que los steps de debajo se archivaban bajo
-  un job que **sí** tiene pin. **Medido sobre el `ci.yml` REAL:** un cuarto job corriendo
-  `npm ci && npm test` **sin ningún `setup-node`** pasaba **15/15** con un comentario en su
-  cabecera, y se ponía rojo al quitárselo. Es `R9-89` reabierto por su propio arreglo, con la
-  misma consecuencia: dos suites que no cargan en CI. **✅ ARREGLADO** (`f477c19`): manda la
-  COLUMNA, y una línea en el nivel de job que no se pueda nombrar se REPORTA y limpia `job`.
-
 - **`R9-100` (S18, compuerta de CI) — 🐛 `jobs: # comentario` ciega un archivo entero, y el piso
   era un conteo global.** `/^jobs:\s*$/` rechazaba el comentario, `inJobs` no se encendía y el
   archivo volvía entero vacío — silencio idéntico al de un parseo limpio. El único piso contaba
@@ -1215,6 +1729,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   verdad:** un job corriendo `npm ci && npm run build:web` en `node-version: '20'` —`R9-82`
   verbatim— pasaba **15/15**. **✅ ARREGLADO** (`f477c19`): el comentario se quita en toda línea y
   el piso pasa a ser **por archivo** (`scan.jobs.length > 0`).
+  **⚠️ Sesión 19:** el piso por archivo no tiene sonda propia, y su mensaje no dice por qué falla — ver `R9-121`.
 
 - **`R9-101` (S18, compuerta de CI) — 🐛 el detector de `R9-91` no cruza de línea, y no casaba con
   NADA.** El regex lleva `[^.\n]` entre «pins» y la versión, y la frase que se pudrió **cruzaba**:
@@ -1226,6 +1741,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   cuatro sondas (incluido el control en pasado), aplanado de continuaciones, piso `checked >= 1`,
   y las tres frases corregidas vueltas a hacer afirmaciones VIVAS («it pins Node 24 now»): de 0
   comparaciones a 3.
+  **⚠️ Sesión 19:** `checked >= 1` lo alimentan solo las tres frases que escribió este mismo arreglo — ver `R9-121`.
 
 - **`R9-94` (S17, CI) — 🐛 `npm outdated` corría sin instalar: las 57 filas salían `MISSING`.**
   El job de seguridad es el único sin paso de instalación. `npm audit` lee el lockfile y no lo
@@ -1345,6 +1861,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   `statSync().isFile()`. La rama del rename que falla después del preflight se fija espiando
   `fs.renameSync`, que es la única forma determinista de llegar ahí.
   Detalle: `detail/S15-revision-del-diff.md`.
+  **⚠️ Sesión 19:** el preflight NO cubre la causa realista entera: un visor SQLite, incluso `readOnly`, lo pasa y rompe el rename a mitad — ver `R9-113`.
 
 - **`R9-74` (S14, build de packs) — 🐛 `readPreviousManifest` devolvía `null` ante CUALQUIER
   error, y un `null` apagaba la compuerta entera en silencio total.** El comentario decía
