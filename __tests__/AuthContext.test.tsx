@@ -575,6 +575,270 @@ describe('AuthProvider', () => {
     mockEngineStub = null;
   });
 
+  describe('R9-125 / R9-130 — the previous owner is checked on EVERY branch', () => {
+    // `signInWithCredential` must leave a real current user behind (the
+    // default mock doesn't), since the direct path claims the store for
+    // whatever `currentUser` is once it resolves.
+    function nextSignInLandsAs(uid: string) {
+      mockSignInWithCredential.mockImplementationOnce(async () => {
+        mockCurrentUser = {uid, isAnonymous: false};
+        return {user: mockCurrentUser};
+      });
+    }
+
+    // A fresh stub per test: the shared `mockExportLocalData` carries
+    // `mockResolvedValueOnce` values that earlier tests never consume, and
+    // `mockClear()` does not drop them.
+    function freshEngine(localNotes: {count: number}) {
+      const engine = {
+        exportLocalData: jest.fn(async () =>
+          localNotes.count > 0
+            ? [{collection: 'notes', count: localNotes.count}]
+            : [],
+        ),
+        queueSkipNextBulkPush: jest.fn(),
+        stop: jest.fn(),
+      };
+      mockEngineStub = engine;
+      return engine;
+    }
+
+    const collision = () =>
+      Object.assign(new Error('already in use'), {
+        code: 'auth/credential-already-in-use',
+      });
+
+    afterEach(() => {
+      mockEngineStub = null;
+    });
+
+    it('walks the three branches — collision, no anonymous user, link success — and each one hands the store to the next guard', async () => {
+      const localNotes = {count: 0};
+      const engine = freshEngine(localNotes);
+      const {ref, onReady} = captureAuthApi();
+      const {getByText, queryByText} = render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+
+      // 1. COLLISION. Ana's Google account already exists (new phone), so the
+      //    link is refused and she signs in directly. The store is empty, so
+      //    there is nothing to ask about — but the store is now HERS, and
+      //    that claim is the only thing that lets step 2 recognise her data
+      //    as someone else's (R9-130).
+      mockCurrentUser = {uid: 'anon-ana', isAnonymous: true};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-ana'));
+      mockLinkWithCredential.mockRejectedValueOnce(collision());
+      nextSignInLandsAs('ana-uid');
+      await act(async () => {
+        await ref.current!.signInWithGoogle();
+      });
+      flushListenerWith(mockCurrentUser);
+      expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(1); // Sprint 43's check
+      expect(queryByText('Solo iniciar sesión')).toBeNull();
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'ana-uid',
+      );
+
+      // Ana writes 12 private notes, then signs out. The anonymous sign-in
+      // that follows FAILS (no network), so there is no anonymous user.
+      localNotes.count = 12;
+      await act(async () => {
+        await ref.current!.signOut();
+      });
+      mockCurrentUser = null;
+      mockSignInAnonymously.mockRejectedValueOnce(new Error('offline'));
+      await act(async () => {
+        mockListeners.forEach(l => l(null));
+      });
+      expect(mockSignInAnonymously).toHaveBeenCalledTimes(1);
+      expect(ref.current?.user).toBeNull();
+
+      // 2. NO ANONYMOUS USER. Beto signs in with a Google account that has
+      //    never used the app. Nothing to link, so the pre-fix code went
+      //    straight to signInWithCredential and bulk-pushed Ana's notes into
+      //    Beto's cloud without a word (R9-125).
+      nextSignInLandsAs('beto-uid');
+      let signInPromise!: Promise<AuthUser | null>;
+      act(() => {
+        signInPromise = ref.current!.signInWithGoogle();
+      });
+      const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
+      await act(async () => {
+        fireEvent.press(cancelBtn);
+        await signInPromise;
+      });
+      flushListenerWith(mockCurrentUser);
+      expect(mockLinkWithCredential).toHaveBeenCalledTimes(1); // still step 1's
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(2);
+      expect(engine.queueSkipNextBulkPush).toHaveBeenCalledTimes(1);
+      // The skip has to be queued BEFORE the sign-in: that sign-in is what
+      // fires onAuthStateChanged, and SyncEngineContext starts the engine
+      // (and its bulk push) on it. A skip queued after it is too late.
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(2);
+      expect(
+        engine.queueSkipNextBulkPush.mock.invocationCallOrder[0],
+      ).toBeLessThan(mockSignInWithCredential.mock.invocationCallOrder[1]);
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'beto-uid',
+      );
+
+      // 3. LINK SUCCESS. Beto signs out; this time the anonymous session
+      //    starts, and Carla links a brand-new Google account on top of it.
+      //    The store still holds data that is not hers, and it now belongs to
+      //    Beto — the claim from step 2 is what makes this guard fire.
+      await act(async () => {
+        await ref.current!.signOut();
+      });
+      mockCurrentUser = {uid: 'anon-carla', isAnonymous: true};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-carla'));
+      expect(queryByText('Solo iniciar sesión')).toBeNull();
+      act(() => {
+        signInPromise = ref.current!.signInWithGoogle();
+      });
+      const cancelBtn2 = await waitFor(() => getByText('Solo iniciar sesión'));
+      await act(async () => {
+        fireEvent.press(cancelBtn2);
+        await signInPromise;
+      });
+      expect(mockLinkWithCredential).toHaveBeenCalledTimes(2);
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(2); // linked, not signed in
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(3);
+      expect(engine.queueSkipNextBulkPush).toHaveBeenCalledTimes(2);
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'anon-carla',
+      );
+    });
+
+    it('R9-125 — no anonymous user and no previous owner: a first-ever sign-in is NOT interrogated', async () => {
+      const engine = freshEngine({count: 12});
+      const {ref, onReady} = captureAuthApi();
+      render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockSignInAnonymously.mockRejectedValueOnce(new Error('offline'));
+      await act(async () => {
+        mockListeners.forEach(l => l(null));
+      });
+      expect(mockCurrentUser).toBeNull();
+
+      nextSignInLandsAs('first-uid');
+      await act(async () => {
+        await ref.current!.signInWithGoogle();
+      });
+
+      // Same rule as the link branch: an unclaimed store is the signer's own.
+      expect(engine.exportLocalData).not.toHaveBeenCalled();
+      expect(engine.queueSkipNextBulkPush).not.toHaveBeenCalled();
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'first-uid',
+      );
+    });
+
+    it('R9-125 — no anonymous user, another owner, but an EMPTY store: nothing to ask, the sign-in goes through', async () => {
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      const engine = freshEngine({count: 0});
+      const {ref, onReady} = captureAuthApi();
+      const {queryByText} = render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockSignInAnonymously.mockRejectedValueOnce(new Error('offline'));
+      await act(async () => {
+        mockListeners.forEach(l => l(null));
+      });
+
+      nextSignInLandsAs('beto-uid');
+      await act(async () => {
+        await ref.current!.signInWithGoogle();
+      });
+
+      // The owner check ran, found nothing to migrate, and did not park the
+      // sign-in behind a "migrate 0 items?" dialog.
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(1);
+      expect(queryByText('Solo iniciar sesión')).toBeNull();
+      expect(engine.queueSkipNextBulkPush).not.toHaveBeenCalled();
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'beto-uid',
+      );
+    });
+
+    it('R9-125 — a failed owner check never blocks the sign-in itself', async () => {
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      const engine = freshEngine({count: 12});
+      engine.exportLocalData.mockRejectedValueOnce(new Error('SQLITE_BUSY'));
+      const {ref, onReady} = captureAuthApi();
+      render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockSignInAnonymously.mockRejectedValueOnce(new Error('offline'));
+      await act(async () => {
+        mockListeners.forEach(l => l(null));
+      });
+
+      // The check now sits in FRONT of the only sign-in call this branch
+      // has, so a local read failure that escaped it would make Google
+      // sign-in impossible, not just unprompted.
+      nextSignInLandsAs('beto-uid');
+      let signedIn: AuthUser | null = null;
+      await act(async () => {
+        signedIn = await ref.current!.signInWithGoogle();
+      });
+
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(1);
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+      expect(signedIn).toEqual(expect.objectContaining({uid: 'beto-uid'}));
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'beto-uid',
+      );
+    });
+
+    it('R9-125 — no anonymous user, another owner, and the user ACCEPTS: the bulk push is NOT skipped', async () => {
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      const engine = freshEngine({count: 12});
+      const {ref, onReady} = captureAuthApi();
+      const {getByText} = render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockSignInAnonymously.mockRejectedValueOnce(new Error('offline'));
+      await act(async () => {
+        mockListeners.forEach(l => l(null));
+      });
+
+      nextSignInLandsAs('beto-uid');
+      let signInPromise!: Promise<AuthUser | null>;
+      act(() => {
+        signInPromise = ref.current!.signInWithGoogle();
+      });
+      const migrateBtn = await waitFor(() => getByText('Migrar'));
+      await act(async () => {
+        fireEvent.press(migrateBtn);
+        await signInPromise;
+      });
+
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(1);
+      expect(engine.queueSkipNextBulkPush).not.toHaveBeenCalled();
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
+      expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
+        'beto-uid',
+      );
+    });
+  });
+
   it('Sprint 43 — credential-already-in-use + user accepts migration → bulk push NOT skipped', async () => {
     const {ref, onReady} = captureAuthApi();
     mockEngineStub = {

@@ -378,42 +378,51 @@ export function AuthProvider({children}: AuthProviderProps) {
     }
     const credential = authMod.GoogleAuthProvider.credential(idToken);
 
+    // R9-125 — read the store's owner BEFORE branching. The R9-23 guard used
+    // to live only inside the link branch, so a sign-in with NO anonymous
+    // user to link (the `signInAnonymously()` after a sign-out failed
+    // offline, and nothing retries it until the next auth event or cold
+    // start) went straight to `signInWithCredential` and bulk-pushed the
+    // previous owner's notes into the incoming account without a word.
+    const previousOwner = await getLocalStoreOwner();
+    // The store belongs to a DIFFERENT account than the one signing in: the
+    // person in front of the phone is not the one whose notes are on it, and
+    // the engine is about to bulk-push all of them into the incoming account.
+    // Declining marks the device already-migrated so only the remote side is
+    // pulled — which only works if it runs before that account starts the
+    // engine.
+    const confirmPreviousOwnersData = async () => {
+      const engine = getSyncEngine();
+      if (!engine) return;
+      try {
+        const localData = await engine.exportLocalData();
+        const total = localData.reduce((acc, d) => acc + d.count, 0);
+        if (total > 0 && !(await askMigration(total))) {
+          engine.queueSkipNextBulkPush();
+          logger.info(
+            'AuthProvider: declined migrating a previous owner’s local data',
+            {component: 'AuthProvider', localItems: total},
+          );
+        }
+      } catch (exportErr) {
+        logger.warn('AuthProvider: owner-change migration check failed', {
+          component: 'AuthProvider',
+          error:
+            exportErr instanceof Error ? exportErr.message : String(exportErr),
+        });
+      }
+    };
+
     const current = authMod().currentUser;
     if (current && current.isAnonymous) {
       try {
         await authMod.linkWithCredential(current, credential);
 
         // R9-23 — the link SUCCEEDED, so this Google account has never been
-        // used with this app. If the local store still belongs to a DIFFERENT
-        // account, the person in front of the phone is not the one whose
-        // notes are on it, and the engine is about to bulk-push all of them
-        // into this brand-new account. Route it through the same prompt the
-        // collision branch below already uses; declining marks the device
-        // already-migrated so only the (empty) remote side is pulled.
-        const previousOwner = await getLocalStoreOwner();
+        // used with this app. Route a previous owner's data through the same
+        // prompt the collision branch below already uses.
         if (previousOwner !== null && previousOwner !== current.uid) {
-          const engine = getSyncEngine();
-          if (engine) {
-            try {
-              const localData = await engine.exportLocalData();
-              const total = localData.reduce((acc, d) => acc + d.count, 0);
-              if (total > 0 && !(await askMigration(total))) {
-                engine.queueSkipNextBulkPush();
-                logger.info(
-                  'AuthProvider: declined migrating a previous owner’s local data',
-                  {component: 'AuthProvider', localItems: total},
-                );
-              }
-            } catch (exportErr) {
-              logger.warn('AuthProvider: owner-change migration check failed', {
-                component: 'AuthProvider',
-                error:
-                  exportErr instanceof Error
-                    ? exportErr.message
-                    : String(exportErr),
-              });
-            }
-          }
+          await confirmPreviousOwnersData();
         }
         await claimLocalStore(current.uid);
 
@@ -500,10 +509,22 @@ export function AuthProvider({children}: AuthProviderProps) {
           }
         }
       }
+    } else if (previousOwner !== null) {
+      // R9-125 — no anonymous user to link. The incoming uid is unknown until
+      // `signInWithCredential` resolves, and that sign-in is what fires
+      // onAuthStateChanged and starts the engine's bulk push, so ask NOW —
+      // the collision branch above has the same blind spot and does the
+      // same (a returning owner is asked there too; harmless, the data is
+      // theirs). An unclaimed store is still the signer's own: no question.
+      await confirmPreviousOwnersData();
     }
 
     await authMod().signInWithCredential(credential);
     const signedIn = authMod().currentUser;
+    // R9-130 — the ONLY place an existing account (the collision branch) or a
+    // sign-in with no anonymous user claims the store. Without it the marker
+    // stays `null`, which every guard above reads as "first sign-in, don't
+    // ask", and the next account to sign in inherits this one's data.
     if (signedIn?.uid) await claimLocalStore(signedIn.uid);
     // Same reasoning as the linked-anonymous-account return above: return
     // the fresh user directly instead of making the caller read `user`
