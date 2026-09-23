@@ -167,12 +167,33 @@
 > medido. **Quedan 3 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`). Detalle:
 > `detail/S20-arreglos-p0-sync-favoritos.md`.
 
+> **Sesión 21 (2026-09-22): el doble check con Opus 5.5, puntos 1 y 2, solo de REVISIÓN.** No se
+> tocó código. Re-verificó en `HEAD` (`ca2cd71`) los 18 P0 arreglados antes de la 19, pieza por
+> pieza, y releyó las filas cerradas del Modo A (`A1`..`A11`) y del Modo B (`B1`..`B5`).
+>
+> **19 hallazgos, `R9-124`..`R9-142`:** 2 P0, 6 P1, 10 P2 y 1 P3. Todo lo que subió a P0 o P1 lo
+> verificó a mano el orquestador.
+>
+> - **Los 18 arreglos se sostienen en `HEAD`.** Lo que falla es la red de pruebas: muchas piezas
+>   que protegen un P0 se pueden quitar con la suite entera en verde. Tres de ellas juntas
+>   (`R9-130` y las dos de `R9-131`) dejaron **364/364, 4299/4299**.
+> - **Los dos P0 están en código que el Modo A ya había pasado.** `R9-124`: un `removed` de la
+>   query filtrada se trata como borrado, así que restaurar un respaldo borra en local lo
+>   restaurado. `R9-125`: la rama de `signInWithGoogle` sin anónimo no mira el dueño previo, que
+>   es `R9-23` por la tercera rama.
+> - **Tres afirmaciones del ledger corregidas:** la frase de `R9-23` «el mismo dueño volviendo no
+>   se interroga» es falsa en la app real; de las 9 piezas de `R9-47`, jest cubre 1; y `B1` tiene
+>   hoy 14 vulnerabilidades (3 high), no 8.
+>
+> **Quedan 5 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). Los puntos 3 y 4 del
+> doble check van en la sesión 22. Detalle: `detail/S21-doble-check.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 20. Esta sección tiene 23 entradas: 20 ARREGLADAS y
-> 3 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras el checkpoint de la sesión 21. Esta sección tiene 25 entradas: 20
+> ARREGLADAS y 5 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -425,6 +446,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   flag de bulk push también (`:1146`). Detalle: `detail/A3-auth-borrado-cuenta.md`.
   **✅ ARREGLADO en la sesión 8** (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo incluye (Juan 3:16 colisiona entre dos cuentas por la clave natural); `flush()` solo empuja las del uid activo, y lo de Ana queda **aparcado** hasta que vuelva, no se tira; `pendingWrites` cuenta solo las del uid activo, o Ajustes le diría a Beto que tiene pendientes que no puede resolver. Una entrada sin `uid` (previa al arreglo) es de dueño indeterminable y se descarta al hidratar. **Ojo al defecto que introdujo el propio arreglo y cazó la prueba nueva:** la condición de re-flush del final de `flush()` miraba `this.queue.length`, que con una entrada aparcada de otro uid es permanentemente > 0 → re-entraba en `flush()` para siempre, un bucle caliente mientras la app estuviera abierta.
   **⚠️ Sesión 19:** la foto de `activeUid` protege el FILTRO, no el push: `pushOne` arma la ruta con el `this.uid` del momento — ver `R9-104` (✅ sesión 20).
+  **⚠️ Sesión 21:** el dedupe por uid de la cola no lo vigila ninguna prueba (`R9-137`), y el bucle caliente que «cazó la prueba nueva» hoy solo lo delata un OOM de jest (`R9-142`).
 
 - **`R9-23` (A3, identidad) — 🐛 los datos locales del usuario anterior se suben en silencio
   a una cuenta de Google _nueva_.** Severidad **alta**. El prompt de migración vive **dentro
@@ -437,6 +459,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   `askMigration()` que ya existe cuando el dueño difiere del uid entrante.
   Detalle: `detail/A3-auth-borrado-cuenta.md`.
   **✅ ARREGLADO en la sesión 8** (`e75eca3`): exactamente ese arreglo. `@local_store_owner_uid` se reclama en cada inicio de sesión no-anónimo, y la rama de **ÉXITO** de `linkWithCredential` —la que toma una cuenta de Google nueva, la que no tenía guarda ninguna— enruta por el mismo `askMigration()` cuando el dueño previo difiere. Un primer inicio de sesión y el mismo dueño volviendo **no** se interrogan: esos datos sí son suyos.
+  **❌ Corrección de la sesión 21: «el mismo dueño volviendo no se interroga» es falso en la app real.** Solo es cierto en el fixture de la prueba (un anónimo con el uid del dueño), que es un estado inalcanzable: el dueño que vuelve con su Google ya ligado NUNCA toma la rama de éxito del link, toma la de colisión, y ahí la pregunta del Sprint 43 salta siempre que haya datos locales. Sin consecuencia de datos. **Y dos huecos nuevos:** la rama sin anónimo (`currentUser === null`) no tiene guarda (`R9-125`, P0), y el `claimLocalStore` de la rama de colisión no lo vigila ninguna prueba (`R9-130`).
 
 - **`R9-27` (A7, respaldo) — 🐛 una sección degradada en el export es indistinguible de una
   vacía, y al importar BORRA los datos buenos.** Severidad **alta**. Verificado:
@@ -451,6 +474,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   capítulo y logros **no tienen copia en la nube**: pérdida definitiva.
   Detalle: `detail/A7-backupservice.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): `degradedSections` viaja ahora DENTRO del archivo (`payload.meta.degradedSections`, aditivo dentro del formato v2 — sin bump de versión, para que un build viejo lo ignore en vez de rechazar el archivo), y el import trata una sección marcada como **desconocida**, no como vacía: se salta su borrado destructivo y la reporta en `failedSections`. Cubre las dos mitades del canal, la de SQLite y la de AsyncStorage.
+  **⚠️ Sesión 21:** la protección por sección solo está vigilada en 3 secciones y 1 flag (`R9-139`).
 
 - **`R9-28` (A7, respaldo) — 🐛 ningún contexto se recarga tras el import y la UI no pide
   reiniciar: el estado en memoria reescribe encima de lo restaurado.** Severidad **alta**.
@@ -464,6 +488,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   preferencias de lector, tema y planes. Detalle: `detail/A7-backupservice.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que se suscriben los cuatro providers que podían **destruir** lo restaurado escribiendo su copia pre-import encima — mazo de memoria, los dos de progreso de lectura y preferencias del lector. Para lo que la señal no alcanza (pantallas ya montadas), Ajustes **sí** muestra ahora el aviso bloqueante de cerrar y reabrir que el docstring llevaba tiempo afirmando que existía.
   **⚠️ Sesión 19:** la prueba cubre 1 de los 4 providers (`R9-116`), y `FavoritesContext` no escucha la señal (`R9-117`).
+  **⚠️ Sesión 21:** el aviso de reiniciar tras importar no lo vigila ninguna prueba (`R9-141`).
 
 - **`R9-33` (A4, `SyncEngine`) — 🐛 no hay backoff: una escritura se descarta en silencio
   tras 8 intentos, y Ajustes dice «sincronizado».** Severidad **alta**.
@@ -614,6 +639,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   hace falta que el borrado alcance a subir. Deshacer rápido funciona, rehacer más tarde
   rompe. Detalle: `detail/A8-notas-subrayados.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): `queueWrite` —y el bulk push inicial— ponen ahora `deleted: false` / `deletedAt: null` **explícitos**. Era el único sitio de la app que podía limpiar una lápida, y no lo hacía nadie.
+  **⚠️ Sesión 21:** la mitad del bulk push inicial no la vigila ninguna prueba (`R9-138`).
 - **`R9-46` (A8, sync) — 🐛 `notesSyncAdapter.getLocal` falla ABIERTO: si la BD aún no está
   lista, una copia remota VIEJA pisa la nota local más nueva.** Severidad **alta**.
   `adapters/notes.ts:50-56` es **el único de los 4 métodos del adaptador que NO llama
@@ -644,6 +670,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **✅ ARREGLADO en la sesión 8** (`b3d73e1`): `findNoteById` inicializa primero (idempotente, coalesce llamadas concurrentes) y deja **propagar** un fallo real de lectura. Como propagar a secas habría abortado la tanda entera de `handleSnapshot` y podría parar el sync en silencio (la clase de `R9-33`/`R9-35`), `applyRemoteChange` devuelve ahora **si pudo establecer el estado local**: si no pudo, se salta ESE documento y **retiene su aporte al cursor**, para que se re-entregue en el próximo reattach en vez de perderse.
   **⚠️ COMPLETADO en la sesión 9** (`3e780c6`): el retiro del cursor de abajo estaba **a medias** — `handleSnapshot` guarda UN solo `maxSeenUpdatedAt` por lote, así que un hermano más nuevo del MISMO lote arrastraba el piso por delante del doc saltado y el siguiente reattach ya no lo entregaba (medido: piso `8_700_000` sobre un saltado en `1_000_000`). El cursor del lote se acota ahora por debajo del `updatedAt` más bajo no aplicado. Ver `detail/S9-revision-del-diff.md`.
   **⚠️ Sesión 19:** el retiro del cursor solo vale dentro del lote — ver `R9-106`.
+  **⚠️ Sesión 21:** la «nota de alcance» de los subrayados sigue abierta en `HEAD` y ya tiene número (`R9-132`); el mismo principio falla en la ESCRITURA (`R9-128`) y en el `getLocal` de favoritos (`R9-133`).
 - **`R9-47` (A9, Mesa) — 🐛 `load()` no tiene guarda de obsolescencia: una carga vieja que
   llega tarde pisa los `drafts`, y el siguiente `onBlur` escribe esa prosa ajena (o vacía)
   sobre la clave del pasaje visible.** Severidad **alta**. Es dato irreemplazable: el sermón
@@ -668,6 +695,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   the last section drops the passage entry entirely."_ Detalle:
   `detail/A9-mesa-persistencia.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): `load()` tiene id de ejecución monótono y el re-lectura estrecha del `useFocusEffect` tiene cleanup, así que una carga vieja ya no aterriza; y `handleNoteBlur` no escribe una sección sin borrador (se acabó el `?? ''` que borraba) y archiva bajo la clave a la que pertenecen los borradores, no bajo `table.passageKey`. **Ojo:** la prueba automatizada cubre la consecuencia de BORRADO; la carrera del stepper en sí sigue pendiente de verificación en dispositivo (Modo C), porque react-test-renderer desmonta el árbol al re-renderizar una pantalla de ese tamaño.
+  **⚠️ Sesión 21, medido: jest cubre 1 de las 9 piezas del arreglo** (el `?? ''` del `blur`, que es la consecuencia de BORRADO). La guarda de obsolescencia de `load()` y todo el re-keying bajo `draftsPassageKeyRef` (las otras dos consecuencias del repro: la prosa del otro rango y la plantilla ajena) se pueden quitar las 8 a la vez con la suite entera en verde, 364/4299. La deuda de Modo C incluye el re-keying, no solo la guarda. Detalle: `detail/S21-doble-check.md`.
 - **`R9-48` (A10, identidad) — 🐛 el log de repasos nunca se borra al cerrar sesión: el
   historial del usuario A se escribe dentro de la cuenta del usuario B y destruye su
   agregado.** Severidad **alta**. `AuthContext.tsx:471` (y `:572`) solo llama
@@ -690,6 +718,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   Detalle: `detail/A10-memoria-srs.md`.
   **✅ ARREGLADO en la sesión 8** (`67af8c9`): marca `@review_log_owner_uid`, en vez de scopear la tabla. Un log sin dueño lo reclama quien escribe primero; un log de OTRA cuenta no se sube nunca; y el traspaso ocurre **al iniciar sesión**, único punto donde se sabe que hay un uid nuevo: se limpia el log y se reclama. **Sin ese traspaso, la guarda sola dejaba al segundo usuario sin poder escribir su propio agregado para siempre.** Si la limpieza falla, la propiedad NO se reclama. **Que cerrar sesión deba además BORRAR el log local sigue siendo decisión de producto (`R9-59`) y no se decidió aquí.**
   **⚠️ COMPLETADO en la sesión 9** (`29a9449`): el traspaso quedaba **debajo** de `if (existing != null) return;` en `seedMemoryStatsFloorIfFresh`, y `signOut` dispara `clearMemoryStatsFloor()` sin esperarlo (`void`) — un cierre de la app justo después de cerrar sesión deja el suelo ajeno en disco y el traspaso **no corre nunca más**, porque nada lo reintenta. La cuenta nueva quedaba con su agregado rechazado para siempre (y `memoryStats/summary` es su único ancla en la nube). Subido por encima de la guarda, y borrando además el suelo ajeno. Ver `detail/S9-revision-del-diff.md`.
+  **⚠️ Sesión 21:** la guarda de escritura falla ABIERTA si no puede leer el marcador (`R9-134`).
 - **`R9-49` (A11, respaldo) — 🐛 los 4 logs de lectura no pueden marcarse "degradados", así
   que un fallo transitorio de SQLite produce un archivo que al importar BORRA la racha y los
   ledgers.** Severidad **alta**. `safeQuery` (`BackupService.ts:356-371`) solo marca degradado
@@ -717,6 +746,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **se vea** como vacío legítimo, así que la distinción se derrota aguas arriba. Detalle:
   `detail/A11-progreso-rachas.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): los 4 getters aceptan `{strict: true}`, que solo usa el export — los llamadores de UI siguen degradando a `[]`, que es correcto para una instalación nueva. Con eso la bandera deja de ser inalcanzable y `R9-27` la hace llegar al archivo. El remate también: `recomputeReadingStreak` usa `MAX(longest_streak, ?)`, porque el récord de por vida solo puede subir.
+  **⚠️ Sesión 21:** el `{strict: true}` del export y el `data.degraded` del servicio no los vigila ninguna prueba (`R9-131`, P1), el `MAX` tampoco (`R9-140`), y `getAllReviewEvents` es un quinto getter que se traga su error (`R9-129`).
 
 ---
 
@@ -776,7 +806,165 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   (`pushImportedEntitiesToSync`) y el `queueWrite` de un `keepMine`. Queda, dicho en el código,
   la edición del MISMO doc durante su propio apply.
 
+---
+
+- **`R9-124` (S21, `SyncEngine`) — 🐛 el motor trata como BORRADO el `removed` de la query
+  filtrada: restaurar un respaldo borra en local justo las filas restauradas.** CONFIRMADO con el
+  SDK de JS real y con el motor real. **El SDK nativo de Android NO se midió.**
+
+  **El mecanismo:**
+  - `SyncEngine.ts:917-926` hace `applyRemoteDelete(id)` ante `change.type === 'removed'`. El
+    comentario lo llama «_Hard remove (rare — we soft-delete via tombstone)_», y eso era cierto
+    cuando el listener no tenía filtro.
+  - Desde el endurecimiento de cuota, la query es `where('updatedAt', '>=', cursor - 5 min)`. En
+    Firestore, `removed` quiere decir «el doc **salió del conjunto** de la query», no «se borró».
+  - Un doc reescrito con un `updatedAt` **más viejo** que el piso sale del conjunto. El motor lo
+    borra de SQLite dentro de `withLocalWriteSuppressed` (sin lápida), y como su copia en la nube
+    queda por debajo del piso, **el siguiente reattach no lo vuelve a entregar**.
+
+  **Medido en dos mitades:**
+  - **SDK de JS 12.17.0 real**, 100 % offline (`disableNetwork`, proyecto `demo-`, caché en
+    memoria): reescrito X con `updatedAt` 100 bajo un piso de 500, sale
+    `snapshot 2 [{"type":"removed","id":"X",...}]`. El doc sigue existiendo.
+  - **El motor real** ante ese cambio: `{"remoteDeleteCalls":["X"],"localStillHasX":false}`.
+
+  **El escenario que lo hace P0 con UN solo dispositivo es restaurar un respaldo:**
+  - `pushImportedEntitiesToSync` (`BackupService.ts:1008-1076`) re-encola cada entidad con el
+    `updatedAt` **del archivo**, y `queueWrite` lo respeta (`:506-509`), así que el eco sale por
+    debajo del piso del propio listener.
+  - `importBackup` **no detiene el motor**: no hay `stop()` en `BackupService.ts`.
+  - Así, restaurar el respaldo de ayer para deshacer algo de hoy BORRA de SQLite las filas tocadas
+    hoy. Quedan solo en la nube, con la marca vieja. `notes.applyRemoteDelete` es `removeNote`, un
+    borrado duro. (La cadena `importBackup` → SDK real se encadenó por lectura, a partir de las
+    dos mitades medidas.)
+  - Otros disparadores: el bulk push inicial con copias locales más viejas que la nube (ver
+    `R9-126`), y un reloj atrasado. Este último es **más estrecho** de lo que dijo el agente,
+    porque el piso se fija al ENGANCHAR y no avanza.
+
+  **Por qué la suite no lo ve:** el mock de `onSnapshot` (`SyncEngine.test.ts:184-199`) **FILTRA**
+  los cambios que no casan con el `where` en vez de emitirlos como `removed`. El mock sustituye la
+  semántica del SDK. Nada en el ledger miraba el significado de `removed` bajo la query filtrada.
+
+  **Antes de arreglar:** medir el SDK nativo en Modo C, en el emulador, con el OK de Victor y
+  **nunca con su teléfono** (como `R9-104` en la 20). **Arreglo (hipótesis):** un `removed` solo
+  significa borrado si el doc ya no existe. Si no, el motor tiene que ignorarlo. Detalle:
+  `detail/S21-doble-check.md`.
+
+- **`R9-125` (S21, identidad) — 🐛 `signInWithGoogle` sin anónimo (`currentUser === null`) no
+  mira el dueño previo: es `R9-23` por la tercera rama.** CONFIRMADO con sonda.
+
+  **El mecanismo:**
+  - `AuthContext.tsx:381` solo entra al bloque del link, que es donde vive la guarda de `R9-23`,
+    si `current && current.isAnonymous`.
+  - Si `currentUser` es `null`, `:505-507` hace `signInWithCredential` + `claimLocalStore` sin
+    mirar el dueño previo: sin `exportLocalData`, sin `askMigration` y sin
+    `queueSkipNextBulkPush`.
+  - Después, `maybeRunInitialBulkPush` (`SyncEngine.ts:1525-1560`) sube el almacén entero, porque
+    no hay flag para ese uid.
+
+  **Cómo se llega a `null`:** el `signInAnonymously()` que sigue a un cierre de sesión FALLA (sin
+  red). `:343-353` solo re-arma `triggeredAnonymousRef` en el `catch`, y nada reintenta hasta el
+  próximo evento de auth o el próximo arranque en frío. Ajustes muestra entonces «Iniciar sesión
+  con Google». **Escenario:** Ana cierra sesión sin datos, y Beto entra con un Google nuevo cuando
+  vuelve la red. Las notas privadas de Ana suben a la nube de Beto sin pregunta.
+
+  **Sonda** (provider real, anónimo que rechaza, dueño previo `ana-uid`, 12 notas):
+  `{"promptShown":false,"exportLocalDataCalls":0,"queueSkipCalls":0,"linkCalls":0,"ownerAfter":"beto-uid"}`.
+
+  El disparador es estrecho (el anónimo falla al cerrar sesión y no se reinicia la app), pero la
+  consecuencia es la de `R9-23` entera. **Va junto con `R9-130`**, que está en las mismas líneas.
+  **Arreglo (hipótesis):** mirar el dueño previo ANTES de bifurcar, con una prueba que pase por
+  las tres ramas (éxito del link, colisión y sin anónimo). Detalle: `detail/S21-doble-check.md`.
+
 ## P1 — núcleo de la app
+
+- **`R9-126` (S21, `SyncEngine` / respaldo) — 🐛 un push con `updatedAt` VIEJO (restaurar, bulk
+  push) pisa en la nube la versión más nueva, y ningún otro dispositivo se entera.** CONFIRMADO
+  por lectura; la mitad del listener está medida en `R9-124`.
+  - `queueWrite` conserva el `updatedAt` del payload (`SyncEngine.ts:506-509`), y
+    `pushImportedEntitiesToSync` (`BackupService.ts:1008-1076`) pasa el del archivo. El `set()`
+    con `{merge: true}` es incondicional.
+  - La nube no aplica LWW: solo los lectores lo hacen. Las reglas (`B4`:
+    `allow read, write: if request.auth.uid == uid`) no validan `updatedAt`.
+  - El doc queda con una marca por debajo del piso de todos los demás listeners, así que ninguno
+    recibe la versión restaurada: la ignora, o la BORRA (`R9-124`). La nube y los otros
+    dispositivos divergen en silencio, y un dispositivo nuevo baja la versión vieja.
+  - No es lo que ya estaba dicho: `CONTINUAR.md` §6 anota que el bulk push puede REVIVIR una
+    lápida, y `R9-31` que el import no propaga BORRADOS. Ninguno dice que el import **regresa** la
+    versión de la nube.
+
+- **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
+  un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
+  - `skipNextBulkPush` es un booleano de INSTANCIA, sin uid (`SyncEngine.ts:308`). `deleteAccount`
+    lo arma (`AuthContext.tsx:593-594`), y nadie lo consume hasta el siguiente `start()` de
+    CUALQUIER uid.
+  - Tras el borrado entra un anónimo nuevo. Si en la misma sesión alguien inicia sesión con Google,
+    el link tiene éxito, `R9-23` pregunta, y el usuario responde «Sí». La rama del sí
+    (`:400-406`, `:483-488`) no toca el motor, así que `start(nuevo)` consume el flag del borrado y
+    escribe `@sync_first_push_done:nuevo = 'skip'`, que se honra para siempre (`:1545`).
+  - Sonda: `{"flagNuevo":"skip","pushesNuevo":0}`, y 0 también tras reiniciar. Ninguna fila local
+    sube nunca a la cuenta nueva, salvo la que se edite después.
+  - Es la forma de `R9-103` (un estado global que cruza de cuenta), en el flag de migración. El
+    comentario de `deleteAccount` (`:564-571`) es anterior a la pregunta de `R9-23`.
+
+- **`R9-128` (S21, adaptadores de sync) — 🐛 un apply remoto que FALLA se traga su error y el
+  cursor avanza igual: el cambio remoto no vuelve nunca.** CONFIRMADO con sonda del motor.
+  - `adapters/notes.ts:92-122` (upsert) y `:124-135` (delete), y lo mismo en `highlights.ts:95-139`
+    y en `FavoritesContext.tsx`, hacen `catch → warn` sin relanzar. El motor ve un `await` que resolvió, lo cuenta como aplicado, y mete su
+    `updatedAt` en el cursor.
+  - `R9-46` arregló ese principio solo para la LECTURA (`getLocal`); la ESCRITURA fallida sigue
+    contando como hecha. `FavoritesContext.tsx:207-218` además quita la fila del estado de React
+    aunque siga en SQLite.
+  - Sonda: `{"appliedLocally":false}`, el cursor avanza a T, y `notaBRedeliveredAndApplied:false`.
+    Si el usuario edita después en ese dispositivo, su push (más nuevo) pisa la edición del otro,
+    o revive lo que el otro borró.
+  - P1 y no P0 porque el disparador (una escritura SQLite que falla: `database is locked`, disco
+    lleno) es raro.
+
+- **`R9-129` (S21, respaldo / memoria) — 🐛 `getAllReviewEvents` se traga su error: la sección
+  `reviewEvents` del respaldo nunca se marca degradada, y el sembrado toma un dispositivo con
+  historial por uno fresco.** CONFIRMADO con sondas, con el `reviewEventStore` REAL.
+  - `reviewEventStore.ts:80-97` hace `catch → []`. `buildBackup` la envuelve en `safeQuery`
+    (`BackupService.ts:551-555`), que solo marca desde su `catch`. Es el quinto getter de la forma
+    de `R9-49`, y el arreglo `{strict: true}` no lo tocó.
+  - **Export → import:** `{"degradedSections":[]}` (el control con favoritos sí se marca). El
+    import hace `DELETE FROM review_events` 1 e `INSERT` 0, y da `reviewEvents` por restaurada.
+  - **Sembrado:** `memoryStatsSync.ts:170-172` usa `events.length > 0` como señal de «no fresco».
+    Con la lectura fallida (`readFails:true`) se siembra el floor con la propia historia del
+    dispositivo, y cada repaso cuenta ×2 para siempre (la consecuencia medida de `R9-53`). Además
+    aparece el aviso «restauramos tu progreso». El control con la lectura sana no siembra.
+  - Las suites `backupServiceExport.test.ts:73` y `backupDegradedSections.test.ts:57` mockean
+    `getAllReviewEvents` con una factoría literal, y sustituyen justo lo que importa.
+
+- **`R9-130` (S21, prueba de identidad) — 🐛 el `claimLocalStore` del camino directo de
+  `signInWithGoogle` no lo vigila ninguna prueba, y su regresión reabre `R9-23`.** CONFIRMADO por
+  revert y sonda.
+  - `AuthContext.tsx:506-507` es el ÚNICO sitio que reclama el almacén para una cuenta que ya
+    existe (teléfono nuevo o reinstalación → el link choca → rama de colisión →
+    `signInWithCredential`). Sin esa línea la marca queda en `null`, y `null` es lo que la guarda
+    de `R9-23` lee como «primer inicio, no preguntes».
+  - Revert de esa línea: `AuthContext.test.tsx` 24/24 y suite entera **364/364, 4299/4299**.
+  - Sonda por el provider real: en `HEAD`,
+    `{"ownerAfterAna":"ana-uid","promptShown":true,"exportCallsForBeto":1}`. Con el revert,
+    `{"ownerAfterAna":null,"promptShown":false,"exportCallsForBeto":0}`: las notas de Ana suben a
+    la nube de Beto.
+  - Son las mismas líneas que `R9-125`: **un solo arreglo**, con una prueba que pase por las tres
+    ramas.
+
+- **`R9-131` (S21, prueba de respaldo) — 🐛 las dos mitades que protegen la historia de lectura
+  (`{strict: true}` del export y `data.degraded` del servicio) no las vigila ninguna prueba, y su
+  regresión reabre `R9-49`.** CONFIRMADO por revert y sonda.
+  - La prueba del export usa un servicio falso cuyos 4 getters **rechazan siempre**, con o sin
+    `strict`. Quitar el `{strict: true}` de las 4 llamadas (`BackupService.ts:528/534/540/546`)
+    la deja verde. Con el servicio real, el ledger ya no se marca y `streakLog: []` sale igual que
+    el de un usuario que nunca leyó.
+  - La prueba del import usa un `restoreBackup` que es un `jest.fn()`: comprueba que el FLAG
+    llega, no que el servicio lo respete. Quitar `if (data.degraded?.[key]) return 'degraded';`
+    (`AchievementService.ts:1060`) deja todo verde. Con el servicio real, el import corre los 4
+    `DELETE` de ledgers mientras `failedSections` le dice al usuario que no se tocaron.
+  - Los dos reverts, **junto con el de `R9-130`, en una sola corrida entera: 364/364,
+    4299/4299**, verificado a mano por el orquestador. `achievementServiceRestoreBackup.test.ts`
+    no menciona `degraded` en ninguna línea.
 
 - **`R9-104` (S19, `SyncEngine`) — 🐛 el flush no vuelve a mirar la cuenta después de cada
   `await`, así que puede escribir datos de Ana en la nube de Beto.** **Candidato a P0** (clase
@@ -1458,6 +1646,104 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
+  ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
+  que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
+  la forma que `R9-46` prohibió en `notes.ts`. Con la lectura rota, el motor salta LWW y
+  conflictos y aplica la copia remota VIEJA encima de la local nueva (color, categoría y NOTA):
+  `{"readThrows":true,"addHighlightCalls":["nota VIEJA del otro dispositivo"]}`, y el control con
+  la lectura sana no aplica nada. P2 y no P1: a diferencia de `notes`, la ventana no se abre sola
+  (los subrayados llaman a `initialize()` en los cuatro métodos). Hace falta que la lectura falle
+  de verdad.
+
+- **`R9-133` (S21, favoritos / sync) — 🐛 el `getLocal` de FAVORITOS dice «ausente» durante toda
+  la carga en frío, y para siempre si la carga falla.** CONFIRMADO con sonda (provider real).
+  `FavoritesContext.tsx:128-147`: `favoritesRef` vale `[]` hasta que termina `loadFavorites`, y el
+  motor aplica el remoto sin LWW ni conflicto:
+  `{"rowInSqlite":{"note":"NOTA NUEVA (local)","updatedAt":9000000},"getLocalWhileLoading":null}`.
+  Si `loadFavorites` FALLA (`:252-256`), el ref se queda en `[]` y todo remoto entra sin LWW.
+  Alcance: una edición local ya encolada se cura sola con el eco. Lo que se pierde es una versión
+  local más nueva NO encolada (`R9-38`) cuya copia remota cae dentro del piso. P2; P1 si se suma
+  el caso de la carga fallida. `MemoryDeckContext.tsx:233-236` tiene la misma forma (PLAUSIBLE,
+  sin sonda).
+
+- **`R9-134` (S21, memoria / identidad) — 🐛 la guarda de dueño de `R9-48` falla ABIERTA si no
+  puede leer el marcador.** CONFIRMADO con sonda. `getReviewLogOwner` (`memoryStatsSync.ts:79-86`)
+  devuelve `null` si la lectura falla, a propósito («_treat as unclaimed_»), y `:226-227`
+  reclama el log para el uid activo y escribe:
+  `{"wrotePaths":["users/beto/memoryStats"],"ownerAfter":"beto"}`. El control con la lectura sana
+  se niega (`setCalls:0`), y en el sembrado el mismo fallo es inocuo. La consecuencia es la de un
+  P0 (el historial de Ana en el agregado de Beto, para siempre). El disparador, un `getItem` de
+  AsyncStorage que falla justo ahí en un teléfono compartido, es muy raro. **Arreglo (hipótesis):**
+  solo un `null` LEÍDO puede reclamar; un fallo de lectura salta la escritura.
+
+- **`R9-135` (S21, premium) — 🐛 si el `logIn` de RevenueCat falla al cambiar de cuenta,
+  RevenueCat queda atado a la cuenta anterior, porque el `linkUser` del arranque en frío se
+  descarta.** PLAUSIBLE (lectura; el no-op sin configurar lo fija una prueba existente).
+  `linkUser` hace `return` si `!configured` (`offeringService.ts:224-238`), y en un arranque en
+  frío `onAuthStateChanged` llega antes de `initializeOffering()` (`app/_layout.tsx:209-251`). El
+  propio `giftCodeService.ts:185-200` lo admite («_Not fixed at the root_»). Escenario: Ana
+  (premium) cierra sesión, y el `logIn('beto')` falla con red inestable. Beto conserva el premium
+  de Ana en cada arranque posterior. Severidad baja: el premium lo pagó alguien en ese teléfono.
+
+- **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
+  Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige
+  escribir en el proyecto real. **Bloqueante antes del lanzamiento**; hoy el impacto es nulo
+  (Prueba interna, 0 usuarios). Las piezas, verificadas por lectura:
+  - la regla viva (`detail/B4:24-33`) no pone tope ni excluye `anonymous`;
+  - la autenticación anónima está habilitada;
+  - la config es pública (repo PÚBLICO);
+  - no hay App Check;
+  - el plan es Spark (20 000 escrituras al día compartidas, `R9-29`).
+
+  **Antes de aplicar la mitigación barata**, que es añadir a la regla
+  `request.auth.token.firebase.sign_in_provider != 'anonymous'`, comprobar que NINGUNA escritura
+  de la app ocurre como anónima. Lo sólido es App Check con Play Integrity.
+
+- **`R9-137` (S21, prueba de sync) — 🐛 el dedupe por uid de `upsertQueueEntry` (pieza de
+  `R9-22`) no lo vigila ninguna prueba.** CONFIRMADO por revert y sonda. Quitar
+  `e.uid === entry.uid &&` (`SyncEngine.ts:744`): suite entera 364/364. La sonda con el revert:
+  la escritura aparcada de Ana (`Juan/3/16`) la REEMPLAZA la de Beto en cuanto Beto toca el mismo
+  versículo, o en su bulk push. Ana no sube nunca su edición, sin error ni insignia. La prueba
+  titular siembra las dos entradas por `hydrate`, que no pasa por `upsertQueueEntry`.
+
+- **`R9-138` (S21, prueba de sync) — 🐛 el `deleted:false` / `deletedAt:null` del bulk push
+  inicial (pieza de `R9-45`) no lo vigila ninguna prueba.** CONFIRMADO por revert y sonda. Quitar
+  las dos líneas (`SyncEngine.ts:1571-1572`): suite entera 364/364, y la sonda da
+  `{"hasDeletedKey":false}`. Ningún `*ToRemote` pone `deleted`, así que bajo `{merge: true}` la
+  lápida vieja del servidor sobrevive: es `R9-45` entero por la puerta del bulk push. Las 4
+  pruebas de «initial bulk push» solo miran los ids.
+
+- **`R9-139` (S21, prueba de respaldo) — 🐛 la protección por sección de `R9-27` solo está
+  vigilada en `favorites`, `highlights`, `prepNotes` y el flag `streakLog`.** CONFIRMADO por
+  revert y sonda. Sin prueba, cada una con su consecuencia medida:
+  - `notes` → `DELETE FROM notes`;
+  - `achievements.stats`, en los dos lados → el `UPDATE user_stats` escribe los ceros de
+    `EMPTY_RAW_STATS`;
+  - `completedBooks`, `bookReadingLog` y `chaptersReadLog` → `DELETE`.
+
+  P2 y no P1: cada una es una línea gemela de otra que sí está vigilada. Falta la tabla completa
+  (un `it.each` sobre las etiquetas de `buildBackup`, con el servicio real).
+
+- **`R9-140` (S21, prueba de rachas) — 🐛 el `MAX(longest_streak, ?)` de
+  `recomputeReadingStreak` (el remate de `R9-49`) no lo vigila ninguna prueba.** CONFIRMADO por
+  revert: `AchievementService.ts:560` → `longest_streak = ?` deja verdes la dirigida 88/88 y la
+  suite entera. La prueba necesita un SQLite de verdad o un mock que evalúe el `MAX`.
+
+- **`R9-141` (S21, prueba de respaldo) — 🐛 el aviso de «cerrá y volvé a abrir» tras importar
+  (la mitad de `R9-28` que cubre lo que la señal no alcanza) no lo vigila ninguna prueba.**
+  CONFIRMADO por revert: quitar `setRestartNoticeVisible(true)` (`DataSettings.tsx:158`) deja
+  verdes las 2 pruebas de import y la suite entera. Mientras `R9-117` siga abierto, es la ÚNICA
+  defensa de los favoritos restaurados.
+
+- **`R9-142` (S21, prueba de sync — P3) — 🐛 el bucle caliente de `R9-22` solo lo delata un OOM
+  del proceso de jest, sin nombre de prueba.** CONFIRMADO, 2 de 2 corridas. Revertidas las dos
+  guardas del bucle (`SyncEngine.ts:1616` y `:1778`), jest muere con `JavaScript heap out of
+memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROTAREAS que no
+  cede nunca: ni el timeout de jest ni los `setImmediate` de la prueba llegan a correr. La
+  regresión no pasaría el CI, pero el rojo no dice qué ni dónde. (Corrige el «0/73 verde
+  aislada» de la primera parte de la 21.)
 
 - **`R9-110` (S19, build de packs) — 🐛 un error de E/S dentro del `catch` de FIRST FILE vuelve a
   borrar el mensaje entero.** Es el vecino de `R9-98`: aquel quitó UNA forma de lanzar dentro del
@@ -2361,6 +2647,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   consume con `require()`. Lo correcto es no tocar nada — las 3 no son alcanzables
   (detalle en `detail/B1-npm-audit.md`) y se resuelven cuando `expo-router` migre a
   `query-string` 8+.
+  **⚠️ Sesión 21:** hoy `npm audit --package-lock-only` da **14 vulnerabilidades (11 moderate, 3 high)**, no las 8 (1 high) del 2026-09-03. Las nuevas son todas de tooling, cobertura o build (`js-yaml`, `@xmldom/xmldom`, `hono`, `morgan`, `stream-json`, `csv-parse`), ninguna entra al bundle, así que el veredicto de `B1` se sostiene. `--force` sigue siendo la trampa.
 
 ---
 

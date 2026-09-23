@@ -178,6 +178,35 @@
 > **Siguiente (elegido por Victor):** el doble check con Opus 5.5 de lo revisado hasta la 18 (opción
 > (b) de `CONTINUAR.md`). Después, revisar el diff de la 20 y la cadena de publicación (`R9-108`,
 > `R9-109`).
+>
+> **Sesión 21 (2026-09-22): el doble check con Opus 5.5, puntos 1 y 2, solo de REVISIÓN.** Dos
+> agentes en worktrees aislados. Uno revisó los 18 P0 arreglados antes de la 19, pieza por pieza,
+> y el otro releyó las filas cerradas del Modo A (`A1`..`A11`) y del Modo B (`B1`..`B5`). Todo lo
+> que subió a P0 o P1 lo verificó a mano el orquestador. El chat se cortó por el límite de uso a
+> mitad de los agentes, y se relanzaron en uno nuevo.
+>
+> **19 hallazgos (`R9-124`..`R9-142`):** 2 P0, 6 P1, 10 P2 y 1 P3.
+>
+> - **Los 18 arreglos se sostienen en `HEAD`, pero muchas de sus piezas no las vigila nada.** Los
+>   reverts de `R9-130` y las dos mitades de `R9-131`, aplicados juntos, dejan la suite entera en
+>   **364/364, 4299/4299**, y cualquiera de las tres reabre un P0.
+> - **Dos P0 nuevos, otra vez en código que el Modo A ya había pasado:** `R9-124` (un `removed` de
+>   la query filtrada se trata como borrado, así que restaurar un respaldo borra en local lo
+>   restaurado) y `R9-125` (la rama de `signInWithGoogle` sin anónimo no mira el dueño previo, o
+>   sea `R9-23` por la tercera rama).
+> - **Tres afirmaciones corregidas:** la frase de `R9-23` «el mismo dueño volviendo no se
+>   interroga» es falsa en la app real; jest cubre 1 de las 9 piezas de `R9-47`; y `B1` tiene hoy
+>   14 vulnerabilidades (3 high), no 8.
+>
+> No se commiteó nada en la 21. Su checkpoint lo escribió la 22 en `docs/review-s21-doble-check`.
+> **Quedan 5 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). Hallazgos: **142**.
+> Detalle: `detail/S21-doble-check.md`.
+>
+> **Sesión 22 (2026-09-23), EN CURSO:** el checkpoint de la 21 y los puntos 3 y 4 del doble check,
+> con 5 agentes (lo pidió Victor a mitad de sesión). El punto 3 son los P1/P2 que nunca se
+> re-verificaron (`R9-51`..`R9-64`), y el punto 4 las afirmaciones «comprobado y BIEN» de los
+> `detail/S*` hasta `S18`. Lo nuevo va desde `R9-143`. Si el chat se corta, los informes están en
+> `_scratch/S22-agente-*.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -639,6 +668,35 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 21 — 2026-09-22. El doble check con Opus 5.5, puntos 1 y 2.** Fue solo de revisión y
+  no se commiteó nada: el checkpoint lo escribió la 22.
+  - **Cómo se trabajó:** dos agentes en worktrees aislados, como pidió Victor. Uno se ocupó de los
+    18 P0 arreglados antes de la 19, con un arnés que revierte UNA pieza por reemplazo exacto,
+    corre jest y restaura. El otro releyó las filas cerradas del Modo A y del Modo B, en la
+    dirección «quitar acceso / restaurar / cambiar de cuenta». El orquestador verificó a mano todo
+    lo que subió a P0 o P1: releyó el código, volvió a correr las sondas, y aplicó a la vez los
+    tres reverts de los P1 del agente 1.
+  - **Veredicto: los 18 arreglos se sostienen en `HEAD`.** Lo que falla es la red de pruebas: en
+    12 de los 18 hay piezas que se quitan con la suite entera en verde, y tres de ellas reabren un
+    P0 (`R9-130`, `R9-131`).
+  - **19 hallazgos, `R9-124`..`R9-142`.** Los que mandan:
+    - `R9-124` (P0): el `removed` de la query filtrada por `updatedAt` se trata como borrado.
+      Restaurar un respaldo sube versiones con la marca vieja, y el propio listener las BORRA de
+      SQLite. Medido con el SDK de JS real, offline. **El SDK nativo NO se midió.**
+    - `R9-125` (P0): `signInWithGoogle` con `currentUser === null` no mira el dueño previo.
+    - `R9-126`..`R9-129` (P1): un push con marca vieja pisa la nube; el flag de `deleteAccount`
+      anula un «Sí, migrar»; un apply que falla avanza el cursor; `getAllReviewEvents` se traga su
+      error.
+    - `R9-130` y `R9-131` (P1): piezas de arreglos P0 sin ninguna prueba.
+  - **Detalle, con la tabla pieza por pieza y la salida de cada sonda:
+    `detail/S21-doble-check.md`.**
+  - **Las lecciones:**
+    - **un stub del OTRO lado de la frontera responde la pregunta** (`R9-131`);
+    - **un mock que implementa el SDK a su manera sustituye la semántica del SDK** (el
+      `onSnapshot` de la suite filtra en vez de emitir `removed`, `R9-124`);
+    - **«arreglado» no dice qué está vigilado**: revertir el arreglo ENTERO lo habría escondido
+      todo, porque siempre cae alguna prueba.
 
 - **Sesión 19 — 2026-09-22. Revisar el diff de la 18 (`0da86ce..40160d7`), y los de la 10 y la
   11, que nadie había revisado.** Primera sesión con **Opus 5.5**. Fue **solo de revisión**:

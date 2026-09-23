@@ -9,6 +9,20 @@ de Expo), y las 3 que sí se empaquetan con la app están en una ruta de código
 — el parser de deep links vivo no las toca. **Pero** la remediación que `npm` propone
 para esas 3 es un **downgrade que rompería la app entera** — ver `R9-1`.
 
+> **⚠️ Sesión 21 (2026-09-22, doble check con Opus 5.5): el conteo está viejo, el veredicto
+> no.** Sobre `ca2cd71`, `npm audit --package-lock-only` da **14 vulnerabilidades (11
+> moderate, 3 high)**, no 8 (1 high). Rastreadas por el lockfile, las nuevas son todas de
+> tooling, cobertura o build:
+>
+> - `js-yaml` (high): `@istanbuljs/load-nyc-config`, `@expo/xcpretty`, eslint y `firebase-tools`;
+> - `@xmldom/xmldom`, que ahora es high: `@expo/plist`, el mismo grupo 2 de abajo;
+> - `hono`: `@modelcontextprotocol/sdk`, dev;
+> - `morgan`, `stream-json` y `csv-parse`: `firebase-tools`, dev.
+>
+> Ninguna entra al bundle de la app, así que «0 alcanzables» se sostiene. `npm audit fix` a
+> secas arregla las no-major, y `--force` sigue siendo la trampa de `R9-1`. Detalle:
+> `detail/S21-doble-check.md`.
+
 ---
 
 ## Datos crudos
