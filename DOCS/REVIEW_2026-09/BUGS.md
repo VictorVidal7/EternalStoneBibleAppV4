@@ -205,6 +205,23 @@
 >
 > Siguen **5 P0 abiertos**. Hallazgos: **152**. Detalle: `detail/S22-doble-check-puntos-3-4.md`.
 
+> **Sesión 23 (2026-09-23): revisión del diff de la 20 (`25128b3..ca2cd71`), solo de REVISIÓN.**
+> No se tocó código. Con 3 agentes, y todo lo que subió a P1 lo verificó a mano el orquestador,
+> con sonda propia.
+>
+> - **Los cuatro arreglos de la 20 se sostienen, y dentro de su diff no hay ningún P0 ni P1.** La
+>   matriz de reverts de `R9-104` es cierta fila por fila; no hay camino para dos flushes de la
+>   misma sesión; `R9-103` no deja ecos de otro doc (ningún apply encola); y `R9-102` no tiene un
+>   `R9-13` en web (no hay `index.web.ts`).
+> - **El P1 nuevo es el vecino de `R9-104`:** la 20 le puso sesión al flush y no a
+>   `handleSnapshot`. Un conflicto de Ana registrado después del `stop()` pasa a la sesión de
+>   Beto, y resolverlo copia la versión de la nube de Ana a la de Beto (`R9-153`). El mismo
+>   agujero envenena el cursor de Beto: `R9-122.4` sube de P3 a P2.
+> - **4 hallazgos, `R9-153`..`R9-156`: 1 P1 y 3 P3.** De 30 afirmaciones del ledger sobre la 20,
+>   25 son ciertas; las falsas o a medias van en `R9-156`.
+>
+> Siguen **5 P0 abiertos**. Hallazgos: **156**. Detalle: `detail/S23-revision-del-diff-s20.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
@@ -798,6 +815,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   instante. Prueba con la fibra ocupada (vista fallar: 0 encoladas) y la del vecino, que caza el
   arreglo a medias hecho con un ref. El SQL nuevo, medido contra SQLite real. **Sigue sin
   verificar en dispositivo.** Detalle: `detail/S20-arreglos-p0-sync-favoritos.md`.
+  **⚠️ Sesión 23:** el arreglo se sostiene, pieza por pieza: sin el arreglo caen la 1 y la 2, a
+  medias con el ref cae la 2, y sin `if (written)` cae la 3. En web no hay `index.web.ts`, así
+  que la misma clase tiene `getFavoriteById`, y en web no hay motor. Si un apply remoto del mismo
+  favorito cae antes del render, se pierde la edición, pero es la raíz de `R9-133` y no la
+  relectura (ver la nota allí). La prueba del vecino solo usa un favorito nuevo (`R9-155`), y la
+  ruta citada arriba es `app/features/collections/[name].tsx` (`R9-156.4`).
 
 - **`R9-103` (S19, `SyncEngine`) — 🐛 una edición local durante una BAJADA en vuelo se descarta
   en silencio, en cualquier colección.**
@@ -824,6 +847,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   propósito. También podía tragarse el re-upload entero de un respaldo importado
   (`pushImportedEntitiesToSync`) y el `queueWrite` de un `keepMine`. Queda, dicho en el código,
   la edición del MISMO doc durante su propio apply.
+  **⚠️ Sesión 23:** se sostiene. Leídos los 5 adaptadores registrados: ningún apply encola, así que no hay
+  eco de OTRO doc que la supresión por doc deje pasar. Con el `removed` de `R9-124`, para el mismo
+  doc no cambia nada, y para los otros mejora. Tres de los cinco sitios no tienen prueba
+  (`R9-154`).
 
 ---
 
@@ -897,6 +924,56 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
 
 ## P1 — núcleo de la app
 
+- **`R9-153` (S23, `SyncEngine` / cuentas) — 🐛 `handleSnapshot` no tiene sesión: un conflicto
+  de Ana registrado después del `stop()` pasa a la sesión de Beto, y resolverlo copia la versión
+  de la NUBE de Ana a la de Beto.** CONFIRMADO con sonda del agente 1 y con sonda propia del
+  orquestador, sobre `HEAD` (`714d627`, código = `00f69c4`). En dispositivo, PLAUSIBLE: no se midió.
+
+  **El mecanismo (leído):**
+  - El bucle de `handleSnapshot` (`SyncEngine.ts:889-1008`) hace un `await` por doc y nunca mira
+    si hubo un `stop()`. `recordConflict` (`:1061`, dentro de `applyRemoteChange`) no tiene guarda
+    de uid ni de sesión.
+  - `stop()` vacía `this.conflicts` (`:459`), pero `start()` no (`:372-379`): solo llama a
+    `stop()` si `this.uid` es otro, y después de un `stop()` es `null`. Lo que el lote registra
+    después del último `stop()` se queda para quien entre.
+  - `resolveConflict` (`:1367-1445`), con el único llamador en la pantalla de conflictos
+    (`app/(tabs)/conflicts.tsx:106,137`): `logResolvedConflict` (`:1447-1468`) escribe
+    `users/${this.uid}/conflicts/<id>` con `remoteVersion` = la copia de la nube de Ana, con
+    cualquier elección. `keepMine` y `merge` además encolan el valor bajo la cuenta activa, y
+    `keepTheirs` y `merge` lo aplican en local.
+
+  **Medido** (sonda del orquestador, `_scratch/S23-sondas-orquestador/`):
+
+  | Caso                                                      | Conflicto en Beto | Qué escribe en `users/uid-beto/`                          |
+  | --------------------------------------------------------- | ----------------- | --------------------------------------------------------- |
+  | control: el lote termina ANTES del `stop()`               | `[]`              | nada (antes del `stop()` existía `["test__a2"]`)          |
+  | el lote termina con la sesión CERRADA; Beto entra después | `["test__a2"]`    | `conflicts/test__a2` con `remoteVersion: "remoto-de-ana"` |
+  | el lote termina durante `start(beto)`, `keepMine`         | `["test__a2"]`    | `test/a2` + `conflicts/test__a2`                          |
+  | el lote termina con la sesión CERRADA, `merge`            | `["test__a2"]`    | `test/a2` con el valor combinado + `conflicts/test__a2`   |
+
+  Una vez registrado, el conflicto espera a quien entre en el mismo proceso, sin límite de
+  tiempo. **La app real acota la ventana de registro:** `SyncEngineContext.tsx:92-127` vuelve a
+  llamar a `stop()` cuando el usuario pasa a `null` y a anónimo, así que el lote tiene que seguir
+  en vuelo después de que entra el anónimo, o durante el `start()` de Beto.
+
+  **P1 y no P0 (decidido con Victor):** es de la clase P0 (mezcla entre cuentas), pero hacen falta
+  tres cosas juntas:
+  1. un conflicto real (local y remoto a menos de 30 s, con un campo material distinto) en un lote
+     que siga en vuelo después del `stop()` reactivo;
+  2. otra cuenta que entra sin reiniciar la app;
+  3. que esa persona lo resuelva a mano.
+
+  La copia local de Ana ya está en el teléfono por diseño (`R9-59`). Lo nuevo es lo que cruza de
+  nube a nube.
+
+  **No está en el diff de la 20: es su vecino.** Es la forma de siempre: el arreglo cierra el caso
+  de su prueba y deja abierto el otro bucle con `await` que cruza un `stop()`. Búsqueda por la
+  CLAVE (`recordConflict`, `logResolvedConflict`, `handleSnapshot`): no estaba. `R9-39` y `R9-65`
+  son otra cosa. **Arreglo (hipótesis, sin medir):** darle a `handleSnapshot` la misma sesión que
+  al flush, para que al volver de cada `await` después de un `stop()` corte sin registrar
+  conflictos, sin mover el cursor y sin tocar el estado. Arreglaría también `R9-122.4`. **En la 24
+  va después de `R9-124`**, que toca el mismo bucle. Detalle: `detail/S23-revision-del-diff-s20.md`.
+
 - **`R9-143` (S22, Mesa) — 🐛 «Banco de ilustraciones» y «Modo púlpito» guardan el sermón con las
   dos trampas que el arreglo de `R9-47` le quitó al `blur`: un toque justo después de cambiar de
   pasaje pisa el sermón del pasaje nuevo y borra lo que falte.** CONFIRMADO con sonda sobre la
@@ -939,6 +1016,11 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   - No es lo que ya estaba dicho: `CONTINUAR.md` §6 anota que el bulk push puede REVIVIR una
     lápida, y `R9-31` que el import no propaga BORRADOS. Ninguno dice que el import **regresa** la
     versión de la nube.
+  - **⚠️ Sesión 23, otro disparador (inferido de la fuente, sin medir):** en el nativo, la
+    escritura que `R9-104` deja aparcada para la cuenta anterior sale cuando esa cuenta vuelve,
+    aun días después y tras reiniciar, con su contenido y su `updatedAt` viejos. El
+    `set({merge:true})` incondicional puede pisar una edición más nueva hecha desde otro
+    dispositivo. No lo introdujo la 20.
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -1071,6 +1153,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   no apareció; la rama real es «no sincroniza hasta reiniciar»,** justo la que la propuesta de
   arreglo de arriba no cubría. Limpieza verificada desde fuera. Detalle:
   `detail/S20-arreglos-p0-sync-favoritos.md`.
+  **⚠️ Sesión 23:** la matriz de reverts es cierta fila por fila (con dos precisiones en
+  `R9-156.6`), y la ruta con `item.uid` no la discrimina ninguna entrada alcanzable, tampoco
+  `deleteAccount`. No hay camino para dos flushes de la MISMA sesión. Con `stop()` + `start()` del
+  mismo uid, una escritura sube dos veces y nada se pierde ni cruza (medido). Lo de la 21 sobre
+  `R9-22` se confirma. **El vecino quedó abierto:** `handleSnapshot` no tiene sesión (`R9-153`).
+  La limpieza de las cuentas anónimas no se puede re-verificar (`R9-156.5`).
 
 - **`R9-105` (S19, prueba de dinero) — 🐛 la línea exacta del bug de `R9-9` no la protege NINGUNA
   prueba.**
@@ -1099,6 +1187,9 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
   reset ni clave de prueba, y lleva un control de que el SDK se configuró. Revertido solo el
   inicializador a `= false`, cae exactamente ella (`Expected: false / Received: true`) y las
   otras 26 del archivo siguen verdes.
+  **⚠️ Sesión 23:** re-medido. Cae exactamente ella, y la aserción de la caché y la de `seen`
+  discriminan cada una por su cuenta. Con `apiKey = ''` cae el control, no la aserción de `R9-9`.
+  No hay otra línea vecina sin prueba. Su comentario sobre SecureStore es falso (`R9-156.8`).
 
 - **`R9-106` (S19, `SyncEngine`) — 🐛 `R9-65` (y `R9-46`) solo frenan el cursor dentro de SU
   lote.** Los dos arreglos acotan `maxSeenUpdatedAt` por debajo del doc no aplicado o en conflicto
@@ -1771,6 +1862,52 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     que sí necesitan base.
   - Hoy lo tapan el CI en Node 24 y `ciNodeVersion`. Solo lo ve un desarrollador con Node 22.0–22.12.
 
+- **`R9-154` (S23, prueba de sync — P3) — 🐛 tres de los cinco sitios de
+  `withLocalWriteSuppressed` y su conteo de profundidad no los vigila ninguna prueba.** CONFIRMADO
+  por revert (agente 1).
+  - Revertida por separado la supresión del `removed` (`SyncEngine.ts:923`), la de `keepTheirs`
+    (`:1398`), la de `merge` (`:1412`) y la profundidad del `Map`, `SyncEngine.test.ts` sigue en
+    73/73.
+  - El impacto hoy es nulo: ningún apply de los 5 adaptadores registrados encola, así que la supresión es solo
+    defensiva.
+  - Importa para la 24: el arreglo de `R9-124` toca justo el sitio del `removed`. Si consulta si
+    el doc existe, que lo haga FUERA de `withLocalWriteSuppressed`, para no alargar la supresión a
+    un viaje de red.
+
+- **`R9-155` (S23, prueba de favoritos — P3) — 🐛 la prueba de `R9-102` cubre «la edición
+  anterior del mismo favorito» solo con un favorito NUEVO.** CONFIRMADO con sonda (agente 2).
+  - Un arreglo a medias (el ref, y SQLite solo si el favorito no está en el ref) pasa las 3
+    pruebas de `favoritesUpdateQueuesSync.test.tsx`.
+  - Esa versión pierde la nota de un favorito EXISTENTE editado dos veces sin render en el medio:
+    `{"note":"nota vieja","tags":["Evangelio"]}`. En `HEAD` la misma sonda pasa: el código
+    está bien, y lo que falta es la prueba.
+
+- **`R9-156` (S23, docs y comentarios de la 20 — P3, agrupado).** Medidos contra el código, git y
+  el mundo (agente 3; 25 de 30 afirmaciones son ciertas):
+  1. `SyncEngine.ts:271-272` dice que el SDK nativo «was not measured». Se midió después, en
+     `e54208f`.
+  2. `INDEX.md:167,174` y `CONTINUAR.md` dicen «no lo devuelve nunca» y «pendiente para siempre».
+     Según la fuente del SDK, la promesa vuelve si la cuenta anterior regresa en el mismo
+     proceso. El detalle, esta entrada y `cfa7c1c` lo dicen bien.
+  3. «El flush viejo no toca nada más» no es literal. Después del corte hace `persistQueue()`
+     (`:1747`), y como `erroredOut` sigue en `false` en el corte del `catch`, puede lanzar un
+     `flush()` de la sesión nueva (`:1776-1782`). Es inocuo mientras el candado esté en su sitio.
+  4. `R9-102` y el commit `00f69c4` citan `app/collections/[name].tsx`. La ruta real es
+     `app/features/collections/[name].tsx:114`.
+  5. Los uid de las 5 cuentas anónimas de la sonda de `R9-104` no quedaron escritos en ningún
+     lado, así que su borrado no se puede re-verificar. El de los docs sí: una consulta
+     collection-group de `r9104probe`, solo de lectura, da 200 y 0 docs (con un control que
+     devuelve 1).
+  6. La matriz de reverts de `R9-104` tiene dos precisiones:
+     - «soltar el candado en `stop()`» son dos piezas: sin `flushInFlight = false` caen la 2 y
+       la 3, y sin `flushSession += 1` caen la 1, la 3 y la 4;
+     - el corte de éxito lo cubren la guarda de `pushOne` y el corte del `catch` JUNTOS.
+  7. Las pruebas 1 y 4 de `R9-104` son defensivas: inyectan desenlaces que ningún SDK medido
+     produce al cambiar de usuario. La rama realista, «vuelve Ana», no la cubre ninguna prueba, y
+     `mockSetGate` no mantiene el orden de escrituras de un mismo usuario.
+  8. La prueba de `R9-105` dice que el SecureStore aislado es otra instancia, y es la MISMA
+     (`outerStoreHasPreseed:"true"`). RevenueCat sí es otra. No cambia lo que discrimina.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -1791,6 +1928,12 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   local más nueva NO encolada (`R9-38`) cuya copia remota cae dentro del piso. P2; P1 si se suma
   el caso de la carga fallida. `MemoryDeckContext.tsx:233-236` tiene la misma forma (PLAUSIBLE,
   sin sonda).
+  **⚠️ Sesión 23, otra ventana de la misma raíz (medida, agente 2):** `favoritesRef`
+  (`FavoritesContext.tsx:143-147`) va por detrás de SQLite después de CADA edición, hasta el
+  render siguiente. Si un apply remoto del mismo favorito cae en ese hueco, la edición más nueva
+  del usuario se pierde en SQLite, en pantalla y en la cola, y se salta la UI de conflictos. El
+  control con el remoto después del render da `conflicts=1`. `R9-102` no lo empeoró: con el código
+  viejo, la misma sonda encola 0.
 
 - **`R9-134` (S21, memoria / identidad) — 🐛 la guarda de dueño de `R9-48` falla ABIERTA si no
   puede leer el marcador.** CONFIRMADO con sonda. `getReviewLogOwner` (`memoryStatsSync.ts:79-86`)
@@ -2118,6 +2261,11 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
      cuenta.
   4. Un lote de Ana que termina después de `start('beto')` escribe su máximo bajo la clave de
      cursor de Beto (`:1124`; medido `cursorBeto null → tsDeAna`).
+     **⚠️ Sesión 23: este punto sube a P2.** No es solo la clave persistida: envenena también el
+     caché de cursores EN MEMORIA, y con él el PRIMER enganche de Beto. Su piso sale en
+     `cursorDeAna − 5 min` en vez de 0, y un doc de Beto de hace 1 hora no baja nunca
+     (`betoViejoAplicado:false`): en un teléfono nuevo para Beto, su historial anterior no llega.
+     Es el mismo agujero que `R9-153` (`handleSnapshot` sin sesión), y el mismo arreglo los cierra.
 
 - **`R9-123` (S19, docs de la revisión — P3, agrupado).** Afirmaciones falsas o rancias en los
   propios docs, medidas contra git y contra el código:

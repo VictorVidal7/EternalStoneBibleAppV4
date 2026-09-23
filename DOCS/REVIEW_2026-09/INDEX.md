@@ -165,13 +165,14 @@
 > **Lo que más vale:** la propuesta de arreglo de `R9-104` que traía el ledger («sirve para las
 > dos ramas») era **falsa**, y está medido. Mirar la cuenta después del `await` no sirve cuando el
 > `await` no vuelve, y el SDK de JS no lo devuelve nunca. Hizo falta que `stop()` suelte el
-> candado del flush.
+> candado del flush. (**⚠️ Sesión 23:** «nunca» mientras haya otra cuenta; si la anterior vuelve
+> en el mismo proceso, la promesa se resuelve. Ver `R9-156.2`.)
 >
 > **Mergeada en fast-forward y pusheada** con el OK de Victor. **Quedan 3 P0 abiertos** (`R9-36`,
 > `R9-38`, `R9-39`). Detalle: `detail/S20-arreglos-p0-sync-favoritos.md`.
 >
 > **`R9-104`, medido en el SDK nativo** (Modo C, con el OK de Victor, en emulador): la escritura
-> de la cuenta anterior queda pendiente para siempre y no llega al servidor. O sea, «no
+> de la cuenta anterior queda pendiente (mientras esa cuenta no vuelva: `R9-156.2`) y no llega al servidor. O sea, «no
 > sincroniza hasta reiniciar» (P1), no mezcla. La propuesta del ledger no habría arreglado ese
 > caso. **CI del merge verificado en el log** (run `35793874042`, 364/4299).
 >
@@ -220,6 +221,24 @@
 > Siguen **5 P0 abiertos**. Hallazgos: **152**. Con el OK de Victor, el checkpoint de la 21 y el
 > registro de la 22 van juntos en `docs/review-s21-doble-check`, para mergear en fast-forward.
 > Detalle: `detail/S22-doble-check-puntos-3-4.md`.
+>
+> **Sesión 23 (2026-09-23): revisión del diff de la 20 (`25128b3..ca2cd71`), la opción (a).** Solo
+> de revisión, con 3 agentes en worktrees aislados. Ninguno se cortó. El orquestador verificó con
+> sonda propia todo lo que subió a P1.
+>
+> - **Los cuatro arreglos de la 20 se sostienen, y dentro de su diff no hay ningún P0 ni P1.** La
+>   matriz de reverts de `R9-104` es cierta fila por fila, y 25 de las 30 afirmaciones del ledger
+>   sobre la 20 son ciertas contra el mundo.
+> - **El P1 nuevo es el vecino de `R9-104`:** `handleSnapshot` no tiene sesión. Un conflicto de
+>   Ana registrado después del `stop()` pasa a la sesión de Beto, y resolverlo copia la versión
+>   de la nube de Ana a la de Beto (`R9-153`). Es P1 y no P0 (decidido con Victor) porque hacen
+>   falta un conflicto real en vuelo, otra cuenta en el mismo proceso y resolverlo a mano. El
+>   mismo agujero sube `R9-122.4` de P3 a P2.
+> - **4 hallazgos, `R9-153`..`R9-156`: 1 P1 y 3 P3.**
+>
+> Siguen **5 P0 abiertos**. Hallazgos: **156**. El checkpoint va en `docs/review-s23-diff-s20`,
+> sin mergear sin el OK de Victor. **Siguiente, la 24: ARREGLOS** (`R9-125`+`R9-130`, `R9-143`,
+> `R9-124` medido antes en Modo C, y `R9-153`). Detalle: `detail/S23-revision-del-diff-s20.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -682,6 +701,25 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 23 — 2026-09-23. Revisión del diff de la 20.** Solo revisión: no se tocó código.
+  - **Cómo se trabajó:** 3 agentes, no 5, por lo que pasó en la 22. Ninguno se cortó, y el
+    orquestador verificó el único P1 con una sonda propia.
+    - el agente 1 se ocupó del `SyncEngine` (`R9-104` y `R9-103`) pieza por pieza;
+    - el agente 2, de favoritos y dinero (`R9-102` y `R9-105`);
+    - el agente 3, de las afirmaciones de la 20 contra el mundo.
+  - **Veredicto:** los cuatro arreglos se sostienen, y la matriz de reverts de la 20 es cierta.
+  - **4 hallazgos, `R9-153`..`R9-156`.** El que manda es `R9-153` (P1): `handleSnapshot` no
+    tiene sesión, así que un conflicto de Ana pasa a la sesión de Beto y, al resolverlo, cruza a
+    su nube. `R9-122.4` sube a P2 por el mismo agujero.
+  - **Detalle: `detail/S23-revision-del-diff-s20.md`.**
+  - **Las lecciones:**
+    - **un arreglo con sesión deja abierto el OTRO bucle con `await`**: la 20 cerró el flush y
+      dejó `handleSnapshot`, que cruza el mismo `stop()`;
+    - **lo que `stop()` limpia, `start()` no lo vuelve a limpiar**: todo lo que se escribe
+      entre los dos se hereda;
+    - **un número que no se anota no se puede re-verificar**: los uid de las cuentas de la
+      sonda de la 20.
 
 - **Sesión 22 — 2026-09-23. El checkpoint de la 21 y los puntos 3 y 4 del doble check.** Solo
   revisión. Con esto el doble check con Opus 5.5 que pidió Victor queda **terminado en sus 4

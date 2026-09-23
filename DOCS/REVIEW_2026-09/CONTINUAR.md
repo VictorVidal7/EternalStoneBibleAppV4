@@ -1,8 +1,9 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-23, fin de la sesión 22. El doble check con Opus 5.5 que pidió
-> Victor está TERMINADO:** la 21 hizo los puntos 1 y 2, y la 22 hizo los puntos 3 y 4 y registró
-> todo. La 20 fue de ARREGLOS (`R9-102`..`R9-105`).
+> **Última actualización: 2026-09-23, fin de la sesión 23.** La 23 revisó el diff de la 20 (la
+> opción (a)): los cuatro arreglos se sostienen, y salió un P1 en su vecino (`R9-153`). **Lo
+> siguiente es la (c), ARREGLOS**, con el mensaje de abajo. El doble check con Opus 5.5 que pidió
+> Victor está TERMINADO: la 21 hizo los puntos 1 y 2, y la 22 los puntos 3 y 4.
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -14,11 +15,11 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**0. Las sesiones 21 y 22 van juntas en la rama `docs/review-s21-doble-check`, que es solo docs.**
-Lleva dos cosas: el checkpoint de la 21 (`f294333`) y el registro de la 22 (el commit siguiente).
-**Victor dio el OK para mergearla en fast-forward y pushearla.** Si al arrancar esa rama todavía
-no está en `origin/main`, algo se cortó: preguntale antes de seguir. La base es `ca2cd71`, y su CI
-está verificado EN EL LOG: run `35801884549`, Node v24.20.0, 364/4299, cero «failed to run».
+**0. El checkpoint de la sesión 23 va en la rama `docs/review-s23-diff-s20`, que es solo docs, y
+espera el OK de Victor para mergearse.** Si al arrancar esa rama no está en `origin/main`,
+preguntale qué decidió antes de seguir. La base es `714d627` (el registro de la 22, ya mergeado y
+pusheado), y su CI está verificado EN EL LOG: run `35897985450`, 3 jobs verdes, Node v24.20.0,
+364/4299, cero «failed to run». Las sesiones 21 y 22 (`f294333`, `714d627`) ya están en `main`.
 **Comprobá en el log el run de CI de `origin/main`.**
 
 **1. ✅ Lo de la sesión 20: la rama se mergeó en fast-forward y se
@@ -121,7 +122,9 @@ Los **19 de la sesión 21** (`R9-124`..`R9-142`) son 2 P0, 6 P1, 10 P2 y 1 P3, y
 abiertos. Los dos P0 los pasan de 3 a 5.
 Los **10 de la sesión 22** (`R9-143`..`R9-152`) son 1 P1 (`R9-143`), 1 P2 y 8 P3, todos
 abiertos. Además, `R9-53` y `R9-55` bajaron de P1 a P2 y `R9-63` de P2 a P3.
-Hallazgos totales: **152**.
+Los **4 de la sesión 23** (`R9-153`..`R9-156`) son 1 P1 (`R9-153`) y 3 P3, todos abiertos.
+Además, `R9-122.4` subió de P3 a P2.
+Hallazgos totales: **156**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -223,7 +226,23 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
-**La lección de la sesión 22, que es la que conviene llevarse AHORA.** Fue la segunda mitad del
+**La lección de la sesión 23, que es la que conviene llevarse AHORA.** Revisó el diff de la 20, y
+los cuatro arreglos se sostienen. Lo roto estaba, otra vez, en el vecino:
+
+> **Un arreglo que le pone sesión a UN bucle deja abierto el OTRO bucle con `await` que cruza el
+> mismo `stop()`.** La 20 cerró el flush y dejó `handleSnapshot`. Un conflicto de Ana registrado
+> después del `stop()` pasa a la sesión de Beto, y resolverlo copia la versión de la nube de Ana
+> a la de Beto (`R9-153`). Cuando arregles algo que cruza un `stop()`, buscá TODOS los `await`
+> que lo cruzan, no solo el de tu prueba.
+
+> **Lo que `stop()` limpia, `start()` no lo vuelve a limpiar.** Todo lo que se escribe entre los
+> dos lo hereda la cuenta que entra.
+
+> **Un dato que no se anota no se puede re-verificar.** Los uid de las 5 cuentas anónimas de la
+> sonda de la 20 no quedaron escritos, así que su borrado ya no se puede comprobar desde fuera
+> (`R9-156.5`). Anotá los identificadores de lo que una sonda crea en el mundo.
+
+**La lección de la sesión 22.** Fue la segunda mitad del
 doble check, con 5 agentes, y lo que más enseñó fue la operación:
 
 > **Cinco agentes Opus a la vez agotaron la sesión de uso, y se cortaron los cinco en el mismo
@@ -411,20 +430,17 @@ o un alcance que no se sostiene.
 
 ## Mensaje para pegar en el chat nuevo
 
-**El doble check (la (b)) está TERMINADO.** Quedan dos caminos, y **los dos hay que hacerlos**;
-el orden lo elige Victor:
+**El doble check (la (b)) y la revisión del diff de la 20 (la (a), sesión 23) están HECHOS.** Lo
+siguiente es la **(c), ARREGLOS**, en la sesión 24.
 
-- **(a) revisar el diff de la sesión 20**, que nadie revisó todavía. El programa revisa cada diff
-  de arreglos, y la 19 encontró dos que nadie había revisado.
-- **(c) una sesión de ARREGLOS**, con lo que salió del doble check.
-
-**(c) ARREGLOS de lo que dejó el doble check.**
+**(c) ARREGLOS de lo que dejaron el doble check y la 23.**
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
 > **Estado:** el doble check con Opus 5.5 está terminado y registrado (sesiones 21 y 22,
-> `R9-124`..`R9-152`). Hay 5 P0 abiertos: `R9-36`, `R9-38`, `R9-39`, `R9-124` y `R9-125`. Antes
-> de empezar, comprobá en el log el run de CI de `origin/main`.
+> `R9-124`..`R9-152`), y la 23 revisó el diff de la 20 (`R9-153`..`R9-156`). Hay 5 P0 abiertos:
+> `R9-36`, `R9-38`, `R9-39`, `R9-124` y `R9-125`. Hallazgos: 156. Antes de empezar, comprobá en
+> el log el run de CI de `origin/main`.
 >
 > **Esta sesión es de ARREGLOS**, en una rama nueva, un commit por hallazgo:
 >
@@ -436,27 +452,36 @@ el orden lo elige Victor:
 > 3. **`R9-124` (P0), solo la medición:** antes de tocar el motor, medí el SDK nativo de Android
 >    en Modo C, en el emulador, con mi OK y nunca con mi teléfono (como `R9-104` en la 20). Si
 >    confirma, el arreglo es que un `removed` solo signifique borrado cuando el doc ya no existe,
->    y el mock de `onSnapshot` de la suite tiene que emitir `removed`.
+>    y el mock de `onSnapshot` de la suite tiene que emitir `removed`. Si consultás si el doc
+>    existe, hacelo FUERA de `withLocalWriteSuppressed` (`R9-154`).
+> 4. **`R9-153` (P1):** `handleSnapshot` necesita la misma sesión que el flush, para que al volver
+>    de cada `await` después de un `stop()` corte sin registrar conflictos, sin mover el cursor y
+>    sin tocar el estado. Toca el mismo bucle que `R9-124`, y debería cerrar también
+>    `R9-122.4`. No necesita emulador. La prueba: un conflicto de Ana registrado después del
+>    `stop()` no aparece en la sesión de Beto, y resolver no escribe nada en la nube de Beto.
 >
 > Cada prueba, **vista fallar primero**, y cada PIEZA revertida por separado. Gates en verde
 > (`npm run validate`), y no mergees nada sin preguntarme.
 >
-> **Pendiente, NO para esta sesión salvo que te lo pida:** la opción (a), el diff de la 20; los P0
-> viejos `R9-36`, `R9-38` y `R9-39`; y terminar `A12`.
+> **Pendiente, NO para esta sesión salvo que te lo pida:** los P0 viejos `R9-36`, `R9-38` y
+> `R9-39`; terminar `A12`; y mis decisiones pendientes, `R9-59` (qué significa «local» en un
+> teléfono compartido) y el efecto de `R9-146`.
 
 **(b2) Lo que fue la sesión 22, ya HECHO.** Queda aquí como registro. El prompt con que arrancó
 (`_scratch/S22-PROMPT.md`, que no está en git) pedía el checkpoint de la 21 y los puntos 3 y 4 con
 2 agentes. Victor pidió 5 a mitad de sesión.
 
-**(a) Revisar el diff de la sesión 20.**
+**(a) Revisar el diff de la sesión 20: lo que fue la sesión 23, ya HECHO.** Queda aquí como
+registro. Victor delegó el orden, y la 23 arrancó con `_scratch/S23-PROMPT.md` (que no está en
+git), casi igual a este mensaje, con 3 agentes.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
 > **Estado:** `main` = `origin/main`, sin ramas pendientes. La sesión 20 (con Opus 5.5) arregló
 > `R9-102`..`R9-105`, un commit por hallazgo (`8ea93b6`, `7aafc9c`, `cfa7c1c`, `00f69c4`), ya
 > mergeados y pusheados, con CI verde verificado en el log. Además midió `R9-104` en el SDK
-> NATIVO (Modo C, emulador): la escritura de la cuenta anterior queda pendiente para siempre, así
-> que se queda en P1. Antes de empezar, comprobá en el log el run de CI de `origin/main`. El
+> NATIVO (Modo C, emulador): la escritura de la cuenta anterior queda pendiente (mientras esa
+> cuenta no vuelva: `R9-156.2`), así que se queda en P1. Antes de empezar, comprobá en el log el run de CI de `origin/main`. El
 > detalle está en `detail/S20-arreglos-p0-sync-favoritos.md`. Quedan 5 P0 abiertos: `R9-36`,
 > `R9-38`, `R9-39`, y `R9-124` y `R9-125`, que son del doble check (sesiones 21 y 22, ya
 > registrado).
@@ -616,15 +641,15 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al empezar la sesión 22 (2026-09-23).**
+**Medido al empezar la sesión 23 (2026-09-23).**
 
-- **`main` = `origin/main` = `ca2cd71`** (solo docs después de `00f69c4`, el último código de la
-  20). **CI de `ca2cd71` verificado en el log:** run `35801884549`, Node v24.20.0, 364/4299,
-  cero «failed to run».
-- **Una rama de la revisión sin mergear, a propósito:** `docs/review-s21-doble-check`, con el
-  checkpoint de la 21 (solo docs). Se mergea con el OK de Victor.
-- El worktree viejo `.claude/worktrees/agent-ac8c78369a99d9c31` de la 21 ya se borró, junto con
-  su rama. Estaba limpio, y su `_scratch` era un prefijo del del árbol principal.
+- **`main` = `origin/main` = `714d627`** (solo docs después de `00f69c4`, el último código de la
+  20). **CI de `714d627` verificado en el log:** run `35897985450`, 3 jobs verdes, Node v24.20.0,
+  364/4299, cero «failed to run».
+- **Una rama de la revisión sin mergear, a propósito:** `docs/review-s23-diff-s20`, con el
+  checkpoint de la 23 (solo docs). Se mergea con el OK de Victor.
+- Los 3 worktrees de los agentes de la 23 se borraron solos (sin cambios netos), sin dejar
+  ramas. `.claude/worktrees/` quedó vacío.
 
 Las demás ramas locales, en total 11 contando `main`:
 
@@ -732,6 +757,9 @@ sea imposible de desasignar por sync**, así que cualquier omisión local se con
 divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz).
 
 ## 4. Por dónde seguir
+
+**Decidido para la sesión 24: la (c), ARREGLOS**, con el mensaje para pegar de arriba. Lo de
+abajo es el menú de siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
