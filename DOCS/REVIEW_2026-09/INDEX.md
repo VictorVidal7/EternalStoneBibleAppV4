@@ -175,8 +175,9 @@
 > sincroniza hasta reiniciar» (P1), no mezcla. La propuesta del ledger no habría arreglado ese
 > caso. **CI del merge verificado en el log** (run `35793874042`, 364/4299).
 >
-> **Siguiente:** revisar el diff de la 20. Después, el doble check con Opus 5.5 que pidió Victor, y
-> la cadena de publicación (`R9-108`, `R9-109`).
+> **Siguiente (elegido por Victor):** el doble check con Opus 5.5 de lo revisado hasta la 18 (opción
+> (b) de `CONTINUAR.md`). Después, revisar el diff de la 20 y la cadena de publicación (`R9-108`,
+> `R9-109`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**

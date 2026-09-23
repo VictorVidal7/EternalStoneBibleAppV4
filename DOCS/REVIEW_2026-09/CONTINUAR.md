@@ -349,12 +349,12 @@ vas a arreglar alguno, verificalo primero.
 
 ## Mensaje para pegar en el chat nuevo
 
-Hay dos opciones y **las dos hay que hacerlas**. La (a) va primero porque la 20 fue de arreglos, y
-el programa revisa cada diff de arreglos en la sesión siguiente: la 19 encontró dos diffs que nadie
-había revisado, y de ahí salieron un P1 de dinero y uno de pérdida de conflictos. La (b) es el
-pedido fijo de Victor.
+Hay dos opciones y **las dos hay que hacerlas**. **Victor eligió la (b) para la sesión 21** (el
+doble check con Opus 5.5, su pedido fijo). La (a), revisar el diff de la 20, queda para después, y
+va como pendiente explícito dentro del mensaje de la (b): el programa revisa cada diff de arreglos,
+y la 19 encontró dos que nadie había revisado.
 
-**(a) RECOMENDADA: revisar el diff de la sesión 20.**
+**(a) DESPUÉS de la (b): revisar el diff de la sesión 20.**
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -432,32 +432,45 @@ pedido fijo de Victor.
 > la sesión 18 se hizo con Opus 5, y quiero un **doble check con Opus 5.5**. Está en `CONTINUAR.md`,
 > punto 3.
 
-**(b) El doble check con Opus 5.5, pedido fijo de Victor.** Es solo revisión, sin tocar código.
+**(b) ELEGIDA POR VICTOR PARA LA SESIÓN 21: el doble check con Opus 5.5, su pedido fijo.** Es solo
+revisión, sin tocar código.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> Todo lo que el ledger (`DOCS/REVIEW_2026-09/BUGS.md`) registró hasta la sesión 18 incluida se
-> revisó con **Opus 5**. La sesión 19 fue la primera con **Opus 5.5**, y encontró que esa pasada
-> dejó huecos:
+> **Estado:** `main` = `origin/main`, sin ramas pendientes, con CI verde verificado en el log. La
+> sesión 20 arregló `R9-102`..`R9-105` y midió `R9-104` en el SDK nativo. Quedan 3 P0 abiertos
+> (`R9-36`, `R9-38`, `R9-39`). Antes de empezar, comprobá en el log el run de CI de
+> `origin/main`.
 >
-> - dos diffs de arreglos (sesiones 10 y 11) nunca se habían revisado;
+> **Esta sesión es el doble check con Opus 5.5, y es solo de REVISIÓN.** Todo lo que el ledger
+> (`DOCS/REVIEW_2026-09/BUGS.md`) registró hasta la sesión 18 incluida se revisó con **Opus 5**.
+> Las sesiones 19 y 20, ya con Opus 5.5, encontraron que esa pasada dejó huecos:
+>
+> - dos diffs de arreglos (sesiones 10 y 11) que nunca se habían revisado;
 > - dos P0 nuevos (`R9-102`, `R9-103`) en código que el Modo A ya había pasado;
-> - varias afirmaciones «comprobado y BIEN» que eran falsas.
+> - varias afirmaciones «comprobado y BIEN» que eran falsas;
+> - una propuesta de arreglo del ledger (`R9-104`) que no cubría el único caso que ocurre de verdad.
 >
-> **Quiero un doble check, con Opus 5.5, de todo lo ya revisado.** El alcance está en
-> `detail/S19-revision-del-diff.md`, sección «Pedido de Victor»:
+> **Quiero un doble check, con Opus 5.5, de todo lo revisado hasta la sesión 18.** El alcance está
+> en `detail/S19-revision-del-diff.md`, sección «Pedido de Victor»:
 >
-> 1. **Los P0 marcados ✅ ARREGLADO:** que cada arreglo se sostiene y que su prueba discrimina **en
->    `HEAD`**, no en el commit donde nació (revertí, corré, restaurá, `diff` el revert).
+> 1. **Los 18 P0 marcados ✅ ARREGLADO antes de la sesión 19** (no `R9-102`/`R9-103`, que son de la
+>    20): que cada arreglo se sostiene y que su prueba discrimina **en `HEAD`**, no en el commit
+>    donde nació. Revertí cada PIEZA del arreglo por separado, no el arreglo entero (la lección de
+>    la 20), y hacé `diff` de cada revert.
 > 2. **Las filas ya cerradas del Modo A (`A1`..`A11`) y del Modo B:** re-leer el código con ojo
 >    fresco, sobre todo la dirección «quitar acceso / restaurar / cambiar de cuenta».
 > 3. **Los P1/P2 que nunca se re-verificaron** (`R9-51`..`R9-64`).
-> 4. **Las afirmaciones «comprobado y BIEN» de los `detail/S*`**, contra el mundo, no contra el
->    texto.
+> 4. **Las afirmaciones «comprobado y BIEN» de los `detail/S*` hasta `S18`**, contra el mundo, no
+>    contra el texto.
 >
-> Usá agentes en worktrees aislados (uno por punto cabe), y verificá vos todo lo que suba a P0 o
-> P1 antes de reportarlo. Registrá lo nuevo como `R9-124` en adelante. Decime qué encontraste
-> antes de tocar nada.
+> Usá 4 agentes en worktrees aislados, uno por punto, y dale a cada uno los hallazgos ya reportados
+> por número (`R9-1`..`R9-123`) para que no los repita. Verificá vos todo lo que suba a P0 o P1
+> antes de reportarlo. Registrá lo nuevo como `R9-124` en adelante. Decime qué encontraste antes
+> de tocar nada.
+>
+> **Pendiente, NO para esta sesión salvo que te lo pida:** revisar el diff de la sesión 20
+> (`25128b3..origin/main`). Es la opción (a) de `CONTINUAR.md`.
 
 **(c) Lo que ya estaba en cola antes de la 19**, sin cambios: terminar `A12` (3 hilos abiertos en
 su detalle, y con eso se cierra el bloque P0 del Modo A), los P0 viejos `R9-36`, `R9-38` y
