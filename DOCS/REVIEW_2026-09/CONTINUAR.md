@@ -1,9 +1,8 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-23, sesión 22, con el checkpoint de la 21 escrito** (el doble
-> check con Opus 5.5, puntos 1 y 2). La 22 está haciendo los puntos 3 y 4 con 5 agentes. Si
-> este archivo todavía dice «EN CURSO» y el chat ya no existe, los informes están en
-> `_scratch/S22-agente-*.md`. La 20 fue de ARREGLOS (`R9-102`..`R9-105`).
+> **Última actualización: 2026-09-23, fin de la sesión 22. El doble check con Opus 5.5 que pidió
+> Victor está TERMINADO:** la 21 hizo los puntos 1 y 2, y la 22 hizo los puntos 3 y 4 y registró
+> todo. La 20 fue de ARREGLOS (`R9-102`..`R9-105`).
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -15,11 +14,12 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**0. La sesión 21 no commiteó nada. Su checkpoint lo escribió la 22, en la rama
-`docs/review-s21-doble-check`, y NO se mergea sin el OK de Victor.** Si esa rama existe y no
-está en `main`, preguntale. `main` = `origin/main` = `ca2cd71`, y su CI está verificado EN EL LOG
-dos veces (al cerrar la 21 y al empezar la 22): run `35801884549`, Node v24.20.0, 364/4299, cero
-«failed to run».
+**0. Las sesiones 21 y 22 van juntas en la rama `docs/review-s21-doble-check`, que es solo docs.**
+Lleva dos cosas: el checkpoint de la 21 (`f294333`) y el registro de la 22 (el commit siguiente).
+**Victor dio el OK para mergearla en fast-forward y pushearla.** Si al arrancar esa rama todavía
+no está en `origin/main`, algo se cortó: preguntale antes de seguir. La base es `ca2cd71`, y su CI
+está verificado EN EL LOG: run `35801884549`, Node v24.20.0, 364/4299, cero «failed to run».
+**Comprobá en el log el run de CI de `origin/main`.**
 
 **1. ✅ Lo de la sesión 20: la rama se mergeó en fast-forward y se
 pusheó** (con el OK de Victor), y se borró. Lleva cuatro commits de código, uno por hallazgo
@@ -75,8 +75,14 @@ sesión lo haga y lo registre.**
 - **Puntos 1 y 2, HECHOS en la sesión 21:** los 18 P0 arreglados, pieza por pieza, y las filas
   cerradas del Modo A y del Modo B. Salieron 19 hallazgos (`R9-124`..`R9-142`, 2 P0), y el
   detalle está en `detail/S21-doble-check.md`.
-- **Puntos 3 y 4, EN CURSO en la sesión 22, con 5 agentes:** los P1/P2 que nunca se
-  re-verificaron (`R9-51`..`R9-64`) y las afirmaciones de los `detail/S*` hasta `S18`.
+- **Puntos 3 y 4, HECHOS en la sesión 22, con 5 agentes:**
+  - las 14 entradas `R9-51`..`R9-64` siguen siendo ciertas, con 3 cambios de severidad;
+  - de 179 afirmaciones de `S8`..`S18`, se verificaron 171, y ninguna escondía un P0 ni un P1.
+
+  Salieron 10 hallazgos (`R9-143`..`R9-152`, 1 P1). El detalle está en
+  `detail/S22-doble-check-puntos-3-4.md`.
+
+**El doble check está TERMINADO.** Ya no hace falta que vaya en el prompt de arranque.
 
 **4. La revisión de la sesión 10 encontró que la prueba de `R9-34` NO DISCRIMINABA**, y la
 causa es la que hay que llevarse: **`R9-33` y `R9-34` iban en el mismo commit, y el backoff
@@ -113,7 +119,9 @@ agrupadas. **La 20 arregló cuatro:** `R9-102`, `R9-103`, `R9-104` y `R9-105`. L
 siguen abiertos.
 Los **19 de la sesión 21** (`R9-124`..`R9-142`) son 2 P0, 6 P1, 10 P2 y 1 P3, y están todos
 abiertos. Los dos P0 los pasan de 3 a 5.
-Hallazgos totales: **142**.
+Los **10 de la sesión 22** (`R9-143`..`R9-152`) son 1 P1 (`R9-143`), 1 P2 y 8 P3, todos
+abiertos. Además, `R9-53` y `R9-55` bajaron de P1 a P2 y `R9-63` de P2 a P3.
+Hallazgos totales: **152**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -215,7 +223,23 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
-**La lección de la sesión 21, que es la que conviene llevarse AHORA.** Fue el doble check de los
+**La lección de la sesión 22, que es la que conviene llevarse AHORA.** Fue la segunda mitad del
+doble check, con 5 agentes, y lo que más enseñó fue la operación:
+
+> **Cinco agentes Opus a la vez agotaron la sesión de uso, y se cortaron los cinco en el mismo
+> minuto.** Salvó el trabajo el informe incremental en disco. A uno se le borró el worktree con
+> sus sondas, y quedó solo lo que había escrito. **Copiá a `_scratch` cada sonda que sostenga un
+> P0/P1 en cuanto se corre, no al final.**
+
+> **Un agente re-descubre un hallazgo ya numerado si el título no nombra la clave.** El «P1 nuevo»
+> del Banco de ilustraciones ya era `R9-30`. El orquestador tiene que buscar por la CLAVE
+> (`grep @prep_illustrations BUGS.md`), no por el título.
+
+> **Un remedio escrito en el ledger es una hipótesis, también en un P2** (`R9-58`: `flushOnExit`
+> no hace nada en React Native). Y **dónde corre algo se comprueba en el log**: el CI corre en UTC,
+> no en Ciudad de México como decía este archivo.
+
+**La lección de la sesión 21.** Fue el doble check de los
 18 P0 arreglados, y los 18 se sostienen. Lo que no se sostiene es la creencia de que están
 vigilados:
 
@@ -379,56 +403,52 @@ con **3 hilos abiertos y verificados por `grep`, pero sin escenario de fallo alc
 que es lo que falta para que sean hallazgos. No la re-empieces desde cero: lee ese archivo,
 que además dice por dónde seguir. **Cerrarla cierra el bloque P0 entero del Modo A.**
 
-**Los P1 y P2 que nunca se re-verificaron (`R9-51`..`R9-64`) son el punto 3 del doble check, EN
-CURSO en la sesión 22.** Hasta que se registre su resultado, si vas a arreglar alguno,
-verificalo primero.
+**Los P1 y P2 `R9-51`..`R9-64` ya están re-verificados** (sesión 22): cada entrada lleva su
+nota «⚠️ Sesión 22» con lo que cambió. Leéla antes de arreglar una: varias traían un remedio
+o un alcance que no se sostiene.
 
 ---
 
 ## Mensaje para pegar en el chat nuevo
 
-**La (b) está a medias:** la sesión 21 hizo los puntos 1 y 2, y la 22 está haciendo el
-checkpoint de la 21 y los puntos 3 y 4. **Si la 22 se cortó antes de registrar los puntos 3 y
-4, pegá el mensaje (b2)**: los informes de sus agentes están en `_scratch/S22-agente-*.md` y no
-hay que relanzarlos desde cero. La (a), revisar el diff de la 20, sigue pendiente: el programa
-revisa cada diff de arreglos, y la 19 encontró dos que nadie había revisado.
+**El doble check (la (b)) está TERMINADO.** Quedan dos caminos, y **los dos hay que hacerlos**;
+el orden lo elige Victor:
 
-**(b2) SESIÓN 22, EN CURSO: el checkpoint de la 21 y los puntos 3 y 4 del doble check.** Es el
-prompt con que arrancó la 22. Victor pidió después 5 agentes en vez de 2: el punto 3 se partió en
-A8+A9 (`S22-agente-3.md`) y A10+A11 (`S22-agente-3b.md`), y el punto 4 en `S8`-`S10`
-(`S22-agente-4.md`), `S13`-`S15` (`S22-agente-4b.md`) y `S16`-`S18` (`S22-agente-4c.md`).
+- **(a) revisar el diff de la sesión 20**, que nadie revisó todavía. El programa revisa cada diff
+  de arreglos, y la 19 encontró dos que nadie había revisado.
+- **(c) una sesión de ARREGLOS**, con lo que salió del doble check.
 
-> Seguimos con la revisión profunda. Leé primero la memoria de la sesión 21 y
-> `DOCS/REVIEW_2026-09/_scratch/S21-verificacion-orquestador.md`, y después `CONTINUAR.md`.
->
-> **Estado:** `main` = `origin/main` = `ca2cd71`, con CI verde verificado en el log (run
-> `35801884549`). Antes de empezar, comprobá en el log el run de `origin/main`. La sesión 21 hizo
-> los puntos 1 y 2 del doble check con Opus 5.5 y no commiteó nada. Salieron 19 hallazgos
-> verificados a mano (`R9-124`..`R9-142`: 2 P0, 6 P1, 10 P2 y 1 P3).
->
-> **Esta sesión tiene dos partes.** Lanzá primero los agentes de la parte 2 y escribí el
-> checkpoint mientras corren.
->
-> 1. **El checkpoint de la 21, en una rama nueva** (`docs/review-s21-doble-check`): registrá
->    `R9-124`..`R9-142` en `BUGS.md`, escribí `detail/S21-doble-check.md` y poné al día `INDEX.md`
->    y `CONTINUAR.md`. Los P0 abiertos pasan de 3 a 5. Gates en verde (`npm run validate`), y no
->    mergees nada sin preguntarme.
-> 2. **Los puntos 3 y 4 del doble check, con agentes**, forks en worktree aislado, con informe
->    incremental en `_scratch/S22-agente-*.md`, y cada uno con la lista de ya reportados
->    (`_scratch/S21-ya-reportados.txt`).
->    - **Punto 3:** los P1/P2 que nunca se re-verificaron (`R9-51`..`R9-64`). ¿Siguen siendo
->      ciertos en `HEAD`? ¿Tienen la severidad correcta?
->    - **Punto 4:** las afirmaciones «comprobado y BIEN» de los `detail/S*` hasta `S18`, contra el
->      mundo y no contra el texto.
->      Verificá vos todo lo que suba a P0 o P1. Lo nuevo va desde `R9-143`. Decime qué encontraste
->      antes de tocar nada.
->
-> **Pendiente, NO para esta sesión salvo que te lo pida:** la opción (a), el diff de la 20;
-> arreglar `R9-124` (antes, medir el SDK nativo en Modo C, en el emulador, con mi OK y nunca con
-> mi teléfono) y `R9-125` + `R9-130` (mirar el dueño previo ANTES de bifurcar, con una prueba por
-> las tres ramas); y los P0 viejos `R9-36`, `R9-38`, `R9-39`, y terminar `A12`.
+**(c) ARREGLOS de lo que dejó el doble check.**
 
-**(a) DESPUÉS de la (b): revisar el diff de la sesión 20.**
+> Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
+>
+> **Estado:** el doble check con Opus 5.5 está terminado y registrado (sesiones 21 y 22,
+> `R9-124`..`R9-152`). Hay 5 P0 abiertos: `R9-36`, `R9-38`, `R9-39`, `R9-124` y `R9-125`. Antes
+> de empezar, comprobá en el log el run de CI de `origin/main`.
+>
+> **Esta sesión es de ARREGLOS**, en una rama nueva, un commit por hallazgo:
+>
+> 1. **`R9-125` + `R9-130` (P0 + P1):** son las mismas líneas de `AuthContext.tsx`. Hay que mirar
+>    el dueño previo ANTES de bifurcar en `signInWithGoogle`, con una prueba que pase por las tres
+>    ramas: éxito del link, colisión y sin anónimo.
+> 2. **`R9-143` (P1):** «Banco de ilustraciones» y «Modo púlpito» necesitan las dos guardas de
+>    `handleNoteBlur`, con una prueba por botón que se vea fallar primero.
+> 3. **`R9-124` (P0), solo la medición:** antes de tocar el motor, medí el SDK nativo de Android
+>    en Modo C, en el emulador, con mi OK y nunca con mi teléfono (como `R9-104` en la 20). Si
+>    confirma, el arreglo es que un `removed` solo signifique borrado cuando el doc ya no existe,
+>    y el mock de `onSnapshot` de la suite tiene que emitir `removed`.
+>
+> Cada prueba, **vista fallar primero**, y cada PIEZA revertida por separado. Gates en verde
+> (`npm run validate`), y no mergees nada sin preguntarme.
+>
+> **Pendiente, NO para esta sesión salvo que te lo pida:** la opción (a), el diff de la 20; los P0
+> viejos `R9-36`, `R9-38` y `R9-39`; y terminar `A12`.
+
+**(b2) Lo que fue la sesión 22, ya HECHO.** Queda aquí como registro. El prompt con que arrancó
+(`_scratch/S22-PROMPT.md`, que no está en git) pedía el checkpoint de la 21 y los puntos 3 y 4 con
+2 agentes. Victor pidió 5 a mitad de sesión.
+
+**(a) Revisar el diff de la sesión 20.**
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -438,9 +458,11 @@ A8+A9 (`S22-agente-3.md`) y A10+A11 (`S22-agente-3b.md`), y el punto 4 en `S8`-`
 > NATIVO (Modo C, emulador): la escritura de la cuenta anterior queda pendiente para siempre, así
 > que se queda en P1. Antes de empezar, comprobá en el log el run de CI de `origin/main`. El
 > detalle está en `detail/S20-arreglos-p0-sync-favoritos.md`. Quedan 5 P0 abiertos: `R9-36`,
-> `R9-38`, `R9-39`, y `R9-124` y `R9-125`, que son del doble check de la 21.
+> `R9-38`, `R9-39`, y `R9-124` y `R9-125`, que son del doble check (sesiones 21 y 22, ya
+> registrado).
 >
-> **Esta sesión es de REVISIÓN del diff de la 20** (`25128b3..origin/main`). Decime qué
+> **Esta sesión es de REVISIÓN del diff de la 20** (`25128b3..ca2cd71`; lo posterior es solo
+> docs). Decime qué
 > encontraste antes de tocar nada. Mirá sobre todo:
 >
 > 1. **`R9-104` (`cfa7c1c`):** `stop()` ahora suelta el candado del flush con un push en vuelo.
@@ -460,10 +482,8 @@ A8+A9 (`S22-agente-3.md`) y A10+A11 (`S22-agente-3b.md`), y el punto 4 en `S8`-`
 >
 > Gates en verde (`npm run validate`), y no mergees nada sin preguntarme.
 >
-> **Pendiente fijo, NO para esta sesión salvo que te lo pida:** todo lo que el ledger revisó hasta
-> la sesión 18 se hizo con Opus 5, y quiero un **doble check con Opus 5.5**. Está en
-> `CONTINUAR.md`, punto 3, y es la opción (b): la 21 hizo los puntos 1 y 2, la 22 se ocupa de
-> los puntos 3 y 4, y lo que falte está dicho ahí.
+> **El doble check con Opus 5.5 ya está hecho y registrado** (sesiones 21 y 22). La opción (c)
+> de `CONTINUAR.md` son los arreglos que dejó.
 
 **(a-bis) Lo que era la (a) hasta la sesión 20, ya HECHO.** Queda aquí como registro.
 
@@ -507,8 +527,8 @@ A8+A9 (`S22-agente-3.md`) y A10+A11 (`S22-agente-3b.md`), y el punto 4 en `S8`-`
 > la sesión 18 se hizo con Opus 5, y quiero un **doble check con Opus 5.5**. Está en `CONTINUAR.md`,
 > punto 3.
 
-**(b) El doble check con Opus 5.5, el pedido fijo de Victor: puntos 1 y 2 HECHOS en la sesión
-21, y 3 y 4 en la (b2) de arriba.** Queda aquí como registro del alcance.
+**(b) El doble check con Opus 5.5, el pedido fijo de Victor: HECHO en sus 4 puntos** (sesiones 21
+y 22). Queda aquí como registro del alcance.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -547,7 +567,7 @@ A8+A9 (`S22-agente-3.md`) y A10+A11 (`S22-agente-3b.md`), y el punto 4 en `S8`-`
 > **Pendiente, NO para esta sesión salvo que te lo pida:** revisar el diff de la sesión 20
 > (`25128b3..origin/main`). Es la opción (a) de `CONTINUAR.md`.
 
-**(c) Lo que ya estaba en cola antes de la 19**, sin cambios: terminar `A12` (3 hilos abiertos en
+**(d) Lo que ya estaba en cola antes de la 19**, sin cambios: terminar `A12` (3 hilos abiertos en
 su detalle, y con eso se cierra el bloque P0 del Modo A), los P0 viejos `R9-36`, `R9-38` y
 `R9-39`, los 4 reportes de campo (`R9-40`..`R9-43`), y la deuda de dispositivo (la insignia
 `droppedWrites`, `R9-47` y la rama del lector de `R9-44`, siempre en emulador).
@@ -671,7 +691,8 @@ arreglos** — ver la nota al principio de esa sección.
 | 18     | Revisión del diff de la 17: **5 defectos** + arreglos         | mergeado a `main`   |
 | 19     | Revisión del diff de la 18, y de los de la 10 y 11 (Opus 5.5) | `ac9c7fd`           |
 | 20     | **ARREGLOS**: `R9-102`..`R9-105` (Opus 5.5)                   | `8ea93b6`→`00f69c4` |
-| 21     | Doble check, puntos 1 y 2: `R9-124`..`R9-142` (Opus 5.5)      | checkpoint en la 22 |
+| 21     | Doble check, puntos 1 y 2: `R9-124`..`R9-142` (Opus 5.5)      | `f294333`           |
+| 22     | Doble check, puntos 3 y 4: `R9-143`..`R9-152` (Opus 5.5)      | rama de la 21       |
 
 **Balance por modo.** El Modo B P0 salió **limpio**: 0 vulnerabilidades alcanzables, 0
 secretos filtrados jamás (5558/5558 blobs), 0 paths abiertos en Firestore. Sus 8 hallazgos
@@ -937,8 +958,10 @@ Alternativas legítimas:
   (patrón en `webStubProviders.test.tsx:516-532`; la pareja de `MemoryDeckContext` **sí** lo
   tiene y salió limpia). **Cualquier divergencia de API entre una pareja web/native sin ese
   mock es invisible para las tres compuertas.**
-- **La suite es CIEGA al horario de verano.** Ninguna prueba fija `TZ`; el CI y la máquina de
-  Victor están en `America/Mexico_City`, **que abolió el DST en 2022**.
+- **La suite es CIEGA al horario de verano.** Ninguna prueba fija `TZ`. La máquina de Victor
+  está en `America/Mexico_City`, **que abolió el DST en 2022**, y el CI en **UTC** (medido en el
+  log en la sesión 22; antes aquí decía que en Ciudad de México). Ninguna de las dos zonas tiene
+  cambio de hora.
 - **`_scratch/` está gitignoreado pero NO jest-ignoreado** (ver §5).
 - **El último deploy web es del 2026-08-13.** La regresión de `R9-13` entró el 2026-08-18,
   **5 días DESPUÉS**, así que el sitio vivo está sano y el bug está solo **armado**.

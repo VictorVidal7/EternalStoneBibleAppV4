@@ -222,3 +222,12 @@ que ser igual al tamaño del conjunto. (Es inalcanzable hoy: todos los llamadore
 - **`arrayName` en `PACK_SPECS` es campo muerto**: `parseTsArray` no lo usa.
 - **Nada detecta el día que un provider se monte en `app/(tabs)/_layout.tsx`** en vez de en el
   layout raíz.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:24`, «`R9-74` → 3 rojas»: el arreglo discrimina, pero la pieza «no se pudo LEER» no tiene prueba (`R9-149`).
+- `:223-224` (J4), «nada detecta un provider en `(tabs)/_layout.tsx`»: ya no aplica, a favor. Lo cerró `8a91c5c` (`R9-86`, sesión 16).

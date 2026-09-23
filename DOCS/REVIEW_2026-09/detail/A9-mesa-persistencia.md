@@ -322,3 +322,11 @@ Archivos (gitignoreados, vivían en el worktree del agente):
    `` `${p.increase} ${p.rangeEndLabel}` ``, esperar 20 ms, pulsar
    `` `${p.decrease} ${p.rangeEndLabel}` ``, esperar 900 ms, `fireEvent(input, 'blur')`, leer
    `getAllPrepNotes()`.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:210-211`, «Modo púlpito» y «Banco de ilustraciones» marcados ✅: los dos persisten, pero con las dos trampas que el arreglo de `R9-47` le quitó al `blur`. Un toque justo después de cambiar de pasaje pisa el sermón del pasaje nuevo (`R9-143`, P1).

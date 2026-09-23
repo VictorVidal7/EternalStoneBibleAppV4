@@ -331,3 +331,13 @@ propio control, o se convierte en la comprobación entera.
 
 Corolario, de `R9-67`: **un comentario que dice «verificado que hoy nadie hace X; si alguien
 empieza, arréglalo» no es una compuerta, es una nota.** O lo detecta algo, o no existe.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:72-74`, «`web-bootstrap.json` no cambia ni un byte»: es falso como propiedad, porque el script escribe `generated: <hoy>`. Solo fue cierto el día de la medición. Los sha256 sí coinciden.
+- `:175-177`, `R9-67` «visto fallar primero»: es cierto como medición del día, pero no quedó ninguna prueba que lo sostenga (`R9-144`).
+- `:242-246`, la prueba de `R9-69` «asserta el invariante de verdad»: a medias. El control es real; el invariante no, y la ida y vuelta A → B → A lo rompe (`R9-150`).

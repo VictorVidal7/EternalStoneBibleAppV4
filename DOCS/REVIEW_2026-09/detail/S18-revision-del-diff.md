@@ -257,3 +257,13 @@ se comprueban contra el workflow real: el detector pasa de **0** comparaciones a
   tres jobs sin arrancar.
 - **`--allow-shrink` sigue apagando CUATRO decisiones distintas.** Separarlas sigue
   siendo media hora y sigue sin decidirse.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:212-215` (y `S17:190-196`), «El modelo de metro de `R9-92` es correcto»: la precedencia es correcta, pero no la decide Metro sino expo-router (`getRoutesCore.js`). Además, `getMostSpecific` exige un hermano sin extensión, así que el ejemplo titular de `R9-92` (solo `_layout.native.tsx`) revienta al armar las rutas. El defecto sigue siendo real por la variante base + `.native`, que el arreglo caza (medido).
+- `:29` y `:205`, los `content-length` de Pages «idénticos»: solo sin compresión. Con gzip, Pages sirve el tamaño comprimido. La app no lee `content-length`.
+- `:92-95` ya estaba corregida por la sesión 19 (`R9-123`).

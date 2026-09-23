@@ -188,11 +188,28 @@
 > **Quedan 5 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). Los puntos 3 y 4 del
 > doble check van en la sesión 22. Detalle: `detail/S21-doble-check.md`.
 
+> **Sesión 22 (2026-09-23): el doble check con Opus 5.5, puntos 3 y 4, y con eso TERMINADO.** Fue
+> solo de revisión, con 5 agentes (lo pidió Victor a mitad de sesión), y los 5 se cortaron a la vez
+> por el límite de uso y se retomaron. Todo lo que subió a P1 lo verificó a mano el orquestador.
+>
+> - **Punto 3: las 14 entradas `R9-51`..`R9-64` siguen siendo ciertas en `HEAD`.** `R9-53` y
+>   `R9-55` bajan de P1 a P2 y `R9-63` de P2 a P3. En varias el texto se corrigió en su entrada: por
+>   ejemplo, el remedio de `R9-58` no sirve en el teléfono, y `R9-52` muestra un toast de ÉXITO
+>   sobre una escritura fallida.
+> - **Punto 4: de 179 afirmaciones de `detail/S8`..`S18`, se verificaron 171 contra el mundo.**
+>   Ninguna frase falsa escondía un P0 ni un P1. La cadena de datos publicados se sostiene otra vez.
+>   Las frases falsas sin defecto detrás quedaron como notas al final de cada `detail/S*`.
+> - **10 hallazgos, `R9-143`..`R9-152`: 1 P1, 1 P2 y 8 P3.** `R9-143` (P1): «Banco de
+>   ilustraciones» y «Modo púlpito» guardan el sermón con las dos trampas que el arreglo de
+>   `R9-47` le quitó al `blur`.
+>
+> Siguen **5 P0 abiertos**. Hallazgos: **152**. Detalle: `detail/S22-doble-check-puntos-3-4.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras el checkpoint de la sesión 21. Esta sección tiene 25 entradas: 20
+> **Conteo, al día tras la sesión 22 (que no agregó ningún P0). Esta sección tiene 25 entradas: 20
 > ARREGLADAS y 5 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
@@ -510,6 +527,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   `detail/A4-syncengine.md`.
 
   **✅ ARREGLADO en la sesión 9** (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO INTENTO — campo nuevo `lastAttemptAt`, porque `queuedAt` no se mueve nunca y una escritura encolada sin conexión estaría «vencida» en cada tick. Exponencial 30s→30min con tope: **61,5 min de reloj real** antes de rendirse, no milisegundos (la sesión 10 rehízo la cuenta: 30s+1+2+4+8+16+30 min entre los 8 intentos; el comentario decía «hora y media» y ya está corregido en el código). Una entrada que falla siempre deja además de bloquear a las de atrás. (b) La señal: contador `droppedWrites` **persistido por uid** y una insignia en Ajustes que se limpia solo cuando el usuario la toca. **Ojo para el futuro: `pendingWrites` SÍ tiene consumidor** (`app/(tabs)/settings.tsx:87`); un `grep` limitado a `src/` no lo ve.
+  **⚠️ Sesión 22:** el tick periódico, lo único que reintenta cuando expira el backoff, no lo vigila ninguna prueba (`R9-148`).
 
 - **`R9-34` (A4, `SyncEngine`) — 🐛 la rama de ERROR de `flush()` pisa la reedición con el
   snapshot viejo (gemelo de `R9-11`).** Severidad **media-alta**.
@@ -696,6 +714,7 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   `detail/A9-mesa-persistencia.md`.
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): `load()` tiene id de ejecución monótono y el re-lectura estrecha del `useFocusEffect` tiene cleanup, así que una carga vieja ya no aterriza; y `handleNoteBlur` no escribe una sección sin borrador (se acabó el `?? ''` que borraba) y archiva bajo la clave a la que pertenecen los borradores, no bajo `table.passageKey`. **Ojo:** la prueba automatizada cubre la consecuencia de BORRADO; la carrera del stepper en sí sigue pendiente de verificación en dispositivo (Modo C), porque react-test-renderer desmonta el árbol al re-renderizar una pantalla de ese tamaño.
   **⚠️ Sesión 21, medido: jest cubre 1 de las 9 piezas del arreglo** (el `?? ''` del `blur`, que es la consecuencia de BORRADO). La guarda de obsolescencia de `load()` y todo el re-keying bajo `draftsPassageKeyRef` (las otras dos consecuencias del repro: la prosa del otro rango y la plantilla ajena) se pueden quitar las 8 a la vez con la suite entera en verde, 364/4299. La deuda de Modo C incluye el re-keying, no solo la guarda. Detalle: `detail/S21-doble-check.md`.
+  **⚠️ Sesión 22:** el arreglo le quitó las dos trampas a `handleNoteBlur`, pero `handleOpenIllustrations` y `handleOpenPulpit` las conservan (`R9-143`, P1).
 - **`R9-48` (A10, identidad) — 🐛 el log de repasos nunca se borra al cerrar sesión: el
   historial del usuario A se escribe dentro de la cuenta del usuario B y destruye su
   agregado.** Severidad **alta**. `AuthContext.tsx:471` (y `:572`) solo llama
@@ -877,6 +896,34 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   las tres ramas (éxito del link, colisión y sin anónimo). Detalle: `detail/S21-doble-check.md`.
 
 ## P1 — núcleo de la app
+
+- **`R9-143` (S22, Mesa) — 🐛 «Banco de ilustraciones» y «Modo púlpito» guardan el sermón con las
+  dos trampas que el arreglo de `R9-47` le quitó al `blur`: un toque justo después de cambiar de
+  pasaje pisa el sermón del pasaje nuevo y borra lo que falte.** CONFIRMADO con sonda sobre la
+  pantalla real y por la lectura del orquestador. En dispositivo, PLAUSIBLE: no se midió.
+
+  **El mecanismo:**
+  - `handleOpenIllustrations` (`app/features/prep/index.tsx:998-1008`) y `handleOpenPulpit`
+    (`:1028-1038`) hacen `savePrepNote(table.passageKey, section, drafts[section] ?? '', …)` para
+    todas las secciones de la plantilla, con un `await Promise.all` antes de navegar.
+  - `handleNoteBlur` (`:1105-1129`) tiene las dos guardas de `R9-47`: no escribe una sección sin
+    borrador, y archiva bajo `draftsPassageKeyRef`. Estos dos no tienen ninguna.
+  - `drafts` solo cambia en `load()` (`:626`), en la relectura de foco (`:674`) y al teclear
+    (`:1093`). Tras un cambio de pasaje, `table` ya es el nuevo y `drafts` sigue siendo el del
+    anterior hasta que aterriza la lectura. Un toque en ese hueco escribe el sermón viejo SOBRE el
+    nuevo, y `''` en cada sección que falte.
+
+  **Sonda**, con el arnés de la prueba de regresión de `R9-47` y el mismo montaje que «does NOT
+  wipe a section whose prose exists in the store but not in the drafts», tocando el botón en vez
+  del `blur`: `{"before":{"bigIdea":"La idea central del pasaje"},"after":{},"rawAfter":"{}"}`. La
+  entrada del pasaje se borra entera, y la prueba de `R9-47` solo vigila el `blur`. Otra ventana:
+  volver del banco tras insertar una ilustración y tocarlo otra vez antes de que relea el foco.
+
+  **P1 y no P2 (decidido con Victor):** no hace falta que falle nada, alcanza un toque rápido, y el
+  comentario de `:895-917` dice que un toque rápido en el banco justo después de elegir una
+  sugerencia **se observó en vivo**. `R9-47`, con la misma ventana, fue P0. `A9-mesa-persistencia.md:210-211`
+  daba estos dos caminos por ✅. **Arreglo (hipótesis):** las dos guardas de `handleNoteBlur` en las
+  dos funciones, con una prueba por botón. Detalle: `detail/S22-doble-check-puntos-3-4.md`.
 
 - **`R9-126` (S21, `SyncEngine` / respaldo) — 🐛 un push con `updatedAt` VIEJO (restaurar, bulk
   push) pisa en la nube la versión más nueva, y ningún otro dispositivo se entera.** CONFIRMADO
@@ -1244,6 +1291,7 @@ node:sqlite`. Verde en local, rojo en CI en **cuatro pushes seguidos a `main`**
   **Arreglado:** CI a Node 24, `engines.node: ">=22"`, `require('node:sqlite')` perezoso, y
   `__tests__/ciNodeVersion.test.ts` como detector (lee el workflow y el `engines`, con piso y con
   control en la dirección contraria). Detalle: `detail/S16-revision-del-diff.md`.
+  **⚠️ Sesión 22:** con Node 20, `buildWebPacks` da cero aserciones, no «solo los casos que necesitan BD» (`R9-152`).
 
 - **`R9-83` (S16, build de packs) — 🐛 una base AUSENTE no pedía ninguna palanca.** `R9-77` para la
   corrida cuando el manifiesto no fija ni una de las entradas que emite; **una base que no existe
@@ -1402,6 +1450,7 @@ the message is actionable`). **✅ ARREGLADO en la sesión 14:** todo se constru
   `export {X as default}`). Queda **una sola** forma irresoluble sin seguir el re-export,
   `export * from`, y ahora tiene su propio caso por archivo que falla ruidosamente. Vistas
   fallar primero las dos mitades. Detalle: `detail/S13-revision-del-diff.md`.
+  **⚠️ Sesión 22:** el lector de nombres de export no tiene casos sintéticos, y sus 4 piezas se revierten con la suite verde (`R9-144`).
 
 - **`R9-65` (S9, sync) — 🐛 el cursor del lote también salta por encima de un doc en
   CONFLICTO sin resolver, y el conflicto no sobrevive a un reinicio.** Encontrado al revisar
@@ -1509,6 +1558,7 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   facts/journeys/profecías/kids/quiz. Solo 6 colecciones existen en Firestore, así que todo
   eso **no tiene ninguna ruta de recuperación**, contra lo que promete la UI
   (`translations.ts:4176`).
+  **⚠️ Sesión 22:** re-confirmado con sonda en `HEAD`, sobre el `buildBackup()` real: `{"payloadPrepFields":["notes","series"],"fileContainsIllustration":false}`. El Banco de ilustraciones no viaja, y el propio `BackupService.ts:29-31` dice que exportar/importar es la ÚNICA vía para mover la Mesa entre dispositivos.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -1598,6 +1648,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   una arbitraria. La otra queda huérfana: duplicada en la pestaña _Notas_, inalcanzable desde
   el lector, y contada doble por `getNotesCount()`. Sin sonda (requiere SQLite real). Detalle:
   `detail/A8-notas-subrayados.md`.
+  **⚠️ Sesión 22 (re-verificado con SQLite real, `node:sqlite`): se sostiene, P1.** No es «una arbitraria»: SQLite devuelve la de menor `rowid`, o sea la que llegó primero a ESE dispositivo. Así, cada dispositivo muestra en el lector su propia nota y los dos divergen para siempre. Para la sonda ya no hace falta un dispositivo. Líneas de hoy: `:540-549`, `:2102` y `:2161-2177`. Vecino: `R9-145`.
 - **`R9-52` (A9, Mesa) — 🐛 toda falla de escritura de una nota se traga en silencio y
   `savePrepNote` la reporta como éxito.** Severidad **media**. `prepNotesStore.ts:76-81`:
   `writeQueue.then(run).catch(log)` y `return writeQueue` → **resuelve, nunca rechaza**; los 4
@@ -1609,19 +1660,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   ilustraciones y series. **Repro (sonda):** con `setItem` rechazando,
   `savePrepNote(...)` → `resolves.toBeUndefined()` y el storage queda vacío. Detalle:
   `detail/A9-mesa-persistencia.md`.
-- **`R9-53` (A10, respaldo) — 🐛 restaurar un respaldo rompe la invariante de disyunción del
-  _floor_: la retención se duplica y la corrupción se re-escribe a la nube, acumulándose.**
-  Severidad **media**. `memoryStats.ts:20-22` declara la invariante (_"The floor is disjoint
-  from local events […], so summing retention bands never double-counts"_), pero `importBackup`
-  hace `DELETE FROM review_events` y reinserta el log **sin tocar el floor**
-  (`BackupService.ts:1377-1394`); a partir de ahí `mergeRetentionBands` y
-  `retentionByIntervalWithFloor` **suman los mismos repasos dos veces**. Peor: al pasar a
-  segundo plano se escriben las bandas duplicadas de vuelta a `users/{uid}/memoryStats/summary`,
-  y ese doc corrupto siembra el floor del **siguiente** dispositivo fresco → ×3, ×4… **y no hay
-  forma de resetearlo desde la UI** (ver `R9-61`). Acotación honesta: solo `retentionBands` se
-  corrompe; `recentDays` y `longestStreak` son idempotentes. **Repro (sonda):** floor de
-  `d1:{total:10}` + los mismos 10 eventos → lectura 20, escritura 20, segundo ciclo 30.
-  Detalle: `detail/A10-memoria-srs.md`.
+  **⚠️ Sesión 22 (sonda): se sostiene en P1, y es peor de lo escrito.** Los llamadores son **5**, no 4, desde el origen. El quinto, «insertar ilustración» (`app/features/prep/illustrations/index.tsx:229`), hace `await savePrepNote` → `toast.success('Ilustración añadida a tu preparación.')` → `router.back()`. Con la escritura fallida, el usuario recibe una confirmación FALSA: la sonda da toast de éxito y la sección vacía. Los stores hermanos (`prepIllustrationsStore.ts:101-132` y `prepSeriesStore.ts:100-187`) se tragan igual (por lectura), así que el alcance es «la Mesa y sus bancos».
 - **`R9-54` (A11, planes) — 🐛 descompletar un día de un plan no se sostiene: vuelve solo en la
   siguiente lectura de CUALQUIER capítulo, con notificación falsa.** Severidad
   **media-alta**. `toggleDay` (`ReadingPlanProgressContext.tsx:211-246`) quita el día de
@@ -1633,19 +1672,104 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   día. **Repro (sonda):** destildar el día 1 y luego leer **Génesis 1** (nada que ver con el
   plan) → `newlyCompleted: [{planId:'iam-7', day:1}]` y toast «¡Día 1 completado!». Detalle:
   `detail/A11-progreso-rachas.md`.
-- **`R9-55` (A11, planes) — 🐛 editar un plan propio a menos días arrastra números de día que
-  ya no existen: la pantalla muestra 250%.** Severidad **media**. `migratePlanProgress`
-  (`ReadingPlanProgressContext.tsx:259-272`) copia `completedDays` **verbatim, sin recortar al
-  `duration` nuevo**, y `plan/[id].tsx:279` calcula
-  `Math.round((completed / effectiveDuration) * 100)` sobre el `length` crudo. **`planPace` sí
-  filtra** (`planPace.ts:88-90`) y devuelve 100%: las dos cifras se contradicen en la misma
-  pantalla y **se pinta la mala**, que además alimenta el ancho de la barra (`width: '250%'`).
-  **Repro (sonda):** 5 días completados, plan editado a 2 → `250%` en pantalla vs `100%` en
-  `planPace`. Detalle: `detail/A11-progreso-rachas.md`.
+  **⚠️ Sesión 22 (sonda): se sostiene en P1.** El disparador es ancho: el lector llama a `markChapterRead` tras 5 s en cualquier capítulo. La prueba existente (`readingPlanProgressContext.test.tsx:65-82`) destilda sin haber leído el capítulo del día, así que no pasa por este caso. El toast real dice `✅ Día 1 de "<plan>" completado`. Líneas de hoy: `toggleDay` `:222-257`, el escaneo `:319-338` y `restartPlan` `:441-478`.
 
 ---
 
 ## P2 — resto + pulido
+
+- **`R9-144` (S22, compuerta de paridad web/nativo) — 🐛 el lector de nombres de export que
+  arregló `R9-67` no tiene ni un caso sintético.** CONFIRMADO por revert y sonda.
+  - Se revirtió en `webNativeModuleParity.test.ts`, una por una, cada forma que lee el lector:
+    - la lista `export {x}`;
+    - `export * from` → `unresolvable`;
+    - la desestructuración;
+    - el catch-all final.
+
+    Las 4 dejan **77/77 verde**.
+
+  - Consecuencia medida: `R9-13` al pie de la letra EN FORMA DE LISTA (el nativo con
+    `export {hasRedLetterData};` y el `.web` sin exportarla). Con el lector intacto cae 1 prueba;
+    con una sola línea del lector revertida, 77/77. Es el estado exacto que describía `R9-67`.
+  - Las mediciones de la sesión 13 fueron sondas que se restauraron, no pruebas que quedaran en el
+    repo. «Sus 6 pruebas discriminan» (`S14:7`, `:26`) es falso para `R9-67`.
+  - P2 y no P1: el código de hoy funciona, y para que se pierda alguien tiene que tocarlo. Es la
+    clase de `R9-86` y de `R9-137`..`R9-141`.
+
+- **`R9-145` (S22, notas — P3) — 🐛 el `book_name` que llega de la nube o de un respaldo no se
+  canonicaliza, y la nota queda invisible para el lector.** El mecanismo está CONFIRMADO con sonda
+  (SQLite real); que llegue a pasar es PLAUSIBLE.
+  - `applyRemoteUpsert` (`adapters/notes.ts:100-114`) y el import (`BackupService.ts:1441-1454`)
+    escriben `book_name` tal cual. `getNoteForVerse` (`index.ts:2173`), en cambio, canonicaliza su
+    argumento.
+  - Una nota con `"Juan"` no la ve el lector, que crea otra: la sonda da `{"readerSees":null}` y dos
+    filas.
+  - Solo la alcanzan datos escritos antes del Sprint 58 (`ad782e2`, 2026-06-01), porque todos los
+    escritores de hoy canonicalizan.
+  - `migrateCanonicalBookKeys` ya corrió y no lo cura, y además convierte `"Juan"` y `"John"` del
+    mismo versículo en dos notas canónicas.
+
+- **`R9-146` (S22, planes — P3) — 🐛 borrar un plan propio deja su progreso, y re-crearlo o
+  re-importarlo desde Juntos lo resucita ya terminado.** CONFIRMADO con sonda:
+  `{"entryStillStoredAfterDelete":true,"afterRecreate":{"completedDays":[1,2],"completedAt":true}}`.
+  - Que el progreso sobreviva al borrado es una decisión documentada (`CustomPlansContext.tsx:46`).
+    Lo que habría que decidir es su efecto: re-importar un plan «para otra vuelta» trae el progreso
+    viejo sin avisar, y destildar no se sostiene (`R9-54`).
+  - Abre la segunda vía de `R9-64`.
+  - El docstring de `restartPlan` (`:111-121`, «a FINISHED plan») está viejo.
+
+- **`R9-147` (S22, memoria — P3) — 🐛 el pronóstico de repasos etiqueta mal los días de la semana
+  cerca del cambio de hora.** CONFIRMADO con la expresión literal y `TZ=Europe/Madrid`.
+  - `weekdayShort` (`app/features/memory/insights.tsx:828-831`) suma bloques de 24 h, mientras que
+    los buckets salen de días calendario.
+  - La víspera del adelanto a las 23:30, las 6 etiquetas futuras se corren un día
+    (`0:sab 1:lun 2:mar…`).
+  - Es la forma de `R9-63` en un archivo que la entrada no nombra. Es cosmético.
+
+- **`R9-148` (S22, prueba de sync — P3) — 🐛 el flush del tick periódico (`SyncEngine.ts:760-772`)
+  no lo vigila ninguna prueba.** CONFIRMADO por revert.
+  - Desde `R9-33`, es lo único que reintenta una entrada cuando expira su backoff sin que pase otra
+    cosa. Una sonda que solo avanza el reloj vacía la cola a los 69 min.
+  - Con `// void this.flush();` en el `setInterval`, las 364 suites reales siguen verdes.
+  - Consecuencia de la regresión: una escritura que falla una vez queda parada hasta el próximo
+    arranque, o hasta que se edite ese documento. No se pierde, porque la cola está persistida.
+
+- **`R9-149` (S22, build de packs — P3) — 🐛 la pieza de `R9-74` que distingue «no se pudo LEER»
+  de «ausente» no tiene prueba.** CONFIRMADO por revert.
+  - `if (error.code === 'ENOENT') return null;` → `return null;` (`scripts/build-web-packs.js:282-293`)
+    deja 63/63 verde.
+  - Hoy la respalda `R9-83`: sin `--allow-shrink`, una base `null` aborta. Pero su mensaje dice
+    «deleted or moved file», que es falso para un archivo presente e ilegible.
+  - **Con `--allow-shrink`**, la regresión apaga todas las comparaciones y reescribe el manifiesto:
+    es `R9-74` entero de vuelta.
+
+- **`R9-150` (S22, lector web — P3) — 🐛 `R9-69` reabierto por la ida y vuelta: al volver de B a A
+  con el pack de B en vuelo o FALLADO, el primer render pinta los offsets de A sobre el texto de
+  B.** CONFIRMADO con el lector web y `redLetterText.web` reales:
+  `mismatched: [{"offsetsFor":"RVR1960","textFrom":"WEB"}]`.
+  - `redLetterReady` (`[chapter].web.tsx:132-133`) no mira de qué versión son los `verses` en
+    estado. La prueba de `R9-69` solo recorre el cambio de ida.
+  - Con `R9-71`, un pack que falla no se asienta, así que la ventana dura todo lo que se lea en B.
+  - Es un render transitorio, sin pérdida de datos. «La ventana de `R9-69` está cerrada por otra
+    cosa» (`S14:92-97`) era falso para este camino.
+
+- **`R9-151` (S22, build de packs — P3) — 🐛 la respuesta «no pude comprobar» (`null`) de
+  `filesNotPinnedBy` no la vigila ninguna prueba.** CONFIRMADO con sonda (el `main()` real, con el
+  primer rename forzado a fallar).
+  - Colapsar a `[]` la rama `!previous` o la rama `pinned.size === 0` deja 63/63 verde.
+  - En los dos casos, FIRST FILE vuelve a decir «_IS coherent - one run, whole_» sin manifiesto, o
+    con uno que no pina ningún sha256.
+  - La baseline del fixture no lleva `file` ni `sha256`, así que la prueba que falta cabe en el
+    mundo que el archivo ya tiene.
+
+- **`R9-152` (S22, compuerta de packs — P3) — 🐛 bajo un Node sin `node:sqlite`, `buildWebPacks`
+  no ejecuta NI UNA aserción, contra lo que dicen `S16:102-105` y el comentario de
+  `build-web-packs.js:60-69`.** CONFIRMADO con Node 20.20.2 real: 63/63 rojas, todas por
+  `No such built-in module`.
+  - La causa es el `beforeAll` de nivel de archivo (`:45-59`), que llama a `buildPack` desde
+    `1d96a40`. Con él envuelto en un `try`, corren 37 pruebas de lógica pura, y las 26 rojas son las
+    que sí necesitan base.
+  - Hoy lo tapan el CI en Node 24 y `ciNodeVersion`. Solo lo ve un desarrollador con Node 22.0–22.12.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -2217,6 +2341,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `assertNoShrink` **DICE** cuál de los dos casos ocurrió. Vista fallar primero, con el control
   de que un manifiesto simplemente ausente sigue devolviendo `null`.
   Detalle: `detail/S14-revision-del-diff.md`.
+  **⚠️ Sesión 22:** la pieza «no se pudo LEER» no tiene prueba (`R9-149`).
 
 - **`R9-75` (S14, web) — 🐛 la lista de providers de `R9-68` tenía compuerta en UNA sola
   dirección.** `WEB_UNMOUNTED_PROVIDERS` es una lista **a mano** de siete nombres, y la prueba
@@ -2313,6 +2438,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   atrasado. **Nota de método:** `act()` vacía los efectos antes de poder leer el árbol, así que
   el frame mal pintado no es observable en jest — la CONSULTA sí, y es lo que asserta la
   prueba, con su control. Detalle: `detail/S13-revision-del-diff.md`.
+  **⚠️ Sesión 22:** reabierto por la ida y vuelta A → B → A (`R9-150`).
 
 - **`R9-70` (S13, paridad web/nativo) — 🐛 el vecino de `R9-13`, un nivel más abajo: contratos
   de contexto redeclarados en el stub web.** La compuerta de paridad compara **nombres de
@@ -2542,6 +2668,32 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `marginTop`/`marginBottom` en `chipWrap` dentro de esta tarjeta. Detalle:
   `detail/CAMPO-victor-2026-09-07.md`.
 
+- **`R9-53` (⬇️ de P1 en la sesión 22; A10, respaldo) — 🐛 restaurar un respaldo rompe la invariante de disyunción del
+  _floor_: la retención se duplica y la corrupción se re-escribe a la nube, acumulándose.**
+  Severidad **media**. `memoryStats.ts:20-22` declara la invariante (_"The floor is disjoint
+  from local events […], so summing retention bands never double-counts"_), pero `importBackup`
+  hace `DELETE FROM review_events` y reinserta el log **sin tocar el floor**
+  (`BackupService.ts:1377-1394`); a partir de ahí `mergeRetentionBands` y
+  `retentionByIntervalWithFloor` **suman los mismos repasos dos veces**. Peor: al pasar a
+  segundo plano se escriben las bandas duplicadas de vuelta a `users/{uid}/memoryStats/summary`,
+  y ese doc corrupto siembra el floor del **siguiente** dispositivo fresco → ×3, ×4… **y no hay
+  forma de resetearlo desde la UI** (ver `R9-61`). Acotación honesta: solo `retentionBands` se
+  corrompe; `recentDays` y `longestStreak` son idempotentes. **Repro (sonda):** floor de
+  `d1:{total:10}` + los mismos 10 eventos → lectura 20, escritura 20, segundo ciclo 30.
+  Detalle: `detail/A10-memoria-srs.md`.
+  **⬇️ Sesión 22: baja a P2** (sonda con la cadena real). Los CONTEOS se duplican (10 → 20 → 30), pero la pantalla (`insights.tsx:181-207`) solo muestra PORCENTAJES, y duplicar el mismo conjunto no los mueve. El porcentaje solo se tuerce cuando el respaldo y la nube difieren: 50 % → 33 % → 25 % en la sonda. No hay pérdida de datos. La línea del import es hoy `BackupService.ts:1500-1523`. Cablear `resetDeck` no sería la vía de escape (ver `R9-61`).
+
+- **`R9-55` (⬇️ de P1 en la sesión 22; A11, planes) — 🐛 editar un plan propio a menos días arrastra números de día que
+  ya no existen: la pantalla muestra 250%.** Severidad **media**. `migratePlanProgress`
+  (`ReadingPlanProgressContext.tsx:259-272`) copia `completedDays` **verbatim, sin recortar al
+  `duration` nuevo**, y `plan/[id].tsx:279` calcula
+  `Math.round((completed / effectiveDuration) * 100)` sobre el `length` crudo. **`planPace` sí
+  filtra** (`planPace.ts:88-90`) y devuelve 100%: las dos cifras se contradicen en la misma
+  pantalla y **se pinta la mala**, que además alimenta el ancho de la barra (`width: '250%'`).
+  **Repro (sonda):** 5 días completados, plan editado a 2 → `250%` en pantalla vs `100%` en
+  `planPace`. Detalle: `detail/A11-progreso-rachas.md`.
+  **⬇️ Sesión 22: baja a P2** (sonda: `5/2 · 250%`). Es solo presentación: no se pierde nada, y `planPace` y el «completado» siguen bien. La barra NO se desborda, porque `progressTrack` tiene `overflow: 'hidden'` (`app/(tabs)/plan/[id].tsx:1030-1036`); lo que está mal es el texto. Falta una superficie: la tarjeta de Inicio (`ReadingPlanCard.tsx:127`, `:248`) también pinta `5/2`. `migratePlanProgress` está hoy en `:270-283`.
+
 - **`R9-56` (A8, notas) — 🐛 la pestaña Notas muestra la referencia en el idioma de la versión
   activa y el versículo congelado en el idioma de cuando se creó la nota.** Severidad **baja**.
   `notes.tsx:276` usa `localizeBook(item.book)`, que sigue a `selectedVersion.language` a
@@ -2551,6 +2703,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   mundo…"**, también en la imagen para compartir (`:435`), que es contenido público.
   `HighlightsScreen` **sí** re-resuelve contra la versión activa (`highlights.tsx:96-101`) —
   la asimetría confirma que es un olvido. Detalle: `detail/A8-notas-subrayados.md`.
+  **⚠️ Sesión 22 (sonda de render): se sostiene en P2, con una corrección.** La propuesta de arreglo («re-resolver como Resaltados») rompe las notas de VARIOS versículos. La acción «nota» sobre una selección (`[chapter].tsx:1740-1757`) guarda en `verse_text` el texto unido con la clave del primer versículo, y el rango no se guarda en ningún otro lado: re-resolver mostraría solo el primero. Las líneas `:270-273` y `:435` eran incorrectas desde el origen; son `:106-108` y `:356-357`.
 - **`R9-57` (A8, lector) — 🐛 no existe forma de borrar una nota desde el lector, y el botón
   atrás descarta el borrador sin avisar.** Severidad **media**. Vaciar el campo deshabilita
   «Guardar» (`NoteEditorModal.tsx:290`) y `saveNote` corta con `!noteText.trim()`
@@ -2561,6 +2714,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `BackHandler` del `Modal` de RN gana sobre el `useBackHandlerStep` de la pantalla
   (`:1287-1296`), que no consulta `noteModalVisible`; si perdiera, el atrás además navegaría de
   capítulo. Requiere Modo C. Detalle: `detail/A8-notas-subrayados.md`.
+  **⚠️ Sesión 22 (lectura): se sostiene en P2.** El `useBackHandlerStep` del lector solo consume el atrás después de un salto por referencia (`:1288-1289`), y en Android el atrás llega al `Modal` como `onRequestClose`. Lo esperable es que gane el `Modal`, pero sigue sin verificarse en dispositivo.
 - **`R9-58` (A9, Mesa) — 🐛 matar la app (o cerrar la pestaña en web) pierde hasta 700 ms de
   tecleo: `use-debounce` expone `flushOnExit` y no se usa.** Severidad **baja**.
   `prep/index.tsx:1024-1042`. **El resto de los caminos de salida están bien** y se auditaron
@@ -2568,6 +2722,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   todos persisten, y el `flush()` de `:1042` **funciona** —confirmado desminificando
   `use-debounce@10.1.1` y con sonda—. Lo único descubierto es el proceso que muere (swipe-away,
   OOM, cierre de pestaña). Detalle: `detail/A9-mesa-persistencia.md`.
+  **❌ Corrección de la sesión 22: el remedio que sugiere la entrada NO cierra el bug en el teléfono** (medido). `flushOnExit` de `use-debounce` 10.1.1 hace dos cosas: un `flush()` al desmontar, que la Mesa ya hace a mano, y un listener de `document.visibilitychange`. **En React Native no hay `document`**, así que ese listener nunca se engancha; la sonda da `{"hadDocument":false,"appStateListenersRegisteredByHook":0}`. Solo arregla la mitad web. En nativo hace falta un listener de `AppState` → `'background'` que llame a `flush()`. Además, «púlpito, ilustraciones… todos persisten» es cierto, pero esos dos caminos conservan las trampas de `R9-47`: ver `R9-143`.
 - **`R9-59` (A9, privacidad local) — 🐛 `@prep_notes` no se limpia al cerrar sesión ni al
   cambiar de cuenta: en un teléfono compartido, el sermón sin terminar del predicador anterior
   queda a la vista del siguiente.** Severidad **baja**. No existe ningún
@@ -2580,6 +2735,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `deleteAccountData.ts:12-13`). **Decisión de producto para Victor:** si «device-local» debe
   significar también «visible para cualquiera que use el aparato». Detalle:
   `detail/A9-mesa-persistencia.md`.
+  **⚠️ Sesión 22 (lectura): se sostiene en P2, y la decisión sigue siendo de Victor.** Las opciones son (a) borrar `@prep_*` al cerrar sesión, (b) ponerle uid a las claves, o (c) dejarlo como está y corregir la frase. Lo único claramente mal hoy es el comentario: `prepNotes.ts:14` dice que el estudio sin terminar es «theirs alone», y en un teléfono compartido no lo es. Además, «sin fuga hacia afuera» no es exacto: un respaldo exportado por Beto lleva el `@prep_notes` y el `@prep_series` de Ana. `R9-24` sigue siendo cierto.
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y
@@ -2590,6 +2746,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   se **re-celebran todos los hitos de racha ya celebrados**.
   `@memory_stats_floor`/`_banner_pending` quedan fuera **correctamente** (caché derivable;
   respaldarlas empeoraría `R9-53`). Detalle: `detail/A10-memoria-srs.md`.
+  **❌ Corrección de la sesión 22 (sonda): no se re-celebran «todos» los hitos, solo el más alto.** `pendingMilestone` devuelve el mayor no celebrado, y `milestoneKeysToMark` marca los inferiores a la vez: tras restaurar con racha 156 sale `["streak:100", …]`. Lo demás se sostiene. Sigue en P2.
 - **`R9-61` (A10, recuperación) — 🐛 `resetDeck` está en la API pública del contexto y no tiene
   ni un solo llamador: no hay forma de que el usuario borre sus datos de memoria.** Severidad
   **baja**. Declarado, documentado (_"handy for 'Reset' affordance"_), implementado
@@ -2598,6 +2755,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   de `R9-48` y `R9-53`**: un usuario con estadísticas contaminadas o duplicadas no tiene
   ninguna acción en la app para limpiar. O se cablea a Ajustes, o se quita de la interfaz para
   que no aparente una vía de escape que no existe. Detalle: `detail/A10-memoria-srs.md`.
+  **❌ Corrección de la sesión 22: cablear `resetDeck` a Ajustes NO sería la vía de escape.** Solo vacía el mazo y encola borrados de `memoryCards`. No toca `review_events`, ni `@memory_stats_floor`, ni `memoryStats/summary`, que es donde vive `R9-53`, así que hace falta otra función. `R9-48` ya está arreglado, y las tarjetas sí se pueden borrar una por una. Sigue en P2.
 - **`R9-62` (A10, hitos) — 🐛 el recorte FIFO de hitos celebrados expulsa las claves de racha y
   le re-celebra al usuario «¡3 días!» cuando lleva 156.** Severidad **baja**.
   `goalStore.ts:66-80` recorta con `merged.slice(-MAX_CELEBRATED)` y `MAX_CELEBRATED = 60`; el
@@ -2607,6 +2765,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **es falso**. **Repro (sonda):** cascada de 6 días seguidos —`streak:3`, `7`, `14`, `30`,
   `60`, `100`— con la racha real en 156-161. Cosmético, pero trivializa el mecanismo de
   retención. Detalle: `detail/A10-memoria-srs.md`.
+  **⚠️ Sesión 22 (sonda): es peor de lo escrito, y sigue en P2.** Simulando desde el día 1 a un usuario que cumple la meta todos los días, el primer «¡3 días!» repetido llega a los 59 días de racha y se repite cada ~55 días: 15 re-celebraciones en 200 días. La cascada que describe la entrada es la de su fixture, que arranca con los 6 hitos ya marcados.
 - **`R9-63` (A11, recap) — 🐛 el recap semanal se rompe en el cambio de horario: 6 días en vez
   de 7, y un día contado dos veces.** Severidad **baja-media**. `weeklyRecap.ts:85-86` (y el
   mismo patrón en `listeningStats.ts:156-157`) hace `listeningDateKey(now - i * MS_PER_DAY)` —
@@ -2618,6 +2777,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `now = 2026-10-25T23:30:00+01:00` → tira de 7 días con `2026-10-25` repetido, 60 versículos
   donde hay 50, 3 días activos donde hay 2. Pasa en `America/Mexico_City` (caso de control).
   Detalle: `detail/A11-progreso-rachas.md`.
+  **⬇️ Sesión 22: baja a P3** (sonda con `TZ` fijado desde PowerShell). Solo falla si la tarjeta se abre en la última hora del día (23:00-23:59) durante ~6 días después del atraso de hora, o en la primera (00:00-00:59) después del adelanto: 12 medias horas de 674. «El sábado desaparece» es FALSO: se pierde el día más viejo y el domingo sale dos veces. `listeningStats` usa un `Set` y no cuenta doble. **Ni local (`America/Mexico_City`) ni CI (UTC) tienen cambio de hora.** Vecino: `R9-147`.
 - **`R9-64` (A11, planes) — 🐛 `migratePlanProgress` BORRA el progreso de origen cuando el
   destino ya tiene el suyo, en vez de fusionarlo.** Severidad **baja**.
   `ReadingPlanProgressContext.tsx:264-268`: `if (!next[toId]) next[toId] = current;` protege el
@@ -2626,6 +2786,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   al editar un plan propio hasta que su id derivado del contenido colapse con el de otro.
   **Repro (sonda):** tras migrar, `getCompletedDays(BIG.id)` → `[]`. Detalle:
   `detail/A11-progreso-rachas.md`.
+  **⚠️ Sesión 22 (sonda): se sostiene en P2.** El progreso de origen también desaparece de AsyncStorage. Hay una segunda vía: el id de un plan BORRADO, cuyo progreso sobrevive (`R9-146`).
 
 ---
 

@@ -130,3 +130,13 @@ hecho se ve exactamente igual que una prueba que no discrimina).
 
 **Compuertas al mergear:** 356 suites, **4074** pruebas (4073 + la nueva de `stop()`), `tsc`
 limpio, lint 0 errores, prettier limpio.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:86-89`, «los dos `cursors.set` viven ahí»: uno vive en `loadCursor` desde el origen (`2bfa126:1077`). La cota cubre igual a los dos llamadores.
+- `:90-93`, el tick periódico «comprobado a mano»: se sostiene, pero ninguna prueba lo vigila (`R9-148`).
+- `:35-52` (`R9-114`), `:106-115` (`R9-115`) y `:128-129` (`R9-104`) ya estaban corregidas desde la sesión 19.

@@ -354,3 +354,15 @@ not yet covered by allowScripts` — `@firebase/util`, `protobufjs` y `re2` (est
   el código sea correcto. No verificado en CI.
 - **Un Ctrl-C a media construcción** se salta el `finally` y deja un
   `.staging-XXXXXX` dentro de `out`. Sigue igual.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:215-218`, «`null` y `[]` son respuestas distintas a propósito»: es cierto del código, pero ninguna prueba lo vigila (`R9-151`).
+- `:278-282`, «los seis `catch` del archivo»: hoy son 8, y el de `:770` envuelve `emit()` pero relanza. La conclusión se sostiene: con Node 20 da exit 1, `out` vacío y el manifiesto intacto.
+- `:289-290`, «55 aserciones» en `redLetterPackParity`: son 6 pruebas y 9 `expect(`. El 55 eran las pruebas de las dos suites.
+- `:313-314`, «con holgura de 1»: para los directorios la holgura es 0. Los números se sostienen hoy.
+- `:190-196`: ver la nota de `S18:212-215` sobre Metro y expo-router.

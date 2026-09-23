@@ -120,3 +120,12 @@ cuenta nueva «Sincronizando 1 cambio…» para siempre.
 **Una prueba que no discriminaba, cazada a tiempo:** la del conteo de pendientes pasaba igual
 con el código roto, porque la escritura de Ana se subía bien y la cola se vaciaba sola. Hubo
 que hacer fallar el push para que la entrada siguiera pendiente al cambiar de cuenta.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:40-41`, «`claimLocalStore` cubre las DOS ramas»: es cierto al pie de la letra, pero hay una TERCERA rama sin guarda (`R9-125`, P0), y la de colisión no tiene prueba (`R9-130`).
+- `:52-58` (`R9-65` «se arregla con una línea») y `:86-87` («las 7 vistas fallar») ya estaban corregidas: `R9-106` y la sesión 10.

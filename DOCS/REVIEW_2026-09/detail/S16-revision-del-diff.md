@@ -257,3 +257,11 @@ había 0.
   termina en `Provider`). Nadie lo hace hoy.
 - **Un Ctrl-C a media construcción** se salta el `finally` y deja un `.staging-XXXXXX` dentro de
   `out` para siempre. Sigue igual que en la 15.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:102-105`, «`buildWebPacks` falla con 56 pruebas rojas y un mensaje accionable en vez de cero aserciones»: es falso desde el origen. Con Node 20 son **cero** aserciones, porque el `beforeAll` de nivel de archivo llama a `buildPack` (`R9-152`). El comentario de `build-web-packs.js:60-69` afirma lo mismo.

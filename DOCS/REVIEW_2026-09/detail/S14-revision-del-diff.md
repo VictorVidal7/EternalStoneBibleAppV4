@@ -140,3 +140,14 @@ Y una variante nueva de la clase «un bucle en vacío pasa»:
 
 > **El bucle que recorre la lista NUEVA no puede ver lo que falta de la VIEJA.** `R9-73`. Si una
 > comprobación compara dos colecciones, tiene que recorrer **las dos**.
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:7` y `:26`, «sus 6 pruebas discriminan»: es falso para `R9-67`, cuyo lector de exports no tiene ningún caso sintético (`R9-144`).
+- `:32-34`, «`git status` limpio tras la corrida»: solo el día de la medición, porque `generated` cambia.
+- `:87-88` (F2), «`unresolvable` sí atrapa lo que dice»: es cierto del código de hoy, pero nada lo vigila (`R9-144`).
+- `:92-97` (F4), «la ventana de `R9-69` … está cerrada por otra cosa»: es falso desde el origen para la ida y vuelta A → B → A, porque el primer render tras volver empareja offsets de A con texto de B (`R9-150`).

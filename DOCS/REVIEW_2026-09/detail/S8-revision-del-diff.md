@@ -60,3 +60,15 @@ comprobar `R9-46`, el primer revert «pasó» — y no era que la prueba fuera m
 había parcheado el `catch` de `valuesEqual` (línea 193) en vez de `applyRemoteChange` (762),
 porque el patrón `return false;` aparecía antes en el archivo. **Antes de concluir que una
 prueba no discrimina, `diff` el revert y confirmá que tocó la línea que creías.**
+
+---
+
+## ⚠️ Correcciones de la sesión 22 (doble check con Opus 5.5, punto 4)
+
+Las líneas citadas son las de este archivo ANTES de agregar esta sección. Detalle: `S22-doble-check-puntos-3-4.md`.
+
+- `:22-25`, «los dos escritores pasan por `num()`»: solo el del restore pasa por ahí; `recomputeReadingStreak` pasa por `computeStreaks`. La conclusión (no puede dar NULL) se sostiene.
+- `:31-33`, «19 call sites» de `queueWrite`: las llamadas reales eran **15** (el 19 contaba comentarios y la definición), y hoy siguen siendo 15.
+- `:36`, «~33 llamadores» de `ConfirmDialog`: hoy son 22. La retrocompatibilidad se sostiene.
+- `:40-41`, «revertido cada uno, la prueba falla»: es cierto con el arreglo ENTERO y falso pieza por pieza (sesión 21: `R9-131`, `R9-138`, `R9-139`, `R9-140`, y 1 de 9 piezas en `R9-47`).
+- `:45-46`, «`R9-28` sigue sin prueba»: dejó de ser cierto en `aa70be0` (sesión 11). Lo que queda es `R9-116`.

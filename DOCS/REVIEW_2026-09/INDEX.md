@@ -202,11 +202,24 @@
 > **Quedan 5 P0 abiertos** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). Hallazgos: **142**.
 > Detalle: `detail/S21-doble-check.md`.
 >
-> **Sesión 22 (2026-09-23), EN CURSO:** el checkpoint de la 21 y los puntos 3 y 4 del doble check,
-> con 5 agentes (lo pidió Victor a mitad de sesión). El punto 3 son los P1/P2 que nunca se
-> re-verificaron (`R9-51`..`R9-64`), y el punto 4 las afirmaciones «comprobado y BIEN» de los
-> `detail/S*` hasta `S18`. Lo nuevo va desde `R9-143`. Si el chat se corta, los informes están en
-> `_scratch/S22-agente-*.md`.
+> **Sesión 22 (2026-09-23): el checkpoint de la 21, y los puntos 3 y 4 del doble check. Con eso
+> el doble check con Opus 5.5 queda TERMINADO.** Solo de revisión. Victor pidió 5 agentes a mitad
+> de sesión, y los 5 se cortaron a la vez por el límite de uso y se retomaron.
+>
+> - **Punto 3:** las 14 entradas `R9-51`..`R9-64` siguen siendo ciertas en `HEAD`. `R9-53` y
+>   `R9-55` bajan de P1 a P2, y `R9-63` de P2 a P3. El texto se corrigió dentro de cada entrada;
+>   por ejemplo, el remedio que proponía `R9-58` no sirve en el teléfono.
+> - **Punto 4:** de 179 afirmaciones de `detail/S8`..`S18`, se verificaron 171 contra el mundo.
+>   Ninguna frase falsa escondía un P0 ni un P1, y la cadena de datos publicados se sostiene otra
+>   vez. Las frases falsas quedaron corregidas al final de cada `detail/S*`.
+> - **10 hallazgos, `R9-143`..`R9-152`: 1 P1, 1 P2 y 8 P3.** `R9-143` (P1): «Banco de
+>   ilustraciones» y «Modo púlpito» guardan el sermón con las dos trampas que el arreglo de
+>   `R9-47` le quitó al `blur`, así que un toque justo después de cambiar de pasaje pisa el
+>   sermón del pasaje nuevo.
+>
+> Siguen **5 P0 abiertos**. Hallazgos: **152**. Con el OK de Victor, el checkpoint de la 21 y el
+> registro de la 22 van juntos en `docs/review-s21-doble-check`, para mergear en fast-forward.
+> Detalle: `detail/S22-doble-check-puntos-3-4.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -304,8 +317,9 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 - **Piso de sync aceptado a propósito:** `reviewCard()` en `MemoryDeckContext` dispara
   una escritura Firestore por repaso real — evaluado y aceptado, no es un hallazgo.
 - **La suite es estructuralmente CIEGA al horario de verano** (sesión 6, fila `A11`).
-  Ninguna prueba del repo fija `TZ`, y el CI y la máquina de Victor corren en
-  `America/Mexico_City`, **que abolió el DST en 2022** → ningún test puede detectar jamás
+  Ninguna prueba del repo fija `TZ`. La máquina de Victor corre en `America/Mexico_City`,
+  **que abolió el DST en 2022**, y el CI en **UTC** (corrección de la sesión 22, medida en el
+  log; antes aquí decía que también en Ciudad de México) → ningún test puede detectar jamás
   un bug de cambio de hora. Es un **cuarto punto ciego**, junto a la resolución de módulos
   por plataforma, la dirección inversa de cada flujo y las listas enumeradas a mano.
   Cualquier área que agrupe por día/semana/mes merece esa lente. Gotcha: `TZ=... npx jest`
@@ -668,6 +682,28 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 22 — 2026-09-23. El checkpoint de la 21 y los puntos 3 y 4 del doble check.** Solo
+  revisión. Con esto el doble check con Opus 5.5 que pidió Victor queda **terminado en sus 4
+  puntos**.
+  - **Cómo se trabajó:** 5 agentes, uno por tramo: A8+A9, A10+A11, `S8`-`S10`, `S13`-`S15` y
+    `S16`-`S18`. Los 5 se cortaron a la vez por el límite de uso de la sesión. Cuatro se retomaron
+    con su contexto; al quinto se le había borrado el worktree con sus sondas, y se relanzó a
+    partir de su informe incremental. El orquestador verificó a mano todo lo que subió a P1 y las
+    dos bajadas de P1 a P2.
+  - **Veredicto:** las 14 entradas `R9-51`..`R9-64` siguen siendo ciertas, y de 179 afirmaciones
+    de `S8`..`S18` se verificaron 171 sin encontrar ningún P0 ni P1 escondido.
+  - **10 hallazgos, `R9-143`..`R9-152`.** El que manda es `R9-143` (P1): el flush de «Banco de
+    ilustraciones» y de «Modo púlpito» conserva las dos trampas de `R9-47`. El «P1 nuevo» de un
+    agente ya era `R9-30`.
+  - **Detalle: `detail/S22-doble-check-puntos-3-4.md`.**
+  - **Las lecciones:**
+    - **el informe incremental en disco no es opcional**: salvó el trabajo de cinco agentes
+      cortados en el mismo minuto;
+    - **un agente re-descubre un hallazgo ya numerado si el título no nombra la clave**: el
+      orquestador tiene que buscar por la clave, no por el título;
+    - **un remedio escrito en el ledger es una hipótesis, también en un P2** (`R9-58`);
+    - **dónde corre algo se comprueba en el log**: el CI corre en UTC, no en Ciudad de México.
 
 - **Sesión 21 — 2026-09-22. El doble check con Opus 5.5, puntos 1 y 2.** Fue solo de revisión y
   no se commiteó nada: el checkpoint lo escribió la 22.
