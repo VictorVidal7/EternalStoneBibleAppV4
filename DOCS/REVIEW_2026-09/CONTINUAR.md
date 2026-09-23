@@ -16,18 +16,17 @@
 **1. ✅ NO HAY NADA PENDIENTE DE GIT. La rama de la sesión 20 se mergeó en fast-forward y se
 pusheó** (con el OK de Victor), y se borró. Lleva cuatro commits de código, uno por hallazgo
 (`8ea93b6` `R9-105`, `7aafc9c` `R9-103`, `cfa7c1c` `R9-104`, `00f69c4` `R9-102`), su
-checkpoint (`c5d3543`) y el commit de coherencia que lleva esta frase: mirá
-`git log -1 origin/main`. Las compuertas se corrieron sobre `main` YA mergeado antes de publicar,
-y **el CI del merge está verificado EN EL LOG**: run `35793874042` sobre `47adfec`, Node v24.20.0,
-364/4299, cero «failed to run». Lo que vino después son solo docs: `R9-104` medido en el SDK
-nativo, en Modo C y con el OK de Victor.
+checkpoint (`c5d3543`), su coherencia (`47adfec`) y la medición nativa de `R9-104` (`e54208f`),
+más el commit que deja este prompt al día: mirá `git log -1 origin/main`. Las compuertas se
+corrieron sobre `main` YA mergeado antes de publicar, y **el CI está verificado EN EL LOG** en los
+dos pushes: run `35793874042` sobre `47adfec` y run `35794694435` sobre `e54208f`, los dos con
+364/4299 y cero «failed to run». Todo lo posterior a `00f69c4` es solo docs.
 **Antes de empezar, comprobá en el LOG el run de CI de `origin/main`** (la lección de la 16).
 
 **Lo de la sesión 19, que sigue valiendo:** fue **solo de revisión** (Victor: «decime qué
 encontraste antes de tocar nada»), así que no trajo cambios de código. Su checkpoint (`ac9c7fd`: `BUGS.md`, `INDEX.md`, este archivo
-y `detail/S19-revision-del-diff.md`) **se mergeó en fast-forward y se pusheó**, junto con el commit
-de coherencia que lleva esta frase. Un commit no puede nombrar su propio hash: mirá
-`git log -1 origin/main`. La rama `docs/review-s19-checkpoint` se borró.
+y `detail/S19-revision-del-diff.md`) **se mergeó en fast-forward y se pusheó**, junto con su commit
+de coherencia (`25128b3`). La rama `docs/review-s19-checkpoint` se borró.
 
 El último código que corrió CI es el de `40160d7`, y está **verificado EN EL LOG**: run
 `35163775542`, Node v24.20.0, 363 suites / 4289 pruebas y cero «Test suite failed to run». Lo que
@@ -359,13 +358,16 @@ pedido fijo de Victor.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
-> **Estado:** la sesión 20 arregló `R9-102`..`R9-105` en `fix/review-s19-p0-sync-favoritos`
-> (`8ea93b6`, `7aafc9c`, `cfa7c1c`, `00f69c4`), ya mergeada y pusheada. Comprobá en el log el
-> run de CI de `origin/main`. El detalle está en
-> `detail/S20-arreglos-p0-sync-favoritos.md`.
+> **Estado:** `main` = `origin/main`, sin ramas pendientes. La sesión 20 (con Opus 5.5) arregló
+> `R9-102`..`R9-105`, un commit por hallazgo (`8ea93b6`, `7aafc9c`, `cfa7c1c`, `00f69c4`), ya
+> mergeados y pusheados, con CI verde verificado en el log. Además midió `R9-104` en el SDK
+> NATIVO (Modo C, emulador): la escritura de la cuenta anterior queda pendiente para siempre, así
+> que se queda en P1. Antes de empezar, comprobá en el log el run de CI de `origin/main`. El
+> detalle está en `detail/S20-arreglos-p0-sync-favoritos.md`. Quedan 3 P0 abiertos: `R9-36`,
+> `R9-38` y `R9-39`.
 >
-> **Esta sesión es de REVISIÓN del diff de la 20.** Decime qué encontraste antes de tocar nada.
-> Mirá sobre todo:
+> **Esta sesión es de REVISIÓN del diff de la 20** (`25128b3..origin/main`). Decime qué
+> encontraste antes de tocar nada. Mirá sobre todo:
 >
 > 1. **`R9-104` (`cfa7c1c`):** `stop()` ahora suelta el candado del flush con un push en vuelo.
 >    ¿Hay algún camino en que dos flushes de la MISMA sesión corran a la vez? ¿Y en
@@ -376,9 +378,17 @@ pedido fijo de Victor.
 >    apply remoto del mismo favorito cae entre la escritura y la relectura? ¿Y en web?
 > 4. **Las pruebas:** que cada una discrimine en `HEAD` (revertí, corré, restaurá, `diff` el
 >    revert), y que el mock de SQLite de `favoritesUpdateQueuesSync.test.tsx` no responda la
->    pregunta que la prueba hace.
+>    pregunta que la prueba hace. La 20 dejó dos capas de `R9-104` que se cubren entre sí y una
+>    ruta (`item.uid`) que no discrimina ninguna prueba, dicho en el detalle: ¿es cierto?
+> 5. **Lo que el ledger afirma de la 20, contra el mundo:** la tabla de la medición nativa, su
+>    límite (cuentas anónimas, sin la vuelta de la cuenta anterior), la limpieza en producción y
+>    los conteos (19 llamadores, 364/4299).
 >
 > Gates en verde (`npm run validate`), y no mergees nada sin preguntarme.
+>
+> **Pendiente fijo, NO para esta sesión salvo que te lo pida:** todo lo que el ledger revisó hasta
+> la sesión 18 se hizo con Opus 5, y quiero un **doble check con Opus 5.5**. Está en
+> `CONTINUAR.md`, punto 3, y es la opción (b).
 
 **(a-bis) Lo que era la (a) hasta la sesión 20, ya HECHO.** Queda aquí como registro.
 
