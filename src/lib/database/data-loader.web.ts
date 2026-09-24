@@ -3,6 +3,7 @@ import * as SQLite from 'expo-sqlite';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from './index';
 import {packLoadedKey, packVersionKey} from './pack-import';
+import {sha256Hex} from './sha256';
 
 /**
  * Web variant of data-loader.ts (T21). Native embeds RVR1960 + WEB in
@@ -55,10 +56,34 @@ interface PackRow {
   text: string;
 }
 
-/** Fetch + import one web-bootstrap pack into the main db, tagged `versionId`. */
+/**
+ * Fetch + import one web-bootstrap pack into the main db, tagged `versionId`.
+ *
+ * R9-109: when the manifest pins a sha256 for this pack, the bytes are hashed
+ * and checked against it BEFORE anything is deserialized or inserted. Without
+ * that, the pin was only a cache token: bytes the manifest does not describe
+ * were imported (INSERT OR REPLACE) and the caller then recorded the
+ * manifest's sha256 as the imported version — so every later boot saw
+ * "already current" and skipped, and re-uploading the good pack cured nobody,
+ * because the manifest sha256 it would have to change never changes. That is
+ * not hypothetical: the default build output held a same-size RVR1960 pack
+ * with chatbot text inside 2 Kings 22:9, sitting next to the manifest that
+ * pins the good one.
+ *
+ * A mismatch throws before anything is written — no verses, no loaded flag,
+ * no version — so the boot fails loudly (initializeBibleData logs it and
+ * app/_layout.web.tsx shows it) and the next start downloads it again.
+ *
+ * sha256Hex is the pure-JS digest native already verifies packs with
+ * (version-download-service.ts), not crypto.subtle: WebCrypto is undefined
+ * outside a secure context (plain http on a LAN IP, the usual way to try the
+ * web build on a phone). Measured in headless Chromium on 4.7 MB: ~200 ms,
+ * against ~30 ms for crypto.subtle — paid only when a pack is downloaded.
+ */
 async function importWebPack(
   versionId: string,
   fileName: string,
+  expectedSha256: string | null,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
   const res = await fetch(`${WEB_PACKS_BASE_URL}${fileName}`);
@@ -66,6 +91,18 @@ async function importWebPack(
     throw new Error(`Web pack fetch failed (${fileName}): HTTP ${res.status}`);
   }
   const bytes = new Uint8Array(await res.arrayBuffer());
+
+  if (expectedSha256 !== null) {
+    const actualSha256 = sha256Hex(bytes);
+    if (actualSha256 !== expectedSha256) {
+      throw new Error(
+        `Web pack ${fileName} does NOT match web-bootstrap.json: the manifest ` +
+          `pins sha256 ${expectedSha256}, the ${bytes.length} bytes served ` +
+          `hash to ${actualSha256}. Refusing to import it: nothing was ` +
+          'written, so the next start downloads it again.',
+      );
+    }
+  }
 
   const packDb = await SQLite.deserializeDatabaseAsync(bytes);
   try {
@@ -143,6 +180,26 @@ async function fetchWebBootstrapManifest(): Promise<WebBootstrapManifest | null>
   }
 }
 
+/**
+ * The sha256 the live manifest pins for `versionId`, lowercased the way
+ * sha256Hex prints it (native compares against `.toLowerCase()` too), or
+ * `null` when there is nothing to check the bytes against: no manifest this
+ * run, no entry for this version, or an entry whose sha256 is not a string.
+ *
+ * R9-109: those three are one case, the flag-only check. A missing entry used
+ * to be re-imported on EVERY boot — 4.7 MB each time, and now that a pin is
+ * what gets verified, unverified bytes each time too. The type check is what
+ * keeps an entry without a sha256 (it is parsed JSON, the interface is only a
+ * hope) from throwing here and failing the boot.
+ */
+function pinnedSha256(
+  manifest: WebBootstrapManifest | null,
+  versionId: string,
+): string | null {
+  const sha256: unknown = manifest?.packs.find(p => p.id === versionId)?.sha256;
+  return typeof sha256 === 'string' ? sha256.toLowerCase() : null;
+}
+
 export async function initializeBibleData(
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
@@ -153,30 +210,28 @@ export async function initializeBibleData(
     const manifest = await fetchWebBootstrapManifest();
 
     for (const pack of BOOTSTRAP_PACKS) {
-      if (manifest === null) {
-        // No live manifest this run — exactly the original flag-only check.
+      const expectedSha256 = pinnedSha256(manifest, pack.versionId);
+      if (expectedSha256 === null) {
+        // Nothing pins this pack this run — exactly the original flag-only
+        // check. No version is stored, so the next boot that does get a pin
+        // re-imports (verified) instead of trusting these bytes.
         const isLoaded = await AsyncStorage.getItem(pack.key);
         if (isLoaded === 'true') {
           console.log(`🟢 [web] ${pack.versionId} already loaded, skipping`);
           continue;
         }
         console.log(`📖 [web] Downloading ${pack.versionId} bootstrap pack...`);
-        await importWebPack(pack.versionId, pack.file, onProgress);
+        await importWebPack(pack.versionId, pack.file, null, onProgress);
         console.log(`✅ [web] ${pack.versionId} bootstrap pack imported`);
         continue;
       }
 
-      const manifestEntry = manifest.packs.find(p => p.id === pack.versionId);
       const isLoaded = await AsyncStorage.getItem(pack.key);
       const storedVersion = await AsyncStorage.getItem(
         packVersionKey(pack.versionId),
       );
 
-      if (
-        isLoaded === 'true' &&
-        manifestEntry &&
-        storedVersion === manifestEntry.sha256
-      ) {
+      if (isLoaded === 'true' && storedVersion === expectedSha256) {
         console.log(
           `🟢 [web] ${pack.versionId} already loaded (current version), skipping`,
         );
@@ -190,13 +245,19 @@ export async function initializeBibleData(
       } else {
         console.log(`📖 [web] Downloading ${pack.versionId} bootstrap pack...`);
       }
-      await importWebPack(pack.versionId, pack.file, onProgress);
-      if (manifestEntry) {
-        await AsyncStorage.setItem(
-          packVersionKey(pack.versionId),
-          manifestEntry.sha256,
-        );
-      }
+      await importWebPack(
+        pack.versionId,
+        pack.file,
+        expectedSha256,
+        onProgress,
+      );
+      // importWebPack refused any bytes whose sha256 is not this one, so this
+      // records the version of the bytes actually imported — not merely the
+      // one the manifest names (R9-109).
+      await AsyncStorage.setItem(
+        packVersionKey(pack.versionId),
+        expectedSha256,
+      );
       console.log(`✅ [web] ${pack.versionId} bootstrap pack imported`);
     }
   } catch (error) {
