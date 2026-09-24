@@ -2814,6 +2814,68 @@ describe('R9-153 / R9-122.4 — un lote de Ana en vuelo tras el stop() no pasa a
     });
   });
 
+  // R9-162 — en las pruebas de arriba el stop() cae durante un getLocal: el
+  // lote corta en la guarda de applyRemoteChange, o retiene el doc y corta
+  // tras guardar el conjunto. Durante el APPLY de un doc, lo unico que corta
+  // es la guarda que sigue a applyRemoteChange en handleSnapshot, y tras la
+  // 24 ninguna prueba la vigilaba: el lote seguia en la sesion de Beto.
+  it('R9-162: el stop() cae durante el APPLY del unico doc del lote: su updatedAt no cae en el cursor de Beto', async () => {
+    const base = Date.now() - 60_000;
+    const {engine, release, remoteUpsertCalls} = await anaWithBatchInFlight(
+      base,
+      {op: 'apply', id: 'a1'},
+      [conflictBatch(base)[0]],
+    );
+    const betoContinues = await betoStartsAndPauses(engine);
+    release();
+    await settle();
+    await betoContinues();
+
+    // Sin la guarda: el cursor de Beto salia en el de a1 (`base - 10 s`), en
+    // memoria y en disco, y b-viejo no bajaba (R9-122.4).
+    expect(await betoFirstAttach(remoteUpsertCalls)).toEqual({
+      betoFloor: 0,
+      betoCursorOnEntry: null,
+      anaCursor: null,
+      betoOldDocApplied: true,
+    });
+  });
+
+  it('R9-162: el stop() cae durante el APPLY de a1 y a2 viene detras: a2 no entra en el conjunto de Beto', async () => {
+    const base = Date.now() - 60_000;
+    const {engine, release, localStore} = await anaWithBatchInFlight(base, {
+      op: 'apply',
+      id: 'a1',
+    });
+    const betoContinues = await betoStartsAndPauses(engine);
+    release();
+    await settle();
+    await betoContinues();
+
+    // Beto recibe un conflicto suyo, y eso guarda SU conjunto.
+    localStore.set('b1', {value: 'de-beto', updatedAt: base});
+    fireRemote('uid-beto', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'b1',
+          exists: true,
+          data: () => ({value: 'otro', updatedAt: base + 5_000}),
+        },
+      },
+    ]);
+    await settle();
+
+    // Sin la guarda: la lectura de a2 cortaba (sesion vieja), el lote lo
+    // retenia en el conjunto en memoria, que ya era el de Beto, y Beto lo
+    // guardaba bajo su clave.
+    expect(
+      JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-beto')))!,
+      ),
+    ).toEqual({b1: base + 5_000});
+  });
+
   it('el lote viejo no le borra a Beto su error ni le marca un sincronizado que no hizo', async () => {
     // La carrera aqui es otra: el `stop()` cae mientras `advanceCursor` espera
     // a AsyncStorage, con el bucle ya terminado.
