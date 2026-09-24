@@ -977,6 +977,26 @@ export default function PrepTableScreen() {
     });
   }, [router, table]);
 
+  // R9-143 — the flush both buttons below run before navigating. It used to
+  // write `drafts[section] ?? ''` under `table.passageKey` for every section:
+  // the two hazards R9-47 removed from `handleNoteBlur`, kept here. A tap
+  // right after the stepper moved (the table is the new passage, the drafts
+  // still the old one) wrote one sermon over the other, and `''` in every
+  // section without a draft deleted prose another screen had just saved.
+  // Same two guards as the blur: an absent draft is not an edit, and the
+  // drafts are filed under the passage they were loaded for.
+  const flushDrafts = useCallback(async () => {
+    if (!table) return;
+    const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+    await Promise.all(
+      templateSections.map(section => {
+        const value = drafts[section];
+        if (value === undefined) return undefined;
+        return savePrepNote(passageKey, section, value, undefined, template);
+      }),
+    );
+  }, [table, drafts, templateSections, template]);
+
   // Tanda 4 — the "Banco de ilustraciones" entry point, opened in INSERT
   // mode (carries `insertPassageKey`): picking an illustration there appends
   // it to this passage's notes and navigates back, instead of just browsing.
@@ -995,22 +1015,12 @@ export default function PrepTableScreen() {
     // own template sections (not the bare `PREP_SECTIONS` 7) so a
     // non-'expository' entry's just-typed prose (e.g. a `tension` note) is
     // actually persisted before the illustrations screen reads it back.
-    await Promise.all(
-      templateSections.map(section =>
-        savePrepNote(
-          table.passageKey,
-          section,
-          drafts[section] ?? '',
-          undefined,
-          template,
-        ),
-      ),
-    );
+    await flushDrafts();
     router.push({
       pathname: '/features/prep/illustrations' as never,
       params: {insertPassageKey: table.passageKey},
     });
-  }, [router, table, drafts, templateSections, template]);
+  }, [router, table, flushDrafts]);
 
   // Modo púlpito — the presenter view. Always navigates with the current
   // passage (the destination gates itself + shows an empty state when there
@@ -1025,17 +1035,7 @@ export default function PrepTableScreen() {
     // Uses THIS entry's own template sections (not the bare `PREP_SECTIONS`
     // 7) so a non-'expository' entry's prose is fully flushed too — the
     // pulpit screen resolves the SAME template independently from storage.
-    await Promise.all(
-      templateSections.map(section =>
-        savePrepNote(
-          table.passageKey,
-          section,
-          drafts[section] ?? '',
-          undefined,
-          template,
-        ),
-      ),
-    );
+    await flushDrafts();
     // Resolve the version the SAME way this screen resolves it (explicit
     // param, else the device's last-picked reading version) and ALWAYS
     // forward it. The pulpit screen falls back independently to the
@@ -1055,7 +1055,7 @@ export default function PrepTableScreen() {
         version,
       },
     });
-  }, [router, table, params.version, drafts, templateSections, template]);
+  }, [router, table, params.version, flushDrafts]);
 
   const handleUnlockPulpit = useCallback(() => {
     haptics.tap();

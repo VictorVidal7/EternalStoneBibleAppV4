@@ -27,16 +27,33 @@
  * live-verification item on a device, which is what the review ledger
  * already says for R9-47.
  *
+ * ⚠️ Measured in the R9-143 work: with THIS harness (the banner stub below
+ * included) the stepper does move the range, and the tree survives the new
+ * passage's notes landing — the R9-143 re-keying cases do both. So the
+ * paragraph above no longer holds here: the blur/`load()` halves of the
+ * R9-47 race are untested, not untestable.
+ *
+ * R9-143 — "Banco de ilustraciones" and "Modo púlpito" flush every template
+ * section before navigating, and that flush kept both hazards the R9-47 fix
+ * removed from the blur: it wrote `drafts[section] ?? ''` under
+ * `table.passageKey`. Covered per button: the deletion (same setup as the
+ * blur case below), the re-keying (the stepper moves the range while the new
+ * passage's notes read is HELD — the window a fast tap lands in), and that
+ * the flush still persists what was just typed.
+ *
  * The harness (mocks, focus-callback capture) mirrors
  * `prepTableScreenNotesRefocus.test.tsx`: the REAL stateful AsyncStorage mock
  * from jest.setup.js is used deliberately, because these assertions are about
  * what actually reached the store.
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as SecureStore from 'expo-secure-store';
 import {act, fireEvent, render, waitFor} from '@testing-library/react-native';
 import PrepTableScreen from '../app/features/prep/index';
 import {PremiumProvider} from '../src/context/PremiumContext';
+import * as prepNotesStore from '../src/features/study/prepNotesStore';
 import {getPrepNotes, savePrepNote} from '../src/features/study/prepNotesStore';
+import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
 import {translations} from '../src/i18n/translations';
 
 // Captures every useFocusEffect callback the screen registers, in
@@ -44,11 +61,17 @@ import {translations} from '../src/i18n/translations';
 // simulate "the reader navigated back to this screen" without a real
 // navigation/focus event system (expo-router itself is mocked away).
 const focusCallbacks: Array<() => void> = [];
+const mockRouterPush = jest.fn();
+// ONE object, like the real `useRouter()` (it returns expo-router's `router`
+// singleton). A fresh object per render would rebuild every `useCallback`
+// that lists `router` on every render, and a handler missing a dependency
+// could never go stale here — the harness would answer that question.
+const mockRouter = {push: mockRouterPush, back: jest.fn()};
 
 jest.mock('expo-router', () => {
   const ReactActual = require('react');
   return {
-    useRouter: () => ({push: jest.fn(), back: jest.fn()}),
+    useRouter: () => mockRouter,
     useLocalSearchParams: () => ({
       book: 'John',
       chapter: '3',
@@ -87,6 +110,19 @@ jest.mock('react-native-safe-area-context', () => ({
 jest.mock('@components/hints/ContextualHintBanner', () => ({
   ContextualHintBanner: () => null,
 }));
+
+// R9-143 — the typing autosave is a 700 ms debounce. Stretched here so the
+// buttons' own flush is the ONLY thing that can put just-typed prose in the
+// store before navigating: on a slow run the debounce would otherwise answer
+// the question the "still persists" cases ask. Only the wait changes.
+jest.mock('use-debounce', () => {
+  const actual = jest.requireActual('use-debounce');
+  return {
+    ...actual,
+    useDebouncedCallback: (fn: unknown, _wait: number, options?: unknown) =>
+      actual.useDebouncedCallback(fn, 60_000, options),
+  };
+});
 
 jest.mock('@lib/haptics', () => ({
   haptics: {tap: jest.fn(), success: jest.fn()},
@@ -160,6 +196,8 @@ jest.mock('@lib/database', () => ({
       text: `Texto del versículo ${v}`,
     })),
     getChapterVerseCount: jest.fn(async () => 36),
+    // Only the premium render (the pulpit button, R9-143) asks for this.
+    originalsInstalled: jest.fn(async () => false),
   },
 }));
 
@@ -247,5 +285,161 @@ describe('Mesa de preparación — a blur can no longer delete a sermon (R9-47)'
     expect(saved.sections.application).toBe(
       'Otra sección, para que el mapa no quede vacío',
     );
+  });
+});
+
+describe('Mesa de preparación — the buttons that flush the drafts keep R9-47’s guards (R9-143)', () => {
+  const KEY_RANGE = 'John/3/16-17';
+
+  const BUTTONS = [
+    {
+      name: 'Banco de ilustraciones',
+      premium: false,
+      label: `${translations.es.prepIllustrations.entryLabel} — ${translations.es.offering.badgeA11y}`,
+      pathname: '/features/prep/illustrations',
+    },
+    {
+      name: 'Modo púlpito',
+      premium: true,
+      label: p.pulpitEnterButton,
+      pathname: '/features/prep/pulpit',
+    },
+  ];
+
+  beforeEach(async () => {
+    focusCallbacks.length = 0;
+    mockRouterPush.mockClear();
+    await AsyncStorage.clear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+  });
+
+  afterEach(async () => {
+    jest.restoreAllMocks();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+  });
+
+  describe.each(BUTTONS)('$name', ({premium, label, pathname}) => {
+    async function renderAndFindButton() {
+      // The pulpit's enter button only renders for a premium reader.
+      if (premium)
+        await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+      const screen = renderScreen();
+      await screen.findByText('Juan 3:16');
+      const button = await screen.findByLabelText(label);
+      return {screen, button};
+    }
+
+    it('does NOT wipe a section whose prose exists in the store but not in the drafts', async () => {
+      const {screen, button} = await renderAndFindButton();
+      expect(screen.getByLabelText(p.sections.bigIdea.label).props.value).toBe(
+        '',
+      );
+
+      // The same round trip as the blur case above: another screen writes
+      // prose for this passage while this one stays mounted and the focus
+      // effect hasn't re-read it yet. Pre-fix, the button's flush wrote
+      // `drafts.bigIdea ?? ''` — a DELETE — and, being the only section,
+      // dropped the whole passage entry.
+      await savePrepNote(KEY_SINGLE, 'bigIdea', 'La idea central del pasaje');
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
+      await waitFor(() => expect(mockRouterPush).toHaveBeenCalledTimes(1));
+
+      const saved = await getPrepNotes(KEY_SINGLE);
+      expect(saved.sections.bigIdea).toBe('La idea central del pasaje');
+      expect(mockRouterPush).toHaveBeenCalledWith(
+        expect.objectContaining({pathname}),
+      );
+    });
+
+    it('still persists a just-typed section before navigating', async () => {
+      // The positive half: the guards must skip ABSENT drafts, not the flush.
+      // A flush that wrote nothing at all would pass both cases around it.
+      const {screen, button} = await renderAndFindButton();
+      await act(async () => {
+        fireEvent.changeText(
+          screen.getByLabelText(p.sections.bigIdea.label),
+          'Recién escrito',
+        );
+      });
+      // Control: the (stretched) autosave hasn't written it.
+      expect((await getPrepNotes(KEY_SINGLE)).sections.bigIdea).toBeUndefined();
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
+      await waitFor(() => expect(mockRouterPush).toHaveBeenCalledTimes(1));
+
+      expect((await getPrepNotes(KEY_SINGLE)).sections.bigIdea).toBe(
+        'Recién escrito',
+      );
+    });
+
+    it('files the drafts under the passage they were loaded for, not the one the stepper just moved to', async () => {
+      await savePrepNote(KEY_SINGLE, 'bigIdea', 'Sermón de 3:16');
+      await savePrepNote(KEY_RANGE, 'bigIdea', 'Sermón de 3:16-17');
+
+      // Hold the new range's notes read — both `load()` and the focus effect
+      // go through it — so `drafts` still holds 3:16's sermon while `table`
+      // has already moved to 3:16-17. This is the window a fast tap lands in.
+      const realGetPrepNotes = prepNotesStore.getPrepNotes;
+      let releaseRange!: () => void;
+      const rangeHeld = new Promise<void>(resolve => {
+        releaseRange = resolve;
+      });
+      const getSpy = jest
+        .spyOn(prepNotesStore, 'getPrepNotes')
+        .mockImplementation(async key => {
+          if (key === KEY_RANGE) await rangeHeld;
+          return realGetPrepNotes(key);
+        });
+
+      const {screen, button} = await renderAndFindButton();
+      await waitFor(() =>
+        expect(
+          screen.getByLabelText(p.sections.bigIdea.label).props.value,
+        ).toBe('Sermón de 3:16'),
+      );
+
+      await act(async () => {
+        fireEvent.press(
+          screen.getByLabelText(`${p.increase} ${p.rangeEndLabel}`),
+        );
+      });
+      // Control: the table really moved and the read really is held.
+      await waitFor(() =>
+        expect(getSpy.mock.calls.map(c => c[0])).toContain(KEY_RANGE),
+      );
+      expect(screen.getByLabelText(p.sections.bigIdea.label).props.value).toBe(
+        'Sermón de 3:16',
+      );
+
+      await act(async () => {
+        fireEvent.press(button);
+      });
+      await waitFor(() => expect(mockRouterPush).toHaveBeenCalledTimes(1));
+
+      // Pre-fix this wrote 3:16's sermon over 3:16-17's.
+      expect((await realGetPrepNotes(KEY_RANGE)).sections.bigIdea).toBe(
+        'Sermón de 3:16-17',
+      );
+      expect((await realGetPrepNotes(KEY_SINGLE)).sections.bigIdea).toBe(
+        'Sermón de 3:16',
+      );
+
+      // Let 3:16-17's read land: the screen adopts it and survives the
+      // re-render (what the header's ⚠️ note relies on).
+      await act(async () => {
+        releaseRange();
+      });
+      await waitFor(() =>
+        expect(
+          screen.getByLabelText(p.sections.bigIdea.label).props.value,
+        ).toBe('Sermón de 3:16-17'),
+      );
+      expect(screen.getByText('Juan 3:16-17')).toBeTruthy();
+    });
   });
 });
