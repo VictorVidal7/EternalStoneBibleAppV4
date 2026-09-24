@@ -11,13 +11,15 @@
  *    reader's own heart-icon toggle and the EXISTING (untouched) reverse
  *    direction in favorites.tsx (the school-icon toggle there).
  *
- * `MemoryDeckScreen` itself can't be fully mounted under react-test-renderer
- * here: its header unconditionally renders `StatBubble`/`PulsingPracticeCta`,
- * which call `Animated.spring(..., {useNativeDriver: true})` on mount and
- * throw "Unable to locate attached view in the native tree" (no native view
- * for the driver to attach to) — a PRE-EXISTING limitation of this specific
- * screen's animations under the test renderer, unrelated to this change (no
- * prior test in this repo fully renders this screen either). So this file:
+ * `MemoryDeckScreen` itself isn't mounted here. When this file was written,
+ * mounting it threw "Unable to locate attached view in the native tree" from
+ * its header's native-driven `Animated.spring` (`StatBubble`/
+ * `PulsingPracticeCta`), and that was put down to react-test-renderer. It
+ * was NODE_ENV: RN only tolerates the missing native view under 'test', and
+ * the shell running the suite exported 'development'. jest.config.js now
+ * pins 'test'; measured in S24, the full screen then mounts, re-renders and
+ * takes presses (it still throws under 'development' without the pin). This
+ * file keeps the workaround it was built on:
  *
  *  - Renders `DeckRow` DIRECTLY (exported for exactly this reason) to cover
  *    the new favorite toggle with a real render + real presses.
@@ -25,7 +27,7 @@
  *    is what decides which of the three "added" toasts to show.
  *  - Source-scans `index.tsx` for the header "+"/empty-state CTA/picker
  *    wiring, the same proxy pattern `readerFavoriteHeartA11y.test.ts` uses
- *    for a screen that can't be fully rendered.
+ *    for a screen it doesn't render.
  */
 import fs from 'fs';
 import path from 'path';
@@ -225,10 +227,10 @@ describe('memory/index.tsx source wiring — add-verse affordances', () => {
   });
 
   it('routes the per-card practice icon to handlePracticeCard(card) — the SAME card bound in the map closure, not a stale/shared reference', () => {
-    // MemoryDeckScreen can't be fully rendered under react-test-renderer
-    // here (see the file-header note), so a live "tap row 2's icon, assert
-    // it opened row 2's verse" render isn't possible in this suite. This
-    // source-scan is the cheapest available proxy: it locks in that the
+    // This suite doesn't render MemoryDeckScreen (see the file-header note:
+    // the reason it gave was NODE_ENV, and the screen does mount now), so
+    // there is no live "tap row 2's icon, assert it opened row 2's verse"
+    // render here. This source-scan is the proxy: it locks in that the
     // `.map(card => ...)` closure variable — not `sortedCards[0]` or some
     // other stale binding — is what flows into onPracticeCard, which is
     // the actual bug class a "wrong card" regression would take.

@@ -64,10 +64,16 @@ jest.mock('expo-linear-gradient', () => {
   return {LinearGradient: View};
 });
 
-// Same rationale as immersiveReaderFreeFollow.test.tsx: TouchableOpacity's
-// built-in press animation throws when react-test-renderer re-renders a
-// mounted instance with no real native view tag. A plain View swap keeps
-// this test scoped to props/label queries only.
+// Same View swap as immersiveReaderFreeFollow.test.tsx, keeping this test
+// scoped to props/label queries: it reads the props ImmersiveReader passes
+// TouchableOpacity (`disabled`, `accessibilityState`) straight off the
+// stand-in. That is what the swap is load-bearing for. It was justified as
+// the press animation throwing on re-render under react-test-renderer; that
+// throw depends on NODE_ENV (see that file), which jest.config.js now pins.
+// Measured in S24: without the swap nothing throws under 'test', but the
+// "AND playing" case fails — the default query doesn't find the button, and
+// a real TouchableOpacity's host view carries `accessibilityState.disabled`
+// but no `disabled` prop.
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => {

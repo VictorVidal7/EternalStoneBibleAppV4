@@ -139,11 +139,13 @@ const hechosOccurrence2 = {book_id: 44, chapter: 10, verse: 36, word: 'κύρι�
 // to a safe no-op view tag when `process.env.NODE_ENV === 'test'` — otherwise
 // they throw "Unable to locate attached view in the native tree" the moment a
 // bar is pressed, since react-test-renderer has no real host view to attach
-// to. Jest's CLI only *sets* NODE_ENV=test when it's unset; it does not
-// override an already-set value, so a shell that exports NODE_ENV=development
-// (as this repo's dev shell does) silently defeats that safety net for any
-// test that presses a native-driven-animated Touchable. Force it locally for
-// this file only, restoring it afterward so no other test file is affected.
+// to. Jest's CLI only *sets* NODE_ENV=test when it's unset, so a shell that
+// exports NODE_ENV=development (as Victor's does) used to defeat that safety
+// net. jest.config.js now pins NODE_ENV=test for every run, whatever the
+// shell exports (__tests__/jestNodeEnv.test.ts guards the pin). Forcing it
+// here, and restoring it afterward, predates the pin and stays as a second
+// layer: measured in S24, without it this file passes under the pin and 6 of
+// its 7 cases throw under 'development'.
 const originalNodeEnv = process.env.NODE_ENV;
 beforeAll(() => {
   process.env.NODE_ENV = 'test';

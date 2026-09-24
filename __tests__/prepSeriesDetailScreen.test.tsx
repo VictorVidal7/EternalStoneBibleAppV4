@@ -34,13 +34,14 @@ const PREP_NOTES_KEY = '@prep_notes';
 const SERIES_ID = 'series_1';
 
 // RN's own TouchableOpacity drives its press/disabled feedback through an
-// internal Animated.Value; under react-test-renderer that occasionally
-// throws "Unable to locate attached view in the native tree" once a modal
-// opens a fresh TextInput/button and a subsequent state update (typing,
-// re-render) touches that Animated node before it's ever attached to a real
-// native view. Swapping it for Pressable (no internal Animated opacity) for
-// this suite keeps press/style/accessibility behavior but sidesteps that
-// test-renderer-only failure mode entirely.
+// internal Animated.Value. Swapping it for Pressable (no internal Animated
+// opacity) for this suite keeps press/style/accessibility behavior. It was
+// added because pressing through a modal threw "Unable to locate attached
+// view in the native tree", blamed on react-test-renderer; that throw
+// depends on NODE_ENV instead (RN only tolerates the missing native view
+// under 'test', which jest.config.js now pins). Measured in S24: without the
+// swap, all 18 cases pass under 'test' and 5 throw under 'development'. The
+// swap stays as a second layer.
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => {

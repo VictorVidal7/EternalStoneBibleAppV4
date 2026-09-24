@@ -20,10 +20,15 @@ import {ContextualHintBanner} from '../src/components/hints/ContextualHintBanner
 // don't fire unrelated "not wrapped in act()" warnings in this suite.
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 
-// Same rationale as toastScreenReaderAnnouncement.test.tsx: Animated.spring/
-// timing with useNativeDriver: true throws "Unable to locate attached view
-// in the native tree" under react-test-renderer — stub both to a no-op
-// start() so these tests only assert behavior, not the visual motion.
+// Same stubs as toastScreenReaderAnnouncement.test.tsx, so these tests only
+// assert behavior, not the visual motion. The `timing` one is load-bearing:
+// its start() runs the completion callback at once, and the banner calls
+// onDismiss from its exit animation's completion, which nothing in these
+// tests would otherwise let finish. Measured in S24: without the stubs, the
+// close-button and auto-dismiss cases never see onDismiss. What they are NOT
+// needed for is the "Unable to locate attached view in the native tree" this
+// comment used to cite: that throw only happens when NODE_ENV isn't 'test',
+// which jest.config.js now pins.
 function stubAnimations() {
   jest
     .spyOn(Animated, 'spring')

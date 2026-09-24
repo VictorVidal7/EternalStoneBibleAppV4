@@ -35,14 +35,17 @@ import {translations} from '../src/i18n/translations';
 import {FEELING_CHIP_WIDTH} from '../src/styles/designTokens';
 
 // RN's own TouchableOpacity drives its press/disabled feedback through an
-// internal Animated.Value; under react-test-renderer that throws "Unable to
-// locate attached view in the native tree" once a press synchronously flips
-// the same element's `disabled` prop (the feeling chip does this: pressing
-// it moves phase 'choose' -> 'resolving', which disables all chips
-// mid-gesture). Swapping it for Pressable (no internal Animated opacity)
-// keeps press/style/accessibility behavior but sidesteps that
-// test-renderer-only failure mode entirely (same workaround as
-// prepSeriesListScreen.test.tsx).
+// internal Animated.Value, and a press here synchronously flips the same
+// element's `disabled` prop (the feeling chip moves phase 'choose' ->
+// 'resolving', which disables all chips mid-gesture). Swapping it for
+// Pressable (no internal Animated opacity) keeps press/style/accessibility
+// behavior (same workaround as prepSeriesListScreen.test.tsx). It was added
+// because that flip threw "Unable to locate attached view in the native
+// tree", blamed on react-test-renderer; the throw depends on NODE_ENV instead
+// (RN only tolerates the missing native view under 'test', which
+// jest.config.js now pins). Measured in S24: without the swap, all 4 cases
+// pass under 'test' and 1 throws under 'development'. The swap stays as a
+// second layer.
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => {

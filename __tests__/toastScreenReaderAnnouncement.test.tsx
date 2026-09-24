@@ -37,12 +37,14 @@ jest.mock('expo-blur', () => {
 });
 
 // Toast's own show()/hide() drive Animated.spring/Animated.timing with
-// useNativeDriver: true, which tries to attach to a real native view tag —
-// react-test-renderer has none, so it throws "Unable to locate attached view
-// in the native tree" (same pre-existing environment limitation documented in
-// usePressScale.test.ts and searchGoToReference.test.tsx). Stubbing both to a
-// no-op `start` sidesteps the animation entirely; these tests only assert the
-// accessibility-announcement side effect, not the visual motion.
+// useNativeDriver: true. Stubbing both to a no-op `start` sidesteps the
+// animation entirely; these tests only assert the accessibility-announcement
+// side effect, not the visual motion. (This used to be justified as
+// react-test-renderer throwing "Unable to locate attached view in the native
+// tree". That throw depends on NODE_ENV, not on the renderer: RN only
+// tolerates the missing view under 'test', which jest.config.js now pins.
+// Measured in S24, without these stubs all 12 cases pass under 'test' and 9
+// throw under 'development'.)
 function stubAnimations() {
   jest
     .spyOn(Animated, 'spring')

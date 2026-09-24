@@ -39,10 +39,10 @@ import {translations} from '../src/i18n/translations';
 
 const PREP_ILLUSTRATIONS_KEY = '@prep_illustrations';
 
-// Same TouchableOpacity → Pressable swap prepSeriesListScreen.test.tsx uses:
-// react-test-renderer occasionally throws "Unable to locate attached view in
-// the native tree" once a modal opens a fresh TextInput/button and a
-// subsequent state update touches that Animated node before it's attached.
+// Same TouchableOpacity → Pressable swap prepSeriesListScreen.test.tsx uses.
+// The "Unable to locate attached view in the native tree" it was added for
+// depends on NODE_ENV, not on react-test-renderer (see that file); in S24
+// this suite passed without the swap under both 'test' and 'development'.
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => {

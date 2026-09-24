@@ -29,13 +29,13 @@ type RootInstance = ReturnType<typeof render>['UNSAFE_root'];
  *
  * This button also swaps its children between an icon+label and an
  * `ActivityIndicator` when `sharing` flips true (mid-press, via
- * `setSharing(true)`) — combined with TouchableOpacity's own built-in
- * press-in/press-out opacity fade, simulating a REAL touch
- * (`fireEvent.press`) crashes react-test-renderer with "Unable to locate
- * attached view in the native tree" once the child swap and the fade
- * animation race. Calling the `onPress` prop directly skips that simulated
- * touch/animation lifecycle entirely and exercises the exact same
- * `handleShare` this test cares about.
+ * `setSharing(true)`). Calling the `onPress` prop directly exercises the
+ * exact same `handleShare` this test cares about. (It was chosen because
+ * `fireEvent.press` was said to crash react-test-renderer with "Unable to
+ * locate attached view in the native tree" once the child swap and
+ * TouchableOpacity's opacity fade raced. RN only throws that when NODE_ENV
+ * isn't 'test', which jest.config.js now pins; and in S24 `fireEvent.press`
+ * on this button passed all 3 cases under both 'test' and 'development'.)
  */
 async function pressShare(root: RootInstance) {
   const candidates = root.findAllByProps({accessibilityLabel: 'Compartir'});

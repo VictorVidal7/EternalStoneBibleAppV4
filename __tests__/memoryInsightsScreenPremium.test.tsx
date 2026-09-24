@@ -142,10 +142,13 @@ jest.mock('expo-sharing', () => ({
   shareAsync: jest.fn(async () => undefined),
 }));
 
-// Pre-existing component, unrelated to T8.1: its mount effect starts a
-// native Animated timing that this jest environment can't attach to a real
-// view ("Unable to locate attached view in the native tree"). Not what this
-// suite is testing — stub it out to a plain View.
+// Pre-existing component, unrelated to T8.1 — not what this suite is
+// testing, so it's stubbed out to a plain View. (The stub was justified as
+// its mount effect starting a native Animated timing this jest environment
+// can't attach to: "Unable to locate attached view in the native tree". It
+// isn't native: SVGCircularProgress animates `strokeDashoffset` with
+// `useNativeDriver: false`. Measured in S24, this suite passes without the
+// stub under both 'test' and 'development'.)
 jest.mock('../src/components/SVGCircularProgress', () => {
   const RN = require('react-native');
   const R = require('react');

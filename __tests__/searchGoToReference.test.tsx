@@ -25,14 +25,16 @@ jest.mock('expo-linear-gradient', () => {
 });
 
 // Both of these mount a react-native Animated loop with useNativeDriver on
-// the loading/empty states this screen renders. That loop can't attach to a
-// real native view under react-test-renderer ("Unable to locate attached
-// view in the native tree") — a pre-existing environment limitation of these
-// shared decorative components, unrelated to the go-to-reference feature
-// under test here. Stubbed to null so the FTS loading/empty-state paths
-// these tests exercise don't trip over it; the "no results" assertion below
-// reads the resultsHeader label instead, which renders independently of
-// this empty-state illustration.
+// the loading/empty states this screen renders — shared decorative
+// components, unrelated to the go-to-reference feature under test here.
+// Stubbed to null; the "no results" assertion below reads the resultsHeader
+// label instead, which renders independently of this empty-state
+// illustration. (The stubs were justified as that loop not being able to
+// attach to a real native view under react-test-renderer: "Unable to locate
+// attached view in the native tree". That throw depends on NODE_ENV, not on
+// the renderer: RN only tolerates the missing view under 'test', which
+// jest.config.js now pins. Measured in S24: without the stubs, all 6 cases
+// pass under 'test' and throw under 'development'.)
 jest.mock('@components/SkeletonLoader', () => ({VerseSkeleton: () => null}));
 jest.mock('@components/IllustratedEmptyState', () => ({
   IllustratedEmptyState: () => null,

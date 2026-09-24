@@ -56,13 +56,16 @@ jest.mock('expo-linear-gradient', () => {
 });
 
 // TouchableOpacity's built-in press animation calls Animated.timing(...,
-// {useNativeDriver: true}).start(), which tries to attach to a real native
-// view tag on re-render (componentDidUpdate) — react-test-renderer has no
-// such tag, so any post-mount prop change on a TouchableOpacity (e.g. the
-// Previous/Next buttons' `disabled` flipping once the follow effect moves
-// currentIndex) throws "Unable to locate attached view in the native tree".
-// A plain View swap sidesteps the animation entirely; this test only needs
-// text/label queries, not real touch feedback.
+// {useNativeDriver: true}).start() on re-render (componentDidUpdate), e.g.
+// when the Previous/Next buttons' `disabled` flips once the follow effect
+// moves currentIndex. A plain View swap sidesteps the animation entirely;
+// this test only needs text/label queries, not real touch feedback. (The
+// swap was justified as react-test-renderer having no native view tag, so
+// that re-render threw "Unable to locate attached view in the native tree".
+// The throw depends on NODE_ENV, not on the renderer: RN only tolerates the
+// missing tag under 'test', which jest.config.js now pins. Measured in S24:
+// without the swap, both cases pass under 'test' and throw under
+// 'development'.)
 jest.mock(
   'react-native/Libraries/Components/Touchable/TouchableOpacity',
   () => {
