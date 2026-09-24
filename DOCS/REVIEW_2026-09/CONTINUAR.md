@@ -1,9 +1,10 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-24, fin de la sesión 24.** La 24 hizo los ARREGLOS (la (c))
-> con 6 sesiones de Claude Code EN LA NUBE, y el orquestador revisó cada rama en local, pieza por
-> pieza, antes de mergear. Cerró 11 hallazgos, y quedan **2 P0 abiertos** (`R9-38`, `R9-124`). **Lo
-> siguiente es el mensaje (d): revisar el diff de la 24**, y después `R9-124` en Modo C.
+> **Última actualización: 2026-09-24, fin de la sesión 25.** La 25 revisó el diff de la 24 (la
+> (d)) con 2 sesiones de Claude Code EN LA NUBE, y el orquestador verificó en local cada P0/P1 con
+> sonda propia. Registró `R9-160`..`R9-173`, y quedan **4 P0 abiertos** (`R9-38`, `R9-124`,
+> `R9-160`, `R9-166`). **Lo siguiente es el mensaje (e):** revisar en local los arreglos de
+> `R9-160`+`R9-161` y de `R9-166` que hacen dos sesiones en la nube, y después `R9-124` en Modo C.
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -15,12 +16,17 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**0. El checkpoint de la sesión 24 va en la rama `docs/review-s24-checkpoint`, que es solo docs, y
+**0. El checkpoint de la sesión 25 va en la rama `docs/review-s25-diff-s24`, que es solo docs, y
 espera el OK de Victor para mergearse.** Si al arrancar esa rama no está en `origin/main`,
-preguntale qué decidió antes de seguir. La base es `9c425a8`, el último código de la 24, ya
-mergeado y pusheado. Su CI está verificado EN EL LOG: run `35965550736`, 3 jobs verdes, Node
-v24.20.0, 366/4366, cero «failed to run». Las sesiones 23 y 24 ya están en `main`.
-**Comprobá en el log el run de CI de `origin/main`.**
+preguntale qué decidió antes de seguir. La base es `ae9c8e4` (el checkpoint de la 24; el último
+código es `9c425a8`). Su CI está verificado EN EL LOG: run `35967053890`, 3 jobs verdes, Node
+v24.21.0, 366/4366, cero «failed to run». **Comprobá en el log el run de CI de `origin/main`.**
+**Además, al cerrar la 25 quedaron lanzadas (o por lanzar) dos sesiones de arreglos en la nube:**
+
+- A: `R9-160`+`R9-161`, y la prueba que le falta a `R9-162`, en la rama `fix/review-s25-conflictos`;
+- B: `R9-166`, en la rama `fix/review-s25-pregunta-link`.
+  Los prompts están en `_scratch/S25-nube-3-*.md` y `_scratch/S25-nube-4-*.md`. Mirá
+  `git ls-remote --heads origin`: si esas ramas no existen, preguntale a Victor si se lanzaron.
 
 **1. ✅ Lo de la sesión 20: la rama se mergeó en fast-forward y se
 pusheó** (con el OK de Victor), y se borró. Lleva cuatro commits de código, uno por hallazgo
@@ -451,9 +457,58 @@ o un alcance que no se sostiene.
 ## Mensaje para pegar en el chat nuevo
 
 **Hechos:** el doble check (la (b), sesiones 21 y 22), la revisión del diff de la 20 (la (a),
-sesión 23) y los ARREGLOS (la (c), sesión 24, en la nube). **Lo siguiente es el (d).**
+sesión 23), los ARREGLOS (la (c), sesión 24, en la nube) y la revisión del diff de la 24 (la (d),
+sesión 25, en la nube). **Lo siguiente es el (e).**
 
-**(d) Sesión 25: revisar el diff de la 24. Después, en la 26, `R9-124` en Modo C.**
+**(e) Sesión 26: revisar en local los arreglos de la nube de la 25. Después, `R9-124` en Modo C.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` y, en la
+> memoria, la del método de la nube (`feedback_essb-cloud-sessions-local-review`).
+>
+> **Estado:**
+>
+> - La 25 revisó el diff de la 24 en la nube y registró `R9-160`..`R9-173`. Quedan 4 P0 abiertos:
+>   `R9-38`, `R9-124`, `R9-160` y `R9-166`. Hallazgos: 173. El detalle está en
+>   `detail/S25-revision-del-diff-s24.md`. Antes de empezar, comprobá en el log el run de CI de
+>   `origin/main`.
+> - Al cerrar la 25 se lanzaron dos sesiones de arreglos en la nube, en archivos distintos:
+>   - **A:** `R9-160` (P0) + `R9-161` (P1), y la prueba de `R9-162`, en
+>     `fix/review-s25-conflictos`: `SyncEngine.ts`,
+>     `app/(tabs)/conflicts.tsx` y sus pruebas;
+>   - **B:** `R9-166` (P0), en `fix/review-s25-pregunta-link`: `AuthContext.tsx`,
+>     `SyncEngineContext.tsx` y sus pruebas.
+>
+> **Esta sesión revisa esas dos ramas en mi máquina,** como en la 24:
+>
+> - `npm run validate` con mi `NODE_ENV=development`;
+> - el revert por PIEZA, con un script de reemplazo exacto escrito con la herramienta de edición;
+> - que cada prueba nueva se vea fallar primero;
+> - que el caso de `R9-36` (seguir escribiendo en ESTE teléfono) y las pruebas de `R9-23`/`R9-125`
+>   sigan verdes;
+> - apilar las dos ramas y comparar cada tramo con `cmp`;
+> - validate sobre la pila, mi OK, el fast-forward y el CI en el log.
+>
+> Después, con mi OK, borrá las ramas `fix/review-s25-*` del remoto.
+>
+> **Después:** `R9-124`. Primero hay que medir el SDK nativo de Android en Modo C, en el emulador,
+> con mi OK y nunca con mi teléfono. Si confirma, el arreglo tiene que:
+>
+> - hacer FUERA de `withLocalWriteSuppressed` la consulta de si el doc existe, con su
+>   `isCurrent()` después (`R9-153`);
+> - seguir soltando el doc del conjunto no asentado aunque no lo borre (`R9-164`).
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - `R9-127` (el skip por uid toca `SyncEngine.ts` y `AuthContext.tsx`: va después de A y B);
+> - `R9-173` (ya decidido: extender la opción (b));
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(d) Sesión 25: revisar el diff de la 24 — ya HECHO, en la nube.** Queda aquí como registro. Se
+hizo con 2 sesiones en la nube, no con los 3 agentes locales que proponía este mensaje; los prompts
+están en `_scratch/S25-nube-{1,2}-*.md`.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md`.
 >
@@ -841,8 +896,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 25: el mensaje (d), revisar el diff de la 24. En la 26, `R9-124` en
-Modo C.** Lo de abajo es el menú de siempre para después.
+**Recomendado para la sesión 26: el mensaje (e), revisar en local los arreglos de la nube de
+`R9-160`+`R9-161` y `R9-166`. Después, `R9-124` en Modo C.** Lo de abajo es el menú de siempre
+para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
@@ -876,6 +932,17 @@ Alternativas legítimas:
   CI.** La nube y el CI corren sin `NODE_ENV`, y Victor exporta `NODE_ENV=development`. Desde la
   24, `jest.config.js` lo fija (`R9-157`), pero cualquier otra diferencia de entorno se vería igual:
   verde allá y rojo acá. Revertí cada pieza en SU entorno antes de pedir el OK.
+- **Un arreglo puede crear el caso que su premisa niega (sesión 25, `R9-160`).** `R9-36` supuso
+  que «lo local de ahora» es siempre «lo mío», y es falso cuando lo cambió el LWW de un cambio del
+  otro teléfono. Antes de dar por buena la premisa de un arreglo, preguntá quién más escribe en
+  ese mismo lugar mientras el caso espera.
+- **Después de apilar, re-medí la matriz entera, no solo el tramo nuevo (sesión 25, `R9-162`).** La
+  guarda nueva de `9c425a8` tapó en las pruebas la de `a7d688e`, que estaba en otro commit y en
+  otra tanda. La matriz de la tanda 3 midió solo las guardas nuevas.
+- **Una revisión se puede hacer en la nube (sesión 25).** Cada sesión entrega su informe en una
+  rama `review/sNN-*` (en `DOCS/REVIEW_2026-09/nube/`, pasado por prettier), que NUNCA se mergea.
+  El orquestador la baja a `_scratch`, verifica cada P0/P1 con sonda propia en la máquina de
+  Victor, y con su OK la borra.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -1115,6 +1182,10 @@ Alternativas legítimas:
   lado. Descartó ampliar el canalón y achicar el ícono. **Ya está decidido.**
 - **Fan-out: Victor lo pide explícitamente cuando lo quiere** ("manda al menos 3 agentes",
   sesión 6). No lo asumas por defecto.
+- **Severidades de la sesión 25:** `R9-160` y `R9-166` son P0 y `R9-161` es P1, como se
+  propusieron. **`R9-173`:** extender la opción (b) de `R9-109` al fallo de red y al 404 de un
+  navegador con texto (decisión delegada al orquestador). La prioridad es baja.
+- **Crédito de la nube:** si se acaba, Victor acepta que la nube siga con su plan normal (sesión 25).
 - **Cuando avise del límite de uso de 5 h, la prioridad es volcar a disco y commitear, no
   terminar de verificar.** Es lo que se decidió en la sesión 6 y por eso existe la deuda de
   re-verificación del `⛔` de arriba: fue un intercambio consciente, no un olvido.
@@ -1123,9 +1194,12 @@ Alternativas legítimas:
 
 - **El tope de cuota del piso de no asentados (`R9-39`, sesión 24):** mientras un conflicto siga
   sin resolver, cada enganche de esa colección vuelve a leer desde su piso. ¿Se le pone un tope,
-  por ejemplo un aviso si un conflicto lleva N días pendiente?
+  por ejemplo un aviso si un conflicto lleva N días pendiente? **Medido en la 25:** con 300 docs,
+  en un año son 300 928 lecturas contra 3 647. Ojo: un aviso no cubre `R9-164`, un retenido sin
+  conflicto visible.
 - **`R9-158`:** si no se puede leer el marcador del dueño del almacén, ¿se pregunta (fallar
-  cerrado) o se sigue sin preguntar, como hoy?
+  cerrado) o se sigue sin preguntar, como hoy? Desde la 25 está medido (suben las 12 notas), y va
+  junto con su gemelo: `claimLocalStore` también se traga el fallo al ESCRIBIR el marcador.
 - **`R9-59`:** ¿«device-local» debe significar también «visible para cualquiera que use el
   aparato»? Hoy, cerrar sesión **no** limpia la Mesa, ni el progreso, ni los logros, y está
   **documentado como decisión** (`deleteAccountData.ts:12-13`) — pero nadie se lo preguntó

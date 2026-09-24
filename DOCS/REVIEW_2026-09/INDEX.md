@@ -255,6 +255,26 @@
 > abiertos** (`R9-38`, `R9-124`). Hallazgos: **159**. El checkpoint va en
 > `docs/review-s24-checkpoint`. **Siguiente, la 25:** revisar el diff de la 24; en la 26, `R9-124`
 > en Modo C. Detalle: `detail/S24-arreglos-en-la-nube.md`.
+>
+> **Sesión 25 (2026-09-24): revisión del diff de la 24, hecha EN LA NUBE.** Dos sesiones de Claude
+> Code en la nube (el motor; identidad, Mesa, web y jest) entregaron su informe en ramas que no se
+> mergean. El orquestador verificó en la máquina de Victor, con sonda propia, todo lo que subió a P0
+> o P1.
+>
+> - **2 P0 nuevos:**
+>   - `R9-160`, una regresión del arreglo de `R9-36`: con un conflicto pendiente, «conservar lo
+>     mío» sube lo que el otro teléfono escribió después;
+>   - `R9-166`: si la app muere con la pregunta del link abierta, el arranque en frío sube el
+>     almacén de Ana a la cuenta de Beto.
+> - **1 P1 nuevo:** `R9-161`.
+> - **14 hallazgos nuevos en total** (`R9-160`..`R9-173`). Quedaron medidas la puerta de `R9-127` y
+>   `R9-158`.
+> - Las afirmaciones del ledger sobre la 24 dan 27 ciertas, 3 a medias y ninguna falsa.
+>
+> **Quedan 4 P0 abiertos** (`R9-38`, `R9-124`, `R9-160`, `R9-166`). Hallazgos: **173**. El
+> checkpoint va en `docs/review-s25-diff-s24`. **Siguiente:** los arreglos de `R9-160`+`R9-161`
+> (sesión A) y de `R9-166` (sesión B) en la nube, revisados en local; después, `R9-124` en Modo C.
+> Detalle: `detail/S25-revision-del-diff-s24.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -717,6 +737,22 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 25 — 2026-09-24. Revisión del diff de la 24, en la nube.** Solo revisión: no se tocó
+  código.
+  - **Cómo se trabajó:**
+    - 2 sesiones de Claude Code en la nube, cada una con su mitad del diff;
+    - cada una entregó su informe en una rama `review/s25-*`, que nunca se mergea;
+    - el orquestador bajó los informes a `_scratch`, verificó cada P0/P1 con sonda propia en la
+      máquina de Victor y borró las ramas.
+  - **Resultado:** 14 hallazgos nuevos (`R9-160`..`R9-173`): 2 P0, 1 P1, 4 P2 y 7 P3. Quedan 4
+    P0 abiertos.
+  - **Detalle: `detail/S25-revision-del-diff-s24.md`.**
+  - **Las lecciones:**
+    - **un arreglo puede crear el caso que su premisa niega**: «lo local de ahora es lo mío» es
+      falso cuando lo cambió el LWW del otro teléfono (`R9-160`);
+    - **después de apilar, hay que re-medir la matriz entera**: la guarda de una tanda tapó en las
+      pruebas la de la anterior (`R9-162`).
 
 - **Sesión 24 — 2026-09-23/24. ARREGLOS en la nube.** Es la opción (c).
   - **Cómo se trabajó:** con el crédito de sesiones en la nube, cada arreglo lo hizo una sesión de

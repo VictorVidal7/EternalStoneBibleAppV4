@@ -238,12 +238,37 @@
 >
 > **Quedan 2 P0 abiertos** (`R9-38`, `R9-124`). Hallazgos: **159**. Detalle: `detail/S24-arreglos-en-la-nube.md`.
 
+> **Sesión 25 (2026-09-24): revisión del diff de la 24 (`0bc707d..9c425a8`), solo de REVISIÓN, hecha
+> EN LA NUBE.** No se tocó código. Dos sesiones de Claude Code en la nube revisaron cada una una
+> mitad (el motor; identidad, Mesa, web y jest) y entregaron su informe en una rama que no se
+> mergea. El orquestador verificó en la máquina de Victor (`NODE_ENV=development`), con sonda
+> propia, todo lo que subió a P0 o P1.
+>
+> - **2 P0 nuevos:**
+>   - `R9-160`: con un conflicto pendiente, un cambio posterior del otro teléfono entra por LWW, y
+>     desde `6440ca0` «conservar lo mío» sube lo del OTRO. Es una **regresión del arreglo de
+>     `R9-36`**, medida con revert.
+>   - `R9-166`: la rama del link con éxito pregunta DESPUÉS de enlazar. Si la app muere con la
+>     pregunta abierta, el arranque en frío sube el almacén de Ana a la cuenta de Beto.
+> - **1 P1 nuevo:** `R9-161`, «quedarme con lo suyo» aplica una foto vieja y no sube nada.
+> - **Otros 11 hallazgos nuevos:** 4 P2 (`R9-162`, `R9-163`, `R9-164`, `R9-167`) y 7 P3
+>   (`R9-165`, `R9-168`..`R9-173`).
+> - **Medidas por fin, en entradas que ya existían:** la puerta de `R9-127` que se había leído
+>   en la 24, y `R9-158`.
+> - **Las afirmaciones del ledger sobre la 24:** 27 ciertas, 3 a medias (`R9-108`, `R9-158` y
+>   `R9-143`) y ninguna falsa. La matriz de la 24 decía «las 9 piezas discriminan», y en `main` son
+>   8 (`R9-162`).
+>
+> **Quedan 4 P0 abiertos** (`R9-38`, `R9-124`, `R9-160`, `R9-166`). Hallazgos: **173**. Detalle:
+> `detail/S25-revision-del-diff-s24.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 24 (que cerró `R9-36`, `R9-39` y `R9-125` y no agregó ningún P0).
-> Esta sección tiene 25 entradas: 23 ARREGLADAS y 2 ABIERTAS** (`R9-38`, `R9-124`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras la sesión 25 (que agregó `R9-160` y `R9-166`; la 24 había cerrado `R9-36`,
+> `R9-39` y `R9-125`). Esta sección tiene 27 entradas: 23 ARREGLADAS y 4 ABIERTAS** (`R9-38`,
+> `R9-124`, `R9-160`, `R9-166`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -619,6 +644,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   - La pantalla muestra y siembra la fusión con lo local de AHORA (`readCurrentLocal`, que se
     relee al enfocar).
   - Revert por pieza: en el motor caen 2 pruebas, y en la pantalla, 3.
+    **⚠️ Sesión 25: este arreglo abrió `R9-160` (P0).** «Lo local de ahora» es «lo mío» solo si lo
+    escribió este teléfono. Si lo escribió el LWW de un cambio posterior del otro, «conservar lo mío»
+    sube lo del otro.
 
 - **`R9-38` (A4, `SyncEngine`) — 🐛 lo que se edita con la sesión cerrada no se sube nunca,
   y nada lo reconcilia después.** Severidad **media**.
@@ -659,6 +687,13 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     local).
   - **Costo abierto, decisión de Victor:** mientras un conflicto siga sin resolver, cada enganche
     de esa colección vuelve a leer desde su piso. Se le puede poner un tope después.
+    **⚠️ Sesión 25, el costo MEDIDO (en la nube, con el motor real):**
+  - Cada enganche lee los docs distintos tocados desde el retenido más viejo, con la colección
+    entera como techo.
+  - Con 300 docs y un conflicto sin resolver: 300 por enganche desde el día ~180, y en un año
+    300 928 lecturas contra 3 647.
+  - Se agregan dos casos sin conflicto visible: un retenido que no vuelve a llegar queda retenido
+    para siempre (`R9-164`), y un conjunto ilegible no se cura (`R9-165`).
 
 > **`R9-44`..`R9-64` vienen del fan-out de 4 de la sesión 6** (filas `A8`–`A11`), probados
 > con sondas ejecutables de los agentes.
@@ -930,6 +965,13 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **nunca con su teléfono** (como `R9-104` en la 20). **Arreglo (hipótesis):** un `removed` solo
   significa borrado si el doc ya no existe. Si no, el motor tiene que ignorarlo. Detalle:
   `detail/S21-doble-check.md`.
+  **⚠️ Sesión 25, dos condiciones para el arreglo:**
+  - Si ignora el `removed` de un doc que existe, tiene que **seguir soltándolo** del conjunto no
+    asentado (`SyncEngine.ts:1012`), o el doc queda retenido para siempre (`R9-164`).
+  - La consulta de si el doc existe es un `await` nuevo dentro del lote: después necesita su
+    `isCurrent()` (`R9-153`), y tiene que ir FUERA de `withLocalWriteSuppressed`.
+  - Mientras haya un doc retenido, el piso baja hasta él, así que este `removed` es menos probable.
+    La 24 no lo empeoró.
 
 - **`R9-125` (S21, identidad) — 🐛 `signInWithGoogle` sin anónimo (`currentUser === null`) no
   mira el dueño previo: es `R9-23` por la tercera rama.** CONFIRMADO con sonda.
@@ -962,8 +1004,98 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     caen 4 pruebas; sin la de la rama de éxito del link (`R9-23`), caen 2.
   - Queda abierto que la guarda falla ABIERTA si no puede leer el marcador (`R9-158`), y que el
     skip queda armado si falla el sign-in (nota en `R9-127`). Detalle: `detail/S24-arreglos-en-la-nube.md`.
+    **⚠️ Sesión 25:** la rama del link con éxito pregunta DESPUÉS de enlazar, y si la app muere con la
+    pregunta abierta, el arranque en frío sube el almacén sin preguntar (`R9-166`).
+
+- **`R9-160` (S25, `SyncEngine` / conflictos — regresión de `6440ca0`) — 🐛 con un conflicto
+  pendiente, un cambio posterior del otro teléfono entra por LWW y pisa «lo mío»; desde la 24,
+  «conservar lo mío» sube lo del OTRO.** CONFIRMADO con sonda de la sesión en la nube, con sonda
+  propia del orquestador en la máquina de Victor y con revert.
+
+  **El mecanismo:**
+  - `applyRemoteChange` (`SyncEngine.ts:1148-1190`) no mira si el doc tiene un conflicto
+    pendiente. Con el conflicto L/R abierto, el `R2` que el otro teléfono escribe 2 min después
+    cae fuera de la ventana de 30 s, es más nuevo que lo local, y **se aplica por LWW**: L
+    desaparece de SQLite y solo queda en la foto `conflict.localVersion`.
+  - `6440ca0` (`R9-36`) hizo que `keepMine` suba lo local de AHORA (`:1661-1671`) y que la pantalla
+    lo muestre como «Tu versión» (`readCurrentLocal`). Así, la pantalla muestra R2 como «Tu
+    versión» y R como «Su versión» (las dos son del otro teléfono), y «conservar lo mío» sube R2.
+  - L ya no aparece en ninguna pantalla. Solo queda en el registro de auditoría
+    `users/{uid}/conflicts`, que no se muestra (`insights.tsx` solo cuenta).
+  - Antes de `6440ca0`, «conservar lo mío» subía la foto L, y su eco, con `updatedAt` = ahora,
+    volvía a poner L en local.
+
+  **Sonda del orquestador** (`ae9c8e4`, `NODE_ENV=development`):
+  `{"afterR2":{"local":"R2…","snapshotMine":"L…","tuVersionEnPantalla":"R2…"},"pushedByKeepMine":["R2…"],"auditLocalVersion":["L…"]}`.
+  Con `keepMine` revertido a la foto, sube `["L: mi parrafo"]`.
+
+  **Alcance:** el de `R9-36` (dos teléfonos editan el mismo doc dentro de 30 s), más que el otro
+  siga editando antes de que el usuario abra la pantalla, que es justo lo esperable en un
+  conflicto. Es pérdida de texto escrito a mano, así que P0, como `R9-36`. El caso de `R9-36`
+  (seguir escribiendo en ESTE teléfono) sigue bien resuelto.
+
+  **Arreglo (hipótesis, sin medir):** que un cambio remoto más nuevo sobre un doc con conflicto
+  pendiente **refresque el conflicto** (su `remoteVersion`) en vez de aplicarse por LWW, sin
+  confundir el eco de una escritura propia con un cambio del otro. Va con `R9-161`, que tiene la
+  misma raíz. Detalle: `detail/S25-revision-del-diff-s24.md`.
+
+- **`R9-166` (S25, identidad) — 🐛 la rama del link con éxito pregunta DESPUÉS de enlazar: si la
+  app muere con la pregunta abierta, el arranque en frío sube el almacén del dueño anterior a la
+  cuenta nueva sin preguntar.** CONFIRMADO con sonda de la sesión en la nube y con sonda propia del
+  orquestador (providers reales, 12 notas de Ana). En dispositivo, PLAUSIBLE: no se midió.
+
+  **El mecanismo:**
+  - `AuthContext.tsx:419` hace `linkWithCredential`: el anónimo de Beto ya ES su cuenta de Google,
+    en el servidor y en disco. Recién después pregunta (`:425`) y reclama el almacén (`:427`).
+  - Si el proceso muere con la pregunta abierta (Beto la cierra desde recientes, o Android la
+    recicla en segundo plano), al volver Firebase rehidrata al usuario ENLAZADO.
+    `onAuthStateChanged` lo entrega como no anónimo, `SyncEngineContext.tsx:93-96` arranca el
+    motor, y `maybeRunInitialBulkPush` sube todo. El marcador sigue en el dueño anterior.
+  - El marcador `@local_store_owner_uid` solo lo lee `signInWithGoogle`: nada lo mira al arrancar.
+  - No lo introdujo la 24: el orden link → pregunta viene del arreglo de `R9-23` (sesión 8). Pero es
+    la rama que `R9-125` dio por cerrada.
+
+  **Sonda del orquestador:** con la pregunta abierta, el link ya pasó y no subió nada. Tras matar
+  la app y arrancar en frío:
+  `{"promptAfterColdStart":false,"pushesAfterColdStart":12,"owner":"ana-uid","flag":"2"}`.
+  - Control (responde «Solo iniciar sesión»): 0.
+  - Contraste, la rama de colisión: 0, porque el `signInWithCredential` todavía no pasó y el
+    usuario sigue anónimo.
+  - Si Beto vuelve a tocar «Iniciar sesión», la pregunta aparece, pero cuando las 12 ya subieron.
+
+  **Arreglo (hipótesis):** que una pregunta sin responder no se pierda con el proceso. Por ejemplo,
+  persistir «pregunta pendiente para el uid X» ANTES del link y, al arrancar, no publicarle ese
+  usuario al motor hasta resolverla; o que el motor no haga el bulk push de un uid que no es el
+  dueño registrado. Detalle: `detail/S25-revision-del-diff-s24.md`.
 
 ## P1 — núcleo de la app
+
+- **`R9-161` (S25, `SyncEngine` / conflictos) — 🐛 «quedarme con lo suyo» aplica la foto remota de
+  la detección y no sube nada: si la nube se movió desde entonces, el teléfono queda divergente
+  para siempre.** CONFIRMADO con sonda de la sesión en la nube y con sonda propia del orquestador.
+  Es anterior a la 24.
+
+  **El mecanismo:**
+  - `keepTheirs` (`SyncEngine.ts:1672-1682`) aplica `conflict.remoteVersion` sin encolar nada, y
+    el cursor avanza al `updatedAt` de esa foto (`:1726-1730`).
+  - Si el otro teléfono escribió R2 después (y `R9-160` ya lo aplicó en local), `keepTheirs` pone lo
+    local en R, que es MÁS VIEJO. Si otro doc adelantó el cursor, tras reiniciar el piso queda por
+    encima de R2, y R2 no vuelve nunca.
+  - Lo mismo pasa si el usuario borró la nota en ESTE teléfono después de la detección. Desde
+    `6440ca0`, «conservar lo mío» rechaza («no local copy») y «Combinar» no abre, así que «lo
+    suyo» es la única salida: revive la nota solo aquí, y la lápida queda por debajo del piso.
+  - La próxima edición local sube esa foto vieja y pisa la nube, así que la divergencia termina en
+    pérdida.
+
+  **Sonda del orquestador:**
+  - con R2: `{"localAfterR2":"R2","localAfterKeepTheirs":"R","pushedX":[],"localAfterRestart":"R"}`,
+    con el piso tras reiniciar en `…900000` y R2 en `…120000`;
+  - con el borrado: `{"keepMineError":"…no local copy","localAfterKeepTheirs":"R","localAfterRestart":"R","nube":"lapida"}`.
+
+  **P1 y no P0:** lo más nuevo sigue en la nube hasta que una edición posterior de este teléfono lo
+  pise. **Tiene la misma raíz que `R9-160`:** un conflicto pendiente no se refresca cuando la nube se
+  mueve. **Arreglo (hipótesis):** el de `R9-160` cubre el caso de R2. Para el borrado, `keepTheirs`
+  tendría que subir lo que aplica, o no ofrecerse cuando la nube ya no tiene esa versión.
 
 - **`R9-153` (S23, `SyncEngine` / cuentas) — 🐛 `handleSnapshot` no tiene sesión: un conflicto
   de Ana registrado después del `stop()` pasa a la sesión de Beto, y resolverlo copia la versión
@@ -1018,6 +1150,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   de cada `await` después de un `stop()`, el lote corta sin registrar conflictos, sin mover el
   cursor y sin tocar el estado; el lote vuelve a llegar en el próximo enganche del dueño. Las 6
   guardas de sesión discriminan una por una (medido en local).
+  **⚠️ Sesión 25:** en `main` ya son 5 de 6. La guarda tras `applyRemoteChange` (`:1026`) dejó de
+  discriminar cuando `9c425a8` puso otra guarda más abajo (`R9-162`). Además, `loadCursor`, que
+  corre en el enganche, no tiene sesión (`R9-163`, la consecuencia de `R9-122.4` por otra puerta).
 
 - **`R9-143` (S22, Mesa) — 🐛 «Banco de ilustraciones» y «Modo púlpito» guardan el sermón con las
   dos trampas que el arreglo de `R9-47` le quitó al `blur`: un toque justo después de cambiar de
@@ -1051,6 +1186,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   - Revert por pieza: con el `?? ''` de vuelta caen las 2 pruebas de borrado; con
     `table.passageKey`, las 2 de re-keying.
   - Esas 2 de re-keying fallaban al principio en la máquina de Victor por `NODE_ENV` (`R9-157`).
+    **⚠️ Sesión 25: arreglado A MEDIAS.** La «otra ventana» que nombra esta entrada (volver del banco
+    tras insertar y tocar otra vez antes de que relea el foco) sigue abierta cuando la sección ya
+    tenía prosa: `R9-167`.
 
 - **`R9-126` (S21, `SyncEngine` / respaldo) — 🐛 un push con `updatedAt` VIEJO (restaurar, bulk
   push) pisa en la nube la versión más nueva, y ningún otro dispositivo se entera.** CONFIRMADO
@@ -1089,6 +1227,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     skip en memoria ANTES del `signInWithCredential`. Si ese sign-in falla, el skip se aplica al
     próximo `start()` de cualquier uid. Ya pasaba en la rama de colisión, y `e8c2031` lo extendió a
     la rama sin anónimo. Lo reportó la sesión en la nube; está leído y no medido.
+    **⚠️ Sesión 25: MEDIDO**, por la nube y con sonda propia del orquestador. Beto declina, el
+    `signInWithCredential` falla por red, y en el reintento responde «Migrar». Resultado:
+    `{"skipArmedBeforeRetry":true,"pushesBeto":0,"flag":"skip"}`, cuando el control (acepta a la
+    primera) da 12 y `'2'`. El «Sí» explícito queda anulado para siempre.
 
 - **`R9-128` (S21, adaptadores de sync) — 🐛 un apply remoto que FALLA se traga su error y el
   cursor avanza igual: el cambio remoto no vuelve nunca.** CONFIRMADO con sonda del motor.
@@ -1319,7 +1461,7 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
   después de los packs.
   **✅ ARREGLADO en la sesión 24** (`b8e812c`): el «Done.» enumera los packs y nombra el manifiesto
   como ÚLTIMO paso, con su ruta y el nombre con que se publica. Dos pruebas lo fijan, y cada una
-  cae con su pieza revertida.
+  cae con su pieza revertida. (**⚠️ Sesión 25:** son TRES pruebas, y cada una cae con su pieza.)
 
 - **`R9-109` (S19, lector web) — 🐛 el lector web no verifica el sha256 de lo que descarga, y un
   pack malo NO se cura.** `importWebPack` (`data-loader.web.ts:59-94`) baja los bytes, los
@@ -1352,6 +1494,10 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
     texto ve la pantalla de error. Cualquier otro fallo sigue tumbando el arranque.
   - Un pin que no es texto se trata como sin pin.
   - Revert por pieza: las 5 piezas discriminan (medido en local).
+    **⚠️ Sesión 25:** la nube lo midió en Chromium headless, sobre el bundle real. Un navegador con
+    el pack sigue leyendo; uno nuevo ve la pantalla de error; el `instanceof` sobrevive al bundle; y
+    `sha256Hex` tarda 152–157 ms. Queda abierto que el fallo de red o el 404 del pack le quite la
+    pantalla a un navegador que ya tiene texto (`R9-173`).
 
 - **`R9-97` (S18, build de packs) — 🐛 «coherent - one run, whole» sobre un directorio VACÍO.**
   `filesNotPinnedBy` recorre los archivos que HAY en `out` y le pregunta al manifiesto por cada
@@ -2005,6 +2151,13 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     user who may well be the rightful owner»).
   - Es la clase de `R9-134`. **Decide Victor:** fallar cerrado (preguntar) o abierto, como hoy. Lo
     reportó la sesión en la nube.
+  - **⚠️ Sesión 25: MEDIDO** (en la nube, con el motor real). Con el marcador ilegible no se
+    pregunta, y suben las 12 notas de Ana, tanto en la rama sin anónimo como en la del link con
+    éxito. Los controles, con el marcador legible, preguntan y suben 0.
+  - **Corrección:** son DOS ramas, no tres. La de colisión no usa el dueño: pregunta siempre que
+    haya datos.
+  - **Del otro lado, leído:** `claimLocalStore` (`:100-109`) también se traga el fallo de ESCRITURA.
+    Conviene decidirlo junto.
 
 - **`R9-159` (S24, arnés de pruebas — P3) — 🐛 en unas 41 suites el mock de `useRouter` devuelve un
   objeto nuevo en cada render, así que ninguna ve una dependencia faltante de `useCallback` sobre
@@ -2012,6 +2165,124 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   ejemplo, y el orquestador no lo verificó.
   - El `useRouter()` real devuelve un objeto estable. El arnés de
     `prepTableScreenPassageKeying.test.tsx` ya lo imita desde la sesión 24, y el resto no.
+  - **⚠️ Sesión 25: MEDIDO por la nube.** Con el router estable, quitar `flushDrafts` de las deps
+    de `handleOpenIllustrations` hace caer una prueba; con un router nuevo por render, la misma
+    regresión pasa en verde. Por `grep`, son 42 suites.
+
+- **`R9-162` (S25, prueba de sync — P2) — 🐛 la guarda de `handleSnapshot` tras `applyRemoteChange`
+  (`SyncEngine.ts:1026`) ya no la vigila ninguna prueba.** CONFIRMADO: la nube lo midió con la
+  matriz y en un worktree de `a7d688e`, y el orquestador, en la máquina de Victor: sin esa línea, la
+  suite del motor da **104/104 en verde** en `main`.
+  - En `a7d688e` su quita hacía caer 1 prueba. Dejó de discriminar al apilar `9c425a8`. En todas las
+    pruebas de `R9-153`, el `stop()` cae durante el `getLocal`, así que el lote hace `hold()`, y la
+    guarda nueva tras `saveUnsettled` (`:1074`) corta antes del cursor.
+  - Ninguna prueba hace caer el `stop()` durante el APPLY de un lote, que es donde `:1026` es la
+    única guarda. Sin ella (medido por la nube), el cursor de Beto pasa a ser el de Ana, en memoria
+    y en disco (`R9-122.4` entero), y la clave de no asentados de Beto guarda un doc de Ana.
+  - El código de `main` está bien: es un hueco de prueba sobre una línea que evita defectos de la
+    clase de `R9-153` y `R9-122.4`. Es la regla de §5: un arreglo posterior desarmó la prueba de
+    otro.
+
+- **`R9-163` (S25, `SyncEngine` / cuentas — P2) — 🐛 `loadCursor` no tiene sesión: el cursor de Ana
+  que se leía al salir queda en el caché de Beto.** MEDIDO por la nube, sin re-medir en local.
+  - `SyncEngine.ts:1206-1262` hace `this.cursors.set(collection, value)` después de su `await`, sin
+    mirar la sesión. La 24 le puso sesión a su gemelo `loadUnsettled` (`:1377-1380`), no a este.
+  - Si el `stop()` cae con el `getItem` del cursor de Ana en vuelo y entra OTRA cuenta en el mismo
+    proceso, el primer enganche de Beto sale con el piso de Ana (`cursorAna − 5 min`), su historial
+    viejo no baja, y su primer `advanceCursor` persiste ese valor.
+  - Es la consecuencia de `R9-122.4` por otra puerta, igual de estrecha. De paso (leído): la rama de
+    `R9-35` en el mismo `loadCursor` (`:1243-1245`) hace `removeItem` con el `this.uid` del momento.
+
+- **`R9-164` (S25, `SyncEngine` / cuota — P2) — 🐛 un doc retenido en el conjunto no asentado que no
+  vuelve a llegar queda retenido para siempre, sin conflicto que resolver.** MEDIDO por la nube,
+  sin re-medir en local.
+  - Un doc sale del conjunto solo si el listener lo vuelve a entregar, o si llega su `removed` con
+    el listener vivo. Nada lo caduca (`loadUnsettled`, `:1345-1387`).
+  - **Cómo se llega:**
+    - Un `deleteAccount` que borra la nube y después falla (por ejemplo, el usuario cancela la
+      re-autenticación) vuelve a `start(uid)` con los retenidos huérfanos.
+    - Un respaldo restaurado en otro teléfono reescribe el doc por debajo del piso mientras esta
+      app está cerrada.
+  - Con la app reiniciada, el conflicto tampoco se ve: `stop()` vacía `this.conflicts`, y el doc no
+    vuelve para detectarse.
+  - El piso de la colección queda clavado para siempre en el retenido (ver el costo medido en
+    `R9-39`).
+  - La decisión abierta de Victor («un aviso si un conflicto lleva N días») **no lo cubre**, porque
+    aquí no hay conflicto que avisar. Es condición para el arreglo de `R9-124`.
+
+- **`R9-165` (S25, `SyncEngine` / cuota — P3) — 🐛 un conjunto no asentado ilegible en disco no se
+  cura: cada enganche relee la colección entera.** MEDIDO por la nube.
+  - Con la clave ilegible, `loadUnsettled` (`:1369-1381`) devuelve piso 0 y un conjunto vacío.
+  - Como `settle()` sobre un conjunto vacío no cambia nada, no se llama a `saveUnsettled` (`:1070`),
+    y la clave rota sigue en disco. Con 50 docs: 50 en cada enganche. El control, un cursor
+    ilegible, se cura en el primero.
+
+- **`R9-167` (S25, Mesa — P2) — 🐛 la «otra ventana» de `R9-143` sigue abierta si la sección ya
+  tenía prosa: tocar Púlpito o el banco antes de que relea el foco borra la ilustración recién
+  insertada.** MEDIDO por la nube, sin re-medir en local.
+  - El banco (`illustrations/index.tsx:222-229`) lee lo guardado, agrega la ilustración y guarda.
+  - Al volver, la Mesa sigue con el borrador de `application` de ANTES, hasta que aterriza la lectura
+    del foco (`index.tsx:663-690`).
+  - `flushDrafts` (`:988-998`) escribe todas las secciones con borrador. La guarda de «ausente» no
+    salta porque el borrador existe, aunque viejo, y la escritura pisa la inserción.
+  - Medido: con la sección vacía antes de insertar, la ilustración sobrevive. Con prosa,
+    `"afterPulpitTap":"Mi aplicación escrita a mano"` y `"illustrationSurvives":false`.
+  - P2: la prosa escrita a mano sobrevive, y la ilustración sigue en el banco para volver a
+    insertarla.
+
+- **`R9-168` (S25, Mesa — P3) — 🐛 el ref de la clave y los borradores se mueven en momentos
+  distintos: un handler del render anterior puede escribir un sermón sobre otro.** MEDIDO por
+  construcción en jest, por la nube. El toque real está inferido.
+  - `draftsPassageKeyRef.current` se asigna en la microtarea donde aterriza la lectura
+    (`index.tsx:626-628`, `:674-675`). `setDrafts` solo agenda un render.
+  - Un evento procesado en ese hueco llama a un handler del render viejo (borradores del pasaje
+    anterior) con el ref ya movido. Medido: `{"rangeBigIdeaAfterStaleTap":"Sermón de 3:16"}`. Es la
+    consecuencia de `R9-47`, en una ventana de una tarea del hilo JS.
+  - **Arreglo (hipótesis):** que los borradores lleven su clave dentro del mismo estado.
+
+- **`R9-169` (S25, prueba de la Mesa — P3) — 🐛 que los botones ESPEREN el flush antes de navegar
+  no lo vigila ninguna prueba.** MEDIDO por la nube: con `void flushDrafts()` en los dos botones
+  (`index.tsx:1018`, `:1038`), las 8 pruebas de `prepTableScreenPassageKeying.test.tsx` siguen en
+  verde. El comentario de `handleOpenPulpit` explica por qué hace falta esperar.
+
+- **`R9-170` (S25, build de packs — P3) — 🐛 los packs web no son reproducibles entre versiones de
+  SQLite: el mismo texto da otro sha256.** MEDIDO por la nube.
+  - Con SQLite 3.51.2 los dos packs salen con el mismo tamaño y `verseCount`, y con otro sha256.
+  - Cambiando SOLO los bytes 96-99 de la cabecera (`SQLITE_VERSION_NUMBER`) a `3050004`, los dos sha
+    coinciden exactamente con los pines de `ae9c8e4`.
+  - Reconstruir con otro Node cambia los pines sin cambiar una letra. Con `R9-109`, publicar packs de
+    una máquina con el manifiesto de otra deja a los navegadores nuevos en la pantalla de error.
+  - El `note` de `web-bootstrap.json` dice «byte-identical». **Arreglo (hipótesis):** normalizar la
+    cabecera al construir, o pinar la versión de Node del build.
+
+- **`R9-171` (S25, compuerta local — P3) — 🐛 la suite depende de la zona horaria: roja en Madrid
+  (1 prueba) y de UTC+12 a UTC+14 (2).** MEDIDO por la nube, en Linux.
+  - `dailyVerseHistory.test.ts:70-75` cae en Madrid. Delata el defecto real de `R9-172`.
+  - `readingInsights.test.ts:10-16` cae de UTC+12 en adelante. Esa falla sí es del fixture: escribe
+    a mano `'2026-06-02'` como «hoy». Su comentario, «stays correct at positive TZ offsets >=
+    UTC+12», es falso.
+  - `LANG` en español, `CI` y `NODE_ENV` no cambian nada. En `America/Mexico_City` todo da verde,
+    por eso nadie lo vio. Es la clase de `R9-157`.
+
+- **`R9-172` (S25, contenido diario — P3) — 🐛 el versículo, el dato bíblico y la profecía «del día»
+  cambian a la 01:00 (o a las 23:00) con horario de verano.** MEDIDO por la nube.
+  - `getDayOfYear` (`src/constants/daily-verses.ts:262-266`) y sus dos gemelas
+    (`bibleFacts.ts:268-271`, `messianicProphecies.ts:723-726`) restan `new Date(año, 0, 0)`, que
+    está en horario de invierno.
+  - Horas de 2026 con el día equivocado: 210 en Madrid, 238 en Nueva York y 154 en Santiago; 0 en
+    UTC y en `America/Mexico_City`.
+  - Se ve en la tarjeta del inicio, en el widget y en la notificación diaria. La forma buena ya está
+    en `dailyLight.ts:18-22`. Es la familia de `R9-63` y `R9-147`.
+
+- **`R9-173` (S25, lector web — P3, decidido) — 🐛 la opción (b) de `R9-109` no cubre el fallo de red
+  ni el 404 del pack en un navegador que ya tiene texto: igual ve la pantalla de error.** MEDIDO por
+  la nube en Chromium, sobre el bundle real (escenarios G y G2), con el texto intacto en el
+  navegador.
+  - Es el fallo más común durante una publicación: un pack a medio subir, o la red que se corta
+    entre el manifiesto y el pack.
+  - **Decisión (delegada por Victor en la sesión 25):** extender la opción (b) a esos fallos. Un
+    navegador con texto sigue con lo que tiene, avisa, y reintenta en el próximo arranque. Solo uno
+    sin texto ve la pantalla de error.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -31,6 +31,9 @@ Hallazgos: **159**. `main` = `9c425a8`.
 | 3 (`nube-5`)                     | `R9-109` opción (b)                | `44a5d15`, `0631557`                                  | las 5 piezas discriminan                                                             |
 | 3 (`nube-4`)                     | `R9-36`, `R9-39` + `R9-106`        | `6440ca0`, `9c425a8`                                  | las 11 piezas discriminan, incluidas las que cruzan con `R9-153`                     |
 
+> **⚠️ Sesión 25:** la fila de `nube-1` era cierta cuando se midió la tanda 2. Pero en `main`, tras
+> apilar `9c425a8`, son 8 de 9: la guarda `:1026` ya no la vigila ninguna prueba (`R9-162`).
+
 Los prompts son `_scratch/S24-PROMPT-nube.md` y `_scratch/S24-nube-N-*.md`. Las sesiones de una
 misma tanda corrieron en paralelo, en archivos distintos.
 
