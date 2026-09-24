@@ -1,3 +1,22 @@
+// Pin NODE_ENV for every jest run, whatever the shell exports. Jest's CLI
+// only sets NODE_ENV=test when the variable is UNSET (jest-cli/bin/jest.js),
+// so a shell that exports NODE_ENV=development (Victor's Windows user
+// environment does) ran the suite under 'development' while CI ran it under
+// 'test' — green in CI, red locally:
+//  - React Native's Animated only tolerates a missing native view when
+//    NODE_ENV === 'test' (AnimatedProps#connectAnimatedView uses a dummy tag);
+//    under any other value a native-driven animation (e.g. TouchableOpacity's
+//    opacity fade when a re-render flips `disabled`) throws "Unable to locate
+//    attached view in the native tree".
+//  - The transforms change too: under 'development' babel-preset-expo injects
+//    a console.warn after every deep `require('react-native/...')`; under
+//    'production' it inlines Platform.OS and babel.config.js strips
+//    console.log. babel-jest keys its transform cache on NODE_ENV.
+// This file is loaded by jest's parent process before it forks any worker,
+// and workers inherit the parent's environment, so setting it here reaches
+// every test file (in-band or not).
+process.env.NODE_ENV = 'test';
+
 module.exports = {
   preset: 'jest-expo',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.js'],
