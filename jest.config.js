@@ -14,7 +14,8 @@
 //    console.log. babel-jest keys its transform cache on NODE_ENV.
 // This file is loaded by jest's parent process before it forks any worker,
 // and workers inherit the parent's environment, so setting it here reaches
-// every test file (in-band or not).
+// every test file (in-band or not). __tests__/jestNodeEnv.test.ts fails if
+// this line goes away.
 process.env.NODE_ENV = 'test';
 
 module.exports = {
