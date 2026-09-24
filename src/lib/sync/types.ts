@@ -178,9 +178,14 @@ export interface ConflictRecord {
   id: string;
   collection: string;
   docId: string;
-  /** Snapshot of the local doc at detection time. */
+  /** Snapshot of the local doc at detection time. The conflicts screen shows
+   *  the local copy as it is NOW instead (R9-36). */
   localVersion: SyncEntity<Record<string, unknown>>;
-  /** Snapshot of the remote doc at detection time. */
+  /**
+   * The other device's copy. R9-160 — refreshed while the conflict waits, so
+   * it is their LATEST write, not the one detected: `deleted: true` when
+   * they deleted the doc meanwhile.
+   */
   remoteVersion: SyncEntity<Record<string, unknown>>;
   /** Subset of material fields that actually differed. */
   differingFields: readonly string[];

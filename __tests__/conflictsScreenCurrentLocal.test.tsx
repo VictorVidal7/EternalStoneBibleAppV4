@@ -165,9 +165,8 @@ async function settle(): Promise<void> {
   }
 }
 
-/** A real conflict on `h1` from two minutes ago, only on `note`; then the
- *  user kept working on that same highlight: new paragraph AND new colour. */
-async function conflictThenUserKeptEditing() {
+/** A real conflict on `h1` from two minutes ago, only on `note`. */
+async function realConflictOnNote() {
   await AsyncStorage.setItem(`@sync_first_push_done:${UID}`, '2');
   const localStore = new Map<string, SyncEntity<Highlight>>();
   const adapter: SyncAdapter<Highlight> = {
@@ -217,13 +216,39 @@ async function conflictThenUserKeptEditing() {
   const [conflict] = engine.getConflicts();
   expect(conflict.differingFields).toEqual(['note']);
   expect(conflict.localVersion.note).toBe(ORIGINAL);
+  return {engine, localStore, conflict, detectedAt};
+}
 
+/** That conflict; then the user kept working on that same highlight: new
+ *  paragraph AND new colour. */
+async function conflictThenUserKeptEditing() {
+  const {engine, localStore, conflict, detectedAt} = await realConflictOnNote();
   localStore.set('h1', {
     color: COLOR_NUEVO,
     note: EDITADO,
     updatedAt: detectedAt + 60_000,
   });
   return {engine, localStore, conflict};
+}
+
+/** R9-160 — that conflict; then the OTHER phone kept working on it: two
+ *  minutes after detection (outside the 30 s window) it writes `later`. */
+async function conflictThenOtherPhoneWrites(later: Record<string, unknown>) {
+  const {engine, localStore, detectedAt} = await realConflictOnNote();
+  mockSnapshotCbs.get(`users/${UID}/highlights`)!({
+    docChanges: () => [
+      {
+        type: 'modified',
+        doc: {
+          id: 'h1',
+          exists: true,
+          data: () => ({...later, updatedAt: detectedAt + 120_000}),
+        },
+      },
+    ],
+  });
+  await settle();
+  return {engine, localStore};
 }
 
 beforeEach(async () => {
@@ -381,5 +406,77 @@ describe('R9-36 — la pantalla de conflictos usa lo local de AHORA', () => {
       .filter(s => s.path === `users/${UID}/highlights` && s.id === 'h1')
       .map(s => (s.data as Highlight).note);
     expect(pushed).toEqual([EDITADO]);
+  });
+});
+
+describe('R9-160 — con el conflicto abierto, el otro teléfono sigue escribiendo', () => {
+  const REMOTO_DESPUES = 'parrafo remoto, dos minutos despues';
+
+  it('«Tu versión» sigue siendo lo mío, la remota es su versión de AHORA, y «Mantener mía» sube lo mío', async () => {
+    await conflictThenOtherPhoneWrites({
+      color: COLOR_ORIGINAL,
+      note: REMOTO_DESPUES,
+    });
+    const screen = render(<ConflictsScreen />);
+    await settle();
+    // Pre-fix (sonda de la S25): lo del otro entraba por LWW, «Tu versión»
+    // mostraba R2 y la remota R, las dos del otro teléfono.
+    const columnas = {
+      mia: screen.queryByText(ORIGINAL) !== null,
+      suyaDeAhora: screen.queryByText(REMOTO_DESPUES) !== null,
+      suyaVieja: screen.queryByText('parrafo remoto') !== null,
+    };
+
+    fireEvent.press(screen.getByLabelText(t.conflicts.keepMine));
+    await settle();
+    await act(async () => {
+      await mockEngine!.__flushForTests();
+    });
+    await settle();
+
+    expect({
+      columnas,
+      pushed: mockSets
+        .filter(s => s.path === `users/${UID}/highlights` && s.id === 'h1')
+        .map(s => (s.data as Highlight).note),
+    }).toEqual({
+      columnas: {mia: true, suyaDeAhora: true, suyaVieja: false},
+      pushed: [ORIGINAL],
+    });
+  });
+
+  it('el otro lo borró: la columna remota dice que se borró, no muestra la nota de la lápida, y lo mío sigue ahí', async () => {
+    await conflictThenOtherPhoneWrites({
+      color: COLOR_ORIGINAL,
+      // Una lápida lleva la última copia que tenía el otro (queueDelete).
+      note: 'parrafo remoto',
+      deleted: true,
+      deletedAt: 1,
+    });
+    const screen = render(<ConflictsScreen />);
+    await settle();
+    const tarjeta = {
+      mia: screen.queryByText(ORIGINAL) !== null,
+      borrada: screen.queryByText(t.conflicts.theirsDeleted) !== null,
+      notaDeLaLapida: screen.queryByText('parrafo remoto') !== null,
+    };
+
+    fireEvent.press(screen.getByLabelText(t.conflicts.merge));
+    await settle();
+
+    // Pre-fix: la lápida entraba por LWW, lo local desaparecía (la columna
+    // mía quedaba en «—») y «Combinar» ni siquiera abría.
+    expect({
+      tarjeta,
+      // Una pista por campo del modal: con una lápida, son todos los
+      // materiales.
+      pistaRemota:
+        screen.queryAllByText(
+          new RegExp(`${t.conflicts.theirsHint}: ${t.conflicts.theirsDeleted}`),
+        ).length > 0,
+    }).toEqual({
+      tarjeta: {mia: true, borrada: true, notaDeLaLapida: false},
+      pistaRemota: true,
+    });
   });
 });

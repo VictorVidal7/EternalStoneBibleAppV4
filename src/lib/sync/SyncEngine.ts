@@ -195,6 +195,24 @@ export function unsettledStorageKey(collection: string, uid: string): string {
   return `${UNSETTLED_STORAGE_PREFIX}${collection}:${uid}`;
 }
 
+const CONFLICTED_STORAGE_PREFIX = '@sync_conflicted_';
+
+/**
+ * R9-160 — which of a collection's unsettled docs are pending CONFLICTS (the
+ * rest were skipped by R9-46). A JSON array of doc ids, next to
+ * `unsettledStorageKey`, whose format the older builds still read.
+ */
+function conflictedStorageKey(collection: string, uid: string): string {
+  return `${CONFLICTED_STORAGE_PREFIX}${collection}:${uid}`;
+}
+
+/** R9-39 / R9-106 — one unsettled doc: the remote `updatedAt` held, and
+ *  whether it is held as a pending conflict (R9-160). */
+interface HeldDoc {
+  updatedAt: number;
+  conflict: boolean;
+}
+
 const DROPPED_STORAGE_PREFIX = '@sync_dropped_';
 
 /** R9-33 — where the give-up counter lives. Per-uid, like the cursors: one
@@ -243,6 +261,11 @@ function valuesEqual(a: unknown, b: unknown): boolean {
     }
   }
   return false;
+}
+
+/** A doc's LWW clock, 0 when it carries none. */
+function updatedAtOf(entity: {updatedAt?: unknown}): number {
+  return typeof entity.updatedAt === 'number' ? entity.updatedAt : 0;
 }
 
 type AnyAdapter = SyncAdapter<unknown>;
@@ -335,8 +358,12 @@ export class SyncEngine {
    * of either side let LWW delete the other one in silence.
    *
    * Cleared on `stop()` with the cursors, for the same reason.
+   *
+   * R9-160 — a held conflict is marked as one, on disk too: after a restart
+   * its redelivery has to be detected again even when it is no longer within
+   * CONFLICT_WINDOW_MS of the local copy (see `applyRemoteChange`).
    */
-  private unsettled = new Map<string, Map<string, number>>();
+  private unsettled = new Map<string, Map<string, HeldDoc>>();
   /** R9-106 — collections whose `unsettled` set did not reach disk. While
    *  one is here, `advanceCursor` holds the persisted cursor itself below
    *  its lowest held doc: after a restart, the cursor is all there is. */
@@ -499,7 +526,9 @@ export class SyncEngine {
     // collection's persisted `unsettled` set, and the next attach's query
     // floor is held below it (R9-39 / R9-106). Before that set existed this
     // promise was false as soon as any other doc of the collection had moved
-    // the cursor past the conflict.
+    // the cursor past the conflict. The set also marks it as a conflict, so it
+    // is re-detected even when the other device kept writing past the 30 s
+    // window while it waited (R9-160).
     this.conflicts = [];
     // Quota hardening — drop the in-memory cursor cache so a later
     // start() (same uid signing back in, or a DIFFERENT uid on the same
@@ -979,11 +1008,20 @@ export class SyncEngine {
     // change below happens after an `isCurrent()` check, so it is always
     // this session's set.
     let unsettledChanged = false;
-    const hold = (id: string, updatedAt: unknown) => {
+    const hold = (id: string, updatedAt: unknown, conflict = false) => {
       if (typeof updatedAt !== 'number') return;
       const held = this.unsettledOf(adapter.collection);
-      if (held.get(id) === updatedAt) return;
-      held.set(id, updatedAt);
+      const prev = held.get(id);
+      // R9-160 — a conflict stays one until it settles: a later skip of the
+      // same doc (R9-46) does not make it forget.
+      const next = {updatedAt, conflict: conflict || prev?.conflict === true};
+      if (
+        prev?.updatedAt === next.updatedAt &&
+        prev.conflict === next.conflict
+      ) {
+        return;
+      }
+      held.set(id, next);
       unsettledChanged = true;
     };
     const settle = (id: string) => {
@@ -1052,7 +1090,7 @@ export class SyncEngine {
           // the user resolves it, which `resolveConflict` ends by settling it;
           // and `recordConflict` dedupes by doc id, so the redeliveries just
           // refresh the snapshot instead of piling up.
-          hold(id, remote.updatedAt);
+          hold(id, remote.updatedAt, true);
         } else {
           settle(id);
           if (
@@ -1145,6 +1183,41 @@ export class SyncEngine {
     // the conflict would be theirs to see and to resolve into their cloud.
     if (!isCurrent()) return false;
 
+    // R9-160 — while its conflict waits for the user, a doc takes nothing from
+    // the remote side. A later change of the other device (outside the 30 s
+    // window and newer than the local copy) used to land here by LWW: the
+    // local copy the conflict was about was gone from the store, the screen
+    // showed the other device's newer copy as "mine", and keepMine pushed it.
+    // Now that change becomes "theirs", and the local copy stays this
+    // device's until the user picks.
+    const pending = this.conflicts.find(
+      c => c.collection === adapter.collection && c.docId === id,
+    );
+    if (pending && data) {
+      // Which device wrote it. This one writes its local copy first and pushes
+      // that same `updatedAt` (every adapter builds the payload from the stored
+      // row), so its own echoes are never newer than the local copy: anything
+      // newer is the other device's. With no local copy (the user deleted it
+      // here), a tombstone is the echo of that delete, and a live copy is
+      // theirs unless it is the one the conflict already shows.
+      const theirs = local
+        ? updatedAtOf(data) > updatedAtOf(local)
+        : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt;
+      if (!theirs) return true;
+      const differing = this.conflictFields(adapter, local, data, deleted);
+      if (differing.length > 0) {
+        this.recordConflict({
+          ...pending,
+          remoteVersion: data,
+          differingFields: differing,
+        });
+        return true;
+      }
+      // The other device now holds what this one holds: there is nothing left
+      // to choose, and LWW below applies it like any newer change.
+      this.dropConflict(pending.id);
+    }
+
     if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;
       const remoteTs = typeof data.updatedAt === 'number' ? data.updatedAt : 0;
@@ -1160,6 +1233,31 @@ export class SyncEngine {
           // Conflict: both devices touched this doc inside the window
           // AND at least one material field differs. Hold instead of
           // applying LWW — user picks the winner via the conflicts UI.
+          this.recordConflict({
+            id: `${adapter.collection}__${id}`,
+            collection: adapter.collection,
+            docId: id,
+            localVersion: local as SyncEntity<Record<string, unknown>>,
+            remoteVersion: data,
+            differingFields: differing,
+            detectedAt: Date.now(),
+          });
+          return true;
+        }
+      }
+
+      // R9-160 — a conflict still waiting when the engine last stopped (one
+      // still in memory was handled above). The redelivery is the other
+      // device's copy as it is now, which may be long past the 30 s window if
+      // it kept writing (or deleted it) meanwhile: detected again anyway, or
+      // LWW would drop the local copy after all.
+      if (
+        !pending &&
+        remoteTs > localTs &&
+        this.isHeldConflict(adapter.collection, id)
+      ) {
+        const differing = this.conflictFields(adapter, local, data, deleted);
+        if (differing.length > 0) {
           this.recordConflict({
             id: `${adapter.collection}__${id}`,
             collection: adapter.collection,
@@ -1315,7 +1413,7 @@ export class SyncEngine {
 
   /** This session's in-memory unsettled set for `collection`, created
    *  empty if the attach has not loaded one. */
-  private unsettledOf(collection: string): Map<string, number> {
+  private unsettledOf(collection: string): Map<string, HeldDoc> {
     let held = this.unsettled.get(collection);
     if (!held) {
       held = new Map();
@@ -1327,10 +1425,16 @@ export class SyncEngine {
   /** The lowest `updatedAt` held for `collection`, Infinity if none. */
   private lowestUnsettled(collection: string): number {
     let lowest = Number.POSITIVE_INFINITY;
-    for (const updatedAt of this.unsettled.get(collection)?.values() ?? []) {
+    for (const {updatedAt} of this.unsettled.get(collection)?.values() ?? []) {
       if (updatedAt < lowest) lowest = updatedAt;
     }
     return lowest;
+  }
+
+  /** R9-160 — whether `id` is held as a pending conflict, which after a
+   *  restart is the only trace of it left (`stop()` clears `conflicts`). */
+  private isHeldConflict(collection: string, id: string): boolean {
+    return this.unsettled.get(collection)?.get(id)?.conflict === true;
   }
 
   /**
@@ -1348,7 +1452,7 @@ export class SyncEngine {
   ): Promise<number> {
     if (this.unsettled.has(collection)) return this.lowestUnsettled(collection);
     const session = this.flushSession;
-    const held = new Map<string, number>();
+    const held = new Map<string, HeldDoc>();
     let readable = true;
     try {
       const raw = await AsyncStorage.getItem(
@@ -1362,7 +1466,7 @@ export class SyncEngine {
             Number.isFinite(updatedAt) &&
             updatedAt > 0
           ) {
-            held.set(id, updatedAt);
+            held.set(id, {updatedAt, conflict: false});
           }
         }
       }
@@ -1374,13 +1478,33 @@ export class SyncEngine {
         error: err instanceof Error ? err.message : String(err),
       });
     }
+    // R9-160 — which of them are conflicts. Unreadable, it marks none: they
+    // are then re-detected only within the 30 s window, as before the mark.
+    if (held.size > 0) {
+      try {
+        const raw = await AsyncStorage.getItem(
+          conflictedStorageKey(collection, uid),
+        );
+        const ids: unknown = raw != null ? JSON.parse(raw) : [];
+        for (const id of Array.isArray(ids) ? ids : []) {
+          const doc = typeof id === 'string' ? held.get(id) : undefined;
+          if (doc) doc.conflict = true;
+        }
+      } catch (err) {
+        logger.warn('SyncEngine: failed to read held conflicts', {
+          component: 'SyncEngine',
+          collection,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
     // Only this session's cache: after a `stop()` it is the next account's.
     if (session === this.flushSession && !this.unsettled.has(collection)) {
       this.unsettled.set(collection, held);
     }
     if (!readable) return 0;
     let lowest = Number.POSITIVE_INFINITY;
-    for (const updatedAt of held.values()) {
+    for (const {updatedAt} of held.values()) {
       if (updatedAt < lowest) lowest = updatedAt;
     }
     return lowest;
@@ -1397,18 +1521,26 @@ export class SyncEngine {
     uid: string | null,
     isCurrent: () => boolean,
   ): Promise<void> {
-    const held = this.unsettledOf(collection);
+    // Both payloads are taken NOW: after the first `await`, a `stop()` may
+    // have handed the in-memory set to the next session.
+    const held = [...this.unsettledOf(collection)];
+    const heldAt = Object.fromEntries(held.map(([id, h]) => [id, h.updatedAt]));
+    const conflicted = held.filter(([, h]) => h.conflict).map(([id]) => id);
     let saved = false;
     if (uid) {
       try {
         const key = unsettledStorageKey(collection, uid);
-        if (held.size === 0) {
+        if (held.length === 0) {
           await AsyncStorage.removeItem(key);
         } else {
-          await AsyncStorage.setItem(
-            key,
-            JSON.stringify(Object.fromEntries(held)),
-          );
+          await AsyncStorage.setItem(key, JSON.stringify(heldAt));
+        }
+        // R9-160 — which of them are conflicts.
+        const conflictedKey = conflictedStorageKey(collection, uid);
+        if (conflicted.length === 0) {
+          await AsyncStorage.removeItem(conflictedKey);
+        } else {
+          await AsyncStorage.setItem(conflictedKey, JSON.stringify(conflicted));
         }
         saved = true;
       } catch (err) {
@@ -1570,6 +1702,33 @@ export class SyncEngine {
     });
   }
 
+  /** R9-160 — a pending conflict the other device settled by writing what
+   *  this one already has. The caller applies that write. */
+  private dropConflict(conflictId: string): void {
+    this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
+    this.updateState({conflicts: [...this.conflicts]});
+    logger.info('SyncEngine: conflict dissolved', {
+      component: 'SyncEngine',
+      conflictId,
+    });
+  }
+
+  /**
+   * R9-160 — the material fields a conflict between `local` and `remote`
+   * shows. When one side no longer exists (a tombstone, or no local copy),
+   * all of them: the whole doc is what the user is choosing about.
+   */
+  private conflictFields(
+    adapter: AnyAdapter,
+    local: Record<string, unknown> | null,
+    remote: Record<string, unknown>,
+    deleted: boolean,
+  ): string[] {
+    const material = adapter.getMaterialFields?.() ?? [];
+    if (deleted || !local) return [...material];
+    return material.filter(f => !valuesEqual(local[f], remote[f]));
+  }
+
   // ---------- public: conflict resolution ----------
 
   /** Sprint 43 — current pending conflicts. Snapshot, safe to keep. */
@@ -1658,6 +1817,8 @@ export class SyncEngine {
       // `null` is not "keep an empty doc", and from the highlights adapter
       // it can also be a failed read (R9-132), so neither the snapshot nor a
       // tombstone is safe to push in its place.
+      // R9-160 — and the local copy now is always THIS device's: nothing the
+      // other device writes lands in it while the conflict waits.
       const current = (await adapter.getLocal(conflict.docId)) as SyncEntity<
         Record<string, unknown>
       > | null;
@@ -1671,14 +1832,19 @@ export class SyncEngine {
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     } else if (choice === 'keepTheirs') {
       resolvedValue = conflict.remoteVersion;
+      // R9-160 — "theirs" can be a delete now: the other device deleted the
+      // doc while the conflict waited.
+      const theirsDeleted = resolvedValue.deleted === true;
       await this.withLocalWriteSuppressed(
         conflict.collection,
         conflict.docId,
         () =>
-          adapter.applyRemoteUpsert(
-            conflict.docId,
-            resolvedValue as SyncEntity<unknown>,
-          ),
+          theirsDeleted
+            ? adapter.applyRemoteDelete(conflict.docId)
+            : adapter.applyRemoteUpsert(
+                conflict.docId,
+                resolvedValue as SyncEntity<unknown>,
+              ),
       );
     } else {
       if (!mergedValue) {

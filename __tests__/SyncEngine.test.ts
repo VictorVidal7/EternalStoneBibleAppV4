@@ -3862,3 +3862,461 @@ describe('R9-39 / R9-106 — un doc sin asentar no lo entierra el cursor de OTRO
     },
   );
 });
+
+describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro telefono refresca «su version» y no pisa «lo mio»', () => {
+  // `applyRemoteChange` no miraba si el doc tenia un conflicto pendiente. Un
+  // cambio posterior del otro telefono (R2, fuera de la ventana de 30 s y mas
+  // nuevo que lo local) entraba por LWW: L desaparecia de SQLite, y desde
+  // 6440ca0 (R9-36) la pantalla mostraba R2 como «Tu version» y keepMine subia
+  // R2. L solo quedaba en la auditoria, que no se ve.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  const HOUR = 60 * 60 * 1000;
+  const L = 'L: mi parrafo';
+  const R = 'R: su parrafo';
+  const R2 = 'R2: su parrafo, dos minutos despues';
+
+  type Doc = {id: string; data: Record<string, unknown>};
+
+  function fire(uid: string, docs: Doc[]): void {
+    fireRemote(
+      uid,
+      docs.map(d => ({
+        type: 'modified',
+        doc: {id: d.id, exists: true, data: () => d.data},
+      })),
+    );
+  }
+
+  /** Cierra la app y la vuelve a abrir con la misma cuenta. */
+  async function restart(engine: SyncEngine, uid: string): Promise<void> {
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+  }
+
+  function pushesOf(uid: string, id: string): Array<Record<string, unknown>> {
+    return mockDocSets
+      .filter(d => d.path === `users/${uid}/test` && d.id === id)
+      .map(d => d.data as Record<string, unknown>);
+  }
+
+  /** Un conflicto de verdad de hace una hora: L local en T, y R, del otro
+   *  telefono, 10 s despues y con otro valor. */
+  async function pendingConflict(uid: string) {
+    // Sin subida inicial: lo unico que sube `doc-c` es lo que la prueba hace.
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    const T = Date.now() - HOUR;
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    fixture.localStore.set('doc-c', {value: L, updatedAt: T});
+    const engine = new SyncEngine();
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    fire(uid, [{id: 'doc-c', data: {value: R, updatedAt: T + 10_000}}]);
+    await settle();
+    // Control: el conflicto L/R existe, y nada se aplico en local.
+    expect(
+      engine.__getConflictsForTests().map(c => c.remoteVersion.value),
+    ).toEqual([R]);
+    expect(fixture.localStore.get('doc-c')?.value).toBe(L);
+    return {engine, T, ...fixture};
+  }
+
+  function theirs(engine: SyncEngine) {
+    return engine.__getConflictsForTests().map(c => ({
+      value: c.remoteVersion.value,
+      deleted: c.remoteVersion.deleted === true,
+    }));
+  }
+
+  it('C: R2 llega dos minutos despues: lo local sigue en L, el conflicto trae R2, y keepMine sube L', async () => {
+    const uid = 'uid-160-c';
+    const {engine, T, localStore} = await pendingConflict(uid);
+
+    fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
+    await settle();
+    const [conflict] = engine.__getConflictsForTests();
+    const afterR2 = {
+      local: localStore.get('doc-c')?.value,
+      theirs: conflict?.remoteVersion.value,
+      differing: conflict?.differingFields,
+      readCurrentLocal: (await engine.readCurrentLocal('test__doc-c'))?.value,
+    };
+
+    await engine.resolveConflict('test__doc-c', 'keepMine');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix (sonda de la S25): local R2, «Tu version» R2, keepMine subia R2.
+    expect({
+      ...afterR2,
+      pushed: pushesOf(uid, 'doc-c').map(p => p.value),
+    }).toEqual({
+      local: L,
+      theirs: R2,
+      differing: ['value'],
+      readCurrentLocal: L,
+      pushed: [L],
+    });
+  });
+
+  it('C: keepTheirs aplica R2, la version del otro de AHORA, no la foto R', async () => {
+    const uid = 'uid-160-c-suyo';
+    const {engine, T, localStore} = await pendingConflict(uid);
+    fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
+    await settle();
+
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    expect({
+      local: localStore.get('doc-c')?.value,
+      // La nube ya tiene R2: no hay nada que subir.
+      pushed: pushesOf(uid, 'doc-c'),
+      conflicts: engine.__getConflictsForTests(),
+    }).toEqual({local: R2, pushed: [], conflicts: []});
+  });
+
+  it('el eco de una edicion propia durante el conflicto no pasa a ser «su version»', async () => {
+    const uid = 'uid-160-eco';
+    const {engine, T, localStore} = await pendingConflict(uid);
+
+    // El usuario sigue escribiendo en ESTE telefono (el caso de R9-36).
+    const edit1 = {value: 'L1: sigo escribiendo', updatedAt: T + 12_000};
+    localStore.set('doc-c', edit1);
+    engine.queueWrite('test', 'doc-c', edit1);
+    await settle();
+    // El eco exacto de esa edicion: mismo updatedAt que lo local.
+    fire(uid, [{id: 'doc-c', data: edit1}]);
+    await settle();
+    const trasEcoExacto = theirs(engine);
+
+    // Otra edicion 3 s despues, y el eco de la ANTERIOR llega tarde: es mas
+    // viejo que lo local, esta dentro de la ventana y tiene otro valor.
+    const edit2 = {value: 'L2: y un poco mas', updatedAt: T + 15_000};
+    localStore.set('doc-c', edit2);
+    engine.queueWrite('test', 'doc-c', edit2);
+    await settle();
+    fire(uid, [{id: 'doc-c', data: edit1}]);
+    await settle();
+
+    // Pre-fix: el eco tardio se registraba como conflicto nuevo y L1 (lo mio)
+    // pasaba a ser «su version».
+    expect({
+      trasEcoExacto,
+      trasEcoTardio: theirs(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      trasEcoExacto: [{value: R, deleted: false}],
+      trasEcoTardio: [{value: R, deleted: false}],
+      local: 'L2: y un poco mas',
+    });
+  });
+
+  it.each<['keepMine' | 'keepTheirs']>([['keepMine'], ['keepTheirs']])(
+    'el otro telefono lo borra: L no se borra, «su version» pasa a ser la lapida, y %s hace lo que dice',
+    async choice => {
+      const uid = `uid-160-lapida-${choice}`;
+      const {engine, T, localStore, remoteDeleteCalls} =
+        await pendingConflict(uid);
+      const lapida = {
+        value: R,
+        updatedAt: T + 120_000,
+        deleted: true,
+        deletedAt: T + 120_000,
+      };
+      fire(uid, [{id: 'doc-c', data: lapida}]);
+      await settle();
+      const trasLapida = {
+        local: localStore.get('doc-c')?.value,
+        theirs: theirs(engine),
+        deletes: [...remoteDeleteCalls],
+      };
+
+      await engine.resolveConflict('test__doc-c', choice);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+
+      // Pre-fix: la lapida entraba por LWW y L desaparecia antes de que el
+      // usuario pudiera elegir.
+      expect({
+        trasLapida,
+        local: localStore.get('doc-c')?.value ?? null,
+        pushed: pushesOf(uid, 'doc-c').map(p => ({
+          value: p.value,
+          deleted: p.deleted,
+        })),
+      }).toEqual({
+        trasLapida: {
+          local: L,
+          theirs: [{value: R, deleted: true}],
+          deletes: [],
+        },
+        ...(choice === 'keepMine'
+          ? // «Conservar lo mio» revive la nota en la nube.
+            {local: L, pushed: [{value: L, deleted: false}]}
+          : // «Lo suyo» es el borrado: la nube ya lo tiene.
+            {local: null, pushed: []}),
+      });
+    },
+  );
+
+  it('si el otro vuelve a escribir lo mismo que L, el conflicto se disuelve y el doc se libera', async () => {
+    const uid = 'uid-160-disuelto';
+    const {engine, T, localStore} = await pendingConflict(uid);
+
+    fire(uid, [{id: 'doc-c', data: {value: L, updatedAt: T + 120_000}}]);
+    await settle();
+
+    // Pre-fix: R2 (= L) entraba por LWW y el conflicto L/R seguia abierto, con
+    // «su version» en R, que ya no esta en ninguna parte.
+    expect({
+      conflicts: engine.__getConflictsForTests(),
+      local: localStore.get('doc-c'),
+      conjunto: await AsyncStorage.getItem(unsettledStorageKey('test', uid)),
+    }).toEqual({
+      conflicts: [],
+      local: {value: L, updatedAt: T + 120_000},
+      conjunto: null,
+    });
+  });
+
+  it('borre la nota aqui y despues el otro escribe R2: lo mio sigue borrado y «su version» pasa a R2', async () => {
+    const uid = 'uid-160-borrado-aqui';
+    const {engine, localStore, remoteUpsertCalls} = await pendingConflict(uid);
+
+    // El usuario borra la nota en ESTE telefono, y su lapida sube.
+    localStore.delete('doc-c');
+    engine.queueDelete('test', 'doc-c', {value: L});
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    const miLapida = pushesOf(uid, 'doc-c').at(-1)!;
+    // Control: la lapida subio de verdad.
+    expect(miLapida.deleted).toBe(true);
+    // Su eco vuelve: es mio, no «su version».
+    fire(uid, [{id: 'doc-c', data: miLapida}]);
+    await settle();
+    const trasMiEco = theirs(engine);
+
+    // El otro telefono escribe despues.
+    fire(uid, [
+      {
+        id: 'doc-c',
+        data: {value: R2, updatedAt: (miLapida.updatedAt as number) + 1_000},
+      },
+    ]);
+    await settle();
+
+    // Pre-fix: sin copia local, R2 entraba sin mas, y la pantalla la mostraba
+    // como «Tu version» con «su version» en R.
+    expect({
+      trasMiEco,
+      trasR2: theirs(engine),
+      local: localStore.has('doc-c'),
+      aplicados: remoteUpsertCalls.map(c => c.data.value),
+    }).toEqual({
+      trasMiEco: [{value: R, deleted: false}],
+      trasR2: [{value: R2, deleted: false}],
+      local: false,
+      aplicados: [],
+    });
+  });
+
+  it.each<
+    [string, Record<string, unknown>, 'antes' | 'cerrada', {value: string}]
+  >([
+    ['R2 llega antes del reinicio', {value: R2}, 'antes', {value: R2}],
+    ['R2 se escribe con la app cerrada', {value: R2}, 'cerrada', {value: R2}],
+    [
+      'la lapida del otro llega antes del reinicio',
+      {value: R, deleted: true, deletedAt: 1},
+      'antes',
+      {value: R},
+    ],
+    [
+      'la lapida del otro se escribe con la app cerrada',
+      {value: R, deleted: true, deletedAt: 1},
+      'cerrada',
+      {value: R},
+    ],
+  ])(
+    'reiniciar antes de resolver no le abre la puerta al LWW: %s, y el conflicto vuelve con eso y L en local',
+    async (_name, cambio, cuando, valor) => {
+      const uid = `uid-160-reinicio-${cambio.deleted ? 'lapida' : 'r2'}-${cuando}`;
+      const {engine, T, localStore} = await pendingConflict(uid);
+      const suyo = {id: 'doc-c', data: {...cambio, updatedAt: T + 120_000}};
+      const suVersion = {...valor, deleted: cambio.deleted === true};
+      if (cuando === 'antes') {
+        fire(uid, [suyo]);
+        await settle();
+        // Control: sin reiniciar, ya lo refresca el conflicto en memoria.
+        expect(theirs(engine)).toEqual([suVersion]);
+      }
+
+      await restart(engine, uid);
+      // Lo que la nube le entrega al enganche nuevo: su version de ahora.
+      fire(uid, [suyo]);
+      await settle();
+
+      // Tras el reinicio solo quedaba la ventana de 30 s, y el cambio del otro
+      // (a 2 min de L) ya no se detectaba: entraba por LWW y L se perdia igual.
+      expect({
+        suVersion: theirs(engine),
+        local: localStore.get('doc-c')?.value,
+      }).toEqual({suVersion: [suVersion], local: L});
+    },
+  );
+
+  it('una lapida del otro que trae los mismos campos que L no disuelve el conflicto', async () => {
+    // El otro telefono pudo haber tomado L antes de borrar: su lapida lleva
+    // la ultima copia que tenia (queueDelete), igual a lo mio. Sigue siendo un
+    // borrado contra una nota viva.
+    const uid = 'uid-160-lapida-igual';
+    const {engine, T, localStore, remoteDeleteCalls} =
+      await pendingConflict(uid);
+    fire(uid, [
+      {
+        id: 'doc-c',
+        data: {value: L, updatedAt: T + 120_000, deleted: true, deletedAt: 1},
+      },
+    ]);
+    await settle();
+
+    expect({
+      theirs: theirs(engine),
+      differing: engine.__getConflictsForTests().map(c => c.differingFields),
+      local: localStore.get('doc-c')?.value,
+      deletes: remoteDeleteCalls,
+    }).toEqual({
+      theirs: [{value: L, deleted: true}],
+      differing: [['value']],
+      local: L,
+      deletes: [],
+    });
+  });
+
+  it('un arranque con la base sin abrir (R9-46) no le borra la marca a un conflicto retenido', async () => {
+    const uid = 'uid-160-saltado-despues';
+    const {engine, T, adapter, localStore} = await pendingConflict(uid);
+    const suyo = {id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}};
+    fire(uid, [suyo]);
+    await settle();
+
+    // Arranque en frio con la base todavia sin abrir: la redelivery se salta.
+    let dbReady = false;
+    adapter.getLocal = async id => {
+      if (!dbReady) throw new Error('Database not initialized');
+      return localStore.get(id) ?? null;
+    };
+    await restart(engine, uid);
+    fire(uid, [suyo]);
+    await settle();
+    // Control: se salto de verdad.
+    expect(engine.__getConflictsForTests()).toEqual([]);
+
+    dbReady = true;
+    await restart(engine, uid);
+    fire(uid, [suyo]);
+    await settle();
+
+    expect({
+      theirs: theirs(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({theirs: [{value: R2, deleted: false}], local: L});
+  });
+
+  it('un doc saltado (R9-46) que despues resulta ser un conflicto queda marcado como conflicto', async () => {
+    const uid = 'uid-160-saltado-antes';
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    const T = Date.now() - HOUR;
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    localStore.set('doc-c', {value: L, updatedAt: T});
+    let dbReady = false;
+    adapter.getLocal = async id => {
+      if (!dbReady) throw new Error('Database not initialized');
+      return localStore.get(id) ?? null;
+    };
+    const engine = new SyncEngine();
+    engine.register(adapter);
+    await engine.start(uid);
+    await settle();
+    const suyo = {id: 'doc-c', data: {value: R, updatedAt: T + 10_000}};
+    fire(uid, [suyo]);
+    await settle();
+
+    // El mismo R, ya con la base abierta: ahora si es un conflicto.
+    dbReady = true;
+    await restart(engine, uid);
+    fire(uid, [suyo]);
+    await settle();
+    // Control: el conflicto se detecto (por la ventana).
+    expect(theirs(engine)).toEqual([{value: R, deleted: false}]);
+
+    // El otro escribe R2 con la app cerrada.
+    await restart(engine, uid);
+    fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
+    await settle();
+
+    expect({
+      theirs: theirs(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({theirs: [{value: R2, deleted: false}], local: L});
+  });
+
+  it('tras reiniciar, una copia propia mas vieja que lo local no pasa a ser «su version», aunque este fuera de la ventana', async () => {
+    const uid = 'uid-160-eco-reinicio';
+    const {engine, T, localStore} = await pendingConflict(uid);
+    // El usuario sigue escribiendo: L1 sube y su eco vuelve...
+    const L1 = {value: 'L1: sigo escribiendo', updatedAt: T + 60_000};
+    localStore.set('doc-c', L1);
+    engine.queueWrite('test', 'doc-c', L1);
+    await settle();
+    fire(uid, [{id: 'doc-c', data: L1}]);
+    await settle();
+    // ...y L2, un minuto despues, todavia no subio cuando se cierra la app.
+    localStore.set('doc-c', {value: 'L2: sin subir', updatedAt: T + 120_000});
+
+    await restart(engine, uid);
+    // La nube tiene L1: mas vieja que lo local, a 60 s, y con otro valor.
+    fire(uid, [{id: 'doc-c', data: L1}]);
+    await settle();
+
+    expect({
+      theirs: theirs(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({theirs: [], local: 'L2: sin subir'});
+  });
+
+  it('control: tras resolver, lo retenido se va con el conflicto: despues de reiniciar, un cambio posterior del otro entra por LWW', async () => {
+    // No discrimina contra R9-160, a proposito: impide que la marca que
+    // sobrevive al reinicio convierta en conflicto lo que ya no lo es.
+    const uid = 'uid-160-control';
+    const {engine, T, localStore} = await pendingConflict(uid);
+    fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
+    await settle();
+    await engine.resolveConflict('test__doc-c', 'keepMine');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    await restart(engine, uid);
+    const R3 = 'R3: el otro edita una hora despues';
+    fire(uid, [{id: 'doc-c', data: {value: R3, updatedAt: Date.now()}}]);
+    await settle();
+
+    expect({
+      conflicts: engine.__getConflictsForTests(),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({conflicts: [], local: R3});
+  });
+});

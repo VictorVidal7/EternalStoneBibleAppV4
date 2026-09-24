@@ -15,6 +15,10 @@
  * was detected, and the user may have kept editing the doc since. The merge
  * is seeded from, and built on top of, that same current copy. This screen
  * is a hidden tab, so it stays mounted while the user is away editing.
+ *
+ * R9-160 — "theirs" is the other device's LATEST copy (the engine refreshes
+ * it while the conflict waits), and it can be a delete: then that column says
+ * so instead of showing the fields the tombstone happens to carry.
  */
 
 import {
@@ -55,6 +59,11 @@ function formatValue(value: unknown): string {
 }
 
 type Fields = Record<string, unknown>;
+
+/** R9-160 — the other device deleted the doc while the conflict waited. */
+function theirsDeleted(c: ConflictRecord): boolean {
+  return c.remoteVersion.deleted === true;
+}
 
 /** R9-36 — the last read of a conflict's CURRENT local copy. `value: null`
  *  means the doc no longer exists here. */
@@ -321,19 +330,28 @@ export default function ConflictsScreen() {
                   ]}>
                   {t.conflicts.theirs}
                 </Text>
-                {item.differingFields.map(f => (
-                  <View key={`theirs-${f}`} style={styles.fieldRow}>
-                    <Text
-                      style={[styles.fieldName, {color: colors.textTertiary}]}>
-                      {fieldLabel(f)}
-                    </Text>
-                    <Text
-                      style={[styles.fieldValue, {color: colors.text}]}
-                      numberOfLines={3}>
-                      {formatValue(item.remoteVersion[f])}
-                    </Text>
-                  </View>
-                ))}
+                {theirsDeleted(item) ? (
+                  <Text style={[styles.fieldValue, {color: colors.text}]}>
+                    {t.conflicts.theirsDeleted}
+                  </Text>
+                ) : (
+                  item.differingFields.map(f => (
+                    <View key={`theirs-${f}`} style={styles.fieldRow}>
+                      <Text
+                        style={[
+                          styles.fieldName,
+                          {color: colors.textTertiary},
+                        ]}>
+                        {fieldLabel(f)}
+                      </Text>
+                      <Text
+                        style={[styles.fieldValue, {color: colors.text}]}
+                        numberOfLines={3}>
+                        {formatValue(item.remoteVersion[f])}
+                      </Text>
+                    </View>
+                  ))
+                )}
               </View>
             </View>
 
@@ -448,7 +466,9 @@ export default function ConflictsScreen() {
                     {formatValue(mineOf(mergingConflict)[f])}
                     {'\n'}
                     {t.conflicts.theirsHint}:{' '}
-                    {formatValue(mergingConflict.remoteVersion[f])}
+                    {theirsDeleted(mergingConflict)
+                      ? t.conflicts.theirsDeleted
+                      : formatValue(mergingConflict.remoteVersion[f])}
                   </Text>
                 </View>
               ))}
