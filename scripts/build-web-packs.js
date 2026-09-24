@@ -81,6 +81,11 @@ const OUT =
 /** Escape hatch for a DELIBERATE editorial removal — see assertNoShrink. */
 const ALLOW_SHRINK = ARGS.includes('--allow-shrink');
 const WEB_PACKS_JSON = path.join(ROOT, 'web', 'packs', 'web-bootstrap.json');
+/**
+ * The name data-loader.web.ts fetches the manifest by, under the Pages /packs/
+ * base URL — what WEB_PACKS_JSON has to be published AS (R9-108).
+ */
+const PUBLISHED_MANIFEST_NAME = 'web-bootstrap.json';
 
 /**
  * Parse a `export const X = [ ... ]` array literal out of a .ts data file.
@@ -1019,14 +1024,34 @@ function emit({
     );
   }
 
-  console.log('\nDone.');
-  for (const s of specs)
-    console.log(`  ${path.join(out, s.id.toLowerCase() + '.sqlite')}`);
-  for (const rl of redLetterSpecs) console.log(`  ${path.join(out, rl.out)}`);
-  console.log(`  ${manifestFile} written`);
+  // R9-108: this is the instruction a human follows to publish, so what it
+  // says about the world is an assertion. It used to say "Upload the *.sqlite
+  // AND *-red-letter.json" and never name the manifest, which this run writes
+  // to `manifestFile` — in the repo, NOT in `out`, so uploading the folder
+  // leaves it behind. Its sha256 is the only thing that tells a browser that
+  // already has a pack that a new one exists (data-loader.web.ts), so a
+  // publish that followed the old line left every such browser on the old
+  // text, in silence. It goes LAST: the reader checks the bytes against it
+  // (R9-109), so a manifest that goes up before its packs makes browsers
+  // refuse the old ones until the new ones are up. Both halves of that are
+  // pinned by __tests__/dataLoaderWebVersionGate.test.ts.
+  const packFiles = [
+    ...specs.map(s => s.id.toLowerCase() + '.sqlite'),
+    ...redLetterSpecs.map(rl => rl.out),
+  ];
   console.log(
-    '  Upload the *.sqlite AND *-red-letter.json to the Pages repo under ' +
-      '/packs/ (Victor — no gh CLI access from this session).',
+    '\nDone. Publish to the Pages repo under /packs/, in THIS order:',
+  );
+  packFiles.forEach((name, i) =>
+    console.log(`  ${i + 1}. ${path.join(out, name)}`),
+  );
+  console.log(
+    `  ${packFiles.length + 1}. LAST, after the packs: ${manifestFile}` +
+      ` -> /packs/${PUBLISHED_MANIFEST_NAME}\n` +
+      `     It is NOT in ${out}. Without it, browsers that already have a ` +
+      'pack never see the new one; before the packs, they refuse the old ' +
+      'ones until the new ones are up.\n' +
+      '  (Victor — no gh CLI access from this session.)',
   );
 }
 

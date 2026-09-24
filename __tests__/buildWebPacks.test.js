@@ -878,6 +878,93 @@ describe('main() emits nothing at all when it aborts', () => {
     expect(written.problems).toEqual([]);
   });
 
+  /**
+   * R9-108. The "Done." message is what a human follows to publish, so each
+   * thing it says about the world is checked against the world here, not
+   * against a string. It used to say "Upload the *.sqlite AND
+   * *-red-letter.json" and never name the manifest, which main() writes to
+   * `manifestFile` — outside `out` — and whose sha256 is the only signal
+   * data-loader.web.ts has that a pack changed.
+   */
+  describe('the Done message names the manifest, and it is checked against the world (R9-108)', () => {
+    /** Everything main() printed from its final "Done." on. */
+    function doneMessage() {
+      const printed = logSpy.mock.calls.map(args => args.join(' ')).join('\n');
+      const at = printed.lastIndexOf('\nDone.');
+      if (at < 0) throw new Error('main() printed no "Done." at all');
+      return printed.slice(at);
+    }
+
+    /** The numbered publish steps, in the order they were printed. */
+    function steps(done) {
+      return done
+        .split('\n')
+        .map(line => line.match(/^ {2}(\d+)\. (.*)$/))
+        .filter(Boolean)
+        .map(([, n, text]) => ({n: Number(n), text}));
+    }
+
+    /** data-loader.web.ts, the reader the published files are for. */
+    function readerSource() {
+      return fs.readFileSync(
+        path.join(
+          __dirname,
+          '..',
+          'src',
+          'lib',
+          'database',
+          'data-loader.web.ts',
+        ),
+        'utf8',
+      );
+    }
+
+    it('names the manifest by its real path, as the LAST step, after every file it put in out', () => {
+      main(world);
+      const printed = steps(doneMessage());
+      // Floor: the four packs and the manifest, numbered in order.
+      expect(printed.map(step => step.n)).toEqual([1, 2, 3, 4, 5]);
+      // Every step before the last is a file that really is in `out`, and
+      // together they are all of them.
+      expect(
+        printed
+          .slice(0, -1)
+          .map(step => step.text)
+          .sort(),
+      ).toEqual(publishable(world.out).map(name => path.join(world.out, name)));
+      const last = printed[printed.length - 1].text;
+      expect(last).toMatch(/^LAST\b/);
+      expect(last).toContain(world.manifestFile);
+      // And what sits at the path it names is the manifest for those bytes.
+      expect(
+        manifestAgainstDisk(world.out, world.manifestFile).problems,
+      ).toEqual([]);
+    });
+
+    it('says where it goes: /packs/, under the name the web reader fetches', () => {
+      main(world);
+      const source = readerSource();
+      // The reader's default base URL is the Pages /packs/ directory...
+      expect(source).toMatch(/'https:\/\/[^']+\/packs\/'/);
+      // ...and the manifest is the one file it fetches there by a fixed name.
+      const fetched = [
+        ...source.matchAll(/\$\{WEB_PACKS_BASE_URL\}([\w.-]+)/g),
+      ].map(match => match[1]);
+      expect(fetched).toEqual(['web-bootstrap.json']);
+      expect(doneMessage()).toContain(
+        `${world.manifestFile} -> /packs/${fetched[0]}`,
+      );
+    });
+
+    it('says the manifest is NOT in out, and it is not', () => {
+      main(world);
+      expect(doneMessage()).toContain(`It is NOT in ${world.out}.`);
+      expect(fs.readdirSync(world.out)).not.toContain(
+        path.basename(world.manifestFile),
+      );
+    });
+  });
+
   it('leaves the output directory EMPTY when a count shrank', () => {
     // The finding. Before the fix this directory held two freshly written
     // .sqlite packs while the error said none had been emitted.
