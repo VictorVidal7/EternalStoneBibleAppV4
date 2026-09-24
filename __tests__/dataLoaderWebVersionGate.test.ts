@@ -522,6 +522,27 @@ describe('a manifest that pins nothing for a pack is the flag-only check (R9-109
     expect(packFilesFetched(fetchMock)).toEqual([]);
   });
 
+  it('treats an entry whose sha256 is not a string the same way, instead of failing the boot', async () => {
+    // The manifest is parsed JSON: a missing sha256 is not the only way it
+    // can fail the interface. The case above would pass with a check that
+    // only handles `undefined` (`sha256?.toLowerCase()`); a number reaches
+    // `.toLowerCase` and throws a TypeError that fails the boot.
+    await AsyncStorage.setItem(packLoadedKey('WEB'), 'true');
+    const fetchMock = installFetchMock({
+      kind: 'ok',
+      manifest: manifestWithWebEntry({
+        id: 'WEB',
+        file: 'web.sqlite',
+        sha256: 12345,
+      }),
+    });
+
+    await expect(initializeBibleData()).resolves.toBeUndefined();
+
+    expect(packFilesFetched(fetchMock)).toEqual([]);
+    expect(await AsyncStorage.getItem(packVersionKey('WEB'))).toBeNull();
+  });
+
   it('still imports it on a fresh browser, recording no version (the control)', async () => {
     // Without this, refusing every unpinned pack would pass the two cases
     // above and leave a fresh browser with no WEB text at all.
