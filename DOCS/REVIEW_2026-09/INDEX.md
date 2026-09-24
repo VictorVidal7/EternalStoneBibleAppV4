@@ -239,6 +239,22 @@
 > Siguen **5 P0 abiertos**. Hallazgos: **156**. El checkpoint va en `docs/review-s23-diff-s20`,
 > sin mergear sin el OK de Victor. **Siguiente, la 24: ARREGLOS** (`R9-125`+`R9-130`, `R9-143`,
 > `R9-124` medido antes en Modo C, y `R9-153`). Detalle: `detail/S23-revision-del-diff-s20.md`.
+>
+> **Sesión 24 (2026-09-23/24): ARREGLOS, casi todos EN LA NUBE.** Con el crédito de sesiones en la
+> nube, 6 sesiones de Claude Code hicieron los arreglos en ramas propias, en tres tandas. El
+> orquestador revisó cada rama en la máquina de Victor, pieza por pieza, las apiló y pidió el OK.
+>
+> - **11 hallazgos cerrados:** `R9-125` (P0), `R9-130`, `R9-143`, `R9-153`, `R9-122.4`, `R9-154`,
+>   `R9-109` (con la opción (b) de Victor), `R9-108`, `R9-36` (P0), `R9-39` (P0) y `R9-106`.
+> - **El hallazgo de la sesión es `NODE_ENV` (`R9-157`, arreglado):** Victor exporta
+>   `NODE_ENV=development`, así que las pruebas nuevas daban verde en la nube y en CI y rojo en su
+>   máquina. La vieja creencia de que «el renderer desmonta la Mesa» era esto.
+> - **3 hallazgos nuevos:** `R9-157`, `R9-158` (decisión de Victor) y `R9-159`.
+>
+> `main` = `9c425a8`, con el CI verde en el log (run `35965550736`, 366/4366). **Quedan 2 P0
+> abiertos** (`R9-38`, `R9-124`). Hallazgos: **159**. El checkpoint va en
+> `docs/review-s24-checkpoint`. **Siguiente, la 25:** revisar el diff de la 24; en la 26, `R9-124`
+> en Modo C. Detalle: `detail/S24-arreglos-en-la-nube.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -701,6 +717,25 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 24 — 2026-09-23/24. ARREGLOS en la nube.** Es la opción (c).
+  - **Cómo se trabajó:** con el crédito de sesiones en la nube, cada arreglo lo hizo una sesión de
+    Claude Code en la nube, en su rama, con un prompt que llevaba las reglas de la sección 5. El
+    orquestador revisó cada rama en la máquina de Victor:
+    - `npm run validate`;
+    - el revert por pieza, con un script de reemplazo exacto;
+    - apilar las ramas y compararlas con `cmp`;
+    - pedir el OK, hacer el fast-forward y verificar el CI en el log.
+  - **Resultado:** 11 hallazgos cerrados, entre ellos 3 P0 (`R9-125`, `R9-36`, `R9-39`); quedan 2 P0.
+  - **3 hallazgos nuevos:** `R9-157` (P2, arreglado), `R9-158` (P2, decisión) y `R9-159` (P3).
+  - **Detalle: `detail/S24-arreglos-en-la-nube.md`.**
+  - **Las lecciones:**
+    - **verde en la nube y en CI no es verde en la máquina de Victor**: la diferencia fue
+      `NODE_ENV`;
+    - **una limitación escrita en un comentario puede ser un defecto del entorno**: «el renderer
+      desmonta la Mesa»;
+    - **la nube escribe y el orquestador revisa pieza por pieza**: la revisión local encontró una
+      compuerta roja, una pieza sin vigilar y un defecto de diseño.
 
 - **Sesión 23 — 2026-09-23. Revisión del diff de la 20.** Solo revisión: no se tocó código.
   - **Cómo se trabajó:** 3 agentes, no 5, por lo que pasó en la 22. Ninguno se cortó, y el

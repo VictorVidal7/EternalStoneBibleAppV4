@@ -1,9 +1,9 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-23, fin de la sesión 23.** La 23 revisó el diff de la 20 (la
-> opción (a)): los cuatro arreglos se sostienen, y salió un P1 en su vecino (`R9-153`). **Lo
-> siguiente es la (c), ARREGLOS**, con el mensaje de abajo. El doble check con Opus 5.5 que pidió
-> Victor está TERMINADO: la 21 hizo los puntos 1 y 2, y la 22 los puntos 3 y 4.
+> **Última actualización: 2026-09-24, fin de la sesión 24.** La 24 hizo los ARREGLOS (la (c))
+> con 6 sesiones de Claude Code EN LA NUBE, y el orquestador revisó cada rama en local, pieza por
+> pieza, antes de mergear. Cerró 11 hallazgos, y quedan **2 P0 abiertos** (`R9-38`, `R9-124`). **Lo
+> siguiente es el mensaje (d): revisar el diff de la 24**, y después `R9-124` en Modo C.
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -15,11 +15,11 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**0. El checkpoint de la sesión 23 va en la rama `docs/review-s23-diff-s20`, que es solo docs, y
+**0. El checkpoint de la sesión 24 va en la rama `docs/review-s24-checkpoint`, que es solo docs, y
 espera el OK de Victor para mergearse.** Si al arrancar esa rama no está en `origin/main`,
-preguntale qué decidió antes de seguir. La base es `714d627` (el registro de la 22, ya mergeado y
-pusheado), y su CI está verificado EN EL LOG: run `35897985450`, 3 jobs verdes, Node v24.20.0,
-364/4299, cero «failed to run». Las sesiones 21 y 22 (`f294333`, `714d627`) ya están en `main`.
+preguntale qué decidió antes de seguir. La base es `9c425a8`, el último código de la 24, ya
+mergeado y pusheado. Su CI está verificado EN EL LOG: run `35965550736`, 3 jobs verdes, Node
+v24.20.0, 366/4366, cero «failed to run». Las sesiones 23 y 24 ya están en `main`.
 **Comprobá en el log el run de CI de `origin/main`.**
 
 **1. ✅ Lo de la sesión 20: la rama se mergeó en fast-forward y se
@@ -101,8 +101,7 @@ prueba cubre y deja abierto el vecino_): aquí el vecino no era otro caso, era *
 del mismo diff**. Si un commit lleva dos arreglos, pregúntate si uno desarma la prueba del
 otro. Lo mismo vale para `detail/S9-revision-del-diff.md` y `detail/S8-revision-del-diff.md`.
 
-**Quedan 5 P0 abiertos:** `R9-36`, `R9-38`, `R9-39`, y los dos de la sesión 21, `R9-124` y
-`R9-125`. Los dos de la sesión 19, `R9-102` y
+**Quedan 2 P0 abiertos:** `R9-38` y `R9-124`. La sesión 24 cerró `R9-36`, `R9-39` y `R9-125`. Los dos de la sesión 19, `R9-102` y
 `R9-103`, se arreglaron en la 20. Todo lo demás de la sección P0 va
 marcado **✅ ARREGLADO** dentro de su entrada de `BUGS.md`. **No los vuelvas a atacar.** Los
 **6 hallazgos de la sesión 13** (`R9-66`..`R9-71`) son P1/P2, así que el conteo de P0 no se
@@ -122,9 +121,12 @@ Los **19 de la sesión 21** (`R9-124`..`R9-142`) son 2 P0, 6 P1, 10 P2 y 1 P3, y
 abiertos. Los dos P0 los pasan de 3 a 5.
 Los **10 de la sesión 22** (`R9-143`..`R9-152`) son 1 P1 (`R9-143`), 1 P2 y 8 P3, todos
 abiertos. Además, `R9-53` y `R9-55` bajaron de P1 a P2 y `R9-63` de P2 a P3.
-Los **4 de la sesión 23** (`R9-153`..`R9-156`) son 1 P1 (`R9-153`) y 3 P3, todos abiertos.
-Además, `R9-122.4` subió de P3 a P2.
-Hallazgos totales: **156**.
+Los **4 de la sesión 23** (`R9-153`..`R9-156`) son 1 P1 (`R9-153`) y 3 P3. `R9-153` y `R9-154` se
+arreglaron en la 24. Además, `R9-122.4` subió de P3 a P2, y también se arregló en la 24.
+La **sesión 24** cerró 11: `R9-125`, `R9-130`, `R9-143`, `R9-153`, `R9-122.4`, `R9-154`, `R9-109`,
+`R9-108`, `R9-36`, `R9-39` y `R9-106`. Registró **3 nuevos** (`R9-157`..`R9-159`): `R9-157` (P2) ya
+está arreglado, `R9-158` (P2) es una decisión de Victor, y `R9-159` es P3.
+Hallazgos totales: **159**.
 
 **Y ya NO hay nada bloqueando el deploy web:** era `R9-13`, y está cerrado y verificado en un
 navegador de verdad sobre el bundle real.
@@ -226,7 +228,25 @@ porque no la encontró leyendo el diff sino leyendo los correos de CI de Victor:
 > repo era idéntico en los dos casos. Antes de creerle a una compuerta nueva, preguntá **dónde
 > corre**, no solo qué comprueba.
 
-**La lección de la sesión 23, que es la que conviene llevarse AHORA.** Revisó el diff de la 20, y
+**La lección de la sesión 24, que es la que conviene llevarse AHORA.** Los arreglos los hicieron
+sesiones de Claude Code en la nube, y el orquestador revisó cada rama en la máquina de Victor:
+
+> **Verde en la nube y en CI no es verde en la máquina de Victor.** Los dos corren sin `NODE_ENV`, y
+> Victor exporta `NODE_ENV=development`. jest solo pone `test` si la variable no existe, y el driver
+> nativo de `Animated` lanza con otro valor. Resultado: pruebas verdes allá y rojas acá (`R9-157`,
+> ya arreglado: `jest.config.js` lo fija). Una rama hecha en la nube se revisa en SU entorno antes
+> del OK.
+
+> **Una limitación escrita en un comentario puede ser un defecto del entorno.** «react-test-renderer
+> desmonta la Mesa» se repitió en ~12 suites y en la memoria sin que nadie lo midiera: era
+> `NODE_ENV`, y dejó sin prueba la mitad de `R9-47`.
+
+> **La nube escribe y el orquestador revisa pieza por pieza: funciona.** La revisión local encontró
+> una compuerta roja, una pieza sin vigilar y un defecto de diseño (la pantalla de error del lector
+> web para quien ya tenía texto), y cada uno volvió a la nube con un mensaje concreto. Las sesiones
+> en paralelo tienen que tocar archivos distintos, para que las ramas se apilen sin conflictos.
+
+**La lección de la sesión 23.** Revisó el diff de la 20, y
 los cuatro arreglos se sostienen. Lo roto estaba, otra vez, en el vecino:
 
 > **Un arreglo que le pone sesión a UN bucle deja abierto el OTRO bucle con `await` que cruza el
@@ -430,10 +450,74 @@ o un alcance que no se sostiene.
 
 ## Mensaje para pegar en el chat nuevo
 
-**El doble check (la (b)) y la revisión del diff de la 20 (la (a), sesión 23) están HECHOS.** Lo
-siguiente es la **(c), ARREGLOS**, en la sesión 24.
+**Hechos:** el doble check (la (b), sesiones 21 y 22), la revisión del diff de la 20 (la (a),
+sesión 23) y los ARREGLOS (la (c), sesión 24, en la nube). **Lo siguiente es el (d).**
 
-**(c) ARREGLOS de lo que dejaron el doble check y la 23.**
+**(d) Sesión 25: revisar el diff de la 24. Después, en la 26, `R9-124` en Modo C.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md`.
+>
+> **Estado:**
+>
+> - La sesión 24 hizo los arreglos (c) con 6 sesiones de Claude Code en la nube. El orquestador
+>   revisó cada rama en local, pieza por pieza, y todo está mergeado.
+> - `main` = `9c425a8`, con CI verde en el log: run `35965550736`, 366/4366. Antes de empezar,
+>   comprobá en el log el run de `origin/main`.
+> - Quedan 2 P0 abiertos: `R9-38` y `R9-124`. Hallazgos: 159. El detalle está en
+>   `detail/S24-arreglos-en-la-nube.md`.
+>
+> **Esta sesión es de REVISIÓN del diff de la 24** (`0bc707d..9c425a8`, 16 commits). Decime qué
+> encontraste antes de tocar nada. Mirá sobre todo:
+>
+> 1. **`R9-39` + `R9-106` (`9c425a8`), el conjunto «no asentado» persistido:**
+>    - ¿Puede un doc quedar retenido para siempre? Por ejemplo, un `getLocal` que siempre falla, o
+>      un conflicto que nadie resuelve.
+>    - ¿Cuánto cuesta en lecturas?
+>    - ¿Convive bien con `R9-153`, con `deleteAccount` y con un respaldo restaurado (el `removed`
+>      de `R9-124`)?
+> 2. **`R9-36` (`6440ca0`):** ¿qué pasa si el doc se borró en local entre la detección y la
+>    resolución? ¿La pantalla relee bien al enfocar?
+> 3. **`R9-125` (`e8c2031`):** ¿todos los caminos de `signInWithGoogle` reclaman el almacén?
+>    Mirá también `R9-158` y la nota nueva de `R9-127`.
+> 4. **`R9-109` y `R9-108`** (`d2b1cc7`, `44a5d15`, `0631557`, `b8e812c`):
+>    - en el bundle web real, ¿el `instanceof WebPackMismatchError` sobrevive a la transpilación?
+>    - ¿`sha256Hex` rinde en un teléfono?
+> 5. **`R9-157` (`NODE_ENV`):** ¿hay otras variables del shell de Victor que cambien la suite?
+> 6. **Las pruebas:** que cada una discrimine (ya se midió en local; repetilo con ojo fresco), y
+>    que los mocks nuevos no respondan la pregunta. Los mocks nuevos son el de la pantalla de
+>    conflictos y los `fetch` falsos de los packs.
+>
+> **Con 3 agentes**, en forks en worktree aislado:
+>
+> - **agente 1:** el motor (`R9-153`, `R9-154`, `R9-36`, `R9-39`, `R9-106`);
+> - **agente 2:** identidad, la Mesa y la web (`R9-125`, `R9-130`, `R9-143`, `R9-109`, `R9-108`);
+> - **agente 3:** `R9-157`, lo que el ledger afirma de la 24 contra el mundo, y lo transversal.
+>
+> Cada uno lleva:
+>
+> - informe incremental en `_scratch/S25-agente-N.md`;
+> - cada sonda copiada con `.txt` a `_scratch/S25-sondas-agente-N/` en cuanto se corre;
+> - la lista `_scratch/S25-ya-reportados.txt`.
+>
+> Lo nuevo va desde `R9-160`, y lo que suba a P0 o P1 lo verificás vos. El checkpoint va en la
+> rama `docs/review-s25-diff-s24`. Gates en verde, y no mergees nada sin preguntarme.
+>
+> **Después, en la 26:** `R9-124`. Primero medir el SDK nativo de Android en Modo C, en el
+> emulador, con mi OK y nunca con mi teléfono. Si confirma, el arreglo, que tiene que:
+>
+> - hacer FUERA de `withLocalWriteSuppressed` la consulta de si el doc existe;
+> - respetar la sesión de `R9-153` y el conjunto de `R9-39`.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158`.
+
+**(c) ARREGLOS: lo que fue la sesión 24, ya HECHO.** Queda aquí como registro. Se hizo en la nube:
+los prompts están en `_scratch/S24-PROMPT-nube.md` y `_scratch/S24-nube-N-*.md`, que no están en
+git.
 
 > Seguimos con la revisión profunda. Lee `DOCS/REVIEW_2026-09/CONTINUAR.md` primero.
 >
@@ -641,15 +725,14 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al empezar la sesión 23 (2026-09-23).**
+**Medido al cerrar la sesión 24 (2026-09-24).**
 
-- **`main` = `origin/main` = `714d627`** (solo docs después de `00f69c4`, el último código de la
-  20). **CI de `714d627` verificado en el log:** run `35897985450`, 3 jobs verdes, Node v24.20.0,
-  364/4299, cero «failed to run».
-- **Una rama de la revisión sin mergear, a propósito:** `docs/review-s23-diff-s20`, con el
-  checkpoint de la 23 (solo docs). Se mergea con el OK de Victor.
-- Los 3 worktrees de los agentes de la 23 se borraron solos (sin cambios netos), sin dejar
-  ramas. `.claude/worktrees/` quedó vacío.
+- **`main` = `origin/main` = `9c425a8`**, el último código de la 24. **CI verificado en el log:**
+  run `35965550736`, 3 jobs verdes, Node v24.20.0, 366/4366, cero «failed to run».
+- **Una rama de la revisión sin mergear, a propósito:** `docs/review-s24-checkpoint`, con el
+  checkpoint de la 24 (solo docs). Se mergea con el OK de Victor.
+- **Las 6 ramas de la nube ya se borraron en GitHub**, con el OK de Victor. En el remoto quedan
+  `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main`:
 
@@ -758,8 +841,8 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Decidido para la sesión 24: la (c), ARREGLOS**, con el mensaje para pegar de arriba. Lo de
-abajo es el menú de siempre para después.
+**Recomendado para la sesión 25: el mensaje (d), revisar el diff de la 24. En la 26, `R9-124` en
+Modo C.** Lo de abajo es el menú de siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
@@ -789,6 +872,10 @@ Alternativas legítimas:
 
 ## 5. Reglas que ya costaron caro — no las re-descubras
 
+- **Una rama hecha en la nube (o por un agente) se revisa en la máquina de Victor, no solo en
+  CI.** La nube y el CI corren sin `NODE_ENV`, y Victor exporta `NODE_ENV=development`. Desde la
+  24, `jest.config.js` lo fija (`R9-157`), pero cualquier otra diferencia de entorno se vería igual:
+  verde allá y rojo acá. Revertí cada pieza en SU entorno antes de pedir el OK.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -1034,6 +1121,11 @@ Alternativas legítimas:
 
 ## 8. Decisiones abiertas para Victor (no son bugs)
 
+- **El tope de cuota del piso de no asentados (`R9-39`, sesión 24):** mientras un conflicto siga
+  sin resolver, cada enganche de esa colección vuelve a leer desde su piso. ¿Se le pone un tope,
+  por ejemplo un aviso si un conflicto lleva N días pendiente?
+- **`R9-158`:** si no se puede leer el marcador del dueño del almacén, ¿se pregunta (fallar
+  cerrado) o se sigue sin preguntar, como hoy?
 - **`R9-59`:** ¿«device-local» debe significar también «visible para cualquiera que use el
   aparato»? Hoy, cerrar sesión **no** limpia la Mesa, ni el progreso, ni los logros, y está
   **documentado como decisión** (`deleteAccountData.ts:12-13`) — pero nadie se lo preguntó

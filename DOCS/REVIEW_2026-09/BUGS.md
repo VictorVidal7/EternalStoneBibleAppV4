@@ -222,12 +222,28 @@
 >
 > Siguen **5 P0 abiertos**. Hallazgos: **156**. Detalle: `detail/S23-revision-del-diff-s20.md`.
 
+> **Sesión 24 (2026-09-23/24): ARREGLOS, casi todos EN LA NUBE.** Con el crédito de sesiones en la
+> nube, 6 sesiones de Claude Code en la nube hicieron los arreglos en ramas propias. El orquestador
+> revisó cada rama en local, en la máquina de Victor, pieza por pieza, antes de pedir el OK. Todo
+> está mergeado y pusheado: `main` = `9c425a8`, con el CI verde en el log.
+>
+> - **11 hallazgos cerrados:** `R9-125` (P0), `R9-130`, `R9-143`, `R9-153`, `R9-122.4`, `R9-154`,
+>   `R9-109`, `R9-108`, `R9-36` (P0), `R9-39` (P0) y `R9-106`.
+> - **El hallazgo de la sesión fue `NODE_ENV`** (`R9-157`, ya arreglado). La máquina de Victor
+>   exporta `NODE_ENV=development`, y jest solo pone `test` si la variable no existe. Las pruebas
+>   nuevas daban verde en CI y rojo en local. La vieja creencia de que «react-test-renderer
+>   desmonta la Mesa» era esto.
+> - **3 hallazgos nuevos:** `R9-157` (P2, arreglado), `R9-158` (P2, decisión de Victor) y `R9-159`
+>   (P3).
+>
+> **Quedan 2 P0 abiertos** (`R9-38`, `R9-124`). Hallazgos: **159**. Detalle: `detail/S24-arreglos-en-la-nube.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 22 (que no agregó ningún P0). Esta sección tiene 25 entradas: 20
-> ARREGLADAS y 5 ABIERTAS** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras la sesión 24 (que cerró `R9-36`, `R9-39` y `R9-125` y no agregó ningún P0).
+> Esta sección tiene 25 entradas: 23 ARREGLADAS y 2 ABIERTAS** (`R9-38`, `R9-124`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -597,6 +613,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   `{"value":"parrafo original","updatedAt":1000}`. **Alcance acotado** (hacen falta dos
   dispositivos dentro de 30 s), por eso media pese a ser pérdida de texto escrito a mano.
   Detalle: `detail/A4-syncengine.md`.
+  **✅ ARREGLADO en la sesión 24** (`6440ca0`):
+  - `keepMine` relee lo local al resolver (`adapter.getLocal`) y sube eso re-sellado. Falla con
+    error si la sesión terminó o si no hay copia local.
+  - La pantalla muestra y siembra la fusión con lo local de AHORA (`readCurrentLocal`, que se
+    relee al enfocar).
+  - Revert por pieza: en el motor caen 2 pruebas, y en la pantalla, 3.
 
 - **`R9-38` (A4, `SyncEngine`) — 🐛 lo que se edita con la sesión cerrada no se sube nunca,
   y nada lo reconcilia después.** Severidad **media**.
@@ -627,6 +649,16 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   exactamente lo que el sistema de conflictos existe para evitar. **Repro (sonda):**
   conflicto detectado y cursor retenido en 0; llega otra nota cualquiera y el cursor salta;
   tras reiniciar, conflictos re-detectados = **0**. Detalle: `detail/A4-syncengine.md`.
+  **✅ ARREGLADO en la sesión 24** (`9c425a8`, junto con `R9-106`):
+  - Hay un conjunto «no asentado» (conflictos pendientes y docs saltados por `R9-46`) por
+    colección y uid, persistido en `@sync_unsettled_<colección>:<uid>`.
+  - El piso de cada enganche es `min(cursor, menor no asentado − 1)`, así que sobrevive a otros
+    lotes y a los reinicios. Resolver, aplicar o un `removed` lo liberan.
+  - Si el guardado falla, el propio cursor queda topado por debajo.
+  - Revert por pieza: las 11 piezas discriminan, incluidas las que cruzan con `R9-153` (medido en
+    local).
+  - **Costo abierto, decisión de Victor:** mientras un conflicto siga sin resolver, cada enganche
+    de esa colección vuelve a leer desde su piso. Se le puede poner un tope después.
 
 > **`R9-44`..`R9-64` vienen del fan-out de 4 de la sesión 6** (filas `A8`–`A11`), probados
 > con sondas ejecutables de los agentes.
@@ -732,6 +764,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): `load()` tiene id de ejecución monótono y el re-lectura estrecha del `useFocusEffect` tiene cleanup, así que una carga vieja ya no aterriza; y `handleNoteBlur` no escribe una sección sin borrador (se acabó el `?? ''` que borraba) y archiva bajo la clave a la que pertenecen los borradores, no bajo `table.passageKey`. **Ojo:** la prueba automatizada cubre la consecuencia de BORRADO; la carrera del stepper en sí sigue pendiente de verificación en dispositivo (Modo C), porque react-test-renderer desmonta el árbol al re-renderizar una pantalla de ese tamaño.
   **⚠️ Sesión 21, medido: jest cubre 1 de las 9 piezas del arreglo** (el `?? ''` del `blur`, que es la consecuencia de BORRADO). La guarda de obsolescencia de `load()` y todo el re-keying bajo `draftsPassageKeyRef` (las otras dos consecuencias del repro: la prosa del otro rango y la plantilla ajena) se pueden quitar las 8 a la vez con la suite entera en verde, 364/4299. La deuda de Modo C incluye el re-keying, no solo la guarda. Detalle: `detail/S21-doble-check.md`.
   **⚠️ Sesión 22:** el arreglo le quitó las dos trampas a `handleNoteBlur`, pero `handleOpenIllustrations` y `handleOpenPulpit` las conservan (`R9-143`, P1).
+  **⚠️ Sesión 24:** las mitades del blur y de `load()` de la carrera del stepper SÍ se pueden probar en
+  jest. Lo que lo impedía era `NODE_ENV` (`R9-157`), no el renderer. Siguen sin prueba.
+
 - **`R9-48` (A10, identidad) — 🐛 el log de repasos nunca se borra al cerrar sesión: el
   historial del usuario A se escribe dentro de la cuenta del usuario B y destruye su
   agregado.** Severidad **alta**. `AuthContext.tsx:471` (y `:572`) solo llama
@@ -921,6 +956,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   consecuencia es la de `R9-23` entera. **Va junto con `R9-130`**, que está en las mismas líneas.
   **Arreglo (hipótesis):** mirar el dueño previo ANTES de bifurcar, con una prueba que pase por
   las tres ramas (éxito del link, colisión y sin anónimo). Detalle: `detail/S21-doble-check.md`.
+  **✅ ARREGLADO en la sesión 24** (`e8c2031`, hecho en la nube y revisado en local): `signInWithGoogle` lee
+  el dueño previo ANTES de bifurcar, y la rama sin anónimo pregunta igual que las otras dos.
+  - Revert por pieza, medido en la máquina de Victor: sin la pregunta de la rama sin anónimo
+    caen 4 pruebas; sin la de la rama de éxito del link (`R9-23`), caen 2.
+  - Queda abierto que la guarda falla ABIERTA si no puede leer el marcador (`R9-158`), y que el
+    skip queda armado si falla el sign-in (nota en `R9-127`). Detalle: `detail/S24-arreglos-en-la-nube.md`.
 
 ## P1 — núcleo de la app
 
@@ -973,6 +1014,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   al flush, para que al volver de cada `await` después de un `stop()` corte sin registrar
   conflictos, sin mover el cursor y sin tocar el estado. Arreglaría también `R9-122.4`. **En la 24
   va después de `R9-124`**, que toca el mismo bucle. Detalle: `detail/S23-revision-del-diff-s20.md`.
+  **✅ ARREGLADO en la sesión 24** (`a7d688e`): `handleSnapshot` tiene la sesión del flush. Al volver
+  de cada `await` después de un `stop()`, el lote corta sin registrar conflictos, sin mover el
+  cursor y sin tocar el estado; el lote vuelve a llegar en el próximo enganche del dueño. Las 6
+  guardas de sesión discriminan una por una (medido en local).
 
 - **`R9-143` (S22, Mesa) — 🐛 «Banco de ilustraciones» y «Modo púlpito» guardan el sermón con las
   dos trampas que el arreglo de `R9-47` le quitó al `blur`: un toque justo después de cambiar de
@@ -1001,6 +1046,11 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   sugerencia **se observó en vivo**. `R9-47`, con la misma ventana, fue P0. `A9-mesa-persistencia.md:210-211`
   daba estos dos caminos por ✅. **Arreglo (hipótesis):** las dos guardas de `handleNoteBlur` en las
   dos funciones, con una prueba por botón. Detalle: `detail/S22-doble-check-puntos-3-4.md`.
+  **✅ ARREGLADO en la sesión 24** (`03ad214`, `92cfc16`): los dos botones pasan por `flushDrafts`,
+  con las dos guardas de `handleNoteBlur`.
+  - Revert por pieza: con el `?? ''` de vuelta caen las 2 pruebas de borrado; con
+    `table.passageKey`, las 2 de re-keying.
+  - Esas 2 de re-keying fallaban al principio en la máquina de Victor por `NODE_ENV` (`R9-157`).
 
 - **`R9-126` (S21, `SyncEngine` / respaldo) — 🐛 un push con `updatedAt` VIEJO (restaurar, bulk
   push) pisa en la nube la versión más nueva, y ningún otro dispositivo se entera.** CONFIRMADO
@@ -1035,6 +1085,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     sube nunca a la cuenta nueva, salvo la que se edite después.
   - Es la forma de `R9-103` (un estado global que cruza de cuenta), en el flag de migración. El
     comentario de `deleteAccount` (`:564-571`) es anterior a la pregunta de `R9-23`.
+    **⚠️ Sesión 24, otra puerta del mismo skip:** en `signInWithGoogle`, declinar la migración encola el
+    skip en memoria ANTES del `signInWithCredential`. Si ese sign-in falla, el skip se aplica al
+    próximo `start()` de cualquier uid. Ya pasaba en la rama de colisión, y `e8c2031` lo extendió a
+    la rama sin anónimo. Lo reportó la sesión en la nube; está leído y no medido.
 
 - **`R9-128` (S21, adaptadores de sync) — 🐛 un apply remoto que FALLA se traga su error y el
   cursor avanza igual: el cambio remoto no vuelve nunca.** CONFIRMADO con sonda del motor.
@@ -1079,6 +1133,8 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     la nube de Beto.
   - Son las mismas líneas que `R9-125`: **un solo arreglo**, con una prueba que pase por las tres
     ramas.
+    **✅ ARREGLADO en la sesión 24** (`e8c2031`): el `claimLocalStore` del camino directo lo vigila
+    ahora una prueba que pasa por las tres ramas. Quitado, caen 5 pruebas (medido en local).
 
 - **`R9-131` (S21, prueba de respaldo) — 🐛 las dos mitades que protegen la historia de lectura
   (`{strict: true}` del export y `data.degraded` del servicio) no las vigila ninguna prueba, y su
@@ -1211,6 +1267,7 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
 
   **Arreglo:** persistir el piso por colección como «el menor no asentado» (conflictos y saltados),
   y respetarlo en todos los lotes y en `resolveConflict`, no solo en el lote donde nació.
+  **✅ ARREGLADO en la sesión 24** (`9c425a8`), junto con `R9-39`: ver allí.
 
 - **`R9-107` (S19, compuerta de CI) — 🐛 si un job corre node se decide por la FORMA de la línea
   `run:`, y un job con npm sin `setup-node` pasa en silencio.**
@@ -1260,6 +1317,9 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
 
   **Arreglo:** nombrar el manifiesto en el «Done.», con su ruta real, y decir que va **al final**,
   después de los packs.
+  **✅ ARREGLADO en la sesión 24** (`b8e812c`): el «Done.» enumera los packs y nombra el manifiesto
+  como ÚLTIMO paso, con su ruta y el nombre con que se publica. Dos pruebas lo fijan, y cada una
+  cae con su pieza revertida.
 
 - **`R9-109` (S19, lector web) — 🐛 el lector web no verifica el sha256 de lo que descarga, y un
   pack malo NO se cura.** `importWebPack` (`data-loader.web.ts:59-94`) baja los bytes, los
@@ -1284,6 +1344,14 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
 
   **Arreglo:** hashear los bytes antes de importar, y rechazar si no coinciden con el manifiesto.
   El fallo es ruidoso y recuperable: el siguiente arranque reintenta.
+  **✅ ARREGLADO en la sesión 24** (`d2b1cc7`, `44a5d15` y `0631557`):
+  - El lector web hashea los bytes antes de importar (`sha256Hex`, en JS puro: unos 200 ms sobre
+    4,7 MB) y rechaza el pack si no coinciden. Guarda como versión la de los bytes importados.
+  - **Opción (b), decidida por Victor:** un navegador que YA tenía el pack sigue leyéndolo si el
+    nuevo no verifica, con un aviso, y reintenta en el próximo arranque. Solo un navegador sin
+    texto ve la pantalla de error. Cualquier otro fallo sigue tumbando el arranque.
+  - Un pin que no es texto se trata como sin pin.
+  - Revert por pieza: las 5 piezas discriminan (medido en local).
 
 - **`R9-97` (S18, build de packs) — 🐛 «coherent - one run, whole» sobre un directorio VACÍO.**
   `filesNotPinnedBy` recorre los archivos que HAY en `out` y le pregunta al manifiesto por cada
@@ -1873,6 +1941,8 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Importa para la 24: el arreglo de `R9-124` toca justo el sitio del `removed`. Si consulta si
     el doc existe, que lo haga FUERA de `withLocalWriteSuppressed`, para no alargar la supresión a
     un viaje de red.
+    **✅ ARREGLADO en la sesión 24** (`42f6afb`): hay pruebas para `keepTheirs`, para `merge` y para la
+    profundidad, y cada una cae con su sitio revertido. El sitio del `removed` queda para `R9-124`.
 
 - **`R9-155` (S23, prueba de favoritos — P3) — 🐛 la prueba de `R9-102` cubre «la edición
   anterior del mismo favorito» solo con un favorito NUEVO.** CONFIRMADO con sonda (agente 2).
@@ -1907,6 +1977,41 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
      `mockSetGate` no mantiene el orden de escrituras de un mismo usuario.
   8. La prueba de `R9-105` dice que el SecureStore aislado es otra instancia, y es la MISMA
      (`outerStoreHasPreseed:"true"`). RevenueCat sí es otra. No cambia lo que discrimina.
+
+- **`R9-157` (S24, compuerta local / jest — P2) — 🐛 la compuerta local dependía del `NODE_ENV` del
+  shell: verde en CI y roja en la máquina de Victor.** CONFIRMADO.
+  - La máquina de Victor tiene `NODE_ENV=development` como variable de usuario de Windows, y jest
+    pone `test` solo si la variable NO existe (`jest-cli/bin/jest.js`).
+  - Con otro valor, el driver nativo de `Animated` lanza «Unable to locate attached view in the
+    native tree» (`AnimatedProps.js:281`) cuando un re-render cambia el `disabled` de un
+    `TouchableOpacity`. Además cambian las transformaciones de babel.
+  - **Consecuencias:**
+    - las 2 pruebas de re-keying de `R9-143` dieron verde en la nube y en CI, y rojo en local;
+    - la creencia de que «react-test-renderer desmonta la Mesa» (citada en ~12 suites y en la
+      memoria) era ESTO, y por ella quedaron sin prueba las mitades de `R9-47`.
+  - **✅ ARREGLADO en la sesión 24** (`03d45ad`, `dc8db54`, `f80a2c6`, `b59a3ab` y `3a23e76`):
+    - `jest.config.js` fija `process.env.NODE_ENV = 'test'`;
+    - la compuerta `__tests__/jestNodeEnv.test.ts` tiene dos capas: dentro de jest, y cargando la
+      configuración en un proceso hijo, así que el CI también la ve;
+    - se corrigieron los comentarios que culpaban al renderer. En esos 16 archivos solo cambiaron
+      comentarios (medido).
+  - Medido en local con `development`: sin el pin caen las 4 pruebas de la compuerta.
+
+- **`R9-158` (S24, identidad — P2, decisión de Victor) — 🐛 la guarda de dueño de `R9-23`/`R9-125`
+  falla ABIERTA si no puede leer el marcador.** Leído por el orquestador.
+  - `getLocalStoreOwner` (`AuthContext.tsx:90-98`) devuelve `null` si la lectura falla. Las tres
+    ramas lo leen como «no hay dueño previo, no preguntes», y el bulk push sube el almacén entero.
+  - Es a propósito, según su comentario («behave as before this existed rather than interrogating a
+    user who may well be the rightful owner»).
+  - Es la clase de `R9-134`. **Decide Victor:** fallar cerrado (preguntar) o abierto, como hoy. Lo
+    reportó la sesión en la nube.
+
+- **`R9-159` (S24, arnés de pruebas — P3) — 🐛 en unas 41 suites el mock de `useRouter` devuelve un
+  objeto nuevo en cada render, así que ninguna ve una dependencia faltante de `useCallback` sobre
+  `router`.** PLAUSIBLE: lo reportó la sesión en la nube, con `prepTableScreenPremium.test.tsx` como
+  ejemplo, y el orquestador no lo verificó.
+  - El `useRouter()` real devuelve un objeto estable. El arnés de
+    `prepTableScreenPassageKeying.test.tsx` ya lo imita desde la sesión 24, y el resto no.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -2266,6 +2371,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
      `cursorDeAna − 5 min` en vez de 0, y un doc de Beto de hace 1 hora no baja nunca
      (`betoViejoAplicado:false`): en un teléfono nuevo para Beto, su historial anterior no llega.
      Es el mismo agujero que `R9-153` (`handleSnapshot` sin sesión), y el mismo arreglo los cierra.
+     **✅ Sesión 24:** el punto 4 quedó ARREGLADO junto con `R9-153` (`a7d688e`). `advanceCursor` es
+     síncrono hasta su `setItem`, así que no queda ventana.
 
 - **`R9-123` (S19, docs de la revisión — P3, agrupado).** Afirmaciones falsas o rancias en los
   propios docs, medidas contra git y contra el código:
