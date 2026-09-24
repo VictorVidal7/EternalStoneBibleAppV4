@@ -243,6 +243,7 @@ import {
   SyncEngine,
   cursorStorageKey,
   droppedStorageKey,
+  unsettledStorageKey,
   CURSOR_SAFETY_MARGIN_MS,
 } from '../src/lib/sync/SyncEngine';
 import {__resetFirestoreCacheForTests} from '../src/lib/sync/firestore';
@@ -536,10 +537,17 @@ describe('applyRemoteChange — LWW', () => {
       },
     ]);
     await flush();
-    const raw = await AsyncStorage.getItem('@sync_cursor_test:uid');
-    const floor = raw === null ? 0 : Number(raw) - CURSOR_SAFETY_MARGIN_MS;
     // The next reattach queries updatedAt >= floor. If that floor is past
     // doc-old, the change this device never took is gone forever.
+    // (R9-106: measured on a real reattach, not derived from the cursor. The
+    // cursor itself now follows doc-new; what holds the floor is the
+    // persisted set of unsettled docs, which the cursor alone could only do
+    // inside this one batch.)
+    engine.stop();
+    await engine.start('uid');
+    const floor = mockCollections
+      .get('users/uid/test')!
+      .__whereClauses.find(c => c.field === 'updatedAt')?.value;
     expect(floor).toBeLessThanOrEqual(1_000_000);
   });
 
@@ -2060,7 +2068,16 @@ describe('R9-65 — un doc en conflicto tambien tiene que frenar el cursor', () 
     // `stop()` limpia `this.conflicts` por transitorios, un reinicio antes de
     // resolverlo pierde el conflicto Y el cursor ya paso de largo: el cambio
     // remoto se cae en silencio.
-    expect(engine.__getCursorForTests('test')).toBeLessThan(505_000);
+    //
+    // R9-106: medido en el enganche de verdad tras el reinicio, no en el
+    // cursor. El cursor ahora SI sigue al hermano; lo que sostiene el suelo es
+    // el conjunto persistido de docs sin asentar.
+    engine.stop();
+    await engine.start(uid);
+    const floor = mockCollections
+      .get(`users/${uid}/test`)!
+      .__whereClauses.find(c => c.field === 'updatedAt')?.value;
+    expect(floor).toBeLessThan(505_000);
   });
 });
 
@@ -2885,6 +2902,179 @@ describe('R9-153 / R9-122.4 — un lote de Ana en vuelo tras el stop() no pasa a
       ['users/uid-beto/test', 'doc-beto'],
     ]);
   });
+
+  it('R9-106: el conjunto de no asentados del lote de Ana va bajo la clave de Ana, y su cursor no cae en Beto', async () => {
+    // El `stop()` cae mientras se GUARDA el conjunto (el await nuevo de
+    // R9-106), con el bucle ya terminado: a2 quedo retenido y a1 aplicado.
+    const base = Date.now() - 60_000;
+    const {engine, release, remoteUpsertCalls} =
+      await anaWithBatchInFlight(base);
+    const saving = holdStorage(
+      'setItem',
+      unsettledStorageKey('test', 'uid-ana'),
+    );
+    release();
+    await settle();
+    // Control: el lote esta parado justo en esa escritura.
+    expect(saving.hits).toHaveLength(1);
+
+    const betoContinues = await betoStartsAndPauses(engine);
+    saving.release();
+    await settle();
+    await betoContinues();
+
+    // Pre-fix de la guarda: `advanceCursor` corria ya en la sesion de Beto y
+    // dejaba el maximo de Ana (a1) en su cache y bajo su clave: su piso salia
+    // en `base - 10 s - 5 min` y b-viejo no bajaba (R9-122.4 otra vez).
+    expect({
+      ...(await betoFirstAttach(remoteUpsertCalls)),
+      conjuntoAna: JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-ana')))!,
+      ),
+      conjuntoBeto: await AsyncStorage.getItem(
+        unsettledStorageKey('test', 'uid-beto'),
+      ),
+    }).toEqual({
+      betoFloor: 0,
+      betoCursorOnEntry: null,
+      anaCursor: null,
+      betoOldDocApplied: true,
+      conjuntoAna: {a2: base + 5_000},
+      conjuntoBeto: null,
+    });
+  });
+
+  it('R9-106: el guardado tardio del conjunto de Ana no le borra a Beto la marca de «no guardado»', async () => {
+    // Beto tiene un conflicto cuyo conjunto NO llega a disco (disco lleno),
+    // asi que su cursor persistido no puede pasarlo. El guardado de Ana, que
+    // seguia en vuelo desde antes del stop(), vuelve bien en ese momento.
+    const base = Date.now() - 60_000;
+    const {engine, release, localStore} = await anaWithBatchInFlight(base);
+    const anaSave = holdStorage(
+      'setItem',
+      unsettledStorageKey('test', 'uid-ana'),
+    );
+    release();
+    await settle();
+    // Control: el guardado de Ana esta en vuelo.
+    expect(anaSave.hits).toHaveLength(1);
+    engine.stop();
+
+    const setItem = AsyncStorage.setItem as unknown as jest.Mock;
+    const beforeFull = setItem.getMockImplementation()!;
+    setItem.mockImplementation(async (k: string, ...rest: unknown[]) => {
+      if (k === unsettledStorageKey('test', 'uid-beto')) {
+        throw new Error('database or disk is full');
+      }
+      return beforeFull(k, ...rest);
+    });
+    restoreStorage.push(() => setItem.mockImplementation(beforeFull));
+
+    await engine.start('uid-beto');
+    await settle();
+    const betoT = Date.now() - 120_000;
+    localStore.set('b1', {value: 'de-beto', updatedAt: betoT});
+    fireRemote('uid-beto', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'b1',
+          exists: true,
+          data: () => ({value: 'otro', updatedAt: betoT + 5_000}),
+        },
+      },
+    ]);
+    await settle();
+    // Control: Beto tiene su conflicto y su conjunto no esta en disco.
+    expect(engine.getState().conflicts.map(c => c.id)).toEqual(['test__b1']);
+    expect(
+      await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-beto')),
+    ).toBeNull();
+
+    anaSave.release();
+    await settle();
+    fireRemote('uid-beto', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'b2',
+          exists: true,
+          data: () => ({value: 'otro', updatedAt: betoT + 600_000}),
+        },
+      },
+    ]);
+    await settle();
+
+    // Sin la guarda, el exito de Ana borraba la marca de Beto: su cursor
+    // pasaba b1, que no estaba en disco, y tras un reinicio se enterraba.
+    expect(
+      Number(await AsyncStorage.getItem(cursorStorageKey('test', 'uid-beto'))),
+    ).toBeLessThan(betoT + 5_000);
+  });
+
+  it('R9-106: el conjunto de Ana que se estaba LEYENDO al salir no se queda en la sesion de Beto', async () => {
+    // Ana tiene un doc retenido de hace 2 horas. Su enganche esta leyendo el
+    // conjunto cuando sale, y la lectura vuelve con Beto a mitad de start().
+    await AsyncStorage.setItem('@sync_first_push_done:uid-ana', '2');
+    await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
+    const twoHoursAgo = Date.now() - 2 * 60 * 60 * 1000;
+    await AsyncStorage.setItem(
+      unsettledStorageKey('test', 'uid-ana'),
+      JSON.stringify({'a-retenido': twoHoursAgo}),
+    );
+    const betoCursor = Date.now() - 60_000;
+    await AsyncStorage.setItem(
+      cursorStorageKey('test', 'uid-beto'),
+      String(betoCursor),
+    );
+    const anaRead = holdStorage(
+      'getItem',
+      unsettledStorageKey('test', 'uid-ana'),
+    );
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    const engine = new SyncEngine();
+    engine.register(adapter);
+    const anaStarted = engine.start('uid-ana');
+    await settle();
+    // Control: el enganche de Ana esta parado en esa lectura.
+    expect(anaRead.hits).toHaveLength(1);
+
+    const betoContinues = await betoStartsAndPauses(engine);
+    anaRead.release();
+    await settle();
+    await anaStarted;
+    await betoContinues();
+
+    // Beto recibe un conflicto suyo, y eso guarda SU conjunto.
+    localStore.set('b1', {value: 'de-beto', updatedAt: betoCursor + 10_000});
+    fireRemote('uid-beto', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'b1',
+          exists: true,
+          data: () => ({value: 'otro', updatedAt: betoCursor + 15_000}),
+        },
+      },
+    ]);
+    await settle();
+
+    // Pre-fix de la guarda: el conjunto de Ana quedaba en la cache de la
+    // sesion de Beto, le bajaba el piso 2 horas y se guardaba bajo SU clave.
+    expect({
+      betoFloor: mockCollections
+        .get('users/uid-beto/test')!
+        .__whereClauses.find(c => c.field === 'updatedAt')?.value,
+      conjuntoBeto: JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-beto')))!,
+      ),
+    }).toEqual({
+      betoFloor: betoCursor - CURSOR_SAFETY_MARGIN_MS,
+      conjuntoBeto: {b1: betoCursor + 15_000},
+    });
+  });
 });
 
 describe('R9-154 — la supresion de ecos en keepTheirs, en merge y su profundidad', () => {
@@ -3200,4 +3390,475 @@ describe('R9-36 — conservar lo mio sube lo local de AHORA, no la foto de la de
     ).toEqual([]);
     expect(engine.__getQueueForTests()).toEqual([]);
   });
+});
+
+describe('R9-39 / R9-106 — un doc sin asentar no lo entierra el cursor de OTRO doc', () => {
+  // R9-65 y R9-46 frenaban el cursor por debajo del doc en conflicto o no
+  // aplicado, pero solo dentro de SU lote: el cursor es uno por coleccion y
+  // solo avanza, asi que cualquier lote posterior (el eco de una edicion
+  // propia, por ejemplo) o un keepMine de otro conflicto lo pasaban por
+  // encima. Despues, `stop()` vaciaba los conflictos confiando en que el
+  // siguiente enganche los volveria a detectar, y el piso ya no llegaba.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  type Doc = {id: string; data: Record<string, unknown>};
+
+  function fire(uid: string, docs: Doc[]): void {
+    fireRemote(
+      uid,
+      docs.map(d => ({
+        type: 'modified',
+        doc: {id: d.id, exists: true, data: () => d.data},
+      })),
+    );
+  }
+
+  function floorOf(uid: string): unknown {
+    return mockCollections
+      .get(`users/${uid}/test`)!
+      .__whereClauses.find(c => c.field === 'updatedAt')?.value;
+  }
+
+  /** Cierra la app y la vuelve a abrir con la misma cuenta. */
+  async function restart(engine: SyncEngine, uid: string): Promise<void> {
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+  }
+
+  async function engineFor(uid: string, material = true) {
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    const fixture = makeAdapter(
+      material ? {getMaterialFields: () => ['value']} : {},
+    );
+    const engine = new SyncEngine();
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    return {engine, ...fixture};
+  }
+
+  const HOUR = 60 * 60 * 1000;
+
+  it('R9-106: un conflicto, un lote posterior con otro doc 10 min mas nuevo, y un reinicio: el conflicto vuelve', async () => {
+    const uid = 'uid-106';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid);
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T});
+    const suyo = {id: 'doc-c', data: {value: 'lo suyo', updatedAt: T + 5_000}};
+
+    fire(uid, [suyo]);
+    await settle();
+    const conflictosAntes = engine.__getConflictsForTests().length;
+    // Otro lote, otro doc: el eco de una edicion propia 10 min despues.
+    const eco = {id: 'doc-eco', data: {value: 'mio', updatedAt: T + 595_000}};
+    localStore.set('doc-eco', eco.data as SyncEntity<TestEntity>);
+    fire(uid, [eco]);
+    await settle();
+    const cursorTrasEco = engine.__getCursorForTests('test');
+
+    await restart(engine, uid);
+    // Lo que Firestore le entrega al enganche nuevo: solo lo que pasa el piso.
+    fire(uid, [suyo, eco]);
+    await settle();
+
+    // Pre-fix (cifras de la entrada R9-106): cursor T+595000, piso tras
+    // reiniciar T+295000, y el conflicto no volvia (conflictosTrasReinicio 0):
+    // lo local se quedaba con «lo mio» y el cambio remoto se perdia.
+    expect({
+      conflictosAntes,
+      cursorTrasEco: cursorTrasEco! - T,
+      pisoTrasReinicio: (floorOf(uid) as number) - T,
+      conflictosTrasReinicio: engine.__getConflictsForTests().map(c => c.docId),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      conflictosAntes: 1,
+      cursorTrasEco: 595_000,
+      // El conflicto (T+5000) queda por encima del piso: 1 ms por debajo de
+      // el, menos el margen de 5 min, igual que el cursor.
+      pisoTrasReinicio: 5_000 - 1 - CURSOR_SAFETY_MARGIN_MS,
+      conflictosTrasReinicio: ['doc-c'],
+      local: 'lo mio',
+    });
+  });
+
+  it('R9-106: resolver un conflicto con keepMine no entierra otro pendiente de la misma coleccion', async () => {
+    const uid = 'uid-106-dos';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid);
+    localStore.set('doc-a', {value: 'mio a', updatedAt: T});
+    localStore.set('doc-b', {value: 'mio b', updatedAt: T + 60_000});
+    const suyoA = {id: 'doc-a', data: {value: 'suyo a', updatedAt: T + 5_000}};
+    const suyoB = {
+      id: 'doc-b',
+      data: {value: 'suyo b', updatedAt: T + 65_000},
+    };
+    fire(uid, [suyoA]);
+    await settle();
+    fire(uid, [suyoB]);
+    await settle();
+    // Control: dos conflictos pendientes.
+    expect(engine.__getConflictsForTests().map(c => c.docId)).toEqual([
+      'doc-a',
+      'doc-b',
+    ]);
+
+    await engine.resolveConflict('test__doc-a', 'keepMine');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // keepMine avanza el cursor a «ahora» (su updatedAt re-sellado).
+    const cursorTrasResolver = engine.__getCursorForTests('test')!;
+    expect(cursorTrasResolver).toBeGreaterThan(T + HOUR - 60_000);
+
+    await restart(engine, uid);
+    const pushedA = mockDocSets.filter(d => d.id === 'doc-a').at(-1)!;
+    fire(uid, [
+      {id: 'doc-a', data: pushedA.data as Record<string, unknown>},
+      suyoB,
+    ]);
+    await settle();
+
+    // Pre-fix: piso = ahora - 5 min, doc-b (de hace 1 hora) no volvia.
+    expect(engine.__getConflictsForTests().map(c => c.docId)).toEqual([
+      'doc-b',
+    ]);
+    expect(localStore.get('doc-b')?.value).toBe('mio b');
+  });
+
+  it('R9-46 + R9-106: un doc saltado (la lectura local fallo) tampoco lo entierra un lote posterior', async () => {
+    const uid = 'uid-106-saltado';
+    const T = Date.now() - HOUR;
+    let dbReady = false;
+    const {engine, adapter, localStore} = await engineFor(uid, false);
+    // La BD aun no esta lista: la lectura de doc-viejo falla. (Se cambia el
+    // metodo del adaptador YA enganchado: un segundo `register()` no cambia
+    // el adaptador que usa el listener.)
+    adapter.getLocal = async id => {
+      if (id === 'doc-viejo' && !dbReady) throw new Error('database is locked');
+      return localStore.get(id) ?? null;
+    };
+    const viejo = {id: 'doc-viejo', data: {value: 'remoto', updatedAt: T}};
+    fire(uid, [viejo]);
+    await settle();
+    // Control: el doc se salto de verdad.
+    expect(localStore.has('doc-viejo')).toBe(false);
+    fire(uid, [
+      {id: 'doc-nuevo', data: {value: 'otro', updatedAt: T + 600_000}},
+    ]);
+    await settle();
+
+    dbReady = true;
+    await restart(engine, uid);
+    fire(uid, [viejo]);
+    await settle();
+
+    // Pre-fix: el lote de doc-nuevo llevaba el cursor a T+600000, el piso a
+    // T+300000, y doc-viejo no volvia a llegar nunca.
+    expect(localStore.get('doc-viejo')?.value).toBe('remoto');
+  });
+
+  it('control: sin nada sin asentar, el cursor avanza igual que hoy y no se guarda ningun conjunto', async () => {
+    // No discrimina contra R9-39, a proposito: impide que el arreglo retenga
+    // el piso sin motivo, que es pura cuota.
+    const uid = 'uid-106-control';
+    const T = Date.now() - HOUR;
+    const {engine} = await engineFor(uid);
+    fire(uid, [
+      {id: 'd1', data: {value: 'a', updatedAt: T + 1_000}},
+      {id: 'd2', data: {value: 'b', updatedAt: T + 2_000}},
+    ]);
+    await settle();
+    fire(uid, [{id: 'd3', data: {value: 'c', updatedAt: T + 9_000}}]);
+    await settle();
+
+    await restart(engine, uid);
+    expect({
+      cursor: await AsyncStorage.getItem(cursorStorageKey('test', uid)),
+      conjunto: await AsyncStorage.getItem(unsettledStorageKey('test', uid)),
+      piso: floorOf(uid),
+    }).toEqual({
+      cursor: String(T + 9_000),
+      conjunto: null,
+      piso: T + 9_000 - CURSOR_SAFETY_MARGIN_MS,
+    });
+  });
+
+  it('el piso se libera al resolver: tras el reinicio vuelve a cursor - 5 min', async () => {
+    const uid = 'uid-106-libera';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid);
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T});
+    fire(uid, [{id: 'doc-c', data: {value: 'lo suyo', updatedAt: T + 5_000}}]);
+    await settle();
+    fire(uid, [{id: 'doc-eco', data: {value: 'x', updatedAt: T + 600_000}}]);
+    await settle();
+    // Control: mientras esta pendiente, el conjunto guardado lo retiene.
+    expect(
+      JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', uid)))!,
+      ),
+    ).toEqual({'doc-c': T + 5_000});
+
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await restart(engine, uid);
+
+    // Sin liberarlo, el piso se quedaba en el conflicto ya resuelto para
+    // siempre: cada arranque releia la coleccion desde ahi.
+    expect({
+      conjunto: await AsyncStorage.getItem(unsettledStorageKey('test', uid)),
+      piso: floorOf(uid),
+    }).toEqual({
+      conjunto: null,
+      piso: T + 600_000 - CURSOR_SAFETY_MARGIN_MS,
+    });
+  });
+
+  it('el piso se libera cuando un doc saltado por fin se aplica', async () => {
+    const uid = 'uid-106-libera-saltado';
+    const T = Date.now() - HOUR;
+    let dbReady = false;
+    const {engine, adapter, localStore} = await engineFor(uid, false);
+    adapter.getLocal = async id => {
+      if (!dbReady) throw new Error('database is locked');
+      return localStore.get(id) ?? null;
+    };
+    const viejo = {id: 'doc-viejo', data: {value: 'remoto', updatedAt: T}};
+    fire(uid, [viejo]);
+    await settle();
+    // Control: el doc se salto y quedo retenido.
+    expect(localStore.has('doc-viejo')).toBe(false);
+    expect(
+      JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', uid)))!,
+      ),
+    ).toEqual({'doc-viejo': T});
+    dbReady = true;
+    fire(uid, [
+      {id: 'doc-nuevo', data: {value: 'otro', updatedAt: T + 600_000}},
+    ]);
+    await settle();
+
+    await restart(engine, uid);
+    fire(uid, [viejo]);
+    await settle();
+    // Control: esta vez si se aplico.
+    expect(localStore.get('doc-viejo')?.value).toBe('remoto');
+
+    await restart(engine, uid);
+    expect({
+      conjunto: await AsyncStorage.getItem(unsettledStorageKey('test', uid)),
+      piso: floorOf(uid),
+    }).toEqual({
+      conjunto: null,
+      piso: T + 600_000 - CURSOR_SAFETY_MARGIN_MS,
+    });
+  });
+
+  it('el piso se libera si un doc retenido desaparece de la nube (removed)', async () => {
+    const uid = 'uid-106-removed';
+    const T = Date.now() - HOUR;
+    const {engine, adapter} = await engineFor(uid, false);
+    adapter.getLocal = async id => {
+      if (id === 'doc-viejo') throw new Error('database is locked');
+      return null;
+    };
+    fire(uid, [{id: 'doc-viejo', data: {value: 'remoto', updatedAt: T}}]);
+    await settle();
+    fire(uid, [
+      {id: 'doc-nuevo', data: {value: 'otro', updatedAt: T + 600_000}},
+    ]);
+    await settle();
+    // Control: retenido.
+    expect(
+      JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', uid)))!,
+      ),
+    ).toEqual({'doc-viejo': T});
+
+    fireRemote(uid, [
+      {
+        type: 'removed',
+        // Como en Firestore, el `removed` trae la ultima version del doc.
+        doc: {
+          id: 'doc-viejo',
+          exists: false,
+          data: () => ({value: 'remoto', updatedAt: T}),
+        },
+      },
+    ]);
+    await settle();
+    // Un doc que ya no existe nunca se va a volver a entregar para asentarse:
+    // retenerlo dejaba el piso abajo para siempre.
+    await restart(engine, uid);
+    expect(floorOf(uid)).toBe(T + 600_000 - CURSOR_SAFETY_MARGIN_MS);
+  });
+
+  it('si el conjunto no llega a disco, el cursor mismo no pasa el doc retenido; y en cuanto llega, avanza', async () => {
+    const uid = 'uid-106-disco';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid);
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T});
+    const setItem = AsyncStorage.setItem as unknown as jest.Mock;
+    const realSetItem = setItem.getMockImplementation()!;
+    let diskFull = true;
+    setItem.mockImplementation(async (k: string, v: string) => {
+      if (diskFull && k === unsettledStorageKey('test', uid)) {
+        throw new Error('database or disk is full');
+      }
+      return realSetItem(k, v);
+    });
+    try {
+      fire(uid, [
+        {id: 'doc-c', data: {value: 'lo suyo', updatedAt: T + 5_000}},
+        {id: 'doc-eco', data: {value: 'x', updatedAt: T + 600_000}},
+      ]);
+      await settle();
+      // Control: el conflicto existe, y lo que se retiene es el.
+      expect(engine.__getConflictsForTests().map(c => c.docId)).toEqual([
+        'doc-c',
+      ]);
+      // El conjunto no se guardo: el cursor persistido es lo unico que habra
+      // tras un reinicio, y no puede pasar el conflicto.
+      const cursorSinConjunto = Number(
+        await AsyncStorage.getItem(cursorStorageKey('test', uid)),
+      );
+      expect(cursorSinConjunto).toBeLessThan(T + 5_000);
+
+      diskFull = false;
+      fire(uid, [{id: 'doc-otro', data: {value: 'y', updatedAt: T + 700_000}}]);
+      await settle();
+      expect({
+        conjunto: JSON.parse(
+          (await AsyncStorage.getItem(unsettledStorageKey('test', uid)))!,
+        ),
+        cursor: await AsyncStorage.getItem(cursorStorageKey('test', uid)),
+      }).toEqual({
+        conjunto: {'doc-c': T + 5_000},
+        cursor: String(T + 700_000),
+      });
+    } finally {
+      setItem.mockImplementation(realSetItem);
+    }
+  });
+
+  it('un conjunto ilegible en disco: el enganche relee la coleccion desde 0, como un cursor ilegible', async () => {
+    const uid = 'uid-106-ilegible';
+    const T = Date.now() - HOUR;
+    await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+    await AsyncStorage.setItem(unsettledStorageKey('test', uid), '{no es json');
+    await engineFor(uid);
+    // No se sabe que docs retenia: menos que todo podria dejar uno enterrado.
+    expect(floorOf(uid)).toBe(0);
+  });
+
+  it('al salir Ana, su conjunto en memoria se va con ella: no le baja el piso a Beto', async () => {
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor('uid-ana');
+    await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
+    const betoCursor = Date.now() - 60_000;
+    await AsyncStorage.setItem(
+      cursorStorageKey('test', 'uid-beto'),
+      String(betoCursor),
+    );
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T});
+    fire('uid-ana', [
+      {id: 'doc-c', data: {value: 'lo suyo', updatedAt: T + 5_000}},
+    ]);
+    await settle();
+    // Control: Ana lo retiene.
+    expect(
+      JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-ana')))!,
+      ),
+    ).toEqual({'doc-c': T + 5_000});
+
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+    // Beto recibe un conflicto suyo, y eso guarda SU conjunto.
+    localStore.set('b1', {value: 'de-beto', updatedAt: betoCursor + 10_000});
+    fire('uid-beto', [
+      {id: 'b1', data: {value: 'otro', updatedAt: betoCursor + 15_000}},
+    ]);
+    await settle();
+
+    // Sin limpiarlo en stop(), el enganche de Beto encontraba el de Ana en la
+    // cache: su piso bajaba a la hora del conflicto de Ana y doc-c se
+    // guardaba bajo la clave de Beto.
+    expect({
+      betoFloor: floorOf('uid-beto'),
+      conjuntoBeto: JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-beto')))!,
+      ),
+    }).toEqual({
+      betoFloor: betoCursor - CURSOR_SAFETY_MARGIN_MS,
+      conjuntoBeto: {b1: betoCursor + 15_000},
+    });
+  });
+
+  it.each<['keepTheirs' | 'merge']>([['keepTheirs'], ['merge']])(
+    'R9-153: %s con el apply local en vuelo al cambiar de cuenta no escribe nada en la sesion de Beto',
+    async choice => {
+      const T = Date.now() - HOUR;
+      const {engine, localStore, adapter} = await engineFor('uid-ana');
+      await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
+      localStore.set('doc-c', {value: 'lo mio', updatedAt: T});
+      fire('uid-ana', [
+        {id: 'doc-c', data: {value: 'lo suyo', updatedAt: T + 5_000}},
+      ]);
+      await settle();
+      let release!: () => void;
+      const gate = new Promise<void>(resolve => {
+        release = resolve;
+      });
+      const applies: string[] = [];
+      adapter.applyRemoteUpsert = async (id, data) => {
+        applies.push(id);
+        await gate;
+        localStore.set(id, data);
+      };
+
+      const resolving = engine.resolveConflict(
+        'test__doc-c',
+        choice,
+        choice === 'merge' ? {value: 'combinado', updatedAt: 0} : undefined,
+      );
+      resolving.catch(() => undefined);
+      await settle();
+      // Control: el apply esta EN VUELO cuando cambia la cuenta.
+      expect(applies).toEqual(['doc-c']);
+      engine.stop();
+      await engine.start('uid-beto');
+      await settle();
+      release();
+      await expect(resolving).rejects.toThrow('the session ended');
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+
+      // Pre-fix: la auditoria de Ana caia en users/uid-beto/conflicts, su
+      // updatedAt en el cursor de Beto y, con merge, el valor combinado en
+      // users/uid-beto/test.
+      expect({
+        enBeto: mockDocSets
+          .filter(d => d.path.startsWith('users/uid-beto/'))
+          .map(d => `${d.path}/${d.id}`),
+        cursorBeto: await AsyncStorage.getItem(
+          cursorStorageKey('test', 'uid-beto'),
+        ),
+        // Y a Ana se le sigue reteniendo: el conflicto le vuelve al regresar.
+        conjuntoAna: JSON.parse(
+          (await AsyncStorage.getItem(unsettledStorageKey('test', 'uid-ana')))!,
+        ),
+      }).toEqual({
+        enBeto: [],
+        cursorBeto: null,
+        conjuntoAna: {'doc-c': T + 5_000},
+      });
+    },
+  );
 });

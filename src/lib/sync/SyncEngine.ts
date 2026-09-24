@@ -184,6 +184,17 @@ export function cursorStorageKey(collection: string, uid: string): string {
   return `${CURSOR_STORAGE_PREFIX}${collection}:${uid}`;
 }
 
+const UNSETTLED_STORAGE_PREFIX = '@sync_unsettled_';
+
+/**
+ * R9-39 / R9-106 — where a collection's unsettled docs live (see
+ * `unsettled`). Per uid, like the cursor it holds down. Exported so tests can
+ * seed/assert it without duplicating the format.
+ */
+export function unsettledStorageKey(collection: string, uid: string): string {
+  return `${UNSETTLED_STORAGE_PREFIX}${collection}:${uid}`;
+}
+
 const DROPPED_STORAGE_PREFIX = '@sync_dropped_';
 
 /** R9-33 — where the give-up counter lives. Per-uid, like the cursors: one
@@ -305,6 +316,31 @@ export class SyncEngine {
    * touches it afterwards (R9-122.4, see `handleSnapshot`).
    */
   private cursors = new Map<string, number>();
+  /**
+   * R9-39 / R9-106 — per collection, the docs whose remote change this device
+   * has NOT settled yet: pending conflicts, and docs skipped because their
+   * local state could not be read (R9-46). docId → the remote `updatedAt`
+   * being held. Persisted per uid (`unsettledStorageKey`) and loaded with the
+   * cursor on every attach, where the query floor is held below the lowest
+   * of them; a doc leaves the set once it settles (applied, ignored by LWW,
+   * removed, or its conflict resolved).
+   *
+   * The cursor alone could never do this. It is ONE value per collection
+   * that only moves forward, so holding it below a held doc worked only
+   * inside that doc's own batch (R9-65 / R9-46): any later batch of the same
+   * collection — the echo of an edit of the user's own, say — carried it
+   * past, and so did a `keepMine` on another conflict (it advances to now).
+   * After that, `stop()` dropping the in-memory conflicts lost them for
+   * good: the next attach's floor no longer reached them, and the next edit
+   * of either side let LWW delete the other one in silence.
+   *
+   * Cleared on `stop()` with the cursors, for the same reason.
+   */
+  private unsettled = new Map<string, Map<string, number>>();
+  /** R9-106 — collections whose `unsettled` set did not reach disk. While
+   *  one is here, `advanceCursor` holds the persisted cursor itself below
+   *  its lowest held doc: after a restart, the cursor is all there is. */
+  private unsettledUnsaved = new Set<string>();
   /** Sprint 43 — when set, the next maybeRunInitialBulkPush persists the
    *  done-flag without actually queueing any rows. Used by the migration
    *  flow in AuthContext when the user opts out of migrating anonymous
@@ -459,13 +495,20 @@ export class SyncEngine {
     this.uid = null;
     // Conflicts are transient — they snapshot the local doc at detection
     // time. If the user signs back in, fresh onSnapshot events will
-    // re-detect any still-divergent docs.
+    // re-detect any still-divergent docs: each one is still in its
+    // collection's persisted `unsettled` set, and the next attach's query
+    // floor is held below it (R9-39 / R9-106). Before that set existed this
+    // promise was false as soon as any other doc of the collection had moved
+    // the cursor past the conflict.
     this.conflicts = [];
     // Quota hardening — drop the in-memory cursor cache so a later
     // start() (same uid signing back in, or a DIFFERENT uid on the same
     // device) always re-derives cursors from AsyncStorage (uid-scoped
     // keys) rather than risking a stale value leaking across accounts.
+    // The unsettled sets go with them, for the same reason.
     this.cursors.clear();
+    this.unsettled.clear();
+    this.unsettledUnsaved.clear();
     this.updateState({
       isActive: false,
       isSyncing: false,
@@ -837,13 +880,23 @@ export class SyncEngine {
     // '>=', 0)` matches everything — the first attach still pulls full
     // history, exactly as before this change.
     const cursor = await this.loadCursor(adapter.collection);
+    const lowestUnsettled = await this.loadUnsettled(
+      adapter.collection,
+      uidAtAttach,
+    );
     // stop() (sign-out/deleteAccount, or a uid change) can land while the
-    // AsyncStorage read above is in flight. Attaching anyway would put a
+    // AsyncStorage reads above are in flight. Attaching anyway would put a
     // live listener into `unsubs` for an engine that's supposed to be
     // stopped — exactly the listener the ordering fix in
     // AuthContext.signOut exists to prevent, just via a different path.
     if (this.uid !== uidAtAttach) return;
-    const queryFloor = Math.max(0, cursor - CURSOR_SAFETY_MARGIN_MS);
+    // R9-39 / R9-106 — and never past a doc this device has not settled
+    // yet, whatever other docs moved the cursor since: a pending conflict
+    // must come back after a restart to be detected again, and a skipped
+    // doc to be applied at last. `-1` keeps the held doc itself at/above
+    // the floor; with nothing held this is `cursor` (Infinity - 1).
+    const floorCursor = Math.min(cursor, lowestUnsettled - 1);
+    const queryFloor = Math.max(0, floorCursor - CURSOR_SAFETY_MARGIN_MS);
     let query: Query = collectionRef;
     try {
       query = collectionRef.where('updatedAt', '>=', queryFloor);
@@ -908,6 +961,10 @@ export class SyncEngine {
     // owner's next attach delivers the batch again.
     const session = this.flushSession;
     const isCurrent = () => session === this.flushSession;
+    // R9-39 / R9-106 — the uid whose `unsettled` set this batch writes: the
+    // batch's own, captured with its session, never "whoever is signed in by
+    // the time the write runs".
+    const uid = this.uid;
     this.updateState({isSyncing: true});
     // Quota hardening — highest `updatedAt` observed in THIS batch, used
     // to advance the collection's sync cursor once we're done. Tracked
@@ -918,13 +975,22 @@ export class SyncEngine {
     // CURSOR_SAFETY_MARGIN_MS comment for why "advance the cursor" and
     // "never lose a change" aren't in tension here.
     let maxSeenUpdatedAt = 0;
-    // R9-46 — the lowest `updatedAt` in THIS batch whose local state we could
-    // not establish. Omitting such a doc from `maxSeenUpdatedAt` is not
-    // enough on its own: the cursor is a single value for the whole batch, so
-    // a NEWER sibling that applied fine would drag the query floor past the
-    // skipped doc and the next reattach would never deliver it again. The
-    // final cursor is clamped below this.
-    let lowestUnappliedUpdatedAt = Number.POSITIVE_INFINITY;
+    // R9-39 / R9-106 — the docs this batch holds back or settles. Every
+    // change below happens after an `isCurrent()` check, so it is always
+    // this session's set.
+    let unsettledChanged = false;
+    const hold = (id: string, updatedAt: unknown) => {
+      if (typeof updatedAt !== 'number') return;
+      const held = this.unsettledOf(adapter.collection);
+      if (held.get(id) === updatedAt) return;
+      held.set(id, updatedAt);
+      unsettledChanged = true;
+    };
+    const settle = (id: string) => {
+      if (this.unsettledOf(adapter.collection).delete(id)) {
+        unsettledChanged = true;
+      }
+    };
     try {
       for (const change of changes) {
         // Decode the Firestore doc id back to the logical id (see toDocId):
@@ -941,6 +1007,9 @@ export class SyncEngine {
             adapter.applyRemoteDelete(id),
           );
           if (!isCurrent()) return;
+          // Nor can a held doc that is gone ever come back to be settled:
+          // keeping it would hold the floor down for good.
+          settle(id);
           continue;
         }
         const remote = data as SyncEntity<Record<string, unknown>>;
@@ -957,15 +1026,9 @@ export class SyncEngine {
         if (!isCurrent()) return;
         if (!localKnown) {
           // R9-46 — the doc was NOT applied. Skip the cursor fold below AND
-          // hold the batch's cursor below this doc, so the query floor never
-          // moves past a change this device never took; the next reattach
-          // redelivers it.
-          if (
-            typeof remote.updatedAt === 'number' &&
-            remote.updatedAt < lowestUnappliedUpdatedAt
-          ) {
-            lowestUnappliedUpdatedAt = remote.updatedAt;
-          }
+          // hold it in the unsettled set, so no query floor moves past a
+          // change this device never took; the next reattach redelivers it.
+          hold(id, remote.updatedAt);
           continue;
         }
 
@@ -979,41 +1042,39 @@ export class SyncEngine {
         const stillConflicted = this.conflicts.some(
           c => c.collection === adapter.collection && c.docId === id,
         );
-        if (typeof remote.updatedAt !== 'number') {
-          // No timestamp to reason about either way.
-        } else if (stillConflicted) {
-          // R9-65 — withholding it from `maxSeenUpdatedAt` was never enough,
-          // for exactly the reason R9-46 documents above: the cursor is ONE
-          // value for the whole batch, so a newer sibling that applied fine
-          // drags the query floor past the held conflict anyway. And a
-          // conflict is more fragile than a skipped doc — `stop()` clears
-          // `this.conflicts` because they are transient, so a restart before
-          // the user picks a winner loses the conflict AND finds the cursor
-          // already past it: the remote change is gone silently.
+        if (stillConflicted) {
+          // R9-65 — a conflict is more fragile than a skipped doc: `stop()`
+          // clears `this.conflicts` because they are transient, so a restart
+          // before the user picks a winner loses the conflict, and only a
+          // redelivery can bring it back. Hold it like an unapplied doc.
           //
-          // Hold the batch cursor below it, same as an unapplied doc. The
-          // cost is re-reading this batch until the user resolves it, which
-          // `resolveConflict` ends by advancing the cursor itself; and
-          // `recordConflict` dedupes by doc id, so the redeliveries just
+          // The cost is re-reading from its `updatedAt` on every attach until
+          // the user resolves it, which `resolveConflict` ends by settling it;
+          // and `recordConflict` dedupes by doc id, so the redeliveries just
           // refresh the snapshot instead of piling up.
-          if (remote.updatedAt < lowestUnappliedUpdatedAt) {
-            lowestUnappliedUpdatedAt = remote.updatedAt;
+          hold(id, remote.updatedAt);
+        } else {
+          settle(id);
+          if (
+            typeof remote.updatedAt === 'number' &&
+            remote.updatedAt > maxSeenUpdatedAt
+          ) {
+            maxSeenUpdatedAt = remote.updatedAt;
           }
-        } else if (remote.updatedAt > maxSeenUpdatedAt) {
-          maxSeenUpdatedAt = remote.updatedAt;
         }
       }
+      // R9-106 — the held docs reach disk BEFORE the cursor moves past them.
+      // The batch max no longer stops below them (that only ever worked
+      // inside their own batch); it does not have to: the next attach reads
+      // the set and holds the floor down itself.
+      if (unsettledChanged || this.unsettledUnsaved.has(adapter.collection)) {
+        await this.saveUnsettled(adapter.collection, uid, isCurrent);
+        // R9-153 — `stop()` can land on this write too. The cursor below
+        // belongs to this session, and after it `this.uid` is the next one.
+        if (!isCurrent()) return;
+      }
       if (maxSeenUpdatedAt > 0) {
-        // R9-46 — never let the batch max carry the floor past a doc we
-        // skipped. `-1` keeps the skipped doc itself at/above the floor;
-        // with nothing skipped the min is a no-op (Infinity - 1).
-        const safeCursor = Math.min(
-          maxSeenUpdatedAt,
-          lowestUnappliedUpdatedAt - 1,
-        );
-        if (safeCursor > 0) {
-          await this.advanceCursor(adapter.collection, safeCursor);
-        }
+        await this.advanceCursor(adapter.collection, maxSeenUpdatedAt);
       }
       // R9-153 — `advanceCursor` waits on AsyncStorage: `stop()` can land
       // there too, and this "synced, no error" would then be the next
@@ -1221,7 +1282,13 @@ export class SyncEngine {
     // falls below the `cursor - CURSOR_SAFETY_MARGIN_MS` floor and the pull
     // stops for good. Capping costs nothing — at worst we re-read a
     // future-dated doc on the next reattach, and LWW ignores it.
-    const capped = Math.min(seenUpdatedAt, Date.now());
+    let capped = Math.min(seenUpdatedAt, Date.now());
+    // R9-106 — the held docs are normally on disk and the next attach holds
+    // the floor below them. When that write failed they are not, and the
+    // persisted cursor is all a restart would have: it may not pass them.
+    if (this.unsettledUnsaved.has(collection)) {
+      capped = Math.min(capped, this.lowestUnsettled(collection) - 1);
+    }
     const current = this.cursors.get(collection) ?? 0;
     if (capped <= current) return;
     this.cursors.set(collection, capped);
@@ -1242,6 +1309,119 @@ export class SyncEngine {
       // session simply falls back to an older cursor and re-reads a bit
       // more than strictly necessary. Never less.
     }
+  }
+
+  // ---------- private: unsettled docs (R9-39 / R9-106) ----------
+
+  /** This session's in-memory unsettled set for `collection`, created
+   *  empty if the attach has not loaded one. */
+  private unsettledOf(collection: string): Map<string, number> {
+    let held = this.unsettled.get(collection);
+    if (!held) {
+      held = new Map();
+      this.unsettled.set(collection, held);
+    }
+    return held;
+  }
+
+  /** The lowest `updatedAt` held for `collection`, Infinity if none. */
+  private lowestUnsettled(collection: string): number {
+    let lowest = Number.POSITIVE_INFINITY;
+    for (const updatedAt of this.unsettled.get(collection)?.values() ?? []) {
+      if (updatedAt < lowest) lowest = updatedAt;
+    }
+    return lowest;
+  }
+
+  /**
+   * Load `uid`'s unsettled set for `collection` into memory (once per
+   * session, like the cursor) and return its lowest `updatedAt`.
+   *
+   * A set that cannot be read returns 0, so this attach reads the collection
+   * from the start, as `loadCursor` does for an unreadable cursor: more than
+   * strictly necessary, never less. That full read redelivers every held doc,
+   * which puts the in-memory set back together before anything writes it.
+   */
+  private async loadUnsettled(
+    collection: string,
+    uid: string,
+  ): Promise<number> {
+    if (this.unsettled.has(collection)) return this.lowestUnsettled(collection);
+    const session = this.flushSession;
+    const held = new Map<string, number>();
+    let readable = true;
+    try {
+      const raw = await AsyncStorage.getItem(
+        unsettledStorageKey(collection, uid),
+      );
+      const parsed: unknown = raw != null ? JSON.parse(raw) : {};
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        for (const [id, updatedAt] of Object.entries(parsed)) {
+          if (
+            typeof updatedAt === 'number' &&
+            Number.isFinite(updatedAt) &&
+            updatedAt > 0
+          ) {
+            held.set(id, updatedAt);
+          }
+        }
+      }
+    } catch (err) {
+      readable = false;
+      logger.warn('SyncEngine: failed to read unsettled docs', {
+        component: 'SyncEngine',
+        collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+    // Only this session's cache: after a `stop()` it is the next account's.
+    if (session === this.flushSession && !this.unsettled.has(collection)) {
+      this.unsettled.set(collection, held);
+    }
+    if (!readable) return 0;
+    let lowest = Number.POSITIVE_INFINITY;
+    for (const updatedAt of held.values()) {
+      if (updatedAt < lowest) lowest = updatedAt;
+    }
+    return lowest;
+  }
+
+  /**
+   * Write `collection`'s unsettled set under `uid`'s key — the uid of the
+   * session that changed it, passed in, never read here. An empty set
+   * removes the key. On failure the collection is marked, so the cursor is
+   * held below the set until a later write lands (see `advanceCursor`).
+   */
+  private async saveUnsettled(
+    collection: string,
+    uid: string | null,
+    isCurrent: () => boolean,
+  ): Promise<void> {
+    const held = this.unsettledOf(collection);
+    let saved = false;
+    if (uid) {
+      try {
+        const key = unsettledStorageKey(collection, uid);
+        if (held.size === 0) {
+          await AsyncStorage.removeItem(key);
+        } else {
+          await AsyncStorage.setItem(
+            key,
+            JSON.stringify(Object.fromEntries(held)),
+          );
+        }
+        saved = true;
+      } catch (err) {
+        logger.warn('SyncEngine: failed to persist unsettled docs', {
+          component: 'SyncEngine',
+          collection,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
+    }
+    if (!isCurrent()) return;
+    if (saved) this.unsettledUnsaved.delete(collection);
+    else this.unsettledUnsaved.add(collection);
   }
 
   // ---------- private: reviewEvents cloud-only cleanup (quota hardening) ----------
@@ -1465,6 +1645,7 @@ export class SyncEngine {
     // next account's and `queueWrite` would push into THEIR cloud.
     const session = this.flushSession;
     const isCurrent = () => session === this.flushSession;
+    const uid = this.uid;
     let resolvedValue: SyncEntity<Record<string, unknown>>;
 
     if (choice === 'keepMine') {
@@ -1513,11 +1694,28 @@ export class SyncEngine {
             resolvedValue as SyncEntity<unknown>,
           ),
       );
+    }
+    // R9-153 — keepTheirs and merge wait on the local apply. Past a `stop()`
+    // everything below would run in the next account's session: merge's
+    // push into their cloud, this audit record into their `conflicts`, and
+    // the cursor and the unsettled set into their cache.
+    if (!isCurrent()) {
+      throw new Error('resolveConflict: the session ended while resolving');
+    }
+    if (choice === 'merge') {
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     }
 
     this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
     this.updateState({conflicts: [...this.conflicts]});
+
+    // R9-39 / R9-106 — the doc is settled: stop holding the query floor
+    // below it. Only THIS doc: another pending conflict of the collection
+    // stays held, even though the cursor below may jump to "now" (keepMine,
+    // merge) — before the unsettled set, that jump buried it.
+    if (this.unsettledOf(conflict.collection).delete(conflict.docId)) {
+      void this.saveUnsettled(conflict.collection, uid, isCurrent);
+    }
 
     // Quota hardening — this doc's timestamp was withheld from the
     // cursor while the conflict was pending (see handleSnapshot); now
