@@ -330,6 +330,13 @@ export class SyncEngine {
   /** Sprint 43 — active conflicts awaiting user resolution. */
   private conflicts: ConflictRecord[] = [];
   /**
+   * R9-161 — the pending conflicts whose doc THIS device has written since
+   * their `remoteVersion` arrived: an edit the user kept making, a delete.
+   * The cloud may then hold that write instead of "theirs", and keepTheirs
+   * has to push it (see `resolveConflict`). Cleared with the conflicts.
+   */
+  private conflictsWrittenHere = new Set<string>();
+  /**
    * Quota hardening — in-memory cache of each collection's sync cursor
    * (highest `updatedAt` observed), mirrored to AsyncStorage on every
    * advance. Keyed by collection name only, so whatever writes it after a
@@ -530,6 +537,7 @@ export class SyncEngine {
     // is re-detected even when the other device kept writing past the 30 s
     // window while it waited (R9-160).
     this.conflicts = [];
+    this.conflictsWrittenHere.clear();
     // Quota hardening — drop the in-memory cursor cache so a later
     // start() (same uid signing back in, or a DIFFERENT uid on the same
     // device) always re-derives cursors from AsyncStorage (uid-scoped
@@ -576,6 +584,7 @@ export class SyncEngine {
   queueWrite(collection: string, id: string, data: object): void {
     if (!this.uid) return;
     if (this.isSuppressed(collection, id)) return;
+    this.noteOwnWrite(collection, id);
     const asRecord = data as Record<string, unknown>;
     const entity: SyncEntity<object> = {
       ...asRecord,
@@ -604,6 +613,7 @@ export class SyncEngine {
   queueDelete(collection: string, id: string, lastKnownData?: object): void {
     if (!this.uid) return;
     if (this.isSuppressed(collection, id)) return;
+    this.noteOwnWrite(collection, id);
     const base = (lastKnownData as Record<string, unknown> | undefined) ?? {};
     const tombstone: SyncEntity<object> = {
       ...base,
@@ -1211,6 +1221,11 @@ export class SyncEngine {
           remoteVersion: data,
           differingFields: differing,
         });
+        // R9-161 — theirs is the cloud's latest now, unless a write of this
+        // device is still queued: that one lands after it.
+        if (!this.hasQueuedWrite(this.uid, adapter.collection, id)) {
+          this.conflictsWrittenHere.delete(pending.id);
+        }
         return true;
       }
       // The other device now holds what this one holds: there is nothing left
@@ -1706,11 +1721,32 @@ export class SyncEngine {
    *  this one already has. The caller applies that write. */
   private dropConflict(conflictId: string): void {
     this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
+    this.conflictsWrittenHere.delete(conflictId);
     this.updateState({conflicts: [...this.conflicts]});
     logger.info('SyncEngine: conflict dissolved', {
       component: 'SyncEngine',
       conflictId,
     });
+  }
+
+  /** R9-161 — see `conflictsWrittenHere`. */
+  private noteOwnWrite(collection: string, id: string): void {
+    const conflictId = `${collection}__${id}`;
+    if (this.conflicts.some(c => c.id === conflictId)) {
+      this.conflictsWrittenHere.add(conflictId);
+    }
+  }
+
+  /** R9-161 — whether `uid` has a write of this doc waiting in the queue
+   *  (not yet acknowledged, so not in the cloud yet). */
+  private hasQueuedWrite(
+    uid: string | null,
+    collection: string,
+    id: string,
+  ): boolean {
+    return this.queue.some(
+      q => q.uid === uid && q.collection === collection && q.id === id,
+    );
   }
 
   /**
@@ -1806,6 +1842,7 @@ export class SyncEngine {
     const isCurrent = () => session === this.flushSession;
     const uid = this.uid;
     let resolvedValue: SyncEntity<Record<string, unknown>>;
+    let pushTheirs = false;
 
     if (choice === 'keepMine') {
       // R9-36 — "mine" is the local copy NOW, not `conflict.localVersion`.
@@ -1831,7 +1868,19 @@ export class SyncEngine {
       resolvedValue = {...current, updatedAt: now};
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     } else if (choice === 'keepTheirs') {
-      resolvedValue = conflict.remoteVersion;
+      // R9-161 — "the cloud already has theirs" holds only while nothing of
+      // this device's reached it since, or waits in the queue to: its delete
+      // (then keepMine and the merge have nothing to work with, and this is
+      // the only way out), an edit the user kept making, one that could not
+      // upload. Then theirs is pushed too, re-stamped: the other devices may
+      // already hold that newer write, and LWW would ignore theirs with its
+      // old date. Otherwise nothing is pushed: the cloud has it.
+      pushTheirs =
+        this.conflictsWrittenHere.has(conflict.id) ||
+        this.hasQueuedWrite(uid, conflict.collection, conflict.docId);
+      resolvedValue = pushTheirs
+        ? {...conflict.remoteVersion, updatedAt: now}
+        : conflict.remoteVersion;
       // R9-160 — "theirs" can be a delete now: the other device deleted the
       // doc while the conflict waited.
       const theirsDeleted = resolvedValue.deleted === true;
@@ -1871,8 +1920,16 @@ export class SyncEngine {
     if (choice === 'merge') {
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     }
+    if (pushTheirs) {
+      if (resolvedValue.deleted === true) {
+        this.queueDelete(conflict.collection, conflict.docId, resolvedValue);
+      } else {
+        this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
+      }
+    }
 
     this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
+    this.conflictsWrittenHere.delete(conflictId);
     this.updateState({conflicts: [...this.conflicts]});
 
     // R9-39 / R9-106 — the doc is settled: stop holding the query floor

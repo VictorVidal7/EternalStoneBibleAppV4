@@ -4320,3 +4320,377 @@ describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro 
     }).toEqual({conflicts: [], local: R3});
   });
 });
+
+describe('R9-161 — «quedarme con lo suyo» deja lo local igual que la nube', () => {
+  // keepTheirs aplicaba `conflict.remoteVersion` y no encolaba nada: «la nube
+  // ya lo tiene». Deja de ser cierto si la nube se movio desde la deteccion.
+  // Lo que movio el OTRO telefono ya lo refresca R9-160; lo que queda es lo
+  // de ESTE: su borrado (F3), una edicion que ya subio, o una que sigue en la
+  // cola. Entonces lo local quedaba en R y la nube en otra cosa, para siempre
+  // si otro doc llevaba el cursor por encima.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  const HOUR = 60 * 60 * 1000;
+  const L = 'L: mi parrafo';
+  const R = 'R: su parrafo';
+  const R2 = 'R2: su parrafo, dos minutos despues';
+
+  type Doc = {id: string; data: Record<string, unknown>};
+
+  /** Un telefono con un conflicto L/R pendiente sobre doc-c (L en T, R 10 s
+   *  despues), y la nube de la cuenta: lo ultimo que le llego, sea lo que la
+   *  prueba entrega por el listener o lo que el motor subio. `antes` corre
+   *  entre el arranque y la llegada de R. */
+  async function phoneWithConflict(
+    uid: string,
+    antes?: (engine: SyncEngine, T: number) => Promise<void>,
+  ) {
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    const T = Date.now() - HOUR;
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    fixture.localStore.set('doc-c', {value: L, updatedAt: T});
+    const engine = new SyncEngine();
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    await antes?.(engine, T);
+
+    const nube = new Map<string, Record<string, unknown>>();
+    let vistos = 0;
+    const absorber = () => {
+      for (const d of mockDocSets.slice(vistos)) {
+        if (d.path === `users/${uid}/test`) {
+          nube.set(d.id, d.data as Record<string, unknown>);
+        }
+      }
+      vistos = mockDocSets.length;
+    };
+    const entregar = (docs: Doc[]) => {
+      absorber();
+      for (const d of docs) nube.set(d.id, d.data);
+      fireRemote(
+        uid,
+        docs.map(d => ({
+          type: 'modified',
+          doc: {id: d.id, exists: true, data: () => d.data},
+        })),
+      );
+    };
+    const sincronizar = async () => {
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      absorber();
+    };
+    /** Lo local y la nube de doc-c: el valor, o null si esta borrado. */
+    const estado = () => {
+      const enNube = nube.get('doc-c');
+      return {
+        local: fixture.localStore.get('doc-c')?.value ?? null,
+        nube: enNube && enNube.deleted !== true ? enNube.value : null,
+      };
+    };
+    /** Cierra y abre la app: el enganche nuevo recibe de la nube todo lo que
+     *  pasa su piso (el mock filtra por el `where`). */
+    const reiniciar = async () => {
+      engine.stop();
+      await engine.start(uid);
+      await settle();
+      entregar([...nube].map(([id, data]) => ({id, data})));
+      await settle();
+    };
+    const subidasDe = (id: string) =>
+      mockDocSets
+        .filter(d => d.path === `users/${uid}/test` && d.id === id)
+        .map(d => d.data as Record<string, unknown>);
+
+    entregar([{id: 'doc-c', data: {value: R, updatedAt: T + 10_000}}]);
+    await settle();
+    // Control: el conflicto L/R existe.
+    expect(
+      engine.__getConflictsForTests().map(c => c.remoteVersion.value),
+    ).toEqual([R]);
+    return {
+      engine,
+      T,
+      nube,
+      entregar,
+      sincronizar,
+      estado,
+      reiniciar,
+      subidasDe,
+      ...fixture,
+    };
+  }
+
+  /** Borra doc-c en ESTE telefono a T + `offset` (la lapida lleva esa fecha)
+   *  y la sube, con su eco de vuelta. */
+  async function borrarAqui(
+    w: Awaited<ReturnType<typeof phoneWithConflict>>,
+    offset: number,
+  ): Promise<Record<string, unknown>> {
+    w.localStore.delete('doc-c');
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(w.T + offset);
+    try {
+      w.engine.queueDelete('test', 'doc-c', {value: L});
+    } finally {
+      clock.mockRestore();
+    }
+    await w.sincronizar();
+    const lapida = w.nube.get('doc-c')!;
+    // Control: la lapida subio.
+    expect(lapida.deleted).toBe(true);
+    w.entregar([{id: 'doc-c', data: lapida}]);
+    await settle();
+    return lapida;
+  }
+
+  it('E2: el otro escribio R2 y otro doc adelanto el cursor: keepTheirs deja lo local en R2 sin subir nada, tambien tras reiniciar', async () => {
+    const w = await phoneWithConflict('uid-161-e2');
+    w.entregar([{id: 'doc-c', data: {value: R2, updatedAt: w.T + 120_000}}]);
+    await settle();
+    w.entregar([
+      {id: 'doc-otro', data: {value: 'x', updatedAt: w.T + 900_000}},
+    ]);
+    await settle();
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+    const trasResolver = w.estado();
+    await w.reiniciar();
+
+    // Pre-fix (sonda de la S25): lo local en R, la nube en R2, y tras
+    // reiniciar el piso quedaba por encima de R2: no volvia nunca.
+    expect({
+      trasResolver,
+      trasReiniciar: w.estado(),
+      subidas: w.subidasDe('doc-c'),
+    }).toEqual({
+      trasResolver: {local: R2, nube: R2},
+      trasReiniciar: {local: R2, nube: R2},
+      subidas: [],
+    });
+  });
+
+  it('F3: borre la nota aqui despues de la deteccion: keepMine no puede, y keepTheirs revive R aqui Y en la nube, tambien tras reiniciar', async () => {
+    const w = await phoneWithConflict('uid-161-f3');
+    const lapida = await borrarAqui(w, 60_000);
+    w.entregar([
+      {id: 'doc-otro', data: {value: 'x', updatedAt: w.T + 900_000}},
+    ]);
+    await settle();
+    // Control: sin copia local, keepMine rechaza, y «Combinar» no abre: lo
+    // unico que el usuario puede elegir es lo suyo.
+    await expect(
+      w.engine.resolveConflict('test__doc-c', 'keepMine'),
+    ).rejects.toThrow('no local copy');
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+    const trasResolver = w.estado();
+    const subida = w.subidasDe('doc-c').at(-1)!;
+    await w.reiniciar();
+
+    // Pre-fix (sonda de la S25): R revivia solo aqui, la nube se quedaba con
+    // la lapida, y tras reiniciar la lapida estaba por debajo del piso.
+    expect({
+      trasResolver,
+      trasReiniciar: w.estado(),
+      // Re-sellada: los demas telefonos ya vieron la lapida, y una R con su
+      // fecha vieja la ignorarian por LWW.
+      leGanaALaLapida:
+        (subida.updatedAt as number) > (lapida.updatedAt as number),
+    }).toEqual({
+      trasResolver: {local: R, nube: R},
+      trasReiniciar: {local: R, nube: R},
+      leGanaALaLapida: true,
+    });
+  });
+
+  it('borre la nota aqui y despues el otro escribio R2: keepTheirs aplica R2 y no sube nada, la nube ya lo tiene', async () => {
+    // No discrimina contra el codigo sin subida, a proposito: impide que la
+    // marca de «escribi aqui» sobreviva a la R2 del otro, que llego despues.
+    const w = await phoneWithConflict('uid-161-borrado-r2');
+    await borrarAqui(w, 60_000);
+    w.entregar([{id: 'doc-c', data: {value: R2, updatedAt: w.T + 120_000}}]);
+    await settle();
+    const subidasAntes = w.subidasDe('doc-c').length;
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+
+    expect({
+      estado: w.estado(),
+      subidasNuevas: w.subidasDe('doc-c').slice(subidasAntes),
+    }).toEqual({estado: {local: R2, nube: R2}, subidasNuevas: []});
+  });
+
+  it('segui escribiendo aqui y esa edicion ya subio: keepTheirs sube lo suyo, tambien tras reiniciar', async () => {
+    const w = await phoneWithConflict('uid-161-edite');
+    const edit = {value: 'L1: sigo escribiendo', updatedAt: w.T + 60_000};
+    w.localStore.set('doc-c', edit);
+    w.engine.queueWrite('test', 'doc-c', edit);
+    await w.sincronizar();
+    w.entregar([{id: 'doc-c', data: edit}]);
+    await settle();
+    // Control: la edicion esta en la nube.
+    expect(w.estado().nube).toBe('L1: sigo escribiendo');
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+    const trasResolver = w.estado();
+    await w.reiniciar();
+
+    // Sin subir, lo local quedaba en R y la nube en L1.
+    expect({trasResolver, trasReiniciar: w.estado()}).toEqual({
+      trasResolver: {local: R, nube: R},
+      trasReiniciar: {local: R, nube: R},
+    });
+  });
+
+  it('una edicion mia de ANTES de la deteccion no pudo subir y espera en la cola: keepTheirs la reemplaza por lo suyo', async () => {
+    const w = await phoneWithConflict('uid-161-cola', async (engine, T) => {
+      // La subida falla (y queda esperando su reintento) antes de que llegue R.
+      mockSetShouldFail = true;
+      engine.queueWrite('test', 'doc-c', {value: L, updatedAt: T});
+      await settle();
+    });
+    mockSetShouldFail = false;
+    // Control: L sigue en la cola, esperando.
+    expect(
+      w.engine
+        .__getQueueForTests()
+        .map(q => (q.data as {value?: string}).value),
+    ).toEqual([L]);
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+
+    // Sin reemplazarla, L salia en su reintento y pisaba a R en la nube.
+    expect({
+      estado: w.estado(),
+      cola: w.engine
+        .__getQueueForTests()
+        .map(q => (q.data as {value?: string}).value),
+    }).toEqual({estado: {local: R, nube: R}, cola: []});
+  });
+
+  it('una edicion mia seguia en la cola cuando llego R2 y subio despues: keepTheirs igual sube lo suyo', async () => {
+    const w = await phoneWithConflict('uid-161-cola-r2');
+    const edit = {value: 'L1: sigo escribiendo', updatedAt: w.T + 60_000};
+    mockSetShouldFail = true;
+    w.localStore.set('doc-c', edit);
+    w.engine.queueWrite('test', 'doc-c', edit);
+    await settle();
+    mockSetShouldFail = false;
+    w.entregar([{id: 'doc-c', data: {value: R2, updatedAt: w.T + 120_000}}]);
+    await settle();
+
+    // Pasa la espera del reintento y L1 sube, DESPUES de R2.
+    const now = Date.now();
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(now + 31_000);
+    try {
+      await w.sincronizar();
+    } finally {
+      clock.mockRestore();
+    }
+    w.entregar([{id: 'doc-c', data: edit}]);
+    await settle();
+    // Control: la nube tiene L1, y la cola ya no.
+    expect({
+      nube: w.estado().nube,
+      cola: w.engine.__getQueueForTests().length,
+    }).toEqual({nube: 'L1: sigo escribiendo', cola: 0});
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+
+    // Si R2 borraba la marca aunque L1 siguiera en la cola, aqui no subia
+    // nada: lo local en R2 y la nube en L1.
+    expect(w.estado()).toEqual({local: R2, nube: R2});
+  });
+
+  it.each<['keepMine' | 'disuelto' | 'reinicio']>([
+    ['keepMine'],
+    ['disuelto'],
+    ['reinicio'],
+  ])(
+    'la marca de «escribi aqui» se va con su conflicto (%s): uno nuevo del mismo doc no sube lo suyo sin motivo',
+    async fin => {
+      // No discrimina contra el codigo sin subida, a proposito: es la regla de
+      // sincronizar lo minimo. Una marca vieja subiria «lo suyo» re-sellado
+      // aunque la nube ya lo tenga.
+      const w = await phoneWithConflict(`uid-161-marca-${fin}`);
+      const edit = {value: 'L1: sigo escribiendo', updatedAt: w.T + 60_000};
+      w.localStore.set('doc-c', edit);
+      w.engine.queueWrite('test', 'doc-c', edit);
+      await w.sincronizar();
+      w.entregar([{id: 'doc-c', data: edit}]);
+      await settle();
+
+      if (fin === 'keepMine') {
+        await w.engine.resolveConflict('test__doc-c', 'keepMine');
+        await w.sincronizar();
+        w.entregar([{id: 'doc-c', data: w.nube.get('doc-c')!}]);
+      } else if (fin === 'disuelto') {
+        // El otro escribe lo mismo que yo, despues.
+        w.entregar([{id: 'doc-c', data: {...edit, updatedAt: w.T + 120_000}}]);
+      } else {
+        await w.reiniciar();
+      }
+      await settle();
+      // Control: el primer conflicto termino.
+      expect(w.engine.__getConflictsForTests()).toEqual([]);
+
+      // Un conflicto nuevo: el otro escribe R3 a 5 s de lo local.
+      const R3 = 'R3: otro conflicto';
+      const localTs = w.localStore.get('doc-c')!.updatedAt;
+      w.entregar([
+        {id: 'doc-c', data: {value: R3, updatedAt: localTs + 5_000}},
+      ]);
+      await settle();
+      const subidasAntes = w.subidasDe('doc-c').length;
+      await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+      await w.sincronizar();
+
+      expect({
+        estado: w.estado(),
+        subidasNuevas: w.subidasDe('doc-c').slice(subidasAntes),
+      }).toEqual({estado: {local: R3, nube: R3}, subidasNuevas: []});
+    },
+  );
+
+  it('el otro lo borro y despues segui escribiendo aqui: keepTheirs borra aqui Y en la nube', async () => {
+    const w = await phoneWithConflict('uid-161-lapida-suya');
+    w.entregar([
+      {
+        id: 'doc-c',
+        data: {
+          value: R,
+          updatedAt: w.T + 120_000,
+          deleted: true,
+          deletedAt: w.T + 120_000,
+        },
+      },
+    ]);
+    await settle();
+    const edit = {value: 'L1: sigo escribiendo', updatedAt: w.T + 180_000};
+    w.localStore.set('doc-c', edit);
+    w.engine.queueWrite('test', 'doc-c', edit);
+    await w.sincronizar();
+    w.entregar([{id: 'doc-c', data: edit}]);
+    await settle();
+
+    await w.engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await w.sincronizar();
+    const trasResolver = w.estado();
+    await w.reiniciar();
+
+    expect({trasResolver, trasReiniciar: w.estado()}).toEqual({
+      trasResolver: {local: null, nube: null},
+      trasReiniciar: {local: null, nube: null},
+    });
+  });
+});
