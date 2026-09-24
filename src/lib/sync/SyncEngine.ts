@@ -270,6 +270,9 @@ export class SyncEngine {
    * write's callback under the user who issued it and, on a user change,
    * neither resolves nor rejects it. The native SDK the app runs on Android
    * was not measured; the fix does not depend on which branch it takes.
+   *
+   * R9-153 — a snapshot batch belongs to its session too, for the same
+   * reason: `handleSnapshot` awaits once per doc. See there.
    */
   private flushSession = 0;
   /** The docs we are applying a remote change to RIGHT NOW, keyed by
@@ -295,10 +298,11 @@ export class SyncEngine {
   /**
    * Quota hardening — in-memory cache of each collection's sync cursor
    * (highest `updatedAt` observed), mirrored to AsyncStorage on every
-   * advance. Keyed by collection name only — safe because it is fully
-   * cleared on every `stop()`, and `start()` always calls `stop()` first
-   * when the uid changes, so it can never leak one account's cursor into
-   * another's session on the same device.
+   * advance. Keyed by collection name only, so whatever writes it after a
+   * `stop()` writes into the NEXT account's session. It is cleared on every
+   * `stop()` (and `start()` always calls `stop()` first when the uid
+   * changes), and a snapshot batch still in flight at that moment no longer
+   * touches it afterwards (R9-122.4, see `handleSnapshot`).
    */
   private cursors = new Map<string, number>();
   /** Sprint 43 — when set, the next maybeRunInitialBulkPush persists the
@@ -891,6 +895,19 @@ export class SyncEngine {
     changes: DocumentChange[],
   ): Promise<void> {
     if (changes.length === 0) return;
+    // R9-153 — the session this batch belongs to, like `flush()`'s. Every
+    // `await` below can come back after `stop()`, and whatever ran after it ran
+    // in the NEXT account's session: a conflict recorded here was inherited by
+    // whoever signed in (`stop()` clears `this.conflicts`, `start()` does not),
+    // and resolving it wrote this account's cloud copy into theirs; and
+    // `advanceCursor` wrote this batch's max under THEIR cursor key and
+    // in-memory cache, so their first attach started from this account's floor
+    // and never pulled their own older docs (R9-122.4). From the first `await`
+    // that comes back in another session the batch ends: no conflict, no
+    // cursor, no state. Nothing is lost — the cursor did not move, so the
+    // owner's next attach delivers the batch again.
+    const session = this.flushSession;
+    const isCurrent = () => session === this.flushSession;
     this.updateState({isSyncing: true});
     // Quota hardening — highest `updatedAt` observed in THIS batch, used
     // to advance the collection's sync cursor once we're done. Tracked
@@ -923,6 +940,7 @@ export class SyncEngine {
           await this.withLocalWriteSuppressed(adapter.collection, id, () =>
             adapter.applyRemoteDelete(id),
           );
+          if (!isCurrent()) return;
           continue;
         }
         const remote = data as SyncEntity<Record<string, unknown>>;
@@ -931,7 +949,12 @@ export class SyncEngine {
           data: remote,
           deleted: remote.deleted === true,
         };
-        const localKnown = await this.applyRemoteChange(adapter, remoteChange);
+        const localKnown = await this.applyRemoteChange(
+          adapter,
+          remoteChange,
+          isCurrent,
+        );
+        if (!isCurrent()) return;
         if (!localKnown) {
           // R9-46 — the doc was NOT applied. Skip the cursor fold below AND
           // hold the batch's cursor below this doc, so the query floor never
@@ -992,6 +1015,10 @@ export class SyncEngine {
           await this.advanceCursor(adapter.collection, safeCursor);
         }
       }
+      // R9-153 — `advanceCursor` waits on AsyncStorage: `stop()` can land
+      // there too, and this "synced, no error" would then be the next
+      // session's.
+      if (!isCurrent()) return;
       this.updateState({lastSyncedAt: Date.now(), lastError: null});
     } catch (err) {
       logger.error(
@@ -999,11 +1026,17 @@ export class SyncEngine {
         err instanceof Error ? err : new Error(String(err)),
         {component: 'SyncEngine', collection: adapter.collection},
       );
-      this.updateState({
-        lastError: err instanceof Error ? err.message : String(err),
-      });
+      // R9-153 — a failure of a batch whose session is over is not the next
+      // account's error to show.
+      if (isCurrent()) {
+        this.updateState({
+          lastError: err instanceof Error ? err.message : String(err),
+        });
+      }
     } finally {
-      this.updateState({isSyncing: false});
+      // R9-153 — once `stop()` has run, `isSyncing` is the next session's:
+      // clearing it here would hide a push of theirs still in flight.
+      if (isCurrent()) this.updateState({isSyncing: false});
     }
   }
 
@@ -1018,10 +1051,14 @@ export class SyncEngine {
    * the conflict check below live inside `if (local && data)`, so a `null`
    * local falls straight through to `applyRemoteUpsert` and an OLDER remote
    * copy overwrites a NEWER local one.
+   *
+   * Also `false`, touching nothing, when the batch's session ended during the
+   * read (R9-153); `handleSnapshot` then ends the batch without looking at it.
    */
   private async applyRemoteChange(
     adapter: AnyAdapter,
     change: RemoteChange<Record<string, unknown>>,
+    isCurrent: () => boolean,
   ): Promise<boolean> {
     const {id, data, deleted} = change;
     let local: SyncEntity<Record<string, unknown>> | null;
@@ -1042,6 +1079,10 @@ export class SyncEngine {
       );
       return false;
     }
+    // R9-153 — past this line the conflict is recorded or the change applied,
+    // and after a `stop()` both would happen in the next account's session:
+    // the conflict would be theirs to see and to resolve into their cloud.
+    if (!isCurrent()) return false;
 
     if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;

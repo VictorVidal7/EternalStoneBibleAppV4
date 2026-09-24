@@ -242,12 +242,17 @@ jest.mock('@react-native-community/netinfo', () => ({
 import {
   SyncEngine,
   cursorStorageKey,
+  droppedStorageKey,
   CURSOR_SAFETY_MARGIN_MS,
 } from '../src/lib/sync/SyncEngine';
 import {__resetFirestoreCacheForTests} from '../src/lib/sync/firestore';
 import {__resetNetInfoCacheForTests} from '../src/lib/sync/netinfo';
 import {logger} from '../src/lib/utils/logger';
-import type {SyncAdapter, SyncEntity} from '../src/lib/sync/types';
+import type {
+  ConflictChoice,
+  SyncAdapter,
+  SyncEntity,
+} from '../src/lib/sync/types';
 
 const loggerErrorSpy = jest.spyOn(logger, 'error').mockImplementation(() => {});
 const loggerWarnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => {});
@@ -2446,5 +2451,438 @@ describe('R9-104 — un push en vuelo no puede cruzar a la cuenta que entra', ()
     expect(
       engine.__getQueueForTests().map(q => [q.uid, q.id, q.attempts]),
     ).toEqual([['uid-ana', 'doc-ana', 7]]);
+  });
+});
+
+describe('R9-153 / R9-122.4 — un lote de Ana en vuelo tras el stop() no pasa a la sesion de Beto', () => {
+  // El vecino de R9-104: la 20 le puso sesion al flush y no a `handleSnapshot`.
+  // Ese bucle hace un `await` por doc (la lectura local y el apply) y, al final,
+  // `await advanceCursor(...)`, y nunca volvia a mirar si hubo un `stop()`. Lo
+  // que corria al volver de esos `await` corria ya en la sesion siguiente, con
+  // dos efectos (sonda de la S23, reproducida aqui caso por caso):
+  //  - el conflicto de Ana entraba en `this.conflicts`, que `stop()` ya habia
+  //    vaciado y `start()` no vacia: lo heredaba Beto, y resolverlo escribia la
+  //    copia de la NUBE de Ana en `users/<beto>/conflicts` (y con keepMine o
+  //    merge, tambien en `users/<beto>/test`);
+  //  - `advanceCursor` escribia el maximo del lote de Ana bajo la clave y el
+  //    cache en memoria de Beto, asi que su PRIMER enganche salia con piso
+  //    `cursorDeAna - 5 min` y un doc suyo de hace 1 hora no bajaba nunca.
+  //
+  // Todas necesitan el lote EN VUELO al hacer `stop()`: un paso del adaptador
+  // queda retenido hasta que la prueba lo suelte. Sin eso no hay carrera y
+  // pasarian por la razon trivial.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  const T0 = 1_000_000;
+
+  const restoreStorage: Array<() => void> = [];
+  afterEach(() => {
+    while (restoreStorage.length > 0) restoreStorage.pop()!();
+  });
+
+  /** Retiene UNA clave de AsyncStorage hasta que la prueba la suelte. El resto
+   *  de claves pasa por la implementacion del mock de siempre. */
+  function holdStorage(
+    method: 'getItem' | 'setItem',
+    key: string,
+  ): {release: () => void; hits: string[]} {
+    const mock = AsyncStorage[method] as unknown as jest.Mock;
+    const real = mock.getMockImplementation()!;
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const hits: string[] = [];
+    mock.mockImplementation(async (k: string, ...rest: unknown[]) => {
+      if (k === key) {
+        hits.push(k);
+        await gate;
+      }
+      return real(k, ...rest);
+    });
+    restoreStorage.push(() => mock.mockImplementation(real));
+    return {release, hits};
+  }
+
+  type Hold = {op: 'read' | 'apply' | 'delete'; id: string};
+  type Change = {type: string; id: string; data: Record<string, unknown>};
+
+  /** a1 entra sin mas; a2 choca con la copia local de Ana a 5 s y con otro
+   *  valor: un conflicto de verdad. */
+  const conflictBatch = (base: number): Change[] => [
+    {
+      type: 'added',
+      id: 'a1',
+      data: {value: 'uno-de-ana', updatedAt: base - 10_000},
+    },
+    {
+      type: 'modified',
+      id: 'a2',
+      data: {value: 'remoto-de-ana', updatedAt: base + 5_000},
+    },
+  ];
+
+  /** Ana entra (con a2 en local) y su nube le manda `changes`. El paso `hold`
+   *  del adaptador se queda esperando: el lote esta EN VUELO hasta `release()`
+   *  o `fail()`. */
+  async function anaWithBatchInFlight(
+    base: number,
+    hold: Hold = {op: 'read', id: 'a2'},
+    changes: Change[] = conflictBatch(base),
+  ) {
+    // Las dos cuentas ya hicieron su subida inicial en este telefono: asi lo
+    // unico que puede llegar a la nube de Beto es lo que cruce desde el lote.
+    await AsyncStorage.setItem('@sync_first_push_done:uid-ana', '2');
+    await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
+    let release!: () => void;
+    let fail!: (err: Error) => void;
+    const gate = new Promise<void>((resolve, reject) => {
+      release = resolve;
+      fail = reject;
+    });
+    const held: string[] = [];
+    const wait = async (op: Hold['op'], id: string) => {
+      if (op !== hold.op || id !== hold.id) return;
+      held.push(`${op}:${id}`);
+      await gate;
+    };
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    const {adapter, localStore} = fixture;
+    const realUpsert = adapter.applyRemoteUpsert;
+    const realDelete = adapter.applyRemoteDelete;
+    adapter.getLocal = async id => {
+      await wait('read', id);
+      return localStore.get(id) ?? null;
+    };
+    adapter.applyRemoteUpsert = async (id, data) => {
+      await wait('apply', id);
+      return realUpsert(id, data);
+    };
+    adapter.applyRemoteDelete = async id => {
+      await wait('delete', id);
+      return realDelete(id);
+    };
+    localStore.set('a2', {value: 'local-de-ana', updatedAt: base});
+
+    const engine = new SyncEngine();
+    engine.register(adapter);
+    await engine.start('uid-ana');
+    await settle();
+    fireRemote(
+      'uid-ana',
+      changes.map(c => ({
+        type: c.type,
+        doc: {id: c.id, exists: true, data: () => c.data},
+      })),
+    );
+    await settle();
+    // Control del mecanismo: el lote tiene que estar EN VUELO, parado justo en
+    // el paso retenido.
+    expect(held).toEqual([`${hold.op}:${hold.id}`]);
+    return {engine, release, fail, ...fixture};
+  }
+
+  /** `stop()` y Beto entra, pero su `start()` se queda parado en su primera
+   *  lectura propia (el aviso de descartes): `this.uid` ya es Beto y su
+   *  listener todavia no engancho, asi que su cursor aun no se cargo. */
+  async function betoStartsAndPauses(engine: SyncEngine) {
+    const betoRead = holdStorage('getItem', droppedStorageKey('uid-beto'));
+    engine.stop();
+    const started = engine.start('uid-beto');
+    await settle();
+    // Control: Beto esta a mitad de su `start()`, no antes ni despues.
+    expect(betoRead.hits).toEqual([droppedStorageKey('uid-beto')]);
+    expect(engine.getActiveUid()).toBe('uid-beto');
+    expect(mockCollections.has('users/uid-beto/test')).toBe(false);
+    return async () => {
+      betoRead.release();
+      await started;
+      await settle();
+    };
+  }
+
+  /** Lo que acabo en la nube de Beto, legible en la salida de un fallo. */
+  function writtenInBeto(): string[] {
+    return mockDocSets
+      .filter(d => d.path.startsWith('users/uid-beto/'))
+      .map(d => {
+        const data = d.data as {
+          value?: string;
+          remoteVersion?: {value?: string};
+        };
+        const what = data.remoteVersion
+          ? `remoteVersion ${data.remoteVersion.value}`
+          : data.value;
+        return `${d.path.slice('users/uid-beto/'.length)}/${d.id} = ${what}`;
+      });
+  }
+
+  async function betoResolves(
+    engine: SyncEngine,
+    choice: ConflictChoice,
+  ): Promise<void> {
+    await engine.resolveConflict(
+      'test__a2',
+      choice,
+      choice === 'merge' ? {value: 'combinado', updatedAt: 0} : undefined,
+    );
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+  }
+
+  it('control (C0): sin cambio de cuenta el conflicto se registra y el cursor avanza como hoy, y al salir Ana se va con ella', async () => {
+    // No discrimina contra R9-153, y es a proposito: es la fila de control de
+    // la sonda. Su trabajo es impedir que el arreglo corte tambien el lote de
+    // la sesion ACTUAL.
+    const base = Date.now() - 60_000;
+    const {engine, release} = await anaWithBatchInFlight(base);
+    release();
+    await settle();
+
+    expect(engine.getState().conflicts.map(c => c.id)).toEqual(['test__a2']);
+    // R9-65: el conflicto frena el cursor por debajo de a2, y a1 lo sube.
+    expect(engine.__getCursorForTests('test')).toBe(base - 10_000);
+    expect(
+      await AsyncStorage.getItem(cursorStorageKey('test', 'uid-ana')),
+    ).toBe(String(base - 10_000));
+    expect(engine.getState().lastSyncedAt).not.toBeNull();
+    expect(engine.getState().isSyncing).toBe(false);
+
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+    const conflictsOfBeto = engine.getState().conflicts.map(c => c.id);
+    await betoResolves(engine, 'keepTheirs');
+    expect({conflictsOfBeto, writtenInBeto: writtenInBeto()}).toEqual({
+      conflictsOfBeto: [],
+      writtenInBeto: [],
+    });
+  });
+
+  it.each<[string, 'cerrada' | 'durante', ConflictChoice]>([
+    [
+      'V1: el lote termina con la sesion CERRADA y Beto entra despues (keepTheirs)',
+      'cerrada',
+      'keepTheirs',
+    ],
+    [
+      'V2: el lote termina DURANTE start(beto) (keepMine)',
+      'durante',
+      'keepMine',
+    ],
+    ['V3: el lote termina con la sesion CERRADA (merge)', 'cerrada', 'merge'],
+  ])(
+    '%s: el conflicto de Ana no llega a Beto y resolver no escribe nada en users/uid-beto/',
+    async (_name, moment, choice) => {
+      const {engine, release} = await anaWithBatchInFlight(T0);
+      if (moment === 'cerrada') {
+        engine.stop();
+        release();
+        await settle();
+        await engine.start('uid-beto');
+        await settle();
+      } else {
+        const betoContinues = await betoStartsAndPauses(engine);
+        release();
+        await settle();
+        await betoContinues();
+      }
+      expect(engine.getActiveUid()).toBe('uid-beto');
+
+      // Pre-fix (sonda de la S23): Beto heredaba `test__a2`, y resolverlo
+      // escribia en su nube `conflicts/test__a2` con la version remota de Ana
+      // y, con keepMine o merge, tambien `test/a2`.
+      const conflictsOfBeto = engine.getState().conflicts.map(c => c.id);
+      const conflictsInEngine = engine.__getConflictsForTests().map(c => c.id);
+      await betoResolves(engine, choice);
+      expect({
+        conflictsOfBeto,
+        conflictsInEngine,
+        writtenInBeto: writtenInBeto(),
+      }).toEqual({
+        conflictsOfBeto: [],
+        conflictsInEngine: [],
+        writtenInBeto: [],
+      });
+    },
+  );
+
+  /** El primer enganche de Beto, y un doc suyo de hace 1 hora que le manda su
+   *  nube despues. */
+  async function betoFirstAttach(remoteUpsertCalls: Array<{id: string}>) {
+    const betoColl = mockCollections.get('users/uid-beto/test')!;
+    const betoFloor = betoColl.__whereClauses.find(
+      c => c.field === 'updatedAt',
+    )?.value;
+    const betoCursorOnEntry = await AsyncStorage.getItem(
+      cursorStorageKey('test', 'uid-beto'),
+    );
+    const hourAgo = Date.now() - 60 * 60 * 1000;
+    fireRemote('uid-beto', [
+      {
+        type: 'added',
+        doc: {
+          id: 'b-viejo',
+          exists: true,
+          data: () => ({value: 'de-beto', updatedAt: hourAgo}),
+        },
+      },
+    ]);
+    await settle();
+    return {
+      betoFloor,
+      betoCursorOnEntry,
+      anaCursor: await AsyncStorage.getItem(
+        cursorStorageKey('test', 'uid-ana'),
+      ),
+      betoOldDocApplied: remoteUpsertCalls.some(c => c.id === 'b-viejo'),
+    };
+  }
+
+  it('R9-122.4: el primer enganche de Beto no hereda el piso del lote de Ana, y un doc suyo de hace 1 hora baja', async () => {
+    const base = Date.now() - 60_000;
+    const {engine, release, remoteUpsertCalls} =
+      await anaWithBatchInFlight(base);
+    const betoContinues = await betoStartsAndPauses(engine);
+    release();
+    await settle();
+    await betoContinues();
+
+    // Pre-fix: el cursor de Ana (a1, `base - 10 s`) quedaba en el cache y bajo
+    // la clave de Beto, su piso salia en `base - 10 s - 5 min` y b-viejo no
+    // bajaba (`betoViejoAplicado:false` en la sonda de la S23). Y el de Ana no
+    // se mueve: el lote cortado se le vuelve a entregar cuando regrese.
+    expect(await betoFirstAttach(remoteUpsertCalls)).toEqual({
+      betoFloor: 0,
+      betoCursorOnEntry: null,
+      anaCursor: null,
+      betoOldDocApplied: true,
+    });
+  });
+
+  it('R9-122.4: tampoco lo mueve un borrado que estaba en vuelo al final del lote', async () => {
+    // El `removed` tiene su propio `await` y su propio `continue`. Si es el
+    // ultimo doc del lote, nada mas lo corta antes de `advanceCursor`.
+    // (R9-124 va a cambiar lo que hace esta rama; el corte tiene que seguir.)
+    const base = Date.now() - 60_000;
+    const {engine, release, remoteUpsertCalls} = await anaWithBatchInFlight(
+      base,
+      {op: 'delete', id: 'x'},
+      [
+        {
+          type: 'added',
+          id: 'a1',
+          data: {value: 'uno-de-ana', updatedAt: base - 10_000},
+        },
+        {
+          type: 'removed',
+          id: 'x',
+          data: {value: 'x-de-ana', updatedAt: base - 5_000},
+        },
+      ],
+    );
+    const betoContinues = await betoStartsAndPauses(engine);
+    release();
+    await settle();
+    await betoContinues();
+
+    expect(await betoFirstAttach(remoteUpsertCalls)).toEqual({
+      betoFloor: 0,
+      betoCursorOnEntry: null,
+      anaCursor: null,
+      betoOldDocApplied: true,
+    });
+  });
+
+  it('el lote viejo no le borra a Beto su error ni le marca un sincronizado que no hizo', async () => {
+    // La carrera aqui es otra: el `stop()` cae mientras `advanceCursor` espera
+    // a AsyncStorage, con el bucle ya terminado.
+    const base = Date.now() - 60_000;
+    const {engine, release} = await anaWithBatchInFlight(base);
+    const cursorWrite = holdStorage(
+      'setItem',
+      cursorStorageKey('test', 'uid-ana'),
+    );
+    release();
+    await settle();
+    expect(cursorWrite.hits).toHaveLength(1);
+
+    engine.stop();
+    const lastSyncedAtOnStop = engine.getState().lastSyncedAt;
+    await engine.start('uid-beto');
+    await settle();
+    fireRemoteError('uid-beto', new Error('permission-denied'));
+    expect(engine.getState().lastError).toBe('permission-denied');
+
+    cursorWrite.release();
+    await settle();
+
+    // Pre-fix `updateState({lastSyncedAt: Date.now(), lastError: null})`
+    // corria en la sesion de Beto: le borraba un error real y Ajustes decia
+    // «Sincronizado hace un momento» por un lote que no era suyo.
+    expect({
+      lastError: engine.getState().lastError,
+      lastSyncedAt: engine.getState().lastSyncedAt,
+    }).toEqual({
+      lastError: 'permission-denied',
+      lastSyncedAt: lastSyncedAtOnStop,
+    });
+  });
+
+  it('un fallo del lote viejo no aparece como error en la sesion de Beto', async () => {
+    const base = Date.now() - 60_000;
+    const {engine, fail} = await anaWithBatchInFlight(base, {
+      op: 'apply',
+      id: 'a1',
+    });
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+    expect(engine.getState().lastError).toBeNull();
+
+    fail(new Error('disk I/O error'));
+    await settle();
+
+    expect(engine.getState().lastError).toBeNull();
+  });
+
+  it('el lote viejo, al terminar, no le apaga el isSyncing a un push de Beto en vuelo', async () => {
+    const base = Date.now() - 60_000;
+    const {engine, release} = await anaWithBatchInFlight(base);
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+
+    let releaseBeto!: () => void;
+    const gateBeto = new Promise<void>(resolve => {
+      releaseBeto = resolve;
+    });
+    const betoSets: string[] = [];
+    mockSetGate = (_path, id) => {
+      if (id !== 'doc-beto') return undefined;
+      betoSets.push(id);
+      return gateBeto;
+    };
+    engine.queueWrite('test', 'doc-beto', {value: 'de-beto', updatedAt: 2000});
+    await settle();
+    // Control: el push de Beto esta en vuelo y su sesion lo dice.
+    expect(betoSets).toEqual(['doc-beto']);
+    expect(engine.getState().isSyncing).toBe(true);
+
+    release();
+    await settle();
+    // Pre-fix el `finally` del lote de Ana ponia `isSyncing: false` con el
+    // push de Beto todavia en el aire.
+    expect(engine.getState().isSyncing).toBe(true);
+
+    releaseBeto();
+    await settle();
+    expect(engine.getState().isSyncing).toBe(false);
+    expect(mockDocSets.map(d => [d.path, d.id])).toEqual([
+      ['users/uid-beto/test', 'doc-beto'],
+    ]);
   });
 });
