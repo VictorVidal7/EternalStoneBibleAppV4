@@ -20,18 +20,27 @@
  * which is reachable without the race (another screen writes prose to the
  * same store while this one is mounted — the illustrations-bank round trip —
  * and a blur then lands before the focus effect does). The stepper race
- * itself is NOT covered: re-rendering a screen this size under
- * react-test-renderer detaches every `TouchableOpacity`'s internal `Animated`
- * opacity and tears the tree down ("Unable to locate attached view in the
- * native tree") before the new range ever applies. That half stays a
- * live-verification item on a device, which is what the review ledger
- * already says for R9-47.
+ * itself is NOT covered here. It was left out because pressing the stepper
+ * threw "Unable to locate attached view in the native tree" — and that
+ * error depends on NODE_ENV, not on react-test-renderer, the OS or the Node
+ * version (measured in the R9-143 work):
  *
- * ⚠️ Measured in the R9-143 work: with THIS harness (the banner stub below
- * included) the stepper does move the range, and the tree survives the new
- * passage's notes landing — the R9-143 re-keying cases do both. So the
- * paragraph above no longer holds here: the blur/`load()` halves of the
- * R9-47 race are untested, not untestable.
+ *  - Moving the range flips two StepButtons' `disabled`; TouchableOpacity
+ *    answers with an opacity animation on the NATIVE driver, and
+ *    `AnimatedProps` `#connectAnimatedView` finds no native view under the
+ *    test renderer. RN lets that pass only when NODE_ENV === 'test' (it
+ *    uses a dummy tag); any other value throws. It's a plain JS check, so
+ *    the OS doesn't enter into it.
+ *  - Jest sets NODE_ENV to 'test' only when it is UNSET. A clean shell (and
+ *    CI) gets 'test' and the stepper works; a shell that exports NODE_ENV
+ *    (e.g. 'development') keeps it, and the stepper throws. Same result on
+ *    Node 22.22.2, 24.11.1 and 24.21.0.
+ *
+ * The R9-143 re-keying cases below take the native driver out (JS driver,
+ * for those two cases only) and pass under either NODE_ENV. The same step
+ * would make the blur/`load()` halves of the R9-47 race testable here too:
+ * they are untested, not untestable. On a device they stay a
+ * live-verification item, which is what the review ledger says for R9-47.
  *
  * R9-143 — "Banco de ilustraciones" and "Modo púlpito" flush every template
  * section before navigating, and that flush kept both hazards the R9-47 fix
@@ -55,6 +64,22 @@ import * as prepNotesStore from '../src/features/study/prepNotesStore';
 import {getPrepNotes, savePrepNote} from '../src/features/study/prepNotesStore';
 import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
 import {translations} from '../src/i18n/translations';
+
+// Animated's own switch between the native and the JS driver — see the
+// re-keying cases below for why they turn the native one off.
+// (`jest.requireActual`, not `require`: same module instance, without the
+// deep-import deprecation warning babel-preset-expo injects for `require`.)
+const NativeAnimatedHelper: {
+  shouldUseNativeDriver: (config: unknown) => boolean;
+} = jest.requireActual(
+  'react-native/src/private/animated/NativeAnimatedHelper',
+).default;
+
+// TouchableOpacity's opacity animation lasts 250 ms (`_opacityInactive`). On
+// the JS driver its frames are React updates, so they have to run out inside
+// the act() that started them.
+const letJsAnimationsFinish = () =>
+  new Promise(resolve => setTimeout(resolve, 400));
 
 // Captures every useFocusEffect callback the screen registers, in
 // registration order, so a test can manually re-invoke the LATEST one to
@@ -403,10 +428,18 @@ describe('Mesa de preparación — the buttons that flush the drafts keep R9-47�
         ).toBe('Sermón de 3:16'),
       );
 
+      // Moving the range starts TouchableOpacity opacity animations on the
+      // NATIVE driver, which throw under any NODE_ENV but 'test' (see the
+      // header's SCOPE paragraph). On the JS driver nothing is attached to a
+      // native view, so this case holds under either.
+      jest
+        .spyOn(NativeAnimatedHelper, 'shouldUseNativeDriver')
+        .mockReturnValue(false);
       await act(async () => {
         fireEvent.press(
           screen.getByLabelText(`${p.increase} ${p.rangeEndLabel}`),
         );
+        await letJsAnimationsFinish();
       });
       // Control: the table really moved and the read really is held.
       await waitFor(() =>
@@ -430,9 +463,11 @@ describe('Mesa de preparación — the buttons that flush the drafts keep R9-47�
       );
 
       // Let 3:16-17's read land: the screen adopts it and survives the
-      // re-render (what the header's ⚠️ note relies on).
+      // re-render (what the header's SCOPE paragraph relies on). That
+      // re-render starts more opacity animations.
       await act(async () => {
         releaseRange();
+        await letJsAnimationsFinish();
       });
       await waitFor(() =>
         expect(
