@@ -31,16 +31,18 @@
  *    test renderer. RN lets that pass only when NODE_ENV === 'test' (it
  *    uses a dummy tag); any other value throws. It's a plain JS check, so
  *    the OS doesn't enter into it.
- *  - Jest sets NODE_ENV to 'test' only when it is UNSET. A clean shell (and
- *    CI) gets 'test' and the stepper works; a shell that exports NODE_ENV
- *    (e.g. 'development') keeps it, and the stepper throws. Same result on
- *    Node 22.22.2, 24.11.1 and 24.21.0.
+ *  - Jest's CLI sets NODE_ENV to 'test' only when it is UNSET, so a shell
+ *    that exports NODE_ENV (e.g. 'development') kept it, and the stepper
+ *    threw there. Same result on Node 22.22.2, 24.11.1 and 24.21.0. Since
+ *    S24, jest.config.js pins NODE_ENV to 'test' for every run, whatever the
+ *    shell exports, so the stepper works everywhere.
  *
- * The R9-143 re-keying cases below take the native driver out (JS driver,
- * for those two cases only) and pass under either NODE_ENV. The same step
- * would make the blur/`load()` halves of the R9-47 race testable here too:
- * they are untested, not untestable. On a device they stay a
- * live-verification item, which is what the review ledger says for R9-47.
+ * The R9-143 re-keying cases below also take the native driver out (JS
+ * driver, for those two cases only) as a second layer: they would pass
+ * under either NODE_ENV even without the pin. With the pin, nothing stands
+ * in the way of the blur/`load()` halves of the R9-47 race either: they are
+ * untested, not untestable. On a device they stay a live-verification item,
+ * which is what the review ledger says for R9-47.
  *
  * R9-143 — "Banco de ilustraciones" and "Modo púlpito" flush every template
  * section before navigating, and that flush kept both hazards the R9-47 fix
@@ -67,8 +69,10 @@ import {translations} from '../src/i18n/translations';
 
 // Animated's own switch between the native and the JS driver — see the
 // re-keying cases below for why they turn the native one off.
-// (`jest.requireActual`, not `require`: same module instance, without the
-// deep-import deprecation warning babel-preset-expo injects for `require`.)
+// (`jest.requireActual`, not `require`: same module instance, and never the
+// deep-import deprecation warning babel-preset-expo injects after a
+// `require` — which it only does under NODE_ENV=development, now ruled out
+// by the pin in jest.config.js.)
 const NativeAnimatedHelper: {
   shouldUseNativeDriver: (config: unknown) => boolean;
 } = jest.requireActual(
@@ -127,11 +131,13 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({top: 0, bottom: 0, left: 0, right: 0}),
 }));
 
-// The contextual-hint banner animates its entrance with `Animated.timing`.
-// Re-rendering this screen with new route params detaches and re-attaches
-// that view mid-animation, which makes AnimatedProps throw "Unable to locate
-// attached view in the native tree" — a react-test-renderer artifact of the
-// passage change, nothing to do with what's under test here. Stubbed out.
+// The contextual-hint banner animates its entrance with `Animated.timing`;
+// nothing to do with what's under test here. Stubbed out. (The stub was
+// justified as a re-render with new route params detaching that view
+// mid-animation, so AnimatedProps threw "Unable to locate attached view in
+// the native tree" — "a react-test-renderer artifact". RN only throws that
+// when NODE_ENV isn't 'test', which jest.config.js now pins; and in S24 this
+// suite passed without the stub under both 'test' and 'development'.)
 jest.mock('@components/hints/ContextualHintBanner', () => ({
   ContextualHintBanner: () => null,
 }));
@@ -430,8 +436,9 @@ describe('Mesa de preparación — the buttons that flush the drafts keep R9-47�
 
       // Moving the range starts TouchableOpacity opacity animations on the
       // NATIVE driver, which throw under any NODE_ENV but 'test' (see the
-      // header's SCOPE paragraph). On the JS driver nothing is attached to a
-      // native view, so this case holds under either.
+      // header's SCOPE paragraph). jest.config.js pins 'test'; on top of
+      // that, on the JS driver nothing is attached to a native view, so this
+      // case holds under either.
       jest
         .spyOn(NativeAnimatedHelper, 'shouldUseNativeDriver')
         .mockReturnValue(false);
