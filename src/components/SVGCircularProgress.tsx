@@ -93,8 +93,9 @@ export const SVGCircularProgress: React.FC<SVGCircularProgressProps> = ({
         // `strokeDashoffset` is an SVG shape prop, not transform/opacity —
         // it can't ride the native driver (react-native-svg patches it on
         // the JS thread regardless of this flag). `true` here doesn't
-        // error on its own, but throws under react-test-renderer (no real
-        // native view to attach to) and is silently wrong on-device too.
+        // error on its own and is silently wrong on-device. (In jest it
+        // throws "Unable to locate attached view in the native tree" only
+        // when NODE_ENV isn't 'test', which jest.config.js pins.)
         useNativeDriver: false,
       }).start();
     } else {

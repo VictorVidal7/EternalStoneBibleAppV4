@@ -631,12 +631,12 @@ const MilestoneCelebration: React.FC<{
 };
 
 // Exported (alongside its props) purely so it can be exercised in isolation
-// in tests — this SCREEN's header renders `Animated.spring(...,
-// {useNativeDriver: true})` (StatBubble/PulsingPracticeCta), which throws
-// "Unable to locate attached view in the native tree" under
-// react-test-renderer (no native view to attach to). DeckRow itself has no
-// Animated code, so rendering it directly sidesteps that pre-existing,
-// unrelated test-environment limitation.
+// in tests (memoryIndexAddAndFavorite.test.tsx). The reason given was that
+// this SCREEN's header (StatBubble/PulsingPracticeCta, native-driven
+// `Animated.spring`) threw "Unable to locate attached view in the native
+// tree" under react-test-renderer. That throw depends on NODE_ENV, not on
+// the renderer — RN only tolerates the missing native view under 'test',
+// which jest.config.js now pins — and under it the whole screen mounts.
 export interface DeckRowProps {
   card: MemoryCard;
   language: 'es' | 'en';
