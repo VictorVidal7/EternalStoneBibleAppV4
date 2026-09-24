@@ -2886,3 +2886,155 @@ describe('R9-153 / R9-122.4 — un lote de Ana en vuelo tras el stop() no pasa a
     ]);
   });
 });
+
+describe('R9-154 — la supresion de ecos en keepTheirs, en merge y su profundidad', () => {
+  // `withLocalWriteSuppressed` envuelve cinco sitios, y revertidos uno por uno
+  // la suite seguia en verde en tres (keepTheirs, merge y el `removed`), igual
+  // que sin el conteo de profundidad: nada los vigilaba. Ningun adaptador de
+  // hoy encola dentro de un apply, asi que estas pruebas son defensivas, como
+  // la del ECO de R9-103: un adaptador que al escribir en local disparara su
+  // propio queueWrite no puede rebotar a la nube lo que el motor aplica.
+  // El sitio del `removed` queda fuera a proposito: lo va a cambiar R9-124.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  /** Un adaptador cuyo apply ENCOLA lo que escribe (el eco), con un conflicto
+   *  de verdad ya registrado para `doc-e`. */
+  async function engineWithEchoingConflict(uid: string) {
+    // Sin subida inicial: lo unico que puede subir `doc-e` es un eco o la
+    // resolucion.
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    const engine = new SyncEngine();
+    const echoes: string[] = [];
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    const realUpsert = fixture.adapter.applyRemoteUpsert;
+    fixture.adapter.applyRemoteUpsert = async (id, data) => {
+      await Promise.resolve();
+      await realUpsert(id, data);
+      echoes.push(id);
+      engine.queueWrite('test', id, data);
+    };
+    fixture.localStore.set('doc-e', {value: 'local', updatedAt: 1000});
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    fireRemote(uid, [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-e',
+          exists: true,
+          data: () => ({value: 'remote', updatedAt: 1005}),
+        },
+      },
+    ]);
+    await settle();
+    expect(engine.__getConflictsForTests().map(c => c.id)).toEqual([
+      'test__doc-e',
+    ]);
+    return {engine, echoes, ...fixture};
+  }
+
+  function pushedTo(uid: string): Array<[string, string]> {
+    return mockDocSets
+      .filter(d => d.path === `users/${uid}/test`)
+      .map(d => [d.id, (d.data as {value: string}).value]);
+  }
+
+  it('keepTheirs aplica la copia remota en local sin rebotarla a la nube', async () => {
+    const {engine, echoes, localStore} =
+      await engineWithEchoingConflict('uid-kt');
+    await engine.resolveConflict('test__doc-e', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Control: el eco corrio de verdad. Sin el, no habria nada que suprimir y
+    // la asercion de abajo pasaria sin haber mirado nada.
+    expect(echoes).toEqual(['doc-e']);
+    expect(localStore.get('doc-e')?.value).toBe('remote');
+    // Sin la supresion, el eco subia a la nube la copia que ya estaba en ella.
+    expect(pushedTo('uid-kt')).toEqual([]);
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+
+  it('merge sube el valor combinado UNA vez: el eco de su apply no sale por su cuenta', async () => {
+    const {engine, echoes, localStore} =
+      await engineWithEchoingConflict('uid-mg');
+    await engine.resolveConflict('test__doc-e', 'merge', {
+      value: 'combinado',
+      updatedAt: 0,
+    });
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    expect(echoes).toEqual(['doc-e']);
+    expect(localStore.get('doc-e')?.value).toBe('combinado');
+    // Sin la supresion, el eco encolaba y arrancaba un flush antes que el
+    // queueWrite del propio merge: dos subidas del mismo doc.
+    expect(pushedTo('uid-mg')).toEqual([['doc-e', 'combinado']]);
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+
+  it('dos applies solapados del MISMO doc: al terminar el primero, el eco del segundo sigue suprimido', async () => {
+    await AsyncStorage.setItem('@sync_first_push_done:uid-prof', '2');
+    const engine = new SyncEngine();
+    const gates: Array<() => void> = [];
+    const echoes: string[] = [];
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const {adapter} = makeAdapter({
+      async applyRemoteUpsert(id, data) {
+        inFlight += 1;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise<void>(resolve => gates.push(resolve));
+        echoes.push(`${id}@${data.updatedAt}`);
+        engine.queueWrite('test', id, data);
+        inFlight -= 1;
+      },
+    });
+    engine.register(adapter);
+    await engine.start('uid-prof');
+    await settle();
+
+    // Dos lotes del mismo doc. Este apply no escribe en local, asi que los dos
+    // pasan la comparacion LWW y los dos llegan a aplicar.
+    fireRemote('uid-prof', [
+      {
+        type: 'added',
+        doc: {
+          id: 'doc-p',
+          exists: true,
+          data: () => ({value: 'v1', updatedAt: 2000}),
+        },
+      },
+    ]);
+    fireRemote('uid-prof', [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-p',
+          exists: true,
+          data: () => ({value: 'v2', updatedAt: 3000}),
+        },
+      },
+    ]);
+    await settle();
+    // Control: los dos applies estan EN VUELO a la vez; si no se solaparan, la
+    // profundidad no tendria nada que contar.
+    expect(maxInFlight).toBe(2);
+
+    gates[0]();
+    await settle();
+    gates[1]();
+    await settle();
+
+    // Sin el conteo, el primer apply que termina quita la supresion del doc y
+    // el eco del segundo sale a la nube.
+    expect(echoes).toEqual(['doc-p@2000', 'doc-p@3000']);
+    expect(pushedTo('uid-prof')).toEqual([]);
+    expect(engine.__getQueueForTests()).toHaveLength(0);
+  });
+});
