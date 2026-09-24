@@ -262,13 +262,26 @@
 > **Quedan 4 P0 abiertos** (`R9-38`, `R9-124`, `R9-160`, `R9-166`). Hallazgos: **173**. Detalle:
 > `detail/S25-revision-del-diff-s24.md`.
 
+> **Sesión 25, segunda parte (2026-09-24): ARREGLOS en la nube, revisados en local.** Con el OK de
+> Victor, dos sesiones en la nube arreglaron los P0 y P1 nuevos, en archivos distintos. El
+> orquestador revisó cada rama en la máquina de Victor, pieza por pieza y con sus sondas propias,
+> las apiló y pidió el OK. Todo está mergeado y pusheado: `main` = `cf7c715`, con el CI verde en el
+> log.
+>
+> - **4 hallazgos cerrados:** `R9-160` (P0), `R9-161` (P1), `R9-162` (P2, la prueba que faltaba) y
+>   `R9-166` (P0).
+> - **1 hallazgo nuevo:** `R9-174` (P3, leído), una ventana en la que un eco propio puede parecer
+>   «del otro».
+>
+> **Quedan 2 P0 abiertos** (`R9-38`, `R9-124`). Hallazgos: **174**. Detalle:
+> `detail/S25-revision-del-diff-s24.md`, en su segunda parte.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 25 (que agregó `R9-160` y `R9-166`; la 24 había cerrado `R9-36`,
-> `R9-39` y `R9-125`). Esta sección tiene 27 entradas: 23 ARREGLADAS y 4 ABIERTAS** (`R9-38`,
-> `R9-124`, `R9-160`, `R9-166`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras la sesión 25 (que agregó `R9-160` y `R9-166` y los arregló en la misma
+> sesión). Esta sección tiene 27 entradas: 25 ARREGLADAS y 2 ABIERTAS** (`R9-38`, `R9-124`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -1038,6 +1051,18 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   pendiente **refresque el conflicto** (su `remoteVersion`) en vez de aplicarse por LWW, sin
   confundir el eco de una escritura propia con un cambio del otro. Va con `R9-161`, que tiene la
   misma raíz. Detalle: `detail/S25-revision-del-diff-s24.md`.
+  **✅ ARREGLADO en la sesión 25** (`9a7c2c7`; lo hizo la nube y se revisó en local):
+  - Mientras el conflicto espera, el doc no toma nada de la nube. Lo que llega más nuevo que lo
+    local es del otro: refresca «su versión» (`remoteVersion`, `differingFields`), y el doc sigue
+    retenido. Lo que no es más nuevo es el eco de una escritura propia, y no cambia nada.
+  - La lápida del otro pasa a ser «su versión»: la pantalla dice «Se borró en otro dispositivo».
+  - Si el otro escribe lo mismo que L, el conflicto se disuelve.
+  - Una marca en disco (`@sync_conflicted_<colección>:<uid>`, junto al conjunto no asentado) hace que
+    el conflicto se vuelva a detectar tras un reinicio, aunque la nube ya esté fuera de la ventana.
+  - Sonda del orquestador sobre la rama: lo local sigue en L, «su versión» es R2 y «conservar lo
+    mío» sube L. Revert por pieza: discriminan 23 de 24 piezas (junto con `R9-161`); la que no cae
+    es equivalente por construcción.
+  - La premisa del eco tiene una ventana abierta: `R9-174`.
 
 - **`R9-166` (S25, identidad) — 🐛 la rama del link con éxito pregunta DESPUÉS de enlazar: si la
   app muere con la pregunta abierta, el arranque en frío sube el almacén del dueño anterior a la
@@ -1067,6 +1092,18 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   persistir «pregunta pendiente para el uid X» ANTES del link y, al arrancar, no publicarle ese
   usuario al motor hasta resolverla; o que el motor no haga el bulk push de un uid que no es el
   dueño registrado. Detalle: `detail/S25-revision-del-diff-s24.md`.
+  **✅ ARREGLADO en la sesión 25** (`cf7c715`; lo hizo la nube y se revisó en local): la rama del
+  link pregunta **ANTES** de enlazar, como las otras dos ramas lo hacen antes del
+  `signInWithCredential`.
+  - Una pregunta que muere con el proceso deja al usuario anónimo: no hay nada enlazado ni
+    subido, y el próximo inicio de sesión vuelve a preguntar. No hace falta guardar estado.
+  - El skip se arma recién cuando el link tuvo éxito, así que en esta rama un link que falla ya no
+    lo deja armado.
+  - Si el link choca (la cuenta ya existe), la rama de colisión usa la respuesta ya dada y no
+    pregunta dos veces.
+  - Sonda del orquestador: tras matar la app y arrancar en frío suben 0 (antes, 12).
+  - Revert por pieza: las 5 piezas discriminan. Prueba nueva:
+    `__tests__/AuthContextLinkPromptColdStart.test.tsx`, con los providers y el motor reales.
 
 ## P1 — núcleo de la app
 
@@ -1096,6 +1133,14 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   pise. **Tiene la misma raíz que `R9-160`:** un conflicto pendiente no se refresca cuando la nube se
   mueve. **Arreglo (hipótesis):** el de `R9-160` cubre el caso de R2. Para el borrado, `keepTheirs`
   tendría que subir lo que aplica, o no ofrecerse cuando la nube ya no tiene esa versión.
+  **✅ ARREGLADO en la sesión 25** (`cf6e7f0`, junto con `R9-160`, que cubre el caso de R2):
+  - El motor marca un conflicto cuando ESTE teléfono escribe su doc mientras espera (una edición o
+    un borrado).
+  - `keepTheirs` sube «lo suyo», re-sellado con la hora actual, solo si hay marca o una escritura
+    propia de ese doc en la cola. Si «lo suyo» es un borrado, sube una lápida.
+  - En el caso simple (la nube sigue en «su versión») no sube nada, como antes.
+  - Sonda del orquestador: después del borrado, «lo suyo» sube R y la nube queda igual que el
+    teléfono. Con R2, aplica R2 sin subir nada. Revert por pieza: ver `R9-160`.
 
 - **`R9-153` (S23, `SyncEngine` / cuentas) — 🐛 `handleSnapshot` no tiene sesión: un conflicto
   de Ana registrado después del `stop()` pasa a la sesión de Beto, y resolverlo copia la versión
@@ -1231,6 +1276,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     `signInWithCredential` falla por red, y en el reintento responde «Migrar». Resultado:
     `{"skipArmedBeforeRetry":true,"pushesBeto":0,"flag":"skip"}`, cuando el control (acepta a la
     primera) da 12 y `'2'`. El «Sí» explícito queda anulado para siempre.
+    **⚠️ Sesión 25, después del arreglo de `R9-166`:** en la rama del link con éxito, el skip ya se
+    arma recién cuando el link tuvo éxito, así que esa puerta se cerró. Siguen abiertas la rama sin
+    anónimo y la de colisión (se arman antes del `signInWithCredential`), y el skip de
+    `deleteAccount`. El arreglo de fondo (un skip por uid) toca `SyncEngine.ts` y `AuthContext.tsx`.
 
 - **`R9-128` (S21, adaptadores de sync) — 🐛 un apply remoto que FALLA se traga su error y el
   cursor avanza igual: el cambio remoto no vuelve nunca.** CONFIRMADO con sonda del motor.
@@ -2182,6 +2231,8 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - El código de `main` está bien: es un hueco de prueba sobre una línea que evita defectos de la
     clase de `R9-153` y `R9-122.4`. Es la regla de §5: un arreglo posterior desarmó la prueba de
     otro.
+  - **✅ ARREGLADO en la sesión 25** (`542603b`, solo pruebas): dos pruebas hacen caer el `stop()`
+    durante el APPLY de un lote. Sin la guarda caen las 2 (medido en local).
 
 - **`R9-163` (S25, `SyncEngine` / cuentas — P2) — 🐛 `loadCursor` no tiene sesión: el cursor de Ana
   que se leía al salir queda en el caché de Beto.** MEDIDO por la nube, sin re-medir en local.
@@ -2283,6 +2334,23 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - **Decisión (delegada por Victor en la sesión 25):** extender la opción (b) a esos fallos. Un
     navegador con texto sigue con lo que tiene, avisa, y reintenta en el próximo arranque. Solo uno
     sin texto ve la pantalla de error.
+
+- **`R9-174` (S25, `SyncEngine` / conflictos — P3) — 🐛 en tarjetas y favoritos, un eco propio puede
+  parecer «del otro» durante un instante, y pisar «su versión» de un conflicto pendiente.** Leído
+  por el orquestador al revisar `R9-160`. Sin sonda.
+  - El arreglo de `R9-160` distingue el eco propio porque «nunca es más nuevo que lo local»: cada
+    adaptador sube el `updatedAt` de la fila guardada. En notas y subrayados, `getLocal` lee la BD, y
+    la premisa se cumple.
+  - En `memoryCards` y `favorites`, `getLocal` lee un ref que se actualiza en un `useEffect`
+    (`MemoryDeckContext.tsx:120-122`, `FavoritesContext.tsx:128-131`), DESPUÉS del render.
+  - El listener no filtra los ecos locales pendientes (no mira `hasPendingWrites`), y Firestore
+    entrega la escritura local enseguida.
+  - Si un conflicto está pendiente y el usuario edita ESE doc en este teléfono, su eco puede llegar
+    con el ref todavía viejo. El motor lo ve más nuevo que lo local, y lo toma como «su versión».
+  - Nada se pierde del todo, porque el otro teléfono conserva su copia y su propio conflicto. Pero
+    en este teléfono «su versión» mostraría lo propio, y «quedarme con lo suyo» lo subiría.
+  - **Arreglo (hipótesis):** actualizar el ref en el mismo lugar donde se escribe, antes del
+    `queueWrite`, o que el motor reconozca sus propios ecos por el contenido de la cola.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

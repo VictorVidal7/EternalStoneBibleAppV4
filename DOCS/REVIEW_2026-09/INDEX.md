@@ -275,6 +275,17 @@
 > checkpoint va en `docs/review-s25-diff-s24`. **Siguiente:** los arreglos de `R9-160`+`R9-161`
 > (sesión A) y de `R9-166` (sesión B) en la nube, revisados en local; después, `R9-124` en Modo C.
 > Detalle: `detail/S25-revision-del-diff-s24.md`.
+>
+> **Sesión 25, segunda parte: los arreglos, HECHOS en la nube y revisados en local.**
+>
+> - `R9-160`, `R9-161`, `R9-162` y `R9-166` quedaron ✅: `main` = `cf7c715`, con el CI verde en el
+>   log.
+> - B preguntó ANTES del link, más simple que lo recomendado. A refresca «su versión» mientras el
+>   conflicto espera.
+> - Se agregó `R9-174` (P3, leído).
+>
+> **Quedan 2 P0 abiertos** (`R9-38`, `R9-124`). Hallazgos: **174**. **Siguiente, la 26:** `R9-124`
+> en Modo C.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -745,8 +756,11 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - cada una entregó su informe en una rama `review/s25-*`, que nunca se mergea;
     - el orquestador bajó los informes a `_scratch`, verificó cada P0/P1 con sonda propia en la
       máquina de Victor y borró las ramas.
-  - **Resultado:** 14 hallazgos nuevos (`R9-160`..`R9-173`): 2 P0, 1 P1, 4 P2 y 7 P3. Quedan 4
-    P0 abiertos.
+  - **Resultado:** 14 hallazgos nuevos (`R9-160`..`R9-173`): 2 P0, 1 P1, 4 P2 y 7 P3.
+  - **Segunda parte, los arreglos:** con el OK de Victor, dos sesiones en la nube arreglaron
+    `R9-160`+`R9-161`+`R9-162` y `R9-166`, en archivos distintos. El orquestador las revisó en local
+    pieza por pieza (28 de 29 piezas discriminan), las apiló y mergeó con el OK: `main` =
+    `cf7c715`. Se agregó `R9-174` (P3). Quedan 2 P0 abiertos.
   - **Detalle: `detail/S25-revision-del-diff-s24.md`.**
   - **Las lecciones:**
     - **un arreglo puede crear el caso que su premisa niega**: «lo local de ahora es lo mío» es

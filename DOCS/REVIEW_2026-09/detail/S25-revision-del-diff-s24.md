@@ -22,10 +22,14 @@
   - los «16 archivos» de `R9-157` son los de `f80a2c6`, `b59a3ab` y `3a23e76` (1 + 13 + 2), no solo
     los de los dos últimos.
 
-**Resultado: 14 hallazgos nuevos (`R9-160`..`R9-173`), 2 de ellos P0 y 1 P1.** Pasan a ser 4 P0
-abiertos (`R9-38`, `R9-124`, `R9-160` y `R9-166`), y 173 hallazgos en total. El CI de `main` =
-`ae9c8e4` está verificado EN EL LOG: run `35967053890`, 3 jobs verdes, Node 24.21.0, 366/4366 y cero
-«failed to run».
+**Resultado de la revisión: 14 hallazgos nuevos (`R9-160`..`R9-173`), 2 de ellos P0 y 1 P1.** Con
+eso quedaban 4 P0 abiertos (`R9-38`, `R9-124`, `R9-160` y `R9-166`) y 173 hallazgos. El CI de
+`main` = `ae9c8e4` está verificado EN EL LOG: run `35967053890`, 3 jobs verdes, Node 24.21.0,
+366/4366 y cero «failed to run».
+
+**En la segunda parte de la sesión se arreglaron en la nube `R9-160`, `R9-161`, `R9-162` y
+`R9-166`, y se agregó `R9-174`.** Quedan 2 P0 abiertos (`R9-38`, `R9-124`) y 174 hallazgos. `main`
+= `cf7c715`.
 
 ## Lo que verificó el orquestador, con sonda propia
 
@@ -92,19 +96,47 @@ cleanup.
 - **Arreglos:** Victor aprobó lanzar en la nube los P0 y P1 que se prueban con jest, con lo que queda
   del crédito (unos $8), aunque se acabe.
 
+## Segunda parte: los arreglos en la nube, revisados en local
+
+Con el OK de Victor, y con los $8 de crédito que quedaban (aceptó que la nube siguiera con su plan
+si se acababan), dos sesiones en la nube arreglaron los P0 y P1 nuevos, en archivos distintos. Los
+prompts son `_scratch/S25-nube-3-fix-conflictos.md` y `_scratch/S25-nube-4-fix-pregunta-link.md`.
+Leyeron las entradas desde la rama del checkpoint, que ya estaba pusheada.
+
+| Sesión | Qué                                          | Commits en `main`               | Revisión local (`NODE_ENV=development`)                                                                     |
+| ------ | -------------------------------------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| A      | `R9-160` + `R9-161`, y la prueba de `R9-162` | `9a7c2c7`, `cf6e7f0`, `542603b` | 23 de 24 piezas discriminan; la que no, A3b, es equivalente por construcción. Sonda propia: C, E2 y F3 bien |
+| B      | `R9-166`                                     | `cf7c715`                       | las 5 piezas discriminan. Sonda propia: 0 al arrancar en frío (antes, 12)                                   |
+
+- **El diseño de B es más simple que el recomendado:** en vez de persistir una «pregunta
+  pendiente», pregunta ANTES del link. Una pregunta que muere con el proceso deja al usuario
+  anónimo. El skip se arma recién después de un link con éxito, así que esa puerta de `R9-127`
+  se cerró de paso.
+- **El diseño de A:** mientras el conflicto espera, lo que llega más nuevo que lo local es del otro
+  y refresca «su versión» sin aplicarse. La premisa es que el eco propio nunca es más nuevo que lo
+  local, y el orquestador la verificó llamador por llamador: se cumple en notas, subrayados y
+  favoritos (que suben el `updatedAt` de la fila). En tarjetas y favoritos queda una ventana, porque
+  su `getLocal` lee un ref que se sincroniza en un `useEffect` (`R9-174`, P3, leído).
+- **Apilado:** A se rebasó sobre `763dcc0` (en el medio solo había docs) y B se apiló encima. Cada
+  tramo es idéntico a su original por `cmp`. `npm run validate` sobre la pila da 367 suites y 4405
+  pruebas (4366 + 30 + 9). El CI de la nube sobre cada rama dio verde en el log: A, run
+  `36046367240` (366/4396); B, run `36043653250` (367/4375).
+- **Mergeado** en fast-forward con el OK de Victor: `main` = `cf7c715`. CI verificado EN EL LOG: run
+  `36052843080` (3 jobs verdes, 367/4405, cero «failed to run»). Se borraron las ramas `fix/review-s25-*` y `docs/review-s25-diff-s24`; las `fix/*` están
+  en `main` con el mismo patch-id (`git cherry`).
+- La matriz completa está en `_scratch/S25-revision-local-arreglos.txt`.
+
 ## Lo que queda abierto
 
 - **P0:**
-  - `R9-160` y `R9-161`, en la nube (sesión A, el motor);
-  - `R9-166`, en la nube (sesión B, auth);
-  - `R9-124`, en Modo C y en la 26, DESPUÉS de mergear la sesión A, porque toca el mismo
-    `handleSnapshot`. Su arreglo tiene dos condiciones nuevas (ver su entrada);
+  - `R9-124`, en la 26, en Modo C: medir primero el SDK nativo, con el emulador. Su arreglo tiene
+    dos condiciones nuevas (ver su entrada), y el `handleSnapshot` que toca es el de `R9-160`;
   - `R9-38`, que depende de `R9-59`.
-- **Decisiones de Victor:** las de siempre (`R9-59`, el efecto de `R9-146`, el tope de cuota del piso
-  y `R9-158`, ahora junto con el `claimLocalStore` que también falla abierto).
-- **La puerta de `R9-127` que se cierra en `AuthContext`** (el skip armado antes de un sign-in que
-  falla) no entra en la sesión B. El arreglo de fondo de `R9-127` (un skip por uid) toca
-  `SyncEngine.ts`, que es de la sesión A. Va después.
+- **`R9-127` (P1):** siguen abiertas la rama sin anónimo, la de colisión y el skip de
+  `deleteAccount`. El arreglo de fondo, un skip por uid, toca `SyncEngine.ts` y `AuthContext.tsx`.
+- **P3 nuevo:** `R9-174`.
+- **Decisiones de Victor:** las de siempre: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso
+  y `R9-158`, este último ahora junto con el `claimLocalStore` que también falla abierto.
 
 ## Lecciones de la sesión
 

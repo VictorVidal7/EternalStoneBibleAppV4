@@ -1,10 +1,10 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-24, fin de la sesión 25.** La 25 revisó el diff de la 24 (la
-> (d)) con 2 sesiones de Claude Code EN LA NUBE, y el orquestador verificó en local cada P0/P1 con
-> sonda propia. Registró `R9-160`..`R9-173`, y quedan **4 P0 abiertos** (`R9-38`, `R9-124`,
-> `R9-160`, `R9-166`). **Lo siguiente es el mensaje (e):** revisar en local los arreglos de
-> `R9-160`+`R9-161` y de `R9-166` que hacen dos sesiones en la nube, y después `R9-124` en Modo C.
+> **Última actualización: 2026-09-24, fin de la sesión 25.** La 25 revisó el diff de la 24 (la (d))
+> con 2 sesiones EN LA NUBE y registró `R9-160`..`R9-173`. En la misma sesión hizo también la (e):
+> otras 2 sesiones en la nube arreglaron `R9-160`, `R9-161`, `R9-162` y `R9-166`, y el orquestador las
+> revisó en local y las mergeó (`main` = `cf7c715`). Quedan **2 P0 abiertos** (`R9-38`, `R9-124`).
+> **Lo siguiente es el mensaje (f): `R9-124` en Modo C.**
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -16,17 +16,11 @@
 
 ## ⛔ LEE ESTO ANTES DE NADA
 
-**0. El checkpoint de la sesión 25 va en la rama `docs/review-s25-diff-s24`, que es solo docs, y
-espera el OK de Victor para mergearse.** Si al arrancar esa rama no está en `origin/main`,
-preguntale qué decidió antes de seguir. La base es `ae9c8e4` (el checkpoint de la 24; el último
-código es `9c425a8`). Su CI está verificado EN EL LOG: run `35967053890`, 3 jobs verdes, Node
-v24.21.0, 366/4366, cero «failed to run». **Comprobá en el log el run de CI de `origin/main`.**
-**Además, al cerrar la 25 quedaron lanzadas (o por lanzar) dos sesiones de arreglos en la nube:**
-
-- A: `R9-160`+`R9-161`, y la prueba que le falta a `R9-162`, en la rama `fix/review-s25-conflictos`;
-- B: `R9-166`, en la rama `fix/review-s25-pregunta-link`.
-  Los prompts están en `_scratch/S25-nube-3-*.md` y `_scratch/S25-nube-4-*.md`. Mirá
-  `git ls-remote --heads origin`: si esas ramas no existen, preguntale a Victor si se lanzaron.
+**0. El checkpoint de los arreglos de la sesión 25 va en la rama `docs/review-s25-arreglos`, que es
+solo docs, y espera el OK de Victor para mergearse.** Si al arrancar esa rama no está en
+`origin/main`, preguntale qué decidió antes de seguir. La base es `cf7c715`, el último código de la
+25, ya mergeado y pusheado. Su CI está verificado EN EL LOG: run `36052843080`, 3 jobs verdes, Node v24.21.0, 367/4405, cero «failed to run». El checkpoint de la
+revisión (`763dcc0`) ya está en `main`. **Comprobá en el log el run de CI de `origin/main`.**
 
 **1. ✅ Lo de la sesión 20: la rama se mergeó en fast-forward y se
 pusheó** (con el OK de Victor), y se borró. Lleva cuatro commits de código, uno por hallazgo
@@ -457,10 +451,47 @@ o un alcance que no se sostiene.
 ## Mensaje para pegar en el chat nuevo
 
 **Hechos:** el doble check (la (b), sesiones 21 y 22), la revisión del diff de la 20 (la (a),
-sesión 23), los ARREGLOS (la (c), sesión 24, en la nube) y la revisión del diff de la 24 (la (d),
-sesión 25, en la nube). **Lo siguiente es el (e).**
+sesión 23), los ARREGLOS (la (c), sesión 24, en la nube), la revisión del diff de la 24 (la (d),
+sesión 25, en la nube) y sus arreglos (la (e), también en la 25). **Lo siguiente es el (f).**
 
-**(e) Sesión 26: revisar en local los arreglos de la nube de la 25. Después, `R9-124` en Modo C.**
+**(f) Sesión 26: `R9-124` en Modo C.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` y, en la
+> memoria, la de las sesiones 23 a 25 y la de los dispositivos
+> (`reference_essb-device-testing-and-automation`).
+>
+> **Estado:**
+>
+> - `main` = `cf7c715`, con el CI verde en el log. Antes de empezar, comprobá en el log el run de
+>   `origin/main`.
+> - Quedan 2 P0 abiertos: `R9-38` y `R9-124`. Hallazgos: 174. El detalle de la 25 está en
+>   `detail/S25-revision-del-diff-s24.md`.
+>
+> **Esta sesión es `R9-124`.** Decime qué medís antes de tocar código.
+>
+> 1. **Medir el SDK nativo de Android en Modo C**, en el emulador, con mi OK y **nunca con mi
+>    teléfono** (como `R9-104` en la 20). La pregunta: reescribir un doc con un `updatedAt` más
+>    viejo que el piso del listener, ¿lo entrega como `removed`?
+> 2. **Si confirma, el arreglo** (en una rama `fix/...`, en local o en la nube, preguntame). Tiene
+>    que:
+>    - hacer FUERA de `withLocalWriteSuppressed` la consulta de si el doc existe, con su
+>      `isCurrent()` después (`R9-153`);
+>    - seguir soltando el doc del conjunto no asentado aunque no lo borre (`R9-164`);
+>    - respetar lo nuevo de `R9-160`: con un conflicto pendiente, el doc no toma nada de la nube;
+>    - y lograr que el mock de `onSnapshot` de la suite emita `removed` en vez de filtrar.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`. El
+>   skip por uid toca `SyncEngine.ts` y `AuthContext.tsx`;
+> - `R9-173` (ya decidido: extender la opción (b)) y `R9-174`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(e) Revisar en local los arreglos de la nube de la 25 — ya HECHO, en la misma sesión 25.** Queda
+aquí como registro.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` y, en la
 > memoria, la del método de la nube (`feedback_essb-cloud-sessions-local-review`).
@@ -896,9 +927,8 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 26: el mensaje (e), revisar en local los arreglos de la nube de
-`R9-160`+`R9-161` y `R9-166`. Después, `R9-124` en Modo C.** Lo de abajo es el menú de siempre
-para después.
+**Recomendado para la sesión 26: el mensaje (f), `R9-124` en Modo C.** Lo de abajo es el menú de
+siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
