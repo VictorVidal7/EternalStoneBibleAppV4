@@ -115,12 +115,13 @@ function buildManifest(rvrSha = RVR_SHA, webSha = WEB_SHA) {
 
 /**
  * Routes `fetch` by URL: the manifest per `manifestMode`, else the pack file's
- * bytes from `served` (a copy, so nothing downstream can alias the fixture).
+ * bytes from `served` (a copy, so nothing downstream can alias the fixture),
+ * or an HTTP 404 for a file `served` maps to `null`.
  */
 function installFetchMock(
   manifestMode:
     {kind: 'ok'; manifest: unknown} | {kind: 'reject'} | {kind: 'http-error'},
-  served: Record<string, Uint8Array> = {},
+  served: Record<string, Uint8Array | null> = {},
 ): jest.Mock {
   const files = {...SERVED_BY_DEFAULT, ...served};
   const mock = jest.fn(async (input: unknown): Promise<FakeResponse> => {
@@ -146,6 +147,14 @@ function installFetchMock(
     }
     // Any other URL is a pack-file fetch (rvr1960.sqlite / web.sqlite).
     const bytes = files[url.slice(url.lastIndexOf('/') + 1)];
+    if (bytes === null) {
+      return {
+        ok: false,
+        status: 404,
+        json: async () => ({}),
+        arrayBuffer: async () => new ArrayBuffer(0),
+      };
+    }
     if (!bytes) {
       throw new Error(`the fake Pages has no ${url}`);
     }
@@ -274,13 +283,27 @@ describe('the bytes are checked against the manifest before they are imported (R
   // sat next to the manifest in the default build output: a size check would
   // not have caught it.
   const RVR_BYTES_BAD = packBytes('rvr1960, CHATBOT');
-  const RVR_SHA_OLD = sha256Of(packBytes('rvr1960, before the fix'));
+  const RVR_BYTES_OLD = packBytes('rvr1960, before the fix');
+  const RVR_SHA_OLD = sha256Of(RVR_BYTES_OLD);
 
   let errorSpy: jest.SpyInstance;
+  let warnSpy: jest.SpyInstance;
   beforeEach(() => {
     errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
   });
-  afterEach(() => errorSpy.mockRestore());
+  afterEach(() => {
+    errorSpy.mockRestore();
+    warnSpy.mockRestore();
+  });
+
+  /** A browser that already reads both packs, RVR1960 on its OLD version. */
+  async function seedBootedOnOldRvr() {
+    await AsyncStorage.setItem(packLoadedKey('RVR1960'), 'true');
+    await AsyncStorage.setItem(packVersionKey('RVR1960'), RVR_SHA_OLD);
+    await AsyncStorage.setItem(packLoadedKey('WEB'), 'true');
+    await AsyncStorage.setItem(packVersionKey('WEB'), WEB_SHA);
+  }
 
   it('the bad fixture really is the same size and a different hash', () => {
     expect(RVR_BYTES_BAD.length).toBe(RVR_BYTES.length);
@@ -323,34 +346,103 @@ describe('the bytes are checked against the manifest before they are imported (R
     expect(await AsyncStorage.getItem(packLoadedKey('RVR1960'))).toBe('true');
   });
 
-  it('leaves an already-booted browser on its OLD version, so re-uploading the good pack still cures it', async () => {
-    // The case that used to be permanent: a browser on an older RVR1960, a
-    // manifest pinning the new one, and Pages serving bytes that are neither.
-    // Before R9-109 it imported them AND stored the new sha256, so every later
-    // boot said "current version" and the good pack was never fetched again.
-    await AsyncStorage.setItem(packLoadedKey('RVR1960'), 'true');
-    await AsyncStorage.setItem(packVersionKey('RVR1960'), RVR_SHA_OLD);
-    await AsyncStorage.setItem(packLoadedKey('WEB'), 'true');
-    await AsyncStorage.setItem(packVersionKey('WEB'), WEB_SHA);
+  it('keeps an already-booted browser reading its OLD version, with a warning and no error screen, and retries on the next start', async () => {
+    // The ~10 minutes after a publish: the manifest pins the new RVR1960, but
+    // the GitHub Pages cache still serves the old pack. Before R9-109 the
+    // bytes went in AND the new sha256 was stored, so every later boot said
+    // "current version" and the good pack was never fetched again. The first
+    // R9-109 fix refused them by failing the boot — which put the error
+    // screen in front of a reader whose text was fine. Now it keeps that text.
+    await seedBootedOnOldRvr();
     installFetchMock(
       {kind: 'ok', manifest: buildManifest()},
-      {'rvr1960.sqlite': RVR_BYTES_BAD},
+      {'rvr1960.sqlite': RVR_BYTES_OLD},
     );
 
-    await expect(initializeBibleData()).rejects.toThrow(/does NOT match/);
+    await expect(initializeBibleData()).resolves.toBeUndefined();
 
+    // Nothing of the old pack was overwritten: the bytes never got past the
+    // check, and the flag and the OLD version are still what is stored.
+    expect(mockDeserializeDatabaseAsync).not.toHaveBeenCalled();
     expect(mockInsertVerses).not.toHaveBeenCalled();
+    expect(await AsyncStorage.getItem(packLoadedKey('RVR1960'))).toBe('true');
+    expect(await AsyncStorage.getItem(packVersionKey('RVR1960'))).toBe(
+      RVR_SHA_OLD,
+    );
+    // Not the error path (initializeBibleData's console.error, which
+    // app/_layout.web.tsx turns into the error screen), but one clear warning
+    // naming the version kept and both hashes.
+    expect(errorSpy).not.toHaveBeenCalled();
+    const warned = warnSpy.mock.calls.map(args => args.map(String).join(' '));
+    expect(warned).toEqual([
+      expect.stringContaining(
+        `Keeping the RVR1960 text this browser already has (stored version ${RVR_SHA_OLD})`,
+      ),
+    ]);
+    expect(warned[0]).toContain(
+      `pins sha256 ${RVR_SHA}, the ${RVR_BYTES_OLD.length} bytes served ` +
+        `hash to ${RVR_SHA_OLD}`,
+    );
+
+    // Next start, the cache still stale: it downloads again, and keeps again.
+    let fetchMock = installFetchMock(
+      {kind: 'ok', manifest: buildManifest()},
+      {'rvr1960.sqlite': RVR_BYTES_OLD},
+    );
+    await expect(initializeBibleData()).resolves.toBeUndefined();
+    expect(packFilesFetched(fetchMock)).toEqual(['rvr1960.sqlite']);
     expect(await AsyncStorage.getItem(packVersionKey('RVR1960'))).toBe(
       RVR_SHA_OLD,
     );
 
-    // The good pack goes back up: the very next start picks it up.
-    const fetchMock = installFetchMock({kind: 'ok', manifest: buildManifest()});
+    // The start after that, Pages serves the new pack: imported and recorded.
+    fetchMock = installFetchMock({kind: 'ok', manifest: buildManifest()});
     await initializeBibleData();
 
     expect(packFilesFetched(fetchMock)).toEqual(['rvr1960.sqlite']);
     expect(deserializedShas()).toEqual([RVR_SHA]);
     expect(await AsyncStorage.getItem(packVersionKey('RVR1960'))).toBe(RVR_SHA);
+    expect(errorSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeping one pack does not stop the other pack from updating on the same start', async () => {
+    await seedBootedOnOldRvr();
+    await AsyncStorage.setItem(packVersionKey('WEB'), 'stale-web-hash');
+    const fetchMock = installFetchMock(
+      {kind: 'ok', manifest: buildManifest(RVR_SHA, WEB_SHA_NEW)},
+      {'rvr1960.sqlite': RVR_BYTES_BAD, 'web.sqlite': WEB_BYTES_NEW},
+    );
+
+    await expect(initializeBibleData()).resolves.toBeUndefined();
+
+    expect(packFilesFetched(fetchMock)).toEqual([
+      'rvr1960.sqlite',
+      'web.sqlite',
+    ]);
+    expect(deserializedShas()).toEqual([WEB_SHA_NEW]);
+    expect(await AsyncStorage.getItem(packVersionKey('RVR1960'))).toBe(
+      RVR_SHA_OLD,
+    );
+    expect(await AsyncStorage.getItem(packVersionKey('WEB'))).toBe(WEB_SHA_NEW);
+  });
+
+  it('forgives only a mismatch: any other failure updating a booted browser still fails the boot', async () => {
+    // Decided for bytes that do not verify, and only for those. A pack that
+    // does not arrive at all fails exactly as it did before R9-109.
+    await seedBootedOnOldRvr();
+    installFetchMock(
+      {kind: 'ok', manifest: buildManifest()},
+      {'rvr1960.sqlite': null},
+    );
+
+    await expect(initializeBibleData()).rejects.toThrow(
+      'Web pack fetch failed (rvr1960.sqlite): HTTP 404',
+    );
+
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(await AsyncStorage.getItem(packVersionKey('RVR1960'))).toBe(
+      RVR_SHA_OLD,
+    );
   });
 
   it('imports a matching pack exactly as before (the control)', async () => {

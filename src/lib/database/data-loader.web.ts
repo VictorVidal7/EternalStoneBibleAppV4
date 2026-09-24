@@ -57,6 +57,13 @@ interface PackRow {
 }
 
 /**
+ * The served bytes are not the ones web-bootstrap.json pins (R9-109). Its own
+ * class so initializeBibleData can tell it from every other import failure:
+ * this is the one it forgives when the browser already holds the pack.
+ */
+class WebPackMismatchError extends Error {}
+
+/**
  * Fetch + import one web-bootstrap pack into the main db, tagged `versionId`.
  *
  * R9-109: when the manifest pins a sha256 for this pack, the bytes are hashed
@@ -70,9 +77,11 @@ interface PackRow {
  * with chatbot text inside 2 Kings 22:9, sitting next to the manifest that
  * pins the good one.
  *
- * A mismatch throws before anything is written — no verses, no loaded flag,
- * no version — so the boot fails loudly (initializeBibleData logs it and
- * app/_layout.web.tsx shows it) and the next start downloads it again.
+ * A mismatch throws a WebPackMismatchError before anything is written — no
+ * verses, no loaded flag, no version — so the next start downloads it again.
+ * What that costs this boot is the caller's call (initializeBibleData): a
+ * browser with no text for this version fails the boot, one that already has
+ * it keeps reading it.
  *
  * sha256Hex is the pure-JS digest native already verifies packs with
  * (version-download-service.ts), not crypto.subtle: WebCrypto is undefined
@@ -95,7 +104,7 @@ async function importWebPack(
   if (expectedSha256 !== null) {
     const actualSha256 = sha256Hex(bytes);
     if (actualSha256 !== expectedSha256) {
-      throw new Error(
+      throw new WebPackMismatchError(
         `Web pack ${fileName} does NOT match web-bootstrap.json: the manifest ` +
           `pins sha256 ${expectedSha256}, the ${bytes.length} bytes served ` +
           `hash to ${actualSha256}. Refusing to import it: nothing was ` +
@@ -245,12 +254,33 @@ export async function initializeBibleData(
       } else {
         console.log(`📖 [web] Downloading ${pack.versionId} bootstrap pack...`);
       }
-      await importWebPack(
-        pack.versionId,
-        pack.file,
-        expectedSha256,
-        onProgress,
-      );
+      try {
+        await importWebPack(
+          pack.versionId,
+          pack.file,
+          expectedSha256,
+          onProgress,
+        );
+      } catch (error) {
+        // Bytes that do not verify, on a browser that already reads this
+        // version: most likely the ~10 minutes after a publish, while the
+        // GitHub Pages cache still serves the old pack next to the new
+        // manifest. The error screen would take away text that is fine, so
+        // keep it. Nothing was written (the check runs before deserializing),
+        // and skipping the setItem below leaves the old version stored, so
+        // the next start tries again. A browser with no text for it has
+        // nothing to keep: that still throws, as does any other failure.
+        if (isLoaded === 'true' && error instanceof WebPackMismatchError) {
+          console.warn(
+            `⚠️ [web] Keeping the ${pack.versionId} text this browser already ` +
+              `has (stored version ${storedVersion ?? 'none'}); the next start ` +
+              'tries the update again.',
+            error,
+          );
+          continue;
+        }
+        throw error;
+      }
       // importWebPack refused any bytes whose sha256 is not this one, so this
       // records the version of the bytes actually imported — not merely the
       // one the manifest names (R9-109).
