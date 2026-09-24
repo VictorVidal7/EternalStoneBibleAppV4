@@ -1398,12 +1398,44 @@ export class SyncEngine {
   }
 
   /**
+   * R9-36 — the local copy of a conflicted doc as it is NOW.
+   *
+   * `conflict.localVersion` is a snapshot taken when the conflict was
+   * detected, and a conflict waits for the user to open the screen: in the
+   * meantime they can keep editing that same doc. The conflicts screen shows
+   * "mine" and seeds (and bases) the merge from this, not from the snapshot.
+   *
+   * Throws when the copy cannot be read, or the conflict or its adapter is
+   * gone; `null` means the doc no longer exists here.
+   */
+  async readCurrentLocal(
+    conflictId: string,
+  ): Promise<SyncEntity<Record<string, unknown>> | null> {
+    const conflict = this.conflicts.find(c => c.id === conflictId);
+    if (!conflict) {
+      throw new Error(`readCurrentLocal: unknown conflict ${conflictId}`);
+    }
+    const adapter = this.adapters.get(conflict.collection);
+    if (!adapter) {
+      throw new Error(
+        `readCurrentLocal: no adapter for ${conflict.collection}`,
+      );
+    }
+    return (await adapter.getLocal(conflict.docId)) as SyncEntity<
+      Record<string, unknown>
+    > | null;
+  }
+
+  /**
    * Resolve a pending conflict. `keepMine` re-stamps the local doc with
    * now and pushes (so it wins next sync); `keepTheirs` applies the
    * remote locally; `merge` applies mergedValue + pushes.
    *
    * The resolved record is logged to users/{uid}/conflicts/{id} for
    * cross-device audit (best-effort, errors are warned not thrown).
+   *
+   * `keepMine` rejects, leaving the conflict pending and touching nothing,
+   * when the local copy cannot be read or no longer exists (R9-36).
    */
   async resolveConflict(
     conflictId: string,
@@ -1428,11 +1460,33 @@ export class SyncEngine {
     }
 
     const now = Date.now();
+    // R9-153 — like a snapshot batch, a resolution belongs to its session:
+    // after an `await` that comes back past a `stop()`, `this.uid` is the
+    // next account's and `queueWrite` would push into THEIR cloud.
+    const session = this.flushSession;
+    const isCurrent = () => session === this.flushSession;
     let resolvedValue: SyncEntity<Record<string, unknown>>;
 
     if (choice === 'keepMine') {
-      resolvedValue = {...conflict.localVersion, updatedAt: now};
-      // queueWrite handles the push; local store already has this value.
+      // R9-36 — "mine" is the local copy NOW, not `conflict.localVersion`.
+      // That is a snapshot from detection time, and conflicts wait for the
+      // user: pushing it re-stamped with `now` reverted every edit made to
+      // the doc since, and once that edit was more than CONFLICT_WINDOW_MS
+      // old the echo came back as plain LWW and overwrote it locally too.
+      // A read that fails, or finds the doc gone, resolves nothing: a
+      // `null` is not "keep an empty doc", and from the highlights adapter
+      // it can also be a failed read (R9-132), so neither the snapshot nor a
+      // tombstone is safe to push in its place.
+      const current = (await adapter.getLocal(conflict.docId)) as SyncEntity<
+        Record<string, unknown>
+      > | null;
+      if (!isCurrent()) {
+        throw new Error('resolveConflict: the session ended while resolving');
+      }
+      if (!current) {
+        throw new Error('resolveConflict: keepMine found no local copy');
+      }
+      resolvedValue = {...current, updatedAt: now};
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     } else if (choice === 'keepTheirs') {
       resolvedValue = conflict.remoteVersion;

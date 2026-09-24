@@ -3038,3 +3038,166 @@ describe('R9-154 — la supresion de ecos en keepTheirs, en merge y su profundid
     expect(engine.__getQueueForTests()).toHaveLength(0);
   });
 });
+
+describe('R9-36 — conservar lo mio sube lo local de AHORA, no la foto de la deteccion', () => {
+  // `conflict.localVersion` es una foto tomada al detectar el conflicto, y los
+  // conflictos esperan a que el usuario entre a la pantalla. keepMine la subia
+  // re-sellada con `now` confiando en «local store already has this value».
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  const ORIGINAL = 'parrafo original';
+  const EDITADO = 'parrafo original + PARRAFO NUEVO QUE ACABO DE ESCRIBIR';
+
+  /** Un conflicto de verdad sobre `doc-36`: la copia local es ORIGINAL y la
+   *  remota llega 5 s despues con otro valor. Todo ocurrio hace 2 minutos. */
+  async function conflictFromTwoMinutesAgo(uid: string) {
+    // Sin subida inicial: lo unico que sube `doc-36` es lo que la prueba hace.
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    const detectedAt = Date.now() - 120_000;
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    fixture.localStore.set('doc-36', {value: ORIGINAL, updatedAt: detectedAt});
+    const engine = new SyncEngine();
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    fireRemote(uid, [
+      {
+        type: 'modified',
+        doc: {
+          id: 'doc-36',
+          exists: true,
+          data: () => ({
+            value: 'parrafo remoto',
+            updatedAt: detectedAt + 5_000,
+          }),
+        },
+      },
+    ]);
+    await settle();
+    // Control: sin conflicto no hay foto, y la prueba no miraria nada.
+    const [conflict] = engine.__getConflictsForTests();
+    expect(conflict?.localVersion.value).toBe(ORIGINAL);
+    return {engine, conflict, detectedAt, ...fixture};
+  }
+
+  function pushesOf(uid: string, id: string): Array<Record<string, unknown>> {
+    return mockDocSets
+      .filter(d => d.path === `users/${uid}/test` && d.id === id)
+      .map(d => d.data as Record<string, unknown>);
+  }
+
+  it('el usuario sigue escribiendo despues de la deteccion: se sube lo de AHORA y el eco no lo revierte', async () => {
+    const uid = 'uid-36';
+    const {engine, conflict, detectedAt, localStore} =
+      await conflictFromTwoMinutesAgo(uid);
+
+    // Hace 1 minuto (fuera de la ventana de 30 s) el usuario siguio escribiendo
+    // en la misma nota. El contexto guarda en local y encola, como siempre.
+    const edit = {value: EDITADO, updatedAt: detectedAt + 60_000};
+    localStore.set('doc-36', edit);
+    engine.queueWrite('test', 'doc-36', edit);
+    await settle();
+
+    await engine.resolveConflict(conflict.id, 'keepMine');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    const pushed = pushesOf(uid, 'doc-36');
+    const keepMinePush = pushed[pushed.length - 1];
+    // Pre-fix (sonda de la S4): se subia `{"value":"parrafo original", ...}`.
+    expect(keepMinePush?.value).toBe(EDITADO);
+
+    // Y lo que pasa despues: el eco del push vuelve por onSnapshot. Esta mas de
+    // 30 s por delante de la edicion, asi que no hay conflicto nuevo: LWW lo
+    // aplica en local. Con la foto, «conservar lo mio» borraba justo lo mio.
+    fireRemote(uid, [
+      {
+        type: 'modified',
+        doc: {id: 'doc-36', exists: true, data: () => keepMinePush},
+      },
+    ]);
+    await settle();
+    expect(localStore.get('doc-36')?.value).toBe(EDITADO);
+    expect(engine.__getConflictsForTests()).toEqual([]);
+  });
+
+  it('si el doc ya no existe en local, no sube nada y el conflicto sigue pendiente', async () => {
+    const uid = 'uid-36-borrado';
+    const {engine, conflict, localStore} = await conflictFromTwoMinutesAgo(uid);
+    localStore.delete('doc-36');
+
+    await expect(
+      engine.resolveConflict(conflict.id, 'keepMine'),
+    ).rejects.toThrow('keepMine found no local copy');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Sin la guarda, `{...null, updatedAt}` subia un doc sin campos que, con
+    // merge:true, le ponia fecha nueva a la copia remota y cerraba el conflicto.
+    expect(pushesOf(uid, 'doc-36')).toEqual([]);
+    expect(engine.__getConflictsForTests().map(c => c.id)).toEqual([
+      conflict.id,
+    ]);
+  });
+
+  it('si la lectura local falla, no sube la foto: rechaza y el conflicto sigue pendiente', async () => {
+    const uid = 'uid-36-falla';
+    const {engine, conflict, adapter} = await conflictFromTwoMinutesAgo(uid);
+    adapter.getLocal = async () => {
+      throw new Error('database is locked');
+    };
+
+    await expect(
+      engine.resolveConflict(conflict.id, 'keepMine'),
+    ).rejects.toThrow('database is locked');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    expect(pushesOf(uid, 'doc-36')).toEqual([]);
+    expect(engine.__getConflictsForTests().map(c => c.id)).toEqual([
+      conflict.id,
+    ]);
+  });
+
+  it('R9-153: si la sesion cambia durante la relectura, nada cae en la nube de Beto', async () => {
+    const {engine, conflict, adapter, localStore} =
+      await conflictFromTwoMinutesAgo('uid-ana');
+    await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const reads: string[] = [];
+    adapter.getLocal = async id => {
+      reads.push(id);
+      await gate;
+      return localStore.get(id) ?? null;
+    };
+
+    const resolving = engine.resolveConflict(conflict.id, 'keepMine');
+    resolving.catch(() => undefined);
+    await settle();
+    // Control: la relectura esta EN VUELO cuando cambia la cuenta.
+    expect(reads).toEqual(['doc-36']);
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+    release();
+
+    await expect(resolving).rejects.toThrow('the session ended');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    expect(
+      mockDocSets
+        .filter(d => d.path.startsWith('users/uid-beto/'))
+        .map(d => `${d.path}/${d.id}`),
+    ).toEqual([]);
+    expect(engine.__getQueueForTests()).toEqual([]);
+  });
+});

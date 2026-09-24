@@ -9,6 +9,12 @@
  *
  * The screen has no entry in the bottom tab bar — it's pushed from the
  * Settings → Cuenta badge when conflicts > 0.
+ *
+ * R9-36 — "mine" is the local copy as it is NOW, read on every focus, not
+ * `ConflictRecord.localVersion`: that is a snapshot taken when the conflict
+ * was detected, and the user may have kept editing the doc since. The merge
+ * is seeded from, and built on top of, that same current copy. This screen
+ * is a hidden tab, so it stays mounted while the user is away editing.
  */
 
 import {
@@ -21,8 +27,8 @@ import {
   Modal,
   TextInput,
 } from 'react-native';
-import {useMemo, useState} from 'react';
-import {useRouter} from 'expo-router';
+import {useCallback, useMemo, useState} from 'react';
+import {useFocusEffect, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
@@ -48,6 +54,12 @@ function formatValue(value: unknown): string {
   return String(value);
 }
 
+type Fields = Record<string, unknown>;
+
+/** R9-36 — the last read of a conflict's CURRENT local copy. `value: null`
+ *  means the doc no longer exists here. */
+type LocalRead = {ok: true; value: Fields | null} | {ok: false};
+
 export default function ConflictsScreen() {
   const router = useRouter();
   const {colors, gradient} = useTheme();
@@ -64,6 +76,43 @@ export default function ConflictsScreen() {
   const conflicts = useConflicts();
   const [mergingId, setMergingId] = useState<string | null>(null);
   const [mergeDraft, setMergeDraft] = useState<Record<string, string>>({});
+  const [currentLocal, setCurrentLocal] = useState<Record<string, LocalRead>>(
+    {},
+  );
+  const engine = syncCtx?.engine;
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!engine) return;
+      let active = true;
+      for (const c of conflicts) {
+        engine.readCurrentLocal(c.id).then(
+          value => {
+            if (active) {
+              setCurrentLocal(prev => ({...prev, [c.id]: {ok: true, value}}));
+            }
+          },
+          () => {
+            if (active) {
+              setCurrentLocal(prev => ({...prev, [c.id]: {ok: false}}));
+            }
+          },
+        );
+      }
+      return () => {
+        active = false;
+      };
+    }, [engine, conflicts]),
+  );
+
+  /** What the "mine" column shows. The detection snapshot only stands in
+   *  while the read is pending or after it failed; the actions below never
+   *  rely on it (keepMine re-reads inside the engine, the merge here). */
+  function mineOf(c: ConflictRecord): Fields {
+    const read = currentLocal[c.id];
+    if (read?.ok) return read.value ?? {};
+    return c.localVersion;
+  }
 
   // Shared with the insights dashboard so a field/collection reads the
   // same friendly name everywhere it's shown.
@@ -83,10 +132,32 @@ export default function ConflictsScreen() {
     [conflicts, mergingId],
   );
 
-  function openMerge(c: ConflictRecord): void {
+  /** R9-36 — the current local copy for a merge, or `null` after telling
+   *  the user it could not be used. A doc that no longer exists here has
+   *  nothing of "mine" to merge. */
+  async function readForMerge(c: ConflictRecord): Promise<Fields | null> {
+    if (!engine) return null;
+    try {
+      const current = await engine.readCurrentLocal(c.id);
+      setCurrentLocal(prev => ({...prev, [c.id]: {ok: true, value: current}}));
+      if (current) return current;
+    } catch (err) {
+      logger.error(
+        'ConflictsScreen: reading the local copy failed',
+        err instanceof Error ? err : new Error(String(err)),
+        {component: 'ConflictsScreen', conflictId: c.id},
+      );
+    }
+    toast.error(t.conflicts.resolveError);
+    return null;
+  }
+
+  async function openMerge(c: ConflictRecord): Promise<void> {
+    const current = await readForMerge(c);
+    if (!current) return;
     const draft: Record<string, string> = {};
     for (const f of c.differingFields) {
-      draft[f] = formatValue(c.localVersion[f]);
+      draft[f] = formatValue(current[f]);
     }
     setMergeDraft(draft);
     setMergingId(c.id);
@@ -117,9 +188,15 @@ export default function ConflictsScreen() {
 
   async function applyMerge(): Promise<void> {
     if (!syncCtx || !mergingConflict) return;
-    const merged: Record<string, unknown> = {...mergingConflict.localVersion};
+    // R9-36 — the fields the user did not edit here come from the local copy
+    // as it is NOW. Spreading the snapshot put back, in every one of them,
+    // whatever the doc held when the conflict was detected.
+    const current = await readForMerge(mergingConflict);
+    if (!current) return;
+    const merged: Record<string, unknown> = {...current};
     for (const [k, v] of Object.entries(mergeDraft)) {
-      const original = mergingConflict.localVersion[k];
+      // Only a type hint for parsing the text back; the value is the draft.
+      const original = current[k] ?? mergingConflict.localVersion[k];
       if (Array.isArray(original)) {
         // Comma-separated string back to array (trims empties).
         merged[k] = v
@@ -227,7 +304,7 @@ export default function ConflictsScreen() {
                     <Text
                       style={[styles.fieldValue, {color: colors.text}]}
                       numberOfLines={3}>
-                      {formatValue(item.localVersion[f])}
+                      {formatValue(mineOf(item)[f])}
                     </Text>
                   </View>
                 ))}
@@ -368,7 +445,7 @@ export default function ConflictsScreen() {
                   <Text
                     style={[styles.fieldHint, {color: colors.textTertiary}]}>
                     {t.conflicts.mineHint}:{' '}
-                    {formatValue(mergingConflict.localVersion[f])}
+                    {formatValue(mineOf(mergingConflict)[f])}
                     {'\n'}
                     {t.conflicts.theirsHint}:{' '}
                     {formatValue(mergingConflict.remoteVersion[f])}

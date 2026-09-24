@@ -7,9 +7,14 @@ import {render} from '@testing-library/react-native';
 import ConflictsScreen from '../app/(tabs)/conflicts';
 import type {ConflictRecord} from '../src/lib/sync/types';
 
-jest.mock('expo-router', () => ({
-  useRouter: () => ({back: jest.fn(), push: jest.fn()}),
-}));
+jest.mock('expo-router', () => {
+  const ReactActual = require('react');
+  return {
+    useRouter: () => ({back: jest.fn(), push: jest.fn()}),
+    // R9-36 — the screen re-reads the local copies on every focus.
+    useFocusEffect: (cb: () => void) => ReactActual.useEffect(cb, [cb]),
+  };
+});
 
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 
