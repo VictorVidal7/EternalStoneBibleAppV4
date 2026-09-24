@@ -498,6 +498,17 @@ describe('AuthProvider', () => {
     expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
     expect(mockExportLocalData).toHaveBeenCalledTimes(1);
     expect(mockQueueSkipNextBulkPush).toHaveBeenCalledTimes(1);
+    // R9-166 — asked BEFORE the link, which is what makes the account for
+    // good (a question left open after it dies with the process and leaves a
+    // linked user behind); the skip is queued only once the link succeeded.
+    // AuthContextLinkPromptColdStart.test.tsx drives the same order through
+    // the real engine.
+    expect(mockExportLocalData.mock.invocationCallOrder[0]).toBeLessThan(
+      mockLinkWithCredential.mock.invocationCallOrder[0],
+    );
+    expect(mockLinkWithCredential.mock.invocationCallOrder[0]).toBeLessThan(
+      mockQueueSkipNextBulkPush.mock.invocationCallOrder[0],
+    );
     // The store now belongs to whoever just claimed it.
     expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
       'anon-beto',
@@ -803,6 +814,40 @@ describe('AuthProvider', () => {
       expect(await AsyncStorage.getItem('@local_store_owner_uid')).toBe(
         'beto-uid',
       );
+    });
+
+    it('R9-166 — a previous-owner check that fails before the link does not silence the collision branch’s own question', async () => {
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      const engine = freshEngine({count: 12});
+      engine.exportLocalData.mockRejectedValueOnce(new Error('SQLITE_BUSY'));
+      const {ref, onReady} = captureAuthApi();
+      const {getByText} = render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockCurrentUser = {uid: 'anon-beto', isAnonymous: true};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-beto'));
+
+      mockLinkWithCredential.mockRejectedValueOnce(collision());
+      nextSignInLandsAs('beto-uid');
+      let signInPromise!: Promise<AuthUser | null>;
+      act(() => {
+        signInPromise = ref.current!.signInWithGoogle();
+      });
+      const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
+      await act(async () => {
+        fireEvent.press(cancelBtn);
+        await signInPromise;
+      });
+
+      // The collision branch only reuses an ANSWER from before the link. The
+      // check there could not run, so its own (Sprint 43) check runs as it
+      // always did, and it is the one that asks.
+      expect(engine.exportLocalData).toHaveBeenCalledTimes(2);
+      expect(engine.queueSkipNextBulkPush).toHaveBeenCalledTimes(1);
+      expect(mockSignInWithCredential).toHaveBeenCalledTimes(1);
     });
 
     it('R9-125 — no anonymous user, another owner, and the user ACCEPTS: the bulk push is NOT skipped', async () => {

@@ -388,42 +388,60 @@ export function AuthProvider({children}: AuthProviderProps) {
     // The store belongs to a DIFFERENT account than the one signing in: the
     // person in front of the phone is not the one whose notes are on it, and
     // the engine is about to bulk-push all of them into the incoming account.
-    // Declining marks the device already-migrated so only the remote side is
-    // pulled — which only works if it runs before that account starts the
-    // engine.
-    const confirmPreviousOwnersData = async () => {
+    // Resolves `true` when they decline, `false` when there is nothing to ask
+    // or they accept, and `undefined` when the check could not run. Declining
+    // marks the device already-migrated so only the remote side is pulled —
+    // which the CALLER queues, because it only works if it runs before that
+    // account starts the engine, and only once that sign-in is going ahead.
+    const declinesPreviousOwnersData = async (): Promise<
+      boolean | undefined
+    > => {
       const engine = getSyncEngine();
-      if (!engine) return;
+      if (!engine) return undefined;
       try {
         const localData = await engine.exportLocalData();
         const total = localData.reduce((acc, d) => acc + d.count, 0);
-        if (total > 0 && !(await askMigration(total))) {
-          engine.queueSkipNextBulkPush();
-          logger.info(
-            'AuthProvider: declined migrating a previous owner’s local data',
-            {component: 'AuthProvider', localItems: total},
-          );
-        }
+        if (total === 0 || (await askMigration(total))) return false;
+        logger.info(
+          'AuthProvider: declined migrating a previous owner’s local data',
+          {component: 'AuthProvider', localItems: total},
+        );
+        return true;
       } catch (exportErr) {
         logger.warn('AuthProvider: owner-change migration check failed', {
           component: 'AuthProvider',
           error:
             exportErr instanceof Error ? exportErr.message : String(exportErr),
         });
+        return undefined;
       }
     };
 
     const current = authMod().currentUser;
     if (current && current.isAnonymous) {
+      // R9-166 — ask BEFORE linking. A successful link turns this anonymous
+      // uid into the Google account for good, on the server and in Firebase's
+      // persisted session. Asked after it, the question left that account
+      // behind for as long as it stayed open: if the process died there, the
+      // cold start rehydrated the LINKED user, SyncEngineProvider started the
+      // engine, and the bulk push uploaded the previous owner's store with no
+      // answer at all. Asked first, a question that dies with the process
+      // leaves the anonymous user it found — nothing linked, nothing pushed —
+      // and the next sign-in asks again. The other two branches already work
+      // this way: they ask before the `signInWithCredential` below.
+      const declined =
+        previousOwner !== null && previousOwner !== current.uid
+          ? await declinesPreviousOwnersData()
+          : undefined;
       try {
         await authMod.linkWithCredential(current, credential);
 
         // R9-23 — the link SUCCEEDED, so this Google account has never been
-        // used with this app. Route a previous owner's data through the same
-        // prompt the collision branch below already uses.
-        if (previousOwner !== null && previousOwner !== current.uid) {
-          await confirmPreviousOwnersData();
-        }
+        // used with this app: a previous owner's data goes into it only if
+        // the person said so above. The skip is queued only now — armed
+        // before a link that then fails, it would outlive this attempt and
+        // swallow the bulk push of whichever account starts the engine next.
+        if (declined) getSyncEngine()?.queueSkipNextBulkPush();
         await claimLocalStore(current.uid);
 
         // linkWithCredential doesn't copy the Google profile onto the
@@ -476,7 +494,12 @@ export function AuthProvider({children}: AuthProviderProps) {
         // Ask the user first: if they decline, we mark the bulk-push
         // flag pre-emptively so the engine treats this device as
         // already-migrated and only pulls the existing remote data.
-        const engine = getSyncEngine();
+        //
+        // R9-166 — unless the previous-owner question above already ran,
+        // before the link: it was about the same data going into this same
+        // sign-in, so apply that answer instead of asking twice.
+        if (declined) getSyncEngine()?.queueSkipNextBulkPush();
+        const engine = declined === undefined ? getSyncEngine() : null;
         if (engine) {
           try {
             const localData = await engine.exportLocalData();
@@ -516,7 +539,9 @@ export function AuthProvider({children}: AuthProviderProps) {
       // the collision branch above has the same blind spot and does the
       // same (a returning owner is asked there too; harmless, the data is
       // theirs). An unclaimed store is still the signer's own: no question.
-      await confirmPreviousOwnersData();
+      if (await declinesPreviousOwnersData()) {
+        getSyncEngine()?.queueSkipNextBulkPush();
+      }
     }
 
     await authMod().signInWithCredential(credential);
