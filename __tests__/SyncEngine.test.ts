@@ -64,6 +64,15 @@ let mockSetShouldFail = false;
  *  ONE push in flight across a `stop()` + `start()`. Reset in beforeEach. */
 let mockSetGate:
   ((path: string, id: string) => Promise<void> | undefined) | null = null;
+/** R9-124 — like `mockSetGate`, for a doc's `get()`: holds the read that
+ *  tells a `removed` doc from a deleted one. Reset in beforeEach. */
+let mockGetGate:
+  ((path: string, id: string) => Promise<void> | undefined) | null = null;
+/** R9-124 — when true, every doc `get()` rejects. Reset in beforeEach. */
+let mockGetShouldFail = false;
+/** R9-124 — every change the mock listener actually delivered, so a test can
+ *  check it exercised the `removed` path it claims to. Reset in beforeEach. */
+const mockDelivered: Array<{path: string; type: string; id: string}> = [];
 const mockDocDeletes: Array<{path: string; id: string}> = [];
 /** Sprint 49 — docs returned by a collection-level `.get()` (one-shot read),
  *  keyed by collection path. Set per-test for fetchResolvedConflicts.
@@ -113,6 +122,11 @@ function mockMakeCollection(path: string): MockCollRef {
   const existing = mockCollections.get(path);
   if (existing) return existing;
   const docs = new Map<string, MockDocRef>();
+  // R9-124 — the cloud's copy of every doc a test fired (what `doc(id).get()`
+  // reads), and the docs the live listener currently holds in its result set
+  // (the ones that can leave it as `removed`), with their last matching data.
+  const serverDocs = new Map<string, unknown>();
+  const listenerSet = new Map<string, unknown>();
   let snapshotCb: ((s: unknown) => void) | null = null;
   let errorCb: ((err: Error) => void) | null = null;
   let whereClauses: MockWhereClause[] = [];
@@ -131,7 +145,14 @@ function mockMakeCollection(path: string): MockCollRef {
           if (mockSetShouldFail) throw new Error('permission-denied');
           mockDocSets.push({path, id, data});
         }),
-        get: jest.fn(async () => ({exists: false, id, data: () => undefined})),
+        get: jest.fn(async () => {
+          const gate = mockGetGate?.(path, id);
+          if (gate) await gate;
+          if (mockGetShouldFail) throw new Error('unavailable');
+          return serverDocs.has(id)
+            ? {exists: true, id, data: () => serverDocs.get(id)}
+            : {exists: false, id, data: () => undefined};
+        }),
         delete: jest.fn(async () => {
           mockDocDeletes.push({path, id});
         }),
@@ -155,6 +176,8 @@ function mockMakeCollection(path: string): MockCollRef {
       (cb: (s: unknown) => void, onError?: (err: Error) => void) => {
         snapshotCb = cb;
         errorCb = onError ?? null;
+        // A new listener is a new query: it starts with an empty result set.
+        listenerSet.clear();
         return () => {
           snapshotCb = null;
           // Deliberately NOT clearing errorCb here — real native teardown
@@ -180,19 +203,51 @@ function mockMakeCollection(path: string): MockCollRef {
       };
     }),
   };
-  // expose a way for the test to fire snapshots. Filters through whatever
-  // `.where()` clauses SyncEngine most recently attached with, so a test
-  // can assert "a doc older than the cursor floor is never delivered" —
-  // exactly like a real Firestore listener wouldn't deliver it either.
+  // expose a way for the test to fire snapshots: each change is a write to
+  // the cloud, seen through whatever `.where()` clauses SyncEngine most
+  // recently attached with, the way the real SDK sees it:
+  // - a doc that matches is delivered, and joins the listener's result set;
+  // - a doc that no longer matches LEAVES the set: it is delivered as
+  //   `removed`, carrying its last MATCHING data (R9-124, measured on the
+  //   native Android SDK in S26). The doc still exists: `get()` returns it;
+  // - a doc that never matched is never even seen ("a doc older than the
+  //   cursor floor is never delivered");
+  // - a change fired as `removed` is a real delete: `get()` stops finding it.
   (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire = (
     changes: unknown[],
   ) => {
-    if (!snapshotCb) return;
-    const filtered = changes.filter(change => {
-      const c = change as {doc?: {data?: () => unknown}};
+    const filtered: unknown[] = [];
+    for (const change of changes) {
+      const c = change as {
+        type?: string;
+        doc?: {id?: string; data?: () => unknown};
+      };
+      const docId = c.doc?.id ?? '';
       const data = c.doc?.data?.() as Record<string, unknown> | undefined;
-      return matchesWhereClauses(data, whereClauses);
-    });
+      if (c.type === 'removed') {
+        serverDocs.delete(docId);
+        listenerSet.delete(docId);
+        filtered.push(change);
+        continue;
+      }
+      serverDocs.set(docId, data);
+      if (matchesWhereClauses(data, whereClauses)) {
+        listenerSet.set(docId, data);
+        filtered.push(change);
+      } else if (listenerSet.has(docId)) {
+        const last = listenerSet.get(docId);
+        listenerSet.delete(docId);
+        filtered.push({
+          type: 'removed',
+          doc: {id: docId, exists: true, data: () => last},
+        });
+      }
+    }
+    if (!snapshotCb) return;
+    for (const change of filtered) {
+      const c = change as {type: string; doc: {id: string}};
+      mockDelivered.push({path, type: c.type, id: c.doc.id});
+    }
     snapshotCb({
       docChanges: () => filtered,
       size: filtered.length,
@@ -305,6 +360,9 @@ beforeEach(async () => {
   mockDocSets.length = 0;
   mockSetShouldFail = false;
   mockSetGate = null;
+  mockGetGate = null;
+  mockGetShouldFail = false;
+  mockDelivered.length = 0;
   mockDocDeletes.length = 0;
   mockCollDocs.clear();
   mockNetListeners.length = 0;
@@ -4754,5 +4812,378 @@ describe('R9-161 — «quedarme con lo suyo» deja lo local igual que la nube', 
       trasResolver: {local: null, nube: null},
       trasReiniciar: {local: null, nube: null},
     });
+  });
+});
+
+describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => {
+  // El listener escucha `where('updatedAt', '>=', piso)`. En Firestore,
+  // `removed` quiere decir «el doc SALIO de la query», y un doc reescrito con
+  // un updatedAt mas viejo que el piso sale de ella sin dejar de existir
+  // (medido en el SDK nativo de Android en la sesion 26: el `removed` trae la
+  // version VIEJA, y un borrado de verdad llega igual). El motor lo borraba
+  // de local, y como su copia en la nube queda bajo el piso, ningun enganche
+  // la volvia a traer.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 5; i++) await flush();
+  }
+
+  const HOUR = 60 * 60 * 1000;
+  const DAY = 24 * HOUR;
+  type Data = Record<string, unknown>;
+
+  /** Un telefono con la coleccion ya sincronizada hasta `cursor`: el piso
+   *  del listener queda en `cursor` menos el margen. */
+  async function engineFor(uid: string, cursor: number, material = true) {
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', uid), String(cursor));
+    const fixture = makeAdapter(
+      material ? {getMaterialFields: () => ['value']} : {},
+    );
+    const engine = new SyncEngine();
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    return {engine, ...fixture};
+  }
+
+  /** Una escritura en la nube (de este telefono o del otro). */
+  function write(uid: string, id: string, data: Data): void {
+    fireRemote(uid, [
+      {type: 'modified', doc: {id, exists: true, data: () => data}},
+    ]);
+  }
+
+  /** Un borrado de verdad en la nube: llega con su ultima version. */
+  function hardDelete(uid: string, id: string, last: Data): void {
+    fireRemote(uid, [
+      {type: 'removed', doc: {id, exists: true, data: () => last}},
+    ]);
+  }
+
+  /** Control del mecanismo: los `removed` que el listener entrego de verdad. */
+  function removedDelivered(uid: string): string[] {
+    return mockDelivered
+      .filter(d => d.path === `users/${uid}/test` && d.type === 'removed')
+      .map(d => d.id);
+  }
+
+  async function persisted(uid: string) {
+    const unsettled = await AsyncStorage.getItem(
+      unsettledStorageKey('test', uid),
+    );
+    const conflicted = await AsyncStorage.getItem(
+      `@sync_conflicted_test:${uid}`,
+    );
+    return {
+      unsettled: unsettled
+        ? (JSON.parse(unsettled) as Record<string, number>)
+        : {},
+      conflicted: conflicted ? (JSON.parse(conflicted) as string[]) : [],
+    };
+  }
+
+  function floorOf(uid: string): number {
+    return mockCollections
+      .get(`users/${uid}/test`)!
+      .__whereClauses.find(c => c.field === 'updatedAt')?.value as number;
+  }
+
+  it('restaurar el respaldo de ayer: la fila restaurada sale como `removed` y NO se borra de local', async () => {
+    const uid = 'uid-124-respaldo';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    // Hoy: la nota editada y subida; su eco entra en la query.
+    const hoy = {value: 'editada hoy', updatedAt: T + 60_000};
+    localStore.set('nota', hoy);
+    write(uid, 'nota', hoy);
+    await settle();
+    // Restaurar el respaldo de ayer: importBackup escribe la fila en local y
+    // la re-encola con el updatedAt DEL ARCHIVO, asi que su eco cae bajo el
+    // piso del propio listener.
+    const ayer = {value: 'la de ayer', updatedAt: T - DAY};
+    localStore.set('nota', ayer);
+    write(uid, 'nota', ayer);
+    await settle();
+
+    // Pre-fix: borrados ['nota'] y la fila restaurada desaparecia de local.
+    expect({
+      removed: removedDelivered(uid),
+      borrados: remoteDeleteCalls,
+      local: localStore.get('nota')?.value,
+    }).toEqual({removed: ['nota'], borrados: [], local: 'la de ayer'});
+    engine.stop();
+  });
+
+  it('el doc sigue en la nube: se trata como el cambio que es, igual que sin filtro', async () => {
+    const uid = 'uid-124-como-sin-filtro';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteUpsertCalls} = await engineFor(uid, T);
+    write(uid, 'doc-b', {value: 'v1', updatedAt: T + 60_000});
+    await settle();
+    // Aqui ya no esta (el usuario lo borro en este telefono), y el otro
+    // telefono restaura un respaldo que lo trae con un updatedAt de ayer.
+    localStore.delete('doc-b');
+    write(uid, 'doc-b', {value: 'del respaldo del otro', updatedAt: T - DAY});
+    await settle();
+
+    // Sin filtro habria llegado como `modified` y el LWW lo aplicaba (no hay
+    // copia local). Ignorar el `removed` lo perdia igual que borrarlo.
+    expect({
+      removed: removedDelivered(uid),
+      aplicados: remoteUpsertCalls.map(c => c.data.value),
+      local: localStore.get('doc-b')?.value,
+    }).toEqual({
+      removed: ['doc-b'],
+      aplicados: ['v1', 'del respaldo del otro'],
+      local: 'del respaldo del otro',
+    });
+    engine.stop();
+  });
+
+  it('R9-160: con un conflicto pendiente no toma nada, y el conflicto sigue retenido CON su marca y a su updatedAt nuevo', async () => {
+    const uid = 'uid-124-conflicto';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T + 60_000});
+    write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+    await settle();
+    const conflictosAntes = engine.__getConflictsForTests().map(c => c.docId);
+    // El otro telefono restaura un respaldo: el doc sale de la query.
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    const p = await persisted(uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: lo local se borraba y el doc salia del conjunto. Soltarlo a
+    // ciegas (sin borrar) perdia la marca de conflicto en disco (R9-160).
+    // Retenido a su updatedAt NUEVO, el piso baja hasta el y vuelve (R9-164).
+    expect({
+      conflictosAntes,
+      removed: removedDelivered(uid),
+      local: localStore.get('doc-c')?.value,
+      conflictos: engine.__getConflictsForTests().length,
+      unsettled: p.unsettled['doc-c'] - T,
+      conflicted: p.conflicted,
+      pisoTrasReiniciar: floorOf(uid) - T,
+    }).toEqual({
+      conflictosAntes: ['doc-c'],
+      removed: ['doc-c'],
+      local: 'lo mio',
+      conflictos: 0, // el reinicio vacia los de memoria (R9-65)
+      unsettled: -DAY,
+      conflicted: ['doc-c'],
+      pisoTrasReiniciar: -DAY - 1 - CURSOR_SAFETY_MARGIN_MS,
+    });
+    engine.stop();
+  });
+
+  it('R9-164: un doc retenido que sale de la query no deja el piso clavado', async () => {
+    const uid = 'uid-124-retenido';
+    const T = Date.now() - HOUR;
+    const fixture = makeAdapter();
+    const {adapter, localStore, remoteDeleteCalls} = fixture;
+    let failOnce = true;
+    adapter.getLocal = async (id: string) => {
+      if (id === 'doc-s' && failOnce) {
+        failOnce = false;
+        throw new Error('SQLITE_BUSY');
+      }
+      return localStore.get(id) ?? null;
+    };
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+    const engine = new SyncEngine();
+    engine.register(adapter);
+    await engine.start(uid);
+    await settle();
+    const mio = {value: 'mio', updatedAt: T + 60_000};
+    localStore.set('doc-s', mio);
+    write(uid, 'doc-s', mio); // su lectura falla: queda retenido (R9-46)
+    await settle();
+    const retenidoAntes = (await persisted(uid)).unsettled['doc-s'] - T;
+    write(uid, 'doc-s', {value: 'viejo', updatedAt: T - DAY});
+    await settle();
+    const p = await persisted(uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    expect({
+      retenidoAntes,
+      removed: removedDelivered(uid),
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-s')?.value,
+      unsettled: p.unsettled,
+      pisoTrasReiniciar: floorOf(uid) - T,
+    }).toEqual({
+      retenidoAntes: 60_000,
+      removed: ['doc-s'],
+      borrados: [],
+      local: 'mio',
+      unsettled: {},
+      pisoTrasReiniciar: -CURSOR_SAFETY_MARGIN_MS,
+    });
+    engine.stop();
+  });
+
+  it('un borrado DE VERDAD sigue borrando de local', async () => {
+    const uid = 'uid-124-borrado';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    write(uid, 'doc-x', v1);
+    await settle();
+    const localAntes = localStore.get('doc-x')?.value;
+    hardDelete(uid, 'doc-x', v1);
+    await settle();
+
+    expect({
+      localAntes,
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-x'),
+      unsettled: (await persisted(uid)).unsettled,
+    }).toEqual({
+      localAntes: 'v1',
+      borrados: ['doc-x'],
+      local: undefined,
+      unsettled: {},
+    });
+    engine.stop();
+  });
+
+  it('R9-160: un borrado de verdad con el conflicto pendiente no toca lo local, en memoria y tras reiniciar', async () => {
+    const uid = 'uid-124-borrado-conflicto';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    localStore.set('doc-m', {value: 'lo mio m', updatedAt: T + 60_000});
+    localStore.set('doc-r', {value: 'lo mio r', updatedAt: T + 60_000});
+    const suyoM = {value: 'lo suyo m', updatedAt: T + 65_000};
+    const suyoR = {value: 'lo suyo r', updatedAt: T + 65_000};
+    write(uid, 'doc-m', suyoM);
+    write(uid, 'doc-r', suyoR);
+    await settle();
+    const conflictosAntes = engine.__getConflictsForTests().map(c => c.docId);
+    // doc-m: el conflicto esta en memoria.
+    hardDelete(uid, 'doc-m', suyoM);
+    await settle();
+    const pendientesTrasM = engine.__getConflictsForTests().map(c => c.docId);
+    // doc-r: tras reiniciar solo queda retenido con su marca en disco.
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    hardDelete(uid, 'doc-r', suyoR);
+    await settle();
+
+    // Ya no puede volver: se suelta del conjunto en los dos casos.
+    expect({
+      conflictosAntes,
+      pendientesTrasM,
+      borrados: remoteDeleteCalls,
+      localM: localStore.get('doc-m')?.value,
+      localR: localStore.get('doc-r')?.value,
+      unsettled: (await persisted(uid)).unsettled,
+    }).toEqual({
+      conflictosAntes: ['doc-m', 'doc-r'],
+      pendientesTrasM: ['doc-m', 'doc-r'],
+      borrados: [],
+      localM: 'lo mio m',
+      localR: 'lo mio r',
+      unsettled: {},
+    });
+    engine.stop();
+  });
+
+  it('R9-153: un stop() durante la lectura del doc corta el lote: no borra nada despues', async () => {
+    const uid = 'uid-124-stop';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    write(uid, 'doc-x', v1);
+    await settle();
+    let release!: () => void;
+    mockGetGate = (_path, id) =>
+      id === 'doc-x' ? new Promise<void>(r => (release = r)) : undefined;
+    hardDelete(uid, 'doc-x', v1);
+    await flush();
+    engine.stop();
+    release();
+    await settle();
+
+    expect({
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-x')?.value,
+    }).toEqual({
+      borrados: [],
+      local: 'v1',
+    });
+  });
+
+  it('la lectura va FUERA de la supresion: una edicion de este telefono mientras tanto se sube', async () => {
+    const uid = 'uid-124-edicion';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    localStore.set('doc-e', v1);
+    write(uid, 'doc-e', v1);
+    await settle();
+    let release!: () => void;
+    mockGetGate = (_path, id) =>
+      id === 'doc-e' ? new Promise<void>(r => (release = r)) : undefined;
+    write(uid, 'doc-e', {value: 'respaldo viejo', updatedAt: T - DAY});
+    await flush();
+    // El usuario edita el doc mientras el motor pregunta si existe.
+    const editada = {
+      value: 'editada durante la lectura',
+      updatedAt: T + 120_000,
+    };
+    localStore.set('doc-e', editada);
+    engine.queueWrite('test', 'doc-e', editada);
+    release();
+    await settle();
+
+    expect({
+      removed: removedDelivered(uid),
+      subidas: mockDocSets
+        .filter(s => s.path === `users/${uid}/test` && s.id === 'doc-e')
+        .map(s => (s.data as Data).value),
+      local: localStore.get('doc-e')?.value,
+    }).toEqual({
+      removed: ['doc-e'],
+      subidas: ['editada durante la lectura'],
+      local: 'editada durante la lectura',
+    });
+    engine.stop();
+  });
+
+  it('si la lectura falla, no toca lo local y lo suelta del conjunto', async () => {
+    const uid = 'uid-124-lectura-falla';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    localStore.set('doc-f', v1);
+    write(uid, 'doc-f', v1);
+    await settle();
+    mockGetShouldFail = true;
+    write(uid, 'doc-f', {value: 'viejo', updatedAt: T - DAY});
+    await settle();
+
+    expect({
+      removed: removedDelivered(uid),
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-f')?.value,
+      unsettled: (await persisted(uid)).unsettled,
+      avisado: loggerWarnSpy.mock.calls.some(([m]) =>
+        String(m).includes('could not tell a removed doc'),
+      ),
+    }).toEqual({
+      removed: ['doc-f'],
+      borrados: [],
+      local: 'v1',
+      unsettled: {},
+      avisado: true,
+    });
+    engine.stop();
   });
 });

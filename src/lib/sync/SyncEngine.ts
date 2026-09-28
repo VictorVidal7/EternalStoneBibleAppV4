@@ -33,6 +33,7 @@ import {
   getFirestore,
   type CollectionRef,
   type DocumentChange,
+  type DocumentSnapshot,
   type FirestoreFn,
   type Query,
   type QuerySnapshot,
@@ -952,7 +953,9 @@ export class SyncEngine {
 
     const off = query.onSnapshot(
       snapshot => {
-        void this.handleSnapshot(adapter, snapshot.docChanges());
+        void this.handleSnapshot(adapter, snapshot.docChanges(), docId =>
+          collectionRef.doc(docId).get(),
+        );
       },
       err => {
         // AuthContext.signOut/deleteAccount call stop() synchronously
@@ -985,6 +988,7 @@ export class SyncEngine {
   private async handleSnapshot(
     adapter: AnyAdapter,
     changes: DocumentChange[],
+    lookup: (docId: string) => Promise<DocumentSnapshot>,
   ): Promise<void> {
     if (changes.length === 0) return;
     // R9-153 — the session this batch belongs to, like `flush()`'s. Every
@@ -1044,21 +1048,62 @@ export class SyncEngine {
         // Decode the Firestore doc id back to the logical id (see toDocId):
         // a memoryCards/reviewEvents id carries "/" which we store as "~".
         const id = fromDocId(change.doc.id);
-        const data = change.doc.data();
+        let data = change.doc.data();
         if (change.type === 'removed' || !data) {
-          // Hard remove (rare — we soft-delete via tombstone). Treat
-          // same as a deleted-true upsert: drop the local row. No
-          // timestamp to advance the cursor by — safe to skip: a
-          // genuinely-removed doc can never be re-delivered as "added"
-          // by a future reattach anyway (it no longer exists).
-          await this.withLocalWriteSuppressed(adapter.collection, id, () =>
-            adapter.applyRemoteDelete(id),
-          );
+          // R9-124 — under the `where('updatedAt', '>=', floor)` listener,
+          // `removed` means the doc LEFT the query, not that it was deleted:
+          // a rewrite with an OLDER `updatedAt` (a restored backup, the other
+          // device's clock) drops below the floor and arrives as `removed`.
+          // Measured on the native Android SDK (S26): a real delete arrives
+          // the same way, both carrying the doc's last matching version, so
+          // only a read tells them apart. The read writes nothing local: it
+          // stays outside `withLocalWriteSuppressed`, so an edit of this doc
+          // meanwhile is still queued.
+          let current: DocumentSnapshot | null = null;
+          try {
+            current = await lookup(change.doc.id);
+          } catch (err) {
+            logger.warn(
+              'SyncEngine: could not tell a removed doc from a deleted one — ' +
+                'leaving the local copy alone',
+              {
+                component: 'SyncEngine',
+                collection: adapter.collection,
+                id,
+                error: err instanceof Error ? err.message : String(err),
+              },
+            );
+          }
+          // R9-153 — the read is an `await` like any other.
           if (!isCurrent()) return;
-          // Nor can a held doc that is gone ever come back to be settled:
-          // keeping it would hold the floor down for good.
-          settle(id);
-          continue;
+          const currentData = current?.exists ? current.data() : undefined;
+          if (current && !currentData) {
+            // Deleted for real (rare — we soft-delete via tombstone). No
+            // timestamp to advance the cursor by — safe to skip: a doc that
+            // no longer exists can never be re-delivered by a reattach.
+            // R9-160 — unless its conflict waits for the user: then the doc
+            // takes nothing from the remote side, a delete included. Held
+            // covers the ones in memory too (R9-65 holds each one as soon as
+            // it is recorded) and the ones from before a restart.
+            if (!this.isHeldConflict(adapter.collection, id)) {
+              await this.withLocalWriteSuppressed(adapter.collection, id, () =>
+                adapter.applyRemoteDelete(id),
+              );
+              if (!isCurrent()) return;
+            }
+          }
+          if (!currentData) {
+            // Deleted, or unreadable: nothing will ever come back to settle
+            // it, so keeping it would hold the floor down for good (R9-164).
+            settle(id);
+            continue;
+          }
+          // Still there: a change like any other, with the doc as it is NOW —
+          // exactly what an unfiltered listener would have delivered. Held or
+          // settled below by what applying it does, never blindly: a held
+          // conflict keeps its mark (R9-160), and is held at its new
+          // `updatedAt`, so the floor drops to it and it comes back (R9-164).
+          data = currentData;
         }
         const remote = data as SyncEntity<Record<string, unknown>>;
         const remoteChange: RemoteChange<Record<string, unknown>> = {
