@@ -276,12 +276,25 @@
 > **Quedan 2 P0 abiertos** (`R9-38`, `R9-124`). Hallazgos: **174**. Detalle:
 > `detail/S25-revision-del-diff-s24.md`, en su segunda parte.
 
+> **Sesión 26 (2026-09-28): `R9-124` medido en el SDK nativo (Modo C) y ARREGLADO**, solo en la
+> terminal y sin agentes.
+>
+> - **La medición, en el emulador y con el OK de Victor:** el `removed` llega por el propio teléfono
+>   (online y offline) y por el otro, con el doc todavía existente. Un borrado de verdad llega igual.
+> - **El arreglo** (`34de18f`, rama `fix/review-s26-removed`, sin mergear hasta el OK): ante un
+>   `removed`, `getDoc` fuera de la supresión, y el doc se trata según lo que diga.
+> - **Ningún hallazgo nuevo.** `R9-164` cerró su mitad «en vivo» y sigue abierto con la app cerrada;
+>   `R9-126` y `R9-154` llevan una nota.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **174**. Detalle:
+> `detail/S26-r9124-modo-c-y-arreglo.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
 
-> **Conteo, al día tras la sesión 25 (que agregó `R9-160` y `R9-166` y los arregló en la misma
-> sesión). Esta sección tiene 27 entradas: 25 ARREGLADAS y 2 ABIERTAS** (`R9-38`, `R9-124`). `R9-14` cuenta como ARREGLADA por su **mitad
+> **Conteo, al día tras la sesión 26 (que arregló `R9-124`). Esta sección tiene 27 entradas: 26
+> ARREGLADAS y 1 ABIERTA** (`R9-38`). `R9-14` cuenta como ARREGLADA por su **mitad
 > estructural**, que es donde estaba su severidad; lo que queda de ella es una decisión de
 > producto, dicha en su propia entrada — no código pendiente.
 >
@@ -986,6 +999,28 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   - Mientras haya un doc retenido, el piso baja hasta él, así que este `removed` es menos probable.
     La 24 no lo empeoró.
 
+  **Medido en el SDK NATIVO en la sesión 26** (Modo C, con el OK de Victor: emulador `Pixel_9_Pro`,
+  APK debug vc73, RNFirebase 26.2.0, nunca el teléfono de Victor). Con el listener
+  `where('updatedAt', '>=', 500)`:
+  - una reescritura a 100 llega como **`removed`** por el mismo cliente online, por el mismo cliente
+    offline (`fromCache`) y por otro cliente (PATCH por REST). El doc sigue existiendo, y `getDoc`
+    lo encuentra con 100;
+  - un `delete()` de verdad llega **igual**: `removed`, con la versión VIEJA y `exists: true`.
+    `getDoc` dice que no existe, y la rama `|| !data` del motor nunca se dispara;
+  - la limpieza está verificada desde fuera, solo con lecturas.
+
+  **✅ ARREGLADO en la sesión 26** (`34de18f`, rama `fix/review-s26-removed`):
+  - ante un `removed`, `getDoc` FUERA de `withLocalWriteSuppressed`, con `isCurrent()` después;
+  - si el doc existe, pasa por el camino normal con sus datos de ahora (como sin filtro). Se retiene
+    o se suelta según lo que resulte: un conflicto conserva su marca, a su `updatedAt` nuevo;
+  - si no existe, se borra, salvo con un conflicto retenido (`R9-160`), y se suelta en los dos
+    casos. Si la lectura falla, no se toca lo local;
+  - el mock de `onSnapshot` emite `removed` al salir de la query en vez de filtrar.
+
+  Hay 9 pruebas nuevas, y 8 caen sin el arreglo. Las 8 piezas y las 9 guardas de sesión de
+  `handleSnapshot`/`applyRemoteChange`/`saveUnsettled` discriminan cada una. Detalle:
+  `detail/S26-r9124-modo-c-y-arreglo.md`.
+
 - **`R9-125` (S21, identidad) — 🐛 `signInWithGoogle` sin anónimo (`currentUser === null`) no
   mira el dueño previo: es `R9-23` por la tercera rama.** CONFIRMADO con sonda.
 
@@ -1254,6 +1289,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     aun días después y tras reiniciar, con su contenido y su `updatedAt` viejos. El
     `set({merge:true})` incondicional puede pisar una edición más nueva hecha desde otro
     dispositivo. No lo introdujo la 20.
+  - **⚠️ Sesión 26:** con `R9-124` arreglado, el otro listener ya no BORRA la versión restaurada: la
+    pasa por el LWW. Si su copia local es más nueva, la conserva y no sube nada, así que la
+    divergencia de esta entrada sigue igual.
+    - Lo mismo pasa con un conflicto retenido que cae por debajo del piso: tras reiniciar vuelve a
+      llegar, el LWW le da la razón a lo local, y el conflicto se disuelve sin que el usuario elija.
+      Es esta entrada, no un hallazgo nuevo.
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -2138,6 +2179,8 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     un viaje de red.
     **✅ ARREGLADO en la sesión 24** (`42f6afb`): hay pruebas para `keepTheirs`, para `merge` y para la
     profundidad, y cada una cae con su sitio revertido. El sitio del `removed` queda para `R9-124`.
+    **Sesión 26:** hecho. La lectura de si el doc existe va FUERA de la supresión, y la prueba «la
+    lectura va FUERA de la supresion» cae si se la mete dentro (`34de18f`).
 
 - **`R9-155` (S23, prueba de favoritos — P3) — 🐛 la prueba de `R9-102` cubre «la edición
   anterior del mismo favorito» solo con un favorito NUEVO.** CONFIRMADO con sonda (agente 2).
@@ -2260,6 +2303,13 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     `R9-39`).
   - La decisión abierta de Victor («un aviso si un conflicto lleva N días») **no lo cubre**, porque
     aquí no hay conflicto que avisar. Es condición para el arreglo de `R9-124`.
+  - **⚠️ Sesión 26: cerrada la mitad «en vivo», sigue ABIERTO.**
+    - El arreglo de `R9-124` (`34de18f`) cubre el doc retenido que sale de la query con el
+      listener vivo. Si existe, se retiene a su `updatedAt` nuevo (el piso baja y vuelve) o se
+      suelta; si no, se suelta. Lo vigila la prueba «R9-164: un doc retenido que sale de la query no
+      deja el piso clavado».
+    - Los dos disparadores de arriba no pasan por el listener: el respaldo del otro teléfono con
+      esta app CERRADA y los huérfanos de un `deleteAccount` fallido. Siguen clavando el piso.
 
 - **`R9-165` (S25, `SyncEngine` / cuota — P3) — 🐛 un conjunto no asentado ilegible en disco no se
   cura: cada enganche relee la colección entera.** MEDIDO por la nube.

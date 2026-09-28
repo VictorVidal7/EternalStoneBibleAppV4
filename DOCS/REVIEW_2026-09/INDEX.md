@@ -286,6 +286,23 @@
 >
 > **Quedan 2 P0 abiertos** (`R9-38`, `R9-124`). Hallazgos: **174**. **Siguiente, la 26:** `R9-124`
 > en Modo C.
+>
+> **Sesión 26 (2026-09-28): `R9-124` medido en el SDK nativo y ARREGLADO, solo en la terminal.**
+>
+> - **Modo C, en el emulador y con el OK de Victor:** el `removed` llega por los tres caminos (el
+>   propio teléfono online, offline, y el otro teléfono) con el doc todavía existente. Un borrado de
+>   verdad llega IGUAL, con la versión vieja y `exists: true`: solo `getDoc` los distingue.
+> - **El arreglo, `34de18f`:** ante un `removed`, `getDoc` fuera de la supresión. Si el doc existe,
+>   pasa por el camino normal con sus datos de ahora; si no, se borra, salvo con un conflicto
+>   retenido. El mock de `onSnapshot` emite `removed` en vez de filtrar.
+> - 9 pruebas, 8 caen sin el arreglo. Las 8 piezas y las 9 guardas de sesión discriminan.
+>   `npm run validate` da 367/4414.
+> - `R9-164` queda abierto a medias: el arreglo cubre la salida en vivo, pero no la que ocurre con la
+>   app cerrada.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **174**. Ramas `fix/review-s26-removed` y
+> `docs/review-s26-removed`, sin mergear hasta el OK. **Siguiente, la 27:** revisar el diff de la
+> 26, solo en la terminal. Detalle: `detail/S26-r9124-modo-c-y-arreglo.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -748,6 +765,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 26 — 2026-09-28. `R9-124` en Modo C, y su arreglo.** Solo en la terminal: el crédito de
+  la nube se terminó el 2026-09-24.
+  - **Cómo se trabajó:**
+    - una sonda en el emulador `Pixel_9_Pro` (con la receta de `R9-104`: una ruta temporal, una
+      instancia secundaria de Firebase y la limpieza verificada desde fuera);
+    - el arreglo en `fix/review-s26-removed` (`34de18f`), con el OK de Victor sobre el diseño;
+    - el revert pieza por pieza con un script de reemplazo exacto, y la matriz entera de guardas.
+  - **Resultado:** `R9-124` ✅. Queda 1 P0 abierto (`R9-38`). `R9-164` cerró su mitad «en vivo».
+  - **Detalle: `detail/S26-r9124-modo-c-y-arreglo.md`.**
+  - **Las lecciones:**
+    - **el contenido de un `removed` no dice qué pasó:** el SDK entrega la última versión que
+      casaba, y `exists: true` también para un borrado de verdad;
+    - **una guarda que ninguna prueba vigila se mide antes de quedarse:** la mitad «en memoria» era
+      equivalente por construcción, y se quitó.
 
 - **Sesión 25 — 2026-09-24. Revisión del diff de la 24, en la nube.** Solo revisión: no se tocó
   código.

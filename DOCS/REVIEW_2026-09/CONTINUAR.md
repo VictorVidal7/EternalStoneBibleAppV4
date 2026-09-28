@@ -1,10 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-24, fin de la sesión 25.** La 25 revisó el diff de la 24 (la (d))
-> con 2 sesiones EN LA NUBE y registró `R9-160`..`R9-173`. En la misma sesión hizo también la (e):
-> otras 2 sesiones en la nube arreglaron `R9-160`, `R9-161`, `R9-162` y `R9-166`, y el orquestador las
-> revisó en local y las mergeó (`main` = `cf7c715`). Quedan **2 P0 abiertos** (`R9-38`, `R9-124`).
-> **Lo siguiente es el mensaje (f): `R9-124` en Modo C.**
+> **Última actualización: 2026-09-28, fin de la sesión 26.** La 26 hizo el (f), solo en la
+> terminal: midió `R9-124` en el SDK nativo (Modo C, en el emulador) y lo arregló en `34de18f`, en la
+> rama `fix/review-s26-removed`. El checkpoint va en `docs/review-s26-removed`, apilada encima;
+> ninguna de las dos se mergea sin el OK de Victor. Queda **1 P0 abierto** (`R9-38`).
+> **Lo siguiente es el mensaje (g): revisar el diff de la 26.**
+>
+> **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
+> sesiones en la nube. Agentes (en worktree), solo si Victor los pide y 3 como máximo. Cada chat
+> gasta su cuota semanal: sé económico.
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -452,9 +456,51 @@ o un alcance que no se sostiene.
 
 **Hechos:** el doble check (la (b), sesiones 21 y 22), la revisión del diff de la 20 (la (a),
 sesión 23), los ARREGLOS (la (c), sesión 24, en la nube), la revisión del diff de la 24 (la (d),
-sesión 25, en la nube) y sus arreglos (la (e), también en la 25). **Lo siguiente es el (f).**
+sesión 25, en la nube), sus arreglos (la (e), también en la 25) y `R9-124` en Modo C con su arreglo
+(la (f), sesión 26, solo en la terminal). **Lo siguiente es el (g).**
 
-**(f) Sesión 26: `R9-124` en Modo C.**
+**(g) Sesión 27: revisar el diff de la 26.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` y, en la
+> memoria, la de la sesión 26.
+>
+> **Modo: solo terminal.** El crédito de la nube se terminó: no propongas sesiones en la nube.
+> Agentes en worktree, solo si te los pido y 3 como máximo. Este chat gasta mi cuota semanal: sé
+> económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `34de18f` (el arreglo de `R9-124`) y el checkpoint de la 26
+>   (`docs/review-s26-removed`), pedime el OK para el fast-forward. Antes de empezar, comprobá en el
+>   log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 174. El detalle de la 26 está en
+>   `detail/S26-r9124-modo-c-y-arreglo.md`.
+>
+> **Esta sesión revisa el diff de la 26** (`590b39c..34de18f`: `SyncEngine.ts` y
+> `SyncEngine.test.ts`), en local:
+>
+> - las afirmaciones de `detail/S26-*` contra el código y contra la medición nativa
+>   (`_scratch/S26-sonda-nativa-r9124.out.txt`);
+> - la pregunta de la 25: ¿quién más escribe en ese lugar mientras el caso espera? El `getDoc` es
+>   un viaje de red, y los lotes de `handleSnapshot` no se serializan. ¿Qué pasa si otro lote
+>   re-crea o cambia el mismo doc durante la lectura, o si un `keepMine`/`keepTheirs` cae en medio?
+> - el mock nuevo: ¿sustituye algo que el SDK real hace distinto? Por ejemplo, al re-enganchar, el
+>   real re-entrega como `added` todo el conjunto;
+> - re-medir la matriz entera con `_scratch/S26-matriz-reverts.cjs.txt`;
+> - lo nuevo se registra desde `R9-175`. Checkpoint en una rama `docs/...`, sin mergear sin mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - `R9-164` con la app cerrada (el respaldo del otro teléfono y los huérfanos de `deleteAccount`);
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`;
+> - `R9-173` (ya decidido: extender la opción (b)) y `R9-174`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(f) Sesión 26: `R9-124` en Modo C — ya HECHO en la sesión 26, solo en la terminal (el arreglo no
+fue en la nube).** Queda aquí como registro.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` y, en la
 > memoria, la de las sesiones 23 a 25 y la de los dispositivos
@@ -811,16 +857,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 24 (2026-09-24).**
+**Medido al cerrar la sesión 26 (2026-09-28).**
 
-- **`main` = `origin/main` = `9c425a8`**, el último código de la 24. **CI verificado en el log:**
-  run `35965550736`, 3 jobs verdes, Node v24.20.0, 366/4366, cero «failed to run».
-- **Una rama de la revisión sin mergear, a propósito:** `docs/review-s24-checkpoint`, con el
-  checkpoint de la 24 (solo docs). Se mergea con el OK de Victor.
-- **Las 6 ramas de la nube ya se borraron en GitHub**, con el OK de Victor. En el remoto quedan
-  `main` y `audio/tts-caps-hyphen`.
+- **`main` = `origin/main` = `590b39c`** (el checkpoint de la 25; el último código es `cf7c715`).
+  **CI verificado en el log:** run `36065139309`, 3 jobs verdes, 367/4405, cero «failed to run».
+- **Dos ramas de la 26 sin mergear, a propósito, apiladas y sin pushear:**
+  - `fix/review-s26-removed` = `34de18f`, el arreglo de `R9-124`;
+  - `docs/review-s26-removed`, encima, con el checkpoint.
+    Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main`:
+Las demás ramas locales, en total 11 contando `main` (sin las dos de la 26):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -927,8 +974,8 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 26: el mensaje (f), `R9-124` en Modo C.** Lo de abajo es el menú de
-siempre para después.
+**Recomendado para la sesión 27: el mensaje (g), revisar el diff de la 26**, solo en la terminal
+(sin nube). Lo de abajo es el menú de siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
@@ -969,10 +1016,16 @@ Alternativas legítimas:
 - **Después de apilar, re-medí la matriz entera, no solo el tramo nuevo (sesión 25, `R9-162`).** La
   guarda nueva de `9c425a8` tapó en las pruebas la de `a7d688e`, que estaba en otro commit y en
   otra tanda. La matriz de la tanda 3 midió solo las guardas nuevas.
-- **Una revisión se puede hacer en la nube (sesión 25).** Cada sesión entrega su informe en una
-  rama `review/sNN-*` (en `DOCS/REVIEW_2026-09/nube/`, pasado por prettier), que NUNCA se mergea.
-  El orquestador la baja a `_scratch`, verifica cada P0/P1 con sonda propia en la máquina de
-  Victor, y con su OK la borra.
+- **⛔ La nube ya NO es una opción (el crédito se terminó el 2026-09-24).** No la propongas. Queda
+  como registro el método que se usó en las sesiones 24 y 25: cada sesión en la nube entregaba su
+  informe en una rama `review/sNN-*`, que NUNCA se mergeaba; el orquestador la bajaba a `_scratch`,
+  verificaba cada P0/P1 con sonda propia en la máquina de Victor, y con su OK la borraba.
+- **El contenido de un `removed` no dice qué pasó (sesión 26, medido en nativo).** El SDK entrega la
+  última versión que casaba con la query y `exists: true`, también para un borrado de verdad. Antes
+  de diseñar sobre «el cambio trae X», medí qué trae en el SDK real.
+- **Una guarda que ninguna prueba puede vigilar se mide antes de quedarse (sesión 26).** Si su
+  revert no hace caer nada, o falta la prueba o la guarda es equivalente por construcción. En el
+  segundo caso, quitala.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -1048,10 +1101,10 @@ Alternativas legítimas:
   (una porque el re-render no llegaba a aplicarse; otra porque `setSectionNote` ya borra una
   sección vacía, así que no discriminaba nada). Reescritas contra el mecanismo real, la
   primera sí falla. Revertí el arreglo, corré, restauralo: cuesta 30 segundos.
-- **`react-test-renderer` no aguanta re-renderizar una pantalla del tamaño de la Mesa.**
-  Tira «Unable to locate attached view in the native tree» (el `Animated` interno de cada
-  `TouchableOpacity`) y DESMONTA el árbol. Cualquier hallazgo que necesite un cambio de
-  pasaje en vivo es verificación en dispositivo, Modo C — no lo pelees en jest.
+- ~~**`react-test-renderer` no aguanta re-renderizar una pantalla del tamaño de la Mesa.**~~
+  **FALSO (sesión 24, `R9-157`):** «Unable to locate attached view in the native tree» venía de
+  que Victor exporta `NODE_ENV=development`, no del tamaño de la pantalla. Desde la 24,
+  `jest.config.js` fija `NODE_ENV=test`, y las pruebas de la Mesa re-renderizan en jest.
 - **`python - <<'EOF'` NO persiste las escrituras a `src/i18n/translations.ts`.** Falla en
   silencio: los `assert` pasan, imprime el "ok", y el archivo queda igual. Descubierto en la
   sesión 7 tras cuatro intentos. Para ese archivo usá la herramienta de edición; para los
@@ -1215,7 +1268,12 @@ Alternativas legítimas:
 - **Severidades de la sesión 25:** `R9-160` y `R9-166` son P0 y `R9-161` es P1, como se
   propusieron. **`R9-173`:** extender la opción (b) de `R9-109` al fallo de red y al 404 de un
   navegador con texto (decisión delegada al orquestador). La prioridad es baja.
-- **Crédito de la nube:** si se acaba, Victor acepta que la nube siga con su plan normal (sesión 25).
+- **Crédito de la nube:** se acabó el 2026-09-24. Desde la sesión 26 se trabaja solo en la
+  terminal, y la nube no se propone salvo que Victor la pida.
+- **El diseño de `R9-124` (sesión 26):** si el doc de un `removed` todavía existe, NO se suelta a
+  ciegas del conjunto no asentado. Pasa por `applyRemoteChange` y se retiene o se suelta según lo
+  que resulte, para que un conflicto pendiente conserve su marca (lo aprobó Victor antes del
+  arreglo).
 - **Cuando avise del límite de uso de 5 h, la prioridad es volcar a disco y commitear, no
   terminar de verificar.** Es lo que se decidió en la sesión 6 y por eso existe la deuda de
   re-verificación del `⛔` de arriba: fue un intercambio consciente, no un olvido.
