@@ -1524,9 +1524,13 @@ export class SyncEngine {
       //   (R9-124), and it is held at that `updatedAt` precisely so that it
       //   comes back here. LWW kept the local copy in silence, the mark went
       //   with it, and the cloud and this phone stayed apart for good. Any
-      //   other older copy is this device's own earlier write, whose echo
-      //   never moves the mark (see `handleSnapshot`): the user edited the
-      //   doc again since, and that is no conflict with the other device.
+      //   other older copy is taken for this device's own earlier write,
+      //   whose echo never moves the mark (see `handleSnapshot`): the user
+      //   edited the doc again since, and that is no conflict with the other
+      //   device. R9-188 — it is not always: a write of the other device whose
+      //   clock runs behind this one's also arrives older than the local copy
+      //   and not at the mark, and LWW settles it here as before R9-181 (read,
+      //   not measured).
       // - Read, not delivered (R9-186): the cloud's copy of a doc that left
       //   the query, whatever its age.
       const heldAt = this.unsettled.get(adapter.collection)?.get(id)?.updatedAt;

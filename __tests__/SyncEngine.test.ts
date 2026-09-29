@@ -75,9 +75,10 @@ let mockGetShouldFail = false;
 /** R9-177 — RNFirebase on Android runs a doc's `get()`, `set()` and `delete()`
  *  on ONE executor (pool size 1 by default). A read holds it until the server
  *  answers (`Tasks.await`); a write holds it only to be issued, and is answered
- *  later. So a write made while a read waits is issued, echo included, only
- *  once the read is back. The tail of that queue, and how many turns are on
- *  it. Reset in beforeEach. */
+ *  later. So a write made while a read waits is issued only once the read is
+ *  back: a `set()` with its echo; this mock's `delete()` raises no event at all
+ *  (R9-188). The tail of that queue, and how many turns are on it. Reset in
+ *  beforeEach. */
 let mockExecutorTail: Promise<void> = Promise.resolve();
 let mockExecutorTurns = 0;
 function mockOnExecutor<T>(turn: () => Promise<T>): Promise<T> {
@@ -5026,23 +5027,11 @@ describe('R9-161 — «quedarme con lo suyo» deja lo local igual que la nube', 
 
   it('una edicion mia de ANTES de la deteccion no pudo subir y espera en la cola: keepTheirs la reemplaza por lo suyo', async () => {
     const w = await phoneWithConflict('uid-161-cola', async (engine, T) => {
-      // R9-179 — la nube ya tenia doc-c, de ayer. Con el SDK, al rechazar la
-      // subida su vista vuelve a esa copia, que el LWW ignora. Si la nube no
-      // lo tuviera, la reversion llegaria como `removed`, la lectura diria
-      // que no existe, y el motor BORRARIA L de local (hallazgo de la S28,
-      // sin arreglar): no habria conflicto que resolver.
-      fireRemote('uid-161-cola', [
-        {
-          type: 'modified',
-          doc: {
-            id: 'doc-c',
-            exists: true,
-            data: () => ({value: 'L0: de ayer', updatedAt: T - HOUR}),
-          },
-        },
-      ]);
-      await settle();
       // La subida falla (y queda esperando su reintento) antes de que llegue R.
+      // R9-188 — la nube no tiene doc-c, asi que la reversion del rechazo llega
+      // como `removed` y la lectura dice que no existe; L no se borra porque
+      // su escritura sigue en la cola (la guarda de R9-176). Solo se borraria
+      // si el motor se rindiera tras 8 intentos (R9-182).
       mockSetShouldFail = true;
       engine.queueWrite('test', 'doc-c', {value: L, updatedAt: T});
       await settle();
