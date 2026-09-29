@@ -5587,6 +5587,264 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
     engine.stop();
   });
+
+  /** RNFirebase corre la lectura y las escrituras en un solo hilo (R9-177), y
+   *  el mock tambien: lo que este telefono escribe durante la lectura sale
+   *  DESPUES de ella (con su eco), y la respuesta nunca lo trae. Retiene la
+   *  lectura del doc hasta `releaseRead`. */
+  function holdRead(docId: string) {
+    let release!: () => void;
+    mockGetGate = (_p, id) =>
+      id === docId ? new Promise<void>(r => (release = r)) : undefined;
+    return {releaseRead: () => release()};
+  }
+
+  it('R9-176: un borrado de verdad mientras el usuario edita el doc: la respuesta de la lectura no borra la edicion', async () => {
+    const uid = 'uid-176-edita';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    localStore.set('doc-e', v1);
+    write(uid, 'doc-e', v1);
+    await settle();
+    const hilo = holdRead('doc-e');
+    hardDelete(uid, 'doc-e', v1);
+    await flush();
+    const editada = {
+      value: 'editada durante la lectura',
+      updatedAt: T + 120_000,
+    };
+    localStore.set('doc-e', editada);
+    engine.queueWrite('test', 'doc-e', editada);
+    await flush();
+    const enCola = engine.__getQueueForTests().some(q => q.id === 'doc-e');
+    hilo.releaseRead();
+    await settle();
+    const trasLectura = {
+      borrados: [...remoteDeleteCalls],
+      local: localStore.get('doc-e')?.value,
+    };
+    await settle();
+
+    // Pre-fix: «no existe» borraba la edicion de local hasta que llegara su eco.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      enCola, // CONTROL
+      trasLectura,
+      subidas: mockDocSets
+        .filter(s => s.path === `users/${uid}/test` && s.id === 'doc-e')
+        .map(s => (s.data as Data).value),
+    }).toEqual({
+      removed: ['doc-e'],
+      enCola: true,
+      trasLectura: {borrados: [], local: 'editada durante la lectura'},
+      subidas: ['editada durante la lectura'],
+    });
+    engine.stop();
+  });
+
+  it('R9-176: el otro restaura el doc mientras el usuario lo borra: la respuesta de la lectura no lo revive', async () => {
+    const uid = 'uid-176-borra';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteUpsertCalls} = await engineFor(uid, T);
+    const mio = {value: 'mio', updatedAt: T + 60_000};
+    localStore.set('doc-e', mio);
+    write(uid, 'doc-e', mio);
+    await settle();
+    const hilo = holdRead('doc-e');
+    write(uid, 'doc-e', {value: 'su respaldo', updatedAt: T - DAY});
+    await flush();
+    localStore.delete('doc-e');
+    engine.queueDelete('test', 'doc-e', mio);
+    await flush();
+    const enCola = engine.__getQueueForTests().some(q => q.id === 'doc-e');
+    hilo.releaseRead();
+    await settle();
+    const trasLectura = {
+      aplicados: remoteUpsertCalls.map(c => c.data.value),
+      local: localStore.get('doc-e')?.value ?? null,
+    };
+    await settle();
+
+    // Pre-fix: sin copia local con la que comparar, la version restaurada se
+    // aplicaba y el doc resucitaba hasta que llegara el eco de la lapida.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      enCola, // CONTROL
+      trasLectura,
+    }).toEqual({
+      removed: ['doc-e'],
+      enCola: true,
+      trasLectura: {aplicados: [], local: null},
+    });
+    engine.stop();
+  });
+
+  it('R9-176: una edicion encolada ANTES, que todavia no pudo subir, tampoco la borra la respuesta de la lectura', async () => {
+    const uid = 'uid-176-antes';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    localStore.set('doc-e', v1);
+    write(uid, 'doc-e', v1);
+    await settle();
+    mockSetShouldFail = true;
+    const editada = {value: 'editada sin subir', updatedAt: T + 120_000};
+    localStore.set('doc-e', editada);
+    engine.queueWrite('test', 'doc-e', editada);
+    await settle();
+    mockSetShouldFail = false;
+    const enCola = engine.__getQueueForTests().some(q => q.id === 'doc-e');
+    hardDelete(uid, 'doc-e', v1);
+    await settle();
+
+    // Pre-fix: la edicion desaparecia de local hasta que su reintento subiera
+    // y volviera el eco; y si se descartaba tras 8 intentos (R9-33), para
+    // siempre.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      enCola, // CONTROL
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-e')?.value,
+    }).toEqual({
+      removed: ['doc-e'],
+      enCola: true,
+      borrados: [],
+      local: 'editada sin subir',
+    });
+    engine.stop();
+  });
+
+  /** Un conflicto L/R pendiente y retenido con su marca. */
+  async function conflictFor(uid: string, T: number, L: Data, R: Data) {
+    const w = await engineFor(uid, T);
+    w.localStore.set('doc-c', L as unknown as SyncEntity<TestEntity>);
+    write(uid, 'doc-c', R);
+    await settle();
+    // CONTROL: el conflicto existe y nada se aplico en local.
+    expect({
+      conflictos: w.engine.__getConflictsForTests().map(c => c.docId),
+      local: w.localStore.get('doc-c')?.value,
+    }).toEqual({conflictos: ['doc-c'], local: L.value});
+    return w;
+  }
+
+  it('R9-178: keepMine durante la lectura de un borrado de verdad: lo que el usuario acaba de conservar no se borra', async () => {
+    const uid = 'uid-178-keepmine';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, remoteDeleteCalls} = await conflictFor(
+      uid,
+      T,
+      L,
+      R,
+    );
+    const hilo = holdRead('doc-c');
+    hardDelete(uid, 'doc-c', R);
+    await flush();
+    await engine.resolveConflict('test__doc-c', 'keepMine');
+    await flush();
+    const enCola = engine.__getQueueForTests().some(q => q.id === 'doc-c');
+    hilo.releaseRead();
+    await settle();
+
+    // Pre-fix: la resolucion quitaba la marca y «no existe» borraba L de local
+    // hasta que llegara el eco de su subida.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      enCola, // CONTROL
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      removed: ['doc-c'],
+      enCola: true,
+      borrados: [],
+      local: 'lo mio',
+    });
+    engine.stop();
+  });
+
+  it('R9-178: keepMine durante la lectura, con la nube a menos de 30 s de lo local: no aparece un conflicto fantasma', async () => {
+    const uid = 'uid-178-fantasma';
+    const T = Date.now() - HOUR;
+    const F = T - CURSOR_SAFETY_MARGIN_MS; // el piso de la query
+    const L = {value: 'lo mio', updatedAt: F - 20_000};
+    const R = {value: 'lo suyo', updatedAt: F + 5_000};
+    const X = {value: 'su respaldo', updatedAt: F - 5_000};
+    const {engine} = await conflictFor(uid, T, L, R);
+    const hilo = holdRead('doc-c');
+    write(uid, 'doc-c', X); // bajo el piso: sale de la query
+    await flush();
+    await engine.resolveConflict('test__doc-c', 'keepMine');
+    await flush();
+    const enCola = engine.__getQueueForTests().some(q => q.id === 'doc-c');
+    // El eco de keepMine sale en cuanto vuelve la lectura (R9-177) y disuelve
+    // el fantasma en el lote siguiente: el estado final no lo muestra. Se
+    // anota cada lista de conflictos que el motor publica desde aqui.
+    const vistos: string[][] = [];
+    engine.subscribe(st => vistos.push(st.conflicts.map(c => c.docId)));
+    hilo.releaseRead();
+    await settle();
+
+    // Pre-fix: justo despues de resolver aparecia un conflicto L/X (con su
+    // marca en disco) hasta que llegaba el eco.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      enCola, // CONTROL
+      publicados: vistos.length > 0, // CONTROL
+      fantasma: vistos.some(v => v.includes('doc-c')),
+      conflictos: engine.__getConflictsForTests().map(c => c.docId),
+      marca: await persisted(uid),
+    }).toEqual({
+      removed: ['doc-c'],
+      enCola: true,
+      publicados: true,
+      fantasma: false,
+      conflictos: [],
+      marca: {unsettled: {}, conflicted: []},
+    });
+    engine.stop();
+  });
+
+  it('control R9-178: keepTheirs sin subida durante la lectura de un borrado de verdad: lo local se borra, igual que la nube', async () => {
+    // Nada de este telefono va a pisar la respuesta: aplicarla es converger.
+    // Saltarla por «el conflicto se resolvio durante la lectura» dejaba en
+    // local «lo suyo» de un doc que la nube ya no tiene.
+    const uid = 'uid-178-keeptheirs';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, remoteDeleteCalls} = await conflictFor(
+      uid,
+      T,
+      L,
+      R,
+    );
+    const hilo = holdRead('doc-c');
+    hardDelete(uid, 'doc-c', R);
+    await flush();
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await flush();
+    const trasResolver = localStore.get('doc-c')?.value;
+    hilo.releaseRead();
+    await settle();
+
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      trasResolver, // CONTROL
+      borrados: remoteDeleteCalls,
+      local: localStore.get('doc-c')?.value ?? null,
+      subidas: mockDocSets.filter(s => s.id === 'doc-c').length,
+    }).toEqual({
+      removed: ['doc-c'],
+      trasResolver: 'lo suyo',
+      borrados: ['doc-c'],
+      local: null,
+      subidas: 0,
+    });
+    engine.stop();
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
@@ -5659,50 +5917,6 @@ describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
       if (!r) return;
       g.released = true;
       (r as () => void)();
-    };
-    return g;
-  }
-
-  /** El eco de la ultima subida de `id`. El mock de hoy no entrega el eco
-   *  propio: lo dispara la prueba. */
-  function echoLastPush(uid: string, id: string): void {
-    const last = mockDocSets
-      .filter(s => s.path === `users/${uid}/test` && s.id === id)
-      .pop();
-    if (last) write(uid, id, last.data as Data);
-  }
-
-  /** Un apply del adaptador que espera a que la prueba lo suelte (la primera
-   *  vez que toca `docId`). */
-  function gateApply(
-    fixture: ReturnType<typeof makeAdapter>,
-    kind: 'delete' | 'upsert',
-    docId: string,
-  ) {
-    const g = {hits: 0, release: () => {}};
-    let r: (() => void) | null = null;
-    const wait = async (id: string) => {
-      if (id !== docId || g.hits > 0) return;
-      g.hits += 1;
-      await new Promise<void>(res => {
-        r = res;
-      });
-    };
-    if (kind === 'delete') {
-      fixture.adapter.applyRemoteDelete = async id => {
-        await wait(id);
-        fixture.remoteDeleteCalls.push(id);
-        fixture.localStore.delete(id);
-      };
-    } else {
-      fixture.adapter.applyRemoteUpsert = async (id, data) => {
-        await wait(id);
-        fixture.remoteUpsertCalls.push({id, data});
-        fixture.localStore.set(id, data);
-      };
-    }
-    g.release = () => {
-      if (r) (r as () => void)();
     };
     return g;
   }
@@ -6001,103 +6215,6 @@ describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
     expect(remoteDeleteCalls).toEqual([]);
     expect(localStore.get('X')?.value).toBe('x1');
     expect(loggerErrorSpy).not.toHaveBeenCalled();
-    engine.stop();
-  });
-
-  // Con RNFB la lectura ocupa el unico hilo de escrituras (R9-177): lo que el
-  // usuario hace durante ella sube DESPUES de la respuesta, y su eco llega
-  // despues. Se modela con la red cortada hasta que vuelve la respuesta. Si el
-  // eco llega mientras se aplica la respuesta vieja (R9-176, R9-178), tiene
-  // que esperar a que termine: en paralelo veia lo local todavia sin tocar,
-  // el LWW lo ignoraba, y el apply terminaba despues.
-
-  it('R9-176: el eco de una edicion hecha durante la lectura llega mientras se borra: la edicion vuelve', async () => {
-    const uid = 'uid-175-p6';
-    const T = Date.now() - HOUR;
-    const f = await engineFor(uid, T);
-    const {engine, localStore} = f;
-    const v1 = {value: 'v1', updatedAt: T + MIN};
-    localStore.set('X', v1);
-    write(uid, 'X', v1);
-    await settle();
-    const ga = gateApply(f, 'delete', 'X');
-    const g = holdGet('X');
-    hardDelete(uid, 'X', v1);
-    await flush();
-    engine.__setOnlineForTests(false);
-    const editada = {value: 'editada', updatedAt: T + 3 * MIN};
-    localStore.set('X', editada);
-    engine.queueWrite('test', 'X', editada);
-    await settle();
-    g.release();
-    await settle();
-    expect(ga.hits).toBe(1); // CONTROL: el borrado esta en vuelo
-    engine.__setOnlineForTests(true);
-    await settle();
-    echoLastPush(uid, 'X');
-    await settle();
-    ga.release();
-    await settle();
-    expect(localStore.get('X')?.value).toBe('editada');
-    engine.stop();
-  });
-
-  it('R9-176: el eco de un borrado hecho durante la lectura llega mientras se re-inserta: no resucita', async () => {
-    const uid = 'uid-175-p7';
-    const T = Date.now() - HOUR;
-    const f = await engineFor(uid, T);
-    const {engine, localStore} = f;
-    const mio = {value: 'mio', updatedAt: T + MIN};
-    localStore.set('X', mio);
-    write(uid, 'X', mio);
-    await settle();
-    const ga = gateApply(f, 'upsert', 'X');
-    const g = holdGet('X');
-    write(uid, 'X', {value: 'respaldo', updatedAt: T - DAY});
-    await flush();
-    engine.__setOnlineForTests(false);
-    localStore.delete('X');
-    engine.queueDelete('test', 'X', mio);
-    await settle();
-    g.release();
-    await settle();
-    expect(ga.hits).toBe(1); // CONTROL: la re-insercion esta en vuelo
-    engine.__setOnlineForTests(true);
-    await settle();
-    echoLastPush(uid, 'X');
-    await settle();
-    ga.release();
-    await settle();
-    expect(localStore.has('X')).toBe(false);
-    engine.stop();
-  });
-
-  it('R9-178: el eco de un keepMine hecho durante la lectura llega mientras se borra: lo mio vuelve', async () => {
-    const uid = 'uid-175-n1a';
-    const T = Date.now() - HOUR;
-    const f = await engineFor(uid, T);
-    const {engine, localStore} = f;
-    localStore.set('C', {value: 'L lo mio', updatedAt: T + 60_000});
-    write(uid, 'C', {value: 'R lo suyo', updatedAt: T + 65_000});
-    await settle();
-    expect(engine.__getConflictsForTests().map(c => c.docId)).toEqual(['C']); // CONTROL
-    const ga = gateApply(f, 'delete', 'C');
-    const g = holdGet('C');
-    hardDelete(uid, 'C', {value: 'R lo suyo', updatedAt: T + 65_000});
-    await settle();
-    engine.__setOnlineForTests(false);
-    await engine.resolveConflict('test__C', 'keepMine');
-    await settle();
-    g.release();
-    await settle();
-    expect(ga.hits).toBe(1); // CONTROL: el borrado esta en vuelo
-    engine.__setOnlineForTests(true);
-    await settle();
-    echoLastPush(uid, 'C');
-    await settle();
-    ga.release();
-    await settle();
-    expect(localStore.get('C')?.value).toBe('L lo mio');
     engine.stop();
   });
 });
