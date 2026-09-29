@@ -141,8 +141,6 @@ export interface SyncEngineState {
   isActive: boolean;
   /** Device reports network connectivity (NetInfo). */
   isOnline: boolean;
-  /** A push or pull is currently in flight. */
-  isSyncing: boolean;
   /** Number of writes queued but not yet acked by Firestore. */
   pendingWrites: number;
   /** Epoch ms of the last successful push or pull, or null. */

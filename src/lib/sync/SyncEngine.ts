@@ -384,7 +384,6 @@ export class SyncEngine {
   private state: SyncEngineState = {
     isActive: false,
     isOnline: true,
-    isSyncing: false,
     pendingWrites: 0,
     lastSyncedAt: null,
     lastError: null,
@@ -549,7 +548,6 @@ export class SyncEngine {
     this.unsettledUnsaved.clear();
     this.updateState({
       isActive: false,
-      isSyncing: false,
       conflicts: [],
       // R9-33 — the dropped-write notice is per-uid state, exactly like the
       // conflicts and the cursors cleared just above, and it has to go out
@@ -1008,7 +1006,6 @@ export class SyncEngine {
     // batch's own, captured with its session, never "whoever is signed in by
     // the time the write runs".
     const uid = this.uid;
-    this.updateState({isSyncing: true});
     // Quota hardening — highest `updatedAt` observed in THIS batch, used
     // to advance the collection's sync cursor once we're done. Tracked
     // regardless of whether a change was actually applied locally: this
@@ -1187,10 +1184,6 @@ export class SyncEngine {
           lastError: err instanceof Error ? err.message : String(err),
         });
       }
-    } finally {
-      // R9-153 — once `stop()` has run, `isSyncing` is the next session's:
-      // clearing it here would hide a push of theirs still in flight.
-      if (isCurrent()) this.updateState({isSyncing: false});
     }
   }
 
@@ -2171,15 +2164,14 @@ export class SyncEngine {
     if (!this.uid) return;
     if (!this.state.isOnline) return;
     // R9-33 — nothing DUE, not merely nothing queued. Testing the raw queue
-    // here would flip `isSyncing` on and off on every periodic tick for a
-    // user whose only entries are another account's parked writes or their
-    // own writes waiting out a backoff.
+    // here would take the lock and rewrite the queue to disk on every periodic
+    // tick for a user whose only entries are another account's parked writes
+    // or their own writes waiting out a backoff.
     if (this.flushableCount() === 0) return;
     const fn = getFirestore();
     if (!fn) return;
 
     this.flushInFlight = true;
-    this.updateState({isSyncing: true});
     // R9-104 — the session this flush belongs to. Every `await` below can come
     // back after `stop()`; from then on `isCurrent()` is false for good.
     const session = this.flushSession;
@@ -2307,12 +2299,9 @@ export class SyncEngine {
       }
       await this.persistQueue();
     } finally {
-      // R9-104 — once `stop()` has run, the lock and `isSyncing` are the next
-      // session's; releasing them here would cut into its flush.
-      if (isCurrent()) {
-        this.flushInFlight = false;
-        this.updateState({isSyncing: false});
-      }
+      // R9-104 — once `stop()` has run, the lock is the next session's;
+      // releasing it here would cut into its flush.
+      if (isCurrent()) this.flushInFlight = false;
     }
 
     // Sprint 47 — if the loop completed cleanly but the queue still holds

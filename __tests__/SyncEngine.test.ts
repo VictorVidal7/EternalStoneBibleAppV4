@@ -2670,7 +2670,6 @@ describe('R9-104 — un push en vuelo no puede cruzar a la cuenta que entra', ()
       ['users/uid-beto/test', 'doc-beto'],
     ]);
     expect(engine.getState().pendingWrites).toBe(0);
-    expect(engine.getState().isSyncing).toBe(false);
     expect(engine.__getQueueForTests().map(q => [q.uid, q.id])).toEqual([
       ['uid-ana', 'doc-ana'],
     ]);
@@ -2722,7 +2721,6 @@ describe('R9-104 — un push en vuelo no puede cruzar a la cuenta que entra', ()
     await settle();
 
     expect(betoSets).toEqual(['doc-beto-1', 'doc-beto-2']);
-    expect(engine.getState().isSyncing).toBe(false);
     expect(engine.getState().pendingWrites).toBe(0);
   });
 
@@ -2954,7 +2952,6 @@ describe('R9-153 / R9-122.4 — un lote de Ana en vuelo tras el stop() no pasa a
       await AsyncStorage.getItem(cursorStorageKey('test', 'uid-ana')),
     ).toBe(String(base - 10_000));
     expect(engine.getState().lastSyncedAt).not.toBeNull();
-    expect(engine.getState().isSyncing).toBe(false);
 
     engine.stop();
     await engine.start('uid-beto');
