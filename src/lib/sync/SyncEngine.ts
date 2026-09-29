@@ -130,6 +130,36 @@ const MAX_RESOLVED_CONFLICTS = 500;
  */
 export const CURSOR_SAFETY_MARGIN_MS = 5 * 60 * 1000; // 5 minutes
 
+/**
+ * R9-175 — how long a snapshot batch waits for the read that tells a
+ * `removed` doc from a deleted one (R9-124) before treating it as a failed
+ * read. The SDK puts no deadline of its own on a `get()`: it answers once the
+ * server does, or from cache (or `unavailable`) once it considers itself
+ * offline, which its OnlineStateTracker decides 10 s after the stream starts
+ * or at its first failure. Generous on purpose: past it, the doc is left as it
+ * is locally, while waiting only delays this collection's later batches.
+ */
+export const REMOVED_LOOKUP_TIMEOUT_MS = 60 * 1000;
+
+function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`no answer after ${ms} ms`)),
+      ms,
+    );
+    promise.then(
+      value => {
+        clearTimeout(timer);
+        resolve(value);
+      },
+      err => {
+        clearTimeout(timer);
+        reject(err);
+      },
+    );
+  });
+}
+
 const CURSOR_STORAGE_PREFIX = '@sync_cursor_';
 
 /**
@@ -376,6 +406,12 @@ export class SyncEngine {
    *  one is here, `advanceCursor` holds the persisted cursor itself below
    *  its lowest held doc: after a restart, the cursor is all there is. */
   private unsettledUnsaved = new Set<string>();
+  /** R9-175 — per collection, the last snapshot batch queued (see
+   *  `enqueueSnapshot`). Cleared on `stop()`. */
+  private snapshotTails = new Map<string, Promise<void>>();
+  /** R9-175 — see REMOVED_LOOKUP_TIMEOUT_MS. A field only so a test can
+   *  shorten it. */
+  private lookupTimeoutMs = REMOVED_LOOKUP_TIMEOUT_MS;
   /** Sprint 43 — when set, the next maybeRunInitialBulkPush persists the
    *  done-flag without actually queueing any rows. Used by the migration
    *  flow in AuthContext when the user opts out of migrating anonymous
@@ -546,6 +582,11 @@ export class SyncEngine {
     this.cursors.clear();
     this.unsettled.clear();
     this.unsettledUnsaved.clear();
+    // R9-175 — the batches still queued are this session's and will end at
+    // their first `isCurrent()`; the next session starts its own chains
+    // instead of waiting behind them (a read that never comes back would
+    // otherwise hold the next account's collection too).
+    this.snapshotTails.clear();
     this.updateState({
       isActive: false,
       conflicts: [],
@@ -949,10 +990,22 @@ export class SyncEngine {
       query = collectionRef;
     }
 
+    const lookup = (docId: string) => collectionRef.doc(docId).get();
     const off = query.onSnapshot(
       snapshot => {
-        void this.handleSnapshot(adapter, snapshot.docChanges(), docId =>
-          collectionRef.doc(docId).get(),
+        // R9-175 — one batch at a time per collection. Batches share the
+        // cursor: while one waited (the read of a `removed`, a `getLocal`), a
+        // later one ran whole and moved the cursor past the changes the first
+        // had not applied yet, and if the first was then cut short (`stop()`,
+        // the process dying) those changes stayed below every future floor.
+        // The session is the one the batch ARRIVED in, not the one it starts
+        // in: a batch that waited in the chain across a `stop()` belongs to
+        // the account that received it (R9-153).
+        const changes = snapshot.docChanges();
+        const session = this.flushSession;
+        const uid = this.uid;
+        this.enqueueSnapshot(adapter.collection, () =>
+          this.handleSnapshot(adapter, changes, lookup, session, uid),
         );
       },
       err => {
@@ -983,10 +1036,34 @@ export class SyncEngine {
     this.unsubs.set(adapter.collection, off);
   }
 
+  /**
+   * R9-175 — run `batch` after every batch of `collection` already queued.
+   * The chain lives on the engine, not on the listener: a re-attach within the
+   * same session (`unregister` + `register`) keeps waiting behind the old
+   * listener's batch still in flight. `stop()` drops the chains, so the next
+   * session never waits behind the last one's.
+   */
+  private enqueueSnapshot(
+    collection: string,
+    batch: () => Promise<void>,
+  ): void {
+    const tail = this.snapshotTails.get(collection) ?? Promise.resolve();
+    const next = tail.then(batch).catch(err => {
+      logger.error(
+        'SyncEngine: snapshot batch threw outside its own guard',
+        err instanceof Error ? err : new Error(String(err)),
+        {component: 'SyncEngine', collection},
+      );
+    });
+    this.snapshotTails.set(collection, next);
+  }
+
   private async handleSnapshot(
     adapter: AnyAdapter,
     changes: DocumentChange[],
     lookup: (docId: string) => Promise<DocumentSnapshot>,
+    session: number,
+    uid: string | null,
   ): Promise<void> {
     if (changes.length === 0) return;
     // R9-153 — the session this batch belongs to, like `flush()`'s. Every
@@ -998,14 +1075,21 @@ export class SyncEngine {
     // in-memory cache, so their first attach started from this account's floor
     // and never pulled their own older docs (R9-122.4). From the first `await`
     // that comes back in another session the batch ends: no conflict, no
-    // cursor, no state. Nothing is lost — the cursor did not move, so the
-    // owner's next attach delivers the batch again.
-    const session = this.flushSession;
+    // cursor, no state. What it had not applied yet is not lost: the batches
+    // of a collection run one at a time (R9-175), so no other batch moved the
+    // cursor past it meanwhile, and the owner's next attach delivers it again.
+    // Two exceptions: a `removed` (the doc left the query, and no attach
+    // delivers it again: R9-164), and a conflict the user resolved meanwhile,
+    // whose `resolveConflict` moves the cursor at once (R9-183).
+    //
+    // R9-175 — `session` is the one the batch ARRIVED in (see
+    // `attachListener`): a batch that waited in the chain across a `stop()` is
+    // over before it starts.
     const isCurrent = () => session === this.flushSession;
-    // R9-39 / R9-106 — the uid whose `unsettled` set this batch writes: the
-    // batch's own, captured with its session, never "whoever is signed in by
-    // the time the write runs".
-    const uid = this.uid;
+    if (!isCurrent()) return;
+    // R9-39 / R9-106 — `uid` is the one whose `unsettled` set this batch
+    // writes: the batch's own, captured with its session, never "whoever is
+    // signed in by the time the write runs".
     // Quota hardening — highest `updatedAt` observed in THIS batch, used
     // to advance the collection's sync cursor once we're done. Tracked
     // regardless of whether a change was actually applied locally: this
@@ -1058,7 +1142,14 @@ export class SyncEngine {
           // meanwhile is still queued.
           let current: DocumentSnapshot | null = null;
           try {
-            current = await lookup(change.doc.id);
+            // R9-175 — with the batches in a chain, a read that never came
+            // back would hold every later batch of this collection until
+            // `stop()`. Past the deadline it counts as a failed read; its
+            // answer, if it ever comes, is dropped.
+            current = await withDeadline(
+              lookup(change.doc.id),
+              this.lookupTimeoutMs,
+            );
           } catch (err) {
             logger.warn(
               'SyncEngine: could not tell a removed doc from a deleted one — ' +
@@ -2413,5 +2504,10 @@ export class SyncEngine {
    *  never loaded/advanced this session). */
   __getCursorForTests(collection: string): number | undefined {
     return this.cursors.get(collection);
+  }
+
+  /** Test-only: shorten REMOVED_LOOKUP_TIMEOUT_MS. */
+  __setLookupTimeoutForTests(ms: number): void {
+    this.lookupTimeoutMs = ms;
   }
 }

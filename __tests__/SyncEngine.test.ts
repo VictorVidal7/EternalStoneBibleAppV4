@@ -3479,48 +3479,52 @@ describe('R9-154 — la supresion de ecos en keepTheirs, en merge y su profundid
   });
 
   it('dos applies solapados del MISMO doc: al terminar el primero, el eco del segundo sigue suprimido', async () => {
+    // R9-175 — dos LOTES del mismo doc ya no se solapan: los de una coleccion
+    // corren de a uno. Lo que todavia solapa dos applies del mismo doc es
+    // resolver dos veces el mismo conflicto (un doble toque): el conflicto se
+    // quita de la lista DESPUES del apply, y el segundo `resolveConflict` lo
+    // encuentra todavia pendiente.
     await AsyncStorage.setItem('@sync_first_push_done:uid-prof', '2');
     const engine = new SyncEngine();
     const gates: Array<() => void> = [];
     const echoes: string[] = [];
     let inFlight = 0;
     let maxInFlight = 0;
-    const {adapter} = makeAdapter({
-      async applyRemoteUpsert(id, data) {
-        inFlight += 1;
-        maxInFlight = Math.max(maxInFlight, inFlight);
-        await new Promise<void>(resolve => gates.push(resolve));
-        echoes.push(`${id}@${data.updatedAt}`);
-        engine.queueWrite('test', id, data);
-        inFlight -= 1;
-      },
-    });
-    engine.register(adapter);
+    let gateOn = false;
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    const realUpsert = fixture.adapter.applyRemoteUpsert;
+    fixture.adapter.applyRemoteUpsert = async (id, data) => {
+      if (!gateOn) return realUpsert(id, data);
+      inFlight += 1;
+      maxInFlight = Math.max(maxInFlight, inFlight);
+      await new Promise<void>(resolve => gates.push(resolve));
+      await realUpsert(id, data);
+      echoes.push(`${id}@${data.updatedAt}`);
+      engine.queueWrite('test', id, data);
+      inFlight -= 1;
+    };
+    fixture.localStore.set('doc-p', {value: 'local', updatedAt: 1000});
+    engine.register(fixture.adapter);
     await engine.start('uid-prof');
     await settle();
-
-    // Dos lotes del mismo doc. Este apply no escribe en local, asi que los dos
-    // pasan la comparacion LWW y los dos llegan a aplicar.
-    fireRemote('uid-prof', [
-      {
-        type: 'added',
-        doc: {
-          id: 'doc-p',
-          exists: true,
-          data: () => ({value: 'v1', updatedAt: 2000}),
-        },
-      },
-    ]);
     fireRemote('uid-prof', [
       {
         type: 'modified',
         doc: {
           id: 'doc-p',
           exists: true,
-          data: () => ({value: 'v2', updatedAt: 3000}),
+          data: () => ({value: 'remote', updatedAt: 1005}),
         },
       },
     ]);
+    await settle();
+    expect(engine.__getConflictsForTests().map(c => c.id)).toEqual([
+      'test__doc-p',
+    ]);
+
+    gateOn = true;
+    const first = engine.resolveConflict('test__doc-p', 'keepTheirs');
+    const second = engine.resolveConflict('test__doc-p', 'keepTheirs');
     await settle();
     // Control: los dos applies estan EN VUELO a la vez; si no se solaparan, la
     // profundidad no tendria nada que contar.
@@ -3530,10 +3534,13 @@ describe('R9-154 — la supresion de ecos en keepTheirs, en merge y su profundid
     await settle();
     gates[1]();
     await settle();
+    await Promise.all([first, second]);
+    await engine.__flushForTests();
+    await settle();
 
     // Sin el conteo, el primer apply que termina quita la supresion del doc y
     // el eco del segundo sale a la nube.
-    expect(echoes).toEqual(['doc-p@2000', 'doc-p@3000']);
+    expect(echoes).toEqual(['doc-p@1005', 'doc-p@1005']);
     expect(pushedTo('uid-prof')).toEqual([]);
     expect(engine.__getQueueForTests()).toHaveLength(0);
   });
@@ -5441,6 +5448,519 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       unsettled: {},
       avisado: true,
     });
+    engine.stop();
+  });
+});
+
+describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
+  // Cada snapshot hacia `void this.handleSnapshot(...)`: los lotes corrian a la
+  // vez y compartian el cursor. Mientras uno esperaba (la lectura de un
+  // `removed`, un `getLocal`), otro lote corria entero y adelantaba el cursor;
+  // si el primero se cortaba despues (un `stop()`, el proceso que muere), lo
+  // que le faltaba aplicar quedaba bajo el piso de todo enganche siguiente.
+  async function settle(): Promise<void> {
+    for (let i = 0; i < 8; i++) await flush();
+  }
+  const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
+  const MIN = 60 * 1000;
+  const HOUR = 60 * MIN;
+  const DAY = 24 * HOUR;
+  type Data = Record<string, unknown>;
+
+  async function engineFor(uid: string, cursor: number) {
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', uid), String(cursor));
+    const fixture = makeAdapter({getMaterialFields: () => ['value']});
+    const engine = new SyncEngine();
+    engine.register(fixture.adapter);
+    await engine.start(uid);
+    await settle();
+    return {engine, ...fixture};
+  }
+  function write(uid: string, id: string, data: Data): void {
+    fireRemote(uid, [
+      {type: 'modified', doc: {id, exists: true, data: () => data}},
+    ]);
+  }
+  function hardDelete(uid: string, id: string, last: Data): void {
+    fireRemote(uid, [
+      {type: 'removed', doc: {id, exists: true, data: () => last}},
+    ]);
+  }
+  function delivered(uid: string, from = 0): string[] {
+    return mockDelivered
+      .slice(from)
+      .filter(d => d.path === `users/${uid}/test`)
+      .map(d => `${d.type}:${d.id}`);
+  }
+  function floorOf(uid: string): number {
+    return mockCollections
+      .get(`users/${uid}/test`)!
+      .__whereClauses.find(c => c.field === 'updatedAt')?.value as number;
+  }
+  async function storedCursor(uid: string): Promise<number | null> {
+    const raw = await AsyncStorage.getItem(cursorStorageKey('test', uid));
+    return raw == null ? null : Number(raw);
+  }
+  /** Minutos desde T, para leer los cursores y pisos. */
+  const relTo = (T: number) => (x: number | null | undefined) =>
+    x == null ? null : Math.round(((x - T) / MIN) * 1000) / 1000;
+
+  /** Retiene la lectura del `removed` de `docId`. Al soltarla responde con la
+   *  nube del mock en ese momento. */
+  function holdGet(docId: string) {
+    const g = {hits: 0, released: false, release: () => {}};
+    let r: (() => void) | null = null;
+    mockGetGate = (_p, id) => {
+      if (id !== docId) return undefined;
+      g.hits += 1;
+      return new Promise<void>(res => {
+        r = res;
+      });
+    };
+    g.release = () => {
+      if (!r) return;
+      g.released = true;
+      (r as () => void)();
+    };
+    return g;
+  }
+
+  /** El eco de la ultima subida de `id`. El mock de hoy no entrega el eco
+   *  propio: lo dispara la prueba. */
+  function echoLastPush(uid: string, id: string): void {
+    const last = mockDocSets
+      .filter(s => s.path === `users/${uid}/test` && s.id === id)
+      .pop();
+    if (last) write(uid, id, last.data as Data);
+  }
+
+  /** Un apply del adaptador que espera a que la prueba lo suelte (la primera
+   *  vez que toca `docId`). */
+  function gateApply(
+    fixture: ReturnType<typeof makeAdapter>,
+    kind: 'delete' | 'upsert',
+    docId: string,
+  ) {
+    const g = {hits: 0, release: () => {}};
+    let r: (() => void) | null = null;
+    const wait = async (id: string) => {
+      if (id !== docId || g.hits > 0) return;
+      g.hits += 1;
+      await new Promise<void>(res => {
+        r = res;
+      });
+    };
+    if (kind === 'delete') {
+      fixture.adapter.applyRemoteDelete = async id => {
+        await wait(id);
+        fixture.remoteDeleteCalls.push(id);
+        fixture.localStore.delete(id);
+      };
+    } else {
+      fixture.adapter.applyRemoteUpsert = async (id, data) => {
+        await wait(id);
+        fixture.remoteUpsertCalls.push({id, data});
+        fixture.localStore.set(id, data);
+      };
+    }
+    g.release = () => {
+      if (r) (r as () => void)();
+    };
+    return g;
+  }
+
+  /** El lote [removed X, modified Y] espera la lectura de X; mientras, `during`
+   *  hace algo que podria mover el cursor. Despues el lote se corta (stop), se
+   *  reengancha y la nube re-entrega Y si casa con el piso. */
+  async function cutBatch(
+    uid: string,
+    during: (
+      f: Awaited<ReturnType<typeof engineFor>>,
+      T: number,
+    ) => Promise<void>,
+    before?: (
+      f: Awaited<ReturnType<typeof engineFor>>,
+      T: number,
+    ) => Promise<void>,
+  ) {
+    const T = Date.now() - HOUR;
+    const rel = relTo(T);
+    const f = await engineFor(uid, T);
+    const {engine, localStore} = f;
+    await before?.(f, T);
+    const conflictos = engine.__getConflictsForTests().map(c => c.docId);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(uid, 'X', x1);
+    await settle();
+    const g = holdGet('X');
+    const y1 = {value: 'y del otro', updatedAt: T + 2 * MIN};
+    const antes = mockDelivered.length;
+    fireRemote(uid, [
+      {
+        type: 'modified',
+        doc: {
+          id: 'X',
+          exists: true,
+          data: () => ({value: 'respaldo', updatedAt: T - DAY}),
+        },
+      },
+      {type: 'modified', doc: {id: 'Y', exists: true, data: () => y1}},
+    ]);
+    await flush();
+    const lote = delivered(uid, antes);
+    await during(f, T);
+    const enVuelo = {
+      lecturas: g.hits,
+      liberada: g.released,
+      yAplicado: localStore.has('Y'),
+      cursorGuardado: rel(await storedCursor(uid)),
+    };
+    engine.stop();
+    g.release();
+    await settle();
+    await engine.start(uid);
+    await settle();
+    const piso = rel(floorOf(uid));
+    write(uid, 'Y', y1);
+    await settle();
+    const localY = localStore.get('Y')?.value ?? null;
+    engine.stop();
+    return {conflictos, lote, enVuelo, piso, localY};
+  }
+
+  /** Otro lote de la misma coleccion llega durante la lectura. */
+  const otherBatch = async (
+    f: Awaited<ReturnType<typeof engineFor>>,
+    T: number,
+  ) => {
+    write(f.engine.getActiveUid()!, 'W', {value: 'w', updatedAt: T + 20 * MIN});
+    await settle();
+  };
+
+  it('mientras un lote espera la lectura de un `removed`, otro lote no mueve el cursor', async () => {
+    const r = await cutBatch('uid-175-mec', otherBatch);
+    expect(r.lote).toEqual(['removed:X', 'modified:Y']); // CONTROL: un solo lote
+    expect(r.enVuelo.lecturas).toBe(1); // CONTROL
+    expect(r.enVuelo.liberada).toBe(false); // CONTROL
+    expect(r.enVuelo.yAplicado).toBe(false); // CONTROL
+    // Antes: 20, el de W.
+    expect(r.enVuelo.cursorGuardado).toBe(1);
+  });
+
+  it('cortado ese lote, lo que le faltaba vuelve al reenganchar', async () => {
+    const r = await cutBatch('uid-175-cons', otherBatch);
+    expect(r.enVuelo.lecturas).toBe(1); // CONTROL
+    // Antes: piso 15, Y no volvia nunca.
+    expect(r.localY).toBe('y del otro');
+  });
+
+  it('lo mismo con la ventana de un `getLocal`, sin `removed` (ya existia antes de R9-124)', async () => {
+    const uid = 'uid-175-getlocal';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, adapter} = await engineFor(uid, T);
+    const real = adapter.getLocal.bind(adapter);
+    let hits = 0;
+    let soltar: (() => void) | null = null;
+    adapter.getLocal = async id => {
+      if (id === 'X2' && hits === 0) {
+        hits += 1;
+        await new Promise<void>(res => {
+          soltar = res;
+        });
+      }
+      return real(id);
+    };
+    const y1 = {value: 'y del otro', updatedAt: T + 2 * MIN};
+    fireRemote(uid, [
+      {
+        type: 'modified',
+        doc: {
+          id: 'X2',
+          exists: true,
+          data: () => ({value: 'x2', updatedAt: T + MIN}),
+        },
+      },
+      {type: 'modified', doc: {id: 'Y', exists: true, data: () => y1}},
+    ]);
+    await flush();
+    write(uid, 'W', {value: 'w', updatedAt: T + 20 * MIN});
+    await settle();
+    expect(hits).toBe(1); // CONTROL
+    expect(localStore.has('Y')).toBe(false); // CONTROL
+    engine.stop();
+    if (soltar) (soltar as () => void)();
+    await settle();
+    await engine.start(uid);
+    await settle();
+    write(uid, 'Y', y1);
+    await settle();
+    expect(localStore.get('Y')?.value).toBe('y del otro');
+    engine.stop();
+  });
+
+  it('un lote que espero en la cola a traves de un stop() no corre en la sesion de la cuenta siguiente', async () => {
+    const ana = 'uid-175-ana';
+    const beto = 'uid-175-beto';
+    const T = Date.now() - HOUR;
+    const rel = relTo(T);
+    const {engine, localStore} = await engineFor(ana, T);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(ana, 'X', x1);
+    await settle();
+    const g = holdGet('X');
+    write(ana, 'X', {value: 'respaldo', updatedAt: T - DAY}); // B1: removed X
+    await flush();
+    write(ana, 'Y', {value: 'y de ana', updatedAt: T + 30 * MIN}); // B2, en cola
+    await settle();
+    expect(g.hits).toBe(1); // CONTROL
+    expect(localStore.has('Y')).toBe(false); // CONTROL: B2 espera detras de B1
+    engine.stop();
+    const betoCursor = T - 2 * HOUR;
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    await AsyncStorage.setItem(
+      cursorStorageKey('test', beto),
+      String(betoCursor),
+    );
+    await engine.start(beto);
+    await settle();
+    g.release();
+    await settle();
+    // Tomando la sesion al EMPEZAR el lote: la Y de Ana entraba en la sesion
+    // de Beto, y su updatedAt, en el cursor de Beto.
+    expect(localStore.has('Y')).toBe(false);
+    expect(rel(await storedCursor(beto))).toBe(rel(betoCursor));
+    engine.stop();
+  });
+
+  it('ese lote termina antes de empezar: no lee la nube desde la sesion de la cuenta siguiente', async () => {
+    const ana = 'uid-175-ana2';
+    const beto = 'uid-175-beto2';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(ana, T);
+    for (const id of ['X', 'Q']) {
+      const v = {value: id, updatedAt: T + MIN};
+      localStore.set(id, v);
+      write(ana, id, v);
+    }
+    await settle();
+    const pedidas: string[] = [];
+    const soltar = new Map<string, () => void>();
+    mockGetGate = (_p, id) =>
+      id === 'X' || id === 'Q'
+        ? new Promise<void>(res => {
+            pedidas.push(id);
+            soltar.set(id, res);
+          })
+        : undefined;
+    write(ana, 'X', {value: 'x vieja', updatedAt: T - DAY}); // B1: removed X
+    await flush();
+    write(ana, 'Q', {value: 'q vieja', updatedAt: T - DAY}); // B2: removed Q
+    await settle();
+    expect(pedidas).toEqual(['X']); // CONTROL: B2 espera detras de B1
+    engine.stop();
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    await engine.start(beto);
+    await settle();
+    soltar.get('X')!();
+    await settle();
+    expect(pedidas).toEqual(['X']);
+    engine.stop();
+    for (const s of soltar.values()) s();
+    await settle();
+  });
+
+  it('la cuenta siguiente no espera detras de una lectura colgada de la anterior', async () => {
+    const ana = 'uid-175-ana3';
+    const beto = 'uid-175-beto3';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(ana, T);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(ana, 'X', x1);
+    await settle();
+    const g = holdGet('X'); // no vuelve durante la prueba
+    write(ana, 'X', {value: 'respaldo', updatedAt: T - DAY});
+    await flush();
+    expect(g.hits).toBe(1); // CONTROL
+    engine.stop();
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', beto), String(T));
+    await engine.start(beto);
+    await settle();
+    write(beto, 'Z', {value: 'z de beto', updatedAt: T + 10 * MIN});
+    await settle();
+    expect(g.released).toBe(false); // CONTROL
+    expect(localStore.get('Z')?.value).toBe('z de beto');
+    engine.stop();
+    g.release();
+    await settle();
+  });
+
+  it('un re-enganche en la misma sesion (unregister + register) sigue esperando al lote del listener viejo', async () => {
+    const r = await cutBatch('uid-175-reeng', async (f, T) => {
+      f.engine.unregister('test');
+      f.engine.register(f.adapter);
+      await settle();
+      write(f.engine.getActiveUid()!, 'W', {
+        value: 'w',
+        updatedAt: T + 20 * MIN,
+      }); // por el listener NUEVO
+      await settle();
+    });
+    expect(r.enVuelo.lecturas).toBe(1); // CONTROL
+    expect(r.enVuelo.yAplicado).toBe(false); // CONTROL
+    // Con una cola por listener, W adelantaba el cursor a 20 y Y no volvia.
+    expect(r.localY).toBe('y del otro');
+  });
+
+  it('una lectura que no vuelve nunca: al vencer el plazo cuenta como fallida y los lotes de detras corren', async () => {
+    const uid = 'uid-175-plazo';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    engine.__setLookupTimeoutForTests(40);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(uid, 'X', x1);
+    await settle();
+    const g = holdGet('X'); // no se suelta hasta el final
+    write(uid, 'X', {value: 'respaldo', updatedAt: T - DAY}); // B1
+    await flush();
+    write(uid, 'Y', {value: 'y', updatedAt: T + 2 * MIN}); // B2
+    await settle();
+    expect(g.hits).toBe(1); // CONTROL
+    expect(localStore.has('Y')).toBe(false); // CONTROL: B2 espera
+    await sleep(120);
+    await settle();
+    expect(localStore.get('Y')?.value).toBe('y');
+    // Como una lectura fallida: se deja lo local.
+    expect(localStore.get('X')?.value).toBe('x1');
+    engine.stop();
+    g.release();
+    await settle();
+  });
+
+  it('la respuesta que llega despues del plazo se descarta', async () => {
+    const uid = 'uid-175-tarde';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, remoteDeleteCalls} = await engineFor(uid, T);
+    engine.__setLookupTimeoutForTests(40);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(uid, 'X', x1);
+    await settle();
+    const g = holdGet('X');
+    hardDelete(uid, 'X', x1); // la respuesta dira «no existe»
+    await flush();
+    write(uid, 'Y', {value: 'y', updatedAt: T + 2 * MIN});
+    await settle();
+    await sleep(120);
+    await settle();
+    expect(localStore.get('Y')?.value).toBe('y'); // CONTROL: el plazo vencio
+    g.release();
+    await settle();
+    expect(remoteDeleteCalls).toEqual([]);
+    expect(localStore.get('X')?.value).toBe('x1');
+    expect(loggerErrorSpy).not.toHaveBeenCalled();
+    engine.stop();
+  });
+
+  // Con RNFB la lectura ocupa el unico hilo de escrituras (R9-177): lo que el
+  // usuario hace durante ella sube DESPUES de la respuesta, y su eco llega
+  // despues. Se modela con la red cortada hasta que vuelve la respuesta. Si el
+  // eco llega mientras se aplica la respuesta vieja (R9-176, R9-178), tiene
+  // que esperar a que termine: en paralelo veia lo local todavia sin tocar,
+  // el LWW lo ignoraba, y el apply terminaba despues.
+
+  it('R9-176: el eco de una edicion hecha durante la lectura llega mientras se borra: la edicion vuelve', async () => {
+    const uid = 'uid-175-p6';
+    const T = Date.now() - HOUR;
+    const f = await engineFor(uid, T);
+    const {engine, localStore} = f;
+    const v1 = {value: 'v1', updatedAt: T + MIN};
+    localStore.set('X', v1);
+    write(uid, 'X', v1);
+    await settle();
+    const ga = gateApply(f, 'delete', 'X');
+    const g = holdGet('X');
+    hardDelete(uid, 'X', v1);
+    await flush();
+    engine.__setOnlineForTests(false);
+    const editada = {value: 'editada', updatedAt: T + 3 * MIN};
+    localStore.set('X', editada);
+    engine.queueWrite('test', 'X', editada);
+    await settle();
+    g.release();
+    await settle();
+    expect(ga.hits).toBe(1); // CONTROL: el borrado esta en vuelo
+    engine.__setOnlineForTests(true);
+    await settle();
+    echoLastPush(uid, 'X');
+    await settle();
+    ga.release();
+    await settle();
+    expect(localStore.get('X')?.value).toBe('editada');
+    engine.stop();
+  });
+
+  it('R9-176: el eco de un borrado hecho durante la lectura llega mientras se re-inserta: no resucita', async () => {
+    const uid = 'uid-175-p7';
+    const T = Date.now() - HOUR;
+    const f = await engineFor(uid, T);
+    const {engine, localStore} = f;
+    const mio = {value: 'mio', updatedAt: T + MIN};
+    localStore.set('X', mio);
+    write(uid, 'X', mio);
+    await settle();
+    const ga = gateApply(f, 'upsert', 'X');
+    const g = holdGet('X');
+    write(uid, 'X', {value: 'respaldo', updatedAt: T - DAY});
+    await flush();
+    engine.__setOnlineForTests(false);
+    localStore.delete('X');
+    engine.queueDelete('test', 'X', mio);
+    await settle();
+    g.release();
+    await settle();
+    expect(ga.hits).toBe(1); // CONTROL: la re-insercion esta en vuelo
+    engine.__setOnlineForTests(true);
+    await settle();
+    echoLastPush(uid, 'X');
+    await settle();
+    ga.release();
+    await settle();
+    expect(localStore.has('X')).toBe(false);
+    engine.stop();
+  });
+
+  it('R9-178: el eco de un keepMine hecho durante la lectura llega mientras se borra: lo mio vuelve', async () => {
+    const uid = 'uid-175-n1a';
+    const T = Date.now() - HOUR;
+    const f = await engineFor(uid, T);
+    const {engine, localStore} = f;
+    localStore.set('C', {value: 'L lo mio', updatedAt: T + 60_000});
+    write(uid, 'C', {value: 'R lo suyo', updatedAt: T + 65_000});
+    await settle();
+    expect(engine.__getConflictsForTests().map(c => c.docId)).toEqual(['C']); // CONTROL
+    const ga = gateApply(f, 'delete', 'C');
+    const g = holdGet('C');
+    hardDelete(uid, 'C', {value: 'R lo suyo', updatedAt: T + 65_000});
+    await settle();
+    engine.__setOnlineForTests(false);
+    await engine.resolveConflict('test__C', 'keepMine');
+    await settle();
+    g.release();
+    await settle();
+    expect(ga.hits).toBe(1); // CONTROL: el borrado esta en vuelo
+    engine.__setOnlineForTests(true);
+    await settle();
+    echoLastPush(uid, 'C');
+    await settle();
+    ga.release();
+    await settle();
+    expect(localStore.get('C')?.value).toBe('L lo mio');
     engine.stop();
   });
 });
