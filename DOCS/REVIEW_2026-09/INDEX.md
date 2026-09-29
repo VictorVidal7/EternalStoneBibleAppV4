@@ -303,6 +303,20 @@
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **174**. Ramas `fix/review-s26-removed` y
 > `docs/review-s26-removed`, sin mergear hasta el OK. **Siguiente, la 27:** revisar el diff de la
 > 26, solo en la terminal. Detalle: `detail/S26-r9124-modo-c-y-arreglo.md`.
+>
+> **Sesión 27 (2026-09-28): revisión del diff de la 26, solo en la terminal y con 3 agentes en
+> worktree.** Las ramas de la 26 ya estaban mergeadas: `main` = `origin/main` = `6f73f69`, con el CI
+> verde en el log (run `36495790684`, 367/4414).
+>
+> - **La matriz entera, re-medida:** igual que en la 26. Pero G7 discrimina solo gracias al mock.
+> - **7 hallazgos nuevos, `R9-175`..`R9-181`, ninguno P0:** 1 P2 (`R9-175`: lotes sin serializar
+>   que pierden un cambio si uno se corta y otro adelantó el cursor) y 6 P3. `R9-176`..`R9-178` son
+>   ventanas de la lectura del `removed`; `R9-179`..`R9-181` son pruebas y diseño, y el último es
+>   decisión de Victor.
+> - **El arreglo de `R9-124` se sostiene**, también por el camino real de la cola.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **181**. Rama `docs/review-s27-diff-s26`, sin
+> mergear hasta el OK. Detalle: `detail/S27-revision-del-diff-s26.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -765,6 +779,23 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 27 — 2026-09-28. Revisión del diff de la 26.** Solo en la terminal; solo revisión.
+  - **Cómo se trabajó:**
+    - el orquestador verificó el CI en el log y re-midió la matriz entera;
+    - 3 agentes en worktree, a pedido de Victor: A1 revisó las afirmaciones y el mock contra el SDK,
+      A2 el otro lote y el usuario durante la lectura, y A3 la resolución de conflictos durante la
+      lectura;
+    - el orquestador verificó a mano lo portante de cada informe: el código, la fuente de RNFB y las
+      salidas.
+  - **Resultado:** 7 hallazgos nuevos (`R9-175`..`R9-181`): 1 P2 y 6 P3. Queda 1 P0 abierto.
+  - **Detalle: `detail/S27-revision-del-diff-s26.md`.**
+  - **Las lecciones:**
+    - **«¿quién más escribe mientras el caso espera?» rindió otra vez**, y la respuesta estaba en el
+      SDK nativo: el hilo único de RNFB decide qué órdenes son posibles;
+    - **un mock que no entrega el eco propio decide la pregunta por el SDK** (corolario 35, por otra
+      puerta);
+    - **una justificación de diseño se comprueba como una afirmación.**
 
 - **Sesión 26 — 2026-09-28. `R9-124` en Modo C, y su arreglo.** Solo en la terminal: el crédito de
   la nube se terminó el 2026-09-24.

@@ -289,6 +289,22 @@
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **174**. Detalle:
 > `detail/S26-r9124-modo-c-y-arreglo.md`.
 
+> **Sesión 27 (2026-09-28): revisión del diff de la 26**, solo en la terminal, con 3 agentes en
+> worktree. No se tocó código.
+>
+> - **La matriz entera, re-medida:** las 8 piezas y las 9 guardas discriminan, igual que en la 26.
+>   Pero G7 lo hace solo gracias al mock (`R9-179`).
+> - **7 hallazgos nuevos, ninguno P0:**
+>   - 1 P2: `R9-175`, un lote cortado a mitad pierde lo que le faltaba si otro lote adelantó el
+>     cursor. Ya existía, y la 26 lo agranda;
+>   - 3 P3 sobre la lectura del `removed`: `R9-176`, `R9-177` y `R9-178`;
+>   - 3 P3 sobre las pruebas y el diseño: `R9-179`, `R9-180` y `R9-181` (este último, decisión de
+>     Victor).
+> - **Notas nuevas en `R9-124`, `R9-126` y `R9-164`.**
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **181**. Detalle:
+> `detail/S27-revision-del-diff-s26.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
@@ -1021,6 +1037,13 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   `handleSnapshot`/`applyRemoteChange`/`saveUnsettled` discriminan cada una. Detalle:
   `detail/S26-r9124-modo-c-y-arreglo.md`.
 
+  **⚠️ Sesión 27, revisión del diff:** el arreglo se sostiene. También por el camino REAL de la
+  cola (`queueWrite`, `flush` y el eco `removed` propio), que ninguna prueba recorre. `get()`
+  offline sin caché rechaza con `UNAVAILABLE` (leído en la fuente), así que no borra. La matriz
+  entera da lo mismo que en la 26. La lectura abre ventanas nuevas: `R9-176`, `R9-177` y
+  `R9-178`, y agranda `R9-175`. Las pruebas y el diseño tienen `R9-179`, `R9-180` y `R9-181`.
+  Detalle: `detail/S27-revision-del-diff-s26.md`.
+
 - **`R9-125` (S21, identidad) — 🐛 `signInWithGoogle` sin anónimo (`currentUser === null`) no
   mira el dueño previo: es `R9-23` por la tercera rama.** CONFIRMADO con sonda.
 
@@ -1295,6 +1318,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     - Lo mismo pasa con un conflicto retenido que cae por debajo del piso: tras reiniciar vuelve a
       llegar, el LWW le da la razón a lo local, y el conflicto se disuelve sin que el usuario elija.
       Es esta entrada, no un hallazgo nuevo.
+  - **⚠️ Sesión 27:** «el filtro deja de cambiar resultados» vale solo para la PRIMERA salida del
+    doc. Un segundo cambio del mismo doc, también bajo el piso, ya no llega al listener (sonda D de
+    A1: lo local queda en «respaldo 1» y la nube en «respaldo 2»).
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -2310,6 +2336,11 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
       deja el piso clavado».
     - Los dos disparadores de arriba no pasan por el listener: el respaldo del otro teléfono con
       esta app CERRADA y los huérfanos de un `deleteAccount` fallido. Siguen clavando el piso.
+  - **⚠️ Sesión 27: un tercer disparador.** La mitad «en vivo» queda cerrada solo si el lote
+    TERMINA. Un `stop()` o la muerte del proceso durante la lectura del `removed` de un doc
+    retenido lo deja retenido para siempre. Sonda C de A1: el piso queda en retenido-1-margen en
+    dos arranques seguidos. Antes de la 26 esa ventana era un `await` local; ahora es un viaje de
+    red (ver `R9-175` y `R9-177`).
 
 - **`R9-165` (S25, `SyncEngine` / cuota — P3) — 🐛 un conjunto no asentado ilegible en disco no se
   cura: cada enganche relee la colección entera.** MEDIDO por la nube.
@@ -2401,6 +2432,153 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     en este teléfono «su versión» mostraría lo propio, y «quedarme con lo suyo» lo subiría.
   - **Arreglo (hipótesis):** actualizar el ref en el mismo lugar donde se escribe, antes del
     `queueWrite`, o que el motor reconozca sus propios ecos por el contenido de la cola.
+
+- **`R9-175` (S27, `SyncEngine` / cursor — P2) — 🐛 los lotes de `handleSnapshot` no se
+  serializan: si uno se corta a mitad mientras otro ya adelantó el cursor, lo que le faltaba no
+  vuelve nunca.** MEDIDO con sonda (agente A2, sonda P10), verificado por el orquestador.
+  - **El mecanismo:**
+    - Cada snapshot hace `void this.handleSnapshot` (`SyncEngine.ts:956`), así que los lotes corren
+      a la vez y comparten el cursor.
+    - El lote B1 `[removed X, modified Y]` espera la lectura de X (`:1064`). Mientras tanto, B2 (un
+      doc más de 5 min más nuevo) corre entero y persiste el cursor (`:1169-1171`).
+    - Si B1 se corta, sea por un `stop()` (`:1078`) o porque muere el proceso, Y nunca se aplicó y
+      queda por debajo del próximo piso. El conjunto no asentado solo protege a los docs
+      retenidos, no a los que un lote todavía no procesó.
+  - **Medido:** `"yAplicado":false,"cursorGuardado":20,"pisoTrasReiniciar":15,"reentregadoY":[],"localY":null`.
+  - **Ya existía:** P10b, con la ventana del `getLocal` de SQLite y sin `removed`, da idéntico en
+    `590b39c`. **La 26 lo agranda** de milisegundos a un viaje de red por cada `removed`:
+    - las lecturas de un lote van en serie;
+    - el SDK entrega los `removed` primero;
+    - con la misma secuencia, el motor viejo sí aplicaba Y.
+  - **Alcanzable, aunque raro.** Hacen falta a la vez un lote con un `removed` y más cambios (el de
+    ponerse al día tras estar offline, o una restauración del otro teléfono), otro lote de la misma
+    colección con un doc más nuevo, y un corte antes de que el primero retome.
+  - **El efecto** es una divergencia: la nube tiene el cambio de Y y este teléfono no lo recibe
+    nunca. Si después se edita Y aquí, se sube lo viejo y se pisa la nube (como en `R9-161`).
+  - **El comentario de `:1002-1004`** («_Nothing is lost — the cursor did not move_») es falso en
+    este caso.
+  - **Arreglo (hipótesis):** encadenar `handleSnapshot` por colección, con una cadena de promesas en
+    `attachListener`, y corregir el comentario. Cierra además, por construcción, los 5 casos que
+    A2 solo pudo reproducir con el mock (§4 del detalle).
+
+- **`R9-176` (S27, `SyncEngine` / `R9-124` — P3) — 🐛 lo que el usuario hace con ese doc durante
+  la lectura del `removed` no entra en la respuesta.** MEDIDO con sonda (A2, P6 y P7). **Lo
+  introdujo la 26.**
+  - `:1079-1106` aplica la respuesta de la lectura sin mirar la cola.
+  - **P7:** el otro teléfono restaura X y el usuario lo borra aquí durante la lectura. La lectura
+    trae la versión restaurada, no hay copia local con la que comparar (`:1281`), y la re-inserta
+    (`:1346`): X **resucita** hasta que llega el eco de la lápida.
+  - **P6:** hay un borrado de verdad y el usuario edita X durante la lectura. «No existe» lleva a
+    `applyRemoteDelete` (`:1090`), que **borra la edición** hasta que llega su eco.
+  - **El orden es el real,** por el hilo único de RNFB (ver `R9-177`): la respuesta de la lectura
+    nunca incluye lo que este teléfono escribe mientras tanto, y el eco llega después.
+  - **Los disparadores son raros:** para P7, una restauración o un reloj atrasado en el otro
+    teléfono; para P6, un borrado de verdad, que hoy solo hace `deleteAccountData` desde el otro
+    teléfono.
+  - Se cura sola cuando llega el eco, salvo que la subida se descarte tras 8 intentos (`R9-33`). En
+    ese caso, en P6 la edición se pierde también de este teléfono.
+  - **Arreglo (hipótesis):** después del `isCurrent()` de `:1078`, si `hasQueuedWrite(uid,
+colección, id)` (`:1787`), no aplicar la respuesta a ese doc, y mantener la lógica de retener o
+    soltar. No cubre `R9-178`, porque ahí el push ya salió de la cola.
+
+- **`R9-177` (S27, `SyncEngine` / RNFirebase — P3) — 🐛 la lectura del `removed` bloquea el único
+  hilo de escrituras de RNFirebase.** LEÍDO en la fuente (A2), verificado por el orquestador. **Sin
+  medir en nativo.** Lo introdujo la 26.
+  - Es el único `get()` de documento de toda la app (`SyncEngine.ts:957`, vía `firestore.ts:175`).
+  - `documentGet` hace `Tasks.await(documentReference.get(source))` en `getExecutor()`
+    (`NativeRNFBTurboFirestoreDocument.java:144-146`).
+  - Con `android_task_executor_maximum_pool_size` por defecto (1), `getExecutor()` es
+    `getExecutor(true, "")`, o sea el mismo ejecutor de un solo hilo que `getTransactionalExecutor()`,
+    donde corren `documentSet` y `documentDelete` (`TaskExecutorService.java`). `firebase.json` no lo
+    cambia.
+  - Mientras la lectura espera al servidor, ninguna subida llega a Firestore. Con k `removed` en un
+    lote, cada subida espera k viajes, porque las lecturas van en serie.
+  - **Arreglo (hipótesis, a medir en Modo C con el OK de Victor):** leer con `{source: 'cache'}`.
+    La tabla nativa de la 26 da en caché la misma respuesta que el servidor en A, B, C y D, y en B
+    offline la caché funciona donde el servidor falla. Si la caché da `unavailable`, o la misma
+    versión que traía el `removed`, pedirla al servidor. La alternativa es subir el pool.
+
+- **`R9-178` (S27, `SyncEngine` / conflictos — P3) — 🐛 si el usuario resuelve con `keepMine` o
+  `merge` durante la lectura del `removed`, la respuesta se aplica como si el conflicto no hubiera
+  existido.** MEDIDO con sonda (A3, 17 escenarios), verificado por el orquestador.
+  - **El mecanismo:**
+    - `keepMine` encola `{...current, updatedAt: now}` pero no reescribe la fila local
+      (`SyncEngine.ts:1913-1914`). La copia local sigue con su `updatedAt` viejo, L.
+    - La resolución quita el conflicto y la marca en el mismo tick (`:1976-1984`).
+    - Al volver la lectura ya no hay conflicto retenido (`:1088`, `:1317`).
+  - **Se ve de tres maneras:**
+    - **«No existe» (N1a):** `applyRemoteDelete` borra lo que el usuario acaba de conservar
+      (`"borrados":["doc-c"],"local":null`). `merge` hace lo mismo (N3).
+    - **«Existe», con una X más nueva que L y a más de 30 s:** el LWW escribe X encima (E1w, con un
+      conflicto de antes de reiniciar; E1w-busy, en línea y con otro push en vuelo:
+      `"local":"X su respaldo"`).
+    - **«Existe», con X a menos de 30 s de L (E1p):** aparece un conflicto fantasma justo después de
+      resolver, retenido con su marca en disco.
+  - En los tres casos, el eco del push repone L.
+  - **La ventana es nueva, pero el daño no:** con el motor de `590b39c`, el `removed` borraba L en el
+    acto y `keepMine` fallaba («found no local copy»). No es una regresión.
+  - **Alcanzable, pero estrecho y pasajero.** El usuario tiene que tocar el botón
+    (`app/(tabs)/conflicts.tsx:186`, `:223`) durante el viaje de red de la lectura. La pérdida solo
+    es permanente si el push se descarta (`R9-33`).
+  - **Arreglo (hipótesis, medido en el worktree de A3):**
+    - antes del `lookup`: `const heldBefore = this.isHeldConflict(adapter.collection, id)`;
+    - tras el `isCurrent()` de `:1078`: si `heldBefore` y ya no está retenido, el usuario resolvió
+      durante la lectura, así que `settle(id); continue`.
+
+    Caen exactamente las 4 aserciones del fallo, y la suite queda en 141/141.
+
+- **`R9-179` (S27, prueba de sync — P3) — 🐛 la prueba de la guarda G7 (`isSyncing`) solo
+  discrimina porque el mock no entrega el eco propio.** MEDIDO con sonda (A1, variante E del mock).
+  - Con el SDK, el eco de un `set()` propio llega antes del ack (en la medición nativa de la 26,
+    `hasPendingWrites: true`). El `finally` de ese lote (`SyncEngine.ts:1190-1193`) pone
+    `isSyncing: false` con el push todavía en vuelo; el flush lo había puesto en `true` en `:2182`.
+  - Con el eco propio en el mock (81 ecos), la prueba «el lote viejo, al terminar, no le apaga el
+    isSyncing a un push de Beto en vuelo» cae en su control (`SyncEngine.test.ts:3010`) sin
+    revertir nada.
+  - **El efecto en la app es nulo:** fuera del motor nadie lee `isSyncing` (solo `types.ts:145`;
+    verificado por el orquestador). Ajustes usa `pendingWrites`.
+  - **Arreglo (hipótesis):** quitar `isSyncing`, junto con G7 y su prueba, o derivarlo de
+    «`flushInFlight` o hay lotes en curso». En el segundo caso, el mock tiene que entregar el eco
+    propio.
+
+- **`R9-180` (S27, prueba de sync — P3) — 🐛 la prueba de control de `R9-160` («tras resolver, lo
+  retenido se va con el conflicto…») no vigila su guarda con la semántica del SDK.** MEDIDO con
+  sonda (A1), verificado por el orquestador.
+  - El nombre dice «R3: el otro edita una hora después», pero R3 lleva `updatedAt: Date.now()`
+    (`SyncEngine.test.ts:4434`), el mismo instante que el `now` de `keepMine` (`SyncEngine.ts:1913`).
+  - Con el eco de `keepMine` en el mock, R3 cae dentro de la ventana de 30 s y sale un conflicto
+    legítimo: la prueba cae sin revert.
+  - Con R3 de verdad a +1 h y con el eco (`R_O-hour`), **pasa con la guarda revertida** (`:1984`,
+    cambiada a `if (false && …)`). El eco solo ya suelta la marca: la rama retenida no ve campos
+    distintos, aplica por LWW y hace `settle`. Con el mock de hoy, sin eco, sí cae.
+  - **Arreglo (hipótesis):** R3 con `Date.now() + HOUR` y el eco propio en el mock, más un escenario
+    en el que el eco no llegue antes del reinicio (`keepMine` offline y la app cerrada antes del
+    ack). Si con eso nada la hace caer, medir si la guarda es equivalente por construcción
+    (corolario 37).
+
+- **`R9-181` (S27, `SyncEngine` / conflictos — P3, decisión de Victor) — 🐛 retener un conflicto
+  «CON su marca, a su `updatedAt` nuevo» tras su `removed` no sirve después de reiniciar: la
+  justificación del diseño de la 26 es falsa.** MEDIDO con sonda (A1, sondas B y B-con-P7),
+  verificado por el orquestador en el código.
+  - Tras el `removed`, `hold` deja la marca en el `updatedAt` nuevo, más viejo. Al reiniciar, el piso
+    baja hasta ahí y el SDK re-entrega el doc, pero la rama del conflicto retenido de
+    `applyRemoteChange` exige `remoteTs > localTs` (`SyncEngine.ts:1314-1317`) y no dispara. El LWW
+    le da la razón a lo local y `settle` borra la marca: 0 conflictos, `unsettled: {}`.
+  - **Con P7 («si existe, soltarlo a ciegas») el estado final es idéntico,** y sin relectura.
+  - **Lo que cae de la 26:**
+    - la justificación de «Diferencia con lo pedido» («soltarlo borraría la marca… tras reiniciar
+      ya no se volvería a detectar»): con la marca, tampoco se detecta. Su propio §4 lo decía, y lo
+      archivaba en `R9-126`;
+    - «cada enganche relee desde ahí»: relee una sola vez;
+    - la prueba «R9-160: … retenido CON su marca y a su updatedAt nuevo» vigila un estado intermedio
+      cuya consecuencia no ocurre;
+    - el comentario de `SyncEngine.ts:1101-1105`.
+  - Para un doc retenido por `R9-46` (un `getLocal` que falló), retenerlo sí sirve.
+  - **Decisión de Victor:**
+    - (a) corregir el texto, el comentario y el nombre de la prueba, y aceptar la relectura;
+    - (b) si el conflicto tiene que sobrevivir al reinicio, que la rama retenida lo vuelva a detectar
+      también ante una re-entrega MÁS VIEJA con campos distintos. Eso toca la semántica de
+      `R9-126`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
