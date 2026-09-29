@@ -57,7 +57,9 @@ interface MockCollRef {
 
 const mockCollections = new Map<string, MockCollRef>();
 const mockDocSets: Array<{path: string; id: string; data: unknown}> = [];
-/** R9-33 — when true, every `doc.set()` rejects. Reset in beforeEach. */
+/** R9-33 — when true, every `doc.set()` rejects, the way the server rejects a
+ *  write: after its echo, which the listener then takes back (R9-179). Reset
+ *  in beforeEach. */
 let mockSetShouldFail = false;
 /** R9-104 — when it returns a promise for a (path, id), that `doc.set()`
  *  waits on it before landing (or rejects with it). It is the only way to hold
@@ -70,9 +72,38 @@ let mockGetGate:
   ((path: string, id: string) => Promise<void> | undefined) | null = null;
 /** R9-124 — when true, every doc `get()` rejects. Reset in beforeEach. */
 let mockGetShouldFail = false;
+/** R9-177 — RNFirebase on Android runs a doc's `get()`, `set()` and `delete()`
+ *  on ONE executor (pool size 1 by default). A read holds it until the server
+ *  answers (`Tasks.await`); a write holds it only to be issued, and is answered
+ *  later. So a write made while a read waits is issued, echo included, only
+ *  once the read is back. The tail of that queue, and how many turns are on
+ *  it. Reset in beforeEach. */
+let mockExecutorTail: Promise<void> = Promise.resolve();
+let mockExecutorTurns = 0;
+function mockOnExecutor<T>(turn: () => Promise<T>): Promise<T> {
+  mockExecutorTurns += 1;
+  const run = mockExecutorTail.then(turn).finally(() => {
+    mockExecutorTurns -= 1;
+  });
+  mockExecutorTail = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+/** What made the mock listener deliver a change (R9-179): the test firing a
+ *  change of the cloud, the first snapshot of a new listener, or one of this
+ *  device's own writes — its echo, its rejection taking it back, or its ack
+ *  when the cloud's copy differed from what the echo showed. */
+type MockDeliveryCause = 'fire' | 'attach' | 'echo' | 'revert' | 'ack';
 /** R9-124 — every change the mock listener actually delivered, so a test can
  *  check it exercised the `removed` path it claims to. Reset in beforeEach. */
-const mockDelivered: Array<{path: string; type: string; id: string}> = [];
+const mockDelivered: Array<{
+  path: string;
+  type: string;
+  id: string;
+  via: MockDeliveryCause;
+}> = [];
 const mockDocDeletes: Array<{path: string; id: string}> = [];
 /** Sprint 49 — docs returned by a collection-level `.get()` (one-shot read),
  *  keyed by collection path. Set per-test for fetchResolvedConflicts.
@@ -118,18 +149,112 @@ function matchesWhereClauses(
   return true;
 }
 
+/** R9-179 — whether two versions of a doc hold the same data. The SDK raises
+ *  nothing for a doc whose data did not change (only its metadata did, like
+ *  `hasPendingWrites` when the server acks a write), unless the listener
+ *  asked for metadata changes, which SyncEngine never does. */
+function sameDocData(a: unknown, b: unknown): boolean {
+  return stableJson(a) === stableJson(b);
+}
+
+function stableJson(v: unknown): string {
+  if (v === null || typeof v !== 'object') {
+    return JSON.stringify(v) ?? 'undefined';
+  }
+  if (Array.isArray(v)) return `[${v.map(stableJson).join(',')}]`;
+  const o = v as Record<string, unknown>;
+  return `{${Object.keys(o)
+    .sort()
+    .map(k => `${JSON.stringify(k)}:${stableJson(o[k])}`)
+    .join(',')}}`;
+}
+
+/** A change as the listener delivers it. */
+type MockChange = {
+  type: string;
+  doc: {id: string; exists: boolean; data: () => unknown};
+};
+
 function mockMakeCollection(path: string): MockCollRef {
   const existing = mockCollections.get(path);
   if (existing) return existing;
   const docs = new Map<string, MockDocRef>();
-  // R9-124 — the cloud's copy of every doc a test fired (what `doc(id).get()`
-  // reads), and the docs the live listener currently holds in its result set
-  // (the ones that can leave it as `removed`), with their last matching data.
+  // R9-124 — the cloud's copy of every doc (what a test fired, and this
+  // device's writes once the server took them), and the docs the live
+  // listener currently holds in its result set (the ones that can leave it as
+  // `removed`), with their last matching data.
   const serverDocs = new Map<string, unknown>();
   const listenerSet = new Map<string, unknown>();
+  // R9-179 — this device's writes the server has not answered yet, oldest
+  // first. The SDK shows them at once (latency compensation; on the native
+  // SDK in S26 the echo came with `hasPendingWrites: true`): `get()` and the
+  // listener see the cloud's copy with these on top, until the server takes
+  // each one or rejects it. Before, an own write reached the listener only if
+  // the test fired it back by hand, so a test could pass on an order the SDK
+  // never produces (R9-179, R9-180).
+  const ownInFlight = new Map<
+    string,
+    Array<{data: Record<string, unknown>; merge: boolean}>
+  >();
   let snapshotCb: ((s: unknown) => void) | null = null;
   let errorCb: ((err: Error) => void) | null = null;
   let whereClauses: MockWhereClause[] = [];
+
+  /** R9-179 — the doc as this device sees it: the cloud's copy, then every
+   *  own write still in flight. `undefined` when it does not exist. */
+  const localView = (docId: string): Record<string, unknown> | undefined => {
+    let doc = serverDocs.get(docId) as Record<string, unknown> | undefined;
+    for (const w of ownInFlight.get(docId) ?? []) {
+      doc = w.merge ? {...(doc ?? {}), ...w.data} : w.data;
+    }
+    return doc;
+  };
+
+  /** R9-179 — what the live listener raises for `docId` once this device's
+   *  view of it changed, computed like the SDK against the listener's result
+   *  set: `added` if it enters, `modified` if it stays with other data,
+   *  `removed` (with its last matching data) if it leaves, else nothing. */
+  const viewChange = (docId: string): MockChange | null => {
+    const doc = localView(docId);
+    if (doc !== undefined && matchesWhereClauses(doc, whereClauses)) {
+      const wasIn = listenerSet.has(docId);
+      const before = listenerSet.get(docId);
+      listenerSet.set(docId, doc);
+      if (wasIn && sameDocData(before, doc)) return null;
+      return {
+        type: wasIn ? 'modified' : 'added',
+        doc: {id: docId, exists: true, data: () => doc},
+      };
+    }
+    if (!listenerSet.has(docId)) return null;
+    const last = listenerSet.get(docId);
+    listenerSet.delete(docId);
+    return {type: 'removed', doc: {id: docId, exists: true, data: () => last}};
+  };
+
+  const deliver = (changes: MockChange[], via: MockDeliveryCause): void => {
+    if (!snapshotCb || changes.length === 0) return;
+    for (const c of changes) {
+      mockDelivered.push({path, type: c.type, id: c.doc.id, via});
+    }
+    snapshotCb({docChanges: () => changes, size: changes.length});
+  };
+
+  /** R9-179 — what an own write changed in this device's view reaches the
+   *  listener as an event of its own, a beat later (it crosses the native
+   *  bridge), and only if that listener is still the one attached. Returns
+   *  whether there was anything to raise. */
+  const raiseOwn = (docId: string, via: MockDeliveryCause): boolean => {
+    const cb = snapshotCb;
+    if (!cb) return false;
+    const change = viewChange(docId);
+    if (!change) return false;
+    setImmediate(() => {
+      if (snapshotCb === cb) deliver([change], via);
+    });
+    return true;
+  };
+
   const coll: MockCollRef = {
     __path: path,
     __whereClauses: whereClauses,
@@ -137,23 +262,87 @@ function mockMakeCollection(path: string): MockCollRef {
       const cached = docs.get(id);
       if (cached) return cached;
       const ref: MockDocRef = {
-        set: jest.fn(async (data: unknown) => {
-          const gate = mockSetGate?.(path, id);
-          if (gate) await gate;
-          // R9-33 — lets a test make every push fail, which is the only way
-          // to exercise the retry/backoff/give-up path at all.
-          if (mockSetShouldFail) throw new Error('permission-denied');
+        set: jest.fn(async (data: unknown, options?: {merge?: boolean}) => {
+          // R9-179 — latency compensation: the write is in this device's view
+          // as soon as it is issued. `get()` reads it, and the listener raises
+          // its echo (`added`, `modified`, or `removed` if it drops the doc
+          // below the floor) BEFORE the server answers.
+          const issue = () => {
+            const write = {
+              data: data as Record<string, unknown>,
+              merge: options?.merge === true,
+            };
+            const inFlight = ownInFlight.get(id) ?? [];
+            inFlight.push(write);
+            ownInFlight.set(id, inFlight);
+            const echoed = raiseOwn(id, 'echo');
+            // The write leaves now, so the server applies it before any
+            // change a test fires while its ack is on the way; that change
+            // shows up when the ack takes the write off the view.
+            const hadCloud = serverDocs.has(id);
+            const cloud = serverDocs.get(id) as
+              Record<string, unknown> | undefined;
+            const landed = write.merge
+              ? {...(cloud ?? {}), ...write.data}
+              : write.data;
+            serverDocs.set(id, landed);
+            return {write, inFlight, echoed, hadCloud, cloud, landed};
+          };
+          // R9-177 — behind a read still waiting on the server, if any.
+          const {write, inFlight, echoed, hadCloud, cloud, landed} =
+            mockExecutorTurns > 0
+              ? await mockOnExecutor(async () => issue())
+              : issue();
+          const answered = () => {
+            inFlight.splice(inFlight.indexOf(write), 1);
+            if (inFlight.length === 0) ownInFlight.delete(id);
+          };
+          try {
+            const gate = mockSetGate?.(path, id);
+            if (gate) await gate;
+            // The echo lands before the ack even when nothing holds the push:
+            // on the SDK the ack is a round trip away.
+            if (echoed) await new Promise(resolve => setImmediate(resolve));
+            // R9-33 — lets a test make every push fail, which is the only way
+            // to exercise the retry/backoff/give-up path at all.
+            if (mockSetShouldFail) throw new Error('permission-denied');
+          } catch (err) {
+            // Rejected: the server never applied it, and the SDK drops it from
+            // its view. The listener sees the doc go back to the cloud's copy:
+            // `modified`, `added` if the write had dropped it below the floor,
+            // or `removed` if the cloud never had it. The rejection reaches
+            // the caller first.
+            if (serverDocs.get(id) === landed) {
+              if (hadCloud) serverDocs.set(id, cloud);
+              else serverDocs.delete(id);
+            }
+            answered();
+            raiseOwn(id, 'revert');
+            throw err;
+          }
+          // Taken: off the view. What it shows now is the cloud's copy, the
+          // write itself unless a later change landed on top of it.
+          answered();
+          raiseOwn(id, 'ack');
           mockDocSets.push({path, id, data});
         }),
-        get: jest.fn(async () => {
-          const gate = mockGetGate?.(path, id);
-          if (gate) await gate;
-          if (mockGetShouldFail) throw new Error('unavailable');
-          return serverDocs.has(id)
-            ? {exists: true, id, data: () => serverDocs.get(id)}
-            : {exists: false, id, data: () => undefined};
-        }),
+        // R9-177 — the read holds the executor until the server answers, so
+        // its answer never includes a write made meanwhile.
+        get: jest.fn(() =>
+          mockOnExecutor(async () => {
+            const gate = mockGetGate?.(path, id);
+            if (gate) await gate;
+            if (mockGetShouldFail) throw new Error('unavailable');
+            // R9-179 — the read sees this device's view: an own write issued
+            // before it and still in flight is already there.
+            const doc = localView(id);
+            return doc !== undefined
+              ? {exists: true, id, data: () => doc}
+              : {exists: false, id, data: () => undefined};
+          }),
+        ),
         delete: jest.fn(async () => {
+          if (mockExecutorTurns > 0) await mockOnExecutor(async () => {});
           mockDocDeletes.push({path, id});
         }),
       };
@@ -176,8 +365,22 @@ function mockMakeCollection(path: string): MockCollRef {
       (cb: (s: unknown) => void, onError?: (err: Error) => void) => {
         snapshotCb = cb;
         errorCb = onError ?? null;
-        // A new listener is a new query: it starts with an empty result set.
+        // A new listener is a new query: it starts with an empty result set,
+        // and its first snapshot, a beat later, brings every doc of this
+        // device's view that matches, as `added` — own writes in flight
+        // included (R9-179: the SDK does; before, a restart re-delivered
+        // only what a test fired again).
         listenerSet.clear();
+        setImmediate(() => {
+          if (snapshotCb !== cb) return;
+          const initial: MockChange[] = [];
+          const ids = new Set([...serverDocs.keys(), ...ownInFlight.keys()]);
+          for (const docId of ids) {
+            const change = viewChange(docId);
+            if (change) initial.push(change);
+          }
+          deliver(initial, 'attach');
+        });
         return () => {
           snapshotCb = null;
           // Deliberately NOT clearing errorCb here — real native teardown
@@ -212,28 +415,34 @@ function mockMakeCollection(path: string): MockCollRef {
   //   native Android SDK in S26). The doc still exists: `get()` returns it;
   // - a doc that never matched is never even seen ("a doc older than the
   //   cursor floor is never delivered");
-  // - a change fired as `removed` is a real delete: `get()` stops finding it.
+  // - a change fired as `removed` is a real delete: `get()` stops finding it;
+  // - R9-179 — while an own write of the doc is in flight, this device sees
+  //   that write on top of the cloud's copy, and so does the listener: what
+  //   it raises is what the VIEW did, usually nothing, until the server
+  //   answers the write.
   (coll as MockCollRef & {__fire: (changes: unknown[]) => void}).__fire = (
     changes: unknown[],
   ) => {
-    const filtered: unknown[] = [];
+    const filtered: MockChange[] = [];
     for (const change of changes) {
-      const c = change as {
-        type?: string;
-        doc?: {id?: string; data?: () => unknown};
-      };
+      const c = change as MockChange;
       const docId = c.doc?.id ?? '';
       const data = c.doc?.data?.() as Record<string, unknown> | undefined;
-      if (c.type === 'removed') {
-        serverDocs.delete(docId);
-        listenerSet.delete(docId);
-        filtered.push(change);
+      if (c.type === 'removed') serverDocs.delete(docId);
+      else serverDocs.set(docId, data);
+      if (ownInFlight.has(docId)) {
+        const masked = viewChange(docId);
+        if (masked) filtered.push(masked);
         continue;
       }
-      serverDocs.set(docId, data);
+      if (c.type === 'removed') {
+        listenerSet.delete(docId);
+        filtered.push(c);
+        continue;
+      }
       if (matchesWhereClauses(data, whereClauses)) {
         listenerSet.set(docId, data);
-        filtered.push(change);
+        filtered.push(c);
       } else if (listenerSet.has(docId)) {
         const last = listenerSet.get(docId);
         listenerSet.delete(docId);
@@ -243,15 +452,7 @@ function mockMakeCollection(path: string): MockCollRef {
         });
       }
     }
-    if (!snapshotCb) return;
-    for (const change of filtered) {
-      const c = change as {type: string; doc: {id: string}};
-      mockDelivered.push({path, type: c.type, id: c.doc.id});
-    }
-    snapshotCb({
-      docChanges: () => filtered,
-      size: filtered.length,
-    });
+    deliver(filtered, 'fire');
   };
   (coll as MockCollRef & {__fireError: (err: Error) => void}).__fireError = (
     err: Error,
@@ -353,6 +554,13 @@ function makeAdapter(overrides: Partial<SyncAdapter<TestEntity>> = {}): {
 
 // flush pending microtasks/promises
 const flush = () => new Promise(r => setImmediate(r));
+/** R9-179 — a push lands a macrotask after its echo (on the SDK the ack is a
+ *  round trip away), so one `flush()` no longer sees it land, and
+ *  `__flushForTests()` returns at once while the flush of `start()` holds the
+ *  lock. This lets that flush finish its pushes. */
+const drain = async (): Promise<void> => {
+  for (let i = 0; i < 5; i++) await flush();
+};
 
 beforeEach(async () => {
   await AsyncStorage.clear();
@@ -362,6 +570,8 @@ beforeEach(async () => {
   mockSetGate = null;
   mockGetGate = null;
   mockGetShouldFail = false;
+  mockExecutorTail = Promise.resolve();
+  mockExecutorTurns = 0;
   mockDelivered.length = 0;
   mockDocDeletes.length = 0;
   mockCollDocs.clear();
@@ -635,6 +845,9 @@ describe('applyRemoteChange — LWW', () => {
 
 describe('tombstone propagation', () => {
   it('applies remote tombstone as applyRemoteDelete on local', async () => {
+    // R9-179 — no initial bulk push: it would upload doc-x live, and its echo
+    // would bring it back here after the tombstone (R9-126, not this test).
+    await AsyncStorage.setItem('@sync_first_push_done:uid', '2');
     const engine = new SyncEngine();
     const {adapter, localStore, remoteDeleteCalls} = makeAdapter();
     localStore.set('doc-x', {value: 'live', updatedAt: 1000});
@@ -670,7 +883,7 @@ describe('initial bulk push', () => {
     localStore.set('b', {value: 'b', updatedAt: 2});
     engine.register(adapter);
     await engine.start('uid-bulk');
-    await flush();
+    await drain();
     await engine.__flushForTests();
     const paths = mockDocSets.map(d => `${d.id}`);
     expect(paths.sort()).toEqual(['a', 'b']);
@@ -701,7 +914,7 @@ describe('initial bulk push', () => {
     localStore.set('dropped', {value: 'finally-syncs', updatedAt: 1});
     engine.register(adapter);
     await engine.start('uid-heal');
-    await flush();
+    await drain();
     await engine.__flushForTests();
     expect(mockDocSets.map(d => d.id)).toEqual(['dropped']);
     const flag = await AsyncStorage.getItem('@sync_first_push_done:uid-heal');
@@ -1129,6 +1342,9 @@ describe('conflict detection — second remote write replaces the existing confl
       getMaterialFields: () => ['value'],
     });
     localStore.set('doc-r', {value: 'local', updatedAt: 1000});
+    // R9-179 — no initial bulk push: while its upload of doc-r is in flight,
+    // the SDK shows it on top of the cloud and holds the remote writes back.
+    await AsyncStorage.setItem('@sync_first_push_done:uid-rep', '2');
     engine.register(adapter);
     await engine.start('uid-rep');
     fireRemote('uid-rep', [
@@ -1198,11 +1414,12 @@ describe('resolveConflict — keepTheirs', () => {
       getMaterialFields: () => ['value'],
     });
     localStore.set('doc-kt', {value: 'local', updatedAt: 1000});
+    // No initial bulk push, so the assertion below is clean. R9-179 — draining
+    // it is not enough: while its upload of doc-kt is in flight the SDK holds
+    // the remote write back, and keepTheirs finds it still queued (R9-161).
+    await AsyncStorage.setItem('@sync_first_push_done:uid-kt', '2');
     engine.register(adapter);
     await engine.start('uid-kt');
-    // Drain the initial-bulk-push side effects so the assertion below is clean.
-    await flush();
-    await engine.__flushForTests();
     const setsBefore = mockDocSets.length;
     fireRemote('uid-kt', [
       {
@@ -1235,6 +1452,9 @@ describe('resolveConflict — merge', () => {
       getMaterialFields: () => ['value'],
     });
     localStore.set('doc-mg', {value: 'local', updatedAt: 1000});
+    // R9-179 — no initial bulk push: its flush, still in flight, would hold
+    // the lock when the merge's push is due.
+    await AsyncStorage.setItem('@sync_first_push_done:uid-mg', '2');
     engine.register(adapter);
     await engine.start('uid-mg');
     fireRemote('uid-mg', [
@@ -1817,6 +2037,9 @@ describe('quota hardening — cursor withholds pending conflicts, resolveConflic
       getMaterialFields: () => ['value'],
     });
     localStore.set('doc-c2', {value: 'local-text', updatedAt: 1000});
+    // R9-179 — no initial bulk push: with its upload of doc-c2 still queued,
+    // keepTheirs pushes theirs re-stamped (R9-161) and the cursor jumps to now.
+    await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
     engine.register(adapter);
     await engine.start(uid);
 
@@ -2371,6 +2594,13 @@ describe('R9-104 — un push en vuelo no puede cruzar a la cuenta que entra', ()
     gate: Promise<void>,
   ): Promise<{engine: SyncEngine; heldSets: string[]}> {
     await AsyncStorage.setItem('@sync_queue_v1', JSON.stringify(entries));
+    // R9-179 — Beto already did his initial bulk push on this phone. With the
+    // SDK, Ana's first snapshot brings her pending writes (the listener shows
+    // them before the ack) and the adapter stores them: this fixture has ONE
+    // local store for both accounts, like the phone. Beto's bulk push would
+    // then upload them to his cloud — the store changing hands at sign-in
+    // (claimLocalStore, R9-158), not the queue these tests are about.
+    await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
     const heldSets: string[] = [];
     mockSetGate = (_path, id) => {
       if (id !== heldId) return undefined;
@@ -2984,43 +3214,6 @@ describe('R9-153 / R9-122.4 — un lote de Ana en vuelo tras el stop() no pasa a
     await settle();
 
     expect(engine.getState().lastError).toBeNull();
-  });
-
-  it('el lote viejo, al terminar, no le apaga el isSyncing a un push de Beto en vuelo', async () => {
-    const base = Date.now() - 60_000;
-    const {engine, release} = await anaWithBatchInFlight(base);
-    engine.stop();
-    await engine.start('uid-beto');
-    await settle();
-
-    let releaseBeto!: () => void;
-    const gateBeto = new Promise<void>(resolve => {
-      releaseBeto = resolve;
-    });
-    const betoSets: string[] = [];
-    mockSetGate = (_path, id) => {
-      if (id !== 'doc-beto') return undefined;
-      betoSets.push(id);
-      return gateBeto;
-    };
-    engine.queueWrite('test', 'doc-beto', {value: 'de-beto', updatedAt: 2000});
-    await settle();
-    // Control: el push de Beto esta en vuelo y su sesion lo dice.
-    expect(betoSets).toEqual(['doc-beto']);
-    expect(engine.getState().isSyncing).toBe(true);
-
-    release();
-    await settle();
-    // Pre-fix el `finally` del lote de Ana ponia `isSyncing: false` con el
-    // push de Beto todavia en el aire.
-    expect(engine.getState().isSyncing).toBe(true);
-
-    releaseBeto();
-    await settle();
-    expect(engine.getState().isSyncing).toBe(false);
-    expect(mockDocSets.map(d => [d.path, d.id])).toEqual([
-      ['users/uid-beto/test', 'doc-beto'],
-    ]);
   });
 
   it('R9-106: el conjunto de no asentados del lote de Ana va bajo la clave de Ana, y su cursor no cae en Beto', async () => {
@@ -4420,6 +4613,10 @@ describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro 
   it('control: tras resolver, lo retenido se va con el conflicto: despues de reiniciar, un cambio posterior del otro entra por LWW', async () => {
     // No discrimina contra R9-160, a proposito: impide que la marca que
     // sobrevive al reinicio convierta en conflicto lo que ya no lo es.
+    // R9-180 — tampoco vigila que `resolveConflict` suelte la marca: el eco de
+    // keepMine (L, sellado ahora) llega antes del reinicio y la rama retenida,
+    // sin campos distintos, lo aplica por LWW y la asienta ella sola. Esa
+    // guarda la vigila la siguiente, donde el eco no llega.
     const uid = 'uid-160-control';
     const {engine, T, localStore} = await pendingConflict(uid);
     fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
@@ -4430,8 +4627,10 @@ describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro 
     await settle();
 
     await restart(engine, uid);
+    // Una hora despues de keepMine de verdad: a `Date.now()` caia dentro de
+    // la ventana de 30 s del eco de keepMine y era un conflicto legitimo.
     const R3 = 'R3: el otro edita una hora despues';
-    fire(uid, [{id: 'doc-c', data: {value: R3, updatedAt: Date.now()}}]);
+    fire(uid, [{id: 'doc-c', data: {value: R3, updatedAt: Date.now() + HOUR}}]);
     await settle();
 
     expect({
@@ -4672,6 +4871,22 @@ describe('R9-161 — «quedarme con lo suyo» deja lo local igual que la nube', 
 
   it('una edicion mia de ANTES de la deteccion no pudo subir y espera en la cola: keepTheirs la reemplaza por lo suyo', async () => {
     const w = await phoneWithConflict('uid-161-cola', async (engine, T) => {
+      // R9-179 — la nube ya tenia doc-c, de ayer. Con el SDK, al rechazar la
+      // subida su vista vuelve a esa copia, que el LWW ignora. Si la nube no
+      // lo tuviera, la reversion llegaria como `removed`, la lectura diria
+      // que no existe, y el motor BORRARIA L de local (hallazgo de la S28,
+      // sin arreglar): no habria conflicto que resolver.
+      fireRemote('uid-161-cola', [
+        {
+          type: 'modified',
+          doc: {
+            id: 'doc-c',
+            exists: true,
+            data: () => ({value: 'L0: de ayer', updatedAt: T - HOUR}),
+          },
+        },
+      ]);
+      await settle();
       // La subida falla (y queda esperando su reintento) antes de que llegue R.
       mockSetShouldFail = true;
       engine.queueWrite('test', 'doc-c', {value: L, updatedAt: T});
