@@ -1130,6 +1130,7 @@ export class SyncEngine {
         // a memoryCards/reviewEvents id carries "/" which we store as "~".
         const id = fromDocId(change.doc.id);
         let data = change.doc.data();
+        let fromRead = false;
         if (change.type === 'removed' || !data) {
           // R9-124 — under the `where('updatedAt', '>=', floor)` listener,
           // `removed` means the doc LEFT the query, not that it was deleted:
@@ -1189,9 +1190,13 @@ export class SyncEngine {
           // Still there: a change like any other, with the doc as it is NOW —
           // exactly what an unfiltered listener would have delivered. Held or
           // settled below by what applying it does, never blindly: a held
-          // conflict keeps its mark (R9-160), and is held at its new
-          // `updatedAt`, so the floor drops to it and it comes back (R9-164).
+          // conflict keeps its mark (R9-160) and is held at its new
+          // `updatedAt`. After a restart the floor drops to it, the doc is
+          // delivered once more, and `applyRemoteChange` shows the conflict
+          // again even though that copy is older than the local one (R9-164,
+          // R9-181).
           data = currentData;
+          fromRead = true;
         }
         const remote = data as SyncEntity<Record<string, unknown>>;
         const remoteChange: RemoteChange<Record<string, unknown>> = {
@@ -1233,7 +1238,23 @@ export class SyncEngine {
           // the user resolves it, which `resolveConflict` ends by settling it;
           // and `recordConflict` dedupes by doc id, so the redeliveries just
           // refresh the snapshot instead of piling up.
-          hold(id, remote.updatedAt, true);
+          //
+          // R9-181 — held at the copy the conflict is about: the one just
+          // recorded as «theirs», or the cloud's as the read of a `removed`
+          // found it. The echo of this device's own write does not move the
+          // mark: after a restart, that is how the held-conflict branch tells
+          // an older copy of the other device from one of its own.
+          const conflict = this.conflicts.find(
+            c => c.collection === adapter.collection && c.docId === id,
+          );
+          hold(
+            id,
+            fromRead || conflict?.remoteVersion === remote
+              ? remote.updatedAt
+              : (this.unsettledOf(adapter.collection).get(id)?.updatedAt ??
+                  conflict?.remoteVersion.updatedAt),
+            true,
+          );
         } else {
           settle(id);
           if (
@@ -1391,13 +1412,23 @@ export class SyncEngine {
       }
 
       // R9-160 — a conflict still waiting when the engine last stopped (one
-      // still in memory was handled above). The redelivery is the other
-      // device's copy as it is now, which may be long past the 30 s window if
-      // it kept writing (or deleted it) meanwhile: detected again anyway, or
-      // LWW would drop the local copy after all.
+      // still in memory was handled above). The redelivery is the cloud's copy
+      // as it is now, which may be long past the 30 s window: detected again
+      // anyway, or LWW would settle it without the user choosing.
+      // - Newer than the local copy: the other device kept writing, or deleted
+      //   it, meanwhile (R9-160).
+      // - Older, and the very copy the mark is held at (R9-181): a restored
+      //   backup, or the other device's clock, rewrote it below the floor
+      //   (R9-124), and it is held at that `updatedAt` precisely so that it
+      //   comes back here. LWW kept the local copy in silence, the mark went
+      //   with it, and the cloud and this phone stayed apart for good. Any
+      //   other older copy is this device's own earlier write, whose echo
+      //   never moves the mark (see `handleSnapshot`): the user edited the
+      //   doc again since, and that is no conflict with the other device.
+      const heldAt = this.unsettled.get(adapter.collection)?.get(id)?.updatedAt;
       if (
         !pending &&
-        remoteTs > localTs &&
+        (remoteTs > localTs || remoteTs === heldAt) &&
         this.isHeldConflict(adapter.collection, id)
       ) {
         const differing = this.conflictFields(adapter, local, data, deleted);

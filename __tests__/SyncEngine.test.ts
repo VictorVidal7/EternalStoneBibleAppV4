@@ -4614,6 +4614,70 @@ describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro 
     }).toEqual({theirs: [], local: 'L2: sin subir'});
   });
 
+  it('R9-181: el otro lo borra de verdad y yo sigo escribiendo: el eco de lo mio no lleva la marca a una copia mia, y tras reiniciar no pasa a ser «su version»', async () => {
+    const uid = 'uid-181-marca-propia';
+    const {engine, T, localStore} = await pendingConflict(uid);
+    // Borrado de verdad: la lectura dice «no existe», nada se toca en local y
+    // el doc sale del conjunto; el conflicto sigue en memoria.
+    fireRemote(uid, [
+      {
+        type: 'removed',
+        doc: {
+          id: 'doc-c',
+          exists: true,
+          data: () => ({value: R, updatedAt: T + 10_000}),
+        },
+      },
+    ]);
+    await settle();
+    // E sube y su eco vuelve: el conflicto lo vuelve a retener...
+    const E = {value: 'E: lo reescribo', updatedAt: T + 60_000};
+    localStore.set('doc-c', E);
+    engine.queueWrite('test', 'doc-c', E);
+    await settle();
+    fire(uid, [{id: 'doc-c', data: E}]);
+    await settle();
+    const retenidoTrasEco = JSON.parse(
+      (await AsyncStorage.getItem(`@sync_conflicted_test:${uid}`)) ?? '[]',
+    );
+    // ...y E2, un minuto despues, todavia no subio cuando se cierra la app.
+    localStore.set('doc-c', {value: 'E2: sin subir', updatedAt: T + 120_000});
+    await restart(engine, uid);
+    fire(uid, [{id: 'doc-c', data: E}]);
+    await settle();
+
+    expect({
+      retenidoTrasEco, // CONTROL
+      theirs: theirs(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      retenidoTrasEco: ['doc-c'],
+      theirs: [],
+      local: 'E2: sin subir',
+    });
+  });
+
+  it('R9-181: la marca sigue a «su version» mas nueva: mientras el conflicto espera, el piso no se queda en la primera copia', async () => {
+    const uid = 'uid-181-marca-suya';
+    const {engine, T} = await pendingConflict(uid);
+    const marca = async () =>
+      JSON.parse(
+        (await AsyncStorage.getItem(unsettledStorageKey('test', uid)))!,
+      )['doc-c'] - T;
+    const marcaAntes = await marca();
+    fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
+    await settle();
+
+    // No cambia que el conflicto vuelva tras reiniciar (R2 es mas nuevo que
+    // L, y eso ya lo re-detecta), sino cuanto relee cada enganche mientras
+    // espera: sin esto la marca se quedaba en R.
+    expect({
+      marcaAntes, // CONTROL
+      theirs: theirs(engine).map(t => t.value), // CONTROL: R2 es «su version»
+      marca: await marca(),
+    }).toEqual({marcaAntes: 10_000, theirs: [R2], marca: 120_000});
+  });
+
   it('control: tras resolver, lo retenido se va con el conflicto: despues de reiniciar, un cambio posterior del otro entra por LWW', async () => {
     // No discrimina contra R9-160, a proposito: impide que la marca que
     // sobrevive al reinicio convierta en conflicto lo que ya no lo es.
@@ -5204,7 +5268,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
-  it('R9-160: con un conflicto pendiente no toma nada, y el conflicto sigue retenido CON su marca y a su updatedAt nuevo', async () => {
+  it('R9-160: con un conflicto pendiente no toma nada, y el conflicto sigue retenido CON su marca y a su updatedAt nuevo: tras reiniciar vuelve', async () => {
     const uid = 'uid-124-conflicto';
     const T = Date.now() - HOUR;
     const {engine, localStore} = await engineFor(uid, T);
@@ -5222,7 +5286,8 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
 
     // Pre-fix: lo local se borraba y el doc salia del conjunto. Soltarlo a
     // ciegas (sin borrar) perdia la marca de conflicto en disco (R9-160).
-    // Retenido a su updatedAt NUEVO, el piso baja hasta el y vuelve (R9-164).
+    // Retenido a su updatedAt NUEVO, el piso baja hasta el y vuelve (R9-164),
+    // y vuelve COMO conflicto aunque sea mas viejo que lo local (R9-181).
     expect({
       conflictosAntes,
       removed: removedDelivered(uid),
@@ -5235,7 +5300,9 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       conflictosAntes: ['doc-c'],
       removed: ['doc-c'],
       local: 'lo mio',
-      conflictos: 0, // el reinicio vacia los de memoria (R9-65)
+      // El reinicio vacia los de memoria (R9-65); lo vuelve a mostrar la
+      // re-entrega al enganchar. Antes de R9-181, 0: el LWW lo asentaba solo.
+      conflictos: 1,
       unsettled: -DAY,
       conflicted: ['doc-c'],
       pisoTrasReiniciar: -DAY - 1 - CURSOR_SAFETY_MARGIN_MS,
@@ -5447,6 +5514,76 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       local: 'v1',
       unsettled: {},
       avisado: true,
+    });
+    engine.stop();
+  });
+
+  it('R9-181: tras reiniciar, la re-entrega de la copia mas vieja vuelve a mostrar el conflicto: lo mio contra su respaldo', async () => {
+    const uid = 'uid-181-reentrega';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T + 60_000});
+    write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+    await settle();
+    // El otro telefono restaura un respaldo: el doc sale de la query.
+    const respaldo = {value: 'su respaldo viejo', updatedAt: T - DAY};
+    write(uid, 'doc-c', respaldo);
+    await settle();
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    // El SDK entrega en el primer snapshot todo lo que casa con el piso nuevo.
+    const casaConElPiso = respaldo.updatedAt >= floorOf(uid);
+    write(uid, 'doc-c', respaldo);
+    await settle();
+
+    // Pre-fix: el LWW se quedaba con lo local y la marca se iba: el conflicto
+    // desaparecia sin que el usuario eligiera, y la nube (el respaldo) y este
+    // telefono (lo mio) quedaban distintos para siempre.
+    expect({
+      casaConElPiso, // CONTROL
+      removed: removedDelivered(uid), // CONTROL
+      conflictos: engine
+        .__getConflictsForTests()
+        .map(c => [c.localVersion.value, c.remoteVersion.value]),
+      local: localStore.get('doc-c')?.value,
+      marca: await persisted(uid),
+    }).toEqual({
+      casaConElPiso: true,
+      removed: ['doc-c'],
+      conflictos: [['lo mio', 'su respaldo viejo']],
+      local: 'lo mio',
+      marca: {unsettled: {'doc-c': T - DAY}, conflicted: ['doc-c']},
+    });
+    engine.stop();
+  });
+
+  it('control R9-181: un doc retenido SIN la marca de conflicto (R9-46) no pasa a conflicto con la misma re-entrega mas vieja', async () => {
+    // Solo la marca de conflicto vuelve a mostrar una copia mas vieja: un doc
+    // retenido porque su lectura local fallo va por LWW, como antes.
+    const uid = 'uid-181-control-46';
+    const T = Date.now() - HOUR;
+    const respaldo = {value: 'su respaldo viejo', updatedAt: T - DAY};
+    await AsyncStorage.setItem(
+      unsettledStorageKey('test', uid),
+      JSON.stringify({'doc-c': respaldo.updatedAt}),
+    );
+    const {engine, localStore} = await engineFor(uid, T);
+    localStore.set('doc-c', {value: 'lo mio', updatedAt: T + 60_000});
+    const casaConElPiso = respaldo.updatedAt >= floorOf(uid);
+    write(uid, 'doc-c', respaldo);
+    await settle();
+
+    expect({
+      casaConElPiso, // CONTROL
+      conflictos: engine.__getConflictsForTests().length,
+      local: localStore.get('doc-c')?.value,
+      marca: await persisted(uid),
+    }).toEqual({
+      casaConElPiso: true,
+      conflictos: 0,
+      local: 'lo mio',
+      marca: {unsettled: {}, conflicted: []},
     });
     engine.stop();
   });
