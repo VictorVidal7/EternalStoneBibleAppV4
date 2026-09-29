@@ -2456,6 +2456,15 @@ export class SyncEngine {
       const dueAt = Date.now();
       const items = this.queue.filter(q => this.isDue(q, activeUid, dueAt));
       for (const item of items) {
+        // R9-184 — `items` is a photo taken when this flush started, and every
+        // push before this one was an `await`: a newer edit of the doc may
+        // have replaced this entry meanwhile (`upsertQueueEntry` always puts a
+        // fresh object in the slot). Pushed anyway, its echo reached a local
+        // copy that was already the newer edit, and inside the 30 s window it
+        // became a conflict between two versions of this device that nothing
+        // dissolves. The newer entry is a complete payload of its own, with
+        // its own attempts and backoff: it goes in the next flush.
+        if (!this.queue.includes(item)) continue;
         try {
           await this.pushOne(fn, item);
           // Success — drop this entry, but only if it is STILL the entry we

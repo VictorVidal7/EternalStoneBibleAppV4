@@ -2307,6 +2307,95 @@ describe('R9-11 — la rama de EXITO tampoco puede tragarse una reedicion', () =
   });
 });
 
+describe('R9-184 — el flush no sube una entrada que otra edicion ya reemplazo en la cola', () => {
+  // `flush()` sube una FOTO de la cola tomada al empezar. Si mientras sube otro
+  // doc el usuario vuelve a editar uno que espera detras, la foto todavia trae
+  // la version vieja. Subida igual, su eco llega con la nueva en local y, a
+  // menos de 30 s y con otro valor, se registra un conflicto entre dos
+  // versiones de este telefono que nada disuelve: el eco de la nueva no es
+  // «mas nuevo» que lo local.
+  it('una edicion que reemplaza en la cola a otra que no subio todavia: sube solo la nueva y no aparece ningun conflicto', async () => {
+    const T0 = 1_000_000;
+    const engine = new SyncEngine();
+    const {adapter, localStore} = makeAdapter({
+      getMaterialFields: () => ['value'],
+    });
+    engine.register(adapter);
+    await engine.start('uid');
+    await drain();
+    // El dano puede ser pasajero: se anota cada conflicto que llega a publicarse.
+    const conflictosVistos = new Set<string>();
+    engine.subscribe(s => {
+      for (const c of s.conflicts) {
+        conflictosVistos.add(
+          `${c.docId}: ${(c.localVersion as unknown as TestEntity).value} / ` +
+            `${(c.remoteVersion as unknown as TestEntity).value}`,
+        );
+      }
+    });
+    // Sin red: al volver, UN flush con los dos docs en la cola.
+    engine.__setOnlineForTests(false);
+    localStore.set('docA', {value: 'a', updatedAt: T0});
+    engine.queueWrite('test', 'docA', {value: 'a', updatedAt: T0});
+    localStore.set('docB', {value: 'w1', updatedAt: T0 + 1000});
+    engine.queueWrite('test', 'docB', {value: 'w1', updatedAt: T0 + 1000});
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const emitidos: string[] = [];
+    mockSetGate = (_path, id) => {
+      emitidos.push(id);
+      return id === 'docA' ? gate : undefined;
+    };
+    engine.__setOnlineForTests(true);
+    await drain();
+    // Mientras docA sube, el usuario edita docB otra vez, 5 s despues.
+    localStore.set('docB', {value: 'w2', updatedAt: T0 + 6000});
+    engine.queueWrite('test', 'docB', {value: 'w2', updatedAt: T0 + 6000});
+
+    // Control del mecanismo: docA esta en vuelo, nada subio todavia, y W2 ya
+    // ocupa en la cola el lugar de W1.
+    expect({
+      emitidos: [...emitidos],
+      subidas: mockDocSets.length,
+      cola: engine
+        .__getQueueForTests()
+        .map(q => [q.id, (q.data as unknown as TestEntity).value]),
+    }).toEqual({
+      emitidos: ['docA'],
+      subidas: 0,
+      cola: [
+        ['docA', 'a'],
+        ['docB', 'w2'],
+      ],
+    });
+
+    release();
+    await drain();
+    await drain();
+
+    // Pre-fix: subian W1 y despues W2, y quedaba publicado el conflicto
+    // «docB: w2 / w1», lo mio contra una version mia. Elegir «lo suyo» dejaba
+    // w1 en local y w2 en la nube.
+    expect({
+      subidas: mockDocSets.map(d => [d.id, (d.data as TestEntity).value]),
+      conflictosVistos: [...conflictosVistos],
+      cola: engine.__getQueueForTests().length,
+      local: localStore.get('docB')?.value,
+    }).toEqual({
+      subidas: [
+        ['docA', 'a'],
+        ['docB', 'w2'],
+      ],
+      conflictosVistos: [],
+      cola: 0,
+      local: 'w2',
+    });
+    engine.stop();
+  });
+});
+
 describe('R9-65 — un doc en conflicto tambien tiene que frenar el cursor', () => {
   it('un hermano mas nuevo del mismo lote no arrastra el suelo por delante del conflicto', async () => {
     const uid = 'uid-conflicto-cursor';
