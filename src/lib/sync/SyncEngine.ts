@@ -1124,11 +1124,11 @@ export class SyncEngine {
     // and never pulled their own older docs (R9-122.4). From the first `await`
     // that comes back in another session the batch ends: no conflict, no
     // cursor, no state. What it had not applied yet is not lost: the batches
-    // of a collection run one at a time (R9-175), so no other batch moved the
-    // cursor past it meanwhile, and the owner's next attach delivers it again.
-    // Two exceptions: a `removed` (the doc left the query, and no attach
-    // delivers it again: R9-164), and a conflict the user resolved meanwhile,
-    // whose `resolveConflict` moves the cursor at once (R9-183).
+    // of a collection run one at a time (R9-175), and a conflict resolved
+    // meanwhile moves the cursor in that same chain (R9-183), so nothing moved
+    // the cursor past it meanwhile, and the owner's next attach delivers it
+    // again. One exception: a `removed` (the doc left the query, and no attach
+    // delivers it again: R9-164).
     //
     // R9-175 — `session` is the one the batch ARRIVED in (see
     // `attachListener`): a batch that waited in the chain across a `stop()` is
@@ -2245,7 +2245,17 @@ export class SyncEngine {
       typeof resolvedValue.updatedAt === 'number'
         ? resolvedValue.updatedAt
         : now;
-    void this.advanceCursor(conflict.collection, resolvedTs);
+    // R9-183 — through the collection's chain, like a batch (R9-175): moved
+    // while a batch waited (the read of a `removed`, a `getLocal`), keepMine
+    // and merge took the cursor to "now", past the changes that batch had not
+    // applied yet, and if the batch was then cut short they stayed below every
+    // later floor. Waiting its turn, it can come back after a `stop()`: then
+    // the cursor, and `this.uid`, are the next session's.
+    this.enqueueSnapshot(conflict.collection, async () => {
+      if (isCurrent()) {
+        await this.advanceCursor(conflict.collection, resolvedTs);
+      }
+    });
 
     void this.logResolvedConflict({
       ...conflict,

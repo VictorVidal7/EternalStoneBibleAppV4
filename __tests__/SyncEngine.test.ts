@@ -6351,6 +6351,89 @@ describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
     expect(r.localY).toBe('y del otro');
   });
 
+  /** R9-183 — un conflicto pendiente en Z antes del lote; durante la lectura,
+   *  el usuario lo resuelve con keepMine, que lleva el cursor a «ahora». */
+  const conflictZ = async (
+    f: Awaited<ReturnType<typeof engineFor>>,
+    T: number,
+  ) => {
+    f.localStore.set('Z', {value: 'z mio', updatedAt: T + MIN});
+    write(f.engine.getActiveUid()!, 'Z', {
+      value: 'z suyo',
+      updatedAt: T + MIN + 5000,
+    });
+    await settle();
+  };
+  const resolveZ = async (f: Awaited<ReturnType<typeof engineFor>>) => {
+    await f.engine.resolveConflict('test__Z', 'keepMine');
+    await settle();
+  };
+
+  it('R9-183: resolver OTRO conflicto con keepMine mientras un lote espera su lectura no mueve el cursor', async () => {
+    const r = await cutBatch('uid-183-mec', resolveZ, conflictZ);
+    expect(r.conflictos).toEqual(['Z']); // CONTROL
+    expect(r.enVuelo.lecturas).toBe(1); // CONTROL
+    expect(r.enVuelo.liberada).toBe(false); // CONTROL
+    expect(r.enVuelo.yAplicado).toBe(false); // CONTROL
+    // Antes: 60, el «ahora» de keepMine.
+    expect(r.enVuelo.cursorGuardado).toBe(1);
+  });
+
+  it('R9-183: cortado el lote tras resolver otro conflicto, lo que le faltaba vuelve al reenganchar', async () => {
+    const r = await cutBatch('uid-183-cons', resolveZ, conflictZ);
+    expect(r.conflictos).toEqual(['Z']); // CONTROL
+    expect(r.enVuelo.lecturas).toBe(1); // CONTROL
+    // Antes: piso 55, Y no volvia nunca.
+    expect(r.localY).toBe('y del otro');
+  });
+
+  it('R9-183: si la sesion termina con esa resolucion esperando detras del lote, su cursor no cae en la cuenta siguiente', async () => {
+    const ana = 'uid-183-ana';
+    const beto = 'uid-183-beto';
+    const T = Date.now() - HOUR;
+    const rel = relTo(T);
+    const f = await engineFor(ana, T);
+    const {engine, localStore} = f;
+    await conflictZ(f, T);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(ana, 'X', x1);
+    await settle();
+    const g = holdGet('X');
+    write(ana, 'X', {value: 'respaldo', updatedAt: T - DAY}); // B1: removed X
+    await flush();
+    await resolveZ(f);
+    const control = {
+      conflictos: engine.__getConflictsForTests().map(c => c.docId),
+      lecturas: g.hits,
+      cursorAna: rel(await storedCursor(ana)),
+    };
+    engine.stop();
+    const betoCursor = T - 2 * HOUR;
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    await AsyncStorage.setItem(
+      cursorStorageKey('test', beto),
+      String(betoCursor),
+    );
+    await engine.start(beto);
+    await settle();
+    g.release();
+    await settle();
+    // Sin mirar la sesion, el cursor de Ana («ahora», el de keepMine) caia bajo
+    // la clave y en la cache de Beto: su enganche siguiente ya no bajaba sus
+    // propios docs de la ultima hora (la clase de R9-122.4).
+    expect({
+      control,
+      cursorBeto: rel(await storedCursor(beto)),
+      cacheBeto: rel(engine.__getCursorForTests('test')),
+    }).toEqual({
+      control: {conflictos: [], lecturas: 1, cursorAna: 1},
+      cursorBeto: rel(betoCursor),
+      cacheBeto: rel(betoCursor),
+    });
+    engine.stop();
+  });
+
   it('lo mismo con la ventana de un `getLocal`, sin `removed` (ya existia antes de R9-124)', async () => {
     const uid = 'uid-175-getlocal';
     const T = Date.now() - HOUR;
