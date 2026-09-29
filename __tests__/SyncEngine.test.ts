@@ -6443,6 +6443,70 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-191: la lista de releer ilegible en un arranque: el conflicto vuelve igual, y no queda perdido tras guardar el conjunto y reiniciar', async () => {
+    const uid = 'uid-191-ilegible';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    mockGetShouldFail = true;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    mockGetShouldFail = false;
+    const releer = await rereadOf(uid);
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let arranque1: unknown;
+    let avisado = false;
+    try {
+      getItemMock.mockImplementation((k: string) =>
+        k.startsWith('@sync_reread_')
+          ? Promise.reject(new Error('disco'))
+          : realImpl(k),
+      );
+      engine.stop();
+      await engine.start(uid);
+      await settle();
+      getItemMock.mockImplementation(realImpl);
+      avisado = loggerWarnSpy.mock.calls.some(([m]) =>
+        String(m).includes('conflicts to read again'),
+      );
+      arranque1 = suyaDe(engine);
+      // Otro conflicto, resuelto en esta sesion: guarda el conjunto.
+      localStore.set('doc-d', {
+        value: 'd mio',
+        updatedAt: T + 600_000,
+      } as unknown as SyncEntity<TestEntity>);
+      write(uid, 'doc-d', {value: 'd suyo', updatedAt: T + 605_000});
+      await settle();
+      await engine.resolveConflict('test__doc-d', 'keepMine');
+      await settle();
+    } finally {
+      getItemMock.mockImplementation(realImpl);
+    }
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: sin la lista nadie releia el doc (fuera de la query), la marca
+    // quedaba en «lo suyo» clavando el piso, el guardado borraba la lista, y
+    // el conflicto no volvia nunca.
+    expect({
+      releer, // CONTROL
+      avisado, // CONTROL: la lectura de la lista fallo
+      arranque1,
+      conflictos: suyaDe(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      releer: ['doc-c'],
+      avisado: true,
+      arranque1: ['su respaldo viejo'],
+      conflictos: ['su respaldo viejo'],
+      local: 'lo mio',
+    });
+    engine.stop();
+  });
+
   it('R9-186: la lectura vence el plazo: la marca queda y el proceso siguiente lo lee', async () => {
     const uid = 'uid-186-plazo';
     const T = Date.now() - HOUR;

@@ -1845,6 +1845,15 @@ export class SyncEngine {
           collection,
           error: err instanceof Error ? err.message : String(err),
         });
+        // R9-191 — unreadable, the attach reads every held conflict (one read
+        // each). Reading none left the ones that needed it held out of the
+        // query, with the floor pinned under them (R9-164); the next save of
+        // the set then erased the list, and they were never read again. An
+        // unreadable conflict list degrades less: its docs are still in the
+        // query, and their next delivery settles them.
+        for (const doc of held.values()) {
+          if (doc.conflict) doc.reread = true;
+        }
       }
     }
     // Only this session's cache: after a `stop()` it is the next account's.
