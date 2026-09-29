@@ -1,10 +1,11 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-28, fin de la sesión 27.** La 27 hizo el (g), solo en la
-> terminal y con 3 agentes en worktree (pedidos por Victor): revisó el diff de la 26. Encontró 7
-> hallazgos nuevos, `R9-175`..`R9-181` (1 P2 y 6 P3), y ningún P0. El checkpoint va en
-> `docs/review-s27-diff-s26`, que no se mergea sin el OK de Victor. Queda **1 P0 abierto**
-> (`R9-38`). **Lo siguiente es el mensaje (h): arreglar lo de la 27.**
+> **Última actualización: 2026-09-29, fin de la sesión 28.** La 28 hizo el (h), solo en la
+> terminal y con 3 agentes en worktree (pedidos por Victor, solo para medir diseños): arregló
+> `R9-175`, `R9-176` y `R9-178`..`R9-181` en `fix/s28-sync-r9175-r9181` (6 commits), y registró 3
+> hallazgos nuevos, `R9-182`..`R9-184`. El checkpoint va en `docs/review-s28-fix-s27`. **Ninguna de
+> las dos ramas se mergea sin el OK de Victor.** Queda **1 P0 abierto** (`R9-38`). **Lo siguiente es
+> el mensaje (i): revisar el diff de la 28.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -457,10 +458,55 @@ o un alcance que no se sostiene.
 **Hechos:** el doble check (la (b), sesiones 21 y 22), la revisión del diff de la 20 (la (a),
 sesión 23), los ARREGLOS (la (c), sesión 24, en la nube), la revisión del diff de la 24 (la (d),
 sesión 25, en la nube), sus arreglos (la (e), también en la 25), `R9-124` en Modo C con su arreglo
-(la (f), sesión 26, solo en la terminal) y la revisión del diff de la 26 (la (g), sesión 27, solo en
-la terminal). **Lo siguiente es el (h).**
+(la (f), sesión 26, solo en la terminal), la revisión del diff de la 26 (la (g), sesión 27, solo en
+la terminal) y sus arreglos (la (h), sesión 28, solo en la terminal). **Lo siguiente es el (i).**
 
-**(h) Sesión 28: arreglar lo de la 27.**
+**(i) Sesión 29: revisar el diff de la 28.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (i) y la sección 5) y, en la memoria, la de la sesión 28 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo. Este chat gasta mi cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s28-sync-r9175-r9181` y `docs/review-s28-fix-s27`, pedime el
+>   OK para el fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 184. El detalle de la 28 está en
+>   `detail/S28-arreglos-de-la-27.md`, y las sondas en `_scratch/S28-*.txt`.
+>
+> **Esta sesión revisa el diff de la 28** (`f305fa2..53e79fa`: `SyncEngine.ts`, `types.ts` y
+> `SyncEngine.test.ts`), en local:
+>
+> - **el mock nuevo** (eco, reversión, re-entrega, hilo único): ¿qué hace distinto del SDK real?
+>   Por ejemplo: el merge superficial, `__fire` que entrega aunque los datos no cambien, un solo
+>   ejecutor global, y el `delete()` en el ejecutor;
+> - **las pruebas que se ajustaron por tiempo o con el flag del bulk push:** ¿siguen vigilando lo
+>   suyo? (corolario 24: un fixture puede responder la pregunta);
+> - **la cadena de `R9-175`:** ¿quién más mueve el cursor o el conjunto no asentado fuera de la
+>   cadena, además de `R9-183`? ¿Y el plazo de 60 s?;
+> - **`R9-181`:** la marca por identidad (`conflict?.remoteVersion === remote`) y `heldAt`;
+> - **`R9-176`:** qué pasa con la marca cuando la guarda suelta el doc y el eco no llega (una subida
+>   descartada tras 8 intentos, `R9-33`);
+> - re-medir la matriz entera con `_scratch/S28-matriz.cjs.txt`;
+> - lo nuevo se registra desde `R9-185`. Checkpoint en una rama `docs/...`, sin mergear sin mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-182`..`R9-184` (registrados en la 28, sin arreglar), y `R9-177` (Modo C, con mi OK);
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - `R9-164` con la app cerrada (el respaldo del otro teléfono, los huérfanos de un `deleteAccount`
+>   fallido y el corte durante la lectura);
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`;
+> - `R9-173` (ya decidido: extender la opción (b)) y `R9-174`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(h) Sesión 28: arreglar lo de la 27 — ya HECHO en la sesión 28, solo en la terminal y con 3
+agentes en worktree (solo para medir diseños).** Queda aquí como registro.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` y, en la
 > memoria, la de la sesión 27 y la regla fija de las pruebas
@@ -906,19 +952,23 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 27 (2026-09-28).**
+**Medido al cerrar la sesión 28 (2026-09-29).**
 
-- **`main` = `origin/main` = `6f73f69`** (el checkpoint de la 26; el último código es `34de18f`,
-  el arreglo de `R9-124`). **CI verificado en el log:** run `36495790684`, 3 jobs verdes, Node
-  24.21.0, 367/4414, cero «failed to run».
-- **Una rama de la 27 sin mergear, a propósito y sin pushear:** `docs/review-s27-diff-s26`, con el
-  checkpoint (solo el ledger). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
-  `main` la incluye.
-- Las ramas de la 26 (`fix/review-s26-removed` y `docs/review-s26-removed`) ya se mergearon y se
-  borraron.
+- **`main` = `origin/main` = `f305fa2`** (el checkpoint de la 27, con la decisión de `R9-181`; el
+  último código es `34de18f`, el arreglo de `R9-124`). **CI verificado en el log:** run
+  `36510398166`, 3 jobs verdes, Node 24.21.0, 367/4414, cero «failed to run».
+- **Dos ramas de la 28, apiladas y sin mergear, a propósito y sin pushear:**
+  - `fix/s28-sync-r9175-r9181`, con el código (6 commits sobre `f305fa2`, de `d093a4e` a
+    `53e79fa`);
+  - `docs/review-s28-fix-s27`, con el checkpoint (solo el ledger), encima de la anterior.
+
+  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+
+- Las ramas de la 27 ya se mergearon y se borraron. Los worktrees de los agentes de la 28 se
+  borraron, con sus ramas, tras rescatar las sondas a `_scratch` (0 commits por delante de `main`).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 27):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 28):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1025,9 +1075,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 28: el mensaje (h), arreglar lo de la 27** (`R9-175`..`R9-181`;
-`R9-181` ya está decidido, la (b)), solo en la terminal. La nube no es una opción. Lo de abajo es el menú
-de siempre para después.
+**Recomendado para la sesión 29: el mensaje (i), revisar el diff de la 28**
+(`f305fa2..53e79fa`), solo en la terminal. La nube no es una opción. Después, los arreglos de lo que
+encuentre y de `R9-182`..`R9-184`. Lo de abajo es el menú de siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
@@ -1078,11 +1128,17 @@ Alternativas legítimas:
 - **Una guarda que ninguna prueba puede vigilar se mide antes de quedarse (sesión 26).** Si su
   revert no hace caer nada, o falta la prueba o la guarda es equivalente por construcción. En el
   segundo caso, quitala.
-- **El mock de `onSnapshot` todavía no entrega el eco propio (sesión 27).** El SDK lo entrega
-  antes del ack (compensación de latencia), y dos pruebas dependían de que no llegara (`R9-179`,
-  `R9-180`). Y en RNFirebase, un `get()` y las escrituras comparten un solo hilo
-  (`R9-177`): la respuesta de una lectura nunca incluye lo que este teléfono escribe durante ella.
-  Antes de afirmar un orden de eventos, preguntá cuál permite el SDK real.
+- **Desde la sesión 28 (`d093a4e`), el mock de `onSnapshot` entrega el eco propio** (antes del
+  ack), la reversión de un rechazo y la re-entrega al enganchar. También modela el hilo único de
+  RNFirebase (`R9-177`): un `get()` retiene el ejecutor, y un `set()` emitido mientras tanto espera
+  detrás, con su eco. Antes de afirmar un orden de eventos, preguntá cuál permite el SDK real.
+- **Un mock que modela UNA propiedad del SDK puede producir órdenes que el SDK no produce (sesión
+  28).** El eco sin el hilo único dejaba que la respuesta de la lectura trajera lo escrito durante
+  ella: 4 pruebas de fallo dejaban de caer, y la entrada de `R9-176` afirmaba que su guarda no cubría
+  `R9-178`. Con el orden de RNFB, una sola guarda cubre las dos.
+- **Un diff de agente guardado a mitad de un revert se ve igual que una propuesta (sesión 28).** El
+  de A2 traía revertida la pieza «sesión» (`session = this.flushSession` al empezar el lote). Antes
+  de integrar un diff ajeno, leelo línea por línea contra su informe.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

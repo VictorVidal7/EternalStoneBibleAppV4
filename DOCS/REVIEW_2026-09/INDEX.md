@@ -317,6 +317,19 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **181**. Rama `docs/review-s27-diff-s26`, sin
 > mergear hasta el OK. Detalle: `detail/S27-revision-del-diff-s26.md`.
+>
+> **Sesión 28 (2026-09-29): ARREGLOS de lo de la 27, solo en la terminal.** Hubo 3 agentes en
+> worktree, a pedido de Victor, solo para medir diseños. `main` = `origin/main` = `f305fa2`, con el
+> CI verde en el log (run `36510398166`, 367/4414).
+>
+> - **`R9-175`, `R9-176`, `R9-178`, `R9-179`, `R9-180` y `R9-181` ✅**, en 6 commits en
+>   `fix/s28-sync-r9175-r9181`. `R9-177` sigue abierto: necesita el OK de Victor y Modo C.
+> - **El mock de `onSnapshot` ahora es el del SDK:** entrega el eco propio, la reversión y la
+>   re-entrega, y modela el hilo único de RNFB.
+> - **3 hallazgos nuevos, `R9-182`..`R9-184`** (2 P2 y 1 P3), registrados sin arreglar.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **184**. Ramas `fix/s28-sync-r9175-r9181` y
+> `docs/review-s28-fix-s27`, sin mergear hasta el OK. Detalle: `detail/S28-arreglos-de-la-27.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -779,6 +792,26 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   entrada es alcanzable, hace falta un piso; y el piso necesita su propio control, o se
   convierte en la comprobación entera. Corolario: **un comentario que dice «verificado que hoy
   nadie hace X; si alguien empieza, arréglalo» no es una compuerta, es una nota.**
+
+- **Sesión 28 — 2026-09-29. Arreglos de lo de la 27.** Solo en la terminal.
+  - **Cómo se trabajó:**
+    - el orquestador verificó el CI en el log y propuso orden y diseño antes de tocar código;
+    - 3 agentes en worktree (a pedido de Victor) midieron el diseño, cada uno en su worktree: A1 el
+      mock y `R9-179`/`R9-180`, A2 `R9-175`, y A3 `R9-181`/`R9-176`/`R9-178`. A2 lo cortó el
+      límite de sesión y A3 se pausó: Victor eligió no retomarlos, y el orquestador integró los tres
+      diffs;
+    - un commit por hallazgo, cada prueba vista fallar, revert por pieza y la matriz entera, con
+      `NODE_ENV=development` y el mock nuevo.
+  - **Resultado:** 6 hallazgos ✅ (`R9-175`, `R9-176`, `R9-178`..`R9-181`); 3 nuevos
+    (`R9-182`..`R9-184`). Queda 1 P0 abierto.
+  - **Detalle: `detail/S28-arreglos-de-la-27.md`.**
+  - **Las lecciones:**
+    - **un mock que modela UNA propiedad del SDK puede producir órdenes que el SDK no produce:** el
+      eco sin el hilo único dejaba que la lectura viera lo escrito durante ella;
+    - **un diff de agente guardado a mitad de un revert se ve como una propuesta:** hay que leerlo
+      línea por línea;
+    - **el orden del mock decide qué guarda hace falta:** con el de RNFB, una sola guarda cubre
+      `R9-176` y `R9-178`.
 
 - **Sesión 27 — 2026-09-28. Revisión del diff de la 26.** Solo en la terminal; solo revisión.
   - **Cómo se trabajó:**
