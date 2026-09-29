@@ -4635,6 +4635,51 @@ describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro 
       local: localStore.get('doc-c')?.value,
     }).toEqual({conflicts: [], local: R3});
   });
+
+  it('R9-180: keepMine sin red y la app se cierra antes de subir: la marca se va igual, y al volver lo posterior del otro entra por LWW', async () => {
+    // Aqui el eco de keepMine no llega antes del reinicio, asi que lo unico
+    // que suelta la marca es `resolveConflict`. El usuario elige sin red (el
+    // flush no sale), la app se cierra, vuelve sin red, y R3 entra por el
+    // listener antes de que NetInfo avise que hay red: el stream de Firestore
+    // y NetInfo reconectan cada uno por su lado.
+    const uid = 'uid-160-sin-red';
+    const {engine, T, localStore} = await pendingConflict(uid);
+    fire(uid, [{id: 'doc-c', data: {value: R2, updatedAt: T + 120_000}}]);
+    await settle();
+    engine.__setOnlineForTests(false);
+    await engine.resolveConflict('test__doc-c', 'keepMine');
+    await settle();
+    // Control del mecanismo: keepMine espera en la cola, sin subir y sin eco.
+    expect(engine.__getQueueForTests().map(q => q.id)).toEqual(['doc-c']);
+    expect(pushesOf(uid, 'doc-c')).toEqual([]);
+    expect(mockDelivered.filter(d => d.via === 'echo')).toEqual([]);
+    const marcaTrasResolver = await AsyncStorage.getItem(
+      unsettledStorageKey('test', uid),
+    );
+
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    await restart(engine, uid);
+    const R3 = 'R3: el otro edita una hora despues';
+    fire(uid, [{id: 'doc-c', data: {value: R3, updatedAt: Date.now() + HOUR}}]);
+    await settle();
+
+    // Sin la guarda, la marca seguia en disco: el piso bajaba hasta R2, R2
+    // volvia como conflicto al enganchar, y R3 lo refrescaba (L contra R3)
+    // cuando el usuario ya habia elegido.
+    expect({
+      marcaTrasResolver,
+      conflicts: engine
+        .__getConflictsForTests()
+        .map(c => c.remoteVersion.value),
+      local: localStore.get('doc-c')?.value,
+      pushes: pushesOf(uid, 'doc-c'),
+    }).toEqual({marcaTrasResolver: null, conflicts: [], local: R3, pushes: []});
+  });
 });
 
 describe('R9-161 — «quedarme con lo suyo» deja lo local igual que la nube', () => {
