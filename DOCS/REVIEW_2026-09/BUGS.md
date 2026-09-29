@@ -320,6 +320,22 @@
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **184**. Detalle:
 > `detail/S28-arreglos-de-la-27.md`.
 
+> **Sesión 29 (2026-09-29): revisión del diff de la 28**, solo en la terminal y sin agentes. No se
+> tocó código.
+>
+> - **La matriz entera, re-medida:** igual que en la 28, pieza por pieza. Las 7 pruebas ajustadas,
+>   las 4 de `R9-104` y la de `R9-161` caen al revertir lo que cada una vigila.
+> - **4 hallazgos nuevos, todos P3:**
+>   - `R9-185`: la guarda de `R9-176` desarma a `R9-181`, del mismo diff (corolario 4);
+>   - `R9-186`: una lectura fallida o vencida suelta la marca de un conflicto retenido, y el
+>     plazo no libera el ejecutor de RNFB;
+>   - `R9-187`: dos piezas equivalentes por construcción y un efecto sin prueba;
+>   - `R9-188`: afirmaciones falsas en pruebas, en commits y en un comentario nuevo.
+> - **Notas nuevas en `R9-177` y `R9-182`.**
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **188**. Detalle:
+> `detail/S29-revision-del-diff-s28.md`.
+
 ---
 
 ## P0 — dinero, identidad, pérdida de datos, seguridad
@@ -2547,6 +2563,11 @@ colección, id)` (`:1787`), no aplicar la respuesta a ese doc, y mantener la ló
   emitido mientras tanto (con su eco) espera detrás. Con la cadena de `R9-175`, una lectura lenta
   también retrasa los lotes siguientes de su colección, hasta el plazo de 60 s.
 
+  **Sesión 29:** el plazo de 60 s es del MOTOR, no del SDK. `withDeadline` suelta el `await`, pero
+  la lectura colgada sigue ocupando el ejecutor. Medido en el mock (sonda Q3a): una escritura de
+  otro doc no sube ni antes ni después del plazo, ni tras `stop()` + `start()` de la misma cuenta.
+  Ver `R9-186`.
+
 - **`R9-178` (S27, `SyncEngine` / conflictos — P3) — 🐛 si el usuario resuelve con `keepMine` o
   `merge` durante la lectura del `removed`, la respuesta se aplica como si el conflicto no hubiera
   existido.** MEDIDO con sonda (A3, 17 escenarios), verificado por el orquestador.
@@ -2714,6 +2735,18 @@ colección, id)` (`:1787`), no aplicar la respuesta a ese doc, y mantener la ló
     en `d093a4e` para que la nube ya tenga el doc. Su forma original (la nube sin el doc) sirve como
     prueba de este hallazgo cuando se arregle.
 
+  **Sesión 29:**
+  - **Falso desde `53e79fa`:** la forma original de esa prueba PASA sobre el código de hoy, con este
+    hallazgo sin arreglar. Tras un solo rechazo, la escritura sigue en la cola y la guarda de
+    `R9-176` impide el borrado. Una prueba de `R9-182` necesita el descarte tras 8 intentos (como
+    la sonda N1-8). Ver `R9-188`.
+  - **Depende del orden que eligió el mock:** el rechazo llega antes que la reversión. Es el orden
+    del SDK de JS (`__PRIVATE_syncEngineRejectFailedWrite`: «we raise user callbacks first so that
+    they consistently happen before listen events»). En RNFB la promesa y el evento viajan a JS por
+    canales distintos, y eso no está medido. Si en el teléfono la reversión llegara primero, la
+    escritura seguiría en la cola, la guarda la cubriría y este hallazgo no ocurriría. Se cierra en
+    Modo C.
+
 - **`R9-183` (S28, `SyncEngine` / cursor — P3) — 🐛 resolver OTRO conflicto mientras un lote espera
   su lectura mueve el cursor en el acto: si el lote se corta, lo que le faltaba no vuelve.** MEDIDO
   con sonda (agente A2 de la S28, P10r). El mecanismo lo verificó el orquestador en el código. Es un
@@ -2747,6 +2780,104 @@ colección, id)` (`:1787`), no aplicar la respuesta a ese doc, y mantener la ló
     dos ediciones del mismo doc a menos de 30 s.
   - **Arreglo (hipótesis, sin medir):** re-leer el ítem vivo de la cola antes de subirlo, y saltarlo
     si ya lo reemplazó uno más nuevo.
+
+- **`R9-185` (S29, `SyncEngine` / conflictos — P3) — 🐛 la guarda de `R9-176` borra la marca de un
+  conflicto retenido mientras la escritura propia espera en la cola: tras reiniciar, el conflicto
+  que `R9-181` hace volver no vuelve.** MEDIDO con sonda (Q5a y Q5b de la S29). Lo introdujo la 28,
+  y son dos arreglos del mismo diff (corolario 4).
+  - **El mecanismo:** tras la lectura del `removed`, `if (hasQueuedWrite(...)) { settle(id);
+continue; }` (`SyncEngine.ts:1178-1181`). `settle` quita del conjunto también la marca de
+    conflicto, y `saveUnsettled` la borra de disco.
+  - **El caso:**
+    1. hay un conflicto retenido («lo mío» contra «lo suyo»);
+    2. el usuario edita el doc, y la subida falla una vez y espera su reintento;
+    3. el otro teléfono restaura un respaldo, que sale de la query;
+    4. se reinicia.
+  - **Medido:**
+    - tras el `removed` queda la marca `{}`;
+    - tras reiniciar, **0 conflictos**;
+    - con la guarda revertida, la marca pasa al respaldo y el conflicto vuelve:
+      `[lo mío editado, su respaldo viejo]`.
+  - **Mientras la subida reintenta (Q5b):**
+    - el eco de cada intento vuelve a retener el doc, pero en «lo suyo», la marca vieja, no en la
+      copia que trajo la lectura;
+    - su reversión lo vuelve a soltar, y en disco queda `{}` en cada paso del backoff;
+    - la marca vuelve al respaldo solo con la reversión final, cuando el motor se rinde.
+  - **El daño:** un reinicio en ese tramo pierde el conflicto. Si la subida después entra, la nube
+    se queda con lo mío sin que el usuario elija. Si se descarta, la nube y el teléfono quedan
+    distintos, y solo lo dice el aviso de `R9-33`.
+  - **Es falso** «decide su eco, que lo vuelve a retener si su conflicto sigue esperando» (`53e79fa`
+    y el comentario de la guarda): lo vuelve a retener en la copia vieja, y la reversión lo suelta.
+  - **El `settle` de la guarda no tiene prueba** (pieza `S176-settle`: 0 caídas), y no es
+    equivalente: quitarlo deja la marca en «lo suyo», y el piso queda clavado sin conflicto que
+    mostrar (la clase de `R9-164`).
+  - **Arreglo (hipótesis H1, MEDIDA en la S29):** si la lectura trajo el doc y es un conflicto
+    retenido, `hold(id, leída.updatedAt, true)` en vez de `settle`. Q5a y Q5b convergen
+    (el conflicto vuelve tras reiniciar, y la marca queda en el respaldo durante todo el backoff), y
+    la suite queda en 164/164 con las sondas. Falta la prueba vista fallar.
+
+- **`R9-186` (S29, `SyncEngine` / conflictos — P3) — 🐛 una lectura del `removed` que falla o que
+  vence el plazo de 60 s suelta el doc, y un conflicto retenido pierde la marca; el plazo, además,
+  no libera el ejecutor de RNFB.** MEDIDO con sonda (Q3a de la S29).
+  - **La marca:** vencido el plazo (o fallida la lectura), `current` es `null` y cae en
+    `if (!currentData) { settle(id); continue; }` (`SyncEngine.ts:1198-1203`). Sonda: conflicto
+    retenido, y el otro teléfono restaura un respaldo con la lectura colgada. Tras el plazo, la
+    marca `{}`; tras reiniciar, 0 conflictos. Es el caso de `R9-181`, deshecho.
+  - **Ya existía para la lectura FALLIDA** (diseño de la 26: «si la lectura falla, no se toca lo
+    local» y se suelta). Pesa desde `R9-181`, que le dio sentido a la marca en una copia más vieja,
+    y la 28 le agregó un disparador: la lectura LENTA.
+  - **El ejecutor:** con la lectura colgada, una escritura de otro doc no sube ni antes ni después
+    del plazo, ni tras `stop()` + `start()` de la misma cuenta (`subidasTrasPlazo: []`,
+    `subidasTrasReinicio: []`). `withDeadline` suelta el `await` del motor; la lectura sigue
+    ocupando el ejecutor (`R9-177`).
+  - **Dos comentarios de la 28 lo afirman al revés:**
+    - `REMOVED_LOOKUP_TIMEOUT_MS`: «past it, the doc is left as it is locally, while waiting only
+      delays this collection's later batches». No dice que el doc se suelta, y «only» es falso en
+      RNFB;
+    - `stop()`: «a read that never comes back would otherwise hold the next account's collection
+      too». Es cierto para los lotes, pero las subidas y lecturas de la cuenta siguiente siguen
+      esperando detrás.
+  - **Alcance:** hace falta que la lectura falle (sin caché) o tarde más de 60 s, con el SDK
+    diciendo que está en línea. Es raro.
+  - **Arreglo (hipótesis, sin medir):** una lectura fallida de un conflicto retenido no lo suelta.
+    Lo deja retenido y vuelve a leerlo en el próximo enganche, porque retenerlo sin releer clava el
+    piso (`R9-164`). Y corregir los dos comentarios.
+
+- **`R9-187` (S29, `SyncEngine` / guardas — P3) — 🐛 dos piezas equivalentes por construcción y un
+  efecto sin prueba.** MEDIDO con la matriz de la S29.
+  - **`R104-7` (la ruta con `item.uid`), con `R104-5` puesta:** el `throw` de
+    `item.uid !== this.uid` y `users/${item.uid}` van en el mismo bloque síncrono
+    (`SyncEngine.ts:2480-2484`). Las dos rutas son siempre la misma cadena, así que `R104-7` suelta
+    da 0 y `R104-8` (5 + 7) da 0. En el otro sentido no es equivalente: sin `R104-4` ni `R104-5`,
+    la ruta decide la nube (`R104-9` cae por otra aserción que `R104-6`).
+    - **El comentario de `pushOne` atribuye el «por construcción» a la ruta,** cuando lo da el
+      `throw` de dos líneas antes.
+    - Por la regla 37, sobra una de las dos.
+  - **El `.catch` de `enqueueSnapshot` (`S175-catch`: 0).** `handleSnapshot` envuelve en su propio
+    `try` todo lo que puede lanzar, y lo que va antes (`changes.length`, `isCurrent()`, cierres) no
+    lanza, así que la promesa del lote nunca se rechaza. Por la regla 37 se quita. **El costo, dicho:**
+    si un día algo lanza fuera del `try`, sin el `.catch` la cadena de esa colección se para en
+    silencio hasta el `stop()`.
+  - **`R104-4` tiene un efecto propio sin prueba.** Su corte de bucle lo cubren `R104-5` y `R104-2`,
+    pero sin ella el `updateState({pendingWrites, lastSyncedAt: Date.now(), lastError: null})` de
+    un push de Ana que vuelve tras el `stop()` corre en la sesión de Beto. Le borra el error y le
+    pone «sincronizado». Falta la prueba.
+
+- **`R9-188` (S29, pruebas y ledger de sync — P3) — 🐛 afirmaciones falsas en lo que dejó la 28.**
+  MEDIDO donde se indica.
+  - **La prueba de `R9-161` «una edición mía de ANTES…»:** su comentario dice que, sin el fixture
+    «la nube ya tenía doc-c», «el motor BORRARÍA L de local». Desde `53e79fa`, no. MEDIDO: la
+    forma original pasa sobre `e1c356c`. El fixture ya no responde nada. Lo mismo vale para la
+    frase de `R9-182` «su forma original sirve como prueba» (nota allí).
+  - **El mensaje de `d093a4e`:** «un `set()`/`delete()` emitido mientras tanto (con su eco) espera
+    detrás». El `delete()` del mock espera, pero no tiene eco: no toca la nube ni la vista. Hoy no
+    decide nada, porque su único llamador (`cleanupOldReviewEvents`) corre antes de enganchar.
+  - **El comentario nuevo de `applyRemoteChange`** (`SyncEngine.ts:1438-1441`): «Any other older
+    copy is this device's own earlier write». Es falso si el reloj del otro teléfono va atrasado.
+    Una escritura suya más vieja que lo local, con el conflicto pendiente, la rama `pending` no la
+    ve como «suya» (`:1377-1380`), y tras reiniciar tampoco es `heldAt`: el LWW se queda con lo
+    local. Leído, sin medir. La regla «más nuevo que lo local = del otro» es de `R9-160`; la 28 la
+    extendió a «más viejo = propio».
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

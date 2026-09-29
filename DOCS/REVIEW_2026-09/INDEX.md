@@ -330,6 +330,18 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **184**. Ramas `fix/s28-sync-r9175-r9181` y
 > `docs/review-s28-fix-s27`, sin mergear hasta el OK. Detalle: `detail/S28-arreglos-de-la-27.md`.
+>
+> **Sesión 29 (2026-09-29): revisión del diff de la 28, solo en la terminal y sin agentes.** Las
+> ramas de la 28 ya estaban mergeadas: `main` = `origin/main` = `e1c356c`, con el CI verde en el log
+> (run `36606915072`, 367/4433).
+>
+> - **La matriz entera, re-medida:** igual que en la 28. Las pruebas ajustadas por el mock nuevo
+>   siguen vigilando lo suyo.
+> - **4 hallazgos nuevos, `R9-185`..`R9-188`, todos P3.** El principal: la guarda de `R9-176`
+>   desarma a `R9-181` (corolario 4), medido junto con una hipótesis de arreglo.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **188**. Rama `docs/review-s29-diff-s28`, sin
+> mergear hasta el OK. Detalle: `detail/S29-revision-del-diff-s28.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -812,6 +824,22 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
       línea por línea;
     - **el orden del mock decide qué guarda hace falta:** con el de RNFB, una sola guarda cubre
       `R9-176` y `R9-178`.
+
+- **Sesión 29 — 2026-09-29. Revisión del diff de la 28.** Solo en la terminal, sin agentes.
+  - **Cómo se trabajó:**
+    - las 7 preguntas de Victor, cada una medida;
+    - la matriz de la 28 más 17 piezas, en un worktree aparte;
+    - una sonda de 4 escenarios, con la guarda de `R9-176` puesta, quitada y sin `settle`, y con
+      una hipótesis de arreglo;
+    - el mock con un `__fire` fiel al SDK;
+    - el código nativo de RNFB y el SDK de JS, leídos en `node_modules`.
+  - **Resultado:** ningún P0; 4 hallazgos P3 (`R9-185`..`R9-188`) y notas en `R9-177` y `R9-182`.
+  - **Detalle: `detail/S29-revision-del-diff-s28.md`.**
+  - **Las lecciones:**
+    - **dos arreglos del mismo diff, otra vez (corolario 4):** una guarda que hace `settle` puede
+      soltar la marca que el otro arreglo acaba de hacer durable;
+    - **«decide el eco» tiene que decir qué pasa si el eco no llega, o si llega y lo revierten;**
+    - **un plazo del motor no es un plazo del SDK:** suelta el `await`, no el ejecutor nativo.
 
 - **Sesión 27 — 2026-09-28. Revisión del diff de la 26.** Solo en la terminal; solo revisión.
   - **Cómo se trabajó:**

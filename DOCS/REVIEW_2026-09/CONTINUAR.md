@@ -1,11 +1,11 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-29, fin de la sesión 28.** La 28 hizo el (h), solo en la
-> terminal y con 3 agentes en worktree (pedidos por Victor, solo para medir diseños): arregló
-> `R9-175`, `R9-176` y `R9-178`..`R9-181` en `fix/s28-sync-r9175-r9181` (6 commits), y registró 3
-> hallazgos nuevos, `R9-182`..`R9-184`. El checkpoint va en `docs/review-s28-fix-s27`. **Ninguna de
-> las dos ramas se mergea sin el OK de Victor.** Queda **1 P0 abierto** (`R9-38`). **Lo siguiente es
-> el mensaje (i): revisar el diff de la 28.**
+> **Última actualización: 2026-09-29, fin de la sesión 29.** La 29 hizo el (i): revisó el diff de
+> la 28, solo en la terminal y sin agentes, sin tocar código. Registró 4 hallazgos P3,
+> `R9-185`..`R9-188`. El principal: la guarda de `R9-176` desarma a `R9-181`, que se arregló en el
+> mismo diff. El checkpoint va en `docs/review-s29-diff-s28`, que **no se mergea sin el OK de
+> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 188 hallazgos. **Lo siguiente es el mensaje (j):
+> arreglar lo de la 29.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -459,9 +459,54 @@ o un alcance que no se sostiene.
 sesión 23), los ARREGLOS (la (c), sesión 24, en la nube), la revisión del diff de la 24 (la (d),
 sesión 25, en la nube), sus arreglos (la (e), también en la 25), `R9-124` en Modo C con su arreglo
 (la (f), sesión 26, solo en la terminal), la revisión del diff de la 26 (la (g), sesión 27, solo en
-la terminal) y sus arreglos (la (h), sesión 28, solo en la terminal). **Lo siguiente es el (i).**
+la terminal), sus arreglos (la (h), sesión 28, solo en la terminal) y la revisión del diff de la
+28 (la (i), sesión 29, solo en la terminal). **Lo siguiente es el (j).**
 
-**(i) Sesión 29: revisar el diff de la 28.**
+**(j) Sesión 30: arreglar lo de la 29.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (j) y la sección 5) y, en la memoria, la de la sesión 29 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo. Este chat gasta mi cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s29-diff-s28`, pedime el OK para el fast-forward.
+>   Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 188. El detalle de la 29 está en
+>   `detail/S29-revision-del-diff-s28.md`, y las sondas en `_scratch/S29-*.txt`.
+>
+> **Esta sesión arregla lo de la 29**, en una rama `fix/...`, un commit por hallazgo, cada prueba
+> vista fallar primero:
+>
+> - **`R9-185` primero:** la guarda de `R9-176` suelta la marca de un conflicto retenido. La
+>   hipótesis H1 (`hold` a la copia leída) ya está medida con la sonda Q5a/Q5b; falta la prueba vista
+>   fallar, y medir el `settle` de la guarda (hoy sin prueba);
+> - **`R9-186`:** la lectura fallida o vencida y la marca, y los dos comentarios. Antes de elegir,
+>   medí la hipótesis (retener y releer en el próximo enganche) contra `R9-164`;
+> - **`R9-187`:** por la regla 37, quitar una de `R104-5`/`R104-7` y el `.catch` de
+>   `enqueueSnapshot`, y escribir la prueba del efecto propio de `R104-4`;
+> - **`R9-188`:** corregir el comentario y el fixture de la prueba de `R9-161`, el de
+>   `applyRemoteChange` y la nota de `R9-182`;
+> - después, si alcanza, `R9-182`..`R9-184`;
+> - re-medí la matriz entera con `_scratch/S29-matriz.cjs.txt` al final.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-177` (Modo C en el emulador, con mi OK), que también cierra el orden de `R9-182`;
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - `R9-164` con la app cerrada (el respaldo del otro teléfono, los huérfanos de un `deleteAccount`
+>   fallido y el corte durante la lectura);
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`;
+> - `R9-173` (ya decidido: extender la opción (b)) y `R9-174`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(i) Sesión 29: revisar el diff de la 28 — ya HECHO en la sesión 29, solo en la terminal y sin
+agentes.** Queda aquí como registro.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (i) y la sección 5) y, en la memoria, la de la sesión 28 y la regla fija de las pruebas
@@ -952,23 +997,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 28 (2026-09-29).**
+**Medido al cerrar la sesión 29 (2026-09-29).**
 
-- **`main` = `origin/main` = `f305fa2`** (el checkpoint de la 27, con la decisión de `R9-181`; el
-  último código es `34de18f`, el arreglo de `R9-124`). **CI verificado en el log:** run
-  `36510398166`, 3 jobs verdes, Node 24.21.0, 367/4414, cero «failed to run».
-- **Dos ramas de la 28, apiladas y sin mergear, a propósito y sin pushear:**
-  - `fix/s28-sync-r9175-r9181`, con el código (6 commits sobre `f305fa2`, de `d093a4e` a
-    `53e79fa`);
-  - `docs/review-s28-fix-s27`, con el checkpoint (solo el ledger), encima de la anterior.
-
-  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-
-- Las ramas de la 27 ya se mergearon y se borraron. Los worktrees de los agentes de la 28 se
-  borraron, con sus ramas, tras rescatar las sondas a `_scratch` (0 commits por delante de `main`).
+- **`main` = `origin/main` = `e1c356c`** (el checkpoint de la 28; el último código es `53e79fa`).
+  **CI verificado en el log:** run `36606915072`, 3 jobs verdes, Node v24.21.0, 367/4433, cero
+  «failed to run».
+- **Una rama de la 29, sin mergear a propósito y sin pushear:** `docs/review-s29-diff-s28`, con el
+  checkpoint (solo el ledger), sobre `e1c356c`. Se mergea en fast-forward con el OK de Victor. Si ya
+  se mergeó, `main` la incluye.
+- Las ramas de la 28 ya se mergearon y se borraron tras `git cherry`. El worktree de la matriz de
+  la 29 (`C:/projects/essb-s29-wt`) se borró: primero su junction de `node_modules`, con
+  `.Delete()`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 28):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 29):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1075,9 +1117,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 29: el mensaje (i), revisar el diff de la 28**
-(`f305fa2..53e79fa`), solo en la terminal. La nube no es una opción. Después, los arreglos de lo que
-encuentre y de `R9-182`..`R9-184`. Lo de abajo es el menú de siempre para después.
+**Recomendado para la sesión 30: el mensaje (j), arreglar lo de la 29** (`R9-185`..`R9-188`, y
+después `R9-182`..`R9-184`), solo en la terminal. La nube no es una opción. Lo de abajo es el menú
+de siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
 hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
@@ -1139,6 +1181,11 @@ Alternativas legítimas:
 - **Un diff de agente guardado a mitad de un revert se ve igual que una propuesta (sesión 28).** El
   de A2 traía revertida la pieza «sesión» (`session = this.flushSession` al empezar el lote). Antes
   de integrar un diff ajeno, leelo línea por línea contra su informe.
+- **Una guarda que hace `settle` puede soltar la marca que otro arreglo del MISMO diff hizo durable
+  (sesión 29, `R9-185`).** La guarda de `R9-176` se midió sin conflictos retenidos, justo lo que
+  `R9-181` volvió durable. «Decide el eco» tiene que decir qué pasa si el eco no llega, o si llega y
+  su reversión lo suelta. Y un plazo del motor (`withDeadline`) suelta el `await`, no el ejecutor
+  nativo de RNFB (`R9-186`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
