@@ -2649,6 +2649,48 @@ describe('R9-104 — un push en vuelo no puede cruzar a la cuenta que entra', ()
     ).toEqual([['uid-ana', 'doc2', 0]]);
   });
 
+  it('R9-187: si el set de Ana vuelve bien DESPUES del cambio, no deja la sesion de Beto como recien sincronizada', async () => {
+    // El corte de la rama de exito tiene un efecto propio, ademas de no seguir
+    // con el lote de Ana: el `updateState` que estampa `lastSyncedAt` y borra
+    // `lastError` es de la sesion que ya no esta. Un solo doc en el lote, para
+    // que no haya un push siguiente que lo delate por otro camino.
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const {engine, heldSets} = await anaWithHeldPush(
+      [anaEntry('doc1', 'uno-de-ana')],
+      'doc1',
+      gate,
+    );
+    engine.stop();
+    await engine.start('uid-beto');
+    await settle();
+    const deBeto = engine.getState().lastSyncedAt;
+    // Un reloj que se distingue: lo que se estampe al volver el set de Ana.
+    const luego = Date.now() + 24 * 60 * 60 * 1000;
+    const clock = jest.spyOn(Date, 'now').mockReturnValue(luego);
+    try {
+      release();
+      await settle();
+    } finally {
+      clock.mockRestore();
+    }
+
+    // Pre-fix (sin el corte): `lastSyncedAt: luego` en la sesion de Beto, que
+    // no subio nada.
+    expect({
+      heldSets, // CONTROL: el set de Ana estaba en vuelo al cambiar
+      aterrizo: mockDocSets.map(d => [d.path, d.id]), // CONTROL: volvio bien
+      lastSyncedAt: engine.getState().lastSyncedAt,
+    }).toEqual({
+      heldSets: ['doc1'],
+      aterrizo: [['users/uid-ana/test', 'doc1']],
+      lastSyncedAt: deBeto,
+    });
+    engine.stop();
+  });
+
   it('si el set de Ana no resuelve NUNCA, Beto igual sube lo suyo', async () => {
     const {engine, heldSets} = await anaWithHeldPush(
       [anaEntry('doc-ana', 'de-ana')],
@@ -6415,6 +6457,41 @@ describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
     engine.stop();
     g.release();
     await settle();
+  });
+
+  it('R9-187: un lote que lanza fuera de su guarda no para la cadena: los lotes de detras corren', async () => {
+    // Hoy nada lanza fuera del `try` de `handleSnapshot`, asi que el `.catch`
+    // de la cadena no se alcanza. Se queda por su costo: sin el, un lote que
+    // lanzara dejaria la cadena rechazada, y ningun lote posterior de la
+    // coleccion correria hasta el `stop()`, sin un aviso.
+    const uid = 'uid-187-cadena';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    const lote = jest
+      .spyOn(
+        engine as unknown as {handleSnapshot: () => Promise<void>},
+        'handleSnapshot',
+      )
+      .mockRejectedValueOnce(new Error('fuera de la guarda'));
+    write(uid, 'doc-a', {value: 'a', updatedAt: T + MIN});
+    await settle();
+    write(uid, 'doc-b', {value: 'b', updatedAt: T + 2 * MIN});
+    await settle();
+    const lotes = lote.mock.calls.length;
+    lote.mockRestore();
+
+    // Sin el `.catch`, el rechazo del primer lote se escapa de la cadena, y jest
+    // lo reporta como el fallo de esta prueba antes de llegar aqui. La cadena
+    // queda rechazada, y un `.then` sobre una promesa rechazada no corre su
+    // lote: ninguno de detras correria.
+    expect({
+      lotes, // CONTROL: el primero lanzo, y hubo otro detras
+      avisado: loggerErrorSpy.mock.calls.some(([m]) =>
+        String(m).includes('snapshot batch threw outside its own guard'),
+      ),
+      local: localStore.get('doc-b')?.value ?? null,
+    }).toEqual({lotes: 2, avisado: true, local: 'b'});
+    engine.stop();
   });
 
   it('la respuesta que llega despues del plazo se descarta', async () => {

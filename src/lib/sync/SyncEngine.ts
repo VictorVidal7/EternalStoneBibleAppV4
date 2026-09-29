@@ -1083,7 +1083,13 @@ export class SyncEngine {
    * The chain lives on the engine, not on the listener: a re-attach within the
    * same session (`unregister` + `register`) keeps waiting behind the old
    * listener's batch still in flight. `stop()` drops the chains, so the next
-   * session never waits behind the last one's.
+   * session never waits behind the last one's (the engine's chains only: see
+   * `stop()`).
+   *
+   * R9-187 — the `.catch` is unreachable today (`handleSnapshot` keeps all it
+   * does inside its own `try`) and stays for what it costs to lose it: a
+   * rejected tail runs no later batch, so the collection would stop syncing
+   * until `stop()`, without a word.
    */
   private enqueueSnapshot(
     collection: string,
@@ -2585,12 +2591,14 @@ export class SyncEngine {
     item: PendingWrite,
   ): Promise<void> {
     // R9-104 — the path is the OWNER's, never "whoever is signed in by the
-    // time this line runs". `flush()` stops at the first `await` that comes
-    // back in another session, so today both are always the same uid; this
-    // makes it true by construction instead of by timing.
-    if (item.uid !== this.uid) {
-      throw new Error('engine inactive or on another account during push');
-    }
+    // time this line runs": a push that runs after a `stop()` can only land in
+    // its owner's cloud. `flush()` does not call this out of its session (both
+    // of its branches stop at the first `await` that comes back in another
+    // one), so today the two are always the same uid; the path makes it true
+    // by construction instead of by timing. A guard that threw when they
+    // differed, in this same synchronous block, only duplicated it and is gone
+    // (R9-187): at worst, a push issued out of its session goes to its
+    // owner's path, which another account's token cannot write.
     const ref = firestoreFn()
       .collection(`users/${item.uid}/${item.collection}`)
       .doc(toDocId(item.id));
