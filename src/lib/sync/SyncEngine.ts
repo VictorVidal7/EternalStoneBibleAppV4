@@ -387,6 +387,11 @@ export class SyncEngine {
    * has to push it (see `resolveConflict`). Cleared with the conflicts.
    */
   private conflictsWrittenHere = new Set<string>();
+  /** R9-190 — per doc (`suppressKey`), the `updatedAt` of the last write of
+   *  this device the server took in this session: a copy a read finds with
+   *  that clock is this device's own (see `isOwnCopy`). In memory only, and
+   *  cleared on `stop()`: another account's writes are not this one's. */
+  private ownAcked = new Map<string, number>();
   /**
    * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
    * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
@@ -611,6 +616,7 @@ export class SyncEngine {
     // window while it waited (R9-160).
     this.conflicts = [];
     this.conflictsWrittenHere.clear();
+    this.ownAcked.clear();
     // Quota hardening — drop the in-memory cursor cache so a later
     // start() (same uid signing back in, or a DIFFERENT uid on the same
     // device) always re-derives cursors from AsyncStorage (uid-scoped
@@ -1289,8 +1295,20 @@ export class SyncEngine {
           // the user choosing, or, dropped (R9-33), left the cloud and this
           // phone apart. Any other doc is settled: the write lands after
           // whatever was held.
+          //
+          // R9-190 — only a copy of the OTHER device carries the mark. When the
+          // copy found is this device's own (the queued write itself, or one
+          // the server already took: the user restored their own backup, whose
+          // echo left the query), moving the mark to it made a restart show
+          // «mine» against «mine» (`remoteTs === heldAt`, R9-181), and keeping
+          // «theirs» there dropped the newer edit. It is settled, as before
+          // R9-185.
           if (justDropped || this.hasQueuedWrite(uid, adapter.collection, id)) {
-            if (currentData && this.isHeldConflict(adapter.collection, id)) {
+            if (
+              currentData &&
+              this.isHeldConflict(adapter.collection, id) &&
+              !this.isOwnCopy(uid, adapter.collection, id, currentData)
+            ) {
               hold(id, currentData.updatedAt, true);
             } else {
               settle(id);
@@ -1811,9 +1829,7 @@ export class SyncEngine {
           error: err instanceof Error ? err.message : String(err),
         });
       }
-      // R9-186 — which of those conflicts the attach has to read. Unreadable,
-      // it reads none: they stay held at their mark, which holds the floor
-      // down (R9-164), like an unreadable conflict list degrades above.
+      // R9-186 — which of those conflicts the attach has to read.
       try {
         const raw = await AsyncStorage.getItem(
           rereadStorageKey(collection, uid),
@@ -2053,6 +2069,24 @@ export class SyncEngine {
       component: 'SyncEngine',
       conflictId,
     });
+  }
+
+  /** R9-190 — whether `copy` is a write of THIS device: the one of the doc
+   *  still queued, or the last one the server took in this session. By
+   *  `updatedAt`: a copy of the other device stamped with the very same
+   *  millisecond would be taken for this device's own. */
+  private isOwnCopy(
+    uid: string | null,
+    collection: string,
+    id: string,
+    copy: Record<string, unknown>,
+  ): boolean {
+    const ts = updatedAtOf(copy);
+    const queued = this.queue.find(
+      q => q.uid === uid && q.collection === collection && q.id === id,
+    );
+    if (queued && updatedAtOf(queued.data) === ts) return true;
+    return this.ownAcked.get(suppressKey(collection, id)) === ts;
   }
 
   /** R9-161 — see `conflictsWrittenHere`. */
@@ -2545,6 +2579,12 @@ export class SyncEngine {
             lastSyncedAt: Date.now(),
             lastError: null,
           });
+          // R9-190 — see `ownAcked`. After the session check: a push that
+          // lands once the next account signed in is not that account's.
+          this.ownAcked.set(
+            suppressKey(item.collection, item.id),
+            updatedAtOf(item.data as {updatedAt?: unknown}),
+          );
         } catch (err) {
           // R9-104 — a failure that comes back after `stop()` says nothing
           // about the write: the sign-out may be exactly what made it fail.

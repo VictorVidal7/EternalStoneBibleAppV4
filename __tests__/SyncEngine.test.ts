@@ -6281,6 +6281,168 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  const nubeDe = async (uid: string, id: string) => {
+    const snap = await mockCollections.get(`users/${uid}/test`)!.doc(id).get();
+    return snap.exists ? ((snap.data() as Data).value as string) : null;
+  };
+  const suyaDe = (engine: SyncEngine) =>
+    engine.__getConflictsForTests().map(c => c.remoteVersion.value);
+
+  it('R9-190: mi propio respaldo, restaurado con un conflicto retenido, no se lleva la marca: tras reiniciar no aparece «lo mio contra lo mio»', async () => {
+    const uid = 'uid-190-propio';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const vistos: string[] = [];
+    engine.subscribe(st =>
+      vistos.push(
+        ...st.conflicts.map(
+          c => `${c.localVersion.value}|${c.remoteVersion.value}`,
+        ),
+      ),
+    );
+    // importBackup: local y cola con el updatedAt del archivo, bajo el piso.
+    const W0 = {value: 'mi respaldo', updatedAt: T - 2 * DAY};
+    localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W0);
+    await settle();
+    // El usuario edita otra vez, y esa subida falla: espera su reintento.
+    const W2 = {value: 'lo mio nuevo', updatedAt: T + 300_000};
+    localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', W2);
+    await settle();
+    mockSetShouldFail = false;
+    const cola = engine.__getQueueForTests().map(q => [q.id, q.attempts]);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la guarda (R9-185) pasaba la marca a MI respaldo, y tras
+    // reiniciar `remoteTs === heldAt` lo mostraba como «su version» contra W2;
+    // elegir «lo suyo» perdia W2.
+    expect({
+      removed: removedDelivered(uid), // CONTROL: el eco de W0 y la reversion de W2
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL: W0 llego a la nube
+      cola, // CONTROL: W2 en cola tras un intento
+      // cualquier lista publicada con MI respaldo como «su version»
+      fantasma: vistos.filter(v => v.endsWith('|mi respaldo')),
+      conflictos: engine.__getConflictsForTests().map(c => c.docId),
+      marca: await persisted(uid),
+    }).toEqual({
+      removed: ['doc-c', 'doc-c'],
+      nube: 'mi respaldo',
+      cola: [['doc-c', 1]],
+      fantasma: [],
+      conflictos: [],
+      marca: {unsettled: {}, conflicted: []},
+    });
+    engine.stop();
+  });
+
+  it('R9-190: mi respaldo leido ANTES de que el servidor confirme su subida tampoco se lleva la marca', async () => {
+    // La lectura del `removed` de mi eco puede volver antes que el ack: la
+    // escritura sigue en la cola, y es su copia la que encuentra.
+    const uid = 'uid-190-sin-ack';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    let ack!: () => void;
+    mockSetGate = (_p, id) =>
+      id === 'doc-c' ? new Promise<void>(r => (ack = r)) : undefined;
+    const W0 = {value: 'mi respaldo', updatedAt: T - 2 * DAY};
+    localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W0);
+    await settle();
+    const enCola = engine.__getQueueForTests().map(q => q.id);
+    const marca = await persisted(uid);
+    // El usuario edita otra vez, y la app se cierra antes del ack.
+    const W2 = {value: 'lo mio nuevo', updatedAt: T + 300_000};
+    localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W2);
+    engine.stop();
+    mockSetGate = null;
+    ack();
+    await engine.start(uid);
+    await settle();
+
+    // Sin reconocer la escritura en cola como propia, la marca pasaba a mi
+    // respaldo mientras el ack no llegaba (medido: la marca, no un fantasma
+    // tras este reinicio; el fantasma lo muestra la prueba de arriba).
+    expect({
+      removed: removedDelivered(uid), // CONTROL: el eco de W0 salio de la query
+      enCola, // CONTROL: W0 seguia en cola cuando volvio la lectura
+      marca,
+      conflictos: engine
+        .__getConflictsForTests()
+        .map(c => [c.localVersion.value, c.remoteVersion.value]),
+    }).toEqual({
+      removed: ['doc-c'],
+      enCola: ['doc-c'],
+      marca: {unsettled: {}, conflicted: []},
+      conflictos: [],
+    });
+    engine.stop();
+  });
+
+  it('R9-190: lo que el servidor le tomo a Ana no hace «mia» una copia de Beto con el mismo reloj', async () => {
+    // Vigila que las escrituras tomadas de una cuenta se olviden con su
+    // sesion. El mismo milisegundo en las dos cuentas es a proposito.
+    const ana = 'uid-190-ana';
+    const beto = 'uid-190-beto';
+    const T = Date.now() - HOUR;
+    const K = T - DAY;
+    const {engine, localStore} = await engineFor(ana, T);
+    const deAna = {value: 'de ana', updatedAt: K};
+    localStore.set('doc-c', deAna as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', deAna);
+    await settle();
+    const subioAna = mockDocSets.some(
+      s => s.path === `users/${ana}/test` && s.id === 'doc-c',
+    );
+    engine.stop();
+    // Beto, en el mismo telefono: conflicto L/R retenido en doc-c.
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', beto), String(T));
+    localStore.set('doc-c', {
+      value: 'lo mio',
+      updatedAt: T + 60_000,
+    } as unknown as SyncEntity<TestEntity>);
+    await engine.start(beto);
+    await settle();
+    write(beto, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+    await settle();
+    const conflicto = suyaDe(engine);
+    // Beto edita y la subida falla; su otro telefono restaura un respaldo con
+    // el reloj K.
+    const editada = {value: 'lo mio editado', updatedAt: T + 120_000};
+    localStore.set('doc-c', editada as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', editada);
+    await settle();
+    write(beto, 'doc-c', {value: 'respaldo de beto', updatedAt: K});
+    await settle();
+    mockSetShouldFail = false;
+    engine.stop();
+    await engine.start(beto);
+    await settle();
+
+    expect({
+      subioAna, // CONTROL
+      conflicto, // CONTROL
+      removed: removedDelivered(beto), // CONTROL
+      conflictos: suyaDe(engine),
+    }).toEqual({
+      subioAna: true,
+      conflicto: ['lo suyo'],
+      removed: ['doc-c'],
+      conflictos: ['respaldo de beto'],
+    });
+    engine.stop();
+  });
+
   it('R9-186: la lectura vence el plazo: la marca queda y el proceso siguiente lo lee', async () => {
     const uid = 'uid-186-plazo';
     const T = Date.now() - HOUR;
