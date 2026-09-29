@@ -211,7 +211,21 @@ Los 3 worktrees quedaron limpios, y las junctions se borraron con `.Delete()`.
 
 ---
 
-## 7. Lecciones
+## 7. La decisión de `R9-181`
+
+Victor la delegó al orquestador («a tu mejor criterio»). Se eligió **la (b), acotada a los docs con
+la marca de conflicto**: la rama retenida de `applyRemoteChange` vuelve a detectar el conflicto
+también ante una re-entrega MÁS VIEJA con campos distintos.
+
+- Sin eso, un conflicto retenido cuya nube quedó por debajo del piso se disuelve en silencio tras
+  reiniciar, y deja divergentes para siempre al teléfono (L) y a la nube (X). Con (b), el usuario
+  elige entre L y X, y cualquiera de las dos salidas converge.
+- Los docs sin marca siguen igual (`R9-126`).
+- El porqué entero y lo que falta medir están en la entrada de `R9-181`.
+
+---
+
+## 8. Lecciones
 
 - **La pregunta de la 25 rindió otra vez.** «¿Quién más escribe mientras el caso espera?» encontró
   en un `await` NUEVO lo que ninguna prueba de la 26 miraba. Y la respuesta no estaba en el motor

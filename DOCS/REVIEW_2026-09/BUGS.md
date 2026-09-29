@@ -298,8 +298,8 @@
 >   - 1 P2: `R9-175`, un lote cortado a mitad pierde lo que le faltaba si otro lote adelantó el
 >     cursor. Ya existía, y la 26 lo agranda;
 >   - 3 P3 sobre la lectura del `removed`: `R9-176`, `R9-177` y `R9-178`;
->   - 3 P3 sobre las pruebas y el diseño: `R9-179`, `R9-180` y `R9-181` (este último, decisión de
->     Victor).
+>   - 3 P3 sobre las pruebas y el diseño: `R9-179`, `R9-180` y `R9-181` (este último lo decidió
+>     el orquestador, por delegación de Victor: la (b)).
 > - **Notas nuevas en `R9-124`, `R9-126` y `R9-164`.**
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **181**. Detalle:
@@ -2556,7 +2556,7 @@ colección, id)` (`:1787`), no aplicar la respuesta a ese doc, y mantener la ló
     ack). Si con eso nada la hace caer, medir si la guarda es equivalente por construcción
     (corolario 37).
 
-- **`R9-181` (S27, `SyncEngine` / conflictos — P3, decisión de Victor) — 🐛 retener un conflicto
+- **`R9-181` (S27, `SyncEngine` / conflictos — P3, decidido: la (b)) — 🐛 retener un conflicto
   «CON su marca, a su `updatedAt` nuevo» tras su `removed` no sirve después de reiniciar: la
   justificación del diseño de la 26 es falsa.** MEDIDO con sonda (A1, sondas B y B-con-P7),
   verificado por el orquestador en el código.
@@ -2579,6 +2579,29 @@ colección, id)` (`:1787`), no aplicar la respuesta a ese doc, y mantener la ló
     - (b) si el conflicto tiene que sobrevivir al reinicio, que la rama retenida lo vuelva a detectar
       también ante una re-entrega MÁS VIEJA con campos distintos. Eso toca la semántica de
       `R9-126`.
+  - **✅ DECIDIDO (sesión 27, delegado por Victor: «a tu mejor criterio»): la (b), acotada a los docs
+    con la marca.** Se quita `remoteTs > localTs` de la rama retenida (`SyncEngine.ts:1314-1317`).
+    Por qué:
+    - La marca existe para que la nube no decida por el usuario (`R9-160`), pero la rama solo miraba
+      una dirección. Con una re-entrega más vieja, el LWW se queda con L en silencio: el conflicto
+      desaparece sin que el usuario elija, y la nube (X) y el otro teléfono quedan divergentes para
+      siempre. Con (b), el usuario elige entre L y X, y las dos salidas convergen (`keepMine` sube
+      L; `keepTheirs` aplica X, y sube si hace falta, por `R9-161`).
+    - Una re-entrega más vieja FUERA de la ventana de 30 s solo llega en el caso de `R9-124` (una
+      reescritura por debajo del piso): dentro de la ventana, la detección normal ya la ve.
+    - Los docs sin marca no cambian: `R9-126` sigue igual para ellos. Sale de `R9-126` solo el caso
+      «un conflicto retenido que cayó por debajo del piso» (nota de la 26 ahí).
+    - Con (b), retener el conflicto a su `updatedAt` nuevo (el diseño de la 26) sí sirve.
+  - **Para la sesión de arreglos:**
+    - la prueba que falta: tras el `removed` con una versión más vieja, reiniciar y re-entregar; el
+      conflicto vuelve (L contra X). Vista fallar primero;
+    - un control: sin marca, la misma re-entrega más vieja va por LWW y no crea un conflicto;
+    - corregir el comentario de `:1308-1312` y el de `:1101-1105`;
+    - revisar un eco propio más viejo que lo local sobre un doc con la marca: solo es posible entre
+      el arranque y la primera re-entrega del doc (después el conflicto ya está en memoria y lo
+      maneja la rama `pending`). Medilo, no lo supongas.
+    - El costo: un conflicto retenido mantiene el piso bajo hasta que se resuelve, como cualquier
+      conflicto pendiente. Es el tope de cuota, que sigue siendo decisión de Victor.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

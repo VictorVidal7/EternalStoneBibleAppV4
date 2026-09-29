@@ -311,8 +311,8 @@
 > - **La matriz entera, re-medida:** igual que en la 26. Pero G7 discrimina solo gracias al mock.
 > - **7 hallazgos nuevos, `R9-175`..`R9-181`, ninguno P0:** 1 P2 (`R9-175`: lotes sin serializar
 >   que pierden un cambio si uno se corta y otro adelantó el cursor) y 6 P3. `R9-176`..`R9-178` son
->   ventanas de la lectura del `removed`; `R9-179`..`R9-181` son pruebas y diseño, y el último es
->   decisión de Victor.
+>   ventanas de la lectura del `removed`; `R9-179`..`R9-181` son pruebas y diseño, y el último quedó
+>   decidido (la (b), por delegación de Victor).
 > - **El arreglo de `R9-124` se sostiene**, también por el camino real de la cola.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **181**. Rama `docs/review-s27-diff-s26`, sin

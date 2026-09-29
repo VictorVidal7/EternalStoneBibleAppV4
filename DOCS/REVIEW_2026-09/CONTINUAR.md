@@ -487,7 +487,9 @@ la terminal). **Lo siguiente es el (h).**
 > 3. **`R9-179` y `R9-180` (P3, pruebas):** el eco propio en el mock, y quitar o derivar
 >    `isSyncing`. Ojo: con el eco propio caen 4 pruebas de `R9-104` por el fixture (un solo almacén
 >    para las dos cuentas); con `@sync_first_push_done:uid-beto` pasan.
-> 4. **`R9-181`:** preguntame antes, (a) o (b).
+> 4. **`R9-181`:** ya decidido, la (b) acotada a los docs con la marca. Quitar `remoteTs > localTs`
+>    de la rama retenida. La prueba que falta, el control y el eco propio a medir están en su
+>    entrada de `BUGS.md`.
 > 5. **`R9-177`:** leer primero de la caché. Solo con mi OK y midiendo en Modo C, en el emulador.
 >
 > Cada prueba, vista fallar primero, y cada pieza revertida por separado. Re-medí la matriz entera
@@ -1023,8 +1025,8 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 28: el mensaje (h), arreglar lo de la 27** (`R9-175`..`R9-180`, y
-`R9-181` según decida Victor), solo en la terminal. La nube no es una opción. Lo de abajo es el menú
+**Recomendado para la sesión 28: el mensaje (h), arreglar lo de la 27** (`R9-175`..`R9-181`;
+`R9-181` ya está decidido, la (b)), solo en la terminal. La nube no es una opción. Lo de abajo es el menú
 de siempre para después.
 
 **Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
@@ -1329,6 +1331,10 @@ Alternativas legítimas:
   ciegas del conjunto no asentado. Pasa por `applyRemoteChange` y se retiene o se suelta según lo
   que resulte, para que un conflicto pendiente conserve su marca (lo aprobó Victor antes del
   arreglo).
+- **`R9-181` (sesión 27, delegado al orquestador «a su mejor criterio»): la (b), acotada a los
+  docs con la marca.** La rama retenida vuelve a detectar el conflicto también ante una re-entrega
+  MÁS VIEJA con campos distintos. Los docs sin marca siguen como `R9-126`. El porqué está en la
+  entrada de `R9-181`.
 - **Cuando avise del límite de uso de 5 h, la prioridad es volcar a disco y commitear, no
   terminar de verificar.** Es lo que se decidió en la sesión 6 y por eso existe la deuda de
   re-verificación del `⛔` de arriba: fue un intercambio consciente, no un olvido.
