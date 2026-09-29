@@ -1,11 +1,12 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-29, fin de la sesión 29.** La 29 hizo el (i): revisó el diff de
-> la 28, solo en la terminal y sin agentes, sin tocar código. Registró 4 hallazgos P3,
-> `R9-185`..`R9-188`. El principal: la guarda de `R9-176` desarma a `R9-181`, que se arregló en el
-> mismo diff. El checkpoint va en `docs/review-s29-diff-s28`, que **no se mergea sin el OK de
-> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 188 hallazgos. **Lo siguiente es el mensaje (j):
-> arreglar lo de la 29.**
+> **Última actualización: 2026-09-29, fin de la sesión 30.** La 30 hizo el (j): arregló
+> `R9-182`..`R9-188` en `fix/s30-sync-r9185-r9188`, un commit por hallazgo, con 3 agentes que solo
+> midieron. Uno de ellos encontró dos defectos que abrieron los propios arreglos (`R9-190` y
+> `R9-191`), y se arreglaron en la misma rama. Quedan abiertos 4 nuevos (`R9-189`, `R9-192`..
+> `R9-194`); dos esperan decisiones de Victor. El checkpoint va en `docs/review-s30-fix-s29`, y
+> **ninguna de las dos ramas se mergea sin el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y
+> hay 194 hallazgos. **Lo siguiente es el mensaje (k): revisar el diff de la 30.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -460,9 +461,61 @@ sesión 23), los ARREGLOS (la (c), sesión 24, en la nube), la revisión del dif
 sesión 25, en la nube), sus arreglos (la (e), también en la 25), `R9-124` en Modo C con su arreglo
 (la (f), sesión 26, solo en la terminal), la revisión del diff de la 26 (la (g), sesión 27, solo en
 la terminal), sus arreglos (la (h), sesión 28, solo en la terminal) y la revisión del diff de la
-28 (la (i), sesión 29, solo en la terminal). **Lo siguiente es el (j).**
+28 (la (i), sesión 29, solo en la terminal) y sus arreglos (la (j), sesión 30, en la terminal con
+3 agentes que solo midieron). **Lo siguiente es el (k).**
 
-**(j) Sesión 30: arreglar lo de la 29.**
+**(k) Sesión 31: revisar el diff de la 30.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (k) y la sección 5) y, en la memoria, la de la sesión 30 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo. Este chat gasta mi cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s30-sync-r9185-r9188` y `docs/review-s30-fix-s29`, pedime el
+>   OK para el fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 194. El detalle de la 30 está en
+>   `detail/S30-arreglos-de-la-29.md`, y las sondas y los informes de los agentes en
+>   `_scratch/S30-*.txt`.
+>
+> **Esta sesión revisa el diff de la 30** (`678a4be..45d2f41`: `SyncEngine.ts` y
+> `SyncEngine.test.ts`), en local:
+>
+> - **las piezas nuevas:** `isOwnCopy` por milisegundo y `ownAcked` en memoria (`R9-190`); la
+>   marca `reread` persistida, el lote sintético del enganche y el `fromRead` de la rama retenida
+>   (`R9-186`, `R9-191`); el `Map` de `R9-182` que `stop()` no vacía; el salto de `R9-184`; el
+>   cursor de `resolveConflict` por la cadena (`R9-183`);
+> - **corolario 42 sobre cada una:** ¿qué marca suelta o retiene, y cuál hizo durable otro arreglo
+>   del mismo diff?
+> - **las pruebas nuevas:** ¿su nombre y su comentario dicen solo lo que miden? (dos veces en la
+>   30 la pieza tumbaba el mecanismo y no la consecuencia);
+> - re-medir la matriz entera con `_scratch/S30-matriz.cjs.txt`;
+> - lo nuevo se registra desde `R9-195`. Checkpoint en una rama `docs/...`, sin mergear sin mi OK.
+>
+> **Mis decisiones pendientes de la 30 (no las tomes vos):**
+>
+> - `R9-192`: integrar o no P2/P3 de A2 (en la sesión, el conflicto pasa a mostrar la copia de la
+>   nube; cambia lo que ve el usuario);
+> - `R9-193`: los «sellos propios» de A3 y cómo unificarlos con `ownAcked` de `R9-190`.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-189` y `R9-194` (sin arreglar), y `R9-177` (Modo C en el emulador, con mi OK), que también
+>   cierra el orden «rechazo antes que reversión» del que depende `R9-182`;
+> - `R9-38`, que depende de `R9-59`;
+> - terminar `A12`;
+> - `R9-164` con la app cerrada (el respaldo del otro teléfono, los huérfanos de un `deleteAccount`
+>   fallido y el corte durante la lectura);
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`;
+> - `R9-173` (ya decidido: extender la opción (b)) y `R9-174`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(j) Sesión 30: arreglar lo de la 29 — ya HECHO en la sesión 30, solo en la terminal y con 3
+agentes en worktree (solo para medir).** Queda aquí como registro.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (j) y la sección 5) y, en la memoria, la de la sesión 29 y la regla fija de las pruebas
@@ -997,20 +1050,24 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 29 (2026-09-29).**
+**Medido al cerrar la sesión 30 (2026-09-29).**
 
-- **`main` = `origin/main` = `e1c356c`** (el checkpoint de la 28; el último código es `53e79fa`).
-  **CI verificado en el log:** run `36606915072`, 3 jobs verdes, Node v24.21.0, 367/4433, cero
-  «failed to run».
-- **Una rama de la 29, sin mergear a propósito y sin pushear:** `docs/review-s29-diff-s28`, con el
-  checkpoint (solo el ledger), sobre `e1c356c`. Se mergea en fast-forward con el OK de Victor. Si ya
-  se mergeó, `main` la incluye.
-- Las ramas de la 28 ya se mergearon y se borraron tras `git cherry`. El worktree de la matriz de
-  la 29 (`C:/projects/essb-s29-wt`) se borró: primero su junction de `node_modules`, con
-  `.Delete()`.
+- **`main` = `origin/main` = `678a4be`** (el checkpoint de la 29; el último código en `main` es
+  `53e79fa`). **CI verificado en el log:** run `36613268918`, 3 jobs verdes, Node v24.21.0,
+  367/4433, cero «failed to run».
+- **Dos ramas de la 30, apiladas, sin mergear a propósito y sin pushear:**
+  - `fix/s30-sync-r9185-r9188`, sobre `678a4be`: los arreglos, un commit por hallazgo, hasta
+    `45d2f41`;
+  - `docs/review-s30-fix-s29`, encima: el checkpoint (solo el ledger).
+
+  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+
+- Los worktrees de los 3 agentes y el de la matriz de la 30 (`C:/projects/essb-s30m`) se borraron,
+  cada junction de `node_modules` antes, con `.Delete()`. Las ramas de los agentes se borraron tras
+  `git cherry` (no tenían commits propios); sus diffs están en `_scratch/S30-A*`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 29):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 30):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1186,6 +1243,18 @@ Alternativas legítimas:
   `R9-181` volvió durable. «Decide el eco» tiene que decir qué pasa si el eco no llega, o si llega y
   su reversión lo suelta. Y un plazo del motor (`withDeadline`) suelta el `await`, no el ejecutor
   nativo de RNFB (`R9-186`).
+- **Un arreglo de la sesión puede abrir su propio vecino, y lo ve mejor quien busca romperlo
+  (sesión 30, `R9-190`).** H1 movía la marca a «la copia que encontró la lectura», medido contra la
+  copia del OTRO; la copia PROPIA (un respaldo restaurado) daba «lo mío contra lo mío». Ante una
+  marca que se mueve a una copia, preguntá de quién puede ser esa copia.
+- **Una pieza que caía en el worktree del agente puede no caer en el propio (sesión 30).** P1q de
+  A2 caía por un fantasma que solo mostraban otras dos piezas que no se integraron. Re-medí cada
+  pieza en el árbol que vas a commitear; no copies la tabla del informe.
+- **Un comentario de prueba que dice la consecuencia tiene que verla (sesión 30).** Dos veces el
+  revert tumbó el mecanismo sin llegar a la consecuencia (el `.catch` de la cadena, la escritura en
+  cola de `R9-190`): se corrigió el comentario en vez de afirmar lo no visto.
+- **Python en Windows escribe CRLF** (`open(..., 'w')` sin `newline=''`): tras un script sobre un
+  `.md`, `sed -i 's/\r$//'` o `newline=''`.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

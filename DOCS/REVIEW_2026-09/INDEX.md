@@ -342,6 +342,18 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **188**. Rama `docs/review-s29-diff-s28`, sin
 > mergear hasta el OK. Detalle: `detail/S29-revision-del-diff-s28.md`.
+>
+> **Sesión 30 (2026-09-29): ARREGLOS de lo de la 29, solo en la terminal.** Las ramas de la 29 ya
+> estaban mergeadas: `main` = `origin/main` = `678a4be`, con el CI verde en el log (run
+> `36613268918`, 367/4433). A pedido de Victor, 3 agentes en worktree que solo midieron.
+>
+> - **9 hallazgos cerrados:** `R9-182`..`R9-188`, y `R9-190` y `R9-191`, que abrieron los propios
+>   arreglos de la sesión y encontró un agente.
+> - **4 hallazgos nuevos abiertos:** `R9-189`, `R9-192`, `R9-193` y `R9-194`. Dos (`R9-192` y
+>   `R9-193`) tienen hipótesis medidas que cambian comportamiento: decisión de Victor.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **194**. Ramas `fix/s30-sync-r9185-r9188` y
+> `docs/review-s30-fix-s29`, sin mergear hasta el OK. Detalle: `detail/S30-arreglos-de-la-29.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -824,6 +836,25 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
       línea por línea;
     - **el orden del mock decide qué guarda hace falta:** con el de RNFB, una sola guarda cubre
       `R9-176` y `R9-178`.
+
+- **Sesión 30 — 2026-09-29. Arreglos de lo de la 29 (y de la 28).** Solo en la terminal; a
+  pedido de Victor, 3 agentes en worktree que solo midieron.
+  - **Cómo se trabajó:**
+    - un commit por hallazgo, cada prueba vista fallar con su pieza revertida
+      (`_scratch/S30-matriz.cjs.txt`);
+    - `R9-186` se midió antes de elegir (retener sin releer contra releer en el próximo enganche);
+    - A1 midió `R9-182`..`R9-184`; A2 buscó romper los arreglos nuevos; A3 midió el reloj atrasado;
+    - cada diff de agente se leyó contra su informe y cada pieza se re-midió en el árbol propio;
+    - la matriz entera, en un worktree aparte.
+  - **Resultado:** 9 cerrados (`R9-182`..`R9-188`, `R9-190`, `R9-191`); 4 nuevos abiertos
+    (`R9-189`, `R9-192`..`R9-194`); notas en `R9-126`, `R9-164`, `R9-174` y `R9-177`.
+  - **Detalle: `detail/S30-arreglos-de-la-29.md`.**
+  - **Las lecciones:**
+    - **un arreglo de la sesión abrió su propio vecino** (`R9-190`): ante una marca que se mueve a
+      «la copia que encontró la lectura», preguntá de quién puede ser esa copia;
+    - **un comentario que compara dos modos de fallo es una afirmación** (`R9-191`);
+    - **una pieza que caía en el worktree del agente puede no caer en el propio,** si allí la
+      exponían otras piezas que no se integraron: re-medir, no copiar la tabla.
 
 - **Sesión 29 — 2026-09-29. Revisión del diff de la 28.** Solo en la terminal, sin agentes.
   - **Cómo se trabajó:**
