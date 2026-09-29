@@ -5845,6 +5845,100 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
     engine.stop();
   });
+
+  it('R9-185: con un conflicto retenido y una edicion mia en cola, el respaldo del otro no le quita la marca, y tras reiniciar el conflicto vuelve', async () => {
+    const uid = 'uid-185-marca';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // El usuario edita el doc y la subida falla: espera su reintento (R9-33).
+    const editada = {value: 'lo mio editado', updatedAt: T + 120_000};
+    localStore.set('doc-c', editada as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', editada);
+    await settle();
+    const cola = engine.__getQueueForTests().map(q => [q.id, q.attempts]);
+    // El otro telefono restaura un respaldo: el doc sale de la query.
+    const respaldo = {value: 'su respaldo viejo', updatedAt: T - DAY};
+    write(uid, 'doc-c', respaldo);
+    await settle();
+    const marca = await persisted(uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la guarda de R9-176 soltaba el doc y la marca se borraba de
+    // disco mientras la edicion esperaba; tras reiniciar no volvia ningun
+    // conflicto, y la subida se quedaba con lo mio sin que el usuario eligiera.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      cola, // CONTROL: la edicion sigue en cola, tras un intento
+      marca,
+      conflictos: engine
+        .__getConflictsForTests()
+        .map(c => [c.localVersion.value, c.remoteVersion.value]),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      removed: ['doc-c'],
+      cola: [['doc-c', 1]],
+      marca: {unsettled: {'doc-c': T - DAY}, conflicted: ['doc-c']},
+      conflictos: [['lo mio editado', 'su respaldo viejo']],
+      local: 'lo mio editado',
+    });
+    engine.stop();
+  });
+
+  it('R9-176: con una edicion mia en cola, la lectura suelta un doc retenido SIN conflicto (R9-46): el piso no se queda en esa copia mientras la subida espera', async () => {
+    const uid = 'uid-176-suelta';
+    const T = Date.now() - HOUR;
+    const F = T - CURSOR_SAFETY_MARGIN_MS; // el piso de la query
+    const {engine, adapter, localStore} = await engineFor(uid, T);
+    const v1 = {value: 'v1', updatedAt: T + 60_000};
+    localStore.set('doc-e', v1);
+    write(uid, 'doc-e', v1);
+    await settle();
+    mockSetShouldFail = true;
+    const editada = {value: 'editada sin subir', updatedAt: T + 120_000};
+    localStore.set('doc-e', editada);
+    engine.queueWrite('test', 'doc-e', editada);
+    await settle();
+    // Un cambio del otro que este telefono no pudo leer en local: retenido
+    // sin marca de conflicto (R9-46), por debajo del piso del proximo enganche.
+    const getLocal = adapter.getLocal;
+    adapter.getLocal = async () => {
+      throw new Error('disco');
+    };
+    write(uid, 'doc-e', {value: 'suyo', updatedAt: F + 5_000});
+    await settle();
+    adapter.getLocal = getLocal;
+    const retenido = await persisted(uid);
+    // El otro restaura un respaldo: el doc sale de la query.
+    write(uid, 'doc-e', {value: 'su respaldo', updatedAt: T - DAY});
+    await settle();
+    const marca = await persisted(uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      cola: engine.__getQueueForTests().map(q => q.id), // CONTROL
+      retenido, // CONTROL
+      marca,
+      piso: floorOf(uid) - F,
+      local: localStore.get('doc-e')?.value,
+    }).toEqual({
+      removed: ['doc-e'],
+      cola: ['doc-e'],
+      retenido: {unsettled: {'doc-e': F + 5_000}, conflicted: []},
+      marca: {unsettled: {}, conflicted: []},
+      // el cursor (el eco de mi edicion) menos el margen, no la marca (5 s)
+      piso: 120_000,
+      local: 'editada sin subir',
+    });
+    engine.stop();
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

@@ -1165,21 +1165,34 @@ export class SyncEngine {
           }
           // R9-153 — the read is an `await` like any other.
           if (!isCurrent()) return;
+          const currentData = current?.exists ? current.data() : undefined;
           // R9-176 / R9-178 — a write of this device to the doc still waits in
           // the queue: an edit or a delete made during the read, or the
           // resolution of its conflict (keepMine, merge, keepTheirs when it
           // pushes). It lands after whatever the read found, so that answer is
           // already stale: applied, it deleted the edit, revived the deleted
-          // doc, or undid what the user had just kept. The write's own echo
-          // decides instead, and holds the doc again if its conflict still
-          // waits. On RNFirebase the read and the writes share one executor
-          // (R9-177): a write made during the read is not even issued before
-          // the read is back, so it is always still queued here.
+          // doc, or undid what the user had just kept. On RNFirebase the read
+          // and the writes share one executor (R9-177): a write made during the
+          // read is not even issued before the read is back, so it is always
+          // still queued here.
+          //
+          // R9-185 — the answer is not applied, but a held conflict keeps its
+          // mark, moved to the copy the read found: the write's echo never
+          // moves the mark (R9-181), and the rejection that takes the echo back
+          // re-delivers nothing (the doc stays out of the query). Settled here,
+          // the mark left disk for as long as the write waited, and a restart
+          // meanwhile lost the conflict: the write then kept «mine» without
+          // the user choosing, or, dropped (R9-33), left the cloud and this
+          // phone apart. Any other doc is settled: the write lands after
+          // whatever was held.
           if (this.hasQueuedWrite(uid, adapter.collection, id)) {
-            settle(id);
+            if (currentData && this.isHeldConflict(adapter.collection, id)) {
+              hold(id, currentData.updatedAt, true);
+            } else {
+              settle(id);
+            }
             continue;
           }
-          const currentData = current?.exists ? current.data() : undefined;
           if (current && !currentData) {
             // Deleted for real (rare — we soft-delete via tombstone). No
             // timestamp to advance the cursor by — safe to skip: a doc that
