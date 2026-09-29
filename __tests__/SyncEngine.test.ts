@@ -5939,6 +5939,136 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
     engine.stop();
   });
+
+  /** R9-186 — los conflictos retenidos que el proximo enganche tiene que leer. */
+  async function rereadOf(uid: string): Promise<string[]> {
+    const raw = await AsyncStorage.getItem(`@sync_reread_test:${uid}`);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  }
+
+  it('R9-186: la lectura del `removed` de un conflicto retenido falla: conserva la marca, y el enganche siguiente lo lee y vuelve a mostrar el conflicto', async () => {
+    const uid = 'uid-186-falla';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine} = await conflictFor(uid, T, L, R);
+    mockGetShouldFail = true;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    const trasFallo = {
+      marca: await persisted(uid),
+      releer: await rereadOf(uid),
+    };
+    const avisado = loggerWarnSpy.mock.calls.some(([m]) =>
+      String(m).includes('could not tell a removed doc'),
+    );
+    mockGetShouldFail = false;
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la lectura fallida soltaba el doc y la marca se borraba de
+    // disco; el doc ya esta fuera de la query, nada lo volvia a entregar, y
+    // tras reiniciar el conflicto no volvia.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      avisado, // CONTROL: la lectura fallo
+      trasFallo,
+      conflictos: engine
+        .__getConflictsForTests()
+        .map(c => [c.localVersion.value, c.remoteVersion.value]),
+      marca: await persisted(uid),
+      releer: await rereadOf(uid),
+    }).toEqual({
+      removed: ['doc-c'],
+      avisado: true,
+      trasFallo: {
+        marca: {unsettled: {'doc-c': T + 65_000}, conflicted: ['doc-c']},
+        releer: ['doc-c'],
+      },
+      conflictos: [['lo mio', 'su respaldo viejo']],
+      marca: {unsettled: {'doc-c': T - DAY}, conflicted: ['doc-c']},
+      releer: [],
+    });
+    engine.stop();
+  });
+
+  it('R9-186: si la lectura del enganche siguiente tambien falla, lo deja para el otro', async () => {
+    const uid = 'uid-186-otra-vez';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine} = await conflictFor(uid, T, L, R);
+    mockGetShouldFail = true;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    const trasOtroFallo = {
+      conflictos: engine.__getConflictsForTests().length,
+      releer: await rereadOf(uid),
+    };
+    mockGetShouldFail = false;
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    expect({
+      trasOtroFallo,
+      conflictos: engine
+        .__getConflictsForTests()
+        .map(c => [c.localVersion.value, c.remoteVersion.value]),
+    }).toEqual({
+      trasOtroFallo: {conflictos: 0, releer: ['doc-c']},
+      conflictos: [['lo mio', 'su respaldo viejo']],
+    });
+    engine.stop();
+  });
+
+  it('R9-186: la lectura vence el plazo: la marca queda y el proceso siguiente lo lee', async () => {
+    const uid = 'uid-186-plazo';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, adapter} = await conflictFor(uid, T, L, R);
+    engine.__setLookupTimeoutForTests(30);
+    mockGetGate = (_p, id) =>
+      id === 'doc-c' ? new Promise<void>(() => {}) : undefined;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    await new Promise(r => setTimeout(r, 80));
+    await settle();
+    const trasPlazo = {
+      marca: await persisted(uid),
+      releer: await rereadOf(uid),
+    };
+    engine.stop();
+    // Otro proceso: la lectura colgada ya no ocupa el unico hilo de RNFirebase
+    // (R9-177), que un stop() no libera.
+    mockGetGate = null;
+    mockExecutorTail = Promise.resolve();
+    const otro = new SyncEngine();
+    otro.register(adapter);
+    await otro.start(uid);
+    await settle();
+
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      trasPlazo,
+      conflictos: otro
+        .__getConflictsForTests()
+        .map(c => [c.localVersion.value, c.remoteVersion.value]),
+    }).toEqual({
+      removed: ['doc-c'],
+      trasPlazo: {
+        marca: {unsettled: {'doc-c': T + 65_000}, conflicted: ['doc-c']},
+        releer: ['doc-c'],
+      },
+      conflictos: [['lo mio', 'su respaldo viejo']],
+    });
+    otro.stop();
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

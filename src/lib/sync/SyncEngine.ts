@@ -136,8 +136,15 @@ export const CURSOR_SAFETY_MARGIN_MS = 5 * 60 * 1000; // 5 minutes
  * read. The SDK puts no deadline of its own on a `get()`: it answers once the
  * server does, or from cache (or `unavailable`) once it considers itself
  * offline, which its OnlineStateTracker decides 10 s after the stream starts
- * or at its first failure. Generous on purpose: past it, the doc is left as it
- * is locally, while waiting only delays this collection's later batches.
+ * or at its first failure. Generous on purpose: past it, the batch goes on as
+ * if the read had failed (the doc is left as it is locally, and a held
+ * conflict is read again on the next attach: R9-186).
+ *
+ * R9-186 — the deadline releases the engine's `await`, not the SDK. On
+ * RNFirebase every doc `get()`, `set()` and `delete()` of the process runs on
+ * one executor (R9-177): a read that never comes back keeps it busy, and this
+ * device's later writes wait behind it all the same, past the deadline and
+ * past a `stop()` + `start()`, until the process ends.
  */
 export const REMOVED_LOOKUP_TIMEOUT_MS = 60 * 1000;
 
@@ -237,11 +244,24 @@ function conflictedStorageKey(collection: string, uid: string): string {
   return `${CONFLICTED_STORAGE_PREFIX}${collection}:${uid}`;
 }
 
-/** R9-39 / R9-106 — one unsettled doc: the remote `updatedAt` held, and
- *  whether it is held as a pending conflict (R9-160). */
+const REREAD_STORAGE_PREFIX = '@sync_reread_';
+
+/**
+ * R9-186 — which of a collection's held conflicts left the query while the
+ * read that tells where they went failed. A JSON array of doc ids, like
+ * `conflictedStorageKey`.
+ */
+function rereadStorageKey(collection: string, uid: string): string {
+  return `${REREAD_STORAGE_PREFIX}${collection}:${uid}`;
+}
+
+/** R9-39 / R9-106 — one unsettled doc: the remote `updatedAt` held, whether
+ *  it is held as a pending conflict (R9-160), and whether the next attach has
+ *  to read it because no query will deliver it again (R9-186). */
 interface HeldDoc {
   updatedAt: number;
   conflict: boolean;
+  reread?: boolean;
 }
 
 const DROPPED_STORAGE_PREFIX = '@sync_dropped_';
@@ -584,8 +604,10 @@ export class SyncEngine {
     this.unsettledUnsaved.clear();
     // R9-175 — the batches still queued are this session's and will end at
     // their first `isCurrent()`; the next session starts its own chains
-    // instead of waiting behind them (a read that never comes back would
-    // otherwise hold the next account's collection too).
+    // instead of waiting behind them. That frees the engine's chains only
+    // (R9-186): on RNFirebase a read that never comes back still holds the
+    // one native executor (R9-177), and the next session's reads and writes
+    // queue behind it until the process ends.
     this.snapshotTails.clear();
     this.updateState({
       isActive: false,
@@ -1034,6 +1056,26 @@ export class SyncEngine {
       },
     );
     this.unsubs.set(adapter.collection, off);
+
+    // R9-186 — the held conflicts whose `removed` could not be read: no query
+    // delivers them again, so the attach reads them, as the `removed` that
+    // left them would have. A read that fails again keeps them for the next.
+    const reread = [...(this.unsettled.get(adapter.collection) ?? [])]
+      .filter(([, h]) => h.reread)
+      .map(([id]) => id);
+    if (reread.length > 0) {
+      const changes = reread.map(
+        id =>
+          ({
+            type: 'removed',
+            doc: {id: toDocId(id), exists: false, data: () => undefined},
+          }) as unknown as DocumentChange,
+      );
+      const session = this.flushSession;
+      this.enqueueSnapshot(adapter.collection, () =>
+        this.handleSnapshot(adapter, changes, lookup, session, uidAtAttach),
+      );
+    }
   }
 
   /**
@@ -1103,16 +1145,26 @@ export class SyncEngine {
     // change below happens after an `isCurrent()` check, so it is always
     // this session's set.
     let unsettledChanged = false;
-    const hold = (id: string, updatedAt: unknown, conflict = false) => {
+    const hold = (
+      id: string,
+      updatedAt: unknown,
+      conflict = false,
+      reread = false,
+    ) => {
       if (typeof updatedAt !== 'number') return;
       const held = this.unsettledOf(adapter.collection);
       const prev = held.get(id);
       // R9-160 — a conflict stays one until it settles: a later skip of the
       // same doc (R9-46) does not make it forget.
-      const next = {updatedAt, conflict: conflict || prev?.conflict === true};
+      const next = {
+        updatedAt,
+        conflict: conflict || prev?.conflict === true,
+        reread,
+      };
       if (
         prev?.updatedAt === next.updatedAt &&
-        prev.conflict === next.conflict
+        prev.conflict === next.conflict &&
+        (prev.reread === true) === next.reread
       ) {
         return;
       }
@@ -1165,6 +1217,21 @@ export class SyncEngine {
           }
           // R9-153 — the read is an `await` like any other.
           if (!isCurrent()) return;
+          // R9-186 — the read failed or timed out, and the doc is a held
+          // conflict. Settled, its mark left disk: the doc is out of the query,
+          // nothing delivers it again, and after a restart the conflict was
+          // gone. Kept as it is, it holds the floor down for good instead
+          // (R9-164): no delivery ever settles it. So it keeps its mark and the
+          // next attach reads it again.
+          if (!current && this.isHeldConflict(adapter.collection, id)) {
+            hold(
+              id,
+              this.unsettledOf(adapter.collection).get(id)?.updatedAt,
+              true,
+              true,
+            );
+            continue;
+          }
           const currentData = current?.exists ? current.data() : undefined;
           // R9-176 / R9-178 — a write of this device to the doc still waits in
           // the queue: an edit or a delete made during the read, or the
@@ -1235,6 +1302,7 @@ export class SyncEngine {
           adapter,
           remoteChange,
           isCurrent,
+          fromRead,
         );
         if (!isCurrent()) return;
         if (!localKnown) {
@@ -1345,6 +1413,7 @@ export class SyncEngine {
     adapter: AnyAdapter,
     change: RemoteChange<Record<string, unknown>>,
     isCurrent: () => boolean,
+    fromRead = false,
   ): Promise<boolean> {
     const {id, data, deleted} = change;
     let local: SyncEntity<Record<string, unknown>> | null;
@@ -1452,10 +1521,12 @@ export class SyncEngine {
       //   other older copy is this device's own earlier write, whose echo
       //   never moves the mark (see `handleSnapshot`): the user edited the
       //   doc again since, and that is no conflict with the other device.
+      // - Read, not delivered (R9-186): the cloud's copy of a doc that left
+      //   the query, whatever its age.
       const heldAt = this.unsettled.get(adapter.collection)?.get(id)?.updatedAt;
       if (
         !pending &&
-        (remoteTs > localTs || remoteTs === heldAt) &&
+        (remoteTs > localTs || remoteTs === heldAt || fromRead) &&
         this.isHeldConflict(adapter.collection, id)
       ) {
         const differing = this.conflictFields(adapter, local, data, deleted);
@@ -1699,6 +1770,25 @@ export class SyncEngine {
           error: err instanceof Error ? err.message : String(err),
         });
       }
+      // R9-186 — which of those conflicts the attach has to read. Unreadable,
+      // it reads none: they stay held at their mark, which holds the floor
+      // down (R9-164), like an unreadable conflict list degrades above.
+      try {
+        const raw = await AsyncStorage.getItem(
+          rereadStorageKey(collection, uid),
+        );
+        const ids: unknown = raw != null ? JSON.parse(raw) : [];
+        for (const id of Array.isArray(ids) ? ids : []) {
+          const doc = typeof id === 'string' ? held.get(id) : undefined;
+          if (doc?.conflict) doc.reread = true;
+        }
+      } catch (err) {
+        logger.warn('SyncEngine: failed to read the conflicts to read again', {
+          component: 'SyncEngine',
+          collection,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
     // Only this session's cache: after a `stop()` it is the next account's.
     if (session === this.flushSession && !this.unsettled.has(collection)) {
@@ -1728,6 +1818,7 @@ export class SyncEngine {
     const held = [...this.unsettledOf(collection)];
     const heldAt = Object.fromEntries(held.map(([id, h]) => [id, h.updatedAt]));
     const conflicted = held.filter(([, h]) => h.conflict).map(([id]) => id);
+    const reread = held.filter(([, h]) => h.reread).map(([id]) => id);
     let saved = false;
     if (uid) {
       try {
@@ -1743,6 +1834,13 @@ export class SyncEngine {
           await AsyncStorage.removeItem(conflictedKey);
         } else {
           await AsyncStorage.setItem(conflictedKey, JSON.stringify(conflicted));
+        }
+        // R9-186 — which of them the next attach reads.
+        const rereadKey = rereadStorageKey(collection, uid);
+        if (reread.length === 0) {
+          await AsyncStorage.removeItem(rereadKey);
+        } else {
+          await AsyncStorage.setItem(rereadKey, JSON.stringify(reread));
         }
         saved = true;
       } catch (err) {
