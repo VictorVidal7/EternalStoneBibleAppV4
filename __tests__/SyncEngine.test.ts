@@ -2192,6 +2192,141 @@ describe('R9-33 — retry backoff y la senal de descarte', () => {
   });
 });
 
+describe('R9-182 — cuando el motor se rinde, la reversion del rechazo no borra la copia local', () => {
+  // El SDK muestra el `set()` en el acto y, al rechazarlo, lo retira de su
+  // vista: si la nube no tiene el doc, sale de la query como `removed`. Mientras
+  // la escritura sigue en la cola la guarda de R9-176 lo cubre, pero el rechazo
+  // llega al flush ANTES que la reversion (el orden del SDK de JS, el que modela
+  // el mock), asi que tras el octavo la escritura ya no esta en la cola, la
+  // lectura dice «no existe» y se borraba la fila local.
+  const HOUR = 60 * 60 * 1000;
+
+  /** Sube `nuevo` con todos los `set()` rechazados hasta que el motor se
+   *  rinde (R9-33). Devuelve lo que entrego el listener en el ultimo intento. */
+  async function rechazarHastaRendirse(
+    engine: SyncEngine,
+    localStore: Map<string, SyncEntity<TestEntity>>,
+  ): Promise<{colaAntes: unknown[]; entregasUltimo: string[]}> {
+    const T0 = Date.now() - 60_000;
+    mockSetShouldFail = true;
+    localStore.set('nuevo', {value: 'mio', updatedAt: T0});
+    engine.queueWrite('test', 'nuevo', {value: 'mio', updatedAt: T0});
+    await drain();
+    const realNow = Date.now();
+    const nowSpy = jest.spyOn(Date, 'now');
+    let colaAntes: unknown[] = [];
+    let desde = 0;
+    for (let i = 1; i <= 7; i++) {
+      nowSpy.mockReturnValue(realNow + i * HOUR);
+      colaAntes = engine.__getQueueForTests().map(q => [q.id, q.attempts]);
+      desde = mockDelivered.length;
+      await engine.__flushForTests();
+      await drain();
+    }
+    nowSpy.mockRestore();
+    mockSetShouldFail = false;
+    return {
+      colaAntes,
+      entregasUltimo: mockDelivered
+        .slice(desde)
+        .filter(d => d.id === 'nuevo')
+        .map(d => `${d.type}/${d.via}`),
+    };
+  }
+
+  it('la nube no tiene el doc y el servidor rechaza sus 8 subidas: la copia local se queda', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteDeleteCalls} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    await drain();
+    const r = await rechazarHastaRendirse(engine, localStore);
+    // Pre-fix: `local: null` y `borrados: ['nuevo']`. El aviso de R9-33 solo
+    // decia que el cambio no habia subido.
+    expect({
+      ...r,
+      cola: engine.__getQueueForTests().length,
+      droppedWrites: engine.getState().droppedWrites,
+      local: localStore.get('nuevo')?.value ?? null,
+      borrados: remoteDeleteCalls,
+    }).toEqual({
+      // Control del mecanismo: el octavo intento, y su reversion como `removed`.
+      colaAntes: [['nuevo', 7]],
+      entregasUltimo: ['added/echo', 'removed/revert'],
+      cola: 0,
+      droppedWrites: 1,
+      local: 'mio',
+      borrados: [],
+    });
+    engine.stop();
+  });
+
+  it('si la nube tenia el doc, la reversion es un `modified`, y un borrado de verdad posterior del otro telefono se aplica como siempre', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteDeleteCalls} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    await drain();
+    const ayer = {value: 'de ayer', updatedAt: Date.now() - 24 * HOUR};
+    fireRemote('uid', [
+      {type: 'modified', doc: {id: 'nuevo', exists: true, data: () => ayer}},
+    ]);
+    await drain();
+    const r = await rechazarHastaRendirse(engine, localStore);
+    fireRemote('uid', [
+      {type: 'removed', doc: {id: 'nuevo', exists: true, data: () => ayer}},
+    ]);
+    await drain();
+    await drain();
+    // Si la espera de la reversion solo la terminara un `removed`, seguia
+    // armada y este borrado de verdad no se aplicaba: la fila quedaba aqui y
+    // no en la nube.
+    expect({
+      ...r,
+      local: localStore.get('nuevo')?.value ?? null,
+      borrados: remoteDeleteCalls,
+    }).toEqual({
+      colaAntes: [['nuevo', 7]],
+      entregasUltimo: ['modified/echo', 'modified/revert'],
+      local: null,
+      borrados: ['nuevo'],
+    });
+    engine.stop();
+  });
+
+  it('tras rendirse, si la misma version vuelve a subir y despues el otro telefono la borra de verdad, se borra aqui', async () => {
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteDeleteCalls} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    await drain();
+    await rechazarHastaRendirse(engine, localStore);
+    // Control: la copia local sobrevivio al descarte (la primera prueba).
+    const antes = localStore.get('nuevo')?.value ?? null;
+    // Un re-push de la fila tal como esta guardada: su eco trae el mismo
+    // `updatedAt` que la escritura descartada.
+    const mio = localStore.get('nuevo')!;
+    engine.queueWrite('test', 'nuevo', {...mio});
+    await drain();
+    await drain();
+    const subida = mockDocSets.filter(d => d.id === 'nuevo').length;
+    fireRemote('uid', [
+      {type: 'removed', doc: {id: 'nuevo', exists: true, data: () => mio}},
+    ]);
+    await drain();
+    await drain();
+    // Si la reversion no terminara la espera, el eco de la misma version
+    // tampoco (es la excepcion), y este borrado de verdad no se aplicaba.
+    expect({
+      antes,
+      subida,
+      local: localStore.get('nuevo')?.value ?? null,
+      borrados: remoteDeleteCalls,
+    }).toEqual({antes: 'mio', subida: 1, local: null, borrados: ['nuevo']});
+    engine.stop();
+  });
+});
+
 describe('R9-34 — la rama de error no puede hacer retroceder la cola', () => {
   it('una reedicion durante el push en vuelo sobrevive al fallo', async () => {
     mockSetShouldFail = true;

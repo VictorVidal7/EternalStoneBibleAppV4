@@ -388,6 +388,23 @@ export class SyncEngine {
    */
   private conflictsWrittenHere = new Set<string>();
   /**
+   * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
+   * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
+   * until their doc's next delivery that is not that payload's own echo.
+   * The SDK takes a rejected write back from its view, and if the cloud never
+   * had the doc it leaves the query as `removed`. The rejection reaches the
+   * flush first (in the JS SDK, `__PRIVATE_syncEngineRejectFailedWrite`; not
+   * measured on RNFirebase), so by the time that `removed` is read the write
+   * is no longer queued, the read says "no such doc", and the local copy was
+   * deleted: the change that could not upload was lost from this phone too.
+   * Any other delivery ends the wait: the take-back of a doc the cloud has is
+   * a `modified`, and if the take-back came before the rejection the next
+   * delivery is somebody else's change. `stop()` leaves it alone: only a
+   * take-back cut short by `stop()` leaves a key armed, and the doc's next
+   * delivery ends it (unless it is the echo of the same version pushed again).
+   */
+  private droppedAwaitingRevert = new Map<string, number>();
+  /**
    * Quota hardening — in-memory cache of each collection's sync cursor
    * (highest `updatedAt` observed), mirrored to AsyncStorage on every
    * advance. Keyed by collection name only, so whatever writes it after a
@@ -1189,7 +1206,21 @@ export class SyncEngine {
         const id = fromDocId(change.doc.id);
         let data = change.doc.data();
         let fromRead = false;
-        if (change.type === 'removed' || !data) {
+        // R9-182 — a write the flush just dropped: its take-back, if it is a
+        // `removed`, is treated below like a write still queued. Any delivery
+        // of the doc other than that write's own echo ends the wait.
+        const droppedKey = `${uid}\u0000${suppressKey(adapter.collection, id)}`;
+        const droppedAt = this.droppedAwaitingRevert.get(droppedKey);
+        const leftQuery = change.type === 'removed' || !data;
+        if (
+          droppedAt !== undefined &&
+          (leftQuery ||
+            updatedAtOf(data as {updatedAt?: unknown}) !== droppedAt)
+        ) {
+          this.droppedAwaitingRevert.delete(droppedKey);
+        }
+        const justDropped = droppedAt !== undefined && leftQuery;
+        if (leftQuery) {
           // R9-124 — under the `where('updatedAt', '>=', floor)` listener,
           // `removed` means the doc LEFT the query, not that it was deleted:
           // a rewrite with an OLDER `updatedAt` (a restored backup, the other
@@ -1258,7 +1289,7 @@ export class SyncEngine {
           // the user choosing, or, dropped (R9-33), left the cloud and this
           // phone apart. Any other doc is settled: the write lands after
           // whatever was held.
-          if (this.hasQueuedWrite(uid, adapter.collection, id)) {
+          if (justDropped || this.hasQueuedWrite(uid, adapter.collection, id)) {
             if (currentData && this.isHeldConflict(adapter.collection, id)) {
               hold(id, currentData.updatedAt, true);
             } else {
@@ -2556,6 +2587,11 @@ export class SyncEngine {
                 },
               );
               this.queue.splice(idx, 1);
+              // R9-182 — its take-back is on its way.
+              this.droppedAwaitingRevert.set(
+                `${item.uid}\u0000${suppressKey(item.collection, item.id)}`,
+                updatedAtOf(item.data as {updatedAt?: unknown}),
+              );
               // R9-33 — a dropped write is a local change that will never
               // reach the cloud. Record it so the UI can SAY so: without
               // this, dropping the last queued write takes `pendingWrites`
