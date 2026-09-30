@@ -367,6 +367,18 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **205**. Detalle:
 > `detail/S31-revision-del-diff-s30.md`.
+>
+> **Sesión 32 (2026-09-30): ARREGLOS de lo de la 31**, solo en la terminal y sin agentes. Rama
+> `fix/s32-r192-r193-y-s31` (13 commits, `b58a158`..`c1664a5`), sin mergear hasta el OK de Victor.
+>
+> - **12 cerrados:** `R9-192` y `R9-193` (las decisiones), `R9-196`, `R9-195`, `R9-197`, `R9-199`,
+>   `R9-200`, `R9-204`, y la extensión de los sellos: `R9-189`, `R9-174` y `R9-194` (`+Y`,
+>   aceptado por la delegación: la decisión está en `R9-193`). Y uno nuevo que abrió la matriz y se cerró:
+>   `R9-206` (`remoteTs === heldAt` sobraba con los sellos).
+> - **La medición cambió una decisión:** con los sellos, P3 de `R9-192` y el `fromRead` de la rama
+>   retenida sobraban, y el segundo daba un fantasma: se quitaron los dos (`R9-196`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **206**. Detalle: `detail/S32-arreglos-s31.md`.
 
 ---
 
@@ -2510,6 +2522,10 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     piezas de una extensión medida y sin integrar: `+Npend` con el conflicto en memoria (una copia
     propia más NUEVA tampoco es «suya») y `+W` sin conflicto (la ventana de 30 s pregunta
     `isOwnCopy`). Ver `detail/S31-revision-del-diff-s30.md` §7.3.
+  - **✅ ARREGLADO en la sesión 32** (`36cf5be`, rama `fix/s32-r192-r193-y-s31`): `+Npend` (en la
+    rama `pending`, una copia es «suya» solo si su reloj difiere del local y no es propia) y `+W`
+    (el commit de `R9-189`: la ventana de 30 s pregunta `isOwnCopy`), de la extensión de S31-A3. 2
+    pruebas; `+Npend` las tumba 1, `+W` 2.
 
 - **`R9-175` (S27, `SyncEngine` / cursor — P2) — 🐛 los lotes de `handleSnapshot` no se
   serializan: si uno se corta a mitad mientras otro ya adelantó el cursor, lo que le faltaba no
@@ -2981,6 +2997,9 @@ continue; }` (`SyncEngine.ts:1178-1181`). `settle` quita del conjunto también l
     no es de un doc en conflicto); lo cierra `+W` (la ventana de 30 s pregunta `isOwnCopy`, y W1
     viaja en `PendingWrite.own` de W2). Extensión medida y sin integrar:
     `detail/S31-revision-del-diff-s30.md` §7.3.
+  - **✅ ARREGLADO en la sesión 32** (`a431d10`, rama `fix/s32-r192-r193-y-s31`): `+W` de la
+    extensión de S31-A3 (la entrada de W2 lleva el reloj de W1 en `PendingWrite.own`, y la ventana
+    de 30 s pregunta `isOwnCopy`). 1 prueba; `+W` la tumba por la consecuencia («w2 | w1»).
 
 - **`R9-190` (S30, `SyncEngine` / conflictos — P2) — 🐛 la guarda de `R9-185` pasaba la marca a
   una copia PROPIA: tras reiniciar, «lo mío contra lo mío».** MEDIDO con sonda (agente A2 de la
@@ -3040,6 +3059,11 @@ continue; }` (`SyncEngine.ts:1178-1181`). `settle` quita del conjunto también l
     toda copia leída, y los sellos dejan fuera la copia PROPIA leída (el caso de `R9-196`): al
     integrar las dos, P3 pregunta `isOwnCopy` (`fromRead && !isOwnCopy(...)`), medido con la prueba
     de `R9-196`. Detalle: `detail/S31-revision-del-diff-s30.md` §6.
+  - **✅ ARREGLADO en la sesión 32** (`b58a158`, rama `fix/s32-r192-r193-y-s31`): P2 (`refreshTheirs`
+    en la guarda) y P3, sin el `fromRead ||` de la marca. Tabla por pieza igual a la de S31: P2 2,
+    P2dif 1, P3 4, FRD 5. **Con `R9-193` encima, P3 y FRD dan 0** (las ramas B y A de los sellos ya
+    toman toda copia más vieja que no sea propia), y el commit de `R9-196` los quitó: P3 era
+    equivalente, y FRD daba un fantasma con una copia propia leída.
 
 - **`R9-193` (S30, `SyncEngine` / conflictos — P2, DECIDIDO: sellos propios unificados) — 🐛 una escritura del otro
   teléfono con el reloj atrasado se toma por un eco propio: «su versión» queda vieja, o el
@@ -3082,6 +3106,17 @@ continue; }` (`SyncEngine.ts:1178-1181`). `settle` quita del conjunto también l
       solo en memoria, con la forma de `ownAcked`: lo decide Victor (solo lo necesita `R9-194`).
     - Cierra también `R9-196`.
     - Detalle: `detail/S31-revision-del-diff-s30.md` §7.
+  - **✅ ARREGLADO en la sesión 32** (`22d33e2`, rama `fix/s32-r192-r193-y-s31`): el diseño unificado
+    de S31-A3 tal cual, juntado con P3 de `R9-192`. Las 18 piezas, re-medidas en el árbol combinado:
+    igual que en S31 salvo `qts` (1 → 2: con P2/P3 cae también la prueba de `R9-190` «antes del
+    ack»). La extensión, en sus propios commits: `+W` (`R9-189`), `+Npend` (`R9-174`) y `+Y`
+    (`R9-194`).
+  - **DECISIÓN sobre `+Y` (delegada al orquestador, 2026-09-30): se acepta.** `recentAcked` no
+    responde «¿es mía?»: solo pasa el reloj de la última escritura tomada de un doc SIN conflicto a
+    `own` de la entrada NUEVA siguiente de ese doc, que es lo persistido. La respuesta sigue siendo
+    una sola (`isOwnCopy` sobre lo persistido), la clave lleva el uid, y si el proceso muere antes
+    de la entrada siguiente no hay nada en cola que pueda dar el fantasma. En memoria crece un
+    número por doc escrito en el proceso.
 
 - **`R9-194` (S30, `SyncEngine` / conflictos — P3) — 🐛 la ventana de 30 s da un conflicto
   fantasma «lo mío contra lo mío» tras reiniciar, sin conflicto previo.** MEDIDO en el mock (A3).
@@ -3093,6 +3128,12 @@ continue; }` (`SyncEngine.ts:1178-1181`). `settle` quita del conjunto también l
   - **Medido en la sesión 31 (S31-A3, re-medido):** los sellos de `R9-193` solos no lo cierran, y
     tampoco `+W`. Lo cierran `+W` y `+Y` juntas (`+Y`: el último reloj tomado de un doc SIN conflicto,
     en memoria, pasa a la entrada siguiente). `+Y` tiene la forma de `ownAcked`: decisión de Victor.
+  - **DECISIÓN (delegada al orquestador, 2026-09-30): `+Y` se acepta.** El porqué está en `R9-193`.
+  - **✅ ARREGLADO en la sesión 32** (`e7d7fb8`, rama `fix/s32-r192-r193-y-s31`): `+Y`, con
+    comentario. 2 pruebas: el caso, y una de mecanismo (la entrada nueva de Beto no lleva el reloj
+    de Ana). Sin pasar el reloj a la entrada caen 2, sin anotarlo en el ack 2, y sin el uid en la
+    clave 2: la de Ana y Beto y la vieja de `R9-190` «lo que el servidor le tomó a Ana», que con
+    `+Y` vuelve a vigilar lo que dice (se le corrigió el comentario).
 
 - **`R9-195` (S31, `SyncEngine` / conflictos — P3) — 🐛 con la lista de CONFLICTOS ilegible en un
   arranque, un conflicto marcado para releer se pierde y el piso queda clavado.** MEDIDO (S31-A1,
@@ -3107,6 +3148,10 @@ respaldo viejo`, sin nada que mostrar.
   - **Arreglo (H1c, medido):** con la lista de conflictos ilegible, cada doc de la lista de releer se
     carga como conflicto con releer (esa lista solo contiene conflictos). 1 lectura, el conflicto
     vuelve en los tres arranques, suite 178/178. `_scratch/S31-A1-h1c.diff.txt`.
+  - **✅ ARREGLADO en la sesión 32** (`49f3ca5`, rama `fix/s32-r192-r193-y-s31`): H1c (con la lista
+    de conflictos ilegible, un doc de la de releer se carga como conflicto con releer), y el
+    comentario de `R9-191` corregido. 1 prueba; H1c entero 1 y sin `doc.conflict = true` 1, los dos
+    por la consecuencia.
 
 - **`R9-196` (S31, `SyncEngine` / conflictos — P3) — 🐛 `R9-191` (releer todos con la lista
   ilegible) también lee los conflictos que siguen en la query: tras reiniciar, fantasma «lo mío
@@ -3120,6 +3165,13 @@ respaldo viejo`, sin nada que mostrar.
     respaldo restaurado ni el reloj atrasado.
   - **Arreglo:** lo cierran los sellos de `R9-193` (medido por S31-A3 y re-medido: sin conflicto, L3
     sigue en cola). Su sonda es la prueba para la 32, también para P3 de `R9-192`.
+  - **✅ ARREGLADO en la sesión 32** (`6b630e3`, rama `fix/s32-r192-r193-y-s31`). Con los sellos de
+    `R9-193`, la sonda B2 ya no da fantasma: la guarda de `handleSnapshot` reconoce L2 como propia y
+    asienta. **Medido en la 32:** el mismo caso con L3 DESCARTADA tras 8 rechazos (nada en cola) sí
+    daba `lo mio 3 | lo mio 2`, reinicio tras reinicio, por el `fromRead` de la condición de la rama
+    retenida (FRD). Se quitan los dos `fromRead` (FRD y P3 de `R9-192`): con `!isOwnCopy`, como
+    decía la decisión, eran exactamente las ramas A y B de los sellos. 2 pruebas; FRD de vuelta 1,
+    P3 de vuelta 0 (equivalente, regla 37), `load` (los sellos sin leer) las dos.
 
 - **`R9-197` (S31, `SyncEngine` / conflictos — P3) — 🐛 tras reiniciar, la relectura de `R9-186`
   con mi edición en cola mueve la marca sin registrar el conflicto, y el eco de mi edición lo
@@ -3136,6 +3188,12 @@ respaldo viejo`, sin nada que mostrar.
     en memoria, la lectura sigue como `fromRead` (registra el conflicto y mueve la marca); con uno
     pendiente, como hoy. Sin copia local y con la escritura en cola, no se aplica nada. Suite 178/178.
     `_scratch/S31-A1-h3.diff.txt`.
+  - **✅ ARREGLADO en la sesión 32** (`b15e899`, rama `fix/s32-r192-r193-y-s31`): H3 adaptado, sin
+    `fromRead` (la rama retenida registra la copia por `remoteTs === heldAt`: la guarda acaba de
+    mover la marca). Sin conflicto en memoria, la lectura sigue a `applyRemoteChange`; nada se
+    aplica mientras la escritura espera (sin copia local se sale antes, y sin conflicto registrado
+    la marca no se asienta). 2 pruebas; cada una de las tres piezas cae 1, por la consecuencia; P2,
+    en la misma rama, sigue en 2.
 
 - **`R9-198` (S31, `SyncEngine` / arranque — P3) — 🐛 al arrancar, el `flush` que dispara NetInfo
   sale antes del `onSnapshot`: con mi edición ya vencida, la primera entrega la trae encima de la
@@ -3163,6 +3221,9 @@ respaldo viejo`, sin nada que mostrar.
   - **Arreglo (H5, medido):** `this.noteOwnWrite(...)` en la rama de éxito del `flush` (una línea);
     suite 178/178, y C5 converge. `_scratch/S31-A1-h5.diff.txt`. Con `R9-193`, va junto a
     `noteOwnAcked`.
+  - **✅ ARREGLADO en la sesión 32** (`b036eff`, rama `fix/s32-r192-r193-y-s31`): H5 (`noteOwnWrite`
+    en la rama de éxito del `flush`, junto a `noteOwnAcked`). 1 prueba (C5 «después de subir»); H5
+    la tumba por la consecuencia (nube W tras elegir, y local W tras reiniciar).
 
 - **`R9-200` (S31, pruebas de `SyncEngine` — P3) — 🐛 el comentario de la prueba «R9-190: mi
   respaldo leído ANTES de que el servidor confirme…» atribuye el fantasma a otra prueba que no lo
@@ -3173,6 +3234,10 @@ respaldo viejo`, sin nada que mostrar.
     `lo mio nuevo / mi respaldo`. La prueba no lo ve porque deja W2 vencida, y `R9-198` lo tapa.
   - **Arreglo:** que la prueba deje W2 en espera y afirme que no hay fantasma (la sonda E2), y quitar
     esa frase del comentario (corolario 44).
+  - **✅ ARREGLADO en la sesión 32** (`2f2f9f6`, rama `fix/s32-r192-r193-y-s31`): la prueba deja W2
+    en espera (un rechazo), afirma lo publicado desde el reinicio y los conflictos, y el comentario
+    ya no la atribuye a otra prueba. Sin P1q (`qts`) cae por el fantasma, en memoria y en disco. Su
+    nombre dice ahora las dos cosas que mide.
 
 - **`R9-201` (S31, `SyncEngine` / cola — P3) — 🐛 si la reversión llega ANTES que el rechazo, la
   espera de `R9-182` queda armada y se traga un borrado de verdad posterior.** MEDIDO en el mock con
@@ -3220,6 +3285,10 @@ respaldo viejo`, sin nada que mostrar.
   - **Arreglo (C4, medido por A2 y re-medido con P2/P3):** keepMine reescribe la fila local con
     `resolvedValue` bajo `withLocalWriteSuppressed` antes del `queueWrite`, como merge y keepTheirs:
     G1/G2off/G3off sin fantasma, 187/187 con la sonda. La prueba sería la G1.
+  - **✅ ARREGLADO en la sesión 32** (`d85fe19`, rama `fix/s32-r192-r193-y-s31`): C4 (keepMine
+    re-sella la fila local bajo `withLocalWriteSuppressed` antes del `queueWrite`, y mira la sesión
+    después). 2 pruebas: la G1 de S31-A2, y keepMine sumado al `it.each` de `R9-153`. C4 las tumba
+    2; el `isCurrent()` tras re-sellar 1 (lo de Ana cae en la nube y el cursor de Beto).
 
 - **`R9-205` (S31, `SyncEngine` / cola — P3) — 🐛 la cola se guarda sin esperar: si el proceso muere
   entre la escritura del adaptador y la de la cola, esa edición no sube nunca.** MEDIDO en el mock
@@ -3228,6 +3297,22 @@ respaldo viejo`, sin nada que mostrar.
     nube L1 para siempre.
   - Es la consecuencia de `R9-38` (lo local que nunca sube) con otro disparador; una reconciliación
     que arregle `R9-38` lo cubre.
+
+- **`R9-206` (S32, `SyncEngine` / conflictos — P3) — 🐛 con los sellos de `R9-193`, el caso
+  `remoteTs === heldAt` de la rama retenida (la (b) de `R9-181`) ya no agregaba nada.** MEDIDO: la
+  matriz entera de la 32, sobre `e7d7fb8`, dio 0 para `S181-b` (antes tumbaba 5).
+  - La marca solo se mueve a una copia del otro teléfono, y la rama A de `R9-193` ya toma toda copia
+    más vieja que no sea propia. Lo único que el caso agregaba era una copia PROPIA en la marca (un
+    salto de `R9-46` con `getLocal` fallido la mueve ahí), donde daba «lo mío contra lo mío». Leído,
+    no medido.
+  - **✅ ARREGLADO en la sesión 32** (`bbe855e`, rama `fix/s32-r192-r193-y-s31`): quitado, con la
+    variable, por la regla 37. Sumarlo de vuelta da 0; sin la rama A caen 14 (la cobertura de la marca
+    pasó entera a A).
+  - **Y abrió su vecino, visto en la matriz siguiente (sobre `bbe855e`):** `S181-marca` (el eco propio
+    no mueve la marca) pasó de 8 a 0. Sus 8 pruebas caían por el fantasma que daba este caso con la
+    marca en una copia propia (corolario 42 en el mismo commit). La guarda no es equivalente: la marca
+    es el piso tras reiniciar, y subida a mi eco deja fuera una escritura atrasada del otro. Prueba
+    nueva (`c1664a5`): sin la guarda, esa escritura no llega y el conflicto se pierde en silencio.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

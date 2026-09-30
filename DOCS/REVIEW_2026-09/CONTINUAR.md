@@ -1,12 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-09-30, fin de la sesión 31.** La 31 hizo el (k): revisó el diff de
-> la 30 sin tocar código, con 3 agentes que solo midieron, y re-midió cada pieza en su árbol.
-> Encontró 11 hallazgos nuevos (`R9-195`..`R9-205`, 1 P2 y 10 P3), registró las decisiones de Victor
-> sobre `R9-192` y `R9-193`, y dejó medidas sobre el código de hoy las dos hipótesis que las
-> implementan. El checkpoint va en `docs/review-s31-diff-s30`, **sin mergear hasta el OK de
-> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 205 hallazgos. **Lo siguiente es el mensaje (l):
-> arreglar lo de la 31 e integrar `R9-192` y `R9-193`.**
+> **Última actualización: 2026-09-30, fin de la sesión 32.** La 32 hizo el (l), solo en la terminal
+> y sin agentes: en `fix/s32-r192-r193-y-s31` (13 commits, un hallazgo cada uno, cada prueba vista
+> fallar con su pieza revertida) integró las decisiones de `R9-192` y `R9-193`, arregló lo de la 31
+> (`R9-195`..`R9-197`, `R9-199`, `R9-200`, `R9-204`) y la extensión de los sellos (`R9-189`,
+> `R9-174`, y `R9-194` con `+Y`). La medición quitó P3 de `R9-192` y el `fromRead` de la rama
+> retenida: con los sellos sobraban, y el segundo daba un fantasma (`R9-196`). La matriz entera mostró que
+> también sobraba `remoteTs === heldAt`, y se quitó (`R9-206`, nuevo). El checkpoint va en
+> `docs/review-s32-fix-s31`: **las dos ramas, sin mergear hasta el OK de Victor**. Queda **1 P0
+> abierto** (`R9-38`), y hay 206 hallazgos. **Lo siguiente es el mensaje (m): revisar el diff de la 32.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -462,10 +464,61 @@ sesión 25, en la nube), sus arreglos (la (e), también en la 25), `R9-124` en M
 (la (f), sesión 26, solo en la terminal), la revisión del diff de la 26 (la (g), sesión 27, solo en
 la terminal), sus arreglos (la (h), sesión 28, solo en la terminal) y la revisión del diff de la
 28 (la (i), sesión 29, solo en la terminal), sus arreglos (la (j), sesión 30, en la terminal con
-3 agentes que solo midieron) y la revisión del diff de la 30 (la (k), sesión 31, igual). **Lo
-siguiente es el (l).**
+3 agentes que solo midieron) y la revisión del diff de la 30 (la (k), sesión 31, igual) y sus arreglos (la (l), sesión 32, en la terminal y sin agentes).
+**Lo siguiente es el (m).**
 
-**(l) Sesión 32: arreglar lo de la 31 e integrar `R9-192` y `R9-193`.**
+**(m) Sesión 33: revisar el diff de la 32.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (m) y la sección 5) y, en la memoria, la de la sesión 32 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s32-r192-r193-y-s31` y `docs/review-s32-fix-s31`, pedime el
+>   OK para el fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 206. El detalle de la 32 está en
+>   `detail/S32-arreglos-s31.md`, y sus tablas, sondas y scripts en `_scratch/S32-*.txt`.
+>
+> **Esta sesión revisa el diff de la 32** (`b26ab8d..c1664a5`: `SyncEngine.ts`, `types.ts` y
+> `SyncEngine.test.ts`), en local:
+>
+> - **las piezas nuevas:** los sellos persistidos (`ownStamps`, `PendingWrite.own`, la cola y la
+>   tabla en un solo `multiSet`, `pushing` en `stop()`); `isOwnCopy` en la ventana de 30 s y en las
+>   dos ramas (con `!==` en la `pending`); `recentAcked` (`+Y`); `refreshTheirs` (P2); la guarda de
+>   `R9-197` (`ownQueued`); H1c; H5; y el re-sellado de keepMine (C4, un `await` nuevo en
+>   `resolveConflict`);
+> - **lo que se quitó:** los dos `fromRead` (P3 de `R9-192` y el de la rama retenida) y
+>   `remoteTs === heldAt` (`R9-206`). ¿Queda alguna copia del otro que ya no llegue a «su versión»
+>   porque solo la toman las ramas A y B? Quitar `heldAt` dejó sin caer a `S181-marca` hasta su prueba
+>   nueva (`c1664a5`): ¿qué otra guarda vigilaba solo a través de lo que se quitó?
+> - **corolario 42 sobre cada una:** ¿qué marca suelta o retiene, y cuál hizo durable otro arreglo
+>   del mismo diff?
+> - **las pruebas nuevas:** ¿su nombre y su comentario dicen solo lo que miden?
+> - re-medir la matriz entera con `_scratch/S32-matriz.cjs.txt` (lee las piezas nuevas de
+>   `S32-A3-revert.cjs.txt` y `S32-rev.cjs.txt`);
+> - lo nuevo se registra desde `R9-207`. Checkpoint en una rama `docs/...`, sin mergear sin mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-201`..`R9-203` y `R9-198`, sin arreglo medido (medí antes de elegir);
+> - `R9-205` (va con `R9-38`); `R9-177` (Modo C en el emulador, con mi OK), que también cierra el
+>   orden «rechazo antes que reversión» del que dependen `R9-182` y `R9-201`;
+> - `R9-38`, que depende de `R9-59`; terminar `A12`;
+> - `R9-164` con la app cerrada (el respaldo del otro teléfono, los huérfanos de un `deleteAccount`
+>   fallido y el corte durante la lectura);
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`;
+> - `R9-173` (ya decidido: extender la opción (b));
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(l) Sesión 32: arreglar lo de la 31 e integrar `R9-192` y `R9-193` — ya HECHO en la sesión 32,
+solo en la terminal y sin agentes.** Queda aquí como registro; lo que valió fue
+`_scratch/S32-PROMPT.md`, que cambiaba el estado y aceptaba `+Y`.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (l) y la sección 5) y, en la memoria, la de la sesión 31 y la regla fija de las pruebas
@@ -1101,21 +1154,22 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 31 (2026-09-30).**
+**Medido al cerrar la sesión 32 (2026-09-30).**
 
-- **`main` = `origin/main` = `ce05112`** (el checkpoint de la 30; el último código en `main` es
-  `45d2f41`). **CI verificado en el log:** run `36642503997`, 3 jobs verdes, Node v24.21.0,
+- **`main` = `origin/main` = `b26ab8d`** (el checkpoint de la 31; el último código en `main` es
+  `45d2f41`). **CI verificado en el log:** run `36753796896`, 3 jobs verdes, Node v24.21.0,
   367/4451, cero «failed to run».
-- **Una rama de la 31, sin mergear a propósito y sin pushear:** `docs/review-s31-diff-s30`, sobre
-  `ce05112`, con el checkpoint (solo el ledger; la 31 no tocó código). Se mergea en fast-forward con
-  el OK de Victor. Si ya se mergeó, `main` la incluye.
-- Los worktrees de los 3 agentes, el de la matriz (`C:/projects/essb-s31m`) y el de la re-medición
-  de A3 (`C:/projects/essb-s31v`) se borraron, cada junction de `node_modules` antes, con
-  `.Delete()`. Las ramas de los agentes ya no existen: las borró el arnés al limpiar sus worktrees
-  (sin commits propios). Sus diffs están en `_scratch/S31-A*`.
+- **Dos ramas de la 32, sin mergear a propósito y sin pushear:**
+  - `fix/s32-r192-r193-y-s31`, sobre `b26ab8d`: 13 commits (`b58a158`..`c1664a5`);
+  - `docs/review-s32-fix-s31`, sobre la anterior: el checkpoint.
+
+  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+
+- El worktree de la matriz (`C:/projects/essb-s32m`) se borró, la junction de `node_modules` antes,
+  con `.Delete()`. La 32 no usó agentes.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 31):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 32):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1567,12 +1621,20 @@ Alternativas legítimas:
   conflicto tiene que mostrar lo que la nube tiene de verdad; tras reiniciar ya lo hace, y P2/P3
   hacen que la sesión diga lo mismo. HX-push queda descartado (resucita un doc que el otro borró de
   verdad). Con P3, el `fromRead ||` de la marca es equivalente y se quita (medido en la 31).
+  **Integrado en la 32; con los sellos de `R9-193`, P3 resultó equivalente y se quitó (`R9-196`).**
 - **`R9-193` (delegado igual): los «sellos propios» persistidos, unificados con `R9-190`.** Un solo
   mecanismo responde «¿esta copia es mía?», y los sellos reemplazan a `ownAcked`. Dheld y F se
   quedan solo si una prueba las ve caer (en la 31: Dheld y Dwin fuera, `Fsettle`/`Fresolve`
   dentro). La ventana de caída se cierra con la cola y la tabla de sellos en un solo `multiSet`: la
   31 midió que el sello en la entrada de la cola, solo, no alcanza. Con la tabla ilegible, se
-  muestra el conflicto (elegido por el orquestador por la delegación, como `R9-191`).
+  muestra el conflicto (elegido por el orquestador por la delegación, como `R9-191`). **Integrado
+  en la 32.**
+- **`+Y` para `R9-194` (delegado al orquestador tras el merge de la 31, 2026-09-30): se acepta.**
+  `recentAcked` no responde «¿es mía?»: solo pasa el reloj de la última escritura tomada de un doc
+  SIN conflicto a `own` de la entrada NUEVA siguiente de ese doc, que es lo persistido. La
+  respuesta sigue siendo una sola (`isOwnCopy` sobre lo persistido), la clave lleva el uid, y si
+  el proceso muere antes de la entrada siguiente no hay nada en cola que pueda dar el fantasma.
+  Integrado en la 32 (`e7d7fb8`), con comentario.
 - **Cuando avise del límite de uso de 5 h, la prioridad es volcar a disco y commitear, no
   terminar de verificar.** Es lo que se decidió en la sesión 6 y por eso existe la deuda de
   re-verificación del `⛔` de arriba: fue un intercambio consciente, no un olvido.
@@ -1591,11 +1653,6 @@ Alternativas legítimas:
   aparato»? Hoy, cerrar sesión **no** limpia la Mesa, ni el progreso, ni los logros, y está
   **documentado como decisión** (`deleteAccountData.ts:12-13`) — pero nadie se lo preguntó
   a Victor con el caso del teléfono compartido de la iglesia delante.
-- **`+Y` de la extensión de los sellos (sesión 31):** para cerrar `R9-194` (P3) hace falta recordar
-  en memoria, por sesión, el último reloj tomado de un doc SIN conflicto y pasarlo a la entrada
-  siguiente de la cola. Es un registro solo en memoria, con la forma de `ownAcked`, y la decisión de
-  `R9-193` era un solo mecanismo persistido. ¿Se acepta para `R9-194`, o `R9-194` queda abierto?
-  (`+W` y `+Npend`, que cierran `R9-189` y `R9-174`, son de los mismos sellos.)
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
 

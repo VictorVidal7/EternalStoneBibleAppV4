@@ -366,8 +366,26 @@
 > - **Las decisiones de Victor sobre `R9-192` y `R9-193`, registradas;** sus hipótesis, medidas sobre
 >   el código de hoy para que la 32 las integre.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **205**. Rama `docs/review-s31-diff-s30`, sin mergear
-> hasta el OK. Detalle: `detail/S31-revision-del-diff-s30.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **205**. Rama `docs/review-s31-diff-s30`: mergeada y
+> pusheada con el OK de Victor (`main` = `b26ab8d`, CI verde en el log, run `36753796896`,
+> 367/4451). Detalle: `detail/S31-revision-del-diff-s30.md`.
+>
+> **Sesión 32 (2026-09-30): ARREGLOS de lo de la 31, solo en la terminal y sin agentes.** Rama
+> `fix/s32-r192-r193-y-s31` (13 commits, `b58a158`..`c1664a5`), un hallazgo por commit, cada prueba
+> vista fallar con su pieza revertida.
+>
+> - **12 cerrados:** `R9-192` y `R9-193` (las decisiones), `R9-196`, `R9-195`, `R9-197`, `R9-199`
+>   (P2), `R9-200`, `R9-204`, y la extensión de los sellos: `R9-189`, `R9-174` y `R9-194` (`+Y`,
+>   aceptado por la delegación). Más `R9-206`, nuevo:
+>   la matriz mostró que `remoteTs === heldAt` sobraba con los sellos, y se quitó.
+> - **La medición cambió una decisión:** con los sellos, P3 de `R9-192` y el `fromRead` de la rama
+>   retenida daban 0, y el segundo daba un fantasma con una copia propia leída: se quitaron los dos
+>   (`R9-196`).
+> - La matriz entera re-medida (`_scratch/S32-matriz.cjs.txt`) y `npm run validate` verde
+>   (367/4483, sobre la punta; la matriz, tres veces).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **206**. Ramas `fix/s32-r192-r193-y-s31` y
+> `docs/review-s32-fix-s31`, sin mergear hasta el OK. Detalle: `detail/S32-arreglos-s31.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -850,6 +868,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
       línea por línea;
     - **el orden del mock decide qué guarda hace falta:** con el de RNFB, una sola guarda cubre
       `R9-176` y `R9-178`.
+
+- **Sesión 32 — 2026-09-30. Arreglos de lo de la 31, e integración de `R9-192` y `R9-193`.** Solo
+  en la terminal, sin agentes; arrancó con `_scratch/S32-PROMPT.md`.
+  - **Cómo se trabajó:** un commit por hallazgo en `fix/s32-r192-r193-y-s31`, cada prueba vista
+    fallar con su pieza revertida (`_scratch/S32-rev.cjs.txt`); las piezas de cada arreglo anterior,
+    re-medidas en el árbol del siguiente; la matriz entera en un worktree aparte.
+  - **Resultado:** 12 cerrados (`R9-174`, `R9-189`, `R9-192`..`R9-197`, `R9-199`, `R9-200`,
+    `R9-204`, y `R9-206`, que abrió y cerró la propia sesión). Queda 1 P0 abierto.
+  - **Detalle: `detail/S32-arreglos-s31.md`.**
+  - **Las lecciones:**
+    - **al apilar dos arreglos, una guarda del primero puede quedar subsumida por el segundo:** P3 y
+      el `fromRead` retenido daban 0 con los sellos encima, y las pruebas seguían verdes;
+    - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
+    - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
+      vez).
 
 - **Sesión 31 — 2026-09-30. Revisión del diff de la 30.** Solo en la terminal; a pedido de Victor,
   3 agentes en worktree que solo midieron.
