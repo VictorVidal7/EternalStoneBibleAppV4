@@ -6907,6 +6907,62 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-174: con el conflicto en memoria, el eco de mi edicion llega con el ref del adaptador atrasado: no pasa a ser «su version», y keepTheirs aplica la del otro', async () => {
+    const uid = 'uid-174-pendiente';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // La fila ya tiene E, pero el ref que lee getLocal sigue en L.
+    const E = {value: 'E: mi edicion', updatedAt: T + 70_000};
+    engine.queueWrite('test', 'doc-c', E);
+    await settle();
+    const trasEco = suyaDe(engine);
+    localStore.set('doc-c', E as unknown as SyncEntity<TestEntity>);
+    await engine.__flushForTests();
+    await settle();
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: el eco de E, mas nuevo que el ref atrasado, pasaba a ser «su
+    // version», y «quedarme con lo suyo» se quedaba con E: R desaparecia.
+    expect({
+      trasEco,
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({trasEco: ['lo suyo'], local: 'lo suyo', nube: 'lo suyo'});
+    engine.stop();
+  });
+
+  it('R9-174: sin conflicto, el eco de mi edicion con el ref del adaptador atrasado no abre un conflicto «lo mio contra lo mio»', async () => {
+    const uid = 'uid-174-ventana';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    localStore.set('doc-c', L);
+    write(uid, 'doc-c', L);
+    await settle();
+    const vistos: string[][] = [];
+    engine.subscribe(st => vistos.push(st.conflicts.map(c => c.docId)));
+    const E = {value: 'E: mi edicion', updatedAt: T + 70_000};
+    engine.queueWrite('test', 'doc-c', E);
+    await settle();
+    localStore.set('doc-c', E);
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: el eco de E llegaba a menos de 30 s del ref atrasado (L), con
+    // otro contenido, y la ventana lo registraba como conflicto.
+    expect({
+      fantasma: vistos.some(v => v.includes('doc-c')),
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({fantasma: false, local: E.value, nube: E.value});
+    engine.stop();
+  });
+
   it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
     const uid = 'uid-192-cola';
     const T = Date.now() - HOUR;

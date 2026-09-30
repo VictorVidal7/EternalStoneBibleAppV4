@@ -1665,10 +1665,16 @@ export class SyncEngine {
       // with `isOwnCopy` here that only added this device's own ones, and it
       // was dropped (R9-196). A write of this device still queued, or just
       // dropped, never gets here: the guard of `handleSnapshot` takes it.
+      //
+      // R9-174 — nor is a NEWER copy always the other device's: in
+      // `memoryCards` and `favorites`, `getLocal` reads a ref updated after
+      // the render, and the echo of an edit made here can arrive while it
+      // still holds the copy before it. Taken for «theirs», it showed this
+      // device's edit as the other one's, and keepTheirs kept it. Either way,
+      // a copy is «theirs» only if it is not this device's own.
       const theirs = local
-        ? updatedAtOf(data) > updatedAtOf(local) ||
-          (updatedAtOf(data) < updatedAtOf(local) &&
-            !this.isOwnCopy(this.uid, adapter.collection, id, data))
+        ? updatedAtOf(data) !== updatedAtOf(local) &&
+          !this.isOwnCopy(this.uid, adapter.collection, id, data)
         : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt;
       if (!theirs) return true;
       const differing = this.conflictFields(adapter, local, data, deleted);
@@ -1703,7 +1709,8 @@ export class SyncEngine {
       // R9-189 — a copy of this device's own is no conflict, within the
       // window too: the echo of a write the queue replaced while it was being
       // pushed (both went up, R9-184) came back less than 30 s from the local
-      // copy and different from it, and «mine» showed against «mine».
+      // copy and different from it, and «mine» showed against «mine». So did
+      // the echo of an edit read back with the adapter's ref behind (R9-174).
       if (
         withinWindow &&
         materialFields.length > 0 &&
