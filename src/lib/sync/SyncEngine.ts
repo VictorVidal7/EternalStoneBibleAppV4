@@ -2510,6 +2510,23 @@ export class SyncEngine {
         throw new Error('resolveConflict: keepMine found no local copy');
       }
       resolvedValue = {...current, updatedAt: now};
+      // R9-204 — the local row takes the new stamp too, as merge and
+      // keepTheirs already do. Left at its old `updatedAt`, a restart before
+      // the push landed re-delivered «theirs» (the cursor waits below it,
+      // R9-183) inside the 30 s window of that row, and the conflict the user
+      // had just answered came back.
+      await this.withLocalWriteSuppressed(
+        conflict.collection,
+        conflict.docId,
+        () =>
+          adapter.applyRemoteUpsert(
+            conflict.docId,
+            resolvedValue as SyncEntity<unknown>,
+          ),
+      );
+      if (!isCurrent()) {
+        throw new Error('resolveConflict: the session ended while resolving');
+      }
       this.queueWrite(conflict.collection, conflict.docId, resolvedValue);
     } else if (choice === 'keepTheirs') {
       // R9-161 — "the cloud already has theirs" holds only while nothing of

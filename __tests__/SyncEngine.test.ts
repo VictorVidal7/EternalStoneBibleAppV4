@@ -4384,7 +4384,12 @@ describe('R9-39 / R9-106 — un doc sin asentar no lo entierra el cursor de OTRO
     });
   });
 
-  it.each<['keepTheirs' | 'merge']>([['keepTheirs'], ['merge']])(
+  // R9-204 — keepMine tambien escribe la fila local (el sello nuevo).
+  it.each<['keepMine' | 'keepTheirs' | 'merge']>([
+    ['keepMine'],
+    ['keepTheirs'],
+    ['merge'],
+  ])(
     'R9-153: %s con el apply local en vuelo al cambiar de cuenta no escribe nada en la sesion de Beto',
     async choice => {
       const T = Date.now() - HOUR;
@@ -8048,6 +8053,58 @@ describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
       control: {conflictos: [], lecturas: 1, cursorAna: 1},
       cursorBeto: rel(betoCursor),
       cacheBeto: rel(betoCursor),
+    });
+    engine.stop();
+  });
+
+  it('R9-204: resuelto con keepMine mientras un lote espera su lectura, un reinicio antes de que la subida salga no vuelve a mostrar el conflicto', async () => {
+    const uid = 'uid-204-reinicio';
+    const T = Date.now() - HOUR;
+    const f = await engineFor(uid, T);
+    const {engine, localStore} = f;
+    await conflictZ(f, T);
+    const x1 = {value: 'x1', updatedAt: T + MIN};
+    localStore.set('X', x1);
+    write(uid, 'X', x1);
+    await settle();
+    const g = holdGet('X');
+    write(uid, 'X', {value: 'respaldo', updatedAt: T - DAY}); // removed X
+    await flush();
+    await resolveZ(f);
+    const control = {
+      conflictos: engine.__getConflictsForTests().length,
+      lecturas: g.hits,
+      cola: engine.__getQueueForTests().map(q => q.id),
+    };
+    const vistos = new Set<string>();
+    engine.stop();
+    engine.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(
+          `${c.docId}: ${(c.remoteVersion as {value?: string}).value}`,
+        ),
+      ),
+    );
+    await engine.start(uid);
+    await settle();
+    const trasArranque = engine.__getConflictsForTests().map(c => c.docId);
+    g.release();
+    await settle();
+
+    // Pre-fix: keepMine encolaba lo mio re-sellado, pero la fila local seguia
+    // con su `updatedAt` viejo; el cursor no paso de «lo suyo» (R9-183), y su
+    // re-entrega tras el reinicio caia en la ventana de 30 s de esa fila: el
+    // conflicto que el usuario acababa de contestar volvia.
+    expect({
+      control, // CONTROL: resuelto, la subida espera detras de la lectura
+      trasArranque,
+      vistos: [...vistos],
+      localZ: localStore.get('Z')?.value,
+    }).toEqual({
+      control: {conflictos: 0, lecturas: 1, cola: ['Z']},
+      trasArranque: [],
+      vistos: [],
+      localZ: 'z mio',
     });
     engine.stop();
   });
