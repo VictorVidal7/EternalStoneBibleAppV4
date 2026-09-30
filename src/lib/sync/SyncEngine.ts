@@ -2873,6 +2873,13 @@ export class SyncEngine {
           // anything that can write the queue (a listener of the state below
           // can queue a write), so no write has the entry gone without these.
           this.noteOwnAcked(item);
+          // R9-199 — the write reached the cloud while its doc is a conflict:
+          // keepTheirs has to push over it (R9-161). `queueWrite` notes only a
+          // write queued while the conflict is in memory; one queued before a
+          // restart and taken after it was not, and keepTheirs then left
+          // «theirs» on this phone and the write in the cloud, which beat it
+          // here too after the next restart.
+          this.noteOwnWrite(item.collection, item.id);
           this.updateState({
             pendingWrites: this.pendingForActiveUid(),
             lastSyncedAt: Date.now(),

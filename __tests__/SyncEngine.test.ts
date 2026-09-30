@@ -6785,6 +6785,64 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-199: keepTheirs en el conflicto que vuelve tras reiniciar, despues de que suba mi edicion encolada antes del reinicio, sube «lo suyo», y la eleccion sobrevive otro reinicio', async () => {
+    const uid = 'uid-199-despues';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const W = {value: 'lo mio editado', updatedAt: T + 120_000};
+    localStore.set('doc-c', W as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', W);
+    await settle();
+    mockSetShouldFail = false;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    const trasArranque = parejas(engine);
+    for (const q of engine.__getQueueForTests()) {
+      (q as {lastAttemptAt?: number}).lastAttemptAt = 0;
+    }
+    await engine.__flushForTests();
+    await settle();
+    const antesDeElegir = {
+      cola: engine.__getQueueForTests().length,
+      nube: await nubeDe(uid, 'doc-c'),
+    };
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    const trasElegir = {
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    };
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la marca de «escrito aqui» (R9-161) la ponia solo
+    // `queueWrite`, en memoria; W se encolo antes del reinicio y subio
+    // despues, asi que keepTheirs no subia nada: la nube se quedaba con W, y
+    // tras reiniciar W ganaba tambien aqui por LWW.
+    expect({
+      trasArranque, // CONTROL: el conflicto volvio (R9-185)
+      antesDeElegir, // CONTROL: W ya subio
+      trasElegir,
+      trasReiniciar: {
+        conflictos: engine.__getConflictsForTests().length,
+        local: localStore.get('doc-c')?.value,
+      },
+    }).toEqual({
+      trasArranque: [['lo mio editado', 'su respaldo viejo']],
+      antesDeElegir: {cola: 0, nube: 'lo mio editado'},
+      trasElegir: {local: 'su respaldo viejo', nube: 'su respaldo viejo'},
+      trasReiniciar: {conflictos: 0, local: 'su respaldo viejo'},
+    });
+    engine.stop();
+  });
+
   it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
     const uid = 'uid-192-cola';
     const T = Date.now() - HOUR;
