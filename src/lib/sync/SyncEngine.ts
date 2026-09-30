@@ -447,6 +447,19 @@ export class SyncEngine {
   /** R9-193 — the entry `flush()` is pushing right now, if any (see `stop()`). */
   private pushing: PendingWrite | null = null;
   /**
+   * R9-194 — per `uid` + `suppressKey`, the `updatedAt` of the last write of a
+   * doc WITHOUT a conflict that the server took in this process (one number
+   * per doc written). It answers nothing by itself: `isOwnCopy` never reads
+   * it. It only goes into `own` of the next NEW queue entry of that doc (see
+   * `queueWrite`), which is persisted. That write is in the cloud while the
+   * next edit waits offline, and a new process delivers it within 30 s of the
+   * local copy: without its clock in the entry, «mine» showed against
+   * «mine». If the process dies before the next entry, no entry waits that
+   * could show it. By uid: another account's writes never reach this one's
+   * entries.
+   */
+  private recentAcked = new Map<string, number>();
+  /**
    * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
    * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
    * until their doc's next delivery that is not that payload's own echo.
@@ -1024,7 +1037,11 @@ export class SyncEngine {
         own: withStamp(ownOf(prev), updatedAtOf(prev.data)),
       };
     } else {
-      this.queue.push(entry);
+      // R9-194 — see `recentAcked`.
+      const acked = this.recentAcked.get(
+        `${entry.uid}\u0000${suppressKey(entry.collection, entry.id)}`,
+      );
+      this.queue.push(acked !== undefined ? {...entry, own: [acked]} : entry);
     }
     this.updateState({pendingWrites: this.pendingForActiveUid()});
     void this.persistQueue();
@@ -2345,7 +2362,14 @@ export class SyncEngine {
    * the next write of the queue, which is the one that drops the entry.
    */
   private noteOwnAcked(item: PendingWrite): void {
-    if (!this.isConflictDoc(item.collection, item.id)) return;
+    if (!this.isConflictDoc(item.collection, item.id)) {
+      // R9-194 — see `recentAcked`.
+      this.recentAcked.set(
+        `${item.uid}\u0000${suppressKey(item.collection, item.id)}`,
+        updatedAtOf(item.data),
+      );
+      return;
+    }
     const byId = this.ownStamps.get(item.collection) ?? new Map();
     let stamps = byId.get(item.id) ?? [];
     for (const ts of [...ownOf(item), updatedAtOf(item.data)]) {

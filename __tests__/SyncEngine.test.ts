@@ -6412,10 +6412,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
   });
 
   it('R9-190: lo que el servidor le tomo a Ana no hace «mia» una copia de Beto con el mismo reloj', async () => {
-    // El mismo milisegundo en las dos cuentas es a proposito. Con los sellos
-    // de R9-193 es un control: la escritura de Ana no es de un doc en
-    // conflicto, y su sello no se anota. Que los sellos de una cuenta no
-    // valgan para otra lo vigila «R9-193: los sellos de Ana no hacen…».
+    // El mismo milisegundo en las dos cuentas es a proposito. La escritura
+    // de Ana no es de un doc en conflicto: no deja sello (R9-193), pero su
+    // reloj queda en `recentAcked` (R9-194). Sin el uid en esa clave, la
+    // entrada de «lo mio editado» de Beto lo llevaba y K pasaba por suya
+    // (medido en S32); los sellos los vigila «R9-193: los sellos de Ana…».
     const ana = 'uid-190-ana';
     const beto = 'uid-190-beto';
     const T = Date.now() - HOUR;
@@ -6960,6 +6961,85 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       local: localStore.get('doc-c')?.value,
       nube: await nubeDe(uid, 'doc-c'),
     }).toEqual({fantasma: false, local: E.value, nube: E.value});
+    engine.stop();
+  });
+
+  it('R9-194: L1 sube, L2 a 10 s queda en cola sin red, y un proceso nuevo arranca sin red: no aparece «L2 contra L1»', async () => {
+    const uid = 'uid-194-proceso';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, adapter} = await engineFor(uid, T);
+    const L1 = {value: 'L1: tecleo', updatedAt: T + 120_000};
+    localStore.set('doc-n', L1);
+    engine.queueWrite('test', 'doc-n', L1);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    engine.__setOnlineForTests(false);
+    const L2 = {value: 'L2: sigo tecleando', updatedAt: T + 130_000};
+    localStore.set('doc-n', L2);
+    engine.queueWrite('test', 'doc-n', L2);
+    await settle();
+    engine.stop();
+    const entregas = mockDelivered.length;
+    const otro = await procesoNuevo(uid, adapter);
+
+    // Pre-fix: L1 se tomo sin conflicto (sin sello), y la entrada de L2 no
+    // llevaba su reloj: la ventana de 30 s tomaba L1 (mia, en la nube) por
+    // un cambio del otro telefono.
+    expect({
+      entregada: mockDelivered // CONTROL: el enganche entrega L1
+        .slice(entregas)
+        .map(d => `${d.id}/${d.type}/${d.via}`),
+      conflictos: parejas(otro),
+      local: localStore.get('doc-n')?.value,
+    }).toEqual({
+      entregada: ['doc-n/added/attach'],
+      conflictos: [],
+      local: L2.value,
+    });
+    otro.stop();
+  });
+
+  it('R9-194: el reloj de la ultima escritura que el servidor le tomo a Ana no pasa a la entrada nueva de Beto del mismo doc', async () => {
+    const ana = 'uid-194-ana';
+    const beto = 'uid-194-beto';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(ana, T);
+    const K = {value: 'de ana', updatedAt: T + 60_000};
+    localStore.set('doc-n', K);
+    engine.queueWrite('test', 'doc-n', K);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    engine.__setOnlineForTests(false);
+    const K2 = {value: 'de ana otra vez', updatedAt: T + 70_000};
+    localStore.set('doc-n', K2);
+    engine.queueWrite('test', 'doc-n', K2);
+    await settle();
+    const entrada = (uid: string) =>
+      engine.__getQueueForTests().find(q => q.uid === uid && q.id === 'doc-n')
+        ?.own ?? null;
+    const deAna = entrada(ana);
+    engine.stop();
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', beto), String(T));
+    await engine.start(beto);
+    await settle();
+    engine.__setOnlineForTests(false);
+    const B = {value: 'de beto', updatedAt: T + 80_000};
+    localStore.set('doc-n', B);
+    engine.queueWrite('test', 'doc-n', B);
+    await settle();
+
+    expect({
+      nubeAna: await nubeDe(ana, 'doc-n'), // CONTROL: K subio
+      deAna, // CONTROL: la entrada siguiente de Ana lleva el reloj de K
+      deBeto: entrada(beto),
+    }).toEqual({
+      nubeAna: 'de ana',
+      deAna: [K.updatedAt],
+      deBeto: null,
+    });
     engine.stop();
   });
 
