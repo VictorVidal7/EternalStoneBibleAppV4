@@ -6341,7 +6341,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
-  it('R9-190: mi respaldo leido ANTES de que el servidor confirme su subida tampoco se lleva la marca', async () => {
+  it('R9-190: mi respaldo leido ANTES de que el servidor confirme su subida tampoco se lleva la marca: tras reiniciar con mi edicion siguiente en espera no aparece «lo mio contra lo mio»', async () => {
     // La lectura del `removed` de mi eco puede volver antes que el ack: la
     // escritura sigue en la cola, y es su copia la que encuentra.
     const uid = 'uid-190-sin-ack';
@@ -6365,23 +6365,42 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
     mockSetGate = null;
     ack();
+    await settle();
+    // R9-200 — W2 ya intento una vez y fue rechazada: al reiniciar espera su
+    // reintento. Vencida, el `flush` del arranque la subia antes de enganchar
+    // y su eco tapaba W0 (R9-198): la prueba no veia el fantasma.
+    const cola = engine.__getQueueForTests().filter(q => q.uid === uid);
+    for (const q of cola) {
+      (q as {attempts: number}).attempts = 1;
+      (q as {lastAttemptAt?: number}).lastAttemptAt = Date.now();
+    }
+    const vistos = new Set<string>();
+    engine.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(`${c.localVersion.value}|${c.remoteVersion.value}`),
+      ),
+    );
     await engine.start(uid);
     await settle();
 
     // Sin reconocer la escritura en cola como propia, la marca pasaba a mi
-    // respaldo mientras el ack no llegaba (medido: la marca, no un fantasma
-    // tras este reinicio; el fantasma lo muestra la prueba de arriba).
+    // respaldo mientras el ack no llegaba, y tras reiniciar con W2 en espera
+    // se mostraba «lo mio nuevo | mi respaldo»: lo mio contra lo mio.
     expect({
       removed: removedDelivered(uid), // CONTROL: el eco de W0 salio de la query
       enCola, // CONTROL: W0 seguia en cola cuando volvio la lectura
+      w2: cola.map(q => (q.data as Data).value), // CONTROL: W2 en espera
       marca,
+      vistos: [...vistos],
       conflictos: engine
         .__getConflictsForTests()
         .map(c => [c.localVersion.value, c.remoteVersion.value]),
     }).toEqual({
       removed: ['doc-c'],
       enCola: ['doc-c'],
+      w2: ['lo mio nuevo'],
       marca: {unsettled: {}, conflicted: []},
+      vistos: [],
       conflictos: [],
     });
     engine.stop();
