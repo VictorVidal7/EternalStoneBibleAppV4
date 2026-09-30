@@ -7358,6 +7358,51 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-181/R9-206: el eco de mi edicion no sube la marca: tras reiniciar, una escritura atrasada del otro, mas vieja que mi edicion y por encima de «lo suyo», vuelve a mostrar el conflicto', async () => {
+    const uid = 'uid-206-piso';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // Sigo escribiendo: W sube y su eco llega con el conflicto en memoria.
+    const W = {value: 'W: sigo escribiendo', updatedAt: T + 20 * 60_000};
+    localStore.set('doc-c', W as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W);
+    await settle();
+    // Otro doc lleva el cursor mas alla de W.
+    write(uid, 'doc-z', {value: 'z', updatedAt: T + 25 * 60_000});
+    await settle();
+    const marca = await persisted(uid);
+    engine.stop();
+    // Con la app cerrada, el otro escribe R2 con el reloj atrasado: mas vieja
+    // que W (y a mas de 5 min: el margen del piso), mas nueva que R.
+    const R2 = {value: 'R2: su reloj atrasado', updatedAt: T + 10 * 60_000};
+    write(uid, 'doc-c', R2);
+    const entregasAntes = mockDelivered.length;
+    await engine.start(uid);
+    await settle();
+
+    // Sin la guarda, el eco de W subia la marca a W: el piso del enganche
+    // quedaba por encima de R2, que no se entregaba, y el conflicto se perdia
+    // en silencio con la nube en R2 y este telefono en W. Hasta R9-206 lo
+    // tapaba otra cosa: con la marca en W, su re-entrega daba «W contra W».
+    expect({
+      marca: marca.unsettled['doc-c'] - T, // CONTROL: la marca sigue en R
+      entregada: mockDelivered
+        .slice(entregasAntes)
+        .filter(d => d.id === 'doc-c')
+        .map(d => `${d.type}/${d.via}`),
+      conflictos: parejas(engine),
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      marca: 65_000,
+      entregada: ['added/attach'],
+      conflictos: [[W.value, R2.value]],
+      nube: R2.value,
+    });
+    engine.stop();
+  });
+
   it('R9-193: sigo escribiendo y el otro, con el reloj 2 min atrasado, escribe casi a la vez: su copia mas vieja que la mia pasa a ser «su version» al llegar, y el conflicto sigue tras reiniciar', async () => {
     // El otro telefono va 2 min atrasado: R, escrita a las T+185 reales, lleva
     // T+65; el usuario sigue escribiendo aqui (L1, a las T+190), y el otro
