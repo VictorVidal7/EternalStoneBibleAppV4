@@ -353,7 +353,21 @@
 >   `R9-193`) tienen hipótesis medidas que cambian comportamiento: decisión de Victor.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **194**. Ramas `fix/s30-sync-r9185-r9188` y
-> `docs/review-s30-fix-s29`, sin mergear hasta el OK. Detalle: `detail/S30-arreglos-de-la-29.md`.
+> `docs/review-s30-fix-s29`: mergeadas y pusheadas con el OK de Victor (`main` = `ce05112`, CI verde
+> en el log, run `36642503997`, 367/4451). Detalle: `detail/S30-arreglos-de-la-29.md`.
+>
+> **Sesión 31 (2026-09-30): REVISIÓN del diff de la 30, solo en la terminal, sin tocar código.** A
+> pedido de Victor, 3 agentes en worktree que solo midieron; el orquestador re-midió cada pieza en su
+> árbol.
+>
+> - **La matriz entera:** idéntica a la final de la 30.
+> - **11 hallazgos nuevos, `R9-195`..`R9-205`:** 1 P2 (`R9-199`) y 10 P3; cuatro son el corolario 42
+>   entre arreglos del mismo diff.
+> - **Las decisiones de Victor sobre `R9-192` y `R9-193`, registradas;** sus hipótesis, medidas sobre
+>   el código de hoy para que la 32 las integre.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **205**. Rama `docs/review-s31-diff-s30`, sin mergear
+> hasta el OK. Detalle: `detail/S31-revision-del-diff-s30.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -836,6 +850,23 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
       línea por línea;
     - **el orden del mock decide qué guarda hace falta:** con el de RNFB, una sola guarda cubre
       `R9-176` y `R9-178`.
+
+- **Sesión 31 — 2026-09-30. Revisión del diff de la 30.** Solo en la terminal; a pedido de Victor,
+  3 agentes en worktree que solo midieron.
+  - **Cómo se trabajó:**
+    - A1 revisó `R9-190`/`R9-186`/`R9-191` y sus pruebas; A2, `R9-182`..`R9-184` y portó P2/P3 de
+      `R9-192`; A3 midió el diseño unificado de `R9-193`;
+    - el orquestador corrió la matriz entera en un worktree aparte, leyó cada diff contra su informe
+      y re-midió cada sonda, hipótesis y tabla en su árbol (corolario 43).
+  - **Resultado:** 11 nuevos (`R9-195`..`R9-205`), ninguno P0; las decisiones de `R9-192` y `R9-193`
+    registradas, con sus hipótesis medidas para la 32.
+  - **Detalle: `detail/S31-revision-del-diff-s30.md`.**
+  - **Las lecciones:**
+    - **una hipótesis escrita en una decisión es una hipótesis:** el sello en la entrada de la cola,
+      solo, no cierra la ventana; la cierra la cola y la tabla en un solo `multiSet`;
+    - **un prompt que nombra la palabra y no la línea** apuntó al `fromRead` equivocado: lo corrigió
+      quien midió;
+    - **un orden de arranque puede tapar la prueba que dice probar un caso** (`R9-198`/`R9-200`).
 
 - **Sesión 30 — 2026-09-29. Arreglos de lo de la 29 (y de la 28).** Solo en la terminal; a
   pedido de Victor, 3 agentes en worktree que solo midieron.
