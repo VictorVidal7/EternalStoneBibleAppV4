@@ -1303,6 +1303,11 @@ export class SyncEngine {
           // «mine» against «mine» (`remoteTs === heldAt`, R9-181), and keeping
           // «theirs» there dropped the newer edit. It is settled, as before
           // R9-185.
+          //
+          // R9-192 — the conflict still waiting in memory shows that copy as
+          // «theirs» too. It kept showing the one the mark had just left, a
+          // copy the cloud no longer has: keepTheirs then pushed it back over
+          // the other device's (the write in the queue makes it push).
           if (justDropped || this.hasQueuedWrite(uid, adapter.collection, id)) {
             if (
               currentData &&
@@ -1310,6 +1315,11 @@ export class SyncEngine {
               !this.isOwnCopy(uid, adapter.collection, id, currentData)
             ) {
               hold(id, currentData.updatedAt, true);
+              this.refreshTheirs(
+                adapter,
+                id,
+                currentData as SyncEntity<Record<string, unknown>>,
+              );
             } else {
               settle(id);
             }
@@ -1390,16 +1400,17 @@ export class SyncEngine {
           // refresh the snapshot instead of piling up.
           //
           // R9-181 — held at the copy the conflict is about: the one just
-          // recorded as «theirs», or the cloud's as the read of a `removed`
-          // found it. The echo of this device's own write does not move the
-          // mark: after a restart, that is how the held-conflict branch tells
-          // an older copy of the other device from one of its own.
+          // recorded as «theirs»; since R9-192 that includes every copy read
+          // after a `removed` that is still in conflict here. The echo of this
+          // device's own write does not move the mark: after a restart, that
+          // is how the held-conflict branch tells an older copy of the other
+          // device from one of its own.
           const conflict = this.conflicts.find(
             c => c.collection === adapter.collection && c.docId === id,
           );
           hold(
             id,
-            fromRead || conflict?.remoteVersion === remote
+            conflict?.remoteVersion === remote
               ? remote.updatedAt
               : (this.unsettledOf(adapter.collection).get(id)?.updatedAt ??
                   conflict?.remoteVersion.updatedAt),
@@ -1511,9 +1522,21 @@ export class SyncEngine {
       // newer is the other device's. With no local copy (the user deleted it
       // here), a tombstone is the echo of that delete, and a live copy is
       // theirs unless it is the one the conflict already shows.
-      const theirs = local
-        ? updatedAtOf(data) > updatedAtOf(local)
-        : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt;
+      //
+      // R9-192 — a copy READ after the doc left the query (R9-124) is the
+      // cloud's as it is now, older than the floor by construction: its age
+      // says nothing about who wrote it, and it is what keepTheirs has to
+      // apply. Taken for an echo, the conflict kept showing a copy the cloud
+      // no longer had, and keepTheirs left this phone on it and the cloud on
+      // the read one for good. Shown as «theirs»; if it holds what the local
+      // copy holds (this device's own write reached the cloud), the conflict
+      // dissolves below. A write of this device still queued, or just
+      // dropped, never gets here: the guard of `handleSnapshot` takes it.
+      const theirs =
+        fromRead ||
+        (local
+          ? updatedAtOf(data) > updatedAtOf(local)
+          : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt);
       if (!theirs) return true;
       const differing = this.conflictFields(adapter, local, data, deleted);
       if (differing.length > 0) {
@@ -2097,6 +2120,32 @@ export class SyncEngine {
     );
     if (queued && updatedAtOf(queued.data) === ts) return true;
     return this.ownAcked.get(suppressKey(collection, id)) === ts;
+  }
+
+  /** R9-192 — a copy of the other device that the read of a `removed` found
+   *  while this device's write waits (the answer is not applied): the conflict
+   *  still pending in memory shows it as «theirs». */
+  private refreshTheirs(
+    adapter: AnyAdapter,
+    id: string,
+    copy: SyncEntity<Record<string, unknown>>,
+  ): void {
+    const pending = this.conflicts.find(
+      c => c.collection === adapter.collection && c.docId === id,
+    );
+    if (!pending) return;
+    const differing = this.conflictFields(
+      adapter,
+      pending.localVersion,
+      copy,
+      copy.deleted === true,
+    );
+    this.recordConflict({
+      ...pending,
+      remoteVersion: copy,
+      differingFields:
+        differing.length > 0 ? differing : pending.differingFields,
+    });
   }
 
   /** R9-161 — see `conflictsWrittenHere`. */

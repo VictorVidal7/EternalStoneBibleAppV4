@@ -6507,6 +6507,159 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
+    const uid = 'uid-192-cola';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const editada = {value: 'lo mio editado', updatedAt: T + 120_000};
+    localStore.set('doc-c', editada as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', editada);
+    await settle();
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    mockSetShouldFail = false;
+    const cola = engine.__getQueueForTests().map(q => [q.id, q.attempts]);
+    const suya = suyaDe(engine);
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: la guarda no refrescaba el conflicto: seguia mostrando «lo
+    // suyo», que la nube ya no tenia, y keepTheirs lo subia encima del
+    // respaldo del otro.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      cola, // CONTROL: la edicion sigue en cola
+      suya,
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      removed: ['doc-c'],
+      cola: [['doc-c', 1]],
+      suya: ['su respaldo viejo'],
+      local: 'su respaldo viejo',
+      nube: 'su respaldo viejo',
+    });
+    engine.stop();
+  });
+
+  it('R9-192: si el respaldo que encuentra la guarda coincide con mi version de cuando se detecto el conflicto, el conflicto conserva el campo en disputa', async () => {
+    const uid = 'uid-192-igual';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const editada = {value: 'lo mio editado', updatedAt: T + 120_000};
+    localStore.set('doc-c', editada as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', editada);
+    await settle();
+    // El otro restaura un respaldo que trae MI version de entonces.
+    write(uid, 'doc-c', {value: 'lo mio', updatedAt: T - DAY});
+    await settle();
+    mockSetShouldFail = false;
+
+    // Comparada con la foto local del conflicto, esa copia no difiere en nada:
+    // sin conservar los campos de antes, `differingFields` quedaba vacio (la
+    // pantalla de conflictos muestra y mezcla solo esos campos: leido en
+    // `app/(tabs)/conflicts.tsx`, no medido aqui).
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      cola: engine.__getQueueForTests().map(q => [q.id, q.attempts]), // CONTROL
+      conflictos: engine
+        .__getConflictsForTests()
+        .map(c => [c.remoteVersion.value, [...c.differingFields]]),
+    }).toEqual({
+      removed: ['doc-c'],
+      cola: [['doc-c', 1]],
+      conflictos: [['lo mio', ['value']]],
+    });
+    engine.stop();
+  });
+
+  it('R9-192: sin escrituras mias, el respaldo del otro leido tras el `removed` pasa a ser «su version», y keepTheirs no deja local y nube distintos', async () => {
+    const uid = 'uid-192-leida';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    const suya = suyaDe(engine);
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la rama `pending` tomaba la copia leida por un eco propio (mas
+    // vieja que lo local): el conflicto seguia en «lo suyo», keepTheirs lo
+    // aplicaba sin subir, y la nube se quedaba en el respaldo, bajo el piso.
+    expect({
+      removed: removedDelivered(uid), // CONTROL
+      suya,
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+      conflictos: engine.__getConflictsForTests().length,
+    }).toEqual({
+      removed: ['doc-c'],
+      suya: ['su respaldo viejo'],
+      local: 'su respaldo viejo',
+      nube: 'su respaldo viejo',
+      conflictos: 0,
+    });
+    engine.stop();
+  });
+
+  it('R9-192: la relectura del enganche lee Z; detras llega Y (entra) y el `removed` real de Z: el conflicto termina en Z, no en Y', async () => {
+    const uid = 'uid-192-relectura';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    mockGetShouldFail = true;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    mockGetShouldFail = false;
+    const releer = await rereadOf(uid);
+    engine.stop();
+    const hilo = holdRead('doc-c');
+    await engine.start(uid);
+    await settle();
+    write(uid, 'doc-c', {value: 'Y nuevo', updatedAt: T + 400_000});
+    await settle();
+    write(uid, 'doc-c', {value: 'Z viejo', updatedAt: T - 3 * DAY});
+    await settle();
+    hilo.releaseRead();
+    mockGetGate = null;
+    await settle();
+    const suya = suyaDe(engine);
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+
+    // Pre-fix: la entrega de Y (mas nueva que lo local) quedaba como «su
+    // version», y la lectura de Z (mas vieja) se descartaba: keepTheirs dejaba
+    // Y en local con la nube en Z.
+    expect({
+      releer, // CONTROL: el enganche tenia que releer
+      removed: removedDelivered(uid), // CONTROL: el de X y el REAL de Z
+      suya,
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      releer: ['doc-c'],
+      removed: ['doc-c', 'doc-c'],
+      suya: ['Z viejo'],
+      local: 'Z viejo',
+      nube: 'Z viejo',
+    });
+    engine.stop();
+  });
+
   it('R9-186: la lectura vence el plazo: la marca queda y el proceso siguiente lo lee', async () => {
     const uid = 'uid-186-plazo';
     const T = Date.now() - HOUR;
