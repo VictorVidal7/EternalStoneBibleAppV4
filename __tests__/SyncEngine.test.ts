@@ -6867,6 +6867,46 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-189: W2 reemplaza a W1 mientras el set de W1 espera el hilo unico: suben las dos y no aparece «w2 contra w1»', async () => {
+    const uid = 'uid-189-ventana';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    // Un doc que sale de la query: su lectura ocupa el hilo unico (R9-177).
+    const x = {value: 'x', updatedAt: T + 50_000};
+    localStore.set('docX', x);
+    write(uid, 'docX', x);
+    await settle();
+    let soltar!: () => void;
+    const gate = new Promise<void>(r => (soltar = r));
+    mockGetGate = (_p, id) => (id === 'docX' ? gate : undefined);
+    hardDelete(uid, 'docX', x);
+    await settle();
+    // W1: su push espera el hilo; W2 la reemplaza en la cola.
+    const W1 = {value: 'w1', updatedAt: T + 100_000};
+    localStore.set('docB', W1);
+    engine.queueWrite('test', 'docB', W1);
+    await settle();
+    const W2 = {value: 'w2', updatedAt: T + 106_000};
+    localStore.set('docB', W2);
+    engine.queueWrite('test', 'docB', W2);
+    soltar();
+    await settle();
+    await settle();
+    mockGetGate = null;
+
+    // Pre-fix: la ventana de 30 s no miraba si la copia era propia, y tomaba
+    // el eco de W1 (su reloj lo lleva la entrada de W2) por un cambio del
+    // otro telefono.
+    expect({
+      subidas: mockDocSets // CONTROL: subieron las dos (R9-184)
+        .filter(s => s.id === 'docB')
+        .map(s => (s.data as Data).value),
+      conflictos: parejas(engine),
+      local: localStore.get('docB')?.value,
+    }).toEqual({subidas: ['w1', 'w2'], conflictos: [], local: 'w2'});
+    engine.stop();
+  });
+
   it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
     const uid = 'uid-192-cola';
     const T = Date.now() - HOUR;

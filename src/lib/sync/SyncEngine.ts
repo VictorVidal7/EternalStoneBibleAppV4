@@ -1700,7 +1700,16 @@ export class SyncEngine {
       const withinWindow = Math.abs(localTs - remoteTs) < CONFLICT_WINDOW_MS;
       const materialFields = adapter.getMaterialFields?.() ?? [];
 
-      if (withinWindow && materialFields.length > 0 && !deleted) {
+      // R9-189 — a copy of this device's own is no conflict, within the
+      // window too: the echo of a write the queue replaced while it was being
+      // pushed (both went up, R9-184) came back less than 30 s from the local
+      // copy and different from it, and «mine» showed against «mine».
+      if (
+        withinWindow &&
+        materialFields.length > 0 &&
+        !deleted &&
+        !this.isOwnCopy(this.uid, adapter.collection, id, data)
+      ) {
         const localRec = local as unknown as Record<string, unknown>;
         const differing = materialFields.filter(
           f => !valuesEqual(localRec[f], data[f]),
