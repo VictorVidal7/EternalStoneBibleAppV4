@@ -6695,6 +6695,96 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-197: tras reiniciar con mi edicion en espera, la relectura del enganche muestra el conflicto con el respaldo del otro, y la subida de mi edicion no lo asienta', async () => {
+    const uid = 'uid-197-releer';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const W = {value: 'lo mio editado', updatedAt: T + 120_000};
+    localStore.set('doc-c', W as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', W);
+    await settle();
+    mockSetShouldFail = false;
+    mockGetShouldFail = true;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    mockGetShouldFail = false;
+    const releer = await rereadOf(uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    const trasArranque = parejas(engine);
+    const cola = engine.__getQueueForTests().map(q => [q.id, q.attempts]);
+    // Pasan los 30 s: el reintento de W sale en esta misma sesion.
+    for (const q of engine.__getQueueForTests()) {
+      (q as {lastAttemptAt?: number}).lastAttemptAt = 0;
+    }
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: la guarda de R9-185 movia la marca al respaldo y seguia sin
+    // registrar el conflicto (tras reiniciar no esta en memoria); el eco de W
+    // lo asentaba por LWW y la restauracion del otro se perdia sin elegir.
+    expect({
+      releer, // CONTROL: la lectura del `removed` fallo
+      cola, // CONTROL: W esperaba al reiniciar
+      trasArranque,
+      trasSubir: parejas(engine),
+      marca: (await persisted(uid)).conflicted,
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL: W subio
+    }).toEqual({
+      releer: ['doc-c'],
+      cola: [['doc-c', 1]],
+      trasArranque: [['lo mio editado', 'su respaldo viejo']],
+      trasSubir: [['lo mio editado', 'su respaldo viejo']],
+      marca: ['doc-c'],
+      nube: 'lo mio editado',
+    });
+    engine.stop();
+  });
+
+  it('R9-197: tras reiniciar con mi borrado en espera, la relectura del enganche no revive el doc con el respaldo del otro, y la marca se queda en el', async () => {
+    const uid = 'uid-197-borrado';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const previo = localStore.get('doc-c')!;
+    localStore.delete('doc-c');
+    mockSetShouldFail = true;
+    engine.queueDelete('test', 'doc-c', previo);
+    await settle();
+    mockSetShouldFail = false;
+    mockGetShouldFail = true;
+    const X = {value: 'su respaldo viejo', updatedAt: T - DAY};
+    write(uid, 'doc-c', X);
+    await settle();
+    mockGetShouldFail = false;
+    const releer = await rereadOf(uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    const marca = await persisted(uid);
+
+    // Pre-fix de la pieza: sin copia local con la que comparar, la lectura
+    // seguia hasta aplicar el respaldo (el doc resucitaba con el borrado en
+    // cola, R9-176), y sin conflicto que registrar, la marca se asentaba.
+    expect({
+      releer, // CONTROL: la lectura del `removed` fallo
+      cola: engine.__getQueueForTests().map(q => q.id), // CONTROL
+      local: localStore.get('doc-c')?.value ?? null,
+      marca: {en: marca.unsettled['doc-c'] - T, conflicto: marca.conflicted},
+    }).toEqual({
+      releer: ['doc-c'],
+      cola: ['doc-c'],
+      local: null,
+      marca: {en: -DAY, conflicto: ['doc-c']},
+    });
+    engine.stop();
+  });
+
   it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
     const uid = 'uid-192-cola';
     const T = Date.now() - HOUR;

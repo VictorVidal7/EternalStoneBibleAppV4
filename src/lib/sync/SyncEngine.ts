@@ -1338,6 +1338,9 @@ export class SyncEngine {
           this.droppedAwaitingRevert.delete(droppedKey);
         }
         const justDropped = droppedAt !== undefined && leftQuery;
+        // R9-197 — a read found the other device's copy of a held conflict
+        // while a write of this device waits (see below): nothing is applied.
+        let ownQueued = false;
         if (leftQuery) {
           // R9-124 — under the `where('updatedAt', '>=', floor)` listener,
           // `removed` means the doc LEFT the query, not that it was deleted:
@@ -1427,15 +1430,29 @@ export class SyncEngine {
               !this.isOwnCopy(uid, adapter.collection, id, currentData)
             ) {
               hold(id, currentData.updatedAt, true);
-              this.refreshTheirs(
-                adapter,
-                id,
-                currentData as SyncEntity<Record<string, unknown>>,
-              );
+              // R9-197 — after a restart no conflict of the doc waits in
+              // memory: the mark moved, nothing showed the conflict, and the
+              // write's echo then settled it by LWW (it is the local copy, not
+              // the mark) before the user chose, as before R9-185. The read
+              // goes on, and the held-conflict branch records it (the copy is
+              // at the mark now); nothing of it is applied (`ownQueued`).
+              if (
+                this.conflicts.some(
+                  c => c.collection === adapter.collection && c.docId === id,
+                )
+              ) {
+                this.refreshTheirs(
+                  adapter,
+                  id,
+                  currentData as SyncEntity<Record<string, unknown>>,
+                );
+                continue;
+              }
+              ownQueued = true;
             } else {
               settle(id);
+              continue;
             }
-            continue;
           }
           if (current && !currentData) {
             // Deleted for real (rare — we soft-delete via tombstone). No
@@ -1478,6 +1495,7 @@ export class SyncEngine {
           adapter,
           remoteChange,
           isCurrent,
+          ownQueued,
         );
         if (!isCurrent()) return;
         if (!localKnown) {
@@ -1526,7 +1544,9 @@ export class SyncEngine {
                   conflict?.remoteVersion.updatedAt),
             true,
           );
-        } else {
+        } else if (!ownQueued) {
+          // R9-197 — with a write of this device waiting, the mark the read
+          // just moved stays until that write lands.
           settle(id);
           if (
             typeof remote.updatedAt === 'number' &&
@@ -1589,6 +1609,7 @@ export class SyncEngine {
     adapter: AnyAdapter,
     change: RemoteChange<Record<string, unknown>>,
     isCurrent: () => boolean,
+    ownQueued = false,
   ): Promise<boolean> {
     const {id, data, deleted} = change;
     let local: SyncEntity<Record<string, unknown>> | null;
@@ -1668,6 +1689,10 @@ export class SyncEngine {
       // to choose, and LWW below applies it like any newer change.
       this.dropConflict(pending.id);
     }
+
+    // R9-197 — no local copy (the user deleted it here), and this device's
+    // write lands after the read copy: nothing is applied (R9-176).
+    if (ownQueued && !local) return true;
 
     if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;
