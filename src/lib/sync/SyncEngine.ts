@@ -1451,8 +1451,9 @@ export class SyncEngine {
               // memory: the mark moved, nothing showed the conflict, and the
               // write's echo then settled it by LWW (it is the local copy, not
               // the mark) before the user chose, as before R9-185. The read
-              // goes on, and the held-conflict branch records it (the copy is
-              // at the mark now); nothing of it is applied (`ownQueued`).
+              // goes on, and the held-conflict branch records it (an older
+              // copy, not this device's own); nothing of it is applied
+              // (`ownQueued`).
               if (
                 this.conflicts.some(
                   c => c.collection === adapter.collection && c.docId === id,
@@ -1761,17 +1762,6 @@ export class SyncEngine {
       // anyway, or LWW would settle it without the user choosing.
       // - Newer than the local copy: the other device kept writing, or deleted
       //   it, meanwhile (R9-160).
-      // - Older, and the very copy the mark is held at (R9-181): a restored
-      //   backup, or the other device's clock, rewrote it below the floor
-      //   (R9-124), and it is held at that `updatedAt` precisely so that it
-      //   comes back here. LWW kept the local copy in silence, the mark went
-      //   with it, and the cloud and this phone stayed apart for good.
-      // - Read, not delivered (R9-186): the cloud's copy of a doc that left
-      //   the query, older than the floor by construction. The other
-      //   device's comes in by the next case. R9-196 — this device's own does
-      //   not: taken whatever its age, a write of its own that a read found
-      //   (a restart with the list unreadable re-reads every held conflict,
-      //   R9-191) showed «mine» against «mine», restart after restart.
       // - R9-193 — older, and not a copy of this device (`isOwnCopy`): the
       //   other device, with its clock behind this one's. Before, any older
       //   copy was taken for this device's own earlier write (R9-188), and
@@ -1779,11 +1769,23 @@ export class SyncEngine {
       //   of this device's own (the user edited the doc again since, and that
       //   is no conflict with the other device) still settles by LWW, and its
       //   echo never moves the mark (see `handleSnapshot`).
-      const heldAt = this.unsettled.get(adapter.collection)?.get(id)?.updatedAt;
+      //   That covers the copy the mark is held at (R9-181): a restored
+      //   backup, or the other device's clock, rewrote it below the floor
+      //   (R9-124), and it is held at that `updatedAt` precisely so that it
+      //   comes back here; LWW kept the local copy in silence, and the cloud
+      //   and this phone stayed apart for good. R9-206 — `remoteTs ===` the
+      //   mark was its own case before; with this one it added nothing (the
+      //   mark only moves to a copy of the other device), and it went.
+      //   It also covers a copy read, not delivered (R9-186): the cloud's
+      //   copy of a doc that left the query, older than the floor by
+      //   construction. R9-196 — a read copy of this device's own does not
+      //   come in: taken whatever its age, a write of its own that a read
+      //   found (a restart with the list unreadable re-reads every held
+      //   conflict, R9-191) showed «mine» against «mine», restart after
+      //   restart.
       if (
         !pending &&
         (remoteTs > localTs ||
-          remoteTs === heldAt ||
           (remoteTs < localTs &&
             !this.isOwnCopy(this.uid, adapter.collection, id, data))) &&
         this.isHeldConflict(adapter.collection, id)
