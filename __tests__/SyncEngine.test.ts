@@ -6509,6 +6509,70 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-195: la lista de CONFLICTOS ilegible con un doc en releer: el conflicto vuelve igual, y no queda perdido tras guardar el conjunto y reiniciar', async () => {
+    const uid = 'uid-195-ilegible';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    mockGetShouldFail = true;
+    write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+    await settle();
+    mockGetShouldFail = false;
+    const releer = await rereadOf(uid);
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let arranque1: unknown;
+    let avisado = false;
+    try {
+      getItemMock.mockImplementation((k: string) =>
+        k.startsWith('@sync_conflicted_')
+          ? Promise.reject(new Error('disco'))
+          : realImpl(k),
+      );
+      engine.stop();
+      await engine.start(uid);
+      await settle();
+      getItemMock.mockImplementation(realImpl);
+      avisado = loggerWarnSpy.mock.calls.some(([m]) =>
+        String(m).includes('failed to read held conflicts'),
+      );
+      arranque1 = suyaDe(engine);
+      // Otro conflicto, resuelto en esta sesion: guarda el conjunto.
+      localStore.set('doc-d', {
+        value: 'd mio',
+        updatedAt: T + 600_000,
+      } as unknown as SyncEntity<TestEntity>);
+      write(uid, 'doc-d', {value: 'd suyo', updatedAt: T + 605_000});
+      await settle();
+      await engine.resolveConflict('test__doc-d', 'keepMine');
+      await settle();
+    } finally {
+      getItemMock.mockImplementation(realImpl);
+    }
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la lista de releer marcaba solo los docs que la de conflictos
+    // decia; sin ella ninguno, nadie releia el doc (fuera de la query), y el
+    // guardado del conjunto borraba las dos listas: el conflicto no volvia.
+    expect({
+      releer, // CONTROL
+      avisado, // CONTROL: la lectura de la lista de conflictos fallo
+      arranque1,
+      conflictos: suyaDe(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      releer: ['doc-c'],
+      avisado: true,
+      arranque1: ['su respaldo viejo'],
+      conflictos: ['su respaldo viejo'],
+      local: 'lo mio',
+    });
+    engine.stop();
+  });
+
   /** R9-196 — el conflicto L/R con L2 ya subida (su sello es propio) y L3
    *  despues: en cola (`descartada` false) o descartada tras 8 rechazos
    *  (R9-33). Devuelve el motor listo para reiniciar. */

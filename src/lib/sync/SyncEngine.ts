@@ -1956,6 +1956,7 @@ export class SyncEngine {
     }
     // R9-160 — which of them are conflicts. Unreadable, it marks none: they
     // are then re-detected only within the 30 s window, as before the mark.
+    let conflictedReadable = true;
     if (held.size > 0) {
       try {
         const raw = await AsyncStorage.getItem(
@@ -1967,6 +1968,7 @@ export class SyncEngine {
           if (doc) doc.conflict = true;
         }
       } catch (err) {
+        conflictedReadable = false;
         logger.warn('SyncEngine: failed to read held conflicts', {
           component: 'SyncEngine',
           collection,
@@ -1981,7 +1983,15 @@ export class SyncEngine {
         const ids: unknown = raw != null ? JSON.parse(raw) : [];
         for (const id of Array.isArray(ids) ? ids : []) {
           const doc = typeof id === 'string' ? held.get(id) : undefined;
-          if (doc?.conflict) doc.reread = true;
+          // R9-195 — only a held conflict is ever listed here, so with the
+          // conflict list unreadable the listing says it is one. Marking none
+          // left it out of the query with nothing to read it, and the next
+          // save of the set erased both lists: the conflict never came back,
+          // and its mark pinned the floor for good (R9-164).
+          if (doc && (doc.conflict || !conflictedReadable)) {
+            doc.conflict = true;
+            doc.reread = true;
+          }
         }
       } catch (err) {
         logger.warn('SyncEngine: failed to read the conflicts to read again', {
@@ -1993,8 +2003,9 @@ export class SyncEngine {
         // each). Reading none left the ones that needed it held out of the
         // query, with the floor pinned under them (R9-164); the next save of
         // the set then erased the list, and they were never read again. An
-        // unreadable conflict list degrades less: its docs are still in the
-        // query, and their next delivery settles them.
+        // unreadable conflict list degrades less: the held conflicts that are
+        // still in the query are settled by their next delivery, and the ones
+        // listed here are marked anyway (R9-195).
         for (const doc of held.values()) {
           if (doc.conflict) doc.reread = true;
         }
