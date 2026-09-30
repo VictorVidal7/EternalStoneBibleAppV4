@@ -255,6 +255,38 @@ function rereadStorageKey(collection: string, uid: string): string {
   return `${REREAD_STORAGE_PREFIX}${collection}:${uid}`;
 }
 
+const OWN_STORAGE_PREFIX = '@sync_own_';
+
+/**
+ * R9-193 — this device's own stamps for a collection's pending conflicts (see
+ * `ownStamps`). A JSON object docId → number[].
+ */
+function ownStorageKey(collection: string, uid: string): string {
+  return `${OWN_STORAGE_PREFIX}${collection}:${uid}`;
+}
+
+/** R9-193 — how many own stamps a doc keeps, the newest (see `ownStamps`). */
+const MAX_OWN_STAMPS = 16;
+
+/** R9-193 — the stamps an entry carries (`PendingWrite.own`), as numbers. */
+function ownOf(entry: PendingWrite): number[] {
+  return Array.isArray(entry.own)
+    ? entry.own.filter(
+        (n): n is number => typeof n === 'number' && Number.isFinite(n),
+      )
+    : [];
+}
+
+/** R9-193 — `stamps` plus `ts`, without repeats, the newest `MAX_OWN_STAMPS`. */
+function withStamp(stamps: readonly number[], ts: unknown): number[] {
+  if (typeof ts !== 'number' || !Number.isFinite(ts) || ts <= 0) {
+    return [...stamps];
+  }
+  const next = stamps.filter(s => s !== ts);
+  next.push(ts);
+  return next.slice(-MAX_OWN_STAMPS);
+}
+
 /** R9-39 / R9-106 — one unsettled doc: the remote `updatedAt` held, whether
  *  it is held as a pending conflict (R9-160), and whether the next attach has
  *  to read it because no query will deliver it again (R9-186). */
@@ -387,11 +419,33 @@ export class SyncEngine {
    * has to push it (see `resolveConflict`). Cleared with the conflicts.
    */
   private conflictsWrittenHere = new Set<string>();
-  /** R9-190 — per doc (`suppressKey`), the `updatedAt` of the last write of
-   *  this device the server took in this session: a copy a read finds with
-   *  that clock is this device's own (see `isOwnCopy`). In memory only, and
-   *  cleared on `stop()`: another account's writes are not this one's. */
-  private ownAcked = new Map<string, number>();
+  /**
+   * R9-193 — per collection, docId → the `updatedAt` of this device's writes
+   * of a doc that is a pending conflict (in memory or held), once they left
+   * the queue: the server took them (or the entry that carried them, see
+   * `PendingWrite.own`). `updatedAt` is a client clock, and the other device's
+   * can run behind this one's: a copy older than the local one is this
+   * device's own only if it carries one of these, or is a write still queued
+   * (see `isOwnCopy`). Before this, "older than local" was all it took, and
+   * the other device's write with its clock behind was taken for an echo.
+   *
+   * Persisted per uid (`ownStorageKey`) in the SAME write as the queue that
+   * no longer holds them (see `persistQueue`): at every instant a stamp is on
+   * disk in the queue or here, so a process that dies after the server took
+   * the write cannot forget it. Loaded with the unsettled set, for the held
+   * conflicts only; forgotten when the conflict ends.
+   *
+   * Always this session's: `stop()` writes out what changed (while `this.uid`
+   * is still the owner), and each attach replaces its collection's map with
+   * the one it loads, before anything of the new session reads or records a
+   * stamp (nothing is a conflict until then). Another account's writes are
+   * not this one's.
+   */
+  private ownStamps = new Map<string, Map<string, number[]>>();
+  /** R9-193 — collections whose `ownStamps` changed since the last write. */
+  private ownDirty = new Set<string>();
+  /** R9-193 — the entry `flush()` is pushing right now, if any (see `stop()`). */
+  private pushing: PendingWrite | null = null;
   /**
    * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
    * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
@@ -599,6 +653,18 @@ export class SyncEngine {
       this.netUnsub = null;
     }
     this.stopPeriodicFlush();
+    // R9-193 — the write being pushed may be taken by the server after this
+    // `stop()`: its ack no longer notes its stamps (the session is over), and
+    // its entry still leaves the queue (R9-104). Noted now, as if taken; if it
+    // never lands, the stamp names a copy that does not exist.
+    if (this.pushing) {
+      this.noteOwnAcked(this.pushing);
+      this.pushing = null;
+    }
+    // Own stamps not written yet go out now, under this account, before the
+    // queue that no longer holds them can be written without them (a flush of
+    // this session can still write it after the `stop()`).
+    if (this.ownDirty.size > 0) void this.persistQueue();
     // R9-104 — a push still in flight belongs to the session that is ending.
     // Release the lock here instead of waiting for it: it may never come back
     // (see `flushSession`), and the next account must be able to flush.
@@ -616,7 +682,6 @@ export class SyncEngine {
     // window while it waited (R9-160).
     this.conflicts = [];
     this.conflictsWrittenHere.clear();
-    this.ownAcked.clear();
     // Quota hardening — drop the in-memory cursor cache so a later
     // start() (same uid signing back in, or a DIFFERENT uid on the same
     // device) always re-derives cursors from AsyncStorage (uid-scoped
@@ -853,9 +918,43 @@ export class SyncEngine {
   }
 
   private async persistQueue(): Promise<void> {
+    // R9-193 — the own stamps that changed go in the SAME write as the queue
+    // (see `ownStamps`): an entry that left it (acked) took its stamps there,
+    // and written apart, a process that died between the two writes had the
+    // entry gone from disk and its stamps not there yet. Both payloads are
+    // taken now, and the calls issued in this same turn, so a later write
+    // always lands after this one.
+    const pairs: Array<[string, string]> = [
+      [QUEUE_STORAGE_KEY, JSON.stringify(this.queue)],
+    ];
+    const emptied: string[] = [];
+    const written = [...this.ownDirty];
+    const uid = this.uid;
+    if (uid) {
+      for (const collection of written) {
+        const own = Object.fromEntries(this.ownStamps.get(collection) ?? []);
+        if (Object.keys(own).length === 0) {
+          emptied.push(ownStorageKey(collection, uid));
+        } else {
+          pairs.push([ownStorageKey(collection, uid), JSON.stringify(own)]);
+        }
+      }
+      this.ownDirty.clear();
+    }
+    const session = this.flushSession;
     try {
-      await AsyncStorage.setItem(QUEUE_STORAGE_KEY, JSON.stringify(this.queue));
+      // Removing an emptied set needs no care: it only ever loses stamps
+      // nothing needs any more.
+      await Promise.all([
+        AsyncStorage.multiSet(pairs),
+        emptied.length > 0
+          ? AsyncStorage.multiRemove(emptied)
+          : Promise.resolve(),
+      ]);
     } catch (err) {
+      if (uid && session === this.flushSession) {
+        for (const collection of written) this.ownDirty.add(collection);
+      }
       logger.warn('SyncEngine: failed to persist queue', {
         component: 'SyncEngine',
         error: err instanceof Error ? err.message : String(err),
@@ -917,8 +1016,13 @@ export class SyncEngine {
         e.id === entry.id,
     );
     if (idx >= 0) {
-      // Replace existing pending write — newer wins.
-      this.queue[idx] = entry;
+      // Replace existing pending write — newer wins. R9-193 — carrying the
+      // clocks of the ones it replaces (see `PendingWrite.own`).
+      const prev = this.queue[idx];
+      this.queue[idx] = {
+        ...entry,
+        own: withStamp(ownOf(prev), updatedAtOf(prev.data)),
+      };
     } else {
       this.queue.push(entry);
     }
@@ -1203,6 +1307,15 @@ export class SyncEngine {
     const settle = (id: string) => {
       if (this.unsettledOf(adapter.collection).delete(id)) {
         unsettledChanged = true;
+      }
+      // R9-193 — its own stamps go with it, unless its conflict still waits
+      // in memory (a real delete settles the mark: R9-160).
+      if (
+        !this.conflicts.some(
+          c => c.collection === adapter.collection && c.docId === id,
+        )
+      ) {
+        this.forgetOwnStamps(adapter.collection, id);
       }
     };
     try {
@@ -1532,10 +1645,18 @@ export class SyncEngine {
       // copy holds (this device's own write reached the cloud), the conflict
       // dissolves below. A write of this device still queued, or just
       // dropped, never gets here: the guard of `handleSnapshot` takes it.
+      //
+      // R9-193 — and an older copy is this device's own only if it carries the
+      // clock of one of its writes (`isOwnCopy`): the other device's clock can
+      // run behind this one's, and its write then arrives older than the local
+      // copy. Taken for an echo, «theirs» stayed a copy the cloud no longer
+      // had, and keepTheirs left this phone and the cloud apart.
       const theirs =
         fromRead ||
         (local
-          ? updatedAtOf(data) > updatedAtOf(local)
+          ? updatedAtOf(data) > updatedAtOf(local) ||
+            (updatedAtOf(data) < updatedAtOf(local) &&
+              !this.isOwnCopy(this.uid, adapter.collection, id, data))
           : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt);
       if (!theirs) return true;
       const differing = this.conflictFields(adapter, local, data, deleted);
@@ -1595,21 +1716,24 @@ export class SyncEngine {
       //   backup, or the other device's clock, rewrote it below the floor
       //   (R9-124), and it is held at that `updatedAt` precisely so that it
       //   comes back here. LWW kept the local copy in silence, the mark went
-      //   with it, and the cloud and this phone stayed apart for good. Any
-      //   other older copy is taken for this device's own earlier write,
-      //   whose echo never moves the mark (see `handleSnapshot`): the user
-      //   edited the doc again since, and that is no conflict with the other
-      //   device. R9-188 — it is not always: a write of the other device whose
-      //   clock runs behind this one's also arrives older than the local copy
-      //   and not at the mark, and LWW settles it here as before R9-181. The
-      //   `pending` branch above has the same blind spot (R9-193, measured in
-      //   S30 and not fixed yet).
+      //   with it, and the cloud and this phone stayed apart for good.
       // - Read, not delivered (R9-186): the cloud's copy of a doc that left
       //   the query, whatever its age.
+      // - R9-193 — older, and not a copy of this device (`isOwnCopy`): the
+      //   other device, with its clock behind this one's. Before, any older
+      //   copy was taken for this device's own earlier write (R9-188), and
+      //   LWW settled the other device's write here in silence. An older copy
+      //   of this device's own (the user edited the doc again since, and that
+      //   is no conflict with the other device) still settles by LWW, and its
+      //   echo never moves the mark (see `handleSnapshot`).
       const heldAt = this.unsettled.get(adapter.collection)?.get(id)?.updatedAt;
       if (
         !pending &&
-        (remoteTs > localTs || remoteTs === heldAt || fromRead) &&
+        (remoteTs > localTs ||
+          remoteTs === heldAt ||
+          fromRead ||
+          (remoteTs < localTs &&
+            !this.isOwnCopy(this.uid, adapter.collection, id, data))) &&
         this.isHeldConflict(adapter.collection, id)
       ) {
         const differing = this.conflictFields(adapter, local, data, deleted);
@@ -1809,6 +1933,8 @@ export class SyncEngine {
     if (this.unsettled.has(collection)) return this.lowestUnsettled(collection);
     const session = this.flushSession;
     const held = new Map<string, HeldDoc>();
+    const own = new Map<string, number[]>();
+    let ownPruned = false;
     let readable = true;
     try {
       const raw = await AsyncStorage.getItem(
@@ -1879,10 +2005,38 @@ export class SyncEngine {
           if (doc.conflict) doc.reread = true;
         }
       }
+      // R9-193 — this device's own stamps of those conflicts (see
+      // `ownStamps`); the ones of docs no longer held are dropped. Unreadable,
+      // there are none: every older copy then counts as the other device's,
+      // and the conflict shows instead of settling in silence.
+      try {
+        const raw = await AsyncStorage.getItem(ownStorageKey(collection, uid));
+        const parsed: unknown = raw != null ? JSON.parse(raw) : {};
+        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+          for (const [id, stamps] of Object.entries(parsed)) {
+            if (!held.get(id)?.conflict || !Array.isArray(stamps)) {
+              ownPruned = true;
+              continue;
+            }
+            const valid = stamps.filter(
+              (n): n is number => typeof n === 'number' && Number.isFinite(n),
+            );
+            if (valid.length > 0) own.set(id, valid);
+          }
+        }
+      } catch (err) {
+        logger.warn('SyncEngine: failed to read own conflict stamps', {
+          component: 'SyncEngine',
+          collection,
+          error: err instanceof Error ? err.message : String(err),
+        });
+      }
     }
     // Only this session's cache: after a `stop()` it is the next account's.
     if (session === this.flushSession && !this.unsettled.has(collection)) {
       this.unsettled.set(collection, held);
+      this.ownStamps.set(collection, own);
+      if (ownPruned) this.ownDirty.add(collection);
     }
     if (!readable) return 0;
     let lowest = Number.POSITIVE_INFINITY;
@@ -2104,10 +2258,14 @@ export class SyncEngine {
     });
   }
 
-  /** R9-190 — whether `copy` is a write of THIS device: the one of the doc
-   *  still queued, or the last one the server took in this session. By
-   *  `updatedAt`: a copy of the other device stamped with the very same
-   *  millisecond would be taken for this device's own. */
+  /**
+   * R9-190 / R9-193 — whether `copy` is a write of THIS device (of `uid`):
+   * the one of the doc still queued, one that entry replaced
+   * (`PendingWrite.own`), or one the server took while the doc was a conflict
+   * (`ownStamps`). The one answer the engine has to «is this copy mine?». By
+   * `updatedAt`: a copy of the other device stamped with the very same
+   * millisecond would be taken for this device's own.
+   */
   private isOwnCopy(
     uid: string | null,
     collection: string,
@@ -2118,8 +2276,45 @@ export class SyncEngine {
     const queued = this.queue.find(
       q => q.uid === uid && q.collection === collection && q.id === id,
     );
-    if (queued && updatedAtOf(queued.data) === ts) return true;
-    return this.ownAcked.get(suppressKey(collection, id)) === ts;
+    if (
+      queued &&
+      (updatedAtOf(queued.data) === ts || ownOf(queued).includes(ts))
+    ) {
+      return true;
+    }
+    return this.ownStamps.get(collection)?.get(id)?.includes(ts) === true;
+  }
+
+  /** R9-193 — whether `id` is a pending conflict, in memory or held. */
+  private isConflictDoc(collection: string, id: string): boolean {
+    return (
+      this.isHeldConflict(collection, id) ||
+      this.conflicts.some(c => c.collection === collection && c.docId === id)
+    );
+  }
+
+  /**
+   * R9-193 — the server took `item`: while its doc is a conflict, its clock
+   * and the ones it carried become own stamps (see `ownStamps`). Written with
+   * the next write of the queue, which is the one that drops the entry.
+   */
+  private noteOwnAcked(item: PendingWrite): void {
+    if (!this.isConflictDoc(item.collection, item.id)) return;
+    const byId = this.ownStamps.get(item.collection) ?? new Map();
+    let stamps = byId.get(item.id) ?? [];
+    for (const ts of [...ownOf(item), updatedAtOf(item.data)]) {
+      stamps = withStamp(stamps, ts);
+    }
+    byId.set(item.id, stamps);
+    this.ownStamps.set(item.collection, byId);
+    this.ownDirty.add(item.collection);
+  }
+
+  /** R9-193 — the doc is no conflict any more: its own stamps go. */
+  private forgetOwnStamps(collection: string, id: string): void {
+    if (this.ownStamps.get(collection)?.delete(id)) {
+      this.ownDirty.add(collection);
+    }
   }
 
   /** R9-192 — a copy of the other device that the read of a `removed` found
@@ -2350,6 +2545,8 @@ export class SyncEngine {
     this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
     this.conflictsWrittenHere.delete(conflictId);
     this.updateState({conflicts: [...this.conflicts]});
+    // R9-193 — and so are its own stamps.
+    this.forgetOwnStamps(conflict.collection, conflict.docId);
 
     // R9-39 / R9-106 — the doc is settled: stop holding the query floor
     // below it. Only THIS doc: another pending conflict of the collection
@@ -2600,7 +2797,13 @@ export class SyncEngine {
         // its own attempts and backoff: it goes in the next flush.
         if (!this.queue.includes(item)) continue;
         try {
-          await this.pushOne(fn, item);
+          // R9-193 — see `pushing`. Cleared by `stop()`, or once answered.
+          this.pushing = item;
+          try {
+            await this.pushOne(fn, item);
+          } finally {
+            if (this.pushing === item) this.pushing = null;
+          }
           // Success — drop this entry, but only if it is STILL the entry we
           // just pushed.
           //
@@ -2633,17 +2836,18 @@ export class SyncEngine {
           // `stop()`. Nothing else is: the rest of this batch, the state and
           // the lock belong to whoever signed in next.
           if (!isCurrent()) break;
+          // R9-193 — see `ownStamps`. After the session check: a push that
+          // lands once the next account signed in is not that account's.
+          // Whether or not the entry was still in the queue: one the user
+          // replaced meanwhile was taken by the server all the same. Before
+          // anything that can write the queue (a listener of the state below
+          // can queue a write), so no write has the entry gone without these.
+          this.noteOwnAcked(item);
           this.updateState({
             pendingWrites: this.pendingForActiveUid(),
             lastSyncedAt: Date.now(),
             lastError: null,
           });
-          // R9-190 — see `ownAcked`. After the session check: a push that
-          // lands once the next account signed in is not that account's.
-          this.ownAcked.set(
-            suppressKey(item.collection, item.id),
-            updatedAtOf(item.data as {updatedAt?: unknown}),
-          );
         } catch (err) {
           // R9-104 — a failure that comes back after `stop()` says nothing
           // about the write: the sign-out may be exactly what made it fail.

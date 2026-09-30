@@ -6388,8 +6388,10 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
   });
 
   it('R9-190: lo que el servidor le tomo a Ana no hace «mia» una copia de Beto con el mismo reloj', async () => {
-    // Vigila que las escrituras tomadas de una cuenta se olviden con su
-    // sesion. El mismo milisegundo en las dos cuentas es a proposito.
+    // El mismo milisegundo en las dos cuentas es a proposito. Con los sellos
+    // de R9-193 es un control: la escritura de Ana no es de un doc en
+    // conflicto, y su sello no se anota. Que los sellos de una cuenta no
+    // valgan para otra lo vigila «R9-193: los sellos de Ana no hacen…».
     const ana = 'uid-190-ana';
     const beto = 'uid-190-beto';
     const T = Date.now() - HOUR;
@@ -6702,6 +6704,755 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       conflictos: [['lo mio', 'su respaldo viejo']],
     });
     otro.stop();
+  });
+
+  // ---- R9-193 — «¿esta copia es mia?»: los sellos propios ----
+
+  /** R9-193 — la lista de conflictos, como [lo mio, lo suyo]. */
+  const parejas = (engine: SyncEngine) =>
+    engine
+      .__getConflictsForTests()
+      .map(c => [c.localVersion.value, c.remoteVersion.value]);
+
+  /** R9-193 — el proceso muere: desde `morir()`, ninguna escritura de
+   *  AsyncStorage llega a disco (en el mock, `setItem` y `removeItem` pasan
+   *  por `multiSet` y `multiRemove`); `morirTras(f)` muere justo despues de
+   *  la primera escritura que cumple `f`. `revivir()` en un `finally`. */
+  function caida() {
+    type Pairs = Array<[string, string]>;
+    const store = AsyncStorage as unknown as {
+      multiSet: jest.Mock;
+      multiRemove: jest.Mock;
+    };
+    const realSet = store.multiSet.getMockImplementation()!;
+    const realRemove = store.multiRemove.getMockImplementation()!;
+    let dead = false;
+    let after: ((pairs: Pairs) => boolean) | null = null;
+    store.multiSet.mockImplementation((pairs: Pairs, cb?: unknown) => {
+      if (dead) return Promise.resolve(null);
+      const r = realSet(pairs, cb);
+      if (after?.(pairs)) {
+        dead = true;
+        after = null;
+      }
+      return r;
+    });
+    store.multiRemove.mockImplementation((keys: string[], cb?: unknown) =>
+      dead ? Promise.resolve(null) : realRemove(keys, cb),
+    );
+    return {
+      morir: () => {
+        dead = true;
+      },
+      morirTras: (f: (pairs: Pairs) => boolean) => {
+        after = f;
+      },
+      murio: () => dead,
+      revivir: () => {
+        store.multiSet.mockImplementation(realSet);
+        store.multiRemove.mockImplementation(realRemove);
+        dead = false;
+        after = null;
+      },
+    };
+  }
+
+  /** R9-193 — el reloj de un payload, relativo a T. */
+  const updatedAtRel = (data: object, T: number) =>
+    ((data as Data).updatedAt as number) - T;
+
+  /** R9-193 — la cola de una escritura de AsyncStorage, si la trae. */
+  const colaEn = (pairs: Array<[string, string]>) => {
+    const raw = pairs.find(([k]) => k === '@sync_queue_v1')?.[1];
+    return raw === undefined
+      ? undefined
+      : (JSON.parse(raw) as Array<{id: string; data: Data}>);
+  };
+
+  /** R9-193 — un proceso nuevo (la memoria del anterior se perdio), sin red. */
+  async function procesoNuevo(uid: string, adapter: SyncAdapter<TestEntity>) {
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    const otro = new SyncEngine();
+    otro.register(adapter);
+    await otro.start(uid);
+    await settle();
+    return otro;
+  }
+
+  it('R9-193: el otro telefono, con el reloj atrasado, escribe con la app cerrada: su copia, mas vieja que lo mio y fuera de la ventana, vuelve a mostrar el conflicto tras reiniciar', async () => {
+    const uid = 'uid-193-cerrada';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    engine.stop();
+    // Con la app cerrada, el otro escribe R2 con el reloj 2 min atrasado: mas
+    // vieja que L, fuera de la ventana de 30 s y por encima del piso.
+    const R2 = {
+      value: 'R2: su reloj atrasado',
+      updatedAt: L.updatedAt - 120_000,
+    };
+    write(uid, 'doc-c', R2);
+    const entregasAntes = mockDelivered.length;
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la rama del conflicto retenido la tomaba por una escritura mia
+    // anterior; el LWW se quedaba con L, `settle` borraba la marca, y el
+    // conflicto desaparecia sin que el usuario eligiera, con la nube en R2 y
+    // este telefono en L.
+    expect({
+      entregada: mockDelivered // CONTROL: el enganche entrega R2
+        .slice(entregasAntes)
+        .map(d => `${d.id}/${d.type}/${d.via}`),
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+      marca: await persisted(uid),
+    }).toEqual({
+      entregada: ['doc-c/added/attach'],
+      conflictos: [['lo mio', R2.value]],
+      local: 'lo mio',
+      nube: R2.value,
+      marca: {unsettled: {'doc-c': R2.updatedAt}, conflicted: ['doc-c']},
+    });
+    engine.stop();
+  });
+
+  it('R9-193: sigo escribiendo y el otro, con el reloj 2 min atrasado, escribe casi a la vez: su copia mas vieja que la mia pasa a ser «su version» al llegar, y el conflicto sigue tras reiniciar', async () => {
+    // El otro telefono va 2 min atrasado: R, escrita a las T+185 reales, lleva
+    // T+65; el usuario sigue escribiendo aqui (L1, a las T+190), y el otro
+    // escribe R2 a las T+190 reales, sellada T+70.
+    const uid = 'uid-193-sigo';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const L1 = {value: 'L1: sigo escribiendo', updatedAt: T + 190_000};
+    localStore.set('doc-c', L1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L1);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    const subioL1 = mockDocSets.some(
+      s =>
+        s.path === `users/${uid}/test` &&
+        s.id === 'doc-c' &&
+        (s.data as Data).value === L1.value,
+    );
+    // El dano es pasajero hasta el reinicio: se anota cada lista publicada.
+    const vistos: unknown[][] = [];
+    engine.subscribe(st =>
+      vistos.push(st.conflicts.map(c => c.remoteVersion.value)),
+    );
+    const R2 = {value: 'R2: su reloj atrasado', updatedAt: T + 70_000};
+    write(uid, 'doc-c', R2);
+    await settle();
+    const alLlegar = engine
+      .__getConflictsForTests()
+      .map(c => c.remoteVersion.value);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: con el conflicto en memoria, R2 (mas vieja que L1) se tomaba
+    // por el eco de una escritura mia: «su version» seguia en R, que ya no
+    // esta en la nube. Tras reiniciar, la rama retenida hacia lo mismo, y el
+    // conflicto desaparecia con la nube en R2 y este telefono en L1.
+    expect({
+      subioL1, // CONTROL
+      alLlegar,
+      publicoR2: vistos.some(v => v.includes(R2.value)),
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+      marca: await persisted(uid),
+    }).toEqual({
+      subioL1: true,
+      alLlegar: [R2.value],
+      publicoR2: true,
+      conflictos: [[L1.value, R2.value]],
+      local: L1.value,
+      marca: {unsettled: {'doc-c': R2.updatedAt}, conflicted: ['doc-c']},
+    });
+    engine.stop();
+  });
+
+  it('R9-193: con el conflicto en memoria, «quedarme con lo suyo» aplica la copia atrasada del otro que esta en la nube, no la foto R: la nube y el telefono quedan iguales', async () => {
+    const uid = 'uid-193-suyo';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const R2 = {
+      value: 'R2: su reloj atrasado',
+      updatedAt: L.updatedAt - 120_000,
+    };
+    write(uid, 'doc-c', R2);
+    await settle();
+    const suVersion = suyaDe(engine);
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: «su version» era R; keepTheirs aplicaba R y no subia nada (la
+    // nube «ya lo tiene»): este telefono en R y la nube en R2, para siempre,
+    // sin conflicto ni marca.
+    expect({
+      suVersion,
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+      subidas: mockDocSets.filter(s => s.id === 'doc-c').length,
+    }).toEqual({
+      suVersion: [R2.value],
+      local: R2.value,
+      nube: R2.value,
+      subidas: 0,
+    });
+    engine.stop();
+  });
+
+  it('R9-193 (control): una escritura mia encolada ANTES del conflicto, que sube despues, no pasa a ser «su version» tras reiniciar', async () => {
+    // Pasa sin R9-193 (toda copia mas vieja era mia). Con los sellos vigila
+    // que el servidor, al tomarla con el conflicto ya abierto, la deje anotada.
+    const uid = 'uid-193-antes';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    // L se escribe sin red: queda en la cola.
+    engine.__setOnlineForTests(false);
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    localStore.set('doc-c', L);
+    engine.queueWrite('test', 'doc-c', L);
+    await settle();
+    // El stream reconecta antes que NetInfo: llega R y hay conflicto.
+    write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+    await settle();
+    const conflicto = engine.__getConflictsForTests().map(c => c.docId);
+    // Vuelve la red: L sube y pisa a R en la nube.
+    engine.__setOnlineForTests(true);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // L1 se escribe sin red, y la app se cierra antes de subirla.
+    engine.__setOnlineForTests(false);
+    const L1 = {value: 'L1: sin subir', updatedAt: T + 120_000};
+    localStore.set('doc-c', L1);
+    engine.queueWrite('test', 'doc-c', L1);
+    await settle();
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    expect({
+      conflicto, // CONTROL
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL: una copia mia, mas vieja
+      cola: engine.__getQueueForTests().map(q => q.id), // CONTROL
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      conflicto: ['doc-c'],
+      nube: 'lo mio',
+      cola: ['doc-c'],
+      conflictos: [],
+      local: 'L1: sin subir',
+    });
+    engine.stop();
+  });
+
+  it('R9-193: el proceso muere justo despues de guardar la cola sin mi escritura ya subida, y lo que escribi despues no llego a la cola: tras reiniciar no aparece «lo mio contra lo mio»', async () => {
+    // Pasa sin R9-193 (toda copia mas vieja era mia). Vigila que los sellos
+    // no abran este fantasma: la tabla va en la MISMA escritura que la cola.
+    const uid = 'uid-193-caida';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+    const disco = caida();
+    let otro: SyncEngine | null = null;
+    try {
+      const L1 = {value: 'L1: tecleo', updatedAt: T + 120_000};
+      // Muere justo despues de la escritura de la cola que ya no tiene L1 (la
+      // del final del flush, tras el ack).
+      disco.morirTras(pairs => {
+        const cola = colaEn(pairs);
+        return (
+          cola !== undefined &&
+          !cola.some(q => q.data.updatedAt === L1.updatedAt)
+        );
+      });
+      localStore.set('doc-c', L1 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', L1);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      const murioTrasSubir = disco.murio();
+      // L2 llega a la base local; su cola, no.
+      engine.__setOnlineForTests(false);
+      const L2 = {value: 'L2: sigo tecleando', updatedAt: T + 200_000};
+      localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', L2);
+      await settle();
+      disco.morir();
+      engine.stop();
+      await settle();
+      disco.revivir();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Sin el sello de L1 en disco, la rama retenida tomaba L1 (mia, en la
+      // nube) por una copia del otro: «L2 contra L1», y «quedarme con lo
+      // suyo» dejaba L1 en local.
+      expect({
+        murioTrasSubir, // CONTROL: murio tras guardar la cola sin L1
+        nube: await nubeDe(uid, 'doc-c'), // CONTROL
+        cola: otro.__getQueueForTests().map(q => q.id), // CONTROL
+        conflictos: parejas(otro),
+        local: localStore.get('doc-c')?.value,
+      }).toEqual({
+        murioTrasSubir: true,
+        nube: L1.value,
+        cola: [],
+        conflictos: [],
+        local: L2.value,
+      });
+    } finally {
+      disco.revivir();
+      otro?.stop();
+    }
+  });
+
+  it('R9-193: con el conflicto en memoria, el eco de una escritura mia que otra edicion reemplazo en la cola mientras subia no pasa a ser «su version»', async () => {
+    // Pasa sin R9-193 (toda copia mas vieja era mia). Vigila que los sellos
+    // no abran este fantasma: la entrada nueva lleva el reloj de la que
+    // reemplazo.
+    const uid = 'uid-193-reemplazo';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // El ack de L1 espera: su eco llega antes, con L2 ya en local.
+    let ack!: () => void;
+    mockSetGate = (_p, id) =>
+      id === 'doc-c' ? new Promise<void>(r => (ack = r)) : undefined;
+    const L1 = {value: 'L1: tecleo', updatedAt: T + 120_000};
+    localStore.set('doc-c', L1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L1);
+    // En el mismo instante, otra edicion reemplaza a L1 en la cola.
+    const L2 = {value: 'L2: sigo tecleando', updatedAt: T + 125_000};
+    localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L2);
+    await settle();
+    const ecoL1 = mockDelivered.some(d => d.id === 'doc-c' && d.via === 'echo');
+    const trasEco = suyaDe(engine);
+    mockSetGate = null;
+    ack();
+    await settle();
+
+    // Sin el reloj de L1 en la entrada que la reemplazo, L1 (mia, mas vieja
+    // que lo local) pasaba a ser «su version».
+    expect({
+      ecoL1, // CONTROL: el eco de L1 llego
+      trasEco,
+      alFinal: suyaDe(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      ecoL1: true,
+      trasEco: ['lo suyo'],
+      alFinal: ['lo suyo'],
+      local: L2.value,
+    });
+    engine.stop();
+  });
+
+  it('R9-193: tras «quedarme con lo suyo», los sellos del conflicto se van con el: en un conflicto nuevo del mismo doc, una copia del otro con el reloj de una escritura mia de entonces es «su version»', async () => {
+    // El otro telefono restaura un respaldo suyo que traia MI copia W de
+    // entonces, con su reloj: es una escritura suya (reescribe la nube).
+    const uid = 'uid-193-olvido';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // Durante el conflicto escribo W, y sube.
+    const W = {value: 'W: mi copia de entonces', updatedAt: T + 62_000};
+    localStore.set('doc-c', W as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // El otro escribe despues (R2), y elijo lo suyo: la nube ya lo tiene.
+    write(uid, 'doc-c', {value: 'R2', updatedAt: T + 66_000});
+    await settle();
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    const trasElegir = {
+      local: localStore.get('doc-c')?.value,
+      subidas: mockDocSets.filter(s => s.id === 'doc-c').length,
+    };
+    // Conflicto nuevo: el otro escribe R3 a 14 s de lo local (R2).
+    write(uid, 'doc-c', {value: 'R3', updatedAt: T + 80_000});
+    await settle();
+    const conflicto2 = suyaDe(engine);
+    // El otro restaura su respaldo: la nube pasa a tener W.
+    write(uid, 'doc-c', W);
+    await settle();
+
+    // Con los sellos del conflicto anterior, W se tomaba por mia: «su
+    // version» seguia en R3, que la nube ya no tiene.
+    expect({
+      trasElegir, // CONTROL: keepTheirs no subio nada (solo W)
+      conflicto2, // CONTROL
+      suVersion: suyaDe(engine),
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL
+    }).toEqual({
+      trasElegir: {local: 'R2', subidas: 1},
+      conflicto2: ['R3'],
+      suVersion: [W.value],
+      nube: W.value,
+    });
+    engine.stop();
+  });
+
+  it('R9-193: un conflicto que se disuelve suelta sus sellos: en un conflicto nuevo del mismo doc, una copia del otro con el reloj de una escritura mia de entonces es «su version»', async () => {
+    const uid = 'uid-193-disuelto';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const W = {value: 'W: mi copia de entonces', updatedAt: T + 62_000};
+    localStore.set('doc-c', W as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // El otro escribe lo mismo que tengo: el conflicto se disuelve (R9-160).
+    write(uid, 'doc-c', {value: W.value, updatedAt: T + 70_000});
+    await settle();
+    const disuelto = suyaDe(engine);
+    // Sigo escribiendo (L3, ya sin conflicto), y el otro escribe R3 a 5 s.
+    const L3 = {value: 'L3', updatedAt: T + 75_000};
+    localStore.set('doc-c', L3 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L3);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    write(uid, 'doc-c', {value: 'R3', updatedAt: T + 80_000});
+    await settle();
+    const conflicto2 = suyaDe(engine);
+    // El otro restaura su respaldo, que trae mi W.
+    write(uid, 'doc-c', W);
+    await settle();
+
+    // Con los sellos del conflicto disuelto, W se tomaba por mia: «su
+    // version» seguia en R3, que la nube ya no tiene.
+    expect({
+      disuelto, // CONTROL
+      conflicto2, // CONTROL
+      suVersion: suyaDe(engine),
+    }).toEqual({
+      disuelto: [],
+      conflicto2: ['R3'],
+      suVersion: [W.value],
+    });
+    engine.stop();
+  });
+
+  it('R9-193: la sesion termina mientras el flush sube otra escritura: el sello de la mia ya tomada llega a disco, y al volver no aparece «lo mio contra lo mio»', async () => {
+    // Pasa sin R9-193 (toda copia mas vieja era mia). Vigila que `stop()`
+    // escriba los sellos pendientes.
+    const uid = 'uid-193-stop';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // Dos escrituras sin red: L1 en el doc del conflicto, y otra en doc-x.
+    engine.__setOnlineForTests(false);
+    const L1 = {value: 'L1: tecleo', updatedAt: T + 120_000};
+    localStore.set('doc-c', L1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L1);
+    localStore.set('doc-x', {value: 'x', updatedAt: T + 121_000});
+    engine.queueWrite('test', 'doc-x', {value: 'x', updatedAt: T + 121_000});
+    await settle();
+    // Vuelve la red: L1 sube, y la subida de doc-x se queda esperando.
+    let ackX!: () => void;
+    mockSetGate = (_p, id) =>
+      id === 'doc-x' ? new Promise<void>(r => (ackX = r)) : undefined;
+    engine.__setOnlineForTests(true);
+    await settle();
+    const subioL1 = mockDocSets.some(
+      s => s.id === 'doc-c' && (s.data as Data).value === L1.value,
+    );
+    // La sesion termina (cerrar sesion); despues vuelve el ack de doc-x, y el
+    // flush viejo guarda la cola sin L1.
+    engine.stop();
+    mockSetGate = null;
+    ackX();
+    await settle();
+    const colaEnDisco = (
+      JSON.parse(
+        (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
+      ) as Array<{id: string}>
+    ).map(q => q.id);
+    // Sin sesion, la edicion queda solo en local (queueWrite no hace nada).
+    const L2 = {value: 'L2: sin sesion', updatedAt: T + 200_000};
+    localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L2);
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    await engine.start(uid);
+    await settle();
+
+    // Sin guardar los sellos al terminar la sesion, el de L1 no llegaba a
+    // disco, la cola ya no lo tenia, y el enganche siguiente carga la tabla de
+    // disco: L1 (mia, en la nube) volvia como «su version» contra L2.
+    expect({
+      subioL1, // CONTROL
+      colaEnDisco, // CONTROL: el flush viejo guardo la cola sin L1
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      subioL1: true,
+      colaEnDisco: [],
+      conflictos: [],
+      local: L2.value,
+    });
+    engine.stop();
+  });
+
+  it('R9-193: la subida de una edicion del doc en conflicto vuelve despues de cerrar sesion: su sello llega a disco, y al volver no aparece «lo mio contra lo mio»', async () => {
+    // Pasa sin R9-193 (toda copia mas vieja era mia). Vigila que `stop()`
+    // anote la escritura que se esta subiendo: su ack ya no la anota.
+    const uid = 'uid-193-ack-tardio';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // L1 sale hacia la nube; su ack espera.
+    let ack!: () => void;
+    mockSetGate = (_p, id) =>
+      id === 'doc-c' ? new Promise<void>(r => (ack = r)) : undefined;
+    const L1 = {value: 'L1: tecleo', updatedAt: T + 120_000};
+    localStore.set('doc-c', L1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L1);
+    await settle();
+    // Cierra sesion; despues vuelve el ack, y la entrada sale de la cola.
+    engine.stop();
+    mockSetGate = null;
+    ack();
+    await settle();
+    const colaEnDisco = (
+      JSON.parse(
+        (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
+      ) as Array<{id: string}>
+    ).map(q => q.id);
+    // Sin sesion, la edicion queda solo en local (queueWrite no hace nada).
+    const L2 = {value: 'L2: sin sesion', updatedAt: T + 200_000};
+    localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L2);
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    await engine.start(uid);
+    await settle();
+
+    // Sin anotarla al cerrar sesion, el sello de L1 no llegaba a ninguna
+    // parte: L1 (mia, en la nube) volvia como «su version» contra L2.
+    expect({
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL: L1 llego a la nube
+      colaEnDisco, // CONTROL: y salio de la cola
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      nube: L1.value,
+      colaEnDisco: [],
+      conflictos: [],
+      local: L2.value,
+    });
+    engine.stop();
+  });
+
+  it('R9-193: los sellos de Ana no hacen «mia» para Beto una copia de su otro telefono con el mismo reloj', async () => {
+    // El mismo milisegundo en las dos cuentas es a proposito.
+    const ana = 'uid-193-ana';
+    const beto = 'uid-193-beto';
+    const T = Date.now() - HOUR;
+    // Mas viejo que lo local de Beto (L): solo un sello propio lo haria suyo.
+    const K = T + 58_000;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    // Beto: conflicto L/R en doc-c, retenido; cierra sesion.
+    const {engine, localStore} = await conflictFor(beto, T, L, R);
+    engine.stop();
+    // Ana, en el mismo telefono: conflicto en doc-c, y escribe K, que sube.
+    await AsyncStorage.setItem(`@sync_first_push_done:${ana}`, '2');
+    await AsyncStorage.setItem(cursorStorageKey('test', ana), String(T));
+    localStore.set('doc-c', L as unknown as SyncEntity<TestEntity>);
+    await engine.start(ana);
+    await settle();
+    write(ana, 'doc-c', R);
+    await settle();
+    const conflictoAna = suyaDe(engine);
+    const deAna = {value: 'de ana', updatedAt: K};
+    localStore.set('doc-c', deAna as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', deAna);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // En disco hay una tabla de sellos con K (sea cual sea su clave).
+    const tablas = await Promise.all(
+      (await AsyncStorage.getAllKeys())
+        .filter(k => k.startsWith('@sync_own_'))
+        .map(k => AsyncStorage.getItem(k)),
+    );
+    const selloK = tablas.some(t => (t ?? '').includes(String(K)));
+    engine.stop();
+    // Beto vuelve: su conflicto retenido se vuelve a mostrar al enganchar.
+    localStore.set('doc-c', L as unknown as SyncEntity<TestEntity>);
+    await engine.start(beto);
+    await settle();
+    const conflictoBeto = suyaDe(engine);
+    // El otro telefono de Beto escribe con el reloj K.
+    write(beto, 'doc-c', {value: 'de beto', updatedAt: K});
+    await settle();
+
+    expect({
+      conflictoAna, // CONTROL
+      selloK, // CONTROL: el sello de Ana llego a disco
+      conflictoBeto, // CONTROL
+      suVersion: suyaDe(engine),
+    }).toEqual({
+      conflictoAna: ['lo suyo'],
+      selloK: true,
+      conflictoBeto: ['lo suyo'],
+      suVersion: ['de beto'],
+    });
+    engine.stop();
+  });
+
+  it('R9-193: la entrada de la cola lleva a lo sumo 16 relojes de las que reemplazo, los mas nuevos y sin repetir', async () => {
+    // Vigila el tamano de la cola, no una consecuencia para el usuario.
+    const uid = 'uid-193-tope';
+    const T = Date.now() - HOUR;
+    const {engine} = await engineFor(uid, T);
+    engine.__setOnlineForTests(false);
+    // 20 ediciones sin red; la 10 se reescribe con el mismo reloj.
+    for (let i = 1; i <= 20; i++) {
+      engine.queueWrite('test', 'doc-t', {value: `v${i}`, updatedAt: T + i});
+      if (i === 10) {
+        engine.queueWrite('test', 'doc-t', {value: 'v10b', updatedAt: T + i});
+      }
+    }
+    await settle();
+    const [entrada] = engine.__getQueueForTests();
+
+    expect({
+      reloj: updatedAtRel(entrada.data, T),
+      own: (entrada.own ?? []).map(s => s - T),
+    }).toEqual({
+      reloj: 20,
+      own: [4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19],
+    });
+    engine.stop();
+  });
+
+  it('R9-193: al enganchar, la tabla de sellos se queda solo con los conflictos retenidos: los de un doc que ya no lo esta se sueltan de disco', async () => {
+    // Vigila el tamano de la tabla, no una consecuencia para el usuario.
+    const uid = 'uid-193-poda';
+    const T = Date.now() - HOUR;
+    await AsyncStorage.setItem(
+      `@sync_own_test:${uid}`,
+      JSON.stringify({'doc-viejo': [T - 5_000], 'doc-c': [T + 62_000]}),
+    );
+    await AsyncStorage.setItem(
+      unsettledStorageKey('test', uid),
+      JSON.stringify({'doc-c': T + 65_000}),
+    );
+    await AsyncStorage.setItem(
+      `@sync_conflicted_test:${uid}`,
+      JSON.stringify(['doc-c']),
+    );
+    const {engine, localStore} = await engineFor(uid, T);
+    // Cualquier escritura de la cola guarda la tabla que cambio.
+    localStore.set('doc-z', {value: 'z', updatedAt: T + 300_000});
+    engine.queueWrite('test', 'doc-z', {value: 'z', updatedAt: T + 300_000});
+    await settle();
+
+    expect(
+      JSON.parse((await AsyncStorage.getItem(`@sync_own_test:${uid}`))!),
+    ).toEqual({'doc-c': [T + 62_000]});
+    engine.stop();
+  });
+
+  it('R9-193: un suscriptor que encola otra escritura al ver el ack no guarda la cola sin el sello de la mia', async () => {
+    // Pasa sin R9-193 (toda copia mas vieja era mia). Vigila que el sello se
+    // anote antes de avisar el estado; lo que mide es el fantasma tras morir
+    // el proceso justo despues de esa escritura de la cola.
+    const uid = 'uid-193-orden';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+    const disco = caida();
+    let otro: SyncEngine | null = null;
+    try {
+      const L1 = {value: 'L1: tecleo', updatedAt: T + 120_000};
+      // Al ver la cola vacia tras el ack de L1, el suscriptor escribe doc-o.
+      let encolo = false;
+      engine.subscribe(st => {
+        if (!encolo && st.pendingWrites === 0 && st.lastSyncedAt !== null) {
+          const q = engine.__getQueueForTests();
+          if (q.length === 0 && mockDocSets.some(s => s.id === 'doc-c')) {
+            encolo = true;
+            engine.queueWrite('test', 'doc-o', {value: 'o'});
+          }
+        }
+      });
+      // Muere justo despues de la primera escritura de la cola sin L1: la del
+      // suscriptor.
+      disco.morirTras(pairs => {
+        const cola = colaEn(pairs);
+        return (
+          cola !== undefined &&
+          !cola.some(q => q.data.updatedAt === L1.updatedAt)
+        );
+      });
+      localStore.set('doc-c', L1 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', L1);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      const L2 = {value: 'L2: sigo tecleando', updatedAt: T + 200_000};
+      localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+      disco.morir();
+      engine.stop();
+      await settle();
+      disco.revivir();
+      otro = await procesoNuevo(uid, adapter);
+
+      expect({
+        encolo, // CONTROL: el suscriptor encolo doc-o tras el ack
+        conflictos: parejas(otro),
+      }).toEqual({encolo: true, conflictos: []});
+    } finally {
+      disco.revivir();
+      otro?.stop();
+    }
   });
 });
 
