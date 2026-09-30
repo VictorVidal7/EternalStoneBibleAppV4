@@ -6509,6 +6509,128 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  /** R9-196 — el conflicto L/R con L2 ya subida (su sello es propio) y L3
+   *  despues: en cola (`descartada` false) o descartada tras 8 rechazos
+   *  (R9-33). Devuelve el motor listo para reiniciar. */
+  async function conL2SubidaYL3(uid: string, descartada: boolean) {
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const L2 = {value: 'lo mio 2', updatedAt: T + 120_000};
+    localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L2);
+    await settle();
+    const L3 = {value: 'lo mio 3', updatedAt: T + 180_000};
+    localStore.set('doc-c', L3 as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', L3);
+    await settle();
+    if (descartada) {
+      const realNow = Date.now();
+      const nowSpy = jest.spyOn(Date, 'now');
+      for (let i = 1; i <= 7; i++) {
+        nowSpy.mockReturnValue(realNow + i * HOUR);
+        await engine.__flushForTests();
+        await settle();
+      }
+      nowSpy.mockRestore();
+    }
+    mockSetShouldFail = false;
+    return {engine, localStore};
+  }
+
+  /** R9-196 — reinicia con la lista de releer ilegible (R9-191: se releen
+   *  todos los conflictos retenidos) y anota cada par de conflicto que el
+   *  motor publica desde el reinicio. */
+  async function reiniciarSinListaDeReleer(engine: SyncEngine, uid: string) {
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    const lecturas = () =>
+      mockCollections.get(`users/${uid}/test`)!.doc('doc-c').get.mock.calls
+        .length;
+    const vistos = new Set<string>();
+    engine.stop();
+    const l0 = lecturas();
+    engine.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(`${c.localVersion.value}|${c.remoteVersion.value}`),
+      ),
+    );
+    try {
+      getItemMock.mockImplementation((k: string) =>
+        k.startsWith('@sync_reread_')
+          ? Promise.reject(new Error('disco'))
+          : realImpl(k),
+      );
+      await engine.start(uid);
+      await settle();
+    } finally {
+      getItemMock.mockImplementation(realImpl);
+    }
+    return {lecturas: lecturas() - l0, vistos};
+  }
+
+  it('R9-196: con la lista de releer ilegible, la relectura de un conflicto con mi edicion en cola no muestra «lo mio contra lo mio»', async () => {
+    const uid = 'uid-196-cola';
+    const {engine, localStore} = await conL2SubidaYL3(uid, false);
+    const cola = engine.__getQueueForTests().map(q => [q.id, q.attempts]);
+    const nube = await nubeDe(uid, 'doc-c');
+    const {lecturas, vistos} = await reiniciarSinListaDeReleer(engine, uid);
+
+    // Pre-fix (sellos solo en memoria, `ownAcked`): tras el reinicio la
+    // copia leida, L2, no se reconocia como mia; la guarda le pasaba la marca
+    // y su entrega llegaba a `remoteTs === heldAt`: «lo mio 3 | lo mio 2».
+    expect({
+      cola, // CONTROL: L3 en cola tras un intento
+      nube, // CONTROL: L2 subio
+      lecturas, // CONTROL: el enganche releyo el doc
+      vistos: [...vistos],
+      enCola: engine.__getQueueForTests().map(q => q.id),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      cola: [['doc-c', 1]],
+      nube: 'lo mio 2',
+      lecturas: 1,
+      vistos: [],
+      enCola: ['doc-c'],
+      local: 'lo mio 3',
+    });
+    engine.stop();
+  });
+
+  it('R9-196: con la lista de releer ilegible, una copia mia leida sin nada en cola (mi edicion siguiente se descarto) no muestra «lo mio contra lo mio», ni tras otro reinicio', async () => {
+    const uid = 'uid-196-descartada';
+    const {engine, localStore} = await conL2SubidaYL3(uid, true);
+    const cola = engine.__getQueueForTests().length;
+    const nube = await nubeDe(uid, 'doc-c');
+    const {lecturas, vistos} = await reiniciarSinListaDeReleer(engine, uid);
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la rama retenida tomaba toda copia leida (`fromRead`), fuera
+    // cual fuera su edad, y registraba L2 contra L3; la marca quedaba en L2 y
+    // volvia en cada reinicio. Lo local (L3) y la nube (L2) siguen distintos:
+    // una edicion descartada que no vuelve a subir es R9-38, no esto.
+    expect({
+      cola, // CONTROL: L3 se descarto
+      nube, // CONTROL: L2 subio
+      lecturas, // CONTROL: el enganche releyo el doc
+      vistos: [...vistos],
+      trasOtroReinicio: engine.__getConflictsForTests().length,
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      cola: 0,
+      nube: 'lo mio 2',
+      lecturas: 1,
+      vistos: [],
+      trasOtroReinicio: 0,
+      local: 'lo mio 3',
+    });
+    engine.stop();
+  });
+
   it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
     const uid = 'uid-192-cola';
     const T = Date.now() - HOUR;

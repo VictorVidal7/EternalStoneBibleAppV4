@@ -1324,7 +1324,6 @@ export class SyncEngine {
         // a memoryCards/reviewEvents id carries "/" which we store as "~".
         const id = fromDocId(change.doc.id);
         let data = change.doc.data();
-        let fromRead = false;
         // R9-182 — a write the flush just dropped: its take-back, if it is a
         // `removed`, is treated below like a write still queued. Any delivery
         // of the doc other than that write's own echo ends the wait.
@@ -1466,9 +1465,8 @@ export class SyncEngine {
           // `updatedAt`. After a restart the floor drops to it, the doc is
           // delivered once more, and `applyRemoteChange` shows the conflict
           // again even though that copy is older than the local one (R9-164,
-          // R9-181).
+          // R9-181), unless it is this device's own (R9-193, R9-196).
           data = currentData;
-          fromRead = true;
         }
         const remote = data as SyncEntity<Record<string, unknown>>;
         const remoteChange: RemoteChange<Record<string, unknown>> = {
@@ -1480,7 +1478,6 @@ export class SyncEngine {
           adapter,
           remoteChange,
           isCurrent,
-          fromRead,
         );
         if (!isCurrent()) return;
         if (!localKnown) {
@@ -1513,8 +1510,8 @@ export class SyncEngine {
           // refresh the snapshot instead of piling up.
           //
           // R9-181 — held at the copy the conflict is about: the one just
-          // recorded as «theirs»; since R9-192 that includes every copy read
-          // after a `removed` that is still in conflict here. The echo of this
+          // recorded as «theirs», a copy read after a `removed` included
+          // (R9-192) unless it is this device's own (R9-196). The echo of this
           // device's own write does not move the mark: after a restart, that
           // is how the held-conflict branch tells an older copy of the other
           // device from one of its own.
@@ -1592,7 +1589,6 @@ export class SyncEngine {
     adapter: AnyAdapter,
     change: RemoteChange<Record<string, unknown>>,
     isCurrent: () => boolean,
-    fromRead = false,
   ): Promise<boolean> {
     const {id, data, deleted} = change;
     let local: SyncEntity<Record<string, unknown>> | null;
@@ -1636,28 +1632,23 @@ export class SyncEngine {
       // here), a tombstone is the echo of that delete, and a live copy is
       // theirs unless it is the one the conflict already shows.
       //
-      // R9-192 — a copy READ after the doc left the query (R9-124) is the
-      // cloud's as it is now, older than the floor by construction: its age
-      // says nothing about who wrote it, and it is what keepTheirs has to
-      // apply. Taken for an echo, the conflict kept showing a copy the cloud
-      // no longer had, and keepTheirs left this phone on it and the cloud on
-      // the read one for good. Shown as «theirs»; if it holds what the local
-      // copy holds (this device's own write reached the cloud), the conflict
-      // dissolves below. A write of this device still queued, or just
-      // dropped, never gets here: the guard of `handleSnapshot` takes it.
-      //
       // R9-193 — and an older copy is this device's own only if it carries the
       // clock of one of its writes (`isOwnCopy`): the other device's clock can
       // run behind this one's, and its write then arrives older than the local
       // copy. Taken for an echo, «theirs» stayed a copy the cloud no longer
       // had, and keepTheirs left this phone and the cloud apart.
-      const theirs =
-        fromRead ||
-        (local
-          ? updatedAtOf(data) > updatedAtOf(local) ||
-            (updatedAtOf(data) < updatedAtOf(local) &&
-              !this.isOwnCopy(this.uid, adapter.collection, id, data))
-          : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt);
+      //
+      // R9-192 — that includes a copy READ after the doc left the query
+      // (R9-124), older than the floor by construction: the other device's is
+      // what keepTheirs has to apply. R9-192 made every read copy «theirs»;
+      // with `isOwnCopy` here that only added this device's own ones, and it
+      // was dropped (R9-196). A write of this device still queued, or just
+      // dropped, never gets here: the guard of `handleSnapshot` takes it.
+      const theirs = local
+        ? updatedAtOf(data) > updatedAtOf(local) ||
+          (updatedAtOf(data) < updatedAtOf(local) &&
+            !this.isOwnCopy(this.uid, adapter.collection, id, data))
+        : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt;
       if (!theirs) return true;
       const differing = this.conflictFields(adapter, local, data, deleted);
       if (differing.length > 0) {
@@ -1718,7 +1709,11 @@ export class SyncEngine {
       //   comes back here. LWW kept the local copy in silence, the mark went
       //   with it, and the cloud and this phone stayed apart for good.
       // - Read, not delivered (R9-186): the cloud's copy of a doc that left
-      //   the query, whatever its age.
+      //   the query, older than the floor by construction. The other
+      //   device's comes in by the next case. R9-196 — this device's own does
+      //   not: taken whatever its age, a write of its own that a read found
+      //   (a restart with the list unreadable re-reads every held conflict,
+      //   R9-191) showed «mine» against «mine», restart after restart.
       // - R9-193 — older, and not a copy of this device (`isOwnCopy`): the
       //   other device, with its clock behind this one's. Before, any older
       //   copy was taken for this device's own earlier write (R9-188), and
@@ -1731,7 +1726,6 @@ export class SyncEngine {
         !pending &&
         (remoteTs > localTs ||
           remoteTs === heldAt ||
-          fromRead ||
           (remoteTs < localTs &&
             !this.isOwnCopy(this.uid, adapter.collection, id, data))) &&
         this.isHeldConflict(adapter.collection, id)
