@@ -1851,8 +1851,15 @@ export class SyncEngine {
       //   (R9-124), and it is held at that `updatedAt` precisely so that it
       //   comes back here; LWW kept the local copy in silence, and the cloud
       //   and this phone stayed apart for good. R9-206 — `remoteTs ===` the
-      //   mark was its own case before; with this one it added nothing (the
-      //   mark only moves to a copy of the other device), and it went.
+      //   mark was its own case before; with this one it added nothing, and it
+      //   went: a copy of the other device at the mark is newer than the local
+      //   copy, or older and not this device's own, and this branch takes it
+      //   either way. R9-219 — the mark can also sit on a copy of this
+      //   device's own: a session that could not read the own stamps
+      //   (R9-208) took it for the other device's and moved the mark to it.
+      //   Once the stamps are read it is this device's own again, and it
+      //   settles by LWW; taken as its own case, it showed «mine» against
+      //   «mine».
       //   It also covers a copy read, not delivered (R9-186): the cloud's
       //   copy of a doc that left the query, older than the floor by
       //   construction. R9-196 — a read copy of this device's own does not
