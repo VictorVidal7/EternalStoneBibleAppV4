@@ -524,6 +524,16 @@ export class SyncEngine {
    */
   private recentAcked = new Map<string, number[]>();
   /**
+   * R9-216 — per key of `recentAcked`, the copy whose delivery first brought
+   * back each of its clocks: that write's echo (`noteEcho`). Only that copy is
+   * this device's own by a clock of `recentAcked`. By `updatedAt` alone, a
+   * backup the other device restored with that same write in it was the same
+   * copy: taken for the echo, «theirs» did not move to it and keepTheirs left
+   * this phone and the cloud apart, or a held conflict settled by LWW in
+   * silence. A clock whose echo never came still answers for any copy.
+   */
+  private recentEchoed = new Map<string, Map<number, object>>();
+  /**
    * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
    * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
    * until their doc's next delivery that is not that payload's own echo.
@@ -1612,6 +1622,8 @@ export class SyncEngine {
           data: remote,
           deleted: remote.deleted === true,
         };
+        // R9-216 — see `recentEchoed`.
+        this.noteEcho(uid, adapter.collection, id, remote);
         const localKnown = await this.applyRemoteChange(
           adapter,
           remoteChange,
@@ -2477,14 +2489,45 @@ export class SyncEngine {
     ) {
       return true;
     }
-    if (
-      this.recentAcked
-        .get(`${uid}\u0000${suppressKey(collection, id)}`)
-        ?.includes(ts)
-    ) {
-      return true;
+    const key = `${uid}\u0000${suppressKey(collection, id)}`;
+    if (this.recentAcked.get(key)?.includes(ts)) {
+      // R9-216 — see `recentEchoed`.
+      const echo = this.recentEchoed.get(key)?.get(ts);
+      if (echo === undefined || echo === copy) return true;
     }
     return this.ownStamps.get(collection)?.get(id)?.includes(ts) === true;
+  }
+
+  /**
+   * R9-216 — `copy` is being delivered: if it brings back the clock of a
+   * write of this device (the queued one, one it replaced, or one the server
+   * took in this process), the first delivery of that clock is the write's
+   * echo (see `recentEchoed`). The SDK raises the echo before the server
+   * answers, so it is usually still queued. The echoes of clocks no longer
+   * kept go.
+   */
+  private noteEcho(
+    uid: string | null,
+    collection: string,
+    id: string,
+    copy: Record<string, unknown>,
+  ): void {
+    const key = `${uid}\u0000${suppressKey(collection, id)}`;
+    const queued = this.queue.find(
+      q => q.uid === uid && q.collection === collection && q.id === id,
+    );
+    const mine = [
+      ...(this.recentAcked.get(key) ?? []),
+      ...(queued ? [updatedAtOf(queued.data), ...ownOf(queued)] : []),
+    ];
+    const ts = updatedAtOf(copy);
+    if (!mine.includes(ts)) return;
+    const echoes = this.recentEchoed.get(key) ?? new Map<number, object>();
+    for (const old of echoes.keys()) {
+      if (!mine.includes(old)) echoes.delete(old);
+    }
+    if (!echoes.has(ts)) echoes.set(ts, copy);
+    this.recentEchoed.set(key, echoes);
   }
 
   /** R9-193 — whether `id` is a pending conflict, in memory or held. */

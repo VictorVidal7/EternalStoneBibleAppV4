@@ -9033,6 +9033,119 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     }).toEqual({nubeAna: 'd mio 2', entrada: [['doc-d', []]]});
     engine.stop();
   });
+
+  // ---- R9-216 — el respaldo del otro con una escritura mia de este proceso ----
+
+  /** R9-216 — este telefono sube W1 sin conflicto (su eco llega); despues,
+   *  conflicto «lo mio» contra «lo suyo». */
+  async function w1YConflicto(uid: string) {
+    const T = Date.now() - HOUR;
+    const w = await engineFor(uid, T);
+    const W1 = {value: 'w1 mio', updatedAt: T + 10_000};
+    w.localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+    w.engine.queueWrite('test', 'doc-c', W1);
+    await settle();
+    await w.engine.__flushForTests();
+    await settle();
+    const nubeW1 = await nubeDe(uid, 'doc-c');
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    w.localStore.set('doc-c', L as unknown as SyncEntity<TestEntity>);
+    write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+    await settle();
+    // CONTROL: W1 subio, y el conflicto existe.
+    expect({nubeW1, conflictos: parejas(w.engine)}).toEqual({
+      nubeW1: 'w1 mio',
+      conflictos: [['lo mio', 'lo suyo']],
+    });
+    return {...w, T, W1};
+  }
+
+  it('R9-216: con el conflicto en memoria, el otro restaura un respaldo con W1, que subi yo en este proceso: pasa a ser «su version», y keepTheirs deja local y nube en W1', async () => {
+    const uid = 'uid-216-pendiente';
+    const {engine, localStore, W1} = await w1YConflicto(uid);
+    // El otro restaura su respaldo: W1, con su reloj, vuelve a la nube.
+    write(uid, 'doc-c', {...W1});
+    await settle();
+    const suya = parejas(engine);
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: `recentAcked` decia «mia» a toda copia con el reloj de W1: el
+    // respaldo se tomaba por el eco de W1, «su version» seguia «lo suyo», y
+    // keepTheirs dejaba local «lo suyo» y nube W1.
+    expect({
+      suya,
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      suya: [['lo mio', 'w1 mio']],
+      local: 'w1 mio',
+      nube: 'w1 mio',
+    });
+    engine.stop();
+  });
+
+  it('R9-216: el otro restaura con la app cerrada un respaldo con W1, que subi yo en este proceso, y la cuenta vuelve a enganchar en el mismo proceso: el conflicto retenido se muestra', async () => {
+    const uid = 'uid-216-retenida';
+    const {engine, localStore, W1} = await w1YConflicto(uid);
+    engine.stop();
+    await settle();
+    write(uid, 'doc-c', {...W1});
+    await settle();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: la rama retenida tomaba el respaldo por una copia propia mas
+    // vieja y lo asentaba por LWW: sin conflicto, la marca fuera de disco,
+    // «lo mio» solo en este telefono (nada en cola) y W1 en la nube.
+    expect({
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL
+      cola: engine.__getQueueForTests().map(q => q.id), // CONTROL
+      conflictos: parejas(engine),
+      marca: Object.keys((await persisted(uid)).unsettled),
+      local: localStore.get('doc-c')?.value,
+    }).toEqual({
+      nube: 'w1 mio',
+      cola: [],
+      conflictos: [['lo mio', 'w1 mio']],
+      marca: ['doc-c'],
+      local: 'lo mio',
+    });
+    engine.stop();
+  });
+
+  it('R9-216: 20 escrituras del mismo doc, cada una con su eco: los ecos anotados no pasan de los relojes que `recentAcked` guarda, mas el de la ultima', async () => {
+    // Vigila la memoria del proceso, no una consecuencia para el usuario.
+    // El eco de w20 llega con w20 en cola (16 de `recentAcked` + 1); el de w4,
+    // que el ack de w20 saco de la lista, se poda en el eco siguiente.
+    const uid = 'uid-216-poda';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    for (let i = 1; i <= 20; i++) {
+      const w = {value: `w${i}`, updatedAt: T + i * 1_000};
+      localStore.set('doc-p', w as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-p', w);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    }
+    const interno = engine as unknown as {
+      recentAcked: Map<string, number[]>;
+      recentEchoed: Map<string, Map<number, object>>;
+    };
+    const key = [...interno.recentEchoed.keys()].find(k =>
+      k.endsWith('doc-p'),
+    )!;
+
+    expect({
+      nube: await nubeDe(uid, 'doc-p'), // CONTROL: subieron todas
+      acked: interno.recentAcked.get(key)?.length, // CONTROL
+      ecos: interno.recentEchoed.get(key)?.size,
+    }).toEqual({nube: 'w20', acked: 16, ecos: 17});
+    engine.stop();
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
