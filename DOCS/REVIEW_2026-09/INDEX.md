@@ -413,7 +413,22 @@
 > - **4 hallazgos nuevos, `R9-211`..`R9-214`, que ya existían:** 1 P2 (`R9-212`) y 3 P3.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **214**. Ramas `fix/s34-r207-r210` y
-> `docs/review-s34-fix-s33`, sin mergear hasta el OK. Detalle: `detail/S34-arreglos-s33.md`.
+> `docs/review-s34-fix-s33`: mergeadas en fast-forward y pusheadas con el OK de Victor (`main` =
+> `5d8fda2`, CI verde en el log, run `36814348204`, 368/4501). Detalle:
+> `detail/S34-arreglos-s33.md`.
+>
+> **Sesión 35 (2026-09-30): REVISIÓN del diff de la 34** (`17788ae..682f852`), solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **5 hallazgos nuevos, `R9-215`..`R9-219`, todos P3**, y los cinco los abrió o los dejó a la
+>   vista la 34 (medidos con su pieza revertida): dos huecos de la relectura de `R9-208`
+>   (`R9-215`, `R9-218`), el «mía» de más de `R9-207` (`R9-216`), el coste aceptado de `R9-208`
+>   (`R9-217`) y la premisa falsa del comentario de `R9-206` (`R9-219`, la razón de `+heldAt` 0 → 4).
+> - `R9-210` y `R9-209`, sin nada nuevo; las 18 pruebas nuevas dicen lo que miden.
+> - **La matriz entera y las piezas de `R9-210`, re-medidas:** ver el detalle, §7 y §4.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219**. Rama `docs/review-s35-diff-s34`, sin
+> mergear hasta el OK. Detalle: `detail/S35-revision-del-diff-s34.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -911,6 +926,24 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 35 — 2026-09-30. Revisión del diff de la 34.** Solo en la terminal, sin agentes, sin
+  tocar código; arrancó con `_scratch/S35-PROMPT.md`.
+  - **Cómo se trabajó:** cada pregunta del prompt, con una sonda sobre el código de hoy y, si algo
+    «lo abrió la 34», otra con la pieza revertida (`_scratch/S34-rev.cjs.txt` sobre
+    `S35-SyncEngine-base.ts.txt`); la matriz entera en un worktree aparte, comparada pieza por pieza
+    con la de la 34; las piezas de `R9-210` aparte.
+  - **Resultado:** 5 hallazgos P3 (`R9-215`..`R9-219`), todos de la 34. Queda 1 P0 abierto.
+  - **Detalle: `detail/S35-revision-del-diff-s34.md`.**
+  - **Las lecciones:**
+    - **un estado que el arreglo agrega para coordinar tiene que terminar con la sesión:**
+      `ownRereading` sobrevivía al `stop()` y tapaba la relectura de la sesión siguiente (`R9-215`);
+    - **una sola respuesta a «¿es mía?» también responde «mía» donde no debe:** por `updatedAt`, el
+      eco tardío y un respaldo restaurado son la misma copia (`R9-216`);
+    - **una prueba que filtra su aserción a un doc puede esconder el coste aceptado en otro:** el
+      fantasma de doc-d aparecía en el mismo proceso que la prueba (`R9-217`);
+    - **una pieza que pasa de 0 a N señala la premisa que cambió:** `+heldAt` cae porque la sesión
+      degradada mueve la marca a una copia propia (`R9-219`).
 
 - **Sesión 34 — 2026-09-30/10-01. Arreglos de lo de la 33.** Solo en la terminal; a pedido de
   Victor, 3 agentes en worktree que solo midieron. Arrancó con `_scratch/S34-PROMPT.md`.

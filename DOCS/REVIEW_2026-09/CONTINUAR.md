@@ -1,17 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-01, fin de la sesión 34.** La 34 hizo el (n), en la terminal y
-> con 3 agentes que solo midieron:
+> **Última actualización: 2026-09-30, fin de la sesión 35.** La 35 hizo el (o), en la terminal y
+> sin agentes: revisó el diff de la 34 sin tocar código.
 >
-> - arregló `R9-207`..`R9-210` en `fix/s34-r207-r210`, un commit por hallazgo; `R9-207`, la
->   decisión delegada, tiene su porqué en el ledger;
-> - re-midió la matriz entera;
-> - registró 4 hallazgos que ya existían, `R9-211`..`R9-214` (1 P2).
+> - registró 5 hallazgos P3, `R9-215`..`R9-219`, y los cinco los abrió o los dejó a la vista la 34
+>   (cada uno medido con su pieza revertida);
+> - re-midió la matriz entera y las piezas de `R9-210`.
 >
-> La 33 ya está mergeada y pusheada (`main` = `17788ae`). Los arreglos y el checkpoint de la 34 van
-> en `fix/s34-r207-r210` y `docs/review-s34-fix-s33`, **sin mergear hasta el OK de Victor**. Queda
-> **1 P0 abierto** (`R9-38`), y hay 214 hallazgos. **Lo siguiente es el mensaje (o): revisar el
-> diff de la 34.**
+> La 34 ya está mergeada y pusheada (`main` = `5d8fda2`, CI verde en el log, run `36814348204`). El
+> checkpoint de la 35 va en `docs/review-s35-diff-s34`, **sin mergear hasta el OK de Victor**. Queda
+> **1 P0 abierto** (`R9-38`), y hay 219 hallazgos. **Lo siguiente es el mensaje (p): arreglar lo
+> de la 35.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -468,11 +467,74 @@ sesión 25, en la nube), sus arreglos (la (e), también en la 25), `R9-124` en M
 la terminal), sus arreglos (la (h), sesión 28, solo en la terminal) y la revisión del diff de la
 28 (la (i), sesión 29, solo en la terminal), sus arreglos (la (j), sesión 30, en la terminal con
 3 agentes que solo midieron) y la revisión del diff de la 30 (la (k), sesión 31, igual), sus arreglos (la (l), sesión 32, en la
-terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igual) y sus arreglos
-(la (n), sesión 34, en la terminal con 3 agentes que solo midieron).
-**Lo siguiente es el (o).**
+terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igual), sus arreglos
+(la (n), sesión 34, en la terminal con 3 agentes que solo midieron) y la revisión del diff de la
+34 (la (o), sesión 35, en la terminal y sin agentes).
+**Lo siguiente es el (p).**
 
-**(o) Sesión 35: revisar el diff de la 34.**
+**(p) Sesión 36: arreglar lo de la 35.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (p) y la sección 5) y, en la memoria, la de la sesión 35 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s35-diff-s34`, pedime el OK para el fast-forward.
+>   Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 219. El detalle de la 35 está en
+>   `detail/S35-revision-del-diff-s34.md`; sus sondas, en `_scratch/S35-sonda-*.body.txt` (con el
+>   runner `S31-run.cjs.txt`, que arma `__tests__/S31sonda.test.ts`: borralo a mano después), y
+>   sus salidas en `S35-sonda-*.out.txt`.
+> - **Las herramientas:** el revert por pieza es `_scratch/S34-rev.cjs.txt` (`S32_ROOT`,
+>   `S32_BASE`, `S34_PIEZAS`; la base de la 35 es `S35-SyncEngine-base.ts.txt`); la matriz,
+>   `S34-matriz.cjs.txt` (`S32_ROOT=<worktree>`, `S32_FULL=1`, `check` para ver las anclas); las
+>   piezas de `R9-210`, `S34-A3-piezas.cjs.txt` (`S34_ROOT` obligatorio; su `--restore` es un
+>   `git checkout`).
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla**, en una rama `fix/...`, un commit por hallazgo, cada prueba vista fallar
+> primero (y revert por pieza), sobre `SyncEngine.ts`. Ninguno tiene arreglo medido: medí la
+> hipótesis antes de elegir (corolario 33). Cada sonda de la 35 sirve de partida para la prueba:
+>
+> - **`R9-215`** (`ownRereading` sobrevive al `stop()`): la sonda `rereading`; hipótesis: el
+>   conjunto por sesión, y que la relectura de una sesión terminada no tape la siguiente;
+> - **`R9-218`** (`force` de toda la escritura): la sonda `dos` (estado sembrado); hipótesis:
+>   `force` solo para la colección cuya relectura falló;
+> - **`R9-216`** (el «mía» de `recentAcked` ante un respaldo con mi escritura): las sondas
+>   `respaldo` y `retenida`; hipótesis: un reloj cuyo eco ya llegó deja de ser «mío». Ojo con
+>   `R9-207` (sus 5 pruebas) y con la regla de una sola respuesta a «¿es mía?»;
+> - **`R9-217`** (el coste aceptado de `R9-208`): la sonda `coste`, caso (a); hipótesis: la entrada
+>   nueva lleva también el último sello propio del doc. Decí en la prueba de `fantasmaC` lo que
+>   pasa con doc-d;
+> - **`R9-219`** (el comentario de `R9-206`): corregir la premisa; sin prueba (es un comentario);
+> - re-medí la matriz entera al final, con las piezas nuevas.
+>
+> **Pendiente, NO salvo que te lo pida:**
+>
+> - `R9-211`..`R9-214`, los nuevos de la 34 (solo `R9-214` tiene la hipótesis medida);
+> - `R9-201`..`R9-203` y `R9-198`, sin arreglo medido (medí antes de elegir);
+> - `R9-205` (va con `R9-38`); `R9-177` (Modo C en el emulador, con mi OK), que también cierra el
+>   orden «rechazo antes que reversión» del que dependen `R9-182` y `R9-201`;
+> - `R9-38`, que depende de `R9-59`; terminar `A12`;
+> - `R9-164` con la app cerrada (el respaldo del otro teléfono, los huérfanos de un `deleteAccount`
+>   fallido y el corte durante la lectura);
+> - `R9-127`: siguen abiertas la rama sin anónimo, la de colisión y el skip de `deleteAccount`;
+> - `R9-173` (ya decidido: extender la opción (b));
+> - `R9-126` (el `set({merge:true})` incondicional; la 33 le agregó una traza con un conflicto que se
+>   pierde tras reiniciar);
+> - la parte de `MemoryDeckContext` de `R9-133`;
+> - mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota del piso de no asentados y
+>   `R9-158` (junto con el `claimLocalStore` que también falla abierto).
+
+**(o) Sesión 35: revisar el diff de la 34 — ya HECHO en la sesión 35, en la terminal y sin
+agentes.** Queda aquí como registro. Lo que valió fue `_scratch/S35-PROMPT.md`: corregía el estado
+(la 34 ya estaba mergeada) y agregaba preguntas (el coste de `R9-208` medido, la rama retenida de
+`R9-207` con sonda, `+heldAt`, la factoría de `R9-210`).
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (o) y la sección 5) y, en la memoria, la de la sesión 34 y la regla fija de las pruebas
@@ -1273,25 +1335,21 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 34 (2026-10-01).**
+**Medido al cerrar la sesión 35 (2026-09-30).**
 
-- **`main` = `origin/main` = `17788ae`** (el checkpoint de la 33; el último código en `main` es
-  `c1664a5`). **CI verificado en el log:** run `36808626771`, 3 jobs verdes, Node v24.21.0,
-  367/4483, cero «failed to run».
-- **Dos ramas de la 34, sin mergear a propósito y sin pushear:**
-  - `fix/s34-r207-r210`, sobre `17788ae`, con 4 commits (`275b5df`..`682f852`);
-  - `docs/review-s34-fix-s33`, encima: el checkpoint, solo docs.
-
-  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-
-- La rama de la 33 se mergeó en fast-forward y se borró tras `git cherry`.
-- **Los worktrees:**
-  - los de los 3 agentes ya no están: el de A1, que se cortó, lo retiró el orquestador, borrando
-    antes su junction con `.Delete()`;
-  - el de la matriz (`C:/projects/essb-s34-matriz`) se borró, también con la junction primero.
+- **`main` = `origin/main` = `5d8fda2`** (el checkpoint de la 34; el último código en `main` es
+  `682f852`). **CI verificado en el log:** run `36814348204`, 3 jobs verdes, Node v24.21.0,
+  368/4501, cero «failed to run».
+- Las dos ramas de la 34 (`fix/s34-r207-r210` y `docs/review-s34-fix-s33`) se mergearon en
+  fast-forward con el OK de Victor y se borraron tras `git cherry`.
+- **Una rama de la 35, sin mergear a propósito y sin pushear:** `docs/review-s35-diff-s34`, sobre
+  `5d8fda2`, solo docs (el checkpoint). Se mergea en fast-forward con el OK de Victor. Si ya se
+  mergeó, `main` la incluye.
+- **Los worktrees:** el de la matriz (`C:/projects/essb-s35-matriz`) se borró, con la junction
+  primero. No queda ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 34):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 35):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,

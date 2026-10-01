@@ -406,6 +406,21 @@
 >   al hidratar) y 3 P3.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **214**. Detalle: `detail/S34-arreglos-s33.md`.
+>
+> **Sesión 35 (2026-09-30): REVISIÓN del diff de la 34** (`17788ae..682f852`), solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **5 hallazgos nuevos, `R9-215`..`R9-219`, todos P3.** Los cinco los abrió o los dejó a la vista
+>   la 34, y cada «lo abrió» se midió con su pieza revertida (corolario 47): `R9-215` y `R9-218`
+>   (la relectura de `R9-208`, entre sesiones y entre colecciones), `R9-216` (el «mía» de más de
+>   `R9-207`, en las dos ramas que no se habían sondeado), `R9-217` (el coste aceptado de `R9-208`,
+>   medido) y `R9-219` (la premisa del comentario de `R9-206`, falsa en la sesión degradada: es la
+>   razón de `+heldAt` 0 → 4).
+> - `R9-210` y `R9-209` no dejan nada nuevo; las 18 pruebas nuevas dicen lo que miden (una
+>   observación, en `R9-217`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219**. Detalle:
+> `detail/S35-revision-del-diff-s34.md`.
 
 ---
 
@@ -3408,6 +3423,8 @@ respaldo viejo`, sin nada que mostrar.
     reemplazaba, porque W1 ya estaba confirmada; la prueba retiene su ack. **Piezas** (sobre 225):
     R207own 5, R207fold 1, R207acum 1, y las que SUMAN la poda por distancia y la forma «solo la
     ventana», 1 cada una. `W` pasa de 3 a 7 y `Yset` de 2 a 7. Ver `detail/S34-arreglos-s33.md` §2.
+  - **Sesión 35, la revisión de esta decisión:** el «mía» de más suelta algo en las dos ramas que no
+    se habían sondeado (un respaldo del otro con una escritura mía de este proceso): `R9-216`.
 
 - **`R9-208` (S33, `SyncEngine` / conflictos — P3) — 🐛 con la tabla de sellos ilegible en un
   arranque, el ack siguiente de otro doc en conflicto la reescribe sin los demás: el fantasma
@@ -3447,6 +3464,10 @@ respaldo viejo`, sin nada que mostrar.
     220, re-medidas en el árbol del orquestador): marca 6, noEscribir 2, releer 5, diferir 2, y 1
     cada una fuerza, pendiente, stopFuerza, stopVacia, unionPoda, parse y poda.
   - Vecino medido, sin arreglar: la cola ilegible al hidratar (`R9-212`).
+  - **Sesión 35, la revisión de este arreglo:** el coste, medido, es `R9-217` (solo con una
+    edición del doc en cola al reiniciar). La relectura deja dos huecos que abrió: `R9-215` (una
+    relectura que sobrevive al `stop()`) y `R9-218` (`force` de toda la escritura). La sesión
+    degradada hace falsa la premisa de `R9-206`: `R9-219`.
 
 - **`R9-209` (S33, `SyncEngine` / conflictos — P3) — 🐛 la rama `pending` SIN copia local no
   pregunta `isOwnCopy`: el eco de mi escritura, con el doc ya borrado aquí, pasa a ser «su
@@ -3544,6 +3565,94 @@ pending.remoteVersion.updatedAt`.
   - Es la raíz de `R9-133` en otra línea.
   - **Arreglo (hipótesis MEDIDA por A3, sin prueba):** `pullAllLocal` = `initialize()` +
     `getFavorites()`.
+
+- **`R9-215` (S35, `SyncEngine` / cola — P3) — 🐛 una relectura de la tabla de sellos que sigue en
+  vuelo tras un `stop()` deja sin escribir la cola de la sesión siguiente.** MEDIDO en el mock
+  (sonda `_scratch/S35-sonda-rereading.body.txt`). Lo abrió `R9-208`.
+  - `ownRereading` (`SyncEngine.ts:482`) no se vacía en `stop()` y va por colección (no por sesión
+    ni por uid). Si la tabla vuelve a fallar al enganchar la sesión 2, la escritura que esa sesión
+    difiere pide su relectura, y `rereadOwn` (`:2497`) sale sin leer porque la de la sesión 1 sigue
+    en vuelo. La de la sesión 1 vuelve, ve otra sesión y sale sin escribir (`:2512`).
+  - **Medido** (la misma cuenta; doc-c, en conflicto, sube en la sesión 2 y d4 queda en cola sin
+    red): en disco queda `["lo mio 4"]` (la entrada que ya subió) y falta `d mio 4`, también
+    después de que vuelve la relectura vieja; el proceso nuevo arranca con `["lo mio 4"]`. **La
+    edición d4 queda solo en local y no sube nunca.** El control, con la relectura vieja ya
+    vuelta, da `["d mio 4"]` en los tres puntos.
+  - **Lo abrió `R9-208`:** con `diferir` revertida (pieza de A1), la misma sonda da `["d mio 4"]`.
+  - La ventana dura hasta la escritura siguiente de la cola o el `stop()`. Hacen falta dos lecturas
+    fallidas de la tabla (una por enganche) y que el proceso muera en esa ventana.
+  - **Arreglo (hipótesis, sin medir):** `ownRereading` por sesión (o vaciarlo en `stop()`), y que la
+    relectura de una sesión terminada no tape la de la siguiente.
+
+- **`R9-216` (S35, `SyncEngine` / conflictos — P3) — 🐛 el «mía» de `recentAcked` toma por eco un
+  respaldo del otro que trae una escritura mía de este proceso: «su versión» no se refresca, o el
+  conflicto se asienta en silencio.** MEDIDO en el mock (sondas
+  `_scratch/S35-sonda-{respaldo,retenida}.body.txt`). Lo abrió `R9-207` (corolario 42).
+  - `isOwnCopy` (`:2438`) dice «mía» a toda copia con el reloj de una escritura que el servidor tomó
+    sin conflicto en este proceso. Por `updatedAt` no distingue el eco tardío (el caso de `R9-207`)
+    de un respaldo que el otro restaura con esa misma escritura adentro.
+  - **El caso:** W1 sube sin conflicto; después, conflicto L contra R; el otro restaura un respaldo
+    que tiene W1.
+  - **La rama `pending`:** «su versión» sigue «lo suyo» y **keepTheirs deja local `lo suyo` y nube
+    `w1 mio`**. El control (W1 escrita por el otro) pasa «su versión» a W1, y los dos terminan en
+    W1.
+  - **La rama retenida** (la que A2 analizó solo leyendo): `stop()`, el otro restaura con la app
+    cerrada y `start()` de la misma cuenta en el mismo proceso. **El conflicto se asienta en
+    silencio** (sin conflictos, marca `null`): local `lo mio` (más nueva, sin nada en cola) y nube
+    `w1 mio`, para siempre. Los dos controles (W1 del otro; un proceso nuevo) muestran
+    `lo mio | w1 mio`.
+  - **Lo abrió `R9-207`:** con `R207own` revertida, las dos ramas dan lo mismo que el control.
+  - Los costes que el ledger aceptó para `R9-207` (el mismo milisegundo de otra escritura; la guarda
+    de `handleSnapshot` que suelta la marca, W6) no dicen estas dos consecuencias.
+  - **Arreglo (hipótesis, sin medir):** que un reloj de `recentAcked` cuyo eco ya llegó una vez deje
+    de responder «mía» (el eco tardío llega una sola vez; un respaldo la trae de nuevo).
+
+- **`R9-217` (S35, `SyncEngine` / conflictos — P3) — 🐛 el coste aceptado de `R9-208`: con la tabla
+  ilegible toda la sesión, una edición del doc que queda en cola tras el ack da «lo mío contra lo
+  mío» al reiniciar.** MEDIDO en el mock (sonda `_scratch/S35-sonda-coste.body.txt`).
+  - **Medido** (d2, de doc-d en conflicto, sube; la tabla no se lee nunca): con d3 en cola sin red,
+    el proceso nuevo muestra `[["d mio 3","d mio 2"]]`. Sin d3 en cola, o con d3 subida, nada.
+  - La entrada de d3 no lleva el reloj de d2: `queueWrite` (`:1108`) copia a `own` solo el último de
+    `recentAcked`, y el ack de un doc en conflicto va a `ownStamps` (que esa sesión no puede
+    escribir).
+  - **La prueba no lo dice** (corolario 44, observación): «R9-208: si la tabla de sellos sigue
+    ilegible al releerla…» es este caso, y filtra los conflictos a doc-c (`fantasmaC`,
+    `SyncEngine.test.ts:8534`) sin decir que el de doc-d aparece.
+  - Anotado aquí, sin número propio: `rereadOwn` une solo los docs de `isConflictDoc`, y el enganche
+    conserva todo doc retenido si la lista de conflictos no se pudo leer. Medido en disco
+    (`S35-sonda-union`: `["doc-d"]` contra `["doc-c","doc-d"]`), sin consecuencia alcanzada: la
+    misma sesión reescribe la lista de conflictos sin doc-c.
+  - **Arreglo (hipótesis, sin medir):** que la entrada nueva lleve también el último sello propio
+    del doc (`ownStamps`), como `R9-194` hace con `recentAcked`.
+
+- **`R9-218` (S35, `SyncEngine` / conflictos — P3) — 🐛 con dos tablas de sellos ilegibles, la
+  relectura que falla en una escribe la cola sin la otra, cuya relectura sigue en vuelo.** MEDIDO
+  el orden de las escrituras (sonda `_scratch/S35-sonda-dos.body.txt`, con el estado sembrado). Lo
+  abrió `R9-208`.
+  - `force` (`:993`) es de toda la escritura: la relectura fallida de `ca` llama
+    `persistQueue(true)`, y la cola sale ya, sin la tabla de `cb`.
+  - **Medido:** con `ca` fallando y `cb` bien, las escrituras son `queue` y después `queue+cb`. Con
+    las dos bien, una sola (`queue+ca+cb`), en los dos órdenes. Siempre converge, y la que falla
+    queda pendiente para la escritura siguiente.
+  - Es el orden que prohíbe la segunda prueba de `R9-208` (el proceso muere después de guardar la
+    cola sin la escritura subida de otro conflicto), en la segunda colección. La muerte entre las
+    dos escrituras no se sondeó: es el mecanismo de esa prueba.
+  - **Arreglo (hipótesis, sin medir):** `force` solo para la colección cuya relectura falló; la
+    cola espera a las demás relecturas en vuelo.
+
+- **`R9-219` (S35, `SyncEngine` / comentario — P3) — 🐛 la premisa del comentario de `R9-206`
+  («the mark only moves to a copy of the other device») es falsa en la sesión con la tabla de
+  sellos ilegible.** MEDIDO en el mock (sonda `_scratch/S35-sonda-marca.body.txt`).
+  - **Medido** (`dosConflictos`; la tabla falla al enganchar): la marca de doc-c pasa de R (+65 000)
+    a L2 (+120 000), que es mía. Sin sellos, la sesión toma L2 por la copia del otro.
+  - Es la razón de que `+heldAt` pasara de 0 a 4 en la matriz de la 34: las 4 pruebas de `R9-208`
+    con una sesión degradada y un reinicio después son las primeras que mueven la marca a una copia
+    propia. En el reinicio la tabla se lee, L2 es mía y se asienta. `+heldAt` la registra como «lo
+    mio 3 | lo mio 2».
+  - Hoy no tiene consecuencia medida. El comentario (`SyncEngine.ts:1853-1855`) y la regla de
+    `R9-190` (`:1499`) afirman algo que esa sesión no cumple (corolario 14).
+  - **Arreglo:** decir en el comentario que la sesión con la tabla ilegible también mueve la marca a
+    una copia propia, y por qué `remoteTs === heldAt` sigue sin hacer falta.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
