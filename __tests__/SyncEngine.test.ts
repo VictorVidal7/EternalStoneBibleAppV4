@@ -7343,6 +7343,44 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-222: W1 y W2 suben con la cadena de lotes ocupada, y la escritura del otro llega despues de mis ecos: el eco de W1 se procesa despues y sigue siendo mio', async () => {
+    const uid = 'uid-222-cadena';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, vistos, soltar} = await cadenaOcupada(uid, T);
+    for (const [value, dt] of [
+      ['w1', 100_000],
+      ['w2', 106_000],
+    ] as const) {
+      const W = {value, updatedAt: T + dt};
+      localStore.set('docB', W);
+      engine.queueWrite('test', 'docB', W);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    }
+    // Su lote espera la cadena, detras de los ecos de W1 y W2: al llegar,
+    // la nube ya paso de mis escrituras.
+    write(uid, 'docB', {value: 'r', updatedAt: T + 150_000});
+    await flush();
+    await soltar();
+
+    // Sin el veredicto de la llegada: la copia del otro, llegada antes de
+    // procesar los ecos, ya habia retirado el reloj de W1, y su eco, a 6 s
+    // de W2, daba «w2 contra w1».
+    expect({
+      subidas: subidasDe('docB'), // CONTROL
+      vistos: [...vistos],
+      conflictos: parejas(engine),
+      local: localStore.get('docB')?.value,
+    }).toEqual({
+      subidas: ['w1', 'w2'],
+      vistos: [],
+      conflictos: [],
+      local: 'r',
+    });
+    engine.stop();
+  });
+
   it('R9-192: con una edicion mia en cola, el respaldo del otro pasa a ser «su version» del conflicto, y keepTheirs deja local y nube en ese respaldo', async () => {
     const uid = 'uid-192-cola';
     const T = Date.now() - HOUR;
@@ -9126,34 +9164,133 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
-  it('R9-216: 20 escrituras del mismo doc, cada una con su eco: los ecos anotados no pasan de los relojes que `recentAcked` guarda, mas el de la ultima', async () => {
-    // Vigila la memoria del proceso, no una consecuencia para el usuario.
-    // El eco de w20 llega con w20 en cola (16 de `recentAcked` + 1); el de w4,
-    // que el ack de w20 saco de la lista, se poda en el eco siguiente.
-    const uid = 'uid-216-poda';
-    const T = Date.now() - HOUR;
-    const {engine, localStore} = await engineFor(uid, T);
-    for (let i = 1; i <= 20; i++) {
-      const w = {value: `w${i}`, updatedAt: T + i * 1_000};
-      localStore.set('doc-p', w as unknown as SyncEntity<TestEntity>);
-      engine.queueWrite('test', 'doc-p', w);
+  it.each<['pendiente' | 'retenida']>([['pendiente'], ['retenida']])(
+    'R9-222: el eco de W1 no llega (stop() en el mismo tick del set); con la sesion cerrada el otro escribe R, y al volver hay conflicto; el otro restaura un respaldo con W1 (rama %s): pasa a ser «su version»',
+    async rama => {
+      const uid = `uid-222-sineco-${rama}`;
+      const T = Date.now() - HOUR;
+      const {engine, localStore} = await engineFor(uid, T);
+      const W1 = {value: 'w1 mio', updatedAt: T + 10_000};
+      localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W1);
+      // El `set` de W1 ya salio (queueWrite -> flush -> set, sincronico): el
+      // ack llega igual, y el eco, tras desuscribir, no.
+      engine.stop();
+      await settle();
+      const ecosW1 = mockDelivered.filter(
+        d => d.path === `users/${uid}/test` && d.id === 'doc-c',
+      ).length;
+      const nubeW1 = await nubeDe(uid, 'doc-c');
+      localStore.set('doc-c', {
+        value: 'lo mio',
+        updatedAt: T + 60_000,
+      } as unknown as SyncEntity<TestEntity>);
+      write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+      await settle();
+      await engine.start(uid);
+      await settle();
+      const antes = parejas(engine);
+      if (rama === 'retenida') {
+        engine.stop();
+        await settle();
+      }
+      write(uid, 'doc-c', {...W1});
+      await settle();
+      if (rama === 'retenida') {
+        await engine.start(uid);
+        await settle();
+      }
+      const suya = parejas(engine);
+      await engine.resolveConflict('test__doc-c', 'keepTheirs');
       await settle();
       await engine.__flushForTests();
       await settle();
-    }
-    const interno = engine as unknown as {
-      recentAcked: Map<string, number[]>;
-      recentEchoed: Map<string, Map<number, object>>;
-    };
-    const key = [...interno.recentEchoed.keys()].find(k =>
-      k.endsWith('doc-p'),
-    )!;
 
+      // Pre-fix: `noteEcho` tomaba el respaldo por el eco de W1 (la primera
+      // copia con su reloj): «su version» seguia «lo suyo» y keepTheirs dejaba
+      // local «lo suyo» y nube W1 (pendiente), o el conflicto se asentaba en
+      // silencio con «lo mio» solo en este telefono (retenida).
+      expect({
+        ecosW1, // CONTROL: el eco de W1 no llego
+        nubeW1, // CONTROL: W1 subio
+        antes, // CONTROL
+        suya,
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      }).toEqual({
+        ecosW1: 0,
+        nubeW1: 'w1 mio',
+        antes: [['lo mio', 'lo suyo']],
+        suya: [['lo mio', 'w1 mio']],
+        local: 'w1 mio',
+        nube: 'w1 mio',
+      });
+      engine.stop();
+    },
+  );
+
+  it('R9-220: W1 sube; W2 se rechaza hasta rendirse y la reversion trae W1 en otro objeto, y la cuenta vuelve a enganchar: no aparece «w2 contra w1»', async () => {
+    const uid = 'uid-220-rendirse';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    const publicadas = new Set<string>();
+    engine.subscribe(st =>
+      publicadas.add(
+        JSON.stringify(
+          st.conflicts.map(c => [c.localVersion.value, c.remoteVersion.value]),
+        ),
+      ),
+    );
+    const W1 = {value: 'w1 mio', updatedAt: T + 10_000};
+    localStore.set('doc-r', W1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-r', W1);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // W2, 10 s despues: el servidor la rechaza hasta que el motor se rinde.
+    mockSetShouldFail = true;
+    const W2 = {value: 'w2 mio', updatedAt: T + 20_000};
+    localStore.set('doc-r', W2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-r', W2);
+    await settle();
+    const realNow = Date.now();
+    const nowSpy = jest.spyOn(Date, 'now');
+    for (let i = 1; i <= 10; i++) {
+      if (engine.__getQueueForTests().length === 0) break;
+      nowSpy.mockReturnValue(realNow + i * HOUR);
+      await engine.__flushForTests();
+      await settle();
+    }
+    nowSpy.mockRestore();
+    mockSetShouldFail = false;
+    await settle();
+    const revertidas = mockDelivered.filter(
+      d => d.id === 'doc-r' && d.via === 'revert',
+    ).length;
+    const dropped = engine.getState().droppedWrites;
+    engine.stop();
+    await settle();
+    await engine.start(uid);
+    await settle();
+
+    // Pre-fix: solo el objeto del eco de W1 era «mio» por su reloj, y la
+    // reversion y el enganche la entregan en otro: «w2 mio» contra «w1 mio»,
+    // con marca. Lo que queda es el aviso de R9-33 (W2 no subio).
     expect({
-      nube: await nubeDe(uid, 'doc-p'), // CONTROL: subieron todas
-      acked: interno.recentAcked.get(key)?.length, // CONTROL
-      ecos: interno.recentEchoed.get(key)?.size,
-    }).toEqual({nube: 'w20', acked: 16, ecos: 17});
+      revertidas: revertidas > 0, // CONTROL: la reversion trajo W1
+      dropped, // CONTROL: el motor se rindio
+      publicadas: [...publicadas],
+      conflictos: parejas(engine),
+      local: localStore.get('doc-r')?.value,
+      nube: await nubeDe(uid, 'doc-r'),
+    }).toEqual({
+      revertidas: true,
+      dropped: 1,
+      publicadas: ['[]'],
+      conflictos: [],
+      local: 'w2 mio',
+      nube: 'w1 mio',
+    });
     engine.stop();
   });
 });

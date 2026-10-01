@@ -518,21 +518,19 @@ export class SyncEngine {
    * was when it attached, not an echo the old one left waiting, and the clock
    * of a write of the old process that the copy can be travels in `own` of
    * the entry still queued (R9-189, R9-194). That entry's ack folds it in
-   * here, for an attach batch handled after it. Never emptied (a short list
-   * per doc written in the process). By uid: another account's writes are
-   * not this one's.
+   * here, for an attach batch handled after it. A short list per doc written
+   * in the process, dropped when a copy of the other device arrives
+   * (`noteArrived`). By uid: another account's writes are not this one's.
    */
   private recentAcked = new Map<string, number[]>();
   /**
-   * R9-216 — per key of `recentAcked`, the copy whose delivery first brought
-   * back each of its clocks: that write's echo (`noteEcho`). Only that copy is
-   * this device's own by a clock of `recentAcked`. By `updatedAt` alone, a
-   * backup the other device restored with that same write in it was the same
-   * copy: taken for the echo, «theirs» did not move to it and keepTheirs left
-   * this phone and the cloud apart, or a held conflict settled by LWW in
-   * silence. A clock whose echo never came still answers for any copy.
+   * R9-220 / R9-222 — the copies that were this device's own when their
+   * delivery ARRIVED (see `noteArrived`), for the batch that waits in line
+   * (R9-175) and the reads and checks of the doc it runs into. The SDK parses
+   * each delivery into new objects, so an object here is that delivery and
+   * nothing else, and it goes with it (no copy is kept).
    */
-  private recentEchoed = new Map<string, Map<number, object>>();
+  private ownArrived = new WeakSet<object>();
   /**
    * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
    * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
@@ -1283,6 +1281,10 @@ export class SyncEngine {
         const changes = snapshot.docChanges();
         const session = this.flushSession;
         const uid = this.uid;
+        // R9-220 / R9-222 — see `noteArrived`.
+        for (const change of changes) {
+          this.noteArrived(uid, adapter.collection, change);
+        }
         this.enqueueSnapshot(adapter.collection, () =>
           this.handleSnapshot(adapter, changes, lookup, session, uid),
         );
@@ -1622,8 +1624,6 @@ export class SyncEngine {
           data: remote,
           deleted: remote.deleted === true,
         };
-        // R9-216 — see `recentEchoed`.
-        this.noteEcho(uid, adapter.collection, id, remote);
         const localKnown = await this.applyRemoteChange(
           adapter,
           remoteChange,
@@ -2479,6 +2479,8 @@ export class SyncEngine {
     id: string,
     copy: Record<string, unknown>,
   ): boolean {
+    // R9-220 / R9-222 — see `ownArrived`.
+    if (this.ownArrived.has(copy)) return true;
     const ts = updatedAtOf(copy);
     const queued = this.queue.find(
       q => q.uid === uid && q.collection === collection && q.id === id,
@@ -2490,44 +2492,40 @@ export class SyncEngine {
       return true;
     }
     const key = `${uid}\u0000${suppressKey(collection, id)}`;
-    if (this.recentAcked.get(key)?.includes(ts)) {
-      // R9-216 — see `recentEchoed`.
-      const echo = this.recentEchoed.get(key)?.get(ts);
-      if (echo === undefined || echo === copy) return true;
-    }
+    if (this.recentAcked.get(key)?.includes(ts)) return true;
     return this.ownStamps.get(collection)?.get(id)?.includes(ts) === true;
   }
 
   /**
-   * R9-216 — `copy` is being delivered: if it brings back the clock of a
-   * write of this device (the queued one, one it replaced, or one the server
-   * took in this process), the first delivery of that clock is the write's
-   * echo (see `recentEchoed`). The SDK raises the echo before the server
-   * answers, so it is usually still queued. The echoes of clocks no longer
-   * kept go.
+   * R9-216 / R9-220 / R9-222 — a delivery of the doc just ARRIVED, in the
+   * order the SDK raises them (its batch may wait in line, R9-175). A copy
+   * of this device then (`isOwnCopy`) stays so for that batch (`ownArrived`):
+   * the echo of W1 handled after the ack of W2 (R9-207). Any other copy means
+   * the cloud moved past the writes of the doc the server had taken
+   * (`recentAcked`; a write still in flight is on top of the SDK's view, so
+   * no copy of the other device reaches the listener before its ack): a copy
+   * delivered later with one of their clocks is a backup the other device
+   * restored, not this device's. Taken for the echo, «theirs» did not move to
+   * it and keepTheirs left this phone and the cloud apart, or a held conflict
+   * settled by LWW in silence (R9-216). And before the cloud moves, every
+   * delivery of the doc's copy is this device's own, whatever object brings
+   * it: the take-back of a rejected write, a re-attach (R9-220). Decided
+   * here and not by the first copy of each clock, which the backup itself
+   * was when the echo never passed through (R9-222).
    */
-  private noteEcho(
+  private noteArrived(
     uid: string | null,
     collection: string,
-    id: string,
-    copy: Record<string, unknown>,
+    change: DocumentChange,
   ): void {
-    const key = `${uid}\u0000${suppressKey(collection, id)}`;
-    const queued = this.queue.find(
-      q => q.uid === uid && q.collection === collection && q.id === id,
-    );
-    const mine = [
-      ...(this.recentAcked.get(key) ?? []),
-      ...(queued ? [updatedAtOf(queued.data), ...ownOf(queued)] : []),
-    ];
-    const ts = updatedAtOf(copy);
-    if (!mine.includes(ts)) return;
-    const echoes = this.recentEchoed.get(key) ?? new Map<number, object>();
-    for (const old of echoes.keys()) {
-      if (!mine.includes(old)) echoes.delete(old);
+    const copy = change.doc.data() as Record<string, unknown> | undefined;
+    if (!copy) return;
+    const id = fromDocId(change.doc.id);
+    if (this.isOwnCopy(uid, collection, id, copy)) {
+      this.ownArrived.add(copy);
+      return;
     }
-    if (!echoes.has(ts)) echoes.set(ts, copy);
-    this.recentEchoed.set(key, echoes);
+    this.recentAcked.delete(`${uid}\u0000${suppressKey(collection, id)}`);
   }
 
   /** R9-193 — whether `id` is a pending conflict, in memory or held. */
