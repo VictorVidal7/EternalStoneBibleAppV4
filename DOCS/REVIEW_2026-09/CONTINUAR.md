@@ -1,13 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-01, fin de la sesión 36.** La 36 hizo el (p), en el mismo chat que
-> la 35, en la terminal y sin agentes: arregló `R9-215`..`R9-219` en `fix/s36-r215-r219`, un commit
-> por hallazgo, y re-midió la matriz entera.
+> **Última actualización: 2026-10-01, fin de la sesión 37.** La 37 hizo el (q): revisó el diff de la
+> 36 en la terminal, sin tocar código, con 7 agentes que solo midieron, y re-midió la matriz entera
+> (136/136 igual). Encontró 14 hallazgos P3, `R9-220`..`R9-233`. El checkpoint lo escribió un chat
+> nuevo, sin agentes.
 >
-> La 35 ya está mergeada y pusheada (`main` = `d15cd71`, CI verde en el log, run `36818493621`). Los
-> arreglos y el checkpoint de la 36 van en `fix/s36-r215-r219` y `docs/review-s36-fix-s35`, **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 219 hallazgos. **Lo
-> siguiente es el mensaje (q): revisar el diff de la 36.**
+> La 36 ya está mergeada y pusheada (`main` = `657e993`, CI verde en el log, run `36826643083`,
+> 368/4508). El checkpoint de la 37 va en `docs/review-s37-diff-s36`, **sin mergear hasta el OK de
+> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 233 hallazgos. **Lo siguiente es el mensaje (r):
+> arreglar lo de la 37, empezando por `R9-221`.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -466,11 +467,64 @@ la terminal), sus arreglos (la (h), sesión 28, solo en la terminal) y la revisi
 3 agentes que solo midieron) y la revisión del diff de la 30 (la (k), sesión 31, igual), sus arreglos (la (l), sesión 32, en la
 terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igual), sus arreglos
 (la (n), sesión 34, en la terminal con 3 agentes que solo midieron) y la revisión del diff de la
-34 (la (o), sesión 35, en la terminal y sin agentes) y sus arreglos (la (p), sesión 36, en el mismo
-chat y sin agentes).
-**Lo siguiente es el (q).**
+34 (la (o), sesión 35, en la terminal y sin agentes), sus arreglos (la (p), sesión 36, en el mismo
+chat y sin agentes) y la revisión del diff de la 36 (la (q), sesión 37, en la terminal con 7 agentes
+que solo midieron; el checkpoint, en un chat nuevo y sin agentes).
+**Lo siguiente es el (r).**
 
-**(q) Sesión 37: revisar el diff de la 36.**
+**(r) Sesión 38: arreglar lo de la 37.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (r) y la sección 5) y, en la memoria, la de la sesión 37 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s37-diff-s36`, pedime el OK para el fast-forward. Antes
+>   de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 233. El detalle de la 37 está en
+>   `detail/S37-revision-del-diff-s36.md`; los informes de sus 7 agentes, en
+>   `_scratch/S37-A{1..7}-informe.md.txt`, con las sondas y salidas bajo el prefijo `S37-A<n>-`. Las
+>   sondas de los agentes tienen el `ROOT` de su worktree, que ya no existe: cambialo al árbol
+>   principal (o a tu worktree).
+> - **Las herramientas:** el runner de sondas es `_scratch/S31-run.cjs.txt` (arma
+>   `__tests__/S31sonda.test.ts`: borralo a mano después); el revert por pieza, `S34-rev.cjs.txt` con
+>   `S32_BASE=S36-SyncEngine-base.ts.txt` y `S34_PIEZAS=S36-piezas.cjs.txt`; la matriz,
+>   `S36-matriz.cjs.txt`; el mock con copias frescas, `S37b-frescos-suite.cjs.txt`.
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla**, en una rama `fix/...`, un commit por hallazgo, cada prueba vista fallar
+> primero (y revert por pieza). Ninguno tiene el arreglo medido: medí la hipótesis antes de elegir
+> (corolario 33). En este orden:
+>
+> - **`R9-221` PRIMERO** (el mock entrega el mismo objeto en las re-entregas, y RNFirebase uno
+>   nuevo): las dos líneas de `structuredClone` en el mock de `SyncEngine.test.ts` (`deliver` y el
+>   `get()` del doc; ver `S37b-frescos-suite.cjs.txt`). **Con el mock arreglado, re-medí cada prueba de
+>   `R9-216` (y las 5 de `R9-207`) con su pieza revertida ANTES de tocar el motor:** la identidad que
+>   esas pruebas miden en jest no es la del teléfono. Si alguna deja de caer, decilo y reescribila;
+> - **`R9-220` y `R9-222`**, que son la misma pregunta (cuándo deja de valer un eco anotado). La
+>   hipótesis de A1: el eco anotado deja de valer solo cuando el doc entrega después una copia que no
+>   es mía. Medila contra las 3 pruebas de `R9-216` y las 5 de `R9-207`, y contra las sondas
+>   `S37-A1-rendirse` y `S37-A2-sonda-{sineco,bajo,r217b}`;
+> - **`R9-223` y `R9-224`** (la cola y `ownStamps`, dos ramas de `isOwnCopy` que no miran el eco):
+>   sondas `S37-A5-sonda-cola` y `S37-A2-sonda-stamps`;
+> - **`R9-225`** (la memoria de `recentEchoed`): hipótesis, una marca de la entrega en vez de la copia,
+>   y vaciarla en `stop()`;
+> - **`R9-226`** (la guarda por uid de `R9-217`: es tu decisión, con el porqué medido) con la prueba
+>   `S37-A3-antes2`, y **`R9-227`** (el descarte con la tabla ilegible);
+> - **`R9-228`..`R9-233`**, pruebas y textos de la 36: las sondas `S37-A3-gaveup2` y `S37-A3-fifo` y
+>   las correcciones que propone el informe de A4;
+> - re-medí la matriz entera al final, con las piezas nuevas.
+>
+> **Pendiente, NO salvo que te lo pida:** lo mismo que en el (q).
+
+**(q) Sesión 37: revisar el diff de la 36 — ya HECHO en la sesión 37, en la terminal con 7 agentes que
+solo midieron.** Queda aquí como registro. Lo que valió fue `_scratch/S37-PROMPT.md`, y el checkpoint
+lo terminó un chat nuevo con `_scratch/S37b-PROMPT.md`.
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (q) y la sección 5) y, en la memoria, la de la sesión 36 y la regla fija de las pruebas
@@ -1376,24 +1430,21 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 36 (2026-10-01).**
+**Medido al cerrar la sesión 37 (2026-10-01).**
 
-- **`main` = `origin/main` = `d15cd71`** (el checkpoint de la 35; el último código en `main` es
-  `682f852`). **CI verificado en el log:** run `36818493621`, 3 jobs verdes, Node v24.21.0,
-  368/4501, cero «failed to run».
-- La rama de la 35 (`docs/review-s35-diff-s34`) se mergeó en fast-forward con el OK de Victor y se
-  borró tras `git cherry`.
-- **Dos ramas de la 36, sin mergear a propósito y sin pushear:**
-  - `fix/s36-r215-r219`, sobre `d15cd71`, con 5 commits (`0970726`..`2bfbcf8`);
-  - `docs/review-s36-fix-s35`, encima: el checkpoint, solo docs.
-
-  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-
-- **Los worktrees:** el de la matriz (`C:/projects/essb-s36-matriz`) se borró, con la junction
-  primero. No queda ninguno.
+- **`main` = `origin/main` = `657e993`** (el checkpoint de la 36; el último código en `main` es
+  `2bfbcf8`). **CI verificado en el log:** run `36826643083`, 3 jobs verdes, Node v24.21.0,
+  368/4508, cero «failed to run».
+- Las ramas de la 36 (`fix/s36-r215-r219` y `docs/review-s36-fix-s35`) se mergearon en fast-forward
+  con el OK de Victor y se borraron tras `git cherry`.
+- **Una rama de la 37, sin mergear a propósito y sin pushear:** `docs/review-s37-diff-s36`, sobre
+  `657e993`, solo docs (el checkpoint). Se mergea en fast-forward con el OK de Victor. Si ya se
+  mergeó, `main` la incluye.
+- **Los worktrees:** los 7 de los agentes y el de la matriz (`C:/projects/essb-s37-matriz`) se
+  borraron, con la junction primero. No queda ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 36):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 37):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,

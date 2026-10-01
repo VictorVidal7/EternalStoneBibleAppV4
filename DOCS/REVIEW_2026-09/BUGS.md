@@ -423,8 +423,9 @@
 > `detail/S35-revision-del-diff-s34.md`.
 >
 > **Sesión 36 (2026-10-01): ARREGLOS de lo de la 35**, en el mismo chat que la 35, solo en la terminal
-> y sin agentes. Rama `fix/s36-r215-r219` (5 commits, `0970726`..`2bfbcf8`), sin mergear hasta el OK
-> de Victor.
+> y sin agentes. Rama `fix/s36-r215-r219` (5 commits, `0970726`..`2bfbcf8`), mergeada y pusheada
+> con el OK de Victor junto con su checkpoint (`main` = `657e993`, CI verde en el log, run
+> `36826643083`, 368/4508).
 >
 > - **5 cerrados:** `R9-219` (el comentario), `R9-215`, `R9-218`, `R9-217` y `R9-216`, cada prueba
 >   vista fallar con su pieza revertida y re-medida en el árbol combinado.
@@ -432,6 +433,20 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219** (ninguno nuevo). Detalle:
 > `detail/S36-arreglos-s35.md`.
+>
+> **Sesión 37 (2026-10-01): REVISIÓN del diff de la 36** (`d15cd71..2bfbcf8`), solo en la terminal y
+> sin tocar código, con 7 agentes en worktree que solo midieron (a pedido de Victor). El checkpoint
+> lo escribió un chat nuevo (`_scratch/S37b-PROMPT.md`), sin agentes.
+>
+> - **14 hallazgos nuevos, `R9-220`..`R9-233`, todos P3.** Los más serios: `R9-221` (el mock entrega
+>   el MISMO objeto en las re-entregas, y RNFirebase uno nuevo: la identidad de `R9-216` se mide en
+>   jest con una propiedad que el teléfono no tiene) y `R9-222` (`noteEcho` toma por eco la PRIMERA
+>   copia con mi reloj: si el eco no pasó, el respaldo del otro queda como el eco, y vuelve el daño
+>   de `R9-216`). Cada «de la 36» o «anterior» se midió con su pieza revertida, salvo donde se dice.
+> - **La matriz entera, re-medida:** 136 de 136 piezas iguales a la 36, control 0/232.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **233**. Detalle:
+> `detail/S37-revision-del-diff-s36.md`.
 
 ---
 
@@ -3635,6 +3650,11 @@ pending.remoteVersion.updatedAt`.
       `R216note`, `R216cola`). La de la memoria (20 escrituras: 17 ecos, los 16 de `recentAcked` y el
       de la última) cae sin la poda (`R216poda`) y dice que no mide una consecuencia. Sin la identidad
       de la copia (`R216same`) caen las de `R9-207`: es la que mantiene su caso.
+    - **Corrección de la sesión 37 (medido):** «un reloj cuyo eco nunca llegó sigue respondiendo para
+      cualquier copia» es falso. `noteEcho` anota como eco la PRIMERA copia que trae el reloj, sea
+      cual sea, y desde ahí solo esa es «mía». Si esa primera es el respaldo del otro, vuelve el daño
+      de este hallazgo: `R9-222`. Y el eco de más de la prueba de la memoria no es «el de la última»:
+      es w4, el que el ack de w20 sacó de `recentAcked`, hasta el eco siguiente (`R9-232`).
 
 - **`R9-217` (S35, `SyncEngine` / conflictos — P3) — 🐛 el coste aceptado de `R9-208`: con la tabla
   ilegible toda la sesión, una edición del doc que queda en cola tras el ack da «lo mío contra lo
@@ -3702,6 +3722,219 @@ pending.remoteVersion.updatedAt`.
   - **✅ ARREGLADO en la sesión 36** (`0970726`): el comentario dice por qué `remoteTs === heldAt`
     sigue sin hacer falta en los dos casos (la copia del otro y la propia que la sesión degradada tomó
     por suya). Solo comentario, sin prueba: `+heldAt` ya la tumba en 4.
+    - **Corrección de la sesión 37:** en `2bfbcf8` son **5**, no 4 (`S36-matriz-s36-2bfbcf8.out.txt`:
+      la quinta es la prueba del coste de `R9-217`, que no existía en `0970726`). Y el arreglo quedó a
+      medias: la regla de `R9-190` (`SyncEngine.ts:1544`) sigue sin la excepción (`R9-230`).
+
+- **`R9-220` (S37, `SyncEngine` / conflictos — P3) — 🐛 con la 36, la copia de la nube de MI última
+  escritura tomada, entregada otra vez en OTRO objeto, deja de ser mía: «lo mío contra lo mío» en el
+  mismo proceso.** MEDIDO en el mock (A1 y A5; sondas `_scratch/S37-A1-{rendirse,cortada,reenganche}`
+  y `S37-A5-sonda-rechazo`).
+  - `isOwnCopy` acepta un reloj de `recentAcked` solo en el objeto de su eco (`R9-216`). El SDK
+    vuelve a entregar la misma copia del servidor en otro objeto en la reversión de un rechazo, en el
+    primer snapshot de un re-enganche de la misma cuenta y en la lectura tras un `removed`.
+  - **Medido:** Wa sube sin conflicto; Wb (a menos de 30 s) la rechaza el servidor 8 veces y el motor
+    se rinde (`R9-33`). La reversión trae Wa en otro objeto: `[["wb mio","wa mio"]]` con marca, en la
+    sesión, en el re-enganche y tras reiniciar. Lo mismo con `stop()` justo tras el último rechazo
+    (`cortada`: el re-enganche entrega Wa) y con una edición hecha con el motor parado
+    (`reenganche`, caso `sinSesion`).
+  - **¿De la 36?** En el mismo proceso, sí: con `R216own` o `R216note` revertidas, sin conflicto
+    (`S37-A1-rendirse-sinR216own.out.txt`, `S37-A5-sonda-rechazo-sinR216own.out.txt`). Tras reiniciar
+    ya existía: los dos árboles dan `[wb, wa]` (la entrada descartada se lleva el reloj de Wa; vecino
+    de `R9-194`, sin entrada en cola). La 36 lo adelanta al mismo proceso.
+  - No pierde datos: keepTheirs deja local y nube en Wa, y keepMine sube Wb. Pero rotula como «su
+    versión» una escritura de este teléfono. Antes de la 36, en el mismo proceso, local (Wb) y nube
+    (Wa) quedaban distintos sin conflicto: hay una tensión real.
+  - **Arreglo (hipótesis, sin medir):** que el eco anotado deje de valer solo cuando el doc entrega
+    después una copia que no es mía. Medirlo contra las 3 pruebas de `R9-216` y las 5 de `R9-207`,
+    con el mock de `R9-221` arreglado.
+
+- **`R9-221` (S37, pruebas / mock de Firestore — P3) — 🐛 el mock entrega el MISMO objeto cada vez
+  que sale una copia de la nube sin cambios, y RNFirebase arma uno nuevo en cada entrega: la identidad
+  de `R9-216` se mide en jest con una propiedad que el teléfono no tiene.** MEDIDO (A1, A5; y
+  re-medido en el árbol principal por la 37).
+  - `viewChange`, `__fire` y `get()` del mock devuelven `data: () => doc` con el objeto guardado en
+    `serverDocs`. En RNFirebase 26.2.0, `data()` devuelve el `_data` que se parsea una vez al construir
+    el snapshot (`FirestoreDocumentSnapshot.ts`): el mismo objeto dentro de una entrega, uno nuevo en
+    cada entrega. El mock puede decir «mía» donde el teléfono dice «del otro», nunca al revés.
+  - **Medido:** con dos `structuredClone` en el mock (en `deliver` y en el `get()` del doc,
+    `_scratch/S37b-frescos-suite.cjs.txt`), la suite entera pasa 232/232
+    (`S37b-frescos-suite.out.txt`). Con `R216cola` revertida y la sonda `S37-A1-rendirse`, el mock tal
+    cual no da conflicto (`trasRendirse []`, `S37b-rendirse-sinR216cola.out.txt`) y con copias
+    frescas da `[["wb mio","wa mio"]]` (`S37b-frescos-rendirse-sinR216cola.out.txt`): el mock
+    escondía un caso.
+  - **¿De la 36?** Es infraestructura de prueba, anterior. La 36 lo expone, porque es la primera que
+    decide por la identidad del objeto. Corolario 35 (el mock que implementa el SDK).
+  - **Arreglo:** esas dos líneas en el mock. Después, re-medir cada prueba de `R9-216` con su pieza
+    revertida ANTES de tocar el motor: la identidad que miden en jest no es la del teléfono.
+
+- **`R9-222` (S37, `SyncEngine` / conflictos — P3) — 🐛 `noteEcho` toma por eco la PRIMERA copia que
+  trae un reloj mío: si el eco verdadero no pasó por ahí, el respaldo del otro queda anotado como mi
+  eco, y vuelve el daño de `R9-216`.** MEDIDO en el mock (A2, A4; la ruta (a), re-medida en el árbol
+  principal por la 37).
+  - Hay tres rutas, sin órdenes imposibles. **(a)** El eco se pierde con un `stop()` en el mismo tick
+    del `set` (el ack llega igual y `stop()` anota el `pushing` en `recentAcked`). **(b)** El eco sale
+    de la query como `removed`: una escritura mía con el reloj bajo el piso (restaurar MI respaldo),
+    cuya lectura la encuentra en cola y hace `settle` + `continue` antes de `noteEcho`. **(c)** El
+    reloj llega a otro proceso en el `own` de una entrada (`R9-194`, `R9-217`), y el eco quedó en el
+    proceso anterior.
+  - **Medido, ruta (a)** (`S37-A2-sonda-sineco`; la 37 la re-midió: `S37b-sineco.out.txt`): W1 sube y
+    su eco no llega; conflicto L contra R; el otro restaura un respaldo con W1. Rama `pending`: «su
+    versión» se queda en `lo suyo`, y keepTheirs deja local `lo suyo` y nube `w1 mio`, sin nada en
+    cola. Rama retenida: el conflicto se asienta en silencio (marca `null`, local `lo mio`, nube
+    `w1 mio`). Los controles (eco entregado; W1 del otro) muestran `lo mio | w1 mio`.
+  - Con `R216same` revertida (`echo === undefined` solo), las dos ramas dan el control
+    (`S37b-sineco-sinR216same.out.txt`): es la identidad `echo === copy`, con el respaldo anotado como
+    eco, la que lo toma por mío. La ruta (b) da lo mismo (`S37-A2-sonda-bajo`), y la (c) también
+    (`S37-A2-sonda-r217b`, modo `reinicio`). A4 lo vio con dos respaldos: el primero se toma por mío,
+    y el segundo ya no (`S37-A4-sonda-sineco`).
+  - **¿De la 36?** (a) y (b) ya existían: con `R216own` revertida, lo mismo
+    (`S37-A2-sonda-{sineco,bajo}-sinR216own.out.txt`). La (c) la abrió `R9-217` para los docs en
+    conflicto (con `R217` revertida, el control: `S37-A2-sonda-r217b-sinR217.out.txt`), y para los
+    demás ya existía por `R9-194` (con la pieza `Yfold` revertida, el control:
+    `S37-A2-sonda-r194-sinYfold.out.txt`).
+  - **El comentario de `recentEchoed`** (`SyncEngine.ts:533`, «A clock whose echo never came still
+    answers for any copy») es falso: responde por la primera copia que se entrega con ese reloj. Lo
+    mismo en `R9-216` (corregido arriba) y en `detail/S36-arreglos-s35.md:113`.
+  - **Sin medir** (A6, hipótesis): keepMine con nada en cola crea una entrada nueva que pasa la guarda
+    de `R9-217`. Tras su ack, el sello va a `recentAcked`, y en un proceso nuevo sería la ruta (c).
+
+- **`R9-223` (S37, `SyncEngine` / conflictos — P3) — 🐛 el caso de `R9-216` sigue abierto por la COLA:
+  con una edición mía en cola que lleva en `own` el reloj de W1, el respaldo del otro con W1 es «mío».**
+  MEDIDO en el mock (A5; sonda `_scratch/S37-A5-sonda-cola.body.txt`).
+  - `isOwnCopy` responde «mía» por el `own` de la entrada en cola (`+Y`, `R9-194`) antes de mirar
+    `recentAcked`, y ahí no hay eco que mirar.
+  - **Medido** (`w1YConflicto`; la subida de otro doc retenida por la cola, y L2 de doc-c en cola sin
+    emitir): en la rama `pending`, «su versión» sigue en `lo suyo`, y keepTheirs re-sube `lo suyo`
+    encima del respaldo; teléfono y nube iguales, pero en la versión que el otro reemplazó. En la
+    rama retenida, el conflicto se asienta en silencio y L2 sube después (keepMine sin que el usuario
+    elija). El control (la copia con el reloj + 1 ms) muestra el respaldo.
+  - **¿De la 36? No: ya existía.** A5 no lo midió con la pieza revertida, y la 37 lo midió con una
+    sola corrida: con `R216own`, `R216note` y `R217` revertidas juntas, las 4 líneas dan lo mismo
+    (`S37b-A5cola-sin36.out.txt`). La rama de la cola es de `R9-193`/`+Y` (S32).
+  - Sin medir: lo mismo en un proceso nuevo con L2 en cola (por lectura, igual: la entrada se
+    persiste).
+
+- **`R9-224` (S37, `SyncEngine` / conflictos — P3) — 🐛 la rama de `ownStamps` no mira el eco: un
+  sello de una escritura mía tomada con el doc en conflicto dice «mía» también al respaldo del otro
+  que la trae.** MEDIDO en el mock (A2; sonda `_scratch/S37-A2-sonda-stamps.body.txt`).
+  - **Medido:** conflicto L contra R; con el doc en conflicto subo W2 y W3 (sus acks van a
+    `ownStamps`); el otro escribe R2, y después restaura un respaldo con W2. Rama `pending`: «su
+    versión» sigue en R2, y keepTheirs deja local R2 y nube W2. Con W3 en cola, keepTheirs empuja R2
+    re-sellada encima del respaldo. Rama retenida, en el mismo proceso y en uno nuevo: el conflicto se
+    asienta en silencio (local W3, nube W2). Como `ownStamps` está en disco, pasa también tras
+    reiniciar.
+  - **¿De la 36? No: ya existía.** Con `R216own`, `R217` y `R216note` revertidas juntas, las 8 líneas
+    dan lo mismo (`S37-A2-sonda-stamps-sin36.out.txt`). La rama es la de `R9-193` (S32).
+  - Mirar el eco no lo cerraría entero: en un proceso nuevo, `recentEchoed` está vacío, y la primera
+    entrega del reloj es el respaldo mismo (`R9-222`).
+
+- **`R9-225` (S37, `SyncEngine` / memoria — P3) — 🐛 `recentEchoed` guarda la copia ENTREGADA entera
+  por cada reloj anotado, y no se vacía nunca: ni en `stop()` ni al cambiar de cuenta.** MEDIDO (A2;
+  sonda `_scratch/S37-A2-sonda-memoria` en el motor y `S37-A2-memoria.cjs.txt` en V8).
+  - **Medido:** una clave por doc escrito en el proceso, con hasta 17 copias por doc. Tras `stop()`,
+    `start()` de otra cuenta y la vuelta, igual. En V8, ~670-910 B por doc escrito una vez (4-6 veces
+    lo de `recentAcked`) y ~9,3 KB por doc escrito 17 veces o más (33 veces más).
+  - **Extrapolado, sin medir en Hermes:** el empuje inicial de una biblioteca de 3000 docs deja ~2-2,7
+    MB hasta que muere el proceso. Y el texto de las notas y versículos de la cuenta que cerró sesión
+    queda en memoria (sin API que lo exponga).
+  - **De la 36:** la estructura nace en `2bfbcf8`.
+  - **Arreglo (hipótesis, sin medir):** la identidad que `isOwnCopy` necesita no exige guardar la
+    copia: alcanza una marca de la entrega. Y vaciarla en `stop()`.
+
+- **`R9-226` (S37, `SyncEngine` / conflictos — P3) — 🐛 la misma cuenta en una sesión nueva del mismo
+  proceso: una edición escrita antes de enganchar no lleva el sello, y con la tabla ilegible en la
+  sesión anterior da «d mio 3 contra d mio 2».** MEDIDO en el mock (A6 y A3; sondas
+  `_scratch/S37-A6-sonda-cola.body.txt` y `S37-A3-antes2.body.txt`).
+  - La app hace `stop()` + `start()` de la misma cuenta en el mismo proceso (el tick transitorio de
+    auth en el arranque en frío, `SyncEngineContext.tsx:85-127`, y un `deleteAccount` que falla,
+    `AuthContext.tsx:639-659`).
+  - **Medido (A6):** la sesión 1 con la tabla ilegible; d2 sube; d3 se escribe en la sesión 2 antes
+    del enganche. Su entrada no pasa la guarda de `R9-217` (`unsettled` y `conflicts` vacíos tras el
+    `stop()`), y el enganche reemplaza `ownStamps` por la tabla de disco, que no tiene d2: «d mio 3
+    contra d mio 2» en la sesión 2 y tras reiniciar.
+  - **¿De la 36? No: ya existía.** Con `R217` revertida, lo mismo. Con `R217guard` revertida,
+    desaparece: la guarda que la 36 puso para Ana y Beto deja este caso fuera. Una guarda por uid
+    cubriría los dos, pero hoy `ownStamps` no guarda de quién es (decisión de la 38).
+  - **Y la cobertura (A3):** ninguna prueba fija `S32-load` ni `S32-table` sin `R9-217` en el
+    escenario «entrada escrita antes de enganchar, sin el sello». La sonda `S37-A3-antes2` pasa con
+    todo puesto y cae con `L32load` y con `L32table`, aun con `R9-217` puesta
+    (`S37-A3-antes2-*.out.txt`): es la prueba que falta.
+
+- **`R9-227` (S37, `SyncEngine` / conflictos — P3) — 🐛 una edición posterior DESCARTADA (8
+  rechazos) con la tabla ilegible toda la sesión da «d mio 3 contra d mio 2» al reiniciar.** MEDIDO
+  en el mock (A6; sonda `_scratch/S37-A6-sonda-cola.body.txt`, punto 2).
+  - La entrada de d3 llevaba el sello de d2 (`own [200000]`) y era el único disco del reloj: se fue
+    con el descarte. El control (tabla legible) no muestra nada.
+  - **¿De la 36? No: ya existía.** Con `R217` y con `R217guard` revertidas, lo mismo. El texto de
+    `R9-217` («el coste existe solo si queda una edición posterior del doc en cola al reiniciar») se
+    queda corto: también con una edición posterior descartada. Es el coste aceptado de `R9-208` por
+    otro camino.
+
+- **`R9-228` (S37, pruebas / AsyncStorage — P3) — 🐛 la prueba de `R9-215` solo cae con un orden que
+  AsyncStorage nativo no produce.** MEDIDO en el mock (A3 y A7; sondas `_scratch/S37-A3-fifo.body.txt`
+  y `S37-A3-dosrel.body.txt`).
+  - AsyncStorage 2.2.0 es SERIAL: Android envuelve el ejecutor en `SerialExecutor`
+    (`AsyncStorageModule.java:64`), e iOS usa una cola serial (`RNCAsyncStorage.mm:218`). Una
+    relectura de la sesión vieja vuelve antes que cualquier lectura de la nueva, así que dos
+    relecturas de sesiones distintas nunca están en vuelo a la vez en el teléfono.
+  - **Medido:** con `fifo()` (las operaciones del mock encadenadas, como en el teléfono), la prueba de
+    `R9-215` pasa con `R215` revertida. Tal cual, cae. El control del arnés: la de `R9-218` con el
+    mismo `fifo()` sí cae con `R218` revertida (es un orden que el SDK produce).
+  - **Y la guarda del `delete` que la 36 quitó por equivalente (regla 37) no lo era en el mock:** sin
+    ella, una tercera relectura que falla y vuelve antes saca la cola sin la tabla (sello `[1000]`); con
+    ella, no (`S37-A3-dosrel-*.out.txt`). `G215del` da 0/232. En el teléfono no puede pasar.
+  - **De la 36:** la prueba y la guarda quitada. Corolario 39 (un mock con una sola propiedad da
+    órdenes imposibles), en AsyncStorage: hasta hoy solo se pensaba en el ejecutor de Firestore.
+
+- **`R9-229` (S37, pruebas / `R9-218` — P3) — 🐛 dos huecos de cobertura de `R9-218`: nada fija que
+  `stop()` vacíe `ownGaveUp`, y ninguna prueba tiene dos tablas que fallen siempre.** MEDIDO en el
+  mock (A3 y A7).
+  - **`stop()`:** con la pieza `G218stop` (el `stop()` no vacía `ownGaveUp`) caen 0 de 232. La sonda
+    `S37-A3-gaveup2` (Ana deja `test` en `ownGaveUp`; Beto engancha, y su primera escritura es el ack
+    de una entrada de antes) cae con `G218stop` y con `R218clear` (sello `[1000]`), y pasa con todo
+    puesto. Con el código de hoy no pasa: es la prueba que falta.
+  - **Dos tablas que fallan siempre:** con la 36, sin bucle (A7-1: 4 tablas, 8 combinaciones, delta 0
+    en silencio; y la 36 bajó las escrituras N veces respecto de `R218`). Pero la pieza `altDiferir`
+    de la matriz, sobre el árbol de hoy, es un bucle caliente (jest muere por OOM): la ausencia de
+    bucle depende del `return` de la rama `waiting`, y ninguna prueba lo fija. Forma de `R9-142`.
+  - **De la 36:** las pruebas de `R9-218`.
+
+- **`R9-230` (S37, `SyncEngine` / comentario — P3) — 🐛 `R9-219` cerró solo uno de los dos textos que
+  nombraba: la regla de `R9-190` sigue sin la excepción.** MEDIDO (A4).
+  - `SyncEngine.ts:1544`: «R9-190 — only a copy of the OTHER device carries the mark.» En `657e993`,
+    la sesión con la tabla ilegible mueve la marca de doc-c a L2, que es mía (`marcaAntes
+{doc-c:120000}`, `S37-A4-sonda-dup-fantasma-fix.out.txt`).
+  - Y el número de `R9-219`: `+heldAt` tumba 5, no 4 (corregido arriba).
+  - **De la 36:** el texto de `0970726`.
+
+- **`R9-231` (S37, pruebas / `R9-218` — P3) — 🐛 corolario 48: la prueba de `R9-218` solo mira
+  doc-b, y el sello de Wa no llega a ningún disco, con el arreglo y sin él.** MEDIDO (A4; sonda
+  `_scratch/S37-A4-sonda-218.body.txt`).
+  - La cola sale sin la entrada de Wa en cuanto su relectura falla, y la tabla de `test` queda
+    `{doc-a:[1000]}`. Es el coste aceptado de `R9-208` (la tabla que vuelve a fallar), y la prueba
+    (`SyncEngine.test.ts:8840`, aserción en `selloB`) no lo dice.
+  - **De la 36:** la prueba.
+
+- **`R9-232` (S37, pruebas / `R9-216` — P3) — 🐛 la prueba de memoria de `R9-216` dice «el de la
+  última» y cae por su CONTROL con dos de sus tres piezas.** MEDIDO (A4; sondas
+  `_scratch/S37-A4-sonda-{mem,memclave}.body.txt`).
+  - El eco de más es w4, el que el ack de w20 sacó de `recentAcked` (con 40 escrituras, igual: el tope
+    se sostiene). El nombre (`SyncEngine.test.ts:9119`), `BUGS.md` (`R9-216`), el detalle de la 36 y
+    `noteEcho` (`SyncEngine.ts:2506`, «The echoes of clocks no longer kept go») lo dicen mal; el
+    comentario de dentro de la prueba lo dice bien.
+  - Con `R216note` y `R216cola` cae por `acked: undefined`: busca la clave en `recentEchoed`, y sin
+    ecos no la hay. Buscándola en `recentAcked`, cae solo por `ecos` (0 contra 17), con `acked` en
+    verde.
+  - **De la 36:** la prueba.
+
+- **`R9-233` (S37, `SyncEngine` / comentario — P3) — 🐛 `PendingWrite.own` dice «lo que la entrada
+  reemplazó», y desde `R9-194`/`R9-217` lleva relojes que el servidor ya tomó.** MEDIDO (A4: `own` de
+  d3 `[200000]`, el reloj de d2, que nadie reemplazó).
+  - `types.ts:137-138`, `isOwnCopy` («one that entry replaced») y `noteEcho` («one it replaced»). Y
+    «the very same millisecond» de `isOwnCopy` ya no vale para un reloj de `recentAcked` cuyo eco
+    llegó: solo esa copia es mía.
+  - **¿De la 36?** En parte anterior (`R9-194`); la 36 lo amplió (`R9-217`, `R9-216`).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -440,7 +440,22 @@
 > - **La matriz entera:** ver `detail/S36-arreglos-s35.md`, §3.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219** (ninguno nuevo). Ramas `fix/s36-r215-r219` y
-> `docs/review-s36-fix-s35`, sin mergear hasta el OK. Detalle: `detail/S36-arreglos-s35.md`.
+> `docs/review-s36-fix-s35`: mergeadas y pusheadas con el OK de Victor (`main` = `657e993`, CI verde
+> en el log, run `36826643083`, 368/4508). Detalle: `detail/S36-arreglos-s35.md`.
+>
+> **Sesión 37 (2026-10-01): REVISIÓN del diff de la 36** (`d15cd71..2bfbcf8`), solo en la terminal y
+> sin tocar código, con 7 agentes en worktree que solo midieron (a pedido de Victor); el checkpoint,
+> en un chat nuevo y sin agentes.
+>
+> - **14 hallazgos nuevos, `R9-220`..`R9-233`, todos P3:** el mock entrega el mismo objeto en las
+>   re-entregas (`R9-221`, va primero en la 38); `noteEcho` toma por eco la primera copia con mi reloj
+>   (`R9-222`); la copia propia re-entregada deja de ser mía (`R9-220`); dos ramas de `isOwnCopy` que
+>   no miran el eco (`R9-223`, `R9-224`); la memoria de `recentEchoed` (`R9-225`); dos caminos más del
+>   coste de `R9-208` (`R9-226`, `R9-227`); y textos y pruebas de la 36 (`R9-228`..`R9-233`).
+> - **La matriz entera, re-medida:** 136 de 136 piezas iguales a la 36, control 0/232.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **233**. Rama `docs/review-s37-diff-s36`, sin mergear
+> hasta el OK. Detalle: `detail/S37-revision-del-diff-s36.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -938,6 +953,23 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 37 — 2026-10-01. Revisión del diff de la 36.** Solo en la terminal, sin tocar código;
+  arrancó con `_scratch/S37-PROMPT.md`, con 7 agentes en worktree que solo midieron (Victor pidió 4
+  y después 3 más) y la matriz en otro worktree. La cuota se agotó antes del checkpoint, y lo terminó
+  un chat nuevo, sin agentes, con `_scratch/S37b-PROMPT.md`.
+  - **Cómo se trabajó:** cada agente con su sonda sobre `657e993` y, si algo «lo abrió la 36», otra
+    con la pieza revertida (`S36-piezas.cjs.txt`). El chat del checkpoint cotejó cada informe con sus
+    salidas y re-corrió en el árbol principal `R9-221`, la ruta (a) de `R9-222` y `R9-223`.
+  - **Resultado:** 14 hallazgos P3 (`R9-220`..`R9-233`). Matriz 136/136 igual a la 36. Queda 1 P0
+    abierto.
+  - **Detalle: `detail/S37-revision-del-diff-s36.md`.**
+  - **Las lecciones:**
+    - **una propiedad del mock que el arreglo usa por primera vez hay que compararla con el SDK
+      antes de medir:** la identidad del objeto de `R9-216` es una que el mock da y RNFirebase no;
+    - **el orden de AsyncStorage también es del SDK:** es serial, y la prueba de `R9-215` dependía
+      de un orden que el teléfono no produce;
+    - **7 agentes a la vez más la matriz agotan la cuota antes del checkpoint.**
 
 - **Sesión 36 — 2026-10-01. Arreglos de lo de la 35.** En el mismo chat que la 35 (Victor:
   «continúa por favor»), solo en la terminal y sin agentes.
