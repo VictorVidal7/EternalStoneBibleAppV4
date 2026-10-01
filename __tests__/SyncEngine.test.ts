@@ -518,6 +518,7 @@ import {__resetNetInfoCacheForTests} from '../src/lib/sync/netinfo';
 import {logger} from '../src/lib/utils/logger';
 import type {
   ConflictChoice,
+  PendingWrite,
   SyncAdapter,
   SyncEntity,
 } from '../src/lib/sync/types';
@@ -9293,6 +9294,83 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
     engine.stop();
   });
+
+  it.each<['pendiente' | 'retenida']>([['pendiente'], ['retenida']])(
+    'R9-223: con L2 ya en cola (lleva el reloj de W1), el otro escribe R y despues restaura un respaldo con W1 (rama %s): pasa a ser «su version»',
+    async rama => {
+      const uid = `uid-223-cola-${rama}`;
+      const T = Date.now() - HOUR;
+      const {engine, localStore} = await engineFor(uid, T);
+      const W1 = {value: 'w1 mio', updatedAt: T + 10_000};
+      localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W1);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      // Otra subida tarda en confirmarse: L2 espera detras, en la cola.
+      let soltar: () => void = () => {};
+      const puerta = new Promise<void>(r => (soltar = r));
+      mockSetGate = (_p, id) => (id === 'otro' ? puerta : undefined);
+      const O = {value: 'otro', updatedAt: T + 61_000};
+      localStore.set('otro', O as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'otro', O);
+      await settle();
+      const L2 = {value: 'lo mio 2', updatedAt: T + 70_000};
+      localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', L2);
+      await settle();
+      const ownDeL2 = async () => {
+        const raw = await AsyncStorage.getItem('@sync_queue_v1');
+        return (JSON.parse(raw ?? '[]') as PendingWrite[])
+          .filter(q => q.id === 'doc-c')
+          .map(q => (q.own ?? []).map(t => t - T));
+      };
+      const ownAntes = await ownDeL2();
+      write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 75_000});
+      await settle();
+      const antes = parejas(engine);
+      const ownTrasR = await ownDeL2();
+      if (rama === 'retenida') {
+        engine.stop();
+        await settle();
+      }
+      write(uid, 'doc-c', {...W1});
+      await settle();
+      if (rama === 'retenida') {
+        await engine.start(uid);
+        await settle();
+      }
+      const suya = parejas(engine);
+      await engine.resolveConflict('test__doc-c', 'keepTheirs');
+      await settle();
+      soltar();
+      mockSetGate = null;
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+
+      // Pre-fix: el `own` de L2 decia «mio» al respaldo. Pendiente: «su
+      // version» seguia «lo suyo», y keepTheirs la subia encima del respaldo.
+      // Retenida: el conflicto se asentaba en silencio y L2 subia despues
+      // (keepMine sin que el usuario eligiera).
+      expect({
+        ownAntes, // CONTROL: L2 llevaba W1, en disco
+        antes, // CONTROL
+        ownTrasR,
+        suya,
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      }).toEqual({
+        ownAntes: [[10_000]],
+        antes: [['lo mio 2', 'lo suyo']],
+        ownTrasR: [[]],
+        suya: [['lo mio 2', 'w1 mio']],
+        local: 'w1 mio',
+        nube: 'w1 mio',
+      });
+      engine.stop();
+    },
+  );
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

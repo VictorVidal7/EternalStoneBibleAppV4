@@ -2526,6 +2526,17 @@ export class SyncEngine {
       return;
     }
     this.recentAcked.delete(`${uid}\u0000${suppressKey(collection, id)}`);
+    // R9-223 — and the ones the doc's queued entry carries (`own`): the
+    // backup with one of them was «mine» by the queue. On disk, for a restart
+    // with the entry still waiting. Changed in place: an entry is known by
+    // its object when its push comes back (R9-11).
+    const queued = this.queue.find(
+      q => q.uid === uid && q.collection === collection && q.id === id,
+    );
+    if (queued && ownOf(queued).length > 0) {
+      delete queued.own;
+      void this.persistQueue();
+    }
   }
 
   /** R9-193 — whether `id` is a pending conflict, in memory or held. */
