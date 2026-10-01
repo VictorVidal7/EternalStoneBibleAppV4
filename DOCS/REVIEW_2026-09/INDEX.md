@@ -385,7 +385,22 @@
 >   (367/4483, sobre la punta; la matriz, tres veces).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **206**. Ramas `fix/s32-r192-r193-y-s31` y
-> `docs/review-s32-fix-s31`, sin mergear hasta el OK. Detalle: `detail/S32-arreglos-s31.md`.
+> `docs/review-s32-fix-s31`: mergeadas y pusheadas con el OK de Victor (`main` = `06513ba`, CI
+> verde en el log, run `36789350865`, 367/4483). Detalle: `detail/S32-arreglos-s31.md`.
+>
+> **Sesión 33 (2026-09-30): REVISIÓN del diff de la 32** (`b26ab8d..c1664a5`), solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **La matriz entera, re-medida sobre `06513ba`:** idéntica a la de `c1664a5` (109 de 109 piezas).
+>   Ninguna guarda de la 32 da 0; las 33 pruebas nuevas caen todas con su pieza.
+> - **4 hallazgos nuevos, `R9-207`..`R9-210`, todos P3.** Tres ya ocurrían antes de la 32 y son
+>   vecinos de lo que cerró (`R9-207`, `R9-209`, `R9-210`); uno lo abrió la 32 dentro de `R9-193`
+>   (`R9-208`).
+> - **Las cuatro preguntas de la 32, medidas:** una es `R9-210`; las otras tres se descartan como
+>   daño, con notas.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **210**. Rama `docs/review-s33-diff-s32`, sin
+> mergear hasta el OK. Detalle: `detail/S33-revision-del-diff-s32.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -883,6 +898,24 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 33 — 2026-09-30. Revisión del diff de la 32.** Solo en la terminal, sin agentes, sin
+  tocar código; arrancó con `_scratch/S33-PROMPT.md`.
+  - **Cómo se trabajó:** las piezas leídas una por una; cada hipótesis, con una sonda sobre el código
+    de hoy y otra con la pieza de la 32 revertida (`_scratch/S33-rev.cjs.txt`); la matriz entera en
+    un worktree aparte, comparada pieza por pieza (`_scratch/S33-comparar.cjs.txt`).
+  - **Resultado:** 4 hallazgos P3 (`R9-207`..`R9-210`); las preguntas de la 32 respondidas. Queda 1
+    P0 abierto.
+  - **Detalle: `detail/S33-revision-del-diff-s32.md`.**
+  - **Las lecciones:**
+    - **un sello que viaja en la entrada de la cola se va con ella:** «¿es mía esta copia?» tiene
+      que valer mientras su eco pueda llegar, no mientras la entrada espere (`R9-207`);
+    - **cuando un arreglo agrega una pregunta a una rama, la rama vecina es lo primero que hay que
+      mirar:** con copia local sí, sin copia local no (`R9-209`);
+    - **una tabla cargada vacía por un error de lectura se guarda como si fuera la verdad:** es
+      `R9-195` otra vez, ahora en los sellos (`R9-208`);
+    - **«el arreglo empeora X» se mide contra la pieza revertida:** la pérdida de 3a ya ocurría sin
+      C4, solo más tarde.
 
 - **Sesión 31 — 2026-09-30. Revisión del diff de la 30.** Solo en la terminal; a pedido de Victor,
   3 agentes en worktree que solo midieron.
