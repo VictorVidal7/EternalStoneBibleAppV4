@@ -120,11 +120,13 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   // update, so a `[syncCtx]` dep made the adapter re-register on every
   // sync tick → onSnapshot churn (a tight re-subscribe loop). The engine
   // ref is created once, so registering once is correct (the adapter
-  // reads fresh data via refs, not via the effect closure).
+  // reads SQLite and a ref, never the effect closure).
   const syncEngine = syncCtx?.engine ?? null;
 
-  // Keep an always-fresh ref for the sync adapter's getLocal — it
-  // runs outside React render and can't capture stale state.
+  // The favorites as of the last render, for the reads that run outside
+  // render (`pullAllLocal`, the tombstone of `removeFavorite`). It is copied
+  // after each render, so it lags SQLite until then; `getLocal` reads the row
+  // instead (R9-210).
   const favoritesRef = useRef<Favorite[]>([]);
   useEffect(() => {
     favoritesRef.current = favorites;
@@ -141,9 +143,20 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
     if (!syncEngine) return;
     const adapter: SyncAdapter<Omit<Favorite, 'updatedAt'>> = {
       collection: 'favorites',
+      // R9-210 — the row as it is in SQLite now, never `favoritesRef`. Every
+      // write here lands in the row before it is queued, and the ref only
+      // catches up in the effect after the next render: keepMine read the
+      // copy from before an edit made in that gap, wrote it back to the row,
+      // replaced the edit in the queue with it and pushed it. And until the
+      // first load ends the ref is empty, so a remote copy OLDER than the row
+      // was applied over it as if the favorite did not exist here (R9-133).
+      // `initialize()` first, as notes do: a read during the cold start waits
+      // for the database instead of throwing. Not wrapped in a catch that
+      // returns `null` (R9-46): a failed read is not "absent".
       async getLocal(id) {
-        const local = favoritesRef.current.find(f => f.id === id);
-        return local ? favoriteToRemote(local) : null;
+        await bibleDB.initialize();
+        const row = await bibleDB.getFavoriteById(id);
+        return row ? favoriteToRemote(row) : null;
       },
       async applyRemoteUpsert(id, data) {
         const incoming: Favorite = {
