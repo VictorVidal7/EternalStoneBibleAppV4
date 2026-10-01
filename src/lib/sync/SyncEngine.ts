@@ -1690,10 +1690,17 @@ export class SyncEngine {
       // still holds the copy before it. Taken for «theirs», it showed this
       // device's edit as the other one's, and keepTheirs kept it. Either way,
       // a copy is «theirs» only if it is not this device's own.
+      //
+      // R9-209 — with no local copy too: the echo of a write the delete
+      // replaced in the queue (it went up first) arrives after the copy is
+      // gone. Taken for «theirs», keepTheirs brought back the doc the user
+      // deleted, with their old edit.
       const theirs = local
         ? updatedAtOf(data) !== updatedAtOf(local) &&
           !this.isOwnCopy(this.uid, adapter.collection, id, data)
-        : !deleted && data.updatedAt !== pending.remoteVersion.updatedAt;
+        : !deleted &&
+          data.updatedAt !== pending.remoteVersion.updatedAt &&
+          !this.isOwnCopy(this.uid, adapter.collection, id, data);
       if (!theirs) return true;
       const differing = this.conflictFields(adapter, local, data, deleted);
       if (differing.length > 0) {

@@ -6964,6 +6964,66 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-209: con el conflicto en memoria, el borrado reemplaza a W1 mientras su set espera el hilo unico: el eco de W1 llega sin copia local, no pasa a ser «su version», y keepTheirs aplica la del otro', async () => {
+    const uid = 'uid-209-sin-copia';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    // Un doc que sale de la query: su lectura ocupa el hilo unico (R9-177).
+    const x = {value: 'x', updatedAt: T + 50_000};
+    localStore.set('docX', x as unknown as SyncEntity<TestEntity>);
+    write(uid, 'docX', x);
+    await settle();
+    let soltar!: () => void;
+    const gate = new Promise<void>(r => (soltar = r));
+    mockGetGate = (_p, id) => (id === 'docX' ? gate : undefined);
+    hardDelete(uid, 'docX', x);
+    await settle();
+    // W1: su push espera el hilo; el borrado la reemplaza en la cola.
+    const W1 = {value: 'w1', updatedAt: T + 100_000};
+    localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W1);
+    await settle();
+    localStore.delete('doc-c');
+    engine.queueDelete('test', 'doc-c', W1);
+    soltar();
+    await settle();
+    await settle();
+    mockGetGate = null;
+    for (let i = 0; i < 2; i++) {
+      await engine.__flushForTests();
+      await settle();
+    }
+    const trasEco = parejas(engine);
+    const subidas = mockDocSets // CONTROL: subio W1 antes que la lapida
+      .filter(s => s.id === 'doc-c')
+      .map(
+        s =>
+          `${(s.data as Data).value}${(s.data as Data).deleted ? '(lapida)' : ''}`,
+      );
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+
+    // Pre-fix: sin copia local, la rama del conflicto en memoria no
+    // preguntaba si la copia era propia: el eco de W1 pasaba a ser «su
+    // version», y keepTheirs revivia el doc borrado con W1.
+    expect({
+      subidas,
+      trasEco,
+      local: localStore.get('doc-c')?.value ?? null,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      subidas: ['w1', 'w1(lapida)'],
+      trasEco: [['lo mio', 'lo suyo']],
+      local: 'lo suyo',
+      nube: 'lo suyo',
+    });
+    engine.stop();
+  });
+
   it('R9-194: L1 sube, L2 a 10 s queda en cola sin red, y un proceso nuevo arranca sin red: no aparece «L2 contra L1»', async () => {
     const uid = 'uid-194-proceso';
     const T = Date.now() - HOUR;
