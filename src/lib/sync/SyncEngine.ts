@@ -471,13 +471,23 @@ export class SyncEngine {
    * and «mine» showed against «mine» on every later start. While one has
    * stamps to write, `persistQueue` writes nothing and reads the table again
    * (`rereadOwn`); read, it is joined to the map, and the queue goes with it
-   * in one write, as always. If that read fails too, or the session ends
-   * before it is back, the queue goes alone and the table stays as it is on
-   * disk: this session's stamps of the collection are then in memory only,
-   * and a restart can show «mine» against «mine» for them, as it did for the
-   * others.
+   * in one write, as always. If that read fails too (once no other table is
+   * being read, see `ownGaveUp`), or the session ends before it is back, the
+   * queue goes without it and the table stays as it is on disk: this
+   * session's stamps of the collection are then in memory only, and a restart
+   * can show «mine» against «mine» for them, as it did for the others.
    */
   private ownUnread = new Set<string>();
+  /**
+   * R9-218 — the `ownUnread` tables whose read failed again since the last
+   * write of the queue: that write no longer waits for them, and it empties
+   * this (the next one reads them again). The failure is one table's, not the
+   * write's: when it forced the write out, another table whose read was still
+   * on its way and would succeed went without it, and a process that died
+   * then had the entry the server took gone from the queue and its stamps on
+   * no disk.
+   */
+  private ownGaveUp = new Set<string>();
   /**
    * R9-208 — the tables `rereadOwn` is reading right now, with the session
    * that asked. R9-215 — by session: the read of a session that ended answers
@@ -993,13 +1003,16 @@ export class SyncEngine {
     // R9-208 — a table this session could not read is read again before
     // anything is written (see `ownUnread`): this write may drop from the
     // queue an entry the server took, and its stamps can only go to disk in
-    // that table. `rereadOwn` writes when it is done. `force` writes the queue
-    // anyway, without that table: the read failed again, or the session ends.
+    // that table. `rereadOwn` writes when it is done. A table whose read
+    // failed again waits no more (`ownGaveUp`); `force` (the session ends)
+    // writes the queue anyway, without the tables still unread.
     const unread = [...this.ownDirty].filter(c => this.ownUnread.has(c));
-    if (uid && unread.length > 0 && !force) {
-      for (const collection of unread) void this.rereadOwn(collection, uid);
+    const waiting = unread.filter(c => !this.ownGaveUp.has(c));
+    if (uid && waiting.length > 0 && !force) {
+      for (const collection of waiting) void this.rereadOwn(collection, uid);
       return;
     }
+    this.ownGaveUp.clear();
     // R9-193 — the own stamps that changed go in the SAME write as the queue
     // (see `ownStamps`): an entry that left it (acked) took its stamps there,
     // and written apart, a process that died between the two writes had the
@@ -2504,7 +2517,8 @@ export class SyncEngine {
    * R9-208 — read again a table the attach could not read (see `ownUnread`)
    * and join it to the map in memory, for the docs that are still conflicts
    * (the load drops the others too). Then the write that waited for it goes
-   * out; if this read fails as well, the queue goes without the table.
+   * out; if this read fails as well, the queue goes without the table, once
+   * no other table is being read (R9-218).
    */
   private async rereadOwn(collection: string, uid: string): Promise<void> {
     const session = this.flushSession;
@@ -2540,7 +2554,8 @@ export class SyncEngine {
       this.ownUnread.delete(collection);
       this.ownDirty.add(collection);
     }
-    void this.persistQueue(raw === undefined);
+    if (raw === undefined) this.ownGaveUp.add(collection);
+    void this.persistQueue();
   }
 
   /** R9-192 — a copy of the other device that the read of a `removed` found
