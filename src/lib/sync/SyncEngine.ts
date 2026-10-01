@@ -478,8 +478,14 @@ export class SyncEngine {
    * others.
    */
   private ownUnread = new Set<string>();
-  /** R9-208 — the tables `rereadOwn` is reading right now. */
-  private ownRereading = new Set<string>();
+  /**
+   * R9-208 — the tables `rereadOwn` is reading right now, with the session
+   * that asked. R9-215 — by session: the read of a session that ended answers
+   * nothing for the next one (it writes nothing when it is back), and it kept
+   * the next one's read from starting; that session's queue then waited for
+   * its next write to reach disk.
+   */
+  private ownRereading = new Map<string, number>();
   /** R9-193 — the entry `flush()` is pushing right now, if any (see `stop()`). */
   private pushing: PendingWrite | null = null;
   /**
@@ -2501,9 +2507,9 @@ export class SyncEngine {
    * out; if this read fails as well, the queue goes without the table.
    */
   private async rereadOwn(collection: string, uid: string): Promise<void> {
-    if (this.ownRereading.has(collection)) return;
-    this.ownRereading.add(collection);
     const session = this.flushSession;
+    if (this.ownRereading.get(collection) === session) return;
+    this.ownRereading.set(collection, session);
     let raw: string | null | undefined;
     try {
       raw = await AsyncStorage.getItem(ownStorageKey(collection, uid));

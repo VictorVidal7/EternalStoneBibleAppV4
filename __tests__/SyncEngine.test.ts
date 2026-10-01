@@ -8761,6 +8761,78 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       otro?.stop();
     }
   });
+
+  it('R9-215: la relectura de la tabla de sellos de la sesion anterior sigue en vuelo al enganchar otra vez: la cola de la sesion nueva llega a disco, y la edicion en espera no se pierde', async () => {
+    const uid = 'uid-215-relectura-vieja';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    // La tabla de sellos: falla al enganchar la sesion 1 (1); su relectura (2)
+    // no vuelve hasta `abrir()`; falla otra vez al enganchar la sesion 2 (3).
+    let n = 0;
+    getItemMock.mockImplementation((k: string) => {
+      if (k !== ownKeyDe(uid)) return realImpl(k);
+      n += 1;
+      if (n === 1 || n === 3) return Promise.reject(new Error('disco'));
+      if (n === 2) return puerta.then(() => realImpl(k));
+      return realImpl(k);
+    });
+    const disco = caida();
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      // El ack de d2 relee la tabla, y esa lectura no vuelve todavia.
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      engine.stop();
+      await settle();
+      await engine.start(uid);
+      await settle();
+      const sesion2 = parejas(engine);
+      // doc-c, en conflicto, sube en la sesion 2: su ack difiere la cola.
+      const c4 = {value: 'lo mio 4', updatedAt: T + 250_000};
+      localStore.set('doc-c', c4 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', c4);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      await escribirD(engine, localStore, 'd mio 4', T + 300_000, false);
+      const cola = await colaEnDisco();
+      // Vuelve la relectura de la sesion 1, y el proceso muere antes de otra
+      // escritura de la cola.
+      abrir();
+      await settle();
+      disco.morir();
+      engine.stop();
+      await settle();
+      disco.revivir();
+      getItemMock.mockImplementation(realImpl);
+      otro = await procesoNuevo(uid, adapter);
+
+      // Pre-fix: la relectura de la sesion 2 no se lanzaba mientras la de la
+      // sesion 1 seguia en vuelo, y esa, al volver en otra sesion, no
+      // escribia. En disco quedaba la entrada de c4 (ya subida) y no la de d4,
+      // que no subia nunca.
+      expect({
+        sesion2, // CONTROL: la tabla tambien fallo al enganchar la sesion 2
+        nubeC: await nubeDe(uid, 'doc-c'), // CONTROL: c4 subio
+        cola,
+        enCola: otro.__getQueueForTests().map(q => (q.data as Data).value),
+      }).toEqual({
+        sesion2: [['lo mio 3', 'lo mio 2']],
+        nubeC: 'lo mio 4',
+        cola: ['d mio 4'],
+        enCola: ['d mio 4'],
+      });
+    } finally {
+      disco.revivir();
+      getItemMock.mockImplementation(realImpl);
+      otro?.stop();
+    }
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
