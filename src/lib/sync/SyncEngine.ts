@@ -268,6 +268,24 @@ function ownStorageKey(collection: string, uid: string): string {
 /** R9-193 — how many own stamps a doc keeps, the newest (see `ownStamps`). */
 const MAX_OWN_STAMPS = 16;
 
+/**
+ * R9-208 — an own-stamps table as read from `ownStorageKey`. A value that is
+ * not one (not JSON, not an object) holds no stamps: it was read, so the next
+ * write replaces it. Only a read that FAILS leaves the table unknown (see
+ * `ownUnread`).
+ */
+function parseOwnTable(raw: string | null): Record<string, unknown> {
+  if (raw == null) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed)
+      ? (parsed as Record<string, unknown>)
+      : {};
+  } catch {
+    return {};
+  }
+}
+
 /** R9-193 — the stamps an entry carries (`PendingWrite.own`), as numbers. */
 function ownOf(entry: PendingWrite): number[] {
   return Array.isArray(entry.own)
@@ -433,7 +451,9 @@ export class SyncEngine {
    * no longer holds them (see `persistQueue`): at every instant a stamp is on
    * disk in the queue or here, so a process that dies after the server took
    * the write cannot forget it. Loaded with the unsettled set, for the held
-   * conflicts only; forgotten when the conflict ends.
+   * conflicts only; forgotten when the conflict ends. R9-208 — one exception:
+   * a table that could not be read, when the queue has to go without it (it
+   * failed again, or the session ended first; see `ownUnread`).
    *
    * Always this session's: `stop()` writes out what changed (while `this.uid`
    * is still the owner), and each attach replaces its collection's map with
@@ -444,6 +464,22 @@ export class SyncEngine {
   private ownStamps = new Map<string, Map<string, number[]>>();
   /** R9-193 — collections whose `ownStamps` changed since the last write. */
   private ownDirty = new Set<string>();
+  /**
+   * R9-208 — collections whose `ownStamps` table could not be read at this
+   * session's attach: the map in memory lacks the stamps on disk. Written from
+   * it, the table lost those of every other held conflict of the collection,
+   * and «mine» showed against «mine» on every later start. While one has
+   * stamps to write, `persistQueue` writes nothing and reads the table again
+   * (`rereadOwn`); read, it is joined to the map, and the queue goes with it
+   * in one write, as always. If that read fails too, or the session ends
+   * before it is back, the queue goes alone and the table stays as it is on
+   * disk: this session's stamps of the collection are then in memory only,
+   * and a restart can show «mine» against «mine» for them, as it did for the
+   * others.
+   */
+  private ownUnread = new Set<string>();
+  /** R9-208 — the tables `rereadOwn` is reading right now. */
+  private ownRereading = new Set<string>();
   /** R9-193 — the entry `flush()` is pushing right now, if any (see `stop()`). */
   private pushing: PendingWrite | null = null;
   /**
@@ -677,7 +713,11 @@ export class SyncEngine {
     // Own stamps not written yet go out now, under this account, before the
     // queue that no longer holds them can be written without them (a flush of
     // this session can still write it after the `stop()`).
-    if (this.ownDirty.size > 0) void this.persistQueue();
+    // R9-208 — now, even while a table is being read again (that read ends
+    // with the session). An unread table's stamps stay out: no later write
+    // takes them under the next account.
+    if (this.ownDirty.size > 0) void this.persistQueue(true);
+    this.ownDirty.clear();
     // R9-104 — a push still in flight belongs to the session that is ending.
     // Release the lock here instead of waiting for it: it may never come back
     // (see `flushSession`), and the next account must be able to flush.
@@ -930,7 +970,18 @@ export class SyncEngine {
     }
   }
 
-  private async persistQueue(): Promise<void> {
+  private async persistQueue(force = false): Promise<void> {
+    const uid = this.uid;
+    // R9-208 — a table this session could not read is read again before
+    // anything is written (see `ownUnread`): this write may drop from the
+    // queue an entry the server took, and its stamps can only go to disk in
+    // that table. `rereadOwn` writes when it is done. `force` writes the queue
+    // anyway, without that table: the read failed again, or the session ends.
+    const unread = [...this.ownDirty].filter(c => this.ownUnread.has(c));
+    if (uid && unread.length > 0 && !force) {
+      for (const collection of unread) void this.rereadOwn(collection, uid);
+      return;
+    }
     // R9-193 — the own stamps that changed go in the SAME write as the queue
     // (see `ownStamps`): an entry that left it (acked) took its stamps there,
     // and written apart, a process that died between the two writes had the
@@ -941,8 +992,7 @@ export class SyncEngine {
       [QUEUE_STORAGE_KEY, JSON.stringify(this.queue)],
     ];
     const emptied: string[] = [];
-    const written = [...this.ownDirty];
-    const uid = this.uid;
+    const written = [...this.ownDirty].filter(c => !this.ownUnread.has(c));
     if (uid) {
       for (const collection of written) {
         const own = Object.fromEntries(this.ownStamps.get(collection) ?? []);
@@ -953,6 +1003,8 @@ export class SyncEngine {
         }
       }
       this.ownDirty.clear();
+      // R9-208 — still to write, once its table is read.
+      for (const collection of unread) this.ownDirty.add(collection);
     }
     const session = this.flushSession;
     try {
@@ -1996,6 +2048,7 @@ export class SyncEngine {
     const held = new Map<string, HeldDoc>();
     const own = new Map<string, number[]>();
     let ownPruned = false;
+    let ownUnreadable = false;
     let readable = true;
     try {
       const raw = await AsyncStorage.getItem(
@@ -2080,28 +2133,35 @@ export class SyncEngine {
       // R9-193 — this device's own stamps of those conflicts (see
       // `ownStamps`); the ones of docs no longer held are dropped. Unreadable,
       // there are none: every older copy then counts as the other device's,
-      // and the conflict shows instead of settling in silence.
+      // and the conflict shows instead of settling in silence. R9-208 — and
+      // the table is not written from that empty map (see `ownUnread`).
+      let rawOwn: string | null = null;
       try {
-        const raw = await AsyncStorage.getItem(ownStorageKey(collection, uid));
-        const parsed: unknown = raw != null ? JSON.parse(raw) : {};
-        if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
-          for (const [id, stamps] of Object.entries(parsed)) {
-            if (!held.get(id)?.conflict || !Array.isArray(stamps)) {
-              ownPruned = true;
-              continue;
-            }
-            const valid = stamps.filter(
-              (n): n is number => typeof n === 'number' && Number.isFinite(n),
-            );
-            if (valid.length > 0) own.set(id, valid);
-          }
-        }
+        rawOwn = await AsyncStorage.getItem(ownStorageKey(collection, uid));
       } catch (err) {
+        ownUnreadable = true;
         logger.warn('SyncEngine: failed to read own conflict stamps', {
           component: 'SyncEngine',
           collection,
           error: err instanceof Error ? err.message : String(err),
         });
+      }
+      for (const [id, stamps] of Object.entries(parseOwnTable(rawOwn))) {
+        // R9-208 — with the conflict list unreadable, no held doc is known to
+        // be a conflict, and none is dropped: the next write of the queue
+        // removed the table, and if no save of the set rewrote the list in
+        // this session, a later start showed «mine» against «mine».
+        const kept =
+          held.get(id)?.conflict === true ||
+          (!conflictedReadable && held.has(id));
+        if (!kept || !Array.isArray(stamps)) {
+          ownPruned = true;
+          continue;
+        }
+        const valid = stamps.filter(
+          (n): n is number => typeof n === 'number' && Number.isFinite(n),
+        );
+        if (valid.length > 0) own.set(id, valid);
       }
     }
     // Only this session's cache: after a `stop()` it is the next account's.
@@ -2109,6 +2169,8 @@ export class SyncEngine {
       this.unsettled.set(collection, held);
       this.ownStamps.set(collection, own);
       if (ownPruned) this.ownDirty.add(collection);
+      if (ownUnreadable) this.ownUnread.add(collection);
+      else this.ownUnread.delete(collection);
     }
     if (!readable) return 0;
     let lowest = Number.POSITIVE_INFINITY;
@@ -2394,6 +2456,49 @@ export class SyncEngine {
     if (this.ownStamps.get(collection)?.delete(id)) {
       this.ownDirty.add(collection);
     }
+  }
+
+  /**
+   * R9-208 — read again a table the attach could not read (see `ownUnread`)
+   * and join it to the map in memory, for the docs that are still conflicts
+   * (the load drops the others too). Then the write that waited for it goes
+   * out; if this read fails as well, the queue goes without the table.
+   */
+  private async rereadOwn(collection: string, uid: string): Promise<void> {
+    if (this.ownRereading.has(collection)) return;
+    this.ownRereading.add(collection);
+    const session = this.flushSession;
+    let raw: string | null | undefined;
+    try {
+      raw = await AsyncStorage.getItem(ownStorageKey(collection, uid));
+    } catch (err) {
+      logger.warn('SyncEngine: failed to read own conflict stamps again', {
+        component: 'SyncEngine',
+        collection,
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+    this.ownRereading.delete(collection);
+    // After a `stop()` the map is the next session's; `stop()` wrote the queue.
+    if (session !== this.flushSession) return;
+    if (raw !== undefined && this.ownUnread.has(collection)) {
+      const byId =
+        this.ownStamps.get(collection) ?? new Map<string, number[]>();
+      for (const [id, stamps] of Object.entries(parseOwnTable(raw))) {
+        if (!Array.isArray(stamps) || !this.isConflictDoc(collection, id)) {
+          continue;
+        }
+        let joined: number[] = [];
+        for (const ts of [...stamps, ...(byId.get(id) ?? [])]) {
+          joined = withStamp(joined, ts);
+        }
+        byId.set(id, joined);
+      }
+      this.ownStamps.set(collection, byId);
+      this.ownUnread.delete(collection);
+      this.ownDirty.add(collection);
+    }
+    void this.persistQueue(raw === undefined);
   }
 
   /** R9-192 — a copy of the other device that the read of a `removed` found

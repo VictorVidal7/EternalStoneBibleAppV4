@@ -6605,7 +6605,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     const T = Date.now() - HOUR;
     const L = {value: 'lo mio', updatedAt: T + 60_000};
     const R = {value: 'lo suyo', updatedAt: T + 65_000};
-    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
     const L2 = {value: 'lo mio 2', updatedAt: T + 120_000};
     localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
     engine.queueWrite('test', 'doc-c', L2);
@@ -6626,7 +6626,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       nowSpy.mockRestore();
     }
     mockSetShouldFail = false;
-    return {engine, localStore};
+    return {engine, localStore, adapter};
   }
 
   /** R9-196 — reinicia con la lista de releer ilegible (R9-191: se releen
@@ -8090,6 +8090,444 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       }).toEqual({encolo: true, conflictos: []});
     } finally {
       disco.revivir();
+      otro?.stop();
+    }
+  });
+
+  // ---- R9-208 — la tabla de sellos ilegible en un arranque ----
+
+  const ownKeyDe = (uid: string) => `@sync_own_test:${uid}`;
+
+  /** R9-208 — dos conflictos de la coleccion: doc-c, el de R9-196 con L3
+   *  descartada (nube «lo mio 2», con sello propio; local «lo mio 3»), y
+   *  doc-d, «d mio» contra «d suyo». */
+  async function dosConflictos(uid: string) {
+    const T = Date.now() - HOUR;
+    const w = await conL2SubidaYL3(uid, true);
+    w.localStore.set('doc-d', {
+      value: 'd mio',
+      updatedAt: T + 60_000,
+    } as unknown as SyncEntity<TestEntity>);
+    write(uid, 'doc-d', {value: 'd suyo', updatedAt: T + 65_000});
+    await settle();
+    // CONTROL: los dos conflictos, y el sello de L2 en disco.
+    expect({
+      conflictos: parejas(w.engine),
+      tabla: await tablaDe(uid),
+    }).toEqual({
+      conflictos: [
+        ['lo mio', 'lo suyo'],
+        ['d mio', 'd suyo'],
+      ],
+      tabla: ['doc-c'],
+    });
+    return {...w, T};
+  }
+
+  /** R9-208 — las lecturas (`getItem`) de la tabla de sellos de `uid`: las
+   *  primeras `fallos` fallan; con `puerta`, las siguientes esperan a que se
+   *  abra. `restaurar()` en un `finally`. */
+  function tablaIlegible(uid: string, fallos: number, puerta?: Promise<void>) {
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let n = 0;
+    getItemMock.mockImplementation((k: string) => {
+      if (k !== ownKeyDe(uid)) return realImpl(k);
+      n += 1;
+      if (n <= fallos) return Promise.reject(new Error('disco'));
+      return puerta ? puerta.then(() => realImpl(k)) : realImpl(k);
+    });
+    return {restaurar: () => getItemMock.mockImplementation(realImpl)};
+  }
+
+  /** R9-208 — los docs de la tabla de sellos de `uid` en disco (lo que hay,
+   *  tal cual, si no es JSON). */
+  async function tablaDe(uid: string): Promise<string[] | string> {
+    const raw = await AsyncStorage.getItem(ownKeyDe(uid));
+    try {
+      return Object.keys(raw ? (JSON.parse(raw) as Data) : {}).sort();
+    } catch {
+      return raw!;
+    }
+  }
+
+  /** R9-208 — los valores de la cola en disco. */
+  const colaEnDisco = async () =>
+    (
+      JSON.parse(
+        (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
+      ) as Array<{
+        data: Data;
+      }>
+    ).map(q => q.data.value);
+
+  /** R9-208 — el usuario escribe `value` en doc-d: sube, o su subida falla
+   *  una vez y queda en cola. */
+  async function escribirD(
+    engine: SyncEngine,
+    localStore: Map<string, SyncEntity<TestEntity>>,
+    value: string,
+    updatedAt: number,
+    sube: boolean,
+  ) {
+    const d = {value, updatedAt};
+    localStore.set('doc-d', d as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = !sube;
+    engine.queueWrite('test', 'doc-d', d);
+    await settle();
+    if (sube) {
+      await engine.__flushForTests();
+      await settle();
+    }
+    mockSetShouldFail = false;
+  }
+
+  it('R9-208: con la tabla de sellos ilegible al enganchar, la subida de otro conflicto no la reescribe sin el primero: tras reiniciar no aparece «lo mio contra lo mio» en ninguno de los dos', async () => {
+    const uid = 'uid-208-union';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    const tabla = tablaIlegible(uid, 1);
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      const sesion = parejas(engine);
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      const nubeD = await nubeDe(uid, 'doc-d');
+      await escribirD(engine, localStore, 'd mio 3', T + 250_000, false);
+      engine.stop();
+      await settle();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Sin R9-208, el ack de d2 guardaba la tabla cargada vacia: en disco
+      // solo doc-d, y «lo mio 3 | lo mio 2» tras reiniciar. Sin releerla y
+      // unirla, en disco solo doc-c, y «d mio 3 | d mio 2».
+      expect({
+        sesion, // CONTROL: con la tabla ilegible se ve en esa sesion (R9-193)
+        nubeD, // CONTROL: d2 subio
+        cola: otro.__getQueueForTests().map(q => (q.data as Data).value), // CONTROL
+        tabla: await tablaDe(uid),
+        conflictos: parejas(otro),
+      }).toEqual({
+        sesion: [
+          ['lo mio 3', 'lo mio 2'],
+          ['d mio', 'd suyo'],
+        ],
+        nubeD: 'd mio 2',
+        cola: ['d mio 3'],
+        tabla: ['doc-c', 'doc-d'],
+        conflictos: [],
+      });
+    } finally {
+      tabla.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-208: con la tabla de sellos ilegible al enganchar, el proceso muere justo despues de guardar la cola sin la escritura subida de otro conflicto: tras reiniciar no aparece «lo mio contra lo mio»', async () => {
+    const uid = 'uid-208-caida';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    const tabla = tablaIlegible(uid, 1);
+    const disco = caida();
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      // Muere justo despues de la primera escritura de la cola sin doc-d
+      // (tras el ack de d2).
+      disco.morirTras(pairs => {
+        const cola = colaEn(pairs);
+        return cola !== undefined && !cola.some(q => q.id === 'doc-d');
+      });
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      const murio = disco.murio();
+      // d3 llega a la base local; su cola, no.
+      engine.__setOnlineForTests(false);
+      const d3 = {value: 'd mio 3', updatedAt: T + 250_000};
+      localStore.set('doc-d', d3 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-d', d3);
+      await settle();
+      disco.morir();
+      engine.stop();
+      await settle();
+      disco.revivir();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Si la cola sin d2 sale antes que la tabla releida, el proceso que muere
+      // entre las dos pierde el sello de d2: «d mio 3 | d mio 2». Sin R9-208,
+      // la tabla salia sin doc-c: «lo mio 3 | lo mio 2».
+      expect({
+        murio, // CONTROL: murio tras guardar la cola sin d2
+        nubeD: await nubeDe(uid, 'doc-d'), // CONTROL
+        cola: otro.__getQueueForTests().map(q => q.id), // CONTROL
+        conflictos: parejas(otro),
+      }).toEqual({
+        murio: true,
+        nubeD: 'd mio 2',
+        cola: [],
+        conflictos: [],
+      });
+    } finally {
+      disco.revivir();
+      tabla.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-208: si la tabla de sellos sigue ilegible al releerla, la cola llega a disco igual y la tabla de disco no se toca', async () => {
+    const uid = 'uid-208-relee-falla';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    const antes = await AsyncStorage.getItem(ownKeyDe(uid));
+    engine.stop();
+    const tabla = tablaIlegible(uid, Infinity);
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      await escribirD(engine, localStore, 'd mio 3', T + 250_000, false);
+      const cola = await colaEnDisco();
+      engine.stop();
+      await settle();
+      tabla.restaurar();
+      const despues = await AsyncStorage.getItem(ownKeyDe(uid));
+      otro = await procesoNuevo(uid, adapter);
+
+      // Sin escribir la cola cuando la relectura falla, en disco seguia la
+      // entrada de d2 (ya subida) y no la de d3. Escrita la tabla desde lo
+      // cargado, se perdia doc-c: «lo mio 3 | lo mio 2» tras reiniciar.
+      expect({
+        nubeD: await nubeDe(uid, 'doc-d'), // CONTROL: d2 subio
+        cola,
+        tablaIntacta: despues === antes,
+        fantasmaC: parejas(otro).filter(([mio]) => mio === 'lo mio 3'),
+      }).toEqual({
+        nubeD: 'd mio 2',
+        cola: ['d mio 3'],
+        tablaIntacta: true,
+        fantasmaC: [],
+      });
+    } finally {
+      tabla.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-208: si la relectura de la tabla de sellos falla una vez, la escritura siguiente de la cola la vuelve a intentar: tras reiniciar no aparece «lo mio contra lo mio»', async () => {
+    const uid = 'uid-208-reintento';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    // Fallan la lectura del enganche y la primera relectura (la del ack de d2).
+    const tabla = tablaIlegible(uid, 2);
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      await escribirD(engine, localStore, 'd mio 3', T + 250_000, false);
+      engine.stop();
+      await settle();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Si la tabla deja de estar pendiente cuando la relectura falla, nada la
+      // vuelve a leer: el sello de d2 no llega a disco, y «d mio 3 | d mio 2».
+      expect({
+        tabla: await tablaDe(uid),
+        conflictos: parejas(otro),
+      }).toEqual({
+        tabla: ['doc-c', 'doc-d'],
+        conflictos: [],
+      });
+    } finally {
+      tabla.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-208: la sesion termina mientras se relee la tabla de sellos: la cola sale con la sesion, y la edicion en espera no se pierde', async () => {
+    const uid = 'uid-208-stop';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    let abrir!: () => void;
+    const tabla = tablaIlegible(uid, 1, new Promise<void>(r => (abrir = r)));
+    const disco = caida();
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      // El ack de d2 relee la tabla, y esa lectura no vuelve todavia.
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      await escribirD(engine, localStore, 'd mio 3', T + 250_000, false);
+      const colaAntes = await colaEnDisco();
+      engine.stop();
+      await settle();
+      const cola = await colaEnDisco();
+      // El proceso muere antes de que vuelva.
+      disco.morir();
+      abrir();
+      await settle();
+      disco.revivir();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Sin escribir la cola al cerrar sesion, en disco quedaba la entrada de
+      // d2 (ya subida), y la de d3 no llegaba nunca.
+      expect({
+        colaAntes, // CONTROL: mientras se relee, la cola en disco no cambia
+        cola,
+        enCola: otro.__getQueueForTests().map(q => (q.data as Data).value),
+      }).toEqual({
+        colaAntes: ['d mio 2'],
+        cola: ['d mio 3'],
+        enCola: ['d mio 3'],
+      });
+    } finally {
+      disco.revivir();
+      tabla.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-208: con la tabla de sellos de Ana ilegible, sus sellos no se escriben en la tabla de Beto si Beto escribe antes de enganchar', async () => {
+    // Pasa sin R9-208 (`stop()` escribia todas las tablas). Vigila que
+    // `stop()` no deje la de Ana pendiente para la sesion siguiente.
+    const ana = 'uid-208-ana';
+    const beto = 'uid-208-beto';
+    const {engine, localStore, T} = await dosConflictos(ana);
+    engine.stop();
+    const tabla = tablaIlegible(ana, Infinity);
+    try {
+      await engine.start(ana);
+      await settle();
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      engine.stop();
+      await settle();
+      await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+      const arranque = engine.start(beto);
+      engine.queueWrite('test', 'doc-b', {value: 'de beto', updatedAt: T});
+      await arranque;
+      await settle();
+
+      expect({
+        nubeD: await nubeDe(ana, 'doc-d'), // CONTROL: d2 de Ana subio
+        tablaBeto: await AsyncStorage.getItem(ownKeyDe(beto)),
+      }).toEqual({nubeD: 'd mio 2', tablaBeto: null});
+      engine.stop();
+    } finally {
+      tabla.restaurar();
+    }
+  });
+
+  it('R9-208: al releer la tabla de sellos, se queda solo con los conflictos retenidos', async () => {
+    // Vigila el tamano de la tabla, no una consecuencia para el usuario.
+    const uid = 'uid-208-union-poda';
+    const {engine, localStore, T} = await dosConflictos(uid);
+    const actual = JSON.parse((await AsyncStorage.getItem(ownKeyDe(uid)))!);
+    await AsyncStorage.setItem(
+      ownKeyDe(uid),
+      JSON.stringify({...actual, 'doc-viejo': [T - 5_000]}),
+    );
+    engine.stop();
+    const tabla = tablaIlegible(uid, 1);
+    try {
+      await engine.start(uid);
+      await settle();
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+
+      expect(await tablaDe(uid)).toEqual(['doc-c', 'doc-d']);
+      engine.stop();
+    } finally {
+      tabla.restaurar();
+    }
+  });
+
+  it('R9-208: una tabla de sellos que no es JSON se lee como vacia: la subida siguiente de un conflicto la reemplaza, y tras reiniciar no aparece «lo mio contra lo mio»', async () => {
+    // Pasa sin R9-208 (el JSON roto caia en el mismo catch y la tabla se
+    // reescribia). Vigila que no se tome por una lectura fallida.
+    const uid = 'uid-208-basura';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+    await AsyncStorage.setItem(ownKeyDe(uid), '{no json');
+    engine.stop();
+    await engine.start(uid);
+    await settle();
+    const L2 = {value: 'lo mio 2', updatedAt: T + 120_000};
+    localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L2);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    const L3 = {value: 'lo mio 3', updatedAt: T + 180_000};
+    localStore.set('doc-c', L3 as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', L3);
+    await settle();
+    mockSetShouldFail = false;
+    engine.stop();
+    await settle();
+    const otro = await procesoNuevo(uid, adapter);
+
+    // Tomada por ilegible, la tabla no se escribia nunca: el sello de L2 solo
+    // en memoria, y «lo mio 3 | lo mio 2» tras reiniciar.
+    expect({
+      nube: await nubeDe(uid, 'doc-c'), // CONTROL: L2 subio
+      tabla: await tablaDe(uid),
+      conflictos: parejas(otro),
+    }).toEqual({nube: 'lo mio 2', tabla: ['doc-c'], conflictos: []});
+    otro.stop();
+  });
+
+  it('R9-208: con la lista de conflictos ilegible, la poda al enganchar no suelta los sellos: si la entrega del doc no termina en esa sesion, tras reiniciar no aparece «lo mio contra lo mio»', async () => {
+    const uid = 'uid-208-poda';
+    const {engine, localStore, adapter} = await conL2SubidaYL3(uid, true);
+    const T = Date.now() - HOUR;
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    // La entrega de doc-c no termina en la sesion: su getLocal espera.
+    const getLocalReal = adapter.getLocal;
+    let soltar!: () => void;
+    const espera = new Promise<void>(r => (soltar = r));
+    adapter.getLocal = async (id: string) => {
+      if (id === 'doc-c') await espera;
+      return getLocalReal.call(adapter, id);
+    };
+    engine.stop();
+    let otro: SyncEngine | null = null;
+    try {
+      getItemMock.mockImplementation((k: string) =>
+        k.startsWith('@sync_conflicted_')
+          ? Promise.reject(new Error('disco'))
+          : realImpl(k),
+      );
+      await engine.start(uid);
+      await settle();
+      getItemMock.mockImplementation(realImpl);
+      // Una escritura sin conflicto guarda la cola.
+      const z = {value: 'z', updatedAt: T + 300_000};
+      localStore.set('doc-z', z as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-z', z);
+      await settle();
+      const tabla = await tablaDe(uid);
+      engine.stop();
+      const marca = (await persisted(uid)).conflicted;
+      adapter.getLocal = getLocalReal;
+      soltar();
+      await settle();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Con la poda, la escritura de la cola borraba la tabla, y la lista de
+      // conflictos de disco seguia con doc-c: «lo mio 3 | lo mio 2».
+      expect({
+        marca, // CONTROL: la sesion no reescribio la lista de conflictos
+        tabla,
+        conflictos: parejas(otro),
+      }).toEqual({marca: ['doc-c'], tabla: ['doc-c'], conflictos: []});
+    } finally {
+      getItemMock.mockImplementation(realImpl);
+      adapter.getLocal = getLocalReal;
+      soltar();
       otro?.stop();
     }
   });
