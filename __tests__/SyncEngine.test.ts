@@ -8527,6 +8527,9 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       // Sin escribir la cola cuando la relectura falla, en disco seguia la
       // entrada de d2 (ya subida) y no la de d3. Escrita la tabla desde lo
       // cargado, se perdia doc-c: «lo mio 3 | lo mio 2» tras reiniciar.
+      // Solo mira doc-c. El sello de d2 tampoco llega a la tabla (el coste
+      // aceptado); doc-d no aparece porque la entrada de d3 lleva su reloj, y
+      // eso lo mide la prueba de R9-217.
       expect({
         nubeD: await nubeDe(uid, 'doc-d'), // CONTROL: d2 subio
         cola,
@@ -8964,6 +8967,71 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       getItemMock.mockImplementation(realImpl);
       engine.stop();
     }
+  });
+
+  it('R9-217: con la tabla de sellos ilegible toda la sesion, d2 sube y d3 queda en cola: la entrada de d3 lleva el reloj de d2, y tras reiniciar no aparece «d mio 3 contra d mio 2»', async () => {
+    const uid = 'uid-217-coste';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    const tabla = tablaIlegible(uid, Infinity);
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      await escribirD(engine, localStore, 'd mio 3', T + 250_000, false);
+      engine.stop();
+      await settle();
+      tabla.restaurar();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Pre-fix: la entrada nueva de d3 llevaba en `own` solo lo de
+      // `recentAcked`, y el ack de un doc en conflicto va a `ownStamps`, que
+      // esa sesion no pudo escribir: el reloj de d2 no estaba en ningun disco.
+      expect({
+        nubeD: await nubeDe(uid, 'doc-d'), // CONTROL: d2 subio
+        tabla: await tablaDe(uid), // CONTROL: la tabla de disco no cambio
+        own: otro
+          .__getQueueForTests()
+          .map(q => [(q.data as Data).value, (q.own ?? []).map(ts => ts - T)]),
+        conflictos: parejas(otro),
+      }).toEqual({
+        nubeD: 'd mio 2',
+        tabla: ['doc-c'],
+        own: [['d mio 3', [200_000]]],
+        conflictos: [],
+      });
+    } finally {
+      tabla.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-217: Beto escribe el mismo doc antes de enganchar: su entrada no lleva el reloj de una escritura de Ana', async () => {
+    // Vigila el «por uid» de los relojes de una entrada; no mide una
+    // consecuencia para el usuario. Tras el `stop()`, `ownStamps` todavia es
+    // el de la sesion de Ana hasta que Beto engancha la coleccion.
+    const ana = 'uid-217-ana';
+    const beto = 'uid-217-beto';
+    const {engine, localStore, T} = await dosConflictos(ana);
+    await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+    engine.stop();
+    await settle();
+    await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+    const arranque = engine.start(beto);
+    engine.queueWrite('test', 'doc-d', {value: 'de beto', updatedAt: T});
+    const entrada = engine
+      .__getQueueForTests()
+      .filter(q => q.uid === beto)
+      .map(q => [q.id, (q.own ?? []).map(ts => ts - T)]);
+    await arranque;
+    await settle();
+
+    expect({
+      nubeAna: await nubeDe(ana, 'doc-d'), // CONTROL: d2 de Ana subio
+      entrada,
+    }).toEqual({nubeAna: 'd mio 2', entrada: [['doc-d', []]]});
+    engine.stop();
   });
 });
 

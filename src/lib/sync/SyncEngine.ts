@@ -1129,6 +1129,22 @@ export class SyncEngine {
           ? {...entry, own: [acked[acked.length - 1]]}
           : entry,
       );
+      // R9-217 — a doc in conflict keeps the clocks the server took in
+      // `ownStamps`, not there: the entry carries the last one too. With the
+      // table unreadable all session (R9-208) it is the one disk that clock
+      // reaches, and without it the cloud's copy of that write showed «mine»
+      // against «mine» on the next start, the edit still waiting. While the
+      // doc is a conflict, the map is this session's.
+      const stamps = this.isConflictDoc(entry.collection, entry.id)
+        ? this.ownStamps.get(entry.collection)?.get(entry.id)
+        : undefined;
+      if (stamps && stamps.length > 0) {
+        const pushed = this.queue[this.queue.length - 1];
+        this.queue[this.queue.length - 1] = {
+          ...pushed,
+          own: withStamp(ownOf(pushed), stamps[stamps.length - 1]),
+        };
+      }
     }
     this.updateState({pendingWrites: this.pendingForActiveUid()});
     void this.persistQueue();
