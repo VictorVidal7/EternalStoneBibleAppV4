@@ -238,7 +238,15 @@ function mockMakeCollection(path: string): MockCollRef {
     for (const c of changes) {
       mockDelivered.push({path, type: c.type, id: c.doc.id, via});
     }
-    snapshotCb({docChanges: () => changes, size: changes.length});
+    // R9-221 — RNFirebase parses each delivery into new objects
+    // (`FirestoreDocumentSnapshot` keeps one `_data` per snapshot): the same
+    // object within a delivery, a new one in the next, even when the cloud's
+    // copy did not change.
+    const fresh = changes.map(c => {
+      const data = structuredClone(c.doc.data());
+      return {...c, doc: {...c.doc, data: () => data}};
+    });
+    snapshotCb({docChanges: () => fresh, size: fresh.length});
   };
 
   /** R9-179 — what an own write changed in this device's view reaches the
@@ -336,7 +344,9 @@ function mockMakeCollection(path: string): MockCollRef {
             if (mockGetShouldFail) throw new Error('unavailable');
             // R9-179 — the read sees this device's view: an own write issued
             // before it and still in flight is already there.
-            const doc = localView(id);
+            // R9-221 — and a new object on every read, like a delivery.
+            const view = localView(id);
+            const doc = view === undefined ? undefined : structuredClone(view);
             return doc !== undefined
               ? {exists: true, id, data: () => doc}
               : {exists: false, id, data: () => undefined};
