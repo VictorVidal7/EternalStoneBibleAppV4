@@ -394,6 +394,18 @@
 >   descartan como daño (notas en `R9-197`, `R9-126`, `R9-194` y `R9-206`).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **210**. Detalle: `detail/S33-revision-del-diff-s32.md`.
+>
+> **Sesión 34 (2026-09-30/10-01): ARREGLOS de lo de la 33**, solo en la terminal, con 3 agentes en
+> worktree que solo midieron (a pedido de Victor). Rama `fix/s34-r207-r210` (4 commits,
+> `275b5df`..`682f852`), sin mergear hasta el OK de Victor.
+>
+> - **4 cerrados:** `R9-209`, `R9-208`, `R9-207` (la decisión delegada: `isOwnCopy` lee
+>   `recentAcked`) y `R9-210` (que cierra también la parte de favoritos de `R9-133`).
+> - **La matriz entera, sobre `682f852`:** 126 piezas (las 109 de la 33 y 17 nuevas). 96 dan lo mismo que en la 33, y las otras solo suben: ninguna prueba dejó de caer. Toda pieza nueva tumba al menos 1. Los ceros son los mismos de la 33 (`R104-7`, `R104-8` y `+P3`), y las 8 AUSENTES también; `+heldAt` pasó de 0 a 4.
+> - **4 hallazgos nuevos, `R9-211`..`R9-214`, que ya existían:** 1 P2 (`R9-212`, la cola ilegible
+>   al hidratar) y 3 P3.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **214**. Detalle: `detail/S34-arreglos-s33.md`.
 
 ---
 
@@ -3368,6 +3380,34 @@ respaldo viejo`, sin nada que mostrar.
   - **Arreglo (hipótesis, sin medir):** que el ack de un doc sin conflicto conserve los relojes de la
     entrada (el suyo y su `own`) por lo menos `CONFLICT_WINDOW_MS`, y que solo la ventana de 30 s los
     consulte. Ver `detail/S33-revision-del-diff-s32.md` §5.
+  - **✅ ARREGLADO en la sesión 34** (`4a36f22`, rama `fix/s34-r207-r210`). **DECISIÓN (delegada por
+    Victor al orquestador, «a tu mejor criterio»): `isOwnCopy` lee `recentAcked`, que guarda por doc
+    los relojes de las escrituras tomadas sin conflicto en este proceso (el suyo y los de su `own`,
+    los 16 más nuevos; `+Y` toma el último).** Medido por S34-A2 sobre el mismo caso contra tres
+    alternativas:
+    - el plazo de reloj de pared de la hipótesis («por lo menos `CONFLICT_WINDOW_MS`») vence con la
+      cadena ocupada más de 30 s, y el fantasma vuelve;
+    - que solo la ventana consulte deja el mismo eco tardío en la rama `pending`, donde reemplaza la
+      escritura del otro como «su versión» («w2 | w1» en lugar de «w2 | r»); podar por distancia de
+      reloj deja ese caso con W1 a 40 s de W2;
+    - descartar la entrega que otra posterior del mismo doc reemplazó oculta la escritura del otro
+      que llegó antes que la del usuario.
+
+    **El porqué:** sigue habiendo UNA respuesta a «¿es mía?», y las cuatro ramas dicen lo mismo de la
+    misma copia. `+Y` se aceptó porque no respondía nada; ahora responde, pero solo agrega «mía»
+    dentro del proceso y nunca crea una marca. En memoria alcanza: tras reiniciar, el reloj de una
+    escritura del proceso anterior viaja persistido en `own`, que el ack pliega en la lista (medido:
+    `reinicio`, `reinicioW3` y `enganche`, este último ya fantasma en `17788ae`).
+
+    **Coste:** una copia del otro con el mismo milisegundo que una de las últimas 16 escrituras del
+    doc se toma por mía (el límite que `isOwnCopy` ya documentaba), y unos 40-55 B más por doc
+    escrito. La guarda de `handleSnapshot` suelta la marca de una copia leída con un reloj tomado
+    antes del conflicto: es la regla de `R9-190` (medido en W6).
+
+  - **Pruebas:** 5, y las 5 caen sobre `17788ae`. La variante `reemplaza` de la sonda de la 33 no
+    reemplazaba, porque W1 ya estaba confirmada; la prueba retiene su ack. **Piezas** (sobre 225):
+    R207own 5, R207fold 1, R207acum 1, y las que SUMAN la poda por distancia y la forma «solo la
+    ventana», 1 cada una. `W` pasa de 3 a 7 y `Yset` de 2 a 7. Ver `detail/S34-arreglos-s33.md` §2.
 
 - **`R9-208` (S33, `SyncEngine` / conflictos — P3) — 🐛 con la tabla de sellos ilegible en un
   arranque, el ack siguiente de otro doc en conflicto la reescribe sin los demás: el fantasma
@@ -3384,6 +3424,29 @@ respaldo viejo`, sin nada que mostrar.
     instant a stamp is on disk in the queue or here») deja de ser cierto en ese caso.
   - **Arreglo (hipótesis, sin medir):** con la tabla ilegible, no escribirla en esa sesión (como
     `unsettledUnsaved`), o releerla y unir antes de escribir.
+  - **✅ ARREGLADO en la sesión 34** (`b7e3c0f`). S34-A1 midió las dos hipótesis sobre la misma
+    sonda, con 9 variantes:
+    - no escribir la tabla mueve el fantasma a `doc-d` en un reinicio normal;
+    - releer con la cola por delante rompe la promesa de `persistQueue` si el proceso muere entre las
+      dos escrituras;
+    - un `await` dentro de `persistQueue` dejaría al `stop()` sin escribir bajo el dueño (leído).
+
+    **Elegida:** mientras una tabla ilegible tiene sellos por escribir, `persistQueue` no escribe nada
+    y la relee (`rereadOwn`). Al volver, une disco y memoria (solo los docs en conflicto) y la cola
+    sale con la tabla en UN `multiSet`. Si la relectura falla, o la sesión termina antes, la cola sale
+    sola y la tabla de disco queda intacta. Entraron además tres vecinos medidos:
+    - un JSON roto se lee como vacío;
+    - la poda con la lista de conflictos ilegible no suelta sellos;
+    - `stop()` escribe con `force` y vacía `ownDirty`.
+
+    **Coste:** en ese estado, `await persistQueue()` vuelve antes de la escritura. Y si la relectura
+    también falla, los sellos de esa sesión quedan en memoria: «d mio 3 | d mio 2» tras reiniciar, en
+    vez del fantasma permanente de hoy.
+
+  - **Pruebas:** 9 (7 caen sobre `17788ae`; las otras 2 son controles y lo dicen). **Piezas** (sobre
+    220, re-medidas en el árbol del orquestador): marca 6, noEscribir 2, releer 5, diferir 2, y 1
+    cada una fuerza, pendiente, stopFuerza, stopVacia, unionPoda, parse y poda.
+  - Vecino medido, sin arreglar: la cola ilegible al hidratar (`R9-212`).
 
 - **`R9-209` (S33, `SyncEngine` / conflictos — P3) — 🐛 la rama `pending` SIN copia local no
   pregunta `isOwnCopy`: el eco de mi escritura, con el doc ya borrado aquí, pasa a ser «su
@@ -3400,6 +3463,10 @@ pending.remoteVersion.updatedAt`.
   - La 32 hizo preguntar `isOwnCopy` a la rama con copia local (`R9-174`) y dejó a su vecina
     (corolario 18).
   - **Arreglo (hipótesis, sin medir):** `&& !this.isOwnCopy(...)` también en esa rama.
+  - **✅ ARREGLADO en la sesión 34** (`275b5df`): la hipótesis, medida con la sonda `NULL`. `borra`
+    da `[["lo mio","lo suyo"]]` y keepTheirs deja «lo suyo» en local y en la nube; el control
+    `edita` no cambia. Prueba: 1. Pieza: tumba 1, la suya, por la razón correcta. La vecina que pedía
+    mirar el prompt (una lápida DEL OTRO con lo local borrado) es `R9-211`.
 
 - **`R9-210` (S33, favoritos / conflictos — P3) — 🐛 keepMine con el ref atrasado de favoritos
   sube la copia de ANTES de la última edición, y la edición en cola se pierde.** MEDIDO en el mock
@@ -3415,6 +3482,68 @@ pending.remoteVersion.updatedAt`.
     en el mismo render que la edición del mismo favorito.
   - **Arreglo (hipótesis, sin medir):** la de `R9-174` (actualizar el ref donde se escribe la fila,
     antes del `queueWrite`), o que `getLocal` de favoritos lea la fila de SQLite.
+  - **✅ ARREGLADO en la sesión 34** (`682f852`). S34-A3 midió con el provider, el adaptador y el
+    motor reales:
+    - el ref adelantado en los 6 sitios que escriben, con el efecto, vuelve atrás durante una vuelta,
+      y un keepMine ahí sube la copia vieja (sonda S5k);
+    - sin el efecto cierra este caso, pero no la carga en frío de `R9-133`.
+
+    **Elegida:** `getLocal` = `initialize()` + `getFavoriteById`, sin catch. Cierra este caso, la
+    carga en frío de `R9-133` y la ventana de la sesión 23. Cuesta una SELECT por clave primaria.
+
+  - **Pruebas:** 3, en `__tests__/favoritesGetLocalRow.test.tsx`, con el provider y el motor reales y
+    SQLite en memoria. No miden cuánto dura la ventana en el teléfono, ni la carrera entre la lectura
+    de keepMine y la escritura de C4. La del `initialize()` la agregó el orquestador (la sonda S9 de
+    A3), porque esa pieza no tenía ninguna. **Piezas** (suites de favoritos, 6): GL 2, GLinit 1, y las
+    dos alternativas 1 cada una (la de `R9-133`).
+  - Vecino medido, sin arreglar: el bulk push de favoritos en la carga en frío (`R9-214`).
+
+- **`R9-211` (S34, `SyncEngine` / conflictos — P3) — 🐛 con lo local borrado y el conflicto en
+  memoria, la lápida del OTRO dispositivo se toma por el eco de la mía.** MEDIDO en el mock (sonda
+  `_scratch/S34-sonda-lapida.body.txt`). Ya existía: la rama `deleted` no cambió con `R9-209`.
+  - `SyncEngine.ts`, la rama `pending` sin copia local: con `deleted`, `theirs` es `false` siempre.
+  - **Medido:** el usuario borra aquí (su lápida sube y vuelve) y después el otro teléfono también
+    lo borra. El conflicto sigue mostrando «lo mio | lo suyo», y **keepTheirs revive «lo suyo» en
+    local y en la nube**, aunque el otro también lo borró. El control con solo mi lápida da lo mismo,
+    y ahí es lo correcto.
+  - **Arreglo (hipótesis, sin medir):** distinguir mi lápida por `isOwnCopy` y tratar la del otro
+    como «su versión» (o, con los dos lados borrados, soltar el conflicto).
+
+- **`R9-212` (S34, `SyncEngine` / cola — P2) — 🐛 con `@sync_queue_v1` ilegible al hidratar, la
+  primera escritura de la cola la reescribe sin las entradas de antes.** MEDIDO en el mock (S34-A1,
+  sonda `_scratch/S34-A1-sonda-cola.body.txt`), idéntico con y sin `R9-208`.
+  - `hydrateQueue` deja `this.queue = []` y `queueHydrated = true`.
+  - **Medido:** `{"antes":["doc-q"],"memP1":[],"despues":["doc-z"],"nubeQ":null}`. La
+    edición en espera queda solo en local y no sube nunca (la familia de `R9-38`).
+  - Es la forma de `R9-195`/`R9-208` en la cola. P2 y no P0, porque hace falta que falle la lectura
+    de `AsyncStorage`.
+  - **Arreglo (hipótesis, sin medir):** con la cola ilegible, no escribirla hasta releerla y unir,
+    como los sellos de `R9-208`.
+
+- **`R9-213` (S34, `SyncEngine` / conflictos — P3) — 🐛 keepTheirs de un conflicto registrado contra
+  una copia local que el servidor YA había tomado no sube «lo suyo».** MEDIDO en el mock (S34-A2,
+  sonda W5), idéntico en `17788ae`.
+  - **El caso:** R llega y espera la cadena; W2 se escribe, sube y se confirma; al soltar, R se
+    compara con W2 y abre el conflicto.
+  - `conflictsWrittenHere` (`R9-161`/`R9-199`) solo anota lo encolado o tomado MIENTRAS el conflicto
+    está en memoria. Esta escritura se tomó antes, así que keepTheirs cree que la nube tiene R:
+    **el teléfono queda en R y la nube en W2, en silencio.**
+  - **Arreglo (hipótesis, sin medir):** al registrar el conflicto, si el reloj de la copia local es
+    uno que el servidor ya tomó (`recentAcked`), anotarlo en `conflictsWrittenHere`. Coste: si R se
+    escribió DESPUÉS del ack de W2, keepTheirs subiría R re-sellada, una escritura de más.
+
+- **`R9-214` (S34, favoritos / sync — P3) — 🐛 el bulk push de favoritos durante la carga en frío
+  sube 0 favoritos y graba el flag `'2'`.** MEDIDO con el provider real (S34-A3, sonda S8).
+  - `pullAllLocal` (`FavoritesContext.tsx`, la línea 220 de la 33) sigue leyendo `favoritesRef`,
+    vacío hasta que termina la primera carga.
+  - **Medido:** `{"dentro":{"loading":true,"cola":[],"flag":"2"},"trasCargar":{"nube":null}}`.
+    Esos favoritos no suben nunca por esa vía.
+  - Alcance, por lectura: un `start()` con el flag sin `'2'`/`'skip'` antes de que termine la carga
+    (un flag viejo `'1'`, un arranque en frío con la sesión ya abierta, o la carga fallida).
+    `exportLocalData` (el conteo del diálogo de migración) lee el mismo `pullAllLocal`.
+  - Es la raíz de `R9-133` en otra línea.
+  - **Arreglo (hipótesis MEDIDA por A3, sin prueba):** `pullAllLocal` = `initialize()` +
+    `getFavorites()`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -3436,6 +3565,12 @@ pending.remoteVersion.updatedAt`.
   local más nueva NO encolada (`R9-38`) cuya copia remota cae dentro del piso. P2; P1 si se suma
   el caso de la carga fallida. `MemoryDeckContext.tsx:233-236` tiene la misma forma (PLAUSIBLE,
   sin sonda).
+  **✅ Sesión 34: la parte de FAVORITOS, ARREGLADA con `R9-210`** (`682f852`). `getLocal` lee la
+  fila de SQLite (esperando a `initialize()`), así que ya no depende de la carga:
+  - la carga en frío, medida, con prueba («R9-133: en la carga en frio…»);
+  - la carga fallida, por lectura.
+
+  Siguen abiertos `MemoryDeckContext` y el bulk push de favoritos (`R9-214`).
   **⚠️ Sesión 23, otra ventana de la misma raíz (medida, agente 2):** `favoritesRef`
   (`FavoritesContext.tsx:143-147`) va por detrás de SQLite después de CADA edición, hasta el
   render siguiente. Si un apply remoto del mismo favorito cae en ese hueco, la edición más nueva

@@ -399,8 +399,21 @@
 > - **Las cuatro preguntas de la 32, medidas:** una es `R9-210`; las otras tres se descartan como
 >   daño, con notas.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **210**. Rama `docs/review-s33-diff-s32`, sin
-> mergear hasta el OK. Detalle: `detail/S33-revision-del-diff-s32.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **210**. Rama `docs/review-s33-diff-s32`: mergeada y
+> pusheada con el OK de Victor (`main` = `17788ae`, CI verde en el log, run `36808626771`,
+> 367/4483). Detalle: `detail/S33-revision-del-diff-s32.md`.
+>
+> **Sesión 34 (2026-09-30/10-01): ARREGLOS de lo de la 33**, solo en la terminal, con 3 agentes en
+> worktree que solo midieron (a pedido de Victor).
+>
+> - **4 cerrados**, un commit por hallazgo en `fix/s34-r207-r210` (`275b5df`..`682f852`):
+>   `R9-209`, `R9-208`, `R9-207` (la decisión delegada: `isOwnCopy` lee `recentAcked`) y `R9-210`
+>   (`getLocal` de favoritos lee SQLite; cierra también la parte de favoritos de `R9-133`).
+> - **La matriz entera, sobre `682f852`:** 126 piezas (las 109 de la 33 y 17 nuevas). 96 dan lo mismo que en la 33, y las otras solo suben: ninguna prueba dejó de caer. Toda pieza nueva tumba al menos 1. Los ceros son los mismos de la 33 (`R104-7`, `R104-8` y `+P3`), y las 8 AUSENTES también; `+heldAt` pasó de 0 a 4.
+> - **4 hallazgos nuevos, `R9-211`..`R9-214`, que ya existían:** 1 P2 (`R9-212`) y 3 P3.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **214**. Ramas `fix/s34-r207-r210` y
+> `docs/review-s34-fix-s33`, sin mergear hasta el OK. Detalle: `detail/S34-arreglos-s33.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -898,6 +911,28 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 34 — 2026-09-30/10-01. Arreglos de lo de la 33.** Solo en la terminal; a pedido de
+  Victor, 3 agentes en worktree que solo midieron. Arrancó con `_scratch/S34-PROMPT.md`.
+  - **Cómo se trabajó:**
+    - A1 midió `R9-208`, A2 `R9-207` y A3 `R9-210`; el orquestador arregló `R9-209`;
+    - el orquestador integró cada diff en su commit y re-midió las piezas de cada agente en su
+      árbol (corolario 43), con los mismos conteos;
+    - después, la matriz entera en un worktree aparte.
+
+    A1 se cortó por el límite en su último paso, sin pérdida: todo estaba en disco.
+
+  - **Resultado:** 4 cerrados; 4 nuevos que ya existían (`R9-211`..`R9-214`). Queda 1 P0 abierto.
+  - **Detalle: `detail/S34-arreglos-s33.md`.**
+  - **Las lecciones:**
+    - **un control escrito en un prompt también es una afirmación:** `grep -c $'\x00'` contaba
+      líneas, no bytes NUL (bash no puede guardar un NUL en una cadena);
+    - **una pieza sin prueba que no es equivalente pide la prueba, no que se la quite:** el
+      `initialize()` de `R9-210` no tenía ninguna, y la sonda S9 del agente pasó a ser la prueba;
+    - **una sonda de partida puede no reproducir la variante que nombra:** la `reemplaza` de la 33
+      no reemplazaba;
+    - **cada arreglo que reescribe código de otro rompe anclas de la matriz** (corolario 41):
+      `R9-208` dejó AUSENTES cuatro piezas de `R9-193`.
 
 - **Sesión 33 — 2026-09-30. Revisión del diff de la 32.** Solo en la terminal, sin agentes, sin
   tocar código; arrancó con `_scratch/S33-PROMPT.md`.
