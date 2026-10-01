@@ -421,6 +421,17 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219**. Detalle:
 > `detail/S35-revision-del-diff-s34.md`.
+>
+> **Sesión 36 (2026-10-01): ARREGLOS de lo de la 35**, en el mismo chat que la 35, solo en la terminal
+> y sin agentes. Rama `fix/s36-r215-r219` (5 commits, `0970726`..`2bfbcf8`), sin mergear hasta el OK
+> de Victor.
+>
+> - **5 cerrados:** `R9-219` (el comentario), `R9-215`, `R9-218`, `R9-217` y `R9-216`, cada prueba
+>   vista fallar con su pieza revertida y re-medida en el árbol combinado.
+> - **La matriz entera:** ver `detail/S36-arreglos-s35.md`.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219** (ninguno nuevo). Detalle:
+> `detail/S36-arreglos-s35.md`.
 
 ---
 
@@ -3584,6 +3595,12 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** `ownRereading` por sesión (o vaciarlo en `stop()`), y que la
     relectura de una sesión terminada no tape la de la siguiente.
 
+  - **✅ ARREGLADO en la sesión 36** (`8c7658c`, rama `fix/s36-r215-r219`). La hipótesis, medida:
+    `ownRereading` anota la sesión que pidió la relectura (un `Map`), y solo una de la misma sesión
+    tapa otra. Prueba: 1, la sonda `rereading` de la 35. Cae sin el arreglo (pieza `R215`) por la
+    razón correcta: en disco `["lo mio 4"]` y no `["d mio 4"]`. La guarda que solo borraba la marca
+    de la propia sesión daba 0 (una relectura duplicada no hace daño) y se quitó (regla 37).
+
 - **`R9-216` (S35, `SyncEngine` / conflictos — P3) — 🐛 el «mía» de `recentAcked` toma por eco un
   respaldo del otro que trae una escritura mía de este proceso: «su versión» no se refresca, o el
   conflicto se asienta en silencio.** MEDIDO en el mock (sondas
@@ -3607,6 +3624,18 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** que un reloj de `recentAcked` cuyo eco ya llegó una vez deje
     de responder «mía» (el eco tardío llega una sola vez; un respaldo la trae de nuevo).
 
+  - **✅ ARREGLADO en la sesión 36** (`2bfbcf8`). La hipótesis, medida y precisada: `noteEcho`,
+    justo antes de `applyRemoteChange`, anota la copia cuya entrega trajo primero cada reloj de este
+    teléfono, y `isOwnCopy` acepta un reloj de `recentAcked` solo en esa copia (`recentEchoed`). Un
+    reloj cuyo eco nunca llegó sigue respondiendo para cualquier copia.
+    - **Lo que la medición cambió de la hipótesis:** anotar solo los relojes ya tomados no alcanzaba
+      (las dos pruebas seguían cayendo): el SDK entrega el eco antes del ack, con la escritura todavía
+      en cola. El eco se anota también con el reloj de la entrada en cola o de su `own`.
+    - **Pruebas:** 3. Las dos del caso (rama `pending` y rama retenida) caen sin el arreglo (`R216own`,
+      `R216note`, `R216cola`). La de la memoria (20 escrituras: 17 ecos, los 16 de `recentAcked` y el
+      de la última) cae sin la poda (`R216poda`) y dice que no mide una consecuencia. Sin la identidad
+      de la copia (`R216same`) caen las de `R9-207`: es la que mantiene su caso.
+
 - **`R9-217` (S35, `SyncEngine` / conflictos — P3) — 🐛 el coste aceptado de `R9-208`: con la tabla
   ilegible toda la sesión, una edición del doc que queda en cola tras el ack da «lo mío contra lo
   mío» al reiniciar.** MEDIDO en el mock (sonda `_scratch/S35-sonda-coste.body.txt`).
@@ -3625,6 +3654,12 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** que la entrada nueva lleve también el último sello propio
     del doc (`ownStamps`), como `R9-194` hace con `recentAcked`.
 
+  - **✅ ARREGLADO en la sesión 36** (`31cc55a`). La hipótesis, medida: la entrada nueva de un doc
+    que es conflicto de esta sesión (`isConflictDoc`) lleva también el último sello de `ownStamps`.
+    La guarda importa: tras un `stop()`, el mapa sigue siendo de la cuenta anterior hasta el enganche.
+    Pruebas: 2. La del caso cae sin el arreglo (`R217`); la de Ana y Beto vigila el «por uid» y cae
+    sin la guarda (`R217guard`). La prueba de `fantasmaC` dice ahora qué pasa con doc-d.
+
 - **`R9-218` (S35, `SyncEngine` / conflictos — P3) — 🐛 con dos tablas de sellos ilegibles, la
   relectura que falla en una escribe la cola sin la otra, cuya relectura sigue en vuelo.** MEDIDO
   el orden de las escrituras (sonda `_scratch/S35-sonda-dos.body.txt`, con el estado sembrado). Lo
@@ -3640,6 +3675,16 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** `force` solo para la colección cuya relectura falló; la
     cola espera a las demás relecturas en vuelo.
 
+  - **✅ ARREGLADO en la sesión 36** (`f785702`). La hipótesis, medida: la relectura fallida anota su
+    tabla en `ownGaveUp`, y la escritura deja de esperar solo a esa. Sale en cuanto no queda otra
+    relectura en vuelo, y vacía el conjunto (la siguiente las vuelve a leer). `force` queda para
+    `stop()`. Con las dos relecturas fallando, una ronda por escritura: no hay bucle.
+    - **Prueba:** 1, con dos colecciones reales y el disco de una sesión anterior. El proceso muere
+      tras la primera escritura de la cola sin las dos entradas, y la prueba mira el sello de Wb en la
+      tabla de `test2`. Cae sin el arreglo (`R218`) por el sello que falta.
+    - `R218clear` (no vaciar el conjunto) tumba la prueba de `R9-208` de la relectura que falla una
+      vez.
+
 - **`R9-219` (S35, `SyncEngine` / comentario — P3) — 🐛 la premisa del comentario de `R9-206`
   («the mark only moves to a copy of the other device») es falsa en la sesión con la tabla de
   sellos ilegible.** MEDIDO en el mock (sonda `_scratch/S35-sonda-marca.body.txt`).
@@ -3653,6 +3698,10 @@ pending.remoteVersion.updatedAt`.
     `R9-190` (`:1499`) afirman algo que esa sesión no cumple (corolario 14).
   - **Arreglo:** decir en el comentario que la sesión con la tabla ilegible también mueve la marca a
     una copia propia, y por qué `remoteTs === heldAt` sigue sin hacer falta.
+
+  - **✅ ARREGLADO en la sesión 36** (`0970726`): el comentario dice por qué `remoteTs === heldAt`
+    sigue sin hacer falta en los dos casos (la copia del otro y la propia que la sesión degradada tomó
+    por suya). Solo comentario, sin prueba: `+heldAt` ya la tumba en 4.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

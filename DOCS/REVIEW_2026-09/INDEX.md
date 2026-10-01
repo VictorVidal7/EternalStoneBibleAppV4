@@ -427,8 +427,20 @@
 > - `R9-210` y `R9-209`, sin nada nuevo; las 18 pruebas nuevas dicen lo que miden.
 > - **La matriz entera y las piezas de `R9-210`, re-medidas:** ver el detalle, §7 y §4.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219**. Rama `docs/review-s35-diff-s34`, sin
-> mergear hasta el OK. Detalle: `detail/S35-revision-del-diff-s34.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219**. Rama `docs/review-s35-diff-s34`: mergeada
+> y pusheada con el OK de Victor (`main` = `d15cd71`, CI verde en el log, run `36818493621`,
+> 368/4501). Detalle: `detail/S35-revision-del-diff-s34.md`.
+>
+> **Sesión 36 (2026-10-01): ARREGLOS de lo de la 35**, en el mismo chat que la 35, solo en la terminal
+> y sin agentes.
+>
+> - **5 cerrados**, un commit por hallazgo en `fix/s36-r215-r219` (`0970726`..`2bfbcf8`): `R9-219`
+>   (el comentario), `R9-215`, `R9-218`, `R9-217` y `R9-216`. Cada prueba, vista fallar con su pieza
+>   revertida; las piezas, re-medidas en el árbol combinado.
+> - **La matriz entera:** ver `detail/S36-arreglos-s35.md`, §3.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **219** (ninguno nuevo). Ramas `fix/s36-r215-r219` y
+> `docs/review-s36-fix-s35`, sin mergear hasta el OK. Detalle: `detail/S36-arreglos-s35.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -926,6 +938,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 36 — 2026-10-01. Arreglos de lo de la 35.** En el mismo chat que la 35 (Victor:
+  «continúa por favor»), solo en la terminal y sin agentes.
+  - **Cómo se trabajó:** cada prueba sale de una sonda de la 35 y se vio fallar sobre el código sin
+    arreglar; un commit por hallazgo; el revert por pieza con `_scratch/S36-piezas.cjs.txt`, re-medido
+    en el árbol combinado; la matriz entera (`S36-matriz.cjs.txt`) en un worktree aparte.
+  - **Resultado:** 5 cerrados (`R9-215`..`R9-219`), ninguno nuevo. Queda 1 P0 abierto.
+  - **Detalle: `detail/S36-arreglos-s35.md`.**
+  - **Las lecciones:**
+    - **una hipótesis sobre «el eco» tiene que saber CUÁNDO llega el eco:** el SDK lo entrega antes
+      del ack, con la escritura en cola; anotarlo solo con el reloj ya tomado no cerraba nada;
+    - **una prueba con el estado sembrado tiene que sembrar también la nube:** sin «lo suyo» en la
+      nube, el eco asentaba el conflicto antes del ack y la prueba no llegaba al caso;
+    - **los heredocs con barras rompen cualquier archivo**, no solo `SyncEngine.ts`: esta vez, un
+      archivo de piezas.
 
 - **Sesión 35 — 2026-09-30. Revisión del diff de la 34.** Solo en la terminal, sin agentes, sin
   tocar código; arrancó con `_scratch/S35-PROMPT.md`.
