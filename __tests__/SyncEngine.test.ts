@@ -6416,7 +6416,9 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     // de Ana no es de un doc en conflicto: no deja sello (R9-193), pero su
     // reloj queda en `recentAcked` (R9-194). Sin el uid en esa clave, la
     // entrada de «lo mio editado» de Beto lo llevaba y K pasaba por suya
-    // (medido en S32); los sellos los vigila «R9-193: los sellos de Ana…».
+    // (medido en S32); desde R9-207 `isOwnCopy` lee esa clave tambien, y sin
+    // el uid encuentra K aunque la entrada no lo lleve (medido en S34). Los
+    // sellos los vigila «R9-193: los sellos de Ana…».
     const ana = 'uid-190-ana';
     const beto = 'uid-190-beto';
     const T = Date.now() - HOUR;
@@ -7099,6 +7101,234 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       nubeAna: 'de ana',
       deAna: [K.updatedAt],
       deBeto: null,
+    });
+    engine.stop();
+  });
+
+  // ---- R9-207 — el eco de una escritura mia procesado despues del ack de
+  // la siguiente ----
+
+  /** R9-207 — un telefono con la cadena de lotes de `test` ocupada: el lote
+   *  de `docX` espera su getLocal hasta `soltar()`, y todo lote que llega
+   *  despues espera detras (R9-175). Las subidas no esperan. */
+  async function cadenaOcupada(uid: string, T: number) {
+    const w = await engineFor(uid, T);
+    let abrir!: () => void;
+    const gate = new Promise<void>(r => (abrir = r));
+    w.adapter.getLocal = async id => {
+      if (id === 'docX') await gate;
+      return w.localStore.get(id) ?? null;
+    };
+    write(uid, 'docX', {value: 'x', updatedAt: T + 50_000});
+    await flush();
+    const vistos = new Set<string>();
+    w.engine.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(`${c.localVersion.value}|${c.remoteVersion.value}`),
+      ),
+    );
+    const soltar = async () => {
+      abrir();
+      await settle();
+      await settle();
+    };
+    return {...w, vistos, soltar};
+  }
+
+  /** R9-207 — lo que subio de `docB`, en orden. */
+  const subidasDe = (id: string) =>
+    mockDocSets.filter(s => s.id === id).map(s => (s.data as Data).value);
+
+  it.each<['nueva' | 'reemplaza']>([['nueva'], ['reemplaza']])(
+    'R9-207: W1 y W2 suben con la cadena de lotes ocupada y el eco de W1 se procesa despues del ack de W2 (W2 %s): no aparece «w2 contra w1»',
+    async variante => {
+      const uid = `uid-207-${variante}`;
+      const T = Date.now() - HOUR;
+      const {engine, localStore, vistos, soltar} = await cadenaOcupada(uid, T);
+      // nueva: W2 es otra entrada, despues del ack de W1; reemplaza: el ack
+      // de W1 espera, y W2 la reemplaza en la cola.
+      let ack!: () => void;
+      if (variante === 'reemplaza') {
+        mockSetGate = (_p, id) =>
+          id === 'docB' ? new Promise<void>(r => (ack = r)) : undefined;
+      }
+      const W1 = {value: 'w1', updatedAt: T + 100_000};
+      localStore.set('docB', W1);
+      engine.queueWrite('test', 'docB', W1);
+      await settle();
+      const antesDeW2 = engine.__getQueueForTests().length;
+      const W2 = {value: 'w2', updatedAt: T + 106_000};
+      localStore.set('docB', W2);
+      engine.queueWrite('test', 'docB', W2);
+      if (variante === 'reemplaza') {
+        mockSetGate = null;
+        ack();
+      }
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      const cola = engine.__getQueueForTests().length;
+      await soltar();
+
+      // Pre-fix: con la cola ya vacia, nada recordaba el reloj de W1, y la
+      // ventana de 30 s tomaba su eco por un cambio del otro telefono.
+      expect({
+        antesDeW2, // CONTROL: 0 = W1 ya confirmada; 1 = W1 en la cola
+        subidas: subidasDe('docB'), // CONTROL: subieron las dos
+        cola, // CONTROL: las dos confirmadas antes de soltar la cadena
+        vistos: [...vistos],
+        conflictos: parejas(engine),
+        local: localStore.get('docB')?.value,
+      }).toEqual({
+        antesDeW2: variante === 'nueva' ? 0 : 1,
+        subidas: ['w1', 'w2'],
+        cola: 0,
+        vistos: [],
+        conflictos: [],
+        local: 'w2',
+      });
+      engine.stop();
+    },
+  );
+
+  it('R9-207: W1, W2 y W3 suben con la cadena de lotes ocupada: los ecos de W1 y W2 no aparecen contra W3', async () => {
+    const uid = 'uid-207-tres';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, vistos, soltar} = await cadenaOcupada(uid, T);
+    for (const [value, dt] of [
+      ['w1', 100_000],
+      ['w2', 106_000],
+      ['w3', 112_000],
+    ] as const) {
+      const W = {value, updatedAt: T + dt};
+      localStore.set('docB', W);
+      engine.queueWrite('test', 'docB', W);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    }
+    const cola = engine.__getQueueForTests().length;
+    await soltar();
+
+    // La entrada de W3 lleva solo el reloj de W2 (R9-194): el de W1 queda en
+    // lo que el servidor ya tomo antes. Pre-fix: «w3 | w1», luego «w3 | w2».
+    expect({
+      subidas: subidasDe('docB'), // CONTROL
+      cola, // CONTROL
+      vistos: [...vistos],
+      conflictos: parejas(engine),
+      local: localStore.get('docB')?.value,
+    }).toEqual({
+      subidas: ['w1', 'w2', 'w3'],
+      cola: 0,
+      vistos: [],
+      conflictos: [],
+      local: 'w3',
+    });
+    engine.stop();
+  });
+
+  it('R9-207: tras reiniciar, el primer lote espera a otro doc y W2 sube antes: la copia de W1 que trajo el enganche no aparece contra W2', async () => {
+    const uid = 'uid-207-enganche';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, adapter} = await engineFor(uid, T);
+    write(uid, 'docX', {value: 'x', updatedAt: T + 50_000});
+    await settle();
+    // W1 sube y su ack no llega; W2 la reemplaza en la cola.
+    let ack!: () => void;
+    mockSetGate = (_p, id) =>
+      id === 'docB' ? new Promise<void>(r => (ack = r)) : undefined;
+    const W1 = {value: 'w1', updatedAt: T + 100_000};
+    localStore.set('docB', W1);
+    engine.queueWrite('test', 'docB', W1);
+    await settle();
+    const W2 = {value: 'w2', updatedAt: T + 106_000};
+    localStore.set('docB', W2);
+    engine.queueWrite('test', 'docB', W2);
+    await settle();
+    const own = engine.__getQueueForTests().map(q => q.own);
+    // El proceso muere, y W1 llega a la nube.
+    engine.stop();
+    mockSetGate = null;
+    ack();
+    await settle();
+    const nubeAlMorir = await nubeDe(uid, 'docB');
+    // Proceso nuevo: su primer lote (docX y la copia de W1) espera el
+    // getLocal de docX; mientras, W2 sube.
+    let abrir!: () => void;
+    const gate = new Promise<void>(r => (abrir = r));
+    adapter.getLocal = async id => {
+      if (id === 'docX') await gate;
+      return localStore.get(id) ?? null;
+    };
+    const otro = await procesoNuevo(uid, adapter);
+    const vistos = new Set<string>();
+    otro.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(`${c.localVersion.value}|${c.remoteVersion.value}`),
+      ),
+    );
+    otro.__setOnlineForTests(true);
+    await otro.__flushForTests();
+    await settle();
+    const cola = otro.__getQueueForTests().length;
+    abrir();
+    await settle();
+    await settle();
+
+    // La entrada de W2 llevaba el reloj de W1 (R9-189) y ya no esta en la
+    // cola. Pre-fix: «w2 | w1».
+    expect({
+      own, // CONTROL
+      nubeAlMorir, // CONTROL
+      cola, // CONTROL: W2 confirmada antes de soltar la cadena
+      vistos: [...vistos],
+      conflictos: parejas(otro),
+      local: localStore.get('docB')?.value,
+      nube: await nubeDe(uid, 'docB'),
+    }).toEqual({
+      own: [[W1.updatedAt]],
+      nubeAlMorir: 'w1',
+      cola: 0,
+      vistos: [],
+      conflictos: [],
+      local: 'w2',
+      nube: 'w2',
+    });
+    otro.stop();
+  });
+
+  it('R9-207: la escritura del otro llega antes que mis ecos, con la cadena de lotes ocupada: el eco de W1, 40 s anterior a W2, no la reemplaza como «su version»', async () => {
+    const uid = 'uid-207-suya';
+    const T = Date.now() - HOUR;
+    const {engine, localStore, vistos, soltar} = await cadenaOcupada(uid, T);
+    // Su lote espera la cadena, delante de los ecos de W1 y W2.
+    write(uid, 'docB', {value: 'r', updatedAt: T + 135_000});
+    await flush();
+    for (const [value, dt] of [
+      ['w1', 100_000],
+      ['w2', 140_000],
+    ] as const) {
+      const W = {value, updatedAt: T + dt};
+      localStore.set('docB', W);
+      engine.queueWrite('test', 'docB', W);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    }
+    await soltar();
+
+    // R abre el conflicto contra W2. El eco de W1 llega a la rama del
+    // conflicto pendiente, a 40 s de W2 (fuera de la ventana de 30 s).
+    // Pre-fix: lo tomaba por «su version», en lugar de R: «w2 | w1».
+    expect({
+      subidas: subidasDe('docB'), // CONTROL
+      vistos: [...vistos],
+      conflictos: parejas(engine),
+    }).toEqual({
+      subidas: ['w1', 'w2'],
+      vistos: ['w2|r'],
+      conflictos: [['w2', 'r']],
     });
     engine.stop();
   });

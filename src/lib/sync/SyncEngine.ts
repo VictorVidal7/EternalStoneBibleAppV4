@@ -483,18 +483,30 @@ export class SyncEngine {
   /** R9-193 — the entry `flush()` is pushing right now, if any (see `stop()`). */
   private pushing: PendingWrite | null = null;
   /**
-   * R9-194 — per `uid` + `suppressKey`, the `updatedAt` of the last write of a
-   * doc WITHOUT a conflict that the server took in this process (one number
-   * per doc written). It answers nothing by itself: `isOwnCopy` never reads
-   * it. It only goes into `own` of the next NEW queue entry of that doc (see
-   * `queueWrite`), which is persisted. That write is in the cloud while the
-   * next edit waits offline, and a new process delivers it within 30 s of the
-   * local copy: without its clock in the entry, «mine» showed against
-   * «mine». If the process dies before the next entry, no entry waits that
-   * could show it. By uid: another account's writes never reach this one's
-   * entries.
+   * R9-194 / R9-207 — per `uid` + `suppressKey`, the `updatedAt` of the
+   * writes of a doc WITHOUT a conflict that the server took in this process:
+   * the clock of each one and the ones its entry carried (`PendingWrite.own`),
+   * the newest `MAX_OWN_STAMPS`, the last one taken last.
+   * - `isOwnCopy` reads them (R9-207). The batches of a collection wait in
+   *   line (R9-175) and the pushes do not: the echo of W1 could wait behind a
+   *   slow batch until the server had taken W2 too, and with nothing queued
+   *   any more the 30 s window took it for the other device's change. «w2»
+   *   showed against «w1», and keepTheirs left this phone on w1 and the cloud
+   *   on w2.
+   * - The last one goes into `own` of the next NEW queue entry of that doc
+   *   (see `queueWrite`), which is persisted (R9-194). That write is in the
+   *   cloud while the next edit waits offline, and a new process delivers it
+   *   within 30 s of the local copy: without its clock in the entry, «mine»
+   *   showed against «mine».
+   * In memory only: a new process's listener delivers the cloud's copy as it
+   * was when it attached, not an echo the old one left waiting, and the clock
+   * of a write of the old process that the copy can be travels in `own` of
+   * the entry still queued (R9-189, R9-194). That entry's ack folds it in
+   * here, for an attach batch handled after it. Never emptied (a short list
+   * per doc written in the process). By uid: another account's writes are
+   * not this one's.
    */
-  private recentAcked = new Map<string, number>();
+  private recentAcked = new Map<string, number[]>();
   /**
    * R9-182 — the writes the flush just dropped after MAX_RETRY_ATTEMPTS
    * rejections, as `uid` + `suppressKey` → the dropped payload's `updatedAt`,
@@ -1089,11 +1101,15 @@ export class SyncEngine {
         own: withStamp(ownOf(prev), updatedAtOf(prev.data)),
       };
     } else {
-      // R9-194 — see `recentAcked`.
+      // R9-194 — see `recentAcked`: the last write the server took.
       const acked = this.recentAcked.get(
         `${entry.uid}\u0000${suppressKey(entry.collection, entry.id)}`,
       );
-      this.queue.push(acked !== undefined ? {...entry, own: [acked]} : entry);
+      this.queue.push(
+        acked && acked.length > 0
+          ? {...entry, own: [acked[acked.length - 1]]}
+          : entry,
+      );
     }
     this.updateState({pendingWrites: this.pendingForActiveUid()});
     void this.persistQueue();
@@ -1787,7 +1803,9 @@ export class SyncEngine {
       // window too: the echo of a write the queue replaced while it was being
       // pushed (both went up, R9-184) came back less than 30 s from the local
       // copy and different from it, and «mine» showed against «mine». So did
-      // the echo of an edit read back with the adapter's ref behind (R9-174).
+      // the echo of an edit read back with the adapter's ref behind (R9-174),
+      // and (R9-207) the echo of a write that came back after the server had
+      // taken the newer one too, with nothing queued (see `recentAcked`).
       if (
         withinWindow &&
         materialFields.length > 0 &&
@@ -2393,11 +2411,12 @@ export class SyncEngine {
   }
 
   /**
-   * R9-190 / R9-193 — whether `copy` is a write of THIS device (of `uid`):
-   * the one of the doc still queued, one that entry replaced
-   * (`PendingWrite.own`), or one the server took while the doc was a conflict
-   * (`ownStamps`). The one answer the engine has to «is this copy mine?». By
-   * `updatedAt`: a copy of the other device stamped with the very same
+   * R9-190 / R9-193 / R9-207 — whether `copy` is a write of THIS device (of
+   * `uid`): the one of the doc still queued, one that entry replaced
+   * (`PendingWrite.own`), one the server took while the doc was a conflict
+   * (`ownStamps`), or one it took in this process while it was not
+   * (`recentAcked`). The one answer the engine has to «is this copy mine?».
+   * By `updatedAt`: a copy of the other device stamped with the very same
    * millisecond would be taken for this device's own.
    */
   private isOwnCopy(
@@ -2416,6 +2435,13 @@ export class SyncEngine {
     ) {
       return true;
     }
+    if (
+      this.recentAcked
+        .get(`${uid}\u0000${suppressKey(collection, id)}`)
+        ?.includes(ts)
+    ) {
+      return true;
+    }
     return this.ownStamps.get(collection)?.get(id)?.includes(ts) === true;
   }
 
@@ -2431,14 +2457,17 @@ export class SyncEngine {
    * R9-193 — the server took `item`: while its doc is a conflict, its clock
    * and the ones it carried become own stamps (see `ownStamps`). Written with
    * the next write of the queue, which is the one that drops the entry.
+   * Otherwise they go to `recentAcked`, in memory.
    */
   private noteOwnAcked(item: PendingWrite): void {
     if (!this.isConflictDoc(item.collection, item.id)) {
-      // R9-194 — see `recentAcked`.
-      this.recentAcked.set(
-        `${item.uid}\u0000${suppressKey(item.collection, item.id)}`,
-        updatedAtOf(item.data),
-      );
+      // R9-194 / R9-207 — see `recentAcked`.
+      const key = `${item.uid}\u0000${suppressKey(item.collection, item.id)}`;
+      let clocks = this.recentAcked.get(key) ?? [];
+      for (const ts of [...ownOf(item), updatedAtOf(item.data)]) {
+        clocks = withStamp(clocks, ts);
+      }
+      this.recentAcked.set(key, clocks);
       return;
     }
     const byId = this.ownStamps.get(item.collection) ?? new Map();
