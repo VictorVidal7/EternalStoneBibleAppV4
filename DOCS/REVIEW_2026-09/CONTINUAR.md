@@ -1,13 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-01, fin de la sesión 40.** La 40 hizo el (t): arregló lo de la 39
-> en la terminal y sin agentes. Cerró `R9-237`, `R9-239`, `R9-238`, `R9-236` y `R9-229`, y registró
-> 1 nuevo, `R9-241` (leído, sin daño hoy). `Fresolve` NO se quitó: medida, decide.
+> **Última actualización: 2026-10-02, fin de la sesión 41.** La 41 hizo el (u): revisó el diff de
+> la 40 en la terminal, sin agentes y sin tocar código. Registró 3 nuevos, `R9-242`..`R9-244` (todos
+> P3, y los tres ya existían), y midió `R9-234`.
 >
-> La 39 ya está mergeada y pusheada (`main` = `4f1ce9a`, CI verde en el log, run `36960757105`,
-> 368/4518). Las ramas de la 40 (`fix/s40-arreglos-s39` y `docs/review-s40-fix-s39`) van **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 241 hallazgos. **Lo
-> siguiente es el mensaje (u): revisar el diff de la 40.**
+> La 40 ya está mergeada y pusheada (`main` = `48bee85`, CI verde en el log, run `36968376017`,
+> 368/4526). La rama de la 41 (`docs/review-s41-diff-s40`) va **sin mergear hasta el OK de
+> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 244 hallazgos. **Lo siguiente es el mensaje (v):
+> arreglar lo de la 41.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -470,9 +470,51 @@ terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igu
 chat y sin agentes), la revisión del diff de la 36 (la (q), sesión 37, en la terminal con 7 agentes
 que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos (la (r), sesión 38,
 en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual), y sus arreglos (la (t), sesión 40,
-igual). **Lo siguiente es el (u).**
+igual), y la revisión del diff de la 40 (la (u), sesión 41, igual). **Lo siguiente es el (v).**
 
-**(u) Sesión 41: revisar el diff de la 40.**
+**(v) Sesión 42: arreglar lo de la 41.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (v) y la sección 5), `detail/S41-revision-del-diff-s40.md` y, en `BUGS.md`, las entradas
+> `R9-242`..`R9-244` y las notas de la 41 al final de `R9-234`, `R9-236`, `R9-238`, `R9-229` y
+> `R9-240`. En la memoria, la de la sesión 41 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s41-diff-s40`, pedime el OK para el fast-forward.
+>   Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 244.
+> - **Las herramientas** (en `_scratch`): las piezas `S41-piezas.cjs.txt` (reexporta las de la 40,
+>   la 39 y la 38; trae `Q41own`, `Q41sello`, `Q41llegada` y las hipótesis `H41own` y
+>   `H41removed`; `H239join` viene de la 40), la base `S40-SyncEngine-R236.ts.txt` (= el motor de
+>   `e9d6e89`), `S38-sonda.cjs.txt`, `S41-motor.cjs.txt`, `S34-rev.cjs.txt` y la matriz
+>   `S40-matriz.cjs.txt`. **`S32_BASE` y `S34_PIEZAS`, con la ruta ABSOLUTA** (relativa, la pieza no
+>   se aplica y la sonda «pasa»). `S38-sonda` restaura la base encima de `SyncEngine.ts`: no la
+>   corras con cambios del motor sin commitear.
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla lo de la 41**, un commit por hallazgo, cada prueba vista caer con su pieza:
+>
+> - `R9-242`, con `H41own` (medida: cierra `S41-1` y `S41-2`, y la suite pasa 250/250): la prueba,
+>   de esas dos sondas;
+> - `R9-234`, con lo que queda de `R9-239`: `H239join` cierra `S41-6`, y tumba la prueba de `R9-218`,
+>   que espera el sello sembrado unido al nuevo (la semántica de antes de `R9-239`): decidilo;
+> - `R9-244`: la prueba de `R9-160` con el orden de `S41-3` (cae con `Q41llegada`);
+> - `R9-243`: falta el diseño (`H41removed` lo cierra y tumba `R9-190`, mi propio respaldo); medí
+>   antes de tocar nada;
+> - el comentario de la prueba del bucle de `R9-229` (solo 60 lecturas son el bucle).
+>
+> Después, la matriz entera. `R9-240` es Modo C en el emulador: solo con mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:** lo mismo que en el (q).
+
+**(u) Sesión 41: revisar el diff de la 40 — ya HECHO en la sesión 41, en la terminal y sin
+agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (u) y la sección 5), `detail/S40-arreglos-s39.md` y, en `BUGS.md`, los cierres de la 40
@@ -1547,18 +1589,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 40 (2026-10-01).**
+**Medido al cerrar la sesión 41 (2026-10-02).**
 
-- **`main` = `origin/main` = `4f1ce9a`** (el checkpoint de la 39, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `0b84a7e`). **CI verificado en el log:** run `36960757105`,
-  3 jobs verdes, Node v24.21.0, 368/4518, cero «failed to run». La rama de la 39 se borró.
-- **Dos ramas de la 40, sin mergear a propósito y sin pushear:** `fix/s40-arreglos-s39` (5 commits,
-  `d57807b`..`e9d6e89`) y, encima, `docs/review-s40-fix-s39` (el checkpoint). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (el de la matriz de la 40 se borró, la junction primero).
+- **`main` = `origin/main` = `48bee85`** (el checkpoint de la 40, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `e9d6e89`). **CI verificado en el log:** run `36968376017`,
+  3 jobs verdes, Node v24.21.0, 368/4526, cero «failed to run». Las ramas de la 40 se borraron.
+- **Una rama de la 41, sin mergear a propósito y sin pushear:** `docs/review-s41-diff-s40` (solo
+  docs, el checkpoint). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
+  incluye.
+- **Los worktrees:** ninguno (la 41 no corrió la matriz).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 39):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 41):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1779,6 +1821,18 @@ Alternativas legítimas:
 - **Antes de afirmar una propiedad del SDK, leé también el envoltorio propio (sesión 40, `R9-241`).**
   En RNFirebase `change.doc` es un getter que crea un snapshot nuevo por lectura, y
   `src/lib/sync/firestore.ts` lo lee una sola vez: el motor ve un objeto por cambio.
+- **Una pieza que no se aplicó da «sin daño» (sesión 41).** Con `S34_PIEZAS` relativa, `require` no
+  la encontró, el apply falló dentro de `S38-sonda`, y tres sondas «pasaron» con el motor de hoy.
+  Antes de creerle a una sonda con pieza, mirá que el motor cambió (el `git diff --shortstat` del
+  apply, o el «diff del revert» de `S34-rev`), y pasá las rutas de entorno absolutas.
+- **«Hace falta mientras la entrada espera, y no después de su ack» tiene que preguntar qué otros
+  acks pasan mientras espera (sesión 41, `R9-242`).** La entrada que reemplazó una subida en vuelo
+  sobrevive al ack de esa subida, con su reloj y el de antes en el `own`.
+- **Toda retirada que corre al PROCESAR tiene el problema de `Fresolve` (sesión 41, `R9-243`).** Con
+  la cadena de lotes ocupada, lo que llega después se juzga al llegar, antes de la retirada.
+- **Un `fire` del mock con los datos de la nube y nada en vuelo es un evento que el SDK no levanta
+  (sesión 41, `R9-244`).** El `View` del SDK compara los datos (`docsEqual`), y `__fire` no. Antes
+  de leer una prueba con `fire`, preguntá si esa copia difiere de la nube.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

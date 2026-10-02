@@ -497,7 +497,23 @@
 > - **La matriz entera:** 141 piezas, control 0/250; contra la de la 38, 114 de 144 iguales (las 3 de `R9-207`, quitadas a propósito; 6 nuevas; el resto, pruebas nuevas que caen). `Fsettle` y `Fresolve` pasan de 0 a 1, y ninguna pieza vieja baja a 0.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **241**. Ramas `fix/s40-arreglos-s39` y
-> `docs/review-s40-fix-s39`, sin mergear hasta el OK. Detalle: `detail/S40-arreglos-s39.md`.
+> `docs/review-s40-fix-s39`: mergeadas y pusheadas con el OK de Victor (`main` = `48bee85`, CI verde
+> en el log, run `36968376017`, 368/4526). Detalle: `detail/S40-arreglos-s39.md`.
+>
+> **Sesión 41 (2026-10-01/02): REVISIÓN del diff de la 40** (`4f1ce9a..e9d6e89`), solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **3 hallazgos nuevos, `R9-242`..`R9-244`, todos P3, que ya existían:** el `own` de una entrada que
+>   reemplazó una subida en vuelo conserva relojes viejos y el respaldo del otro pasa por «mío» por la
+>   cola (`R9-242`, hipótesis `H41own` medida, 250/250); `R9-238` sigue abierto con la cadena de lotes
+>   ocupada, porque la retirada de la lectura corre al procesar (`R9-243`); y la prueba del eco tardío
+>   de `R9-160` entrega copias que el SDK no levanta (`R9-244`).
+> - **Medido:** `R9-234` (es también lo que queda de `R9-239`; `H239join` lo cierra y tumba solo la
+>   prueba de `R9-218`). Las seis preguntas del prompt, respondidas en el detalle. Sin la matriz
+>   entera: no hubo cambio de código.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **244**. Rama `docs/review-s41-diff-s40`, sin mergear
+> hasta el OK. Detalle: `detail/S41-revision-del-diff-s40.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -995,6 +1011,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 41 — 2026-10-01/02. Revisión del diff de la 40.** Solo en la terminal, sin agentes y sin
+  tocar código; arrancó con `_scratch/S41-PROMPT.md`.
+  - **Cómo se trabajó:** una sonda por pregunta (`_scratch/S41-sondas*.body.txt`), las piezas de lo
+    que mira `isOwnCopy` y dos hipótesis en `S41-piezas.cjs.txt`, cada «¿de la 40?» medido con el
+    motor de `0b84a7e` (`S41-motor.cjs.txt`), y el SDK web leído desde su source map.
+  - **Resultado:** 3 nuevos (`R9-242`..`R9-244`); `R9-234`, medido. Queda 1 P0 abierto.
+  - **Detalle: `detail/S41-revision-del-diff-s40.md`.**
+  - **Las lecciones:**
+    - **una pieza que no se aplicó da «sin daño»:** la primera tanda corrió con `S34_PIEZAS` relativa;
+    - **«hace falta mientras X espera, no después de su ack» tiene que preguntar qué otros acks pasan
+      mientras X espera** (`R9-242`);
+    - **toda retirada que corre al procesar tiene el problema de `Fresolve`** (`R9-243`);
+    - **un `fire` del mock con los datos de la nube y nada en vuelo es un evento que el SDK no
+      levanta** (`R9-244`).
 
 - **Sesión 40 — 2026-10-01. Arreglos de lo de la 39.** Solo en la terminal, sin agentes; arrancó
   con `_scratch/S40-PROMPT.md`.
