@@ -2482,11 +2482,13 @@ export class SyncEngine {
 
   /**
    * R9-190 / R9-193 / R9-207 — whether `copy` is a write of THIS device (of
-   * `uid`): the one of the doc still queued, one that entry replaced
+   * `uid`): the one of the doc still queued, one that entry carries
    * (`PendingWrite.own`), one the server took while the doc was a conflict
    * (`ownStamps`), or one it took in this process while it was not
-   * (`recentAcked`). The one answer the engine has to «is this copy mine?».
-   * By `updatedAt`: a copy of the other device stamped with the very same
+   * (`recentAcked`); or a copy that was this device's own when its delivery
+   * arrived (`ownArrived`). The one answer the engine has to «is this copy
+   * mine?». By `updatedAt`, until a copy of the other device arrives
+   * (`noteArrived`): a copy of the other device stamped with the very same
    * millisecond would be taken for this device's own.
    */
   private isOwnCopy(

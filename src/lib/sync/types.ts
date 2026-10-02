@@ -135,11 +135,13 @@ export interface PendingWrite {
   lastAttemptAt?: number;
   /**
    * R9-193 — the `updatedAt` of this device's earlier writes of the doc that
-   * this entry replaced in the queue. One of them may already be in the cloud
-   * (it was in flight when the newer edit replaced it: R9-184, R9-189), and
-   * nothing else remembers it once its entry is gone. Persisted with the
-   * entry, so a copy with one of these clocks is known as this device's own
-   * for as long as the entry waits, restarts included (see `isOwnCopy`).
+   * this entry carries: the ones it replaced in the queue, and the last one
+   * the server took (R9-194, R9-217; R9-233). One of them may already be in
+   * the cloud (it was in flight when the newer edit replaced it: R9-184,
+   * R9-189), and nothing else remembers it once its entry is gone. Persisted
+   * with the entry, so a copy with one of these clocks is known as this
+   * device's own for as long as the entry waits, restarts included (see
+   * `isOwnCopy`), until a copy of the other device arrives (R9-223).
    * Optional: older entries have none.
    */
   own?: number[];
