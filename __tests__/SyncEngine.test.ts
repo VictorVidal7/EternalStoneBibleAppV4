@@ -10133,7 +10133,10 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       // Pre-fix (la rama `waiting` sin su `return`): cada escritura volvia a
       // pedir las relecturas, y estas a escribir, un bucle caliente que mataba
       // jest por memoria. A partir de la lectura 60 la relectura no vuelve
-      // nunca: el bucle se detiene ahi.
+      // nunca: el bucle se detiene ahi. Solo 60 lecturas son el bucle: 0, 2 o
+      // 4 son otros defectos (la tabla leida con otra clave, la relectura
+      // cortada antes), con sus pruebas. Las 5 son las de hoy, sin margen: todo
+      // corre en microtareas o `setImmediate`.
       expect({
         enganche, // CONTROL: el enganche leyo las dos tablas, y fallaron
         conflictos: parejas(e), // CONTROL
