@@ -9001,6 +9001,10 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       // Pre-fix: la relectura fallida de `test` escribia la cola ya, sin la
       // tabla de `test2`, cuya relectura seguia en vuelo; el proceso que moria
       // entonces no tenia el sello de Wb ni en la cola ni en la tabla.
+      // R9-231 — solo mira doc-b. El sello de Wa tampoco llega a disco, con el
+      // arreglo o sin el: la tabla de `test` falla siempre, y la cola sale sin
+      // Wa en cuanto su relectura falla (el coste aceptado de R9-208, ver
+      // `ownUnread`).
       expect({
         sesion, // CONTROL: los dos conflictos, en memoria
         murio, // CONTROL: murio tras guardar la cola sin las dos entradas
