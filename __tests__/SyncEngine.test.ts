@@ -9759,6 +9759,40 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       e2.stop();
     },
   );
+
+  it('R9-237: W0 y W1 suben sin conflicto, y el otro restaura un respaldo con W0, una escritura mia MAS VIEJA de este proceso: dentro de los 30 s, «w1 mio» contra «w0 mio»', async () => {
+    const uid = 'uid-237-viejo';
+    const T = Date.now() - HOUR;
+    const {engine, localStore} = await engineFor(uid, T);
+    const W0 = {value: 'w0 mio', updatedAt: T + 10_000};
+    for (const w of [W0, {value: 'w1 mio', updatedAt: T + 20_000}]) {
+      localStore.set('doc-c', w as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', w);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    }
+    const nubeW1 = await nubeDe(uid, 'doc-c');
+    // El otro restaura su respaldo: W0, con su reloj, vuelve a la nube.
+    write(uid, 'doc-c', {...W0});
+    await settle();
+
+    // Pre-fix: `recentAcked` tenia los relojes de todos los acks del doc (el
+    // de W0 por su ack y por el `own` de la entrada de W1): el respaldo pasaba
+    // por «mio», sin conflicto, con local W1 y nube W0 en silencio.
+    expect({
+      nubeW1, // CONTROL: W1 subio
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      nubeW1: 'w1 mio',
+      conflictos: [['w1 mio', 'w0 mio']],
+      local: 'w1 mio',
+      nube: 'w0 mio',
+    });
+    engine.stop();
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
