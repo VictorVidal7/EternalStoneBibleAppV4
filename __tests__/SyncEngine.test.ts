@@ -9018,6 +9018,172 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     }
   });
 
+  it('R9-229: `stop()` vacia `ownGaveUp`: la tabla que Ana dejo de esperar no saca la cola de Beto sin la suya, cuando su primera escritura es el ack de una entrada de antes', async () => {
+    const ana = 'uid-229-ana';
+    const beto = 'uid-229-beto';
+    const idW = 'doc-x';
+    const T = Date.now() - HOUR;
+    const sembrar = async (uid: string, c: string, ids: string[]) => {
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey(c, uid), String(T));
+      await AsyncStorage.setItem(
+        unsettledStorageKey(c, uid),
+        JSON.stringify(Object.fromEntries(ids.map(id => [id, T + 65_000]))),
+      );
+      await AsyncStorage.setItem(
+        `@sync_conflicted_${c}:${uid}`,
+        JSON.stringify(ids),
+      );
+      await AsyncStorage.setItem(
+        `@sync_own_${c}:${uid}`,
+        JSON.stringify(Object.fromEntries(ids.map(id => [id, [T + 1_000]]))),
+      );
+    };
+    await sembrar(ana, 'test', ['doc-a']);
+    await sembrar(ana, 'test2', ['doc-b']);
+    await sembrar(beto, 'test', ['doc-x']);
+    await AsyncStorage.setItem(cursorStorageKey('test2', beto), String(T));
+    const a = makeAdapter({getMaterialFields: () => ['value']});
+    const b = makeAdapter({
+      collection: 'test2',
+      getMaterialFields: () => ['value'],
+    });
+    for (const [uid, c, id, local] of [
+      [ana, 'test', 'doc-a', a.localStore],
+      [ana, 'test2', 'doc-b', b.localStore],
+      [beto, 'test', 'doc-x', a.localStore],
+    ] as const) {
+      local.set(id, {
+        value: `${id} mio`,
+        updatedAt: T + 60_000,
+      } as unknown as SyncEntity<TestEntity>);
+      (
+        mockMakeCollection(`users/${uid}/${c}`) as MockCollRef & {
+          __fire: (changes: unknown[]) => void;
+        }
+      ).__fire([
+        {
+          type: 'modified',
+          doc: {
+            id,
+            exists: true,
+            data: () => ({value: `${id} suyo`, updatedAt: T + 65_000}),
+          },
+        },
+      ]);
+    }
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    const offline = {isConnected: false, isInternetReachable: false};
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let abrirA!: () => void;
+    const puertaA = new Promise<void>(r => (abrirA = r));
+    // Sesion 1 (Ana): la tabla de `test` falla siempre, y la de `test2`
+    // falla al enganchar y su relectura espera. Sesion 2 (Beto): su tabla
+    // de `test` falla al enganchar y se lee bien despues.
+    let fase = 0;
+    const n2 = new Map<string, number>();
+    getItemMock.mockImplementation((k: string) => {
+      const m = /^@sync_own_(test2?):(.*)$/.exec(k);
+      if (!m || fase === 0) return realImpl(k);
+      const [, c, uid] = m;
+      if (fase === 1) {
+        if (uid !== ana) return realImpl(k);
+        const n = (n2.get(`1${c}`) ?? 0) + 1;
+        n2.set(`1${c}`, n);
+        if (n === 1 || c === 'test') return Promise.reject(new Error('disco'));
+        return puertaA.then(() => realImpl(k));
+      }
+      if (uid !== beto) return realImpl(k);
+      const n = (n2.get(`2${c}`) ?? 0) + 1;
+      n2.set(`2${c}`, n);
+      if (n === 1) return Promise.reject(new Error('disco'));
+      return realImpl(k);
+    });
+    const e = new SyncEngine();
+    const gaveUp = () => [
+      ...(e as unknown as {ownGaveUp: Set<string>}).ownGaveUp,
+    ];
+    const disco = caida();
+    try {
+      e.register(a.adapter);
+      e.register(b.adapter);
+      // Sesion 0 (Beto, sin red): W queda en cola.
+      netInfo.fetch.mockResolvedValueOnce(offline);
+      await e.start(beto);
+      await settle();
+      const W = {value: 'doc-x mio 2', updatedAt: T + 300_000};
+      a.localStore.set(idW, W as unknown as SyncEntity<TestEntity>);
+      e.queueWrite('test', idW, W);
+      await settle();
+      e.stop();
+      await settle();
+      // Sesion 1 (Ana): Wa y Wb suben; la relectura de `test` falla y deja
+      // `test` en `ownGaveUp`, con la de `test2` en vuelo.
+      fase = 1;
+      await e.start(ana);
+      await settle();
+      const Wa = {value: 'a mio 2', updatedAt: T + 200_000};
+      const Wb = {value: 'b mio 2', updatedAt: T + 200_000};
+      a.localStore.set('doc-a', Wa as unknown as SyncEntity<TestEntity>);
+      b.localStore.set('doc-b', Wb as unknown as SyncEntity<TestEntity>);
+      e.queueWrite('test', 'doc-a', Wa);
+      e.queueWrite('test2', 'doc-b', Wb);
+      await settle();
+      await e.__flushForTests();
+      await settle();
+      const antesDelStop = gaveUp();
+      e.stop();
+      await settle();
+      abrirA();
+      await settle();
+      // Sesion 2 (Beto): engancha sin red; vuelve la red y W sube: su ack
+      // es la primera escritura de la cola de la sesion.
+      fase = 2;
+      netInfo.fetch.mockResolvedValueOnce(offline);
+      await e.start(beto);
+      await settle();
+      disco.morirTras(pairs => {
+        const cola = colaEn(pairs);
+        return cola !== undefined && !cola.some(q => q.id === idW);
+      });
+      e.__setOnlineForTests(true);
+      await settle();
+      await e.__flushForTests();
+      await settle();
+      const murio = disco.murio();
+      e.stop();
+      await settle();
+      disco.revivir();
+      getItemMock.mockImplementation(realImpl);
+      const tabla = JSON.parse(
+        (await AsyncStorage.getItem(`@sync_own_test:${beto}`)) ?? '{}',
+      ) as Record<string, number[]>;
+
+      // Sin vaciar `ownGaveUp` en `stop()`, la tabla de `test` que Ana dejo
+      // de esperar seguia ahi: la cola de Beto salia sin la suya, que no se
+      // habia leido, y el proceso que moria entonces no tenia el sello de W.
+      // (El sembrado, `T + 1000`, se va al llegar «doc-x suyo» en el
+      // enganche: R9-224.)
+      expect({
+        antesDelStop, // CONTROL: Ana dejo de esperar `test`
+        murio, // CONTROL: murio tras guardar la cola sin W
+        nubeW: await nubeDe(beto, idW), // CONTROL: W subio
+        selloW: (tabla[idW] ?? []).map(ts => ts - T),
+      }).toEqual({
+        antesDelStop: ['test'],
+        murio: true,
+        nubeW: 'doc-x mio 2',
+        selloW: [300_000],
+      });
+    } finally {
+      disco.revivir();
+      getItemMock.mockImplementation(realImpl);
+      e.stop();
+    }
+  });
+
   it('R9-217: con la tabla de sellos ilegible toda la sesion, d2 sube y d3 queda en cola: la entrada de d3 lleva el reloj de d2, y tras reiniciar no aparece «d mio 3 contra d mio 2»', async () => {
     const uid = 'uid-217-coste';
     const {engine, localStore, adapter, T} = await dosConflictos(uid);
