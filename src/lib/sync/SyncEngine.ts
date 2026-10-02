@@ -498,7 +498,9 @@ export class SyncEngine {
    * that asked. R9-215 — by session: the read of a session that ended answers
    * nothing for the next one (it writes nothing when it is back), and it kept
    * the next one's read from starting; that session's queue then waited for
-   * its next write to reach disk.
+   * its next write to reach disk. R9-228 — an order of the test mock only:
+   * native AsyncStorage is serial, so that read is back before any read of
+   * the next session starts.
    */
   private ownRereading = new Map<string, number>();
   /** R9-193 — the entry `flush()` is pushing right now, if any (see `stop()`). */

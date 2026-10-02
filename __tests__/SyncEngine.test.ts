@@ -8815,6 +8815,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
   });
 
   it('R9-215: la relectura de la tabla de sellos de la sesion anterior sigue en vuelo al enganchar otra vez: la cola de la sesion nueva llega a disco, y la edicion en espera no se pierde', async () => {
+    // R9-228 — vigila un orden del mock, no del telefono: AsyncStorage nativo
+    // es serial (Android envuelve su ejecutor en un `SerialExecutor`, iOS usa
+    // una cola serial), y la relectura de la sesion vieja vuelve antes que
+    // cualquier lectura de la nueva. Con las operaciones del mock en fila,
+    // la guarda de R9-215 da lo mismo puesta o quitada (S37-A3-fifo).
     const uid = 'uid-215-relectura-vieja';
     const {engine, localStore, adapter, T} = await dosConflictos(uid);
     engine.stop();
