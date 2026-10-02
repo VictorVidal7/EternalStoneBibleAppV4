@@ -9010,6 +9010,9 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       // arreglo o sin el: la tabla de `test` falla siempre, y la cola sale sin
       // Wa en cuanto su relectura falla (el coste aceptado de R9-208, ver
       // `ownUnread`).
+      // R9-234 — y solo el de Wb: su ack reemplaza el sello sembrado (R9-239),
+      // y la relectura no lo vuelve a unir. Sin el arreglo de R9-218, la tabla
+      // de `test2` se queda en el sembrado.
       expect({
         sesion, // CONTROL: los dos conflictos, en memoria
         murio, // CONTROL: murio tras guardar la cola sin las dos entradas
@@ -9023,7 +9026,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         murio: true,
         relecturaB: 2,
         nubeB: ['b mio 2'],
-        selloB: [1_000, 200_000],
+        selloB: [200_000],
       });
     } finally {
       disco.revivir();
@@ -10309,6 +10312,148 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       otro: esperado,
     });
   });
+
+  // R9-234 — el proceso anterior dejo doc-c en conflicto retenido, el sello de
+  // W3 en la tabla y L4 en la cola. Este arranca sin red y no puede leer la
+  // tabla; el enganche trae R2 a doc-c (ajena: retira). `L4 sube`: L4 se
+  // confirma (sello [L4]) y su escritura relee la tabla. `otro conflicto`: L4
+  // no toca reintentar, y la subida de Ld (doc-d, tambien en conflicto) relee
+  // la tabla. Despues el otro restaura W3 (`mio`), o lo mismo con su reloj
+  // (+1 ms, `otro`, CONTROL). Los dos tienen que dar lo mismo.
+  it.each<['L4 sube' | 'otro conflicto']>([['L4 sube'], ['otro conflicto']])(
+    'R9-234: con la tabla de sellos ilegible al enganchar, el enganche trae R2 y despues se relee la tabla (%s): el sello de W3 no vuelve, y el respaldo con W3 pasa a ser «su version»',
+    async variante => {
+      const T = Date.now() - HOUR;
+      const W3 = {value: 'w3 mio', updatedAt: T + 110_000};
+      const L4 = {value: 'lo mio 4', updatedAt: T + 115_000};
+      const Ld = {value: 'd mio 2', updatedAt: T + 120_000};
+      const otroDoc = variante === 'otro conflicto';
+      const caso = async (modo: 'mio' | 'otro') => {
+        const uid = `uid-234-${otroDoc ? 'd' : 'l4'}-${modo}`;
+        const docs = otroDoc ? ['doc-c', 'doc-d'] : ['doc-c'];
+        await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+        await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+        await AsyncStorage.setItem(
+          unsettledStorageKey('test', uid),
+          JSON.stringify(Object.fromEntries(docs.map(d => [d, T + 65_000]))),
+        );
+        await AsyncStorage.setItem(
+          `@sync_conflicted_test:${uid}`,
+          JSON.stringify(docs),
+        );
+        await AsyncStorage.setItem(
+          `@sync_own_test:${uid}`,
+          JSON.stringify({'doc-c': [W3.updatedAt]}),
+        );
+        const entrada = (id: string, data: Data) => ({
+          uid,
+          collection: 'test',
+          id,
+          data: {...data, deleted: false, deletedAt: null},
+          queuedAt: 0,
+          attempts: 0,
+        });
+        await AsyncStorage.setItem(
+          '@sync_queue_v1',
+          JSON.stringify([
+            ...(otroDoc ? [entrada('doc-d', Ld)] : []),
+            {
+              ...entrada('doc-c', L4),
+              own: [W3.updatedAt],
+              ...(otroDoc ? {attempts: 1, lastAttemptAt: Date.now()} : {}),
+            },
+          ]),
+        );
+        const fx = makeAdapter({getMaterialFields: () => ['value']});
+        fx.localStore.set('doc-c', L4 as unknown as SyncEntity<TestEntity>);
+        if (otroDoc) {
+          fx.localStore.set('doc-d', Ld as unknown as SyncEntity<TestEntity>);
+        }
+        const nube = [
+          {id: 'doc-c', data: {value: 'r2 suyo', updatedAt: T + 112_000}},
+          {id: 'doc-d', data: {value: 'd suyo', updatedAt: T + 65_000}},
+        ].filter(d => docs.includes(d.id));
+        (
+          mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+            __fire: (changes: unknown[]) => void;
+          }
+        ).__fire(
+          nube.map(d => ({
+            type: 'modified',
+            doc: {id: d.id, exists: true, data: () => d.data},
+          })),
+        );
+        const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+        const realImpl = getItemMock.getMockImplementation()!;
+        let lecturas = 0;
+        getItemMock.mockImplementation((k: string) => {
+          if (k !== `@sync_own_test:${uid}`) return realImpl(k);
+          lecturas += 1;
+          if (lecturas === 1) return Promise.reject(new Error('disco'));
+          return realImpl(k);
+        });
+        const e = new SyncEngine();
+        try {
+          e.register(fx.adapter);
+          const netInfo = jest.requireMock('@react-native-community/netinfo')
+            .default as {fetch: jest.Mock};
+          netInfo.fetch.mockResolvedValueOnce({
+            isConnected: false,
+            isInternetReachable: false,
+          });
+          await e.start(uid);
+          await settle();
+          const enganche = parejas(e);
+          e.__setOnlineForTests(true);
+          await settle();
+          await e.__flushForTests();
+          await settle();
+          await settle();
+          const interno = e as unknown as {
+            ownStamps: Map<string, Map<string, number[]>>;
+          };
+          const sellos = Object.fromEntries(
+            [...(interno.ownStamps.get('test') ?? new Map()).entries()].map(
+              ([k, v]) => [k, (v as number[]).map(t => t - T)],
+            ),
+          );
+          const releida = lecturas;
+          write(uid, 'doc-c', {
+            ...W3,
+            updatedAt: W3.updatedAt + (modo === 'otro' ? 1 : 0),
+          });
+          await settle();
+          return {
+            enganche, // CONTROL: R2 llego al enganchar
+            releida, // CONTROL: la tabla se leyo otra vez
+            sellos,
+            conflictos: parejas(e),
+            nube: await nubeDe(uid, 'doc-c'),
+          };
+        } finally {
+          getItemMock.mockImplementation(realImpl);
+          e.stop();
+        }
+      };
+
+      // Pre-fix: la relectura unia el sello de disco de doc-c con el de
+      // memoria (L4 sube: [W3, L4]), o lo traia aunque una copia del otro lo
+      // hubiera retirado (otro conflicto: [W3]); el respaldo con W3 pasaba por
+      // «mio», y «su version» seguia R2, una copia que la nube ya no tenia.
+      const dd = otroDoc ? [['d mio 2', 'd suyo']] : [];
+      const esperado = {
+        enganche: [['lo mio 4', 'r2 suyo'], ...dd],
+        releida: 2,
+        sellos: otroDoc ? {'doc-d': [120_000]} : {'doc-c': [115_000]},
+        conflictos: [['lo mio 4', 'w3 mio'], ...dd],
+        nube: 'w3 mio',
+      };
+      expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+        mio: esperado,
+        otro: esperado,
+      });
+    },
+  );
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

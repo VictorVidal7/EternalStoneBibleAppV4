@@ -450,7 +450,8 @@ export class SyncEngine {
    * device restored. Kept here (every ack's, and the ones each entry
    * carried), that backup was «mine», «theirs» stayed, and keepTheirs
    * uploaded it over the backup (R9-239). A list, as on disk: a table written
-   * before this, or joined again by `rereadOwn`, holds more.
+   * before this holds more (only development builds wrote one). `rereadOwn`
+   * no longer joins the one on disk to it (R9-234).
    *
    * Persisted per uid (`ownStorageKey`) in the SAME write as the queue that
    * no longer holds them (see `persistQueue`): at every instant a stamp is on
@@ -498,6 +499,17 @@ export class SyncEngine {
    * no disk.
    */
   private ownGaveUp = new Set<string>();
+  /**
+   * R9-234 — per `ownUnread` collection, docId → the clocks of the copies
+   * that retired this device's own stamps of the doc (`retireOwn`) before
+   * its table was read. Joined again by `rereadOwn`, the table's stamp came
+   * back after a copy of the other device had retired it, and a backup the
+   * other device restored with it passed for mine. With the table unread, a
+   * copy of this device retires them too (R9-230): the read keeps the
+   * table's stamps of a doc only if they hold the clock of every copy that
+   * retired them.
+   */
+  private ownRetired = new Map<string, Map<string, number[]>>();
   /**
    * R9-208 — the tables `rereadOwn` is reading right now, with the session
    * that asked. R9-215 — by session: the read of a session that ended answers
@@ -1551,7 +1563,7 @@ export class SyncEngine {
             currentData &&
             !this.isOwnCopy(uid, adapter.collection, id, currentData)
           ) {
-            this.retireOwn(uid, adapter.collection, id);
+            this.retireOwn(uid, adapter.collection, id, currentData);
           }
           // R9-176 / R9-178 — a write of this device to the doc still waits in
           // the queue: an edit or a delete made during the read, or the
@@ -2277,6 +2289,7 @@ export class SyncEngine {
       if (ownPruned) this.ownDirty.add(collection);
       if (ownUnreadable) this.ownUnread.add(collection);
       else this.ownUnread.delete(collection);
+      this.ownRetired.delete(collection);
     }
     if (!readable) return 0;
     let lowest = Number.POSITIVE_INFINITY;
@@ -2561,7 +2574,7 @@ export class SyncEngine {
       this.ownArrived.add(copy);
       return;
     }
-    this.retireOwn(uid, collection, id);
+    this.retireOwn(uid, collection, id, copy);
   }
 
   /**
@@ -2572,7 +2585,19 @@ export class SyncEngine {
    * reaches the engine only that way, and a backup with one of those clocks
    * stayed «mine» after it.
    */
-  private retireOwn(uid: string | null, collection: string, id: string): void {
+  private retireOwn(
+    uid: string | null,
+    collection: string,
+    id: string,
+    copy: Record<string, unknown>,
+  ): void {
+    // R9-234 — see `ownRetired`.
+    if (this.ownUnread.has(collection)) {
+      const byId =
+        this.ownRetired.get(collection) ?? new Map<string, number[]>();
+      byId.set(id, [...(byId.get(id) ?? []), updatedAtOf(copy)]);
+      this.ownRetired.set(collection, byId);
+    }
     this.recentAcked.delete(`${uid}\u0000${suppressKey(collection, id)}`);
     // R9-223 — and the ones the doc's queued entry carries (`own`): the
     // backup with one of them was «mine» by the queue. On disk, for a restart
@@ -2632,10 +2657,11 @@ export class SyncEngine {
 
   /**
    * R9-208 — read again a table the attach could not read (see `ownUnread`)
-   * and join it to the map in memory, for the docs that are still conflicts
-   * (the load drops the others too). Then the write that waited for it goes
-   * out; if this read fails as well, the queue goes without the table, once
-   * no other table is being read (R9-218).
+   * and add it to the map in memory, for the docs that are still conflicts
+   * (the load drops the others too) and this session did not decide
+   * (R9-234). Then the write that waited for it goes out; if this read
+   * fails as well, the queue goes without the table, once no other table is
+   * being read (R9-218).
    */
   private async rereadOwn(collection: string, uid: string): Promise<void> {
     const session = this.flushSession;
@@ -2657,18 +2683,26 @@ export class SyncEngine {
     if (raw !== undefined && this.ownUnread.has(collection)) {
       const byId =
         this.ownStamps.get(collection) ?? new Map<string, number[]>();
+      // R9-234 — not a doc this session already decided: one with stamps in
+      // memory (the server took a write of it since the attach, R9-239), or
+      // one a copy the table does not know retired (see `ownRetired`).
+      const retired = this.ownRetired.get(collection);
       for (const [id, stamps] of Object.entries(parseOwnTable(raw))) {
-        if (!Array.isArray(stamps) || !this.isConflictDoc(collection, id)) {
+        if (
+          !Array.isArray(stamps) ||
+          !this.isConflictDoc(collection, id) ||
+          byId.has(id) ||
+          retired?.get(id)?.some(ts => !stamps.includes(ts))
+        ) {
           continue;
         }
-        let joined: number[] = [];
-        for (const ts of [...stamps, ...(byId.get(id) ?? [])]) {
-          joined = withStamp(joined, ts);
-        }
-        byId.set(id, joined);
+        let read: number[] = [];
+        for (const ts of stamps) read = withStamp(read, ts);
+        if (read.length > 0) byId.set(id, read);
       }
       this.ownStamps.set(collection, byId);
       this.ownUnread.delete(collection);
+      this.ownRetired.delete(collection);
       this.ownDirty.add(collection);
     }
     if (raw === undefined) this.ownGaveUp.add(collection);
