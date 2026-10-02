@@ -10030,6 +10030,103 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-229: con dos tablas de sellos que fallan SIEMPRE, la relectura no entra en bucle: la escritura sale sin ellas', async () => {
+    const uid = 'uid-229-bucle';
+    const T = Date.now() - HOUR;
+    const pares = [
+      ['test', 'doc-a'],
+      ['test2', 'doc-b'],
+    ] as const;
+    for (const [c, id] of pares) {
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey(c, uid), String(T));
+      await AsyncStorage.setItem(
+        unsettledStorageKey(c, uid),
+        JSON.stringify({[id]: T + 65_000}),
+      );
+      await AsyncStorage.setItem(
+        `@sync_conflicted_${c}:${uid}`,
+        JSON.stringify([id]),
+      );
+    }
+    const a = makeAdapter({getMaterialFields: () => ['value']});
+    const b = makeAdapter({
+      collection: 'test2',
+      getMaterialFields: () => ['value'],
+    });
+    for (const [[c, id], local] of [
+      [pares[0], a.localStore],
+      [pares[1], b.localStore],
+    ] as const) {
+      local.set(id, {
+        value: `${id} mio`,
+        updatedAt: T + 60_000,
+      } as unknown as SyncEntity<TestEntity>);
+      (
+        mockMakeCollection(`users/${uid}/${c}`) as MockCollRef & {
+          __fire: (changes: unknown[]) => void;
+        }
+      ).__fire([
+        {
+          type: 'modified',
+          doc: {
+            id,
+            exists: true,
+            data: () => ({value: `${id} suyo`, updatedAt: T + 65_000}),
+          },
+        },
+      ]);
+    }
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let lecturas = 0;
+    getItemMock.mockImplementation((k: string) => {
+      if (!/^@sync_own_test2?:/.test(k)) return realImpl(k);
+      lecturas += 1;
+      if (lecturas >= 60) return new Promise(() => undefined);
+      return Promise.reject(new Error('disco'));
+    });
+    const e = new SyncEngine();
+    try {
+      e.register(a.adapter);
+      e.register(b.adapter);
+      await e.start(uid);
+      await settle();
+      const enganche = lecturas;
+      const Wa = {value: 'a mio 2', updatedAt: T + 200_000};
+      const Wb = {value: 'b mio 2', updatedAt: T + 200_000};
+      a.localStore.set('doc-a', Wa as unknown as SyncEntity<TestEntity>);
+      b.localStore.set('doc-b', Wb as unknown as SyncEntity<TestEntity>);
+      e.queueWrite('test', 'doc-a', Wa);
+      e.queueWrite('test2', 'doc-b', Wb);
+      await settle();
+      await e.__flushForTests();
+      for (let i = 0; i < 6; i++) await settle();
+
+      // Pre-fix (la rama `waiting` sin su `return`): cada escritura volvia a
+      // pedir las relecturas, y estas a escribir, un bucle caliente que mataba
+      // jest por memoria. A partir de la lectura 60 la relectura no vuelve
+      // nunca: el bucle se detiene ahi.
+      expect({
+        enganche, // CONTROL: el enganche leyo las dos tablas, y fallaron
+        conflictos: parejas(e), // CONTROL
+        lecturas,
+        cola: e.__getQueueForTests().map(q => q.id),
+      }).toEqual({
+        enganche: 2,
+        conflictos: [
+          ['doc-a mio', 'doc-a suyo'],
+          ['doc-b mio', 'doc-b suyo'],
+        ],
+        lecturas: 5,
+        cola: [],
+      });
+    } finally {
+      getItemMock.mockImplementation(realImpl);
+      e.stop();
+    }
+  });
+
   it('R9-237: W0 y W1 suben sin conflicto, y el otro restaura un respaldo con W0, una escritura mia MAS VIEJA de este proceso: dentro de los 30 s, «w1 mio» contra «w0 mio»', async () => {
     const uid = 'uid-237-viejo';
     const T = Date.now() - HOUR;
