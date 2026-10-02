@@ -10659,7 +10659,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         cola: engine
           .__getQueueForTests()
           .filter(q => q.uid === uid)
-          .map(q => `${String(q.data.value)}:${q.attempts}`),
+          .map(q => `${String((q.data as Data).value)}:${q.attempts}`),
       };
       write(uid, 'doc-c', {
         ...W1,
