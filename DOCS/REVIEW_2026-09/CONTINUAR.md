@@ -1,13 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 43.** La 43 hizo el (w): revisó el diff de
-> la 42 en la terminal, sin agentes y sin tocar código. Registró 4 nuevos, todos P3 (`R9-247`..
-> `R9-250`; tres ya existían), diagnosticó `R9-245` y le dio a `R9-246` una sonda por guarda.
+> **Última actualización: 2026-10-02, fin de la sesión 44.** La 44 hizo el (x): arregló lo de la 43
+> en la terminal, sin agentes. Cerró 6 (`R9-245`..`R9-250`), con un commit por hallazgo, y registró
+> 1 nuevo (`R9-251`, P3).
 >
-> La 42 ya está mergeada y pusheada (`main` = `7139708`, CI verde en el log, run `37057170965`,
-> 368/4532). La rama de la 43 (`docs/review-s43-diff-s42`) va **sin mergear hasta el OK de
-> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 250 hallazgos. **Lo siguiente es el mensaje
-> (x): arreglar lo de la 43.**
+> La 43 ya está mergeada y pusheada (`main` = `a731c23`, CI verde en el log, run `37063248540`,
+> 368/4532). Las ramas de la 44 (`fix/s44-arreglos-s43` y `docs/review-s44-fix-s43`) van **sin
+> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 251 hallazgos. **Lo
+> siguiente es el mensaje (y): revisar el diff de la 44.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -471,9 +471,54 @@ chat y sin agentes), la revisión del diff de la 36 (la (q), sesión 37, en la t
 que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos (la (r), sesión 38,
 en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual), y sus arreglos (la (t), sesión 40,
 igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arreglos (la (v), sesión
-42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual). **Lo siguiente es el (x).**
+42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual), y sus arreglos (la (x),
+sesión 44, igual). **Lo siguiente es el (y).**
 
-**(x) Sesión 44: arreglar lo de la 43.**
+**(y) Sesión 45: revisar el diff de la 44.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (y) y la sección 5), `detail/S44-arreglos-s43.md` y, en `BUGS.md`, los cierres de la 44
+> (al final de `R9-245`..`R9-250`) y `R9-251`. En la memoria, la de la sesión 44 y la regla fija de
+> las pruebas (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s44-arreglos-s43` y `docs/review-s44-fix-s43`, pedime el OK
+>   para el fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 251.
+> - **Las herramientas** (en `_scratch`): las piezas `S44-piezas.cjs.txt` (reexporta las de la 43;
+>   cada pieza de la 44 va sobre la base de su commit, `S44-SyncEngine-R245/R247/R248/R249.ts.txt`),
+>   la última base `S44-SyncEngine-R250.ts.txt` (= el motor de `c429604`), las sondas
+>   `S44-sondas1..3.body.txt`, `S38-sonda.cjs.txt`, `S34-rev.cjs.txt` y la matriz
+>   `S44-matriz.cjs.txt`. **`S32_BASE` y `S34_PIEZAS`, con la ruta ABSOLUTA.**
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión revisa el diff de la 44** (`a731c23..c429604`: `SyncEngine.ts`, `types.ts` y
+> `SyncEngine.test.ts`), sin tocar código. Preguntas para empezar:
+>
+> - `queryFloors` (`R9-247`): ¿el piso del listener es siempre el que aplica el SDK a esa entrega
+>   (un re-enganche en la misma sesión, la consulta sin filtro)? ¿Una reversión `removed` puede
+>   volver a una copia MÍA con un reloj que ya no está en memoria (retirado antes, o de otro
+>   proceso), y la retirada al llegar se la quita a la lectura?
+> - `R9-251`: buscar un orden con daño para la guarda `ownUnread` (la relectura después de las dos
+>   retiradas, con el doc todavía en conflicto), o medir que no lo hay y proponer quitarla.
+> - `H43propia` (`R9-245`): ¿qué entregas mías con una escritura en la cola dejan de aplicarse
+>   ahora y antes se aplicaban bien? (la del eco con la referencia atrasada de `R9-174`, una
+>   lápida en la cola).
+> - `takeBack` (`R9-248`): ¿una entrega que no es la reversión puede traer el reloj del payload
+>   rechazado (el otro con el mismo milisegundo, el payload igual a la nube)?
+> - `R9-249`: el ack que llega después de un `stop()` cambia el `own` de una entrada aparcada:
+>   ¿cuándo llega eso al disco, y qué pasa si entró otra cuenta en medio?
+>
+> `R9-240` es Modo C en el emulador: solo con mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:** lo mismo que en el (q).
+
+**(x) Sesión 44: arreglar lo de la 43 — ya HECHO en la sesión 44, en la terminal y sin agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (x) y la sección 5), `detail/S43-revision-del-diff-s42.md` y, en `BUGS.md`, las entradas
@@ -1673,18 +1718,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 43 (2026-10-02).**
+**Medido al cerrar la sesión 44 (2026-10-02).**
 
-- **`main` = `origin/main` = `7139708`** (el checkpoint de la 42, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `1a77b78`). **CI verificado en el log:** run `37057170965`,
-  3 jobs verdes, Node v24.21.0, 368/4532, cero «failed to run». Las ramas de la 42 se borraron.
-- **Una rama de la 43, sin mergear a propósito y sin pushear:** `docs/review-s43-diff-s42` (el
-  checkpoint; no toca código). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
-  `main` la incluye.
-- **Los worktrees:** ninguno.
+- **`main` = `origin/main` = `a731c23`** (el checkpoint de la 43, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `1a77b78`). **CI verificado en el log:** run `37063248540`,
+  3 jobs verdes, Node v24.21.0, 368/4532, cero «failed to run». La rama de la 43 se borró.
+- **Dos ramas de la 44, sin mergear a propósito y sin pushear:** `fix/s44-arreglos-s43` (7 commits,
+  `3e35415`..`c429604`) y, encima, `docs/review-s44-fix-s43` (el checkpoint). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s44m`, se borró: la junction
+  primero, con `.Delete()`).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 43):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 44):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1938,6 +1984,14 @@ Alternativas legítimas:
   arreglo de `R9-242` valía solo dentro de ella.
 - **Un reloj viejo en una escritura propia rompe toda premisa de «más nueva que lo local» (sesión
   43, `R9-245`).** El respaldo restaurado lleva el `updatedAt` del archivo.
+- **Un arreglo de la sesión puede quitarle el caso a la prueba que la misma sesión acaba de escribir
+  (sesión 44, `R9-246`).** La de la lectura sola dejó de caer con su pieza dos commits después, con
+  `R9-247`. Re-medí las piezas de los commits anteriores tras cada arreglo, no solo en la matriz.
+- **Una guarda agregada por un veredicto incierto también se mide (sesión 44, `R9-251`).** Si su
+  revert no tumba nada, escribí qué muestra la sonda (el mecanismo) y qué falta (el daño).
+- **«Equivalente por construcción» se razona con la cadena entera (sesión 44).** El `clear()` del
+  piso en `stop()` parecía higiene. Una entrega tardía lee `uid` nulo, ninguna anotación casa, y
+  nunca llega a leer el piso.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
