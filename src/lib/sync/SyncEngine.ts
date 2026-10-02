@@ -3208,6 +3208,15 @@ export class SyncEngine {
           );
           if (doneIdx >= 0 && this.queue[doneIdx] === item) {
             this.queue.splice(doneIdx, 1);
+          } else if (doneIdx >= 0 && isCurrent()) {
+            // R9-242 — the entry that replaced this one carries its clock and
+            // the ones before it (`PendingWrite.own`). The cloud's copy is this
+            // write now: only its clock stays, like `recentAcked`. With the
+            // older ones, a backup the other device restored with one of them
+            // passed for mine while the entry waited, and the entry went up
+            // over it. Changed in place (R9-11), like `retireOwn`. A rejected
+            // push leaves them: the cloud kept one of them.
+            this.queue[doneIdx].own = withStamp([], updatedAtOf(item.data));
           }
           // R9-104 — the push landed where it was issued, in `item.uid`'s
           // cloud, so taking it off the queue above is right even after a

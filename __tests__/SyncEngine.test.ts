@@ -10160,6 +10160,155 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
     engine.stop();
   });
+
+  // R9-242 — W1 queda en vuelo y el usuario edita W2: la entrada de W2 lleva
+  // en su `own` el reloj de W1 y el de W0. Sin red, W1 se confirma, y la
+  // entrada sigue esperando. `mio`: el otro restaura W0; `otro` (CONTROL): lo
+  // mismo con el reloj del otro (+1 ms). Los dos tienen que dar lo mismo.
+  it('R9-242: W1 sube en vuelo mientras edito W2, y sin red W2 espera en la cola; el otro restaura un respaldo con W0: dentro de los 30 s, «w2 mio» contra «w0 mio»', async () => {
+    const T = Date.now() - HOUR;
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-242-${modo}`;
+      const {engine, localStore} = await engineFor(uid, T);
+      const W0 = {value: 'w0 mio', updatedAt: T + 10_000};
+      localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W0);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let n = 0;
+      mockSetGate = (_p, id) =>
+        id === 'doc-c' && n++ === 0 ? puerta : undefined;
+      for (const w of [
+        {value: 'w1 mio', updatedAt: T + 20_000},
+        {value: 'w2 mio', updatedAt: T + 30_000},
+      ]) {
+        localStore.set('doc-c', w as unknown as SyncEntity<TestEntity>);
+        engine.queueWrite('test', 'doc-c', w);
+        await settle();
+      }
+      engine.__setOnlineForTests(false);
+      abrir();
+      await settle();
+      const nubeW1 = await nubeDe(uid, 'doc-c');
+      const own = engine
+        .__getQueueForTests()
+        .map(q => (q.own ?? []).map(t => t - T));
+      write(uid, 'doc-c', {
+        ...W0,
+        updatedAt: W0.updatedAt + (modo === 'otro' ? 1 : 0),
+      });
+      await settle();
+      const conflictos = parejas(engine);
+      mockSetGate = null;
+      engine.__setOnlineForTests(true);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      const r = {
+        nubeW1, // CONTROL: W1 subio
+        own,
+        conflictos,
+        // W2 sube con el conflicto a la vista: keepTheirs lo deshace (R9-161).
+        alFinal: [parejas(engine), await nubeDe(uid, 'doc-c')],
+      };
+      engine.stop();
+      return r;
+    };
+
+    // Pre-fix: el ack de W1 no tocaba la entrada que la reemplazo, y su `own`
+    // seguia en [W0, W1]: el respaldo con W0 pasaba por «mio» por la cola, sin
+    // conflicto, y al volver la red W2 subia encima sin que nadie eligiera.
+    const esperado = {
+      nubeW1: 'w1 mio',
+      own: [[20_000]],
+      conflictos: [['w2 mio', 'w0 mio']],
+      alFinal: [[['w2 mio', 'w0 mio']], 'w2 mio'],
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
+
+  // R9-242 — lo mismo con el doc en conflicto: W2 sube (sello [W2]), W3 queda
+  // en vuelo y el usuario edita W4 (`own` [W2, W3]). Sin red, W3 se confirma
+  // (sello [W3]). El otro restaura W2 (`mio`) o lo mismo con su reloj (+1 ms,
+  // `otro`, CONTROL); despues keepTheirs, y la red vuelve.
+  it('R9-242: con el doc en conflicto, W3 sube en vuelo mientras edito W4, y sin red W4 espera; el otro restaura un respaldo con W2: pasa a ser «su version», y keepTheirs deja local y nube en W2', async () => {
+    const T = Date.now() - HOUR;
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-242-conflicto-${modo}`;
+      const L = {value: 'lo mio', updatedAt: T + 60_000};
+      const R = {value: 'lo suyo', updatedAt: T + 65_000};
+      const {engine, localStore} = await conflictFor(uid, T, L, R);
+      const W2 = {value: 'w2', updatedAt: T + 100_000};
+      localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W2);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let n = 0;
+      mockSetGate = (_p, id) =>
+        id === 'doc-c' && n++ === 0 ? puerta : undefined;
+      for (const w of [
+        {value: 'w3 mio', updatedAt: T + 110_000},
+        {value: 'w4 mio', updatedAt: T + 115_000},
+      ]) {
+        localStore.set('doc-c', w as unknown as SyncEntity<TestEntity>);
+        engine.queueWrite('test', 'doc-c', w);
+        await settle();
+      }
+      engine.__setOnlineForTests(false);
+      abrir();
+      await settle();
+      const nubeW3 = await nubeDe(uid, 'doc-c');
+      const own = engine
+        .__getQueueForTests()
+        .map(q => (q.own ?? []).map(t => t - T));
+      write(uid, 'doc-c', {
+        ...W2,
+        updatedAt: W2.updatedAt + (modo === 'otro' ? 1 : 0),
+      });
+      await settle();
+      const suya = parejas(engine);
+      await engine.resolveConflict('test__doc-c', 'keepTheirs');
+      await settle();
+      mockSetGate = null;
+      engine.__setOnlineForTests(true);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      const r = {
+        nubeW3, // CONTROL: W3 subio
+        own,
+        suya,
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      };
+      engine.stop();
+      return r;
+    };
+
+    // Pre-fix: la entrada de W4 seguia con `own` [W2, W3], y el respaldo con
+    // W2 pasaba por «mio» por la cola: «su version» seguia «lo suyo», y
+    // keepTheirs la subia encima del respaldo.
+    const esperado = {
+      nubeW3: 'w3 mio',
+      own: [[110_000]],
+      suya: [['lo mio', 'w2']],
+      local: 'w2',
+      nube: 'w2',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
