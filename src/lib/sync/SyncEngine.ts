@@ -1561,7 +1561,10 @@ export class SyncEngine {
           // echo left the query), moving the mark to it made a restart show
           // «mine» against «mine» (`remoteTs === heldAt`, R9-181), and keeping
           // «theirs» there dropped the newer edit. It is settled, as before
-          // R9-185.
+          // R9-185. As far as `isOwnCopy` can tell (R9-230): a session that
+          // could not read the own stamps (R9-208) takes one of its own for
+          // the other's and moves the mark to it; once the stamps are read,
+          // it settles by LWW (R9-219).
           //
           // R9-192 — the conflict still waiting in memory shows that copy as
           // «theirs» too. It kept showing the one the mark had just left, a
