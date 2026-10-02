@@ -512,7 +512,8 @@
 > `2d8eb49`, CI verde en el log, run `36974151089`, 368/4526).
 >
 > **Sesión 42 (2026-10-02): ARREGLOS de lo de la 41**, solo en la terminal y sin agentes. Rama
-> `fix/s42-arreglos-s41` (5 commits, `7c8c0fa`..`1a77b78`), sin mergear hasta el OK de Victor.
+> `fix/s42-arreglos-s41` (5 commits, `7c8c0fa`..`1a77b78`), mergeada y pusheada con el OK de Victor
+> (`main` = `7139708`, CI verde en el log, run `37057170965`, 368/4532).
 >
 > - **Cerrados:** `R9-242` (`H41own`: el ack de una subida reemplazada deja en la entrada viva solo
 >   su reloj), `R9-234` (la relectura de la tabla de sellos no toma un doc con sellos en memoria ni
@@ -527,6 +528,26 @@
 > - **La matriz entera:** 150 piezas, control 0/256 (las 8 ausentes de siempre); contra la de la 40, 120 de 150 iguales (9 nuevas, todas caen salvo `R234mem`; el resto, pruebas nuevas que caen). De las viejas, solo `S40-R238` baja a 0 (de 2): `R9-246`. Dos anclas viejas se rehicieron (`S34-208unionPoda` y `S40-R238`).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **246**. Detalle: `detail/S42-arreglos-s41.md`.
+>
+> **Sesión 43 (2026-10-02): revisión del diff de la 42**, solo en la terminal, sin agentes y sin
+> tocar código. Rama `docs/review-s43-diff-s42`, sin mergear hasta el OK de Victor.
+>
+> - **4 nuevos, todos P3.** Ya existían (medido con el motor de `e9d6e89`): `R9-247` (la reversión
+>   de un rechazo que vuelve a una copia del otro bajo el piso; con la cadena ocupada, el respaldo
+>   con mi último reloj pasa por «mío»), `R9-248` (la reversión de un rechazo que DESCARTA la
+>   escritura retira el sello de mi respaldo: «lo mío contra lo mío») y `R9-249` (lo que queda de
+>   `R9-242` tras un `stop()`). De la 42: `R9-250` (`ownRetired` anota, desde la llegada, el reloj de
+>   la copia que trae el `removed`; sin daño construible).
+> - **`R9-245`, diagnosticado:** un respaldo restaurado lleva el reloj viejo del archivo, y la rama
+>   del conflicto retenido toma una copia «más nueva» sin preguntar si es mía. Al reintentarse, sin
+>   conflicto, local y nube quedan distintos para siempre.
+> - **`R9-246`:** cada guarda tiene un orden en que decide sola, con daño (`S43-1` y `S43-5`).
+> - **Cuatro hipótesis medidas** (`H43suelo`, `H43drop`, `H43aparcada`, `H43propia`): cada una
+>   cierra su sonda, y la suite de sync pasa 256/256 (`H43suelo` y `H43drop`, también juntas). Sin
+>   la matriz: no hubo cambio de código.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **250**. Detalle:
+> `detail/S43-revision-del-diff-s42.md`.
 
 ---
 
@@ -4196,6 +4217,15 @@ pending.remoteVersion.updatedAt`.
       sin prueba propia: dice `R9-239` directamente, y sin ella habría que unir (el daño de `S41-6`) o
       pisar la memoria con el disco. Juntas caen (corolario 50). **Para la 43:** buscar un orden en
       que decida sola.
+  - **Nota de la sesión 43:**
+    - **`R234mem` decide sola** en el orden de `R9-230` (mi propia copia retirada al enganchar, y L4
+      confirmada antes de la relectura): tras reiniciar, el conflicto desaparece en silencio
+      (`S43-5`). Es la prueba que le faltaba: `R9-246`.
+    - **El respaldo que el otro restaura con mi reloj después de una copia suya con la app cerrada**
+      (la forma de `R9-237`): la tabla solo puede devolver el reloj del último ack (`R9-239`), y un
+      respaldo con ese reloj trae mis datos. Es el límite por diseño de `R9-239`; sin daño nuevo.
+    - **La retirada de la lectura anota la copia leída** (la del otro), y bien. **La de la llegada**
+      (`R9-243`) anota la copia que trae el `removed`, a menudo mía: `R9-250`, sin daño construible.
 
 - **`R9-235` (S38, `SyncEngine` / cola — P3) — 🐛 una edición de la misma cuenta hecha entre `stop()` y
   `start()` no entra en la cola: local y nube quedan distintos, en silencio.** MEDIDO en el mock
@@ -4460,6 +4490,10 @@ pending.remoteVersion.updatedAt`.
       entrada aparcada no cambia, igual que `noteOwnAcked`. Si la misma cuenta vuelve a entrar con la
       entrada esperando, un respaldo con W0 pasa por «mío» por la cola. Es la ventana del arranque en
       frío de `R9-235`.
+  - **Nota de la sesión 43:** lo leído, medido: `R9-249` (`S43-6`). Lo demás que lee el `own` de una
+    entrada después del ack de otra (`isOwnCopy`, `retireOwn`, el pliegue de `upsertQueueEntry`,
+    `persistQueue`): una edición nueva pliega [W1] y el reloj de W2, que nunca llegó a la nube; sin
+    efecto.
 
 - **`R9-243` (S41, `SyncEngine` / conflictos — P3) — 🐛 `R9-238` sigue abierto con la cadena de lotes
   ocupada: la retirada de la lectura corre al PROCESAR el `removed`, y el respaldo con W3 LLEGA antes.
@@ -4502,6 +4536,23 @@ pending.remoteVersion.updatedAt`.
       trajera esa misma copia no retiraría (lo de antes). Si el puente de RNFirebase entregara la
       reversión antes que el rechazo (`R9-240`), la escritura sigue en vuelo y tampoco retira (lo de
       antes).
+  - **Nota de la sesión 43** (revisión del diff, `detail/S43-revision-del-diff-s42.md`):
+    - Entre el rechazo y su reversión no llega otra entrega del doc (en el mock ni en el SDK web: la
+      vista con la escritura encima no cambia). Pero **la reversión misma puede traer un cambio del
+      otro**: si R2, bajo el piso, llegó al servidor con mi escritura en vuelo, la reversión vuelve a
+      R2 como `removed` con mi payload, y no retira al llegar. Con la cadena ocupada: `R9-247`.
+    - **Un rechazo que DESCARTA la escritura:** su reversión ya no es «mía» por la cola, y retira al
+      llegar: `R9-248`.
+    - Una anotación que no se consume (el payload igual a la nube) deja decidir a la lectura, como en
+      `R9-247`. Tras un `stop()`, el listener nuevo entrega el doc como `added` antes que cualquier
+      `removed`, y eso la consume.
+    - **Otros `removed` sin nada en vuelo que son míos:** los borrados de `cleanupOldReviewEvents`
+      (`reviewEvents` tiene listener) y el eco de una escritura que sale después de un `stop()`
+      (`pushing` ya es `null`, `R9-177`). Leído: retiran relojes de un doc que ya no existe o que la
+      nube ya dejó atrás; sin daño.
+    - **¿Un `removed` del otro con mi escritura en vuelo? No, por lectura:** la vista lleva mi
+      payload completo encima; una escritura del otro con un campo de una versión más nueva sale
+      como `modified`. El puente, sin medir (`R9-240`).
 
 - **`R9-244` (S41, pruebas / `R9-160` — P3) — 🐛 la prueba «el eco de una edición propia durante el
   conflicto» entrega dos copias que el SDK no levanta, y el eco tardío de verdad, en conflicto, no
@@ -4542,6 +4593,24 @@ pending.remoteVersion.updatedAt`.
     (`S42-3-motor40.out.txt`). Lo vio la sonda que midió la excepción «en vuelo» de `R9-243`.
   - Hace falta que el servidor rechace la escritura (reglas, datos inválidos), que es raro, y con un
     respaldo restaurado.
+  - **Diagnosticado en la sesión 43** (`_scratch/S43-sondas7.body.txt`, `S43-7`;
+    `S43-7-hoy.out.txt`). Una premisa, dos efectos: «una copia local con una escritura mía en la
+    cola es más nueva que cualquier copia de la nube», y un respaldo restaurado lleva el `updatedAt`
+    del archivo, más viejo.
+    - **Con el conflicto retenido,** tras reiniciar, la rama del conflicto retenido de
+      `applyRemoteChange` (`SyncEngine.ts:1973`) toma una copia más nueva que lo local sin preguntar
+      `isOwnCopy` («más nueva: el otro siguió escribiendo», `R9-160`). W1 es mía (su sello está en la
+      tabla) y aparece «mi respaldo» contra «w1 mio».
+    - **Sin conflicto,** LWW aplica W1 encima del respaldo restaurado, con su entrada esperando.
+    - **El reintento, medido:** sin conflicto, W0 llega a la nube y quedan local «w1 mio» y nube «mi
+      respaldo», para siempre y en silencio. Con conflicto, local y nube terminan en «mi respaldo», y
+      el conflicto «mi respaldo | w1 mio» sigue, con una «su versión» que no está en ningún lado.
+    - **Hipótesis, medida en parte** (`H43propia`, en `_scratch/S43-piezas.cjs.txt`): una copia MÍA
+      que llega con una escritura mía del doc en la cola no se aplica ni es conflicto: la de la cola
+      llega después (como `ownQueued` con la copia leída, `R9-176`). Cierra los dos casos (local y
+      nube en «mi respaldo», sin conflicto; `S43-7-H43propia.out.txt`), y la suite de sync pasa
+      256/256 (`S43-rev-H43propia.out.txt`). Con el conflicto, tras reiniciar se asienta, como el
+      respaldo propio de `R9-190`. Faltan la prueba y la matriz.
 
 - **`R9-246` (S42, `SyncEngine` / guardas — P3) — 🐛 dos guardas sin una prueba que las vea solas
   después de la 42: la retirada de la lectura de un `removed` (`R9-238`) y la guarda de memoria de la
@@ -4556,6 +4625,103 @@ pending.remoteVersion.updatedAt`.
     prueba de uno de los dos, o medir que no hay daño y quitarla (regla 37).
   - **`R234mem` da 0** (nueva): ver el cierre de `R9-234`.
   - **De la 42.**
+  - **Nota de la sesión 43:** las dos guardas tienen ya un orden en que deciden solas, con daño
+    visible (`_scratch/S43-sondas1.body.txt` y `S43-sondas5.body.txt`):
+    - **La retirada de la lectura** (`S43-1`): W1 sube; W2 sale y queda en vuelo; el otro escribe R2
+      bajo el piso; el servidor rechaza W2, y la reversión es un `removed` que trae W2 (no retira al
+      llegar: es la reversión). Solo la lectura ve R2. Sin la guarda (pieza `R238hoy`), `recentAcked`
+      sigue en [W1] y el respaldo del otro con W1 pasa por «mío», sin conflicto; hoy, y en el
+      control (+1 ms), «w2 mio» contra «w1 mio» (`S43-1-hoy.out.txt`, `S43-1-R238hoy.out.txt`).
+    - **La guarda de memoria** (`S43-5`): el orden de `R9-230`. El enganche entrega MI W3, que la
+      tabla ilegible no deja reconocer (la entrada de L4 sin `own`), y lo retira; L4 sube antes de la
+      relectura (sello [L4]); el otro restaura W3, y la app se reinicia. Sin la guarda (`R234mem`),
+      la relectura une [W3, L4] y, tras reiniciar, el conflicto desaparece en silencio (local «lo mio
+      4», nube «w3 mio»); hoy, y en el control, sigue. Con keepTheirs en vez del reinicio no se ve
+      nada (`S43-4`: «su versión» ya es W3). El motor de `e9d6e89` da el daño (es el de `R9-234`).
+    - **Propuesta:** que las dos sondas sean las pruebas (con el control en la misma aserción). Las
+      dos guardas se quedan. El `removed` sintético de `R9-186` no se construyó.
+
+- **`R9-247` (S43, `SyncEngine` / conflictos — P3) — 🐛 la excepción de `R9-243` para la reversión de
+  un rechazo exime también la escritura del otro que esa reversión TRAE: si R2 (bajo el piso) llegó
+  al servidor con mi escritura en vuelo, la reversión vuelve a R2 y sale como `removed` con mi
+  payload rechazado. No retira al llegar, y con la cadena de lotes ocupada el respaldo del otro con
+  mi último reloj llega antes de la lectura y pasa por «mío».** MEDIDO en el mock
+  (`_scratch/S43-sondas2.body.txt`, `S43-2`; `S43-2-hoy.out.txt`).
+  - El caso: W1 sube (`recentAcked` [W1]); W2 sale y queda en vuelo; el otro escribe R2 bajo el piso
+    (la vista lleva W2 encima: no llega nada); el servidor rechaza W2. La reversión es un `removed`
+    que trae W2 (igual a `rejectedAwaitingRevert`), y la nube queda en R2. En el SDK es el mismo
+    orden: R2 llega por el watch con W2 pendiente, y el rechazo devuelve la vista a R2.
+  - **Con la cadena libre** la lectura de ese `removed` encuentra R2 y retira (`S43-1`, ver `R9-246`).
+  - **Con la cadena ocupada** (`S43-2`), la reversión y el respaldo del otro con W1 llegan y esperan;
+    el respaldo se juzga «mío» al llegar, y la lectura ya lo encuentra a él. `mio`: sin conflicto
+    (local «w2 mio», nube «w1 mio», y W2 en la cola subirá encima); el control (+1 ms) da «w2 mio»
+    contra «w1 mio».
+  - **¿De la 42? No: ya existía.** El motor de `e9d6e89` da lo mismo (`S43-12-motor40.out.txt`).
+    Es la lección de `R9-243` en la reversión: la excepción mira lo que trae el `removed` (mi
+    payload), y la reversión vuelve a la copia de la nube, que puede ser del otro. El comentario de
+    `rejectedAwaitingRevert` («a write of this device, not a change of the other one») no dice la
+    verdad entera.
+  - **Hipótesis, medida en parte** (`H43suelo`, en `_scratch/S43-piezas.cjs.txt`): una reversión
+    `removed` dice que la nube volvió a una copia bajo el piso (o a ninguna); si todos mis relojes del
+    doc (`recentAcked`, el `own` de la entrada, `ownStamps`) están en el piso o encima, ninguno la
+    nombra, y se retiran al LLEGAR. Mi propio respaldo (`R9-190`) queda fuera: su reloj está bajo el
+    piso. Cierra `S43-2` y no cambia `S43-1` (`S43-12-H43suelo.out.txt`); la suite de sync pasa
+    256/256 (`S43-rev-H43suelo.out.txt`), también junto con `H43drop` (`S43-rev-juntas.out.txt`).
+    Necesita el piso de la query en el motor (la pieza lo guarda al enganchar). Faltan la prueba y
+    la matriz.
+
+- **`R9-248` (S43, `SyncEngine` / conflictos — P3) — 🐛 cuando el rechazo DESCARTA la escritura
+  (`MAX_RETRY_ATTEMPTS`), su reversión llega «no mía» (la entrada ya salió de la cola) y retira al
+  llegar mis relojes. Con mi propio respaldo en la nube y el conflicto retenido, la lectura le pasa
+  la marca a mi respaldo: «lo mío contra lo mío», en la sesión y tras reiniciar.** MEDIDO en el mock
+  (`_scratch/S43-sondas3.body.txt`, `S43-3`; `S43-3-hoy.out.txt`).
+  - Es la prueba de `R9-190` (mi respaldo W0 bajo el piso, con el conflicto retenido; W0 se confirma:
+    sello [W0]) con el rechazo de W2 en su octavo intento: se arman `rejectedAwaitingRevert` y
+    `droppedAwaitingRevert`. La reversión (`removed`, con W2) no retira por la excepción de `R9-243`,
+    pero `isOwnCopy` ya no la reconoce (la entrada se descartó), y la retira la rama de siempre: el
+    sello de W0 se va. La lectura encuentra W0, que ya no es «mío», y con `justDropped` la marca
+    pasa a W0 (log de cada llegada, pieza `L43llega`).
+  - **Medido:** «lo mio | mi respaldo» en la sesión y «lo mio nuevo | mi respaldo» tras reiniciar. El
+    control (el rechazo de siempre, 1 intento) no muestra nada: sello [W0], sin marca.
+  - **¿De la 42? No: ya existía** (`S43-3-motor40.out.txt`).
+  - **Hipótesis, medida en parte** (`H43drop`): una entrega que trae el payload rechazado es mía,
+    aunque el rechazo la haya descartado (`rejectedAt === updatedAtOf(copy)` antes de `isOwnCopy`).
+    Cierra `S43-3` (`S43-3-H43drop.out.txt`), y la suite de sync pasa 256/256
+    (`S43-rev-H43drop.out.txt`), también con `H43suelo`. Faltan la prueba y la matriz.
+
+- **`R9-249` (S43, `SyncEngine` / cola — P3) — 🐛 lo que queda de `R9-242`: su arreglo corre solo con
+  `isCurrent()`. Si un `stop()` corta la sesión con la subida reemplazada en vuelo y el servidor la
+  confirma después, el `own` de la entrada aparcada sigue en [W0, W1]; la misma cuenta vuelve a
+  entrar, y el respaldo del otro con W0 pasa por «mío» por la cola.** MEDIDO en el mock
+  (`_scratch/S43-sondas6.body.txt`, `S43-6`; `S43-6-hoy.out.txt`).
+  - La 42 lo leyó en la entrada, sin medir. **Medido:** `own` [W0, W1] tras el reinicio; `mio`, sin
+    conflicto (W2 subirá encima del respaldo); el control (+1 ms), «w2 mio» contra «w0 mio».
+  - **¿De la 42? No:** el motor de `e9d6e89` da lo mismo (`S43-456-motor40.out.txt`). Es el daño de
+    `R9-242`, que la 42 cerró solo dentro de la sesión. El comentario de `PendingWrite.own`
+    (`types.ts`: «or the server takes the one in flight: then only its clock stays») no vale después
+    de un `stop()`.
+  - **Hipótesis, medida en parte** (`H43aparcada`): sin el `isCurrent()` de esa rama
+    (`SyncEngine.ts:3277`). El ack dice que la escritura llegó a la nube de `item.uid`, sea cual sea
+    la sesión, y la entrada es de ese uid (`isOwnCopy` filtra por uid). Cierra `S43-6`
+    (`S43-6-H43aparcada.out.txt`), y la suite de sync pasa 256/256 (`S43-rev-H43aparcada.out.txt`).
+    El `noteOwnAcked` de `stop()` no puede hacer lo mismo: si la subida no llega, W0 es la copia de
+    la nube. Faltan la prueba y la matriz.
+
+- **`R9-250` (S43, `SyncEngine` / comentario — P3) — 🐛 `ownRetired` dice guardar «the clocks of the
+  copies that retired this device's own stamps», y la relectura conserva los sellos de un doc si la
+  tabla tiene esos relojes (la copia era mía, `R9-230`). La retirada al llegar de `R9-243` anota el
+  reloj de la copia que TRAE el `removed` (la última que casaba, a menudo mía y con su reloj en la
+  tabla), no el de la escritura que sacó el doc.** LEÍDO, sin daño construible.
+  - Con la tabla ilegible, un `removed` del otro que trae W3 (en la tabla) anota W3, y la relectura
+    lo toma por la retirada equivocada de `R9-230`: conserva [W3].
+  - **Sin daño, por lectura:** la lectura de ese mismo `removed` encuentra la copia del otro y anota
+    su reloj (que la tabla no tiene), o retira otra vez si la relectura ya volvió. Si la lectura
+    falla, para que un respaldo con W3 cambie algo «su versión» tiene que ser otra copia que W3, y
+    toda copia ajena que llegó a ser «su versión» pasó por `retireOwn` y anotó un reloj que la tabla
+    no tiene.
+  - **De la 42** (`R9-234` y `R9-243` juntas). **Propuesta:** que esa rama anote un reloj que ninguna
+    tabla tiene (un `removed` sin nada en vuelo que no es una reversión no es una copia mía), y que el
+    comentario diga las dos fuentes.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

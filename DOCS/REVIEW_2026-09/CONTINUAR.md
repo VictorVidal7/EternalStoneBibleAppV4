@@ -1,14 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 42.** La 42 hizo el (v): arregló lo de la
-> 41 en la terminal, sin agentes. Cerró `R9-242`, `R9-234` (con lo que quedaba de `R9-239`),
-> `R9-244`, `R9-243` y el comentario de `R9-229`, y registró 2 nuevos: `R9-245` (medido, sin
-> diagnosticar, ya existía) y `R9-246` (dos guardas sin prueba propia tras la 42).
+> **Última actualización: 2026-10-02, fin de la sesión 43.** La 43 hizo el (w): revisó el diff de
+> la 42 en la terminal, sin agentes y sin tocar código. Registró 4 nuevos, todos P3 (`R9-247`..
+> `R9-250`; tres ya existían), diagnosticó `R9-245` y le dio a `R9-246` una sonda por guarda.
 >
-> La 41 ya está mergeada y pusheada (`main` = `2d8eb49`, CI verde en el log, run `36974151089`,
-> 368/4526). Las ramas de la 42 (`fix/s42-arreglos-s41` y, encima, `docs/review-s42-fix-s41`) van
-> **sin mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 246 hallazgos. **Lo
-> siguiente es el mensaje (w): revisar el diff de la 42.**
+> La 42 ya está mergeada y pusheada (`main` = `7139708`, CI verde en el log, run `37057170965`,
+> 368/4532). La rama de la 43 (`docs/review-s43-diff-s42`) va **sin mergear hasta el OK de
+> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 250 hallazgos. **Lo siguiente es el mensaje
+> (x): arreglar lo de la 43.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -472,9 +471,46 @@ chat y sin agentes), la revisión del diff de la 36 (la (q), sesión 37, en la t
 que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos (la (r), sesión 38,
 en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual), y sus arreglos (la (t), sesión 40,
 igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arreglos (la (v), sesión
-42, igual). **Lo siguiente es el (w).**
+42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual). **Lo siguiente es el (x).**
 
-**(w) Sesión 43: revisar el diff de la 42.**
+**(x) Sesión 44: arreglar lo de la 43.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (x) y la sección 5), `detail/S43-revision-del-diff-s42.md` y, en `BUGS.md`, las entradas
+> `R9-247`..`R9-250` y las notas de la 43 al final de `R9-245`, `R9-246`, `R9-243`, `R9-242` y
+> `R9-234`. En la memoria, la de la sesión 43 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s43-diff-s42`, pedime el OK para el fast-forward.
+>   Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 250.
+> - **Las herramientas** (en `_scratch`): las piezas `S43-piezas.cjs.txt` (reexporta las de la 42;
+>   trae `R238hoy`, el log `L43llega` y las hipótesis `H43suelo`, `H43drop`, `H43aparcada` y
+>   `H43propia`), la base `S42-SyncEngine-R243.ts.txt` (= el motor de `1a77b78`), las sondas
+>   `S43-sondas1..7.body.txt`, `S38-sonda.cjs.txt`, `S43-motor.cjs.txt` (como `S41-motor`, pero
+>   restaura la base de hoy; commiteá antes), `S34-rev.cjs.txt` y la matriz `S42-matriz.cjs.txt`.
+>   **`S32_BASE` y `S34_PIEZAS`, con la ruta ABSOLUTA.**
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla lo de la 43**, un commit por hallazgo, cada prueba vista caer con su pieza:
+>
+> - `R9-246`: las pruebas de las dos guardas, de `S43-1` (cae con `R238hoy`) y `S43-5` (cae con
+>   `R234mem`);
+> - `R9-245`, con `H43propia` (medida: cierra `S43-7` y la suite pasa 256/256): la prueba, de `S43-7`;
+> - `R9-247` (`H43suelo`, cierra `S43-2`) y `R9-248` (`H43drop`, cierra `S43-3`), medidas también
+>   juntas; `H43suelo` necesita el piso de la query en el motor: decidí dónde vive;
+> - `R9-249`, con `H43aparcada` (cierra `S43-6`);
+> - `R9-250`: el comentario de `ownRetired` y lo que anota la retirada al llegar.
+>
+> Después, la matriz entera. `R9-240` es Modo C en el emulador: solo con mi OK.
+
+**(w) Sesión 43: revisar el diff de la 42 — ya HECHO en la sesión 43, en la terminal y sin agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (w) y la sección 5), `detail/S42-arreglos-s41.md` y, en `BUGS.md`, los cierres de la 42
@@ -1637,18 +1673,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 42 (2026-10-02).**
+**Medido al cerrar la sesión 43 (2026-10-02).**
 
-- **`main` = `origin/main` = `2d8eb49`** (el checkpoint de la 41, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `e9d6e89`). **CI verificado en el log:** run `36974151089`,
-  3 jobs verdes, Node v24.21.0, 368/4526, cero «failed to run». La rama de la 41 se borró.
-- **Dos ramas de la 42, sin mergear a propósito y sin pushear:** `fix/s42-arreglos-s41` (5 commits,
-  `7c8c0fa`..`1a77b78`) y, encima, `docs/review-s42-fix-s41` (el checkpoint). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s42m`, se borró al cerrar).
+- **`main` = `origin/main` = `7139708`** (el checkpoint de la 42, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `1a77b78`). **CI verificado en el log:** run `37057170965`,
+  3 jobs verdes, Node v24.21.0, 368/4532, cero «failed to run». Las ramas de la 42 se borraron.
+- **Una rama de la 43, sin mergear a propósito y sin pushear:** `docs/review-s43-diff-s42` (el
+  checkpoint; no toca código). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
+  `main` la incluye.
+- **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 42):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 43):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1892,6 +1928,16 @@ Alternativas legítimas:
 - **`S41-motor` restaura su base encima de `SyncEngine.ts` también cuando falla (sesión 42).** Toma
   el motor por NOMBRE dentro de `_scratch`; con la ruta absoluta falla, y borró un arreglo sin
   commitear. Commiteá antes de correr una sonda con otro motor.
+- **Una reversión es también una entrega de la nube (sesión 43, `R9-247`).** Vuelve a la copia que
+  tiene el servidor, y esa copia puede ser del otro: una excepción que mira lo que trae el
+  `removed` (mi payload rechazado) exime también la escritura del otro que viene con él.
+- **Una escritura que el rechazo descarta deja de ser «mía» antes de que llegue su reversión
+  (sesión 43, `R9-248`).** El descarte la saca de la cola, e `isOwnCopy` lee la cola.
+- **Un arreglo de un hecho del servidor no se guarda con `isCurrent()` (sesión 43, `R9-249`).** El
+  ack dice que la escritura llegó a la nube de su dueño, sea cual sea la sesión; con la guarda, el
+  arreglo de `R9-242` valía solo dentro de ella.
+- **Un reloj viejo en una escritura propia rompe toda premisa de «más nueva que lo local» (sesión
+  43, `R9-245`).** El respaldo restaurado lleva el `updatedAt` del archivo.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

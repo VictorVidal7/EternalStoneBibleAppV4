@@ -530,8 +530,23 @@
 > - **La matriz entera:** 150 piezas, control 0/256 (las 8 ausentes de siempre); contra la de la 40, 120 de 150 iguales (9 nuevas, todas caen salvo `R234mem`; el resto, pruebas nuevas que caen). De las viejas, solo `S40-R238` baja a 0 (de 2): `R9-246`. Dos anclas viejas se rehicieron (`S34-208unionPoda` y `S40-R238`).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **246**. Ramas `fix/s42-arreglos-s41` y
-> `docs/review-s42-fix-s41`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S42-arreglos-s41.md`.
+> `docs/review-s42-fix-s41`: mergeadas y pusheadas con el OK de Victor (`main` = `7139708`, CI verde
+> en el log, run `37057170965`, 368/4532). Detalle: `detail/S42-arreglos-s41.md`.
+>
+> **Sesión 43 (2026-10-02): revisión del diff de la 42**, solo en la terminal, sin agentes y sin
+> tocar código.
+>
+> - **4 nuevos, todos P3:** `R9-247` (la reversión de un rechazo que vuelve a una copia del otro bajo
+>   el piso: con la cadena ocupada, el respaldo con mi último reloj pasa por «mío»), `R9-248` (la
+>   reversión de un rechazo que DESCARTA la escritura le pasa la marca a mi propio respaldo) y
+>   `R9-249` (lo que queda de `R9-242` tras un `stop()`), que ya existían; y `R9-250` (un comentario
+>   de la 42, sin daño construible).
+> - **`R9-245`, diagnosticado** (el reloj viejo del respaldo restaurado y la rama del conflicto
+>   retenido), y **`R9-246`**, con un orden para cada guarda en que decide sola.
+> - **Cuatro hipótesis medidas**, cada una con su sonda cerrada y la suite de sync en 256/256.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **250**. Rama `docs/review-s43-diff-s42`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S43-revision-del-diff-s42.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1029,6 +1044,23 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
+  tocar código; arrancó con `_scratch/S43-PROMPT.md`.
+  - **Cómo se trabajó:** una sonda por pregunta (`_scratch/S43-sondas*.body.txt`), cada una con su
+    control en el mismo `it`; las piezas y cuatro hipótesis en `S43-piezas.cjs.txt`; cada «¿de la
+    42?» medido con el motor de `e9d6e89` (`S43-motor.cjs.txt`).
+  - **Resultado:** 4 nuevos (`R9-247`..`R9-250`); `R9-245`, diagnosticado; `R9-246`, con sus dos
+    sondas. Queda 1 P0 abierto.
+  - **Detalle: `detail/S43-revision-del-diff-s42.md`.**
+  - **Las lecciones:**
+    - **una reversión es también una entrega de la nube:** vuelve a la copia del servidor, que puede
+      ser del otro (`R9-247`);
+    - **una escritura que el rechazo descarta deja de ser «mía» antes de que llegue su reversión**
+      (`R9-248`);
+    - **un arreglo de un hecho del servidor no se guarda con `isCurrent()`** (`R9-249`);
+    - **un reloj viejo en una escritura propia rompe toda premisa de «más nueva que lo local»**
+      (`R9-245`).
 
 - **Sesión 42 — 2026-10-02. Arreglos de lo de la 41.** Solo en la terminal, sin agentes; arrancó
   con `_scratch/S42-PROMPT.md`.
