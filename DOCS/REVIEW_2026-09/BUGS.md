@@ -477,6 +477,19 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **240**. Detalle:
 > `detail/S39-revision-del-diff-s38.md`.
+>
+> **Sesión 40 (2026-10-01): ARREGLOS de lo de la 39**, solo en la terminal y sin agentes. Rama
+> `fix/s40-arreglos-s39` (5 commits, `d57807b`..`e9d6e89`).
+>
+> - **Cerrados:** `R9-237` (`recentAcked` con solo el último ack), `R9-239` (`ownStamps` igual),
+>   `R9-238` (la lectura de un `removed` retira como una copia ajena entregada), `R9-236` (las
+>   pruebas de `Fsettle` y de `Fresolve`, que NO era equivalente: se queda) y `R9-229` (la prueba
+>   del bucle).
+> - **1 nuevo:** `R9-241` (el veredicto de la llegada depende de que `firestore.ts` lea `change.doc`
+>   una vez; leído, sin daño hoy).
+> - **La matriz entera:** 141 piezas, control 0/250; contra la de la 38, 114 de 144 iguales (las 3 de `R9-207`, quitadas a propósito; 6 nuevas; el resto, pruebas nuevas que caen). `Fsettle` y `Fresolve` pasan de 0 a 1, y ninguna pieza vieja baja a 0.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **241**. Detalle: `detail/S40-arreglos-s39.md`.
 
 ---
 
@@ -4029,6 +4042,10 @@ pending.remoteVersion.updatedAt`.
     la lectura 60, la lectura de las tablas no vuelve nunca, así que un bucle se detiene en vez de
     matar jest. Con todo puesto hay 5 lecturas; con `altDiferir`, 60, y jest termina
     (`S39-bucle-*.out.txt`). Falta convertirla en prueba.
+  - **✅ La otra mitad, cerrada en la sesión 40** (`e9d6e89`): la prueba de `S39-7` (dos tablas
+    que fallan siempre; la relectura 60 no vuelve nunca). Con todo puesto, 5 lecturas y la cola sale
+    sin las tablas; con `altDiferir`, 60, y jest termina (`_scratch/S40-rev229-altDiferir.out.txt`).
+    **`R9-229` queda cerrado.**
 
 - **`R9-230` (S37, `SyncEngine` / comentario — P3) — 🐛 `R9-219` cerró solo uno de los dos textos que
   nombraba: la regla de `R9-190` sigue sin la excepción.** MEDIDO (A4).
@@ -4132,6 +4149,19 @@ pending.remoteVersion.updatedAt`.
       `R9-237`.** Cada una sola no cambia `S39-2`: la entrada de W1 lleva el reloj de W0 en `own`
       (`R9-194`), `fold` lo pliega y, sin `fold`, `acum` lo conserva. Quitadas juntas, `S39-2` da el
       conflicto y la suite de sync pasa 242/242 (`S39-rev-acumfold.out.txt`).
+  - **✅ Cerrado en la sesión 40** (`f83a7f8`), con dos pruebas y sin quitar ninguna guarda:
+    - **`Fsettle`:** `S39-5` usaba un respaldo de W2, que desde `R9-239` ya no es un sello: la sonda
+      había esquivado el caso (corolario 49). La prueba: el conflicto retenido se asienta con W3 (el
+      enganche la entrega), después subo L4, y el otro restaura W3 dentro de los 30 s. Cae con
+      `Fsettle` por `conflictos` (`_scratch/S40-rev236-Fsettle.out.txt`).
+    - **`Fresolve` NO es equivalente, contra lo que se leyó en la 39** («el eco de la resolución
+      asienta el doc»): `settle` corre al PROCESAR ese eco, y con la cadena de lotes ocupada
+      (`R9-175`) el ack de la resolución llega antes. Medido (`_scratch/S40-sondas6.body.txt`,
+      `S40-fresolve2-*.out.txt`): keepTheirs sube R encima de W3, y el otro restaura W3 en esa
+      ventana. Sin la guarda no hay conflicto (local «lo suyo», nube W3); el control, con el reloj
+      del otro, da el conflicto en los dos. Se queda, con esa prueba, que cae con `Fresolve` por
+      `conflictos` (`S40-rev236b-Fresolve.out.txt`). El comentario del motor dice ahora el porqué.
+    - `207fold` y `207acum` se fueron con `R9-237`.
 
 - **`R9-237` (S39, `SyncEngine` / conflictos — P3) — 🐛 de la 38: el respaldo que el otro restaura con
   una escritura MÍA más vieja del mismo proceso (W0, después de subir W1) pasa por «mía», porque
@@ -4156,6 +4186,16 @@ pending.remoteVersion.updatedAt`.
     re-enganche) traen la copia de la nube, que es la del último ack. Los ecos que se procesan tarde
     los cubre `ownArrived`. Y un reloj más viejo, después de un ack posterior, solo vuelve con un
     respaldo. Falta la matriz entera (corolario 46) y la prueba.
+  - **✅ Cerrado en la sesión 40** (`d57807b`): `recentAcked` guarda solo el reloj del último ack
+    (sin `207acum` ni `207fold`). Antes de quitarlas, la pregunta del `own` que `queueWrite` le pone
+    a la entrada nueva (`R9-194`): hace falta mientras la entrada espera (un reinicio), y no después
+    de su ack, porque lo que llega entonces es la escritura de la entrada. La prueba es `S39-2`, y
+    cae con las dos piezas de vuelta (`R237`) y con cada una sola (`R237acum`, `R237fold`), por
+    `conflictos` (`_scratch/S40-rev237-*.out.txt`).
+    - **Lo que deja:** con un solo reloj, el eco de W1 que se procesa después del ack de W2 depende
+      solo del veredicto de la llegada (`ownArrived`); antes lo cubría también la lista. En el
+      teléfono ese veredicto vale (leído: ver `R9-241`), y el orden de LLEGADA entre ese eco y un ack
+      posterior es la pregunta de `R9-240`.
 
 - **`R9-238` (S39, `SyncEngine` / conflictos — P3) — 🐛 la retirada de relojes de la 38 (`R9-220`,
   `R9-223`, `R9-224`) solo ocurre en el callback de `onSnapshot`. Una copia ajena que el motor ve
@@ -4177,6 +4217,16 @@ pending.remoteVersion.updatedAt`.
   - **Hipótesis, sin medir:** que la lectura de un `removed` retire lo mismo que `noteArrived` cuando
     la copia leída no es mía. La lectura ve la vista del SDK con mis escrituras encima (`R9-179`), así
     que una copia ajena leída es posterior a todo lo que el servidor tomó.
+  - **✅ Cerrado en la sesión 40** (`bfd0a57`): la retirada pasa a `retireOwn`, que llaman
+    `noteArrived` y la lectura de un `removed`, esta solo cuando la copia leída no es mía (sin esa
+    guarda, pieza `R238siempre`, caen las pruebas de `R9-190` y `R9-196`).
+    - **`S39-4` ya no mostraba el daño después de `R9-239`** (corolario 49): con un solo sello, el
+      respaldo de W2 ya no es «mío» por ninguna razón, aunque los sellos seguían sin retirarse
+      (`_scratch/S40-lectura-R239.out.txt`, `sellosAntes [110000]`). La prueba usa el caso que seguía
+      abierto: W3 sellado y L4 en la cola; R2 bajo el piso (llega como `removed`, y la lectura lo
+      encuentra); el respaldo de W3; ramas pendiente y proceso nuevo. Cae con `R238` por `suya` y por
+      los dos relojes en disco (`S40-rev238-*.out.txt`).
+    - **Leído:** el `removed` sintético de `R9-186` pasa por la misma lectura, y retira igual.
 
 - **`R9-239` (S39, `SyncEngine` / conflictos — P3) — 🐛 `R9-224` sigue abierto para el respaldo
   DIRECTO: con el doc en conflicto subo W2 y W3, y el otro restaura W2 sin escribir nada antes. La
@@ -4189,6 +4239,25 @@ pending.remoteVersion.updatedAt`.
     38 cerró la variante con R2; aquí, como en `R9-237`, la copia ajena es el respaldo mismo.
   - **Hipótesis, sin medir:** la misma de `R9-237`, para `ownStamps` (solo el último sello del doc).
     Hay que medirla contra `R9-193` y `R9-208` (los sellos tras reiniciar).
+  - **✅ Cerrado en la sesión 40** (`04f27e7`): `ownStamps` guarda solo el sello del último ack. La
+    hipótesis se midió antes: con la pieza, `S39-3` da el conflicto y la suite pasa 240/243
+    (`_scratch/S40-sellos-*.out.txt`, `S40-hip239-*.out.txt`). Las tres que caían, cada una por su
+    porqué:
+    - la de `R9-160` («el eco de una edición propia durante el conflicto») hacía llegar la copia de
+      L1 después del ack de L2, un orden que el SDK solo produce con un respaldo (el eco de L1 sale
+      al aplicar su `set`, y el `set` de L2 sale después del ack de L1). Ahora llega con L2 en la
+      cola, sin red;
+    - las dos de `R9-224` (su control `sellos`): con un solo sello, el respaldo de W2 ya no decidía
+      la retirada, y un respaldo de W3 con lo local en W3 es su eco por diseño (mismo reloj que lo
+      local). La prueba de `R9-224` pasa a tener L4 en la cola y el respaldo de W3, y cae con
+      `R224sellos`, `R224disco` y `R223own`. La vieja, sin R2, es la de `R9-239` (ramas pendiente y
+      proceso nuevo), que cae con `R239` (`S40-rev239-*.out.txt`).
+    - **Lo que queda, sin arreglar:** `rereadOwn` todavía une el último sello de disco con el de
+      memoria (la forma de `R9-234`), y una tabla escrita antes de este cambio puede traer varios
+      sellos por doc. Con la tabla ilegible al enganchar, o en la primera sesión tras actualizar, un
+      respaldo con un sello anterior pasa por «mío». Las piezas `H239load` + `H239join` lo cerrarían,
+      pero la prueba de `R9-218` perdería su discriminador (su sello sembrado está en el mismo doc
+      que el nuevo). Va con `R9-234`.
 
 - **`R9-240` (S39, `SyncEngine` / premisa de `noteArrived` — P3) — ❓ SIN MEDIR EN NATIVO: la premisa
   de `24a61bc` («una escritura en vuelo está encima de la vista del SDK, así que ninguna copia del
@@ -4208,6 +4277,26 @@ pending.remoteVersion.updatedAt`.
   - **Leído, `{merge: true}`: sin caso.** La vista con mi escritura en vuelo es la copia del servidor
     con mis campos encima, y cada payload lleva su `updatedAt` (todos los campos, con `null` en los
     opcionales: `R9-44`). Esa entrega trae mi reloj, así que pasa por «mía», y lo es.
+  - **Nota de la sesión 40:** con `R9-237` y `R9-239`, los relojes guardan solo el último ack. Si
+    en RNFirebase el eco de una escritura pudiera LLEGAR a JS después del ack de otra posterior, ya
+    no lo cubre la lista: pasaría por ajeno, retiraría y daría «lo mío contra lo mío». En el mock no
+    pasa (`setImmediate`). Al medir el orden en el emulador, medir también ese.
+
+- **`R9-241` (S40, pruebas / contrato de `firestore.ts` — P3) — 🐛 el veredicto de la llegada
+  (`ownArrived`, `R9-220`/`R9-222`) depende de que `change.doc.data()` devuelva el MISMO objeto en el
+  callback y al procesar el lote, y ninguna prueba lo vigila: el mock sustituye `firestore.ts`
+  entero.** LEÍDO, sin daño hoy.
+  - En RNFirebase 26.2.0, `DocumentChange.doc` es un getter que construye un `DocumentSnapshot`
+    nuevo en cada lectura, y su constructor vuelve a parsear los datos (`parseNativeMap`): dos
+    lecturas de `change.doc` dan dos objetos. Hoy no pasa nada porque `wrapQuerySnapshot`
+    (`src/lib/sync/firestore.ts`) lee `c.doc` una vez por cambio y envuelve ese snapshot, y el motor
+    llama a `docChanges()` una sola vez por entrega.
+  - Si el envoltorio cambiara (un getter, o `docChanges()` llamado dos veces), `ownArrived` dejaría
+    de casar en el teléfono, y con `R9-237`/`R9-239` el eco procesado tarde daría «lo mío contra lo
+    mío», con las pruebas en verde. **Propuesta:** una prueba de `firestore.ts` con un `DocumentChange`
+    de getter que fije que `change.doc.data()` es el mismo objeto en dos lecturas.
+  - De paso: un mock con `get doc()` dentro de un spread no lo modela, porque Babel evalúa el getter
+    al copiar las propiedades.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -482,8 +482,22 @@
 > - **Medido:** `R9-236` (a `Fsettle` le falta una prueba, `Fresolve` no decide, y `207fold` y
 >   `207acum` juntas son la causa de `R9-237`) y la forma de la prueba que falta para `R9-229`.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **240**. Rama `docs/review-s39-diff-s38`, sin
-> mergear hasta el OK. Detalle: `detail/S39-revision-del-diff-s38.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **240**. Rama `docs/review-s39-diff-s38`: mergeada
+> y pusheada con el OK de Victor (`main` = `4f1ce9a`, CI verde en el log, run `36960757105`,
+> 368/4518). Detalle: `detail/S39-revision-del-diff-s38.md`.
+>
+> **Sesión 40 (2026-10-01): ARREGLOS de lo de la 39**, solo en la terminal y sin agentes.
+>
+> - **Cerrados**, un commit por hallazgo en `fix/s40-arreglos-s39` (`d57807b`..`e9d6e89`): `R9-237`
+>   (`recentAcked` con solo el último ack), `R9-239` (`ownStamps` igual), `R9-238` (la lectura de un
+>   `removed` retira como una copia ajena entregada, en `retireOwn`), `R9-236` (las pruebas de
+>   `Fsettle` y de `Fresolve`, que NO era equivalente: se queda) y `R9-229` (la prueba del bucle).
+> - **1 nuevo:** `R9-241` (el veredicto de la llegada depende de que `firestore.ts` lea `change.doc`
+>   una sola vez; leído, sin daño hoy).
+> - **La matriz entera:** 141 piezas, control 0/250; contra la de la 38, 114 de 144 iguales (las 3 de `R9-207`, quitadas a propósito; 6 nuevas; el resto, pruebas nuevas que caen). `Fsettle` y `Fresolve` pasan de 0 a 1, y ninguna pieza vieja baja a 0.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **241**. Ramas `fix/s40-arreglos-s39` y
+> `docs/review-s40-fix-s39`, sin mergear hasta el OK. Detalle: `detail/S40-arreglos-s39.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -981,6 +995,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 40 — 2026-10-01. Arreglos de lo de la 39.** Solo en la terminal, sin agentes; arrancó
+  con `_scratch/S40-PROMPT.md`.
+  - **Cómo se trabajó:** un commit por hallazgo en `fix/s40-arreglos-s39`, cada prueba vista caer
+    con su pieza (`_scratch/S40-piezas.cjs.txt`) sobre la base de su commit; las hipótesis de
+    `R9-239` y de `Fresolve` medidas antes de decidir; la matriz entera en un worktree aparte.
+  - **Resultado:** 5 cerrados (`R9-229` entero), 1 nuevo (`R9-241`). Queda 1 P0 abierto.
+  - **Detalle: `detail/S40-arreglos-s39.md`.**
+  - **Las lecciones:**
+    - **una sonda puede dejar de mostrar su daño por un arreglo hermano de la misma sesión:**
+      `S39-4` y `S39-5` usaban un respaldo de W2, que `R9-239` dejó sin sello;
+    - **una guarda que «el eco siempre cubre» se mide con el eco esperando en la cadena:**
+      `Fresolve` decide entre el ack y el proceso del eco;
+    - **antes de afirmar una propiedad del SDK, leé también el envoltorio propio** (`firestore.ts`).
 
 - **Sesión 39 — 2026-10-01. Revisión del diff de la 38.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S39-PROMPT.md`.

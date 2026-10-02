@@ -1,14 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-01, fin de la sesión 39.** La 39 hizo el (s): revisó el diff de la
-> 38 en la terminal, sin agentes y sin tocar código. Registró 4 nuevos, todos P3: `R9-237` (lo abrió
-> la 38), `R9-238`, `R9-239` y `R9-240` (Modo C). También midió `R9-236` y la mitad abierta de
-> `R9-229`.
+> **Última actualización: 2026-10-01, fin de la sesión 40.** La 40 hizo el (t): arregló lo de la 39
+> en la terminal y sin agentes. Cerró `R9-237`, `R9-239`, `R9-238`, `R9-236` y `R9-229`, y registró
+> 1 nuevo, `R9-241` (leído, sin daño hoy). `Fresolve` NO se quitó: medida, decide.
 >
-> La 38 ya está mergeada y pusheada (`main` = `538409e`, CI verde en el log, run `36947870377`,
-> 368/4518). La rama de la 39 (`docs/review-s39-diff-s38`, solo docs) va **sin mergear hasta el OK
-> de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 240 hallazgos. **Lo siguiente es el mensaje
-> (t): arreglar lo de la 39.**
+> La 39 ya está mergeada y pusheada (`main` = `4f1ce9a`, CI verde en el log, run `36960757105`,
+> 368/4518). Las ramas de la 40 (`fix/s40-arreglos-s39` y `docs/review-s40-fix-s39`) van **sin
+> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 241 hallazgos. **Lo
+> siguiente es el mensaje (u): revisar el diff de la 40.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -470,10 +469,52 @@ terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igu
 34 (la (o), sesión 35, en la terminal y sin agentes), sus arreglos (la (p), sesión 36, en el mismo
 chat y sin agentes), la revisión del diff de la 36 (la (q), sesión 37, en la terminal con 7 agentes
 que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos (la (r), sesión 38,
-en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual).
-**Lo siguiente es el (t).**
+en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual), y sus arreglos (la (t), sesión 40,
+igual). **Lo siguiente es el (u).**
 
-**(t) Sesión 40: arreglar lo de la 39.**
+**(u) Sesión 41: revisar el diff de la 40.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (u) y la sección 5), `detail/S40-arreglos-s39.md` y, en `BUGS.md`, los cierres de la 40
+> (al final de `R9-229` y de `R9-236` a `R9-240`) y `R9-241`. En la memoria, la de la sesión 40 y la
+> regla fija de las pruebas (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s40-arreglos-s39` y `docs/review-s40-fix-s39`, pedime el OK
+>   para el fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 241.
+> - **Las herramientas** (en `_scratch`): las piezas `S40-piezas.cjs.txt` (reexporta las de la 39 y
+>   la 38), la última base `S40-SyncEngine-R236.ts.txt` (= `f83a7f8`, que es también el motor de
+>   `e9d6e89`), `S38-sonda.cjs.txt`, `S39-motor.cjs.txt` (para el motor de `0b84a7e`, usá
+>   `S39-SyncEngine-base.ts.txt`) y la matriz `S40-matriz.cjs.txt`. **`S38-sonda` restaura la base
+>   encima de `SyncEngine.ts`:** no la corras con cambios del motor sin commitear.
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión revisa el diff de la 40** (`4f1ce9a..e9d6e89`: `SyncEngine.ts` y
+> `SyncEngine.test.ts`), sin tocar código. Preguntas para empezar:
+>
+> - con un solo reloj en `recentAcked` y en `ownStamps`, ¿qué casos dependen ahora solo del
+>   veredicto de la llegada (`ownArrived`)? ¿Hay un orden, en el mock o en el SDK, en que un eco
+>   LLEGUE después del ack de una escritura posterior (`R9-240`)?
+> - las dos pruebas a las que la 40 les cambió el orden (la del eco tardío de `R9-160` y la de
+>   `R9-224`): ¿el orden nuevo es uno que el SDK produce, y siguen probando lo que dice su nombre?
+> - `retireOwn` desde la lectura: ¿qué otros caminos traen copias ajenas sin pasar por el callback
+>   ni por la lectura (el enganche, `rereadOwn`)? ¿Y una copia mía leída que `isOwnCopy` no reconoce
+>   (la tabla ilegible, `R9-208`)?
+> - `Fresolve` se quedó: ¿la prueba nueva mide de verdad el eco sin procesar? ¿Hay otra guarda que
+>   suelte sellos y dependa del eco?
+> - lo que queda de `R9-239` (`rereadOwn` y las tablas viejas) y `R9-241`.
+>
+> `R9-240` es Modo C en el emulador: solo con mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:** lo mismo que en el (q).
+
+**(t) Sesión 40: arreglar lo de la 39 — ya HECHO en la sesión 40, en la terminal y sin agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (t) y la sección 5), `detail/S39-revision-del-diff-s38.md` y, en `BUGS.md`, las entradas de
@@ -1506,15 +1547,15 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 39 (2026-10-01).**
+**Medido al cerrar la sesión 40 (2026-10-01).**
 
-- **`main` = `origin/main` = `538409e`** (el checkpoint de la 38, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `0b84a7e`). **CI verificado en el log:** run `36947870377`,
-  3 jobs verdes, Node v24.21.0, 368/4518, cero «failed to run». Las ramas de la 38 se borraron.
-- **Una rama de la 39, sin mergear a propósito y sin pushear:** `docs/review-s39-diff-s38` (solo
-  docs, el checkpoint). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
-  incluye.
-- **Los worktrees:** ninguno (la 39 no hizo matriz).
+- **`main` = `origin/main` = `4f1ce9a`** (el checkpoint de la 39, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `0b84a7e`). **CI verificado en el log:** run `36960757105`,
+  3 jobs verdes, Node v24.21.0, 368/4518, cero «failed to run». La rama de la 39 se borró.
+- **Dos ramas de la 40, sin mergear a propósito y sin pushear:** `fix/s40-arreglos-s39` (5 commits,
+  `d57807b`..`e9d6e89`) y, encima, `docs/review-s40-fix-s39` (el checkpoint). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (el de la matriz de la 40 se borró, la junction primero).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin la de la 39):
@@ -1728,6 +1769,16 @@ Alternativas legítimas:
   JS la respuesta y el snapshot.
 - **Dos guardas que se cubren entre ellas dan 0 cada una en la matriz (sesión 39, `R9-236`).** Y
   juntas pueden ser la causa de un daño: `207fold` y `207acum`. La matriz mide de a una pieza.
+- **Una sonda puede dejar de mostrar su daño por un arreglo HERMANO de la misma sesión (sesión 40).**
+  `S39-4` y `S39-5` usaban un respaldo de W2, y `R9-239` dejó a W2 sin sello: las dos «pasaban»
+  con el caso todavía abierto. Antes de convertir una sonda en prueba, corrala sobre el árbol de
+  hoy, y preguntá si sigue construyendo su caso.
+- **Una guarda que «el eco siempre cubre» se mide con el eco esperando en la cadena (sesión 40,
+  `Fresolve`).** La 39 leyó «el eco de la resolución asienta el doc», pero `settle` corre al
+  procesar, y con la cadena ocupada el ack llega antes: ahí decidía la guarda que se iba a quitar.
+- **Antes de afirmar una propiedad del SDK, leé también el envoltorio propio (sesión 40, `R9-241`).**
+  En RNFirebase `change.doc` es un getter que crea un snapshot nuevo por lectura, y
+  `src/lib/sync/firestore.ts` lo lee una sola vez: el motor ve un objeto por cambio.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
