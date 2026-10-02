@@ -142,7 +142,8 @@ export interface PendingWrite {
    * with the entry, so a copy with one of these clocks is known as this
    * device's own for as long as the entry waits, restarts included (see
    * `isOwnCopy`), until a copy of the other device arrives (R9-223), or the
-   * server takes the one in flight: then only its clock stays (R9-242).
+   * server takes the one in flight: then only its clock stays (R9-242), also
+   * when that ack comes back after a `stop()` (R9-249).
    * Optional: older entries have none.
    */
   own?: number[];

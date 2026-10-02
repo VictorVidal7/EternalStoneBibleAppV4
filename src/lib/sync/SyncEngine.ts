@@ -3343,7 +3343,7 @@ export class SyncEngine {
           );
           if (doneIdx >= 0 && this.queue[doneIdx] === item) {
             this.queue.splice(doneIdx, 1);
-          } else if (doneIdx >= 0 && isCurrent()) {
+          } else if (doneIdx >= 0) {
             // R9-242 — the entry that replaced this one carries its clock and
             // the ones before it (`PendingWrite.own`). The cloud's copy is this
             // write now: only its clock stays, like `recentAcked`. With the
@@ -3351,6 +3351,10 @@ export class SyncEngine {
             // passed for mine while the entry waited, and the entry went up
             // over it. Changed in place (R9-11), like `retireOwn`. A rejected
             // push leaves them: the cloud kept one of them.
+            // R9-249 — after a `stop()` too, like the removal above: the entry
+            // is `item.uid`'s, waiting for that account to come back. Only
+            // within the session, the parked entry kept the older clocks, and
+            // when the same account signed in again the backup passed for mine.
             this.queue[doneIdx].own = withStamp([], updatedAtOf(item.data));
           }
           // R9-104 — the push landed where it was issued, in `item.uid`'s

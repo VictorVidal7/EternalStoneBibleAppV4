@@ -11219,6 +11219,85 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       rechaza: await caso('rechaza'),
     }).toEqual({descarta: esperado('descarta'), rechaza: esperado('rechaza')});
   });
+
+  // R9-249 — la de R9-242 con un `stop()` en medio: W0 sube; W1 sale y queda
+  // en vuelo, y el usuario edita W2 (la entrada lleva `own` [W0, W1]). La
+  // sesion termina con W1 en vuelo, y el servidor la confirma despues. La
+  // misma cuenta vuelve a entrar sin red, y el otro restaura un respaldo con
+  // W0 (`mio`), o lo mismo con su reloj (+1 ms, `otro`, CONTROL). Los dos
+  // tienen que dar lo mismo.
+  it('R9-249: W1 sube en vuelo mientras edito W2, y la sesion termina antes de su ack; la misma cuenta vuelve sin red, y el otro restaura un respaldo con W0: dentro de los 30 s, «w2 mio» contra «w0 mio»', async () => {
+    const T = Date.now() - HOUR;
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-249-${modo}`;
+      const {engine, localStore} = await engineFor(uid, T);
+      const W0 = {value: 'w0 mio', updatedAt: T + 10_000};
+      localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W0);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let n = 0;
+      mockSetGate = (_p, id) =>
+        id === 'doc-c' && n++ === 0 ? puerta : undefined;
+      for (const w of [
+        {value: 'w1 mio', updatedAt: T + 20_000},
+        {value: 'w2 mio', updatedAt: T + 30_000},
+      ]) {
+        localStore.set('doc-c', w as unknown as SyncEntity<TestEntity>);
+        engine.queueWrite('test', 'doc-c', w);
+        await settle();
+      }
+      engine.stop();
+      abrir();
+      await settle();
+      mockSetGate = null;
+      const netInfo = jest.requireMock('@react-native-community/netinfo')
+        .default as {fetch: jest.Mock};
+      netInfo.fetch.mockResolvedValueOnce({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+      await engine.start(uid);
+      await settle();
+      const vuelta = {
+        nube: await nubeDe(uid, 'doc-c'),
+        cola: engine
+          .__getQueueForTests()
+          .filter(q => q.uid === uid)
+          .map(q => String((q.data as Data).value)),
+      };
+      write(uid, 'doc-c', {
+        ...W0,
+        updatedAt: W0.updatedAt + (modo === 'otro' ? 1 : 0),
+      });
+      await settle();
+      const r = {
+        vuelta, // CONTROL: W1 llego a la nube, y W2 espera en la cola
+        conflictos: parejas(engine),
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      };
+      engine.stop();
+      return r;
+    };
+
+    // Pre-fix: el ack de W1 llegaba fuera de su sesion y el `own` de la
+    // entrada aparcada seguia en [W0, W1]: el respaldo con W0 pasaba por
+    // «mio», sin conflicto, y W2 subiria encima.
+    const esperado = {
+      vuelta: {nube: 'w1 mio', cola: ['w2 mio']},
+      conflictos: [['w2 mio', 'w0 mio']],
+      local: 'w2 mio',
+      nube: 'w0 mio',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
