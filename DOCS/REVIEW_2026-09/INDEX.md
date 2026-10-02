@@ -454,8 +454,22 @@
 >   coste de `R9-208` (`R9-226`, `R9-227`); y textos y pruebas de la 36 (`R9-228`..`R9-233`).
 > - **La matriz entera, re-medida:** 136 de 136 piezas iguales a la 36, control 0/232.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **233**. Rama `docs/review-s37-diff-s36`, sin mergear
-> hasta el OK. Detalle: `detail/S37-revision-del-diff-s36.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **233**. Rama `docs/review-s37-diff-s36`: mergeada
+> y pusheada con el OK de Victor (`main` = `29c63c3`, CI verde en el log, run `36941443455`,
+> 368/4508). Detalle: `detail/S37-revision-del-diff-s36.md`.
+>
+> **Sesión 38 (2026-10-01): ARREGLOS de lo de la 37**, solo en la terminal y sin agentes.
+>
+> - **Cerrados**, un commit por hallazgo en `fix/s38-arreglos-s37` (`0681c6e`..`0b84a7e`): `R9-221`
+>   (el mock), `R9-220` y `R9-222` (`noteArrived`: el veredicto se toma al llegar la entrega, y una
+>   copia ajena retira los relojes tomados), `R9-223`, `R9-224`, `R9-226` (la guarda por cuenta) y
+>   los textos y pruebas `R9-228`, `R9-230`, `R9-231`, `R9-233`. `R9-225` y `R9-232`, por
+>   construcción. `R9-227`: coste aceptado. `R9-229`: la mitad del `stop()`.
+> - **3 nuevos:** `R9-234` (leído), `R9-235` (ya existía) y `R9-236` (de la matriz).
+> - **La matriz entera:** 138 piezas, control 0/242; contra la de la 37, 95 de 143 iguales (las 5 `R216*` ya no existen, 7 nuevas, y el resto son pruebas nuevas que caen). Cuatro piezas viejas bajan a 0: `R9-236`.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **236**. Ramas `fix/s38-arreglos-s37` y
+> `docs/review-s38-fix-s37`, sin mergear hasta el OK. Detalle: `detail/S38-arreglos-s37.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -953,6 +967,23 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 38 — 2026-10-01. Arreglos de lo de la 37.** Solo en la terminal, sin agentes; arrancó
+  con `_scratch/S38-PROMPT.md`.
+  - **Cómo se trabajó:** `R9-221` primero (el mock), y con él re-medidas las piezas de `R9-216`
+    antes de tocar el motor; un commit por hallazgo en `fix/s38-arreglos-s37`, cada prueba vista
+    caer con su pieza (`_scratch/S38-piezas.cjs.txt`) o con el motor del commit anterior; tres
+    hipótesis medidas para `R9-220`/`R9-222`; la matriz entera en un worktree aparte.
+  - **Resultado:** 12 cerrados, `R9-227` decidido, `R9-229` a medias, 3 nuevos (`R9-234`,
+    `R9-235`, `R9-236`). Queda 1 P0 abierto.
+  - **Detalle: `detail/S38-arreglos-s37.md`.**
+  - **Las lecciones:**
+    - **una hipótesis que dice «deja de valer» necesita que algo haya empezado a valer:** la de A1
+      no podía cerrar el eco que nunca se anotó;
+    - **el orden de llegada y el de proceso son dos relojes:** con la cadena de lotes, se decide al
+      llegar;
+    - **una sonda que deja de mostrar el daño tras un arreglo puede haberlo esquivado:** la de A5
+      dejó de construir su caso.
 
 - **Sesión 37 — 2026-10-01. Revisión del diff de la 36.** Solo en la terminal, sin tocar código;
   arrancó con `_scratch/S37-PROMPT.md`, con 7 agentes en worktree que solo midieron (Victor pidió 4

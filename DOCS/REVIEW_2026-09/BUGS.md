@@ -447,6 +447,20 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **233**. Detalle:
 > `detail/S37-revision-del-diff-s36.md`.
+>
+> **Sesión 38 (2026-10-01): ARREGLOS de lo de la 37**, solo en la terminal y sin agentes. Rama
+> `fix/s38-arreglos-s37` (10 commits, `0681c6e`..`0b84a7e`), **sin mergear hasta el OK de Victor**.
+>
+> - **Cerrados:** `R9-221` (el mock), `R9-220` y `R9-222` (con `noteArrived`: el veredicto se toma al
+>   llegar la entrega, y una copia ajena retira los relojes tomados), `R9-223`, `R9-224`, `R9-225`
+>   (por construcción), `R9-226` (la guarda por cuenta), `R9-228`, `R9-230`, `R9-231`, `R9-232` y
+>   `R9-233`. `R9-227`: coste aceptado. `R9-229`: la mitad del `stop()`; sigue abierta la del bucle.
+> - **3 nuevos:** `R9-234` (la relectura de la tabla vuelve a unir los sellos retirados; leído),
+>   `R9-235` (una edición entre `stop()` y `start()` no entra en la cola; ya existía) y `R9-236`
+>   (cuatro guardas viejas sin prueba que las vea tras la 38; la matriz).
+> - **La matriz entera:** 138 piezas, control 0/242; contra la de la 37, 95 de 143 iguales (las 5 `R216*` ya no existen, 7 nuevas, y el resto son pruebas nuevas que caen). Cuatro piezas viejas bajan a 0: `R9-236`.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **236**. Detalle: `detail/S38-arreglos-s37.md`.
 
 ---
 
@@ -3655,6 +3669,9 @@ pending.remoteVersion.updatedAt`.
       cual sea, y desde ahí solo esa es «mía». Si esa primera es el respaldo del otro, vuelve el daño
       de este hallazgo: `R9-222`. Y el eco de más de la prueba de la memoria no es «el de la última»:
       es w4, el que el ack de w20 sacó de `recentAcked`, hasta el eco siguiente (`R9-232`).
+  - **Sesión 38:** el mecanismo (`recentEchoed` y `noteEcho`) se reemplazó por `noteArrived`
+    (`24a61bc`, `R9-220`/`R9-222`): la copia ajena que llega retira los relojes tomados del doc. Las 2
+    pruebas del caso siguen, y caen con `R222olvido`. La de la memoria se quitó con la estructura.
 
 - **`R9-217` (S35, `SyncEngine` / conflictos — P3) — 🐛 el coste aceptado de `R9-208`: con la tabla
   ilegible toda la sesión, una edición del doc que queda en cola tras el ack da «lo mío contra lo
@@ -3679,6 +3696,9 @@ pending.remoteVersion.updatedAt`.
     La guarda importa: tras un `stop()`, el mapa sigue siendo de la cuenta anterior hasta el enganche.
     Pruebas: 2. La del caso cae sin el arreglo (`R217`); la de Ana y Beto vigila el «por uid» y cae
     sin la guarda (`R217guard`). La prueba de `fantasmaC` dice ahora qué pasa con doc-d.
+  - **Corrección de la sesión 38 (`R9-227`):** el coste no existe solo si queda una edición
+    posterior del doc en cola al reiniciar (`detail/S35-revision-del-diff-s34.md`): también si una
+    edición posterior se descartó (8 rechazos), porque su entrada era el único disco del sello.
 
 - **`R9-218` (S35, `SyncEngine` / conflictos — P3) — 🐛 con dos tablas de sellos ilegibles, la
   relectura que falla en una escribe la cola sin la otra, cuya relectura sigue en vuelo.** MEDIDO
@@ -3748,6 +3768,22 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** que el eco anotado deje de valer solo cuando el doc entrega
     después una copia que no es mía. Medirlo contra las 3 pruebas de `R9-216` y las 5 de `R9-207`,
     con el mock de `R9-221` arreglado.
+  - **✅ ARREGLADO en la sesión 38** (`24a61bc`, junto con `R9-222`). La hipótesis de A1 (el eco
+    anotado deja de valer cuando el doc entrega después una copia ajena) se midió como pieza (H1,
+    `_scratch/S38-hip.cjs.txt`): cerraba este y ninguna ruta de `R9-222` (`S38-H1-sondas.out.txt`),
+    porque un eco que nunca se anotó no puede dejar de valer. Lo que se quedó (H2): `noteArrived`
+    decide «mía o no» al LLEGAR cada entrega, en el orden del SDK y antes de que su lote espere en la
+    cadena (`R9-175`). Una copia mía lo sigue siendo para ese lote (`ownArrived`, un `WeakSet`), y una
+    copia ajena borra los relojes de `recentAcked` del doc. Una escritura en vuelo está encima de la
+    vista del SDK, así que ninguna copia del otro llega antes de su ack. Sin copia ajena entre medias,
+    toda entrega de la copia de la nube es mía, venga en el objeto que venga.
+    - **Prueba:** «W1 sube; W2 se rechaza hasta rendirse…» cae con el motor de la 36
+      (`[["w2 mio","w1 mio"]]`, `_scratch/S38-rev-motor36.out.txt`). Ninguna pieza del motor nuevo la
+      tumba: la identidad que abría el caso ya no existe.
+    - **Sondas** (`S38-H2-sondas.out.txt`): `rendirse`, `cortada` y `rechazo` sin conflicto en el
+      proceso. En un proceso nuevo sigue `[wb, wa]`: ya existía (la entrada descartada se lleva el
+      reloj de Wa; vecino de `R9-194` y de `R9-227`). El caso `sinSesion` de `reenganche` vuelve a lo
+      de antes de la 36 (local y nube distintos, en silencio): es `R9-235`.
 
 - **`R9-221` (S37, pruebas / mock de Firestore — P3) — 🐛 el mock entrega el MISMO objeto cada vez
   que sale una copia de la nube sin cambios, y RNFirebase arma uno nuevo en cada entrega: la identidad
@@ -3767,6 +3803,12 @@ pending.remoteVersion.updatedAt`.
     decide por la identidad del objeto. Corolario 35 (el mock que implementa el SDK).
   - **Arreglo:** esas dos líneas en el mock. Después, re-medir cada prueba de `R9-216` con su pieza
     revertida ANTES de tocar el motor: la identidad que miden en jest no es la del teléfono.
+  - **✅ ARREGLADO en la sesión 38** (`0681c6e`). Una copia nueva por entrega (en `deliver`) y por
+    lectura (en el `get()`), clonada UNA vez: dentro de una entrega es el mismo objeto, como el
+    `_data` de `FirestoreDocumentSnapshot` (la sonda de A1 clonaba en cada `data()`). Con el mock
+    nuevo, cada pieza de `R9-216` y `alt207own` tumbó las mismas pruebas que antes
+    (`_scratch/S38-mock-*.out.txt`): ninguna hubo que reescribir. Con `R216cola`, `S37-A1-rendirse`
+    da `[["wb mio","wa mio"]]` (`S38-mock-rendirse-sinR216cola.out.txt`), igual que A1.
 
 - **`R9-222` (S37, `SyncEngine` / conflictos — P3) — 🐛 `noteEcho` toma por eco la PRIMERA copia que
   trae un reloj mío: si el eco verdadero no pasó por ahí, el respaldo del otro queda anotado como mi
@@ -3798,6 +3840,16 @@ pending.remoteVersion.updatedAt`.
     mismo en `R9-216` (corregido arriba) y en `detail/S36-arreglos-s35.md:113`.
   - **Sin medir** (A6, hipótesis): keepMine con nada en cola crea una entrada nueva que pasa la guarda
     de `R9-217`. Tras su ack, el sello va a `recentAcked`, y en un proceso nuevo sería la ruta (c).
+  - **✅ ARREGLADO en la sesión 38** (`24a61bc`, junto con `R9-220`: ver allí). Las tres rutas,
+    con las sondas de A2 (`_scratch/S38-H2-sondas.out.txt`): (a) `sineco stop` en las dos ramas, (b)
+    `bajo` y (c) `r217b reinicio` quedan iguales a su control.
+    - **Pruebas:** 3. Las 2 de la ruta (a) (ramas pendiente y retenida) caen con el motor de la 36 y
+      con `R222olvido` (que la copia ajena no borre `recentAcked`), por `suya`, local y nube. La de la
+      cadena («la escritura del otro llega después de mis ecos») cae solo con `R222llegada` (sin el
+      veredicto de la llegada se ve «w2|w1» y después «w2|r»): vigila que la copia ajena no le quite
+      el reloj a un eco que ya llegó y espera en la cadena. `R222nota` tumba 4. Salidas:
+      `S38-rev-{R222olvido,R222llegada,R222nota,motor36}.out.txt`.
+    - El comentario de `recentEchoed` («responde por cualquier copia») se fue con la estructura.
 
 - **`R9-223` (S37, `SyncEngine` / conflictos — P3) — 🐛 el caso de `R9-216` sigue abierto por la COLA:
   con una edición mía en cola que lleva en `own` el reloj de W1, el respaldo del otro con W1 es «mío».**
@@ -3814,6 +3866,16 @@ pending.remoteVersion.updatedAt`.
     (`S37b-A5cola-sin36.out.txt`). La rama de la cola es de `R9-193`/`+Y` (S32).
   - Sin medir: lo mismo en un proceso nuevo con L2 en cola (por lectura, igual: la entrada se
     persiste).
+  - **✅ ARREGLADO en la sesión 38** (`af4f367`). La sonda de A5 encolaba L2 DESPUÉS de la copia
+    del otro, y con `24a61bc` L2 ya no lleva el reloj de W1: pasa sin más. El caso abierto era la
+    entrada YA en cola cuando llega la copia ajena (`_scratch/S38-cola2.body.txt`; antes del arreglo,
+    `S38-cola2-H2.out.txt`): en P, keepTheirs subía «lo suyo» encima del respaldo; en H, se asentaba
+    en silencio y subía L2. `noteArrived` borra el `own` de la entrada del doc, en el sitio (la entrada
+    se reconoce por su objeto al volver el push, `R9-11`), y escribe la cola (`S38-cola2-R223.out.txt`:
+    las dos ramas iguales al control).
+    - **Pruebas:** 2 (pendiente y retenida). Caen con `R223own` y con el motor de `24a61bc`, por
+      `suya`, local y nube (`S38-rev223-*.out.txt`). `R224disco` (no escribir la cola) las tumba por
+      el `own` en disco.
 
 - **`R9-224` (S37, `SyncEngine` / conflictos — P3) — 🐛 la rama de `ownStamps` no mira el eco: un
   sello de una escritura mía tomada con el doc en conflicto dice «mía» también al respaldo del otro
@@ -3828,6 +3890,17 @@ pending.remoteVersion.updatedAt`.
     dan lo mismo (`S37-A2-sonda-stamps-sin36.out.txt`). La rama es la de `R9-193` (S32).
   - Mirar el eco no lo cerraría entero: en un proceso nuevo, `recentEchoed` está vacío, y la primera
     entrega del reloj es el respaldo mismo (`R9-222`).
+  - **✅ ARREGLADO en la sesión 38** (`697f61c`). `noteArrived` llama a `forgetOwnStamps` cuando
+    llega una copia ajena, y escribe la cola con la tabla. Las 8 líneas de `S37-A2-sonda-stamps`
+    quedan iguales a su control, también en un proceso nuevo (`_scratch/S38-stamps-R224.out.txt`).
+    - **Pruebas:** 2 (pendiente y proceso nuevo). Caen con `R224sellos` (por la tabla en disco y por
+      `suya`) y con el motor anterior. `R224disco` las tumba por la tabla en disco justo después de
+      llegar R2, que es lo que encuentra un proceso que muere sin `stop()` (`S38-rev224b-*.out.txt`).
+    - **Consecuencia (medida):** la copia del otro que entrega el enganche de un conflicto retenido
+      retira los sellos viejos del doc, que la nube ya dejó atrás. La prueba nueva de `R9-229` lo
+      muestra: la tabla de Beto queda `[300000]`, sin el sembrado `T + 1000`.
+    - **Queda:** con la tabla ilegible al enganchar y su relectura en vuelo, la relectura vuelve a
+      unir los sellos de disco (`R9-234`).
 
 - **`R9-225` (S37, `SyncEngine` / memoria — P3) — 🐛 `recentEchoed` guarda la copia ENTREGADA entera
   por cada reloj anotado, y no se vacía nunca: ni en `stop()` ni al cambiar de cuenta.** MEDIDO (A2;
@@ -3841,6 +3914,11 @@ pending.remoteVersion.updatedAt`.
   - **De la 36:** la estructura nace en `2bfbcf8`.
   - **Arreglo (hipótesis, sin medir):** la identidad que `isOwnCopy` necesita no exige guardar la
     copia: alcanza una marca de la entrega. Y vaciarla en `stop()`.
+  - **✅ CERRADO por construcción en la sesión 38** (`24a61bc`): `recentEchoed` se quitó. Lo que
+    queda es `ownArrived`, un `WeakSet` con los objetos de cada entrega (no retiene nada: se va con
+    el lote), y `recentAcked`, que guarda números. No hace falta vaciarlo en `stop()`: un lote que
+    espera en la cadena a través de un `stop()` es de la cuenta que lo recibió (`R9-153`). Sin medir
+    en V8 ni en Hermes (no hay qué medir: la estructura no existe).
 
 - **`R9-226` (S37, `SyncEngine` / conflictos — P3) — 🐛 la misma cuenta en una sesión nueva del mismo
   proceso: una edición escrita antes de enganchar no lleva el sello, y con la tabla ilegible en la
@@ -3860,6 +3938,18 @@ pending.remoteVersion.updatedAt`.
     escenario «entrada escrita antes de enganchar, sin el sello». La sonda `S37-A3-antes2` pasa con
     todo puesto y cae con `L32load` y con `L32table`, aun con `R9-217` puesta
     (`S37-A3-antes2-*.out.txt`): es la prueba que falta.
+  - **✅ ARREGLADO en la sesión 38** (`82f3f20`). **La decisión (medida): la guarda por cuenta.**
+    `ownStampsUid` guarda de qué cuenta es el mapa de cada colección (lo fija la carga del enganche;
+    `stop()` no lo toca), y la entrada nueva toma el último sello del doc si la cuenta coincide. La
+    misma cuenta en una sesión nueva entra; Ana y Beto siguen separados. Con la sonda de A6
+    (`_scratch/S38-A6cola-R226.out.txt`), `misma a` y `misma b` dejan de mostrar «d mio 3 contra d
+    mio 2» (la entrada lleva `[200000]`).
+    - **Pruebas:** 2 nuevas. La de la misma cuenta cae con `R226uid` (la guarda vieja), con `L32load`
+      y con `L32table`. La de A3 (la que faltaba para `S32-load`/`S32-table`) se reescribió para un
+      proceso nuevo, porque en el mismo proceso la entrada ya lleva el sello: cae con `L32load` y con
+      `L32table`, por `conflictos` y `vistos`. La de Beto (de `R9-217`) cae con `R226sin` (sin
+      guarda). Salidas: `S38-rev226c-*.out.txt`.
+    - El `descarte` de A6 sigue igual: es `R9-227`.
 
 - **`R9-227` (S37, `SyncEngine` / conflictos — P3) — 🐛 una edición posterior DESCARTADA (8
   rechazos) con la tabla ilegible toda la sesión da «d mio 3 contra d mio 2» al reiniciar.** MEDIDO
@@ -3870,6 +3960,10 @@ pending.remoteVersion.updatedAt`.
     `R9-217` («el coste existe solo si queda una edición posterior del doc en cola al reiniciar») se
     queda corto: también con una edición posterior descartada. Es el coste aceptado de `R9-208` por
     otro camino.
+  - **Decidido en la sesión 38: coste aceptado, sin código.** Re-medido tras los arreglos
+    (`_scratch/S38-A6cola-R226.out.txt`, `descarte a`): «d mio 3 contra d mio 2» en el proceso nuevo,
+    igual. La entrada descartada era el único disco del sello, y no hay otro lugar donde escribirlo
+    sin pisar la tabla ilegible (`R9-208`). El texto de `R9-217` se corrigió (arriba).
 
 - **`R9-228` (S37, pruebas / AsyncStorage — P3) — 🐛 la prueba de `R9-215` solo cae con un orden que
   AsyncStorage nativo no produce.** MEDIDO en el mock (A3 y A7; sondas `_scratch/S37-A3-fifo.body.txt`
@@ -3886,6 +3980,10 @@ pending.remoteVersion.updatedAt`.
     ella, no (`S37-A3-dosrel-*.out.txt`). `G215del` da 0/232. En el teléfono no puede pasar.
   - **De la 36:** la prueba y la guarda quitada. Corolario 39 (un mock con una sola propiedad da
     órdenes imposibles), en AsyncStorage: hasta hoy solo se pensaba en el ejecutor de Firestore.
+  - **✅ CERRADO en la sesión 38** (`742c874`, textos). Decisión: la guarda de `R9-215` se queda
+    (no cuesta nada, y el mock la necesita), y la del `delete` no vuelve (0 caídas; en el teléfono es
+    equivalente: regla 37). La prueba de `R9-215` y el comentario de `ownRereading` dicen que el orden
+    es solo del mock.
 
 - **`R9-229` (S37, pruebas / `R9-218` — P3) — 🐛 dos huecos de cobertura de `R9-218`: nada fija que
   `stop()` vacíe `ownGaveUp`, y ninguna prueba tiene dos tablas que fallen siempre.** MEDIDO en el
@@ -3899,6 +3997,11 @@ pending.remoteVersion.updatedAt`.
     de la matriz, sobre el árbol de hoy, es un bucle caliente (jest muere por OOM): la ausencia de
     bucle depende del `return` de la rama `waiting`, y ninguna prueba lo fija. Forma de `R9-142`.
   - **De la 36:** las pruebas de `R9-218`.
+  - **✅ La mitad del `stop()`, cerrada en la sesión 38** (`8991142`): la prueba de
+    `S37-A3-gaveup2`. Cae con `G218stop` (1) y con `R218clear` (2), por el sello de W
+    (`_scratch/S38-rev229-*.out.txt`). **Sigue abierta la otra mitad:** ninguna prueba fija el
+    `return` de la rama `waiting` (dos tablas que fallan siempre). Su revert (`altDiferir`) es un
+    bucle caliente que mata jest por memoria, y una prueba tendría que medirlo sin colgar el runner.
 
 - **`R9-230` (S37, `SyncEngine` / comentario — P3) — 🐛 `R9-219` cerró solo uno de los dos textos que
   nombraba: la regla de `R9-190` sigue sin la excepción.** MEDIDO (A4).
@@ -3907,6 +4010,8 @@ pending.remoteVersion.updatedAt`.
 {doc-c:120000}`, `S37-A4-sonda-dup-fantasma-fix.out.txt`).
   - Y el número de `R9-219`: `+heldAt` tumba 5, no 4 (corregido arriba).
   - **De la 36:** el texto de `0970726`.
+  - **✅ CERRADO en la sesión 38** (`495a1e1`): la regla de `R9-190` dice la excepción de `R9-219`
+    (el texto que propuso A4).
 
 - **`R9-231` (S37, pruebas / `R9-218` — P3) — 🐛 corolario 48: la prueba de `R9-218` solo mira
   doc-b, y el sello de Wa no llega a ningún disco, con el arreglo y sin él.** MEDIDO (A4; sonda
@@ -3915,6 +4020,8 @@ pending.remoteVersion.updatedAt`.
     `{doc-a:[1000]}`. Es el coste aceptado de `R9-208` (la tabla que vuelve a fallar), y la prueba
     (`SyncEngine.test.ts:8840`, aserción en `selloB`) no lo dice.
   - **De la 36:** la prueba.
+  - **✅ CERRADO en la sesión 38** (`117e5a4`): el comentario de la prueba dice que solo mira doc-b,
+    y que el sello de Wa no llega a disco con el arreglo ni sin él (el coste aceptado de `R9-208`).
 
 - **`R9-232` (S37, pruebas / `R9-216` — P3) — 🐛 la prueba de memoria de `R9-216` dice «el de la
   última» y cae por su CONTROL con dos de sus tres piezas.** MEDIDO (A4; sondas
@@ -3927,6 +4034,8 @@ pending.remoteVersion.updatedAt`.
     ecos no la hay. Buscándola en `recentAcked`, cae solo por `ecos` (0 contra 17), con `acked` en
     verde.
   - **De la 36:** la prueba.
+  - **✅ CERRADO sin cambio en la sesión 38:** la prueba de la memoria se quitó con `recentEchoed`
+    (`24a61bc`), y `noteEcho` con ella.
 
 - **`R9-233` (S37, `SyncEngine` / comentario — P3) — 🐛 `PendingWrite.own` dice «lo que la entrada
   reemplazó», y desde `R9-194`/`R9-217` lleva relojes que el servidor ya tomó.** MEDIDO (A4: `own` de
@@ -3935,6 +4044,46 @@ pending.remoteVersion.updatedAt`.
     «the very same millisecond» de `isOwnCopy` ya no vale para un reloj de `recentAcked` cuyo eco
     llegó: solo esa copia es mía.
   - **¿De la 36?** En parte anterior (`R9-194`); la 36 lo amplió (`R9-217`, `R9-216`).
+  - **✅ CERRADO en la sesión 38** (`0b84a7e`): `PendingWrite.own` (`types.ts`) dice que lleva los
+    relojes que reemplazó y el último que el servidor tomó, hasta que llega una copia ajena; y
+    `isOwnCopy` dice «one that entry carries», el veredicto de la llegada y hasta cuándo vale la
+    frase del mismo milisegundo.
+
+- **`R9-234` (S38, `SyncEngine` / conflictos — P3) — 🐛 con la tabla de sellos ilegible al enganchar,
+  la relectura que vuelve después de una copia ajena vuelve a unir en memoria los sellos que esa copia
+  retiró.** LEÍDO, sin medir.
+  - `rereadOwn` une la tabla de disco con el mapa en memoria (`joined`, para los docs que siguen en
+    conflicto). Si la copia del otro llegó con la relectura en vuelo, `noteArrived` ya borró los
+    sellos del doc (`R9-224`), y la relectura los trae de vuelta desde el disco.
+  - Hace falta la tabla ilegible al enganchar, su relectura en vuelo justo cuando llega la copia
+    ajena, y después un respaldo con uno de esos sellos viejos. Muy estrecho.
+  - **De la 38** (la retirada de `R9-224`). **Hipótesis, sin medir:** que la relectura no una los
+    docs retirados desde que empezó (un conjunto por colección mientras la tabla no se leyó).
+
+- **`R9-235` (S38, `SyncEngine` / cola — P3) — 🐛 una edición de la misma cuenta hecha entre `stop()` y
+  `start()` no entra en la cola: local y nube quedan distintos, en silencio.** MEDIDO en el mock
+  (`_scratch/S37-A1-reenganche.body.txt`, caso `sinSesion`; `S38-H2-sondas.out.txt`).
+  - `queueWrite` vuelve sin hacer nada si no hay `uid` (`if (!this.uid) return;`). La app hace
+    `stop()` + `start()` de la misma cuenta en el mismo proceso (el tick de auth del arranque en frío,
+    un `deleteAccount` que falla).
+  - **Medido:** Wa sube; `stop()`; el usuario edita a 5 s de Wa; `start()` de la misma cuenta: sin
+    conflicto, cola vacía, local «editada sin sesion» y nube «wa mio».
+  - **¿De la 38? No:** antes de la 36, igual. La 36 lo mostraba como un conflicto, con «wa mio» (una
+    escritura de este teléfono) como «su versión» (`R9-220`), y la 38 vuelve a lo de antes.
+  - Sin medir: si la interfaz puede escribir en esa ventana.
+
+- **`R9-236` (S38, `SyncEngine` / guardas — P3) — 🐛 cuatro guardas viejas que la 38 dejó sin
+  ninguna prueba que las vea.** MEDIDO (la matriz entera, `_scratch/S38-matriz-s38-0b84a7e.out.txt`;
+  la comparación con la de la 37, `S38-comparar-s37.out.txt`).
+  - `S32-Fsettle` y `S32-Fresolve` (`R9-193`: los sellos se sueltan cuando el conflicto se disuelve
+    o se resuelve) bajan de 1 a 0: en sus pruebas, la copia del otro que llega ya retira los sellos
+    (`R9-224`).
+  - `S34-207fold` (el ack pliega el `own` en `recentAcked`) baja de 1 a 0, y `S34-207acum` (el ack
+    conserva los relojes anteriores), de 2 a 0: el veredicto de la llegada (`ownArrived`) ya cubre
+    los ecos que se procesan tarde (`R9-207`).
+  - **De la 38** (corolario 46: una guarda del primer arreglo, subsumida por el segundo). **Para la
+    39:** por cada una, o falta la prueba (un orden en el que todavía decide) o es equivalente por
+    construcción y se quita (regla 37), con la matriz entera otra vez.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
