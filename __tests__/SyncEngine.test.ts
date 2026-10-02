@@ -9083,6 +9083,140 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  it('R9-226: la misma cuenta, con la tabla de sellos ilegible: d2 sube en una sesion, y d3 se escribe en la siguiente del mismo proceso antes de enganchar: no aparece «d mio 3 contra d mio 2»', async () => {
+    // La app hace `stop()` + `start()` de la misma cuenta en el mismo
+    // proceso (el tick de auth del arranque en frio, un `deleteAccount` que
+    // falla).
+    const uid = 'uid-226-misma';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.stop();
+    const tabla = tablaIlegible(uid, Infinity);
+    const vistos = new Set<string>();
+    engine.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(`${c.localVersion.value}|${c.remoteVersion.value}`),
+      ),
+    );
+    let otro: SyncEngine | null = null;
+    try {
+      await engine.start(uid);
+      await settle();
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, true);
+      engine.stop();
+      await settle();
+      const arranque = engine.start(uid);
+      const d3 = {value: 'd mio 3', updatedAt: T + 250_000};
+      localStore.set('doc-d', d3 as unknown as SyncEntity<TestEntity>);
+      mockSetShouldFail = true;
+      engine.queueWrite('test', 'doc-d', d3);
+      const entrada = engine
+        .__getQueueForTests()
+        .map(q => [q.id, (q.own ?? []).map(ts => ts - T)]);
+      await arranque;
+      await settle();
+      mockSetShouldFail = false;
+      engine.stop();
+      await settle();
+      tabla.restaurar();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Pre-fix: la guarda de R9-217 pedia que el doc fuera conflicto de la
+      // sesion, y tras el `stop()` no lo era: la entrada de d3 no llevaba el
+      // reloj de d2, y el enganche cambio el mapa por la tabla, que no lo
+      // tiene: «d mio 3 | d mio 2» en la sesion 2 y tras reiniciar. `vistos`
+      // mira solo doc-d: el «lo mio 3 | lo mio 2» de doc-c es el coste
+      // aceptado de R9-208 (la tabla ilegible toda la sesion), con y sin
+      // este arreglo.
+      expect({
+        nubeD: await nubeDe(uid, 'doc-d'), // CONTROL: d2 subio
+        tabla: await tablaDe(uid), // CONTROL: la tabla no tiene doc-d
+        entrada,
+        vistos: [...vistos].filter(v => v.startsWith('d mio 3')),
+        conflictos: parejas(otro),
+      }).toEqual({
+        nubeD: 'd mio 2',
+        tabla: ['doc-c'],
+        entrada: [['doc-d', [200_000]]],
+        vistos: [],
+        conflictos: [],
+      });
+    } finally {
+      mockSetShouldFail = false;
+      tabla.restaurar();
+      otro?.stop();
+      engine.stop();
+    }
+  });
+
+  it('R9-226: en un proceso nuevo, una edicion del doc en conflicto escrita antes de enganchar no lleva sellos: la tabla de la sesion anterior dice que L2 es mia', async () => {
+    // Vigila S32-table (el sello de L2 llega a la tabla) y S32-load (el
+    // enganche la carga) en el unico caso en que son lo unico que lo dice: la
+    // entrada nueva no lleva el reloj (el proceso no tiene mapa).
+    const uid = 'uid-226-antes';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+    const L2 = {value: 'lo mio 2', updatedAt: T + 120_000};
+    localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', L2);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    engine.stop();
+    await settle();
+    const nube = await nubeDe(uid, 'doc-c');
+    const tabla1 = await tablaDe(uid);
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    const e2 = new SyncEngine();
+    e2.register(adapter);
+    // Sin red, como el telefono: L3 queda en cola.
+    e2.__setOnlineForTests(false);
+    const vistos = new Set<string>();
+    e2.subscribe(st =>
+      st.conflicts.forEach(c =>
+        vistos.add(`${c.localVersion.value}|${c.remoteVersion.value}`),
+      ),
+    );
+    let otro: SyncEngine | null = null;
+    try {
+      const arranque = e2.start(uid);
+      const L3 = {value: 'lo mio 3', updatedAt: T + 180_000};
+      localStore.set('doc-c', L3 as unknown as SyncEntity<TestEntity>);
+      e2.queueWrite('test', 'doc-c', L3);
+      const entrada = e2
+        .__getQueueForTests()
+        .map(q => [q.id, (q.own ?? []).map(ts => ts - T)]);
+      await arranque;
+      await settle();
+      e2.stop();
+      await settle();
+      otro = await procesoNuevo(uid, adapter);
+
+      expect({
+        nube, // CONTROL: L2 subio
+        tabla1, // CONTROL: su sello llego a la tabla
+        entrada, // CONTROL: la entrada de L3 no lleva sellos
+        vistos: [...vistos],
+        conflictos: parejas(otro),
+      }).toEqual({
+        nube: 'lo mio 2',
+        tabla1: ['doc-c'],
+        entrada: [['doc-c', []]],
+        vistos: [],
+        conflictos: [],
+      });
+    } finally {
+      otro?.stop();
+      e2.stop();
+    }
+  });
+
   // ---- R9-216 — el respaldo del otro con una escritura mia de este proceso ----
 
   /** R9-216 — este telefono sube W1 sin conflicto (su eco llega); despues,

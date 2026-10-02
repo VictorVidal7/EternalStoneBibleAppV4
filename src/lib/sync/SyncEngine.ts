@@ -462,6 +462,11 @@ export class SyncEngine {
    * not this one's.
    */
   private ownStamps = new Map<string, Map<string, number[]>>();
+  /**
+   * R9-226 — per collection, the account whose table `ownStamps` holds (the
+   * attach loads it, and `stop()` leaves it there until the next attach).
+   */
+  private ownStampsUid = new Map<string, string>();
   /** R9-193 — collections whose `ownStamps` changed since the last write. */
   private ownDirty = new Set<string>();
   /**
@@ -1141,11 +1146,16 @@ export class SyncEngine {
       // `ownStamps`, not there: the entry carries the last one too. With the
       // table unreadable all session (R9-208) it is the one disk that clock
       // reaches, and without it the cloud's copy of that write showed «mine»
-      // against «mine» on the next start, the edit still waiting. While the
-      // doc is a conflict, the map is this session's.
-      const stamps = this.isConflictDoc(entry.collection, entry.id)
-        ? this.ownStamps.get(entry.collection)?.get(entry.id)
-        : undefined;
+      // against «mine» on the next start, the edit still waiting.
+      // R9-226 — by the account the map belongs to (`ownStampsUid`), not by
+      // the doc being a conflict of this session: an edit of the same account
+      // written after a `stop()`, before the attach, found no conflict (the
+      // sets go with the session) and left that clock behind, and the attach
+      // then replaced the map with the table. Another account's map, never.
+      const stamps =
+        this.ownStampsUid.get(entry.collection) === entry.uid
+          ? this.ownStamps.get(entry.collection)?.get(entry.id)
+          : undefined;
       if (stamps && stamps.length > 0) {
         const pushed = this.queue[this.queue.length - 1];
         this.queue[this.queue.length - 1] = {
@@ -2240,6 +2250,7 @@ export class SyncEngine {
     if (session === this.flushSession && !this.unsettled.has(collection)) {
       this.unsettled.set(collection, held);
       this.ownStamps.set(collection, own);
+      this.ownStampsUid.set(collection, uid);
       if (ownPruned) this.ownDirty.add(collection);
       if (ownUnreadable) this.ownUnread.add(collection);
       else this.ownUnread.delete(collection);
