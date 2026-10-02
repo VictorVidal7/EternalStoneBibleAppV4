@@ -10617,14 +10617,15 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
-  // R9-246 — la retirada de la LECTURA de un `removed` (R9-238), sola: W1
-  // sube (recentAcked [W1]); W2 sale y queda en vuelo, y el otro escribe R2
-  // bajo el piso (la vista lleva W2 encima: no llega nada). El servidor
-  // rechaza W2, y la reversion es un `removed` que trae W2 (el payload
-  // rechazado): no retira al llegar (R9-243), y solo su lectura ve R2.
-  // Despues el otro restaura un respaldo con W1 (`mio`), o lo mismo con su
-  // reloj (+1 ms, `otro`, CONTROL). Los dos tienen que dar lo mismo.
-  it('R9-246: sin conflicto, W1 sube; el servidor rechaza W2 con R2 del otro bajo el piso (solo la lectura de la reversion ve R2), y el otro restaura un respaldo con W1: dentro de los 30 s, «w2 mio» contra «w1 mio»', async () => {
+  // R9-246 / R9-247 — W1 sube (recentAcked [W1]); W2 sale y queda en vuelo,
+  // y el otro escribe R2 bajo el piso (la vista lleva W2 encima: no llega
+  // nada). El servidor rechaza W2, y la reversion es un `removed` que trae W2
+  // (el payload rechazado) y vuelve a R2. Retira la llegada (W1 no esta bajo
+  // el piso, R9-247) o, sin ella, la lectura, que ve R2 (R9-238): la prueba
+  // de las dos juntas con la cadena libre. Despues el otro restaura un
+  // respaldo con W1 (`mio`), o lo mismo con su reloj (+1 ms, `otro`,
+  // CONTROL). Los dos tienen que dar lo mismo.
+  it('R9-246: sin conflicto, W1 sube; el servidor rechaza W2 con R2 del otro bajo el piso (la reversion vuelve a R2), y el otro restaura un respaldo con W1: dentro de los 30 s, «w2 mio» contra «w1 mio»', async () => {
     const T = Date.now() - HOUR;
     const caso = async (modo: 'mio' | 'otro') => {
       const uid = `uid-246-lectura-${modo}`;
@@ -10676,9 +10677,8 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       return r;
     };
 
-    // Sin la retirada de la lectura, recentAcked seguia en [W1] (la reversion
-    // no retira al llegar, y la lectura encontraba R2 sin retirar nada): el
-    // respaldo con W1 pasaba por «mio», sin conflicto, y W2 subiria encima.
+    // Sin las dos retiradas, recentAcked seguia en [W1]: el respaldo con W1
+    // pasaba por «mio», sin conflicto, y W2 subiria encima.
     const esperado = {
       rechazo: {
         entregas: ['removed:revert'],
@@ -10688,6 +10688,108 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       conflictos: [['w2 mio', 'w1 mio']],
       local: 'w2 mio',
       nube: 'w1 mio',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
+
+  // R9-246 — la retirada de la LECTURA de un `removed` (R9-238), sola: el
+  // `removed` sintetico de R9-186 no trae copia, y la llegada no retira nada.
+  // El proceso anterior dejo doc-c en conflicto retenido con la marca de
+  // relectura (la lectura de su `removed` fallo), el sello de W3 en la tabla
+  // (murio antes de escribir la retirada de la llegada) y L4 en la cola. La
+  // nube tiene R2 del otro, bajo el piso. Este arranca sin red, y el enganche
+  // lee doc-c: encuentra R2. Despues el otro restaura un respaldo con W3
+  // (`mio`), o lo mismo con su reloj (+1 ms, `otro`, CONTROL).
+  it('R9-246: el enganche relee un conflicto retenido y encuentra R2 del otro bajo el piso; despues el otro restaura un respaldo con W3: pasa a ser «su version»', async () => {
+    const T = Date.now() - HOUR;
+    const W3 = {value: 'w3 mio', updatedAt: T + 110_000};
+    const L4 = {value: 'lo mio 4', updatedAt: T + 115_000};
+    const R2 = {value: 'r2 suyo', updatedAt: T - 20 * 60_000};
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-246-releer-${modo}`;
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      await AsyncStorage.setItem(
+        unsettledStorageKey('test', uid),
+        JSON.stringify({'doc-c': T + 65_000}),
+      );
+      await AsyncStorage.setItem(
+        `@sync_conflicted_test:${uid}`,
+        JSON.stringify(['doc-c']),
+      );
+      await AsyncStorage.setItem(
+        `@sync_reread_test:${uid}`,
+        JSON.stringify(['doc-c']),
+      );
+      await AsyncStorage.setItem(
+        `@sync_own_test:${uid}`,
+        JSON.stringify({'doc-c': [W3.updatedAt]}),
+      );
+      await AsyncStorage.setItem(
+        '@sync_queue_v1',
+        JSON.stringify([
+          {
+            uid,
+            collection: 'test',
+            id: 'doc-c',
+            data: {...L4, deleted: false, deletedAt: null},
+            queuedAt: 0,
+            attempts: 0,
+          },
+        ]),
+      );
+      const fx = makeAdapter({getMaterialFields: () => ['value']});
+      fx.localStore.set('doc-c', L4 as unknown as SyncEntity<TestEntity>);
+      (
+        mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+          __fire: (changes: unknown[]) => void;
+        }
+      ).__fire([
+        {type: 'modified', doc: {id: 'doc-c', exists: true, data: () => R2}},
+      ]);
+      const e = new SyncEngine();
+      try {
+        e.register(fx.adapter);
+        const netInfo = jest.requireMock('@react-native-community/netinfo')
+          .default as {fetch: jest.Mock};
+        netInfo.fetch.mockResolvedValueOnce({
+          isConnected: false,
+          isInternetReachable: false,
+        });
+        await e.start(uid);
+        await settle();
+        await settle();
+        const enganche = {
+          conflictos: parejas(e),
+          cola: e.__getQueueForTests().filter(q => q.uid === uid).length,
+        };
+        write(uid, 'doc-c', {
+          ...W3,
+          updatedAt: W3.updatedAt + (modo === 'otro' ? 1 : 0),
+        });
+        await settle();
+        return {
+          enganche, // CONTROL: la relectura encontro R2, y L4 sigue en la cola
+          suya: parejas(e),
+          local: fx.localStore.get('doc-c')?.value,
+          nube: await nubeDe(uid, 'doc-c'),
+        };
+      } finally {
+        e.stop();
+      }
+    };
+
+    // Sin la retirada de la lectura, el sello de W3 seguia: el respaldo con W3
+    // pasaba por «mio», y «su version» seguia R2, una copia que la nube ya no
+    // tenia (keepTheirs la subiria encima del respaldo).
+    const esperado = {
+      enganche: {conflictos: [['lo mio 4', 'r2 suyo']], cola: 1},
+      suya: [['lo mio 4', 'w3 mio']],
+      local: 'lo mio 4',
+      nube: 'w3 mio',
     };
     expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
       mio: esperado,
@@ -10938,6 +11040,88 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       });
     },
   );
+
+  // R9-247 — la prueba de la lectura de R9-246 con la cadena de lotes ocupada
+  // por otro doc: W1 sube; W2 queda en vuelo y el otro escribe R2 bajo el
+  // piso; el servidor rechaza W2. La reversion (`removed`, con W2) y el
+  // respaldo del otro con W1 (`mio`), o con su reloj (+1 ms, `otro`,
+  // CONTROL), llegan y esperan. Los dos tienen que dar lo mismo.
+  it('R9-247: con la cadena de lotes ocupada, el servidor rechaza W2 con R2 del otro bajo el piso, y el otro restaura un respaldo con W1 antes de que se procese la reversion: dentro de los 30 s, «w2 mio» contra «w1 mio»', async () => {
+    const T = Date.now() - HOUR;
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-247-${modo}`;
+      const {engine, localStore, adapter} = await engineFor(uid, T);
+      const W1 = {value: 'w1 mio', updatedAt: T + 20_000};
+      localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W1);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      // La cadena de lotes queda ocupada: el de docX espera su lectura local.
+      let abrir!: () => void;
+      const gate = new Promise<void>(r => (abrir = r));
+      const getLocal = adapter.getLocal.bind(adapter);
+      adapter.getLocal = async id => {
+        if (id === 'docX') await gate;
+        return getLocal(id);
+      };
+      write(uid, 'docX', {value: 'x', updatedAt: T + 50_000});
+      await flush();
+      let rechazar!: (e: Error) => void;
+      const puerta = new Promise<void>((_r, j) => (rechazar = j));
+      let n = 0;
+      mockSetGate = (_p, id) =>
+        id === 'doc-c' && n++ === 0 ? puerta : undefined;
+      const W2 = {value: 'w2 mio', updatedAt: T + 30_000};
+      localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W2);
+      await settle();
+      const desde = mockDelivered.length;
+      write(uid, 'doc-c', {value: 'r2 suyo', updatedAt: T - 20 * 60_000});
+      await settle();
+      rechazar(new Error('permission-denied'));
+      await settle();
+      mockSetGate = null;
+      write(uid, 'doc-c', {
+        ...W1,
+        updatedAt: W1.updatedAt + (modo === 'otro' ? 1 : 0),
+      });
+      await settle();
+      const antes = {
+        entregas: mockDelivered
+          .slice(desde)
+          .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+          .map(d => `${d.type}:${d.via}`),
+        docX: localStore.get('docX')?.value ?? null,
+      };
+      abrir();
+      await settle();
+      await settle();
+      const r = {
+        antes, // CONTROL: la reversion y el respaldo llegaron y esperan
+        conflictos: parejas(engine),
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      };
+      engine.stop();
+      return r;
+    };
+
+    // Pre-fix: la reversion trae W2 (el payload rechazado) y no retiraba al
+    // llegar; la retirada era de la lectura, y al procesarla ya encontraba el
+    // respaldo, que se habia juzgado «mio» al llegar (recentAcked seguia en
+    // [W1]): sin conflicto, y W2 subiria encima del respaldo del otro.
+    const esperado = {
+      antes: {entregas: ['removed:revert', 'modified:fire'], docX: null},
+      conflictos: [['w2 mio', 'w1 mio']],
+      local: 'w2 mio',
+      nube: 'w1 mio',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

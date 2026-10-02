@@ -579,9 +579,19 @@ export class SyncEngine {
    * delivery ARRIVES (see `noteArrived`). The rejection reaches the flush
    * before the take-back (see `droppedAwaitingRevert`), and a take-back to a
    * copy below the query floor is a `removed` that carries the rejected
-   * payload: a write of this device, not a change of the other one.
+   * payload. That payload is this device's; the copy the cloud went back to
+   * may not be (R9-247, see `noteArrived`).
    */
   private rejectedAwaitingRevert = new Map<string, number>();
+  /**
+   * R9-247 — per collection, the floor of the query its listener is attached
+   * with (0 for the unfiltered fallback: nothing leaves that query but a
+   * delete). A take-back that leaves the query went back to a copy below it,
+   * or to none. Set before the listener subscribes, so every delivery reads
+   * its own listener's; one that arrives after a `stop()` has no `uid`, and
+   * no rejection waits under that key.
+   */
+  private queryFloors = new Map<string, number>();
   /**
    * Quota hardening — in-memory cache of each collection's sync cursor
    * (highest `updatedAt` observed), mirrored to AsyncStorage on every
@@ -1295,7 +1305,9 @@ export class SyncEngine {
     let query: Query = collectionRef;
     try {
       query = collectionRef.where('updatedAt', '>=', queryFloor);
+      this.queryFloors.set(adapter.collection, queryFloor);
     } catch (err) {
+      this.queryFloors.set(adapter.collection, 0);
       // Defensive fallback — prefer an unfiltered (more expensive but
       // never wrong) listener over not syncing this collection at all.
       logger.warn('SyncEngine: where() query build failed, using no filter', {
@@ -2601,26 +2613,57 @@ export class SyncEngine {
     const id = fromDocId(change.doc.id);
     // R9-243 — a `removed` that arrives with no write of this device to the
     // doc in flight, and is not the take-back of one the server rejected
-    // (`rejectedAwaitingRevert`), is a write of the other device that took
-    // the doc out of the query, or a delete. The copy it carries is the last
-    // one that matched, this device's often, and says nothing of that write
-    // (R9-124): it retires here. Retired only when the read of the `removed`
-    // was processed (R9-238), a backup that arrived while that batch waited
-    // in line (R9-175) was judged «mine» on arrival.
+    // (`rejectedAwaitingRevert`), is a write that took the doc out of the
+    // query, or a delete: the other device's, as far as this one can tell (a
+    // delete of its own, like `cleanupOldReviewEvents`, or the echo of a write
+    // that went out after a `stop()` cleared `pushing`, retires clocks the
+    // cloud already left behind). The copy it carries is the last one that
+    // matched, this device's often, and says nothing of that write (R9-124):
+    // it retires here. Retired only when the read of the `removed` was
+    // processed (R9-238), a backup that arrived while that batch waited in
+    // line (R9-175) was judged «mine» on arrival.
     const key = `${uid}\u0000${suppressKey(collection, id)}`;
     const rejectedAt = this.rejectedAwaitingRevert.get(key);
     this.rejectedAwaitingRevert.delete(key);
+    const takeBack = rejectedAt === updatedAtOf(copy);
     if (
       change.type === 'removed' &&
-      rejectedAt !== updatedAtOf(copy) &&
       !(
         this.pushing?.uid === uid &&
         this.pushing.collection === collection &&
         this.pushing.id === id
       )
     ) {
-      this.retireOwn(uid, collection, id, copy);
-      return;
+      if (!takeBack) {
+        this.retireOwn(uid, collection, id, copy);
+        return;
+      }
+      // R9-247 — the take-back carries the rejected payload, but it went back
+      // to the cloud's copy, which is below the floor (or gone): the other
+      // device may have written it while the write was in flight. If every
+      // clock of this device's of the doc is at or above the floor, none of
+      // them names that copy, and they retire here too. Left to the read of
+      // the `removed`, a backup the other device restored with one of them
+      // arrived first when that batch waited in line, and passed for mine. A
+      // clock below the floor (a backup of this device's own, R9-190) may be
+      // the cloud's copy: the read decides. So it does with the own stamps
+      // unread (R9-208), which may hold one.
+      const floor = this.queryFloors.get(collection);
+      const queued = this.queue.find(
+        q => q.uid === uid && q.collection === collection && q.id === id,
+      );
+      const clocks = [
+        ...(this.recentAcked.get(key) ?? []),
+        ...(this.ownStamps.get(collection)?.get(id) ?? []),
+        ...(queued ? ownOf(queued) : []),
+      ];
+      if (
+        floor !== undefined &&
+        !this.ownUnread.has(collection) &&
+        clocks.every(ts => ts >= floor)
+      ) {
+        this.retireOwn(uid, collection, id, copy);
+      }
     }
     if (this.isOwnCopy(uid, collection, id, copy)) {
       this.ownArrived.add(copy);
