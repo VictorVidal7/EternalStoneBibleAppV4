@@ -574,6 +574,15 @@ export class SyncEngine {
    */
   private droppedAwaitingRevert = new Map<string, number>();
   /**
+   * R9-243 — the writes the server just rejected (dropped or not), as `uid`
+   * + `suppressKey` → the payload's `updatedAt`, until the doc's next
+   * delivery ARRIVES (see `noteArrived`). The rejection reaches the flush
+   * before the take-back (see `droppedAwaitingRevert`), and a take-back to a
+   * copy below the query floor is a `removed` that carries the rejected
+   * payload: a write of this device, not a change of the other one.
+   */
+  private rejectedAwaitingRevert = new Map<string, number>();
+  /**
    * Quota hardening — in-memory cache of each collection's sync cursor
    * (highest `updatedAt` observed), mirrored to AsyncStorage on every
    * advance. Keyed by collection name only, so whatever writes it after a
@@ -2570,6 +2579,29 @@ export class SyncEngine {
     const copy = change.doc.data() as Record<string, unknown> | undefined;
     if (!copy) return;
     const id = fromDocId(change.doc.id);
+    // R9-243 — a `removed` that arrives with no write of this device to the
+    // doc in flight, and is not the take-back of one the server rejected
+    // (`rejectedAwaitingRevert`), is a write of the other device that took
+    // the doc out of the query, or a delete. The copy it carries is the last
+    // one that matched, this device's often, and says nothing of that write
+    // (R9-124): it retires here. Retired only when the read of the `removed`
+    // was processed (R9-238), a backup that arrived while that batch waited
+    // in line (R9-175) was judged «mine» on arrival.
+    const key = `${uid}\u0000${suppressKey(collection, id)}`;
+    const rejectedAt = this.rejectedAwaitingRevert.get(key);
+    this.rejectedAwaitingRevert.delete(key);
+    if (
+      change.type === 'removed' &&
+      rejectedAt !== updatedAtOf(copy) &&
+      !(
+        this.pushing?.uid === uid &&
+        this.pushing.collection === collection &&
+        this.pushing.id === id
+      )
+    ) {
+      this.retireOwn(uid, collection, id, copy);
+      return;
+    }
     if (this.isOwnCopy(uid, collection, id, copy)) {
       this.ownArrived.add(copy);
       return;
@@ -3284,6 +3316,11 @@ export class SyncEngine {
           // recorded against whoever is signed in NOW.
           if (!isCurrent()) break;
           erroredOut = true;
+          // R9-243 — see `rejectedAwaitingRevert`.
+          this.rejectedAwaitingRevert.set(
+            `${item.uid}\u0000${suppressKey(item.collection, item.id)}`,
+            updatedAtOf(item.data),
+          );
           // Increment attempts; drop only after MAX_RETRY_ATTEMPTS so
           // a poisoned entry can't block the queue forever.
           const idx = this.queue.findIndex(

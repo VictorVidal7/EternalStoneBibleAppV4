@@ -10478,6 +10478,141 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       });
     },
   );
+
+  // R9-243 — la prueba de R9-238 (rama pendiente) con la cadena de lotes
+  // ocupada por otro doc: W3 sellado y L4 en la cola. El otro escribe R2 bajo
+  // el piso (llega como `removed` y espera) y restaura un respaldo con W3
+  // (llega y espera). `mio`: el respaldo con W3; `otro` (CONTROL): lo mismo
+  // con su reloj (+1 ms). Los dos tienen que dar lo mismo.
+  it('R9-243: con la cadena de lotes ocupada, el otro escribe R2 bajo el piso y restaura un respaldo con W3 antes de que se procese el `removed`: pasa a ser «su version»', async () => {
+    const T = Date.now() - HOUR;
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-243-${modo}`;
+      const L = {value: 'lo mio', updatedAt: T + 60_000};
+      const R = {value: 'lo suyo', updatedAt: T + 65_000};
+      const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+      const W3 = {value: 'w3 mio', updatedAt: T + 110_000};
+      localStore.set('doc-c', W3 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W3);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      // Otra subida tarda en confirmarse: L4 espera detras, en la cola.
+      let soltar: () => void = () => {};
+      const puerta = new Promise<void>(r => (soltar = r));
+      mockSetGate = (_p, id) => (id === 'otro' ? puerta : undefined);
+      const O = {value: 'otro', updatedAt: T + 111_000};
+      localStore.set('otro', O as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'otro', O);
+      await settle();
+      const L4 = {value: 'lo mio 4', updatedAt: T + 115_000};
+      localStore.set('doc-c', L4 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', L4);
+      await settle();
+      // La cadena de lotes queda ocupada: el de docX espera su lectura local.
+      let abrir!: () => void;
+      const gate = new Promise<void>(r => (abrir = r));
+      const getLocal = adapter.getLocal.bind(adapter);
+      adapter.getLocal = async id => {
+        if (id === 'docX') await gate;
+        return getLocal(id);
+      };
+      write(uid, 'docX', {value: 'x', updatedAt: T + 50_000});
+      await flush();
+      const desde = mockDelivered.length;
+      write(uid, 'doc-c', {value: 'r2 suyo', updatedAt: T - 20 * 60_000});
+      await settle();
+      write(uid, 'doc-c', {
+        ...W3,
+        updatedAt: W3.updatedAt + (modo === 'otro' ? 1 : 0),
+      });
+      await settle();
+      const antes = {
+        entregas: mockDelivered
+          .slice(desde)
+          .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+          .map(d => `${d.type}:${d.via}`),
+        docX: localStore.get('docX')?.value ?? null,
+      };
+      abrir();
+      await settle();
+      await settle();
+      const r = {
+        antes, // CONTROL: R2 (`removed`) y el respaldo llegaron y esperan
+        suya: parejas(engine),
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      };
+      soltar();
+      mockSetGate = null;
+      await settle();
+      engine.stop();
+      return r;
+    };
+
+    // Pre-fix: la retirada de R9-238 corria al PROCESAR la lectura del
+    // `removed`, y el respaldo, que llego antes, se juzgo «mio» al llegar (el
+    // sello de W3 seguia): la lectura lo encontraba a el, y «su version»
+    // seguia «lo suyo», una copia que la nube ya no tenia.
+    const esperado = {
+      antes: {entregas: ['removed:fire', 'modified:fire'], docX: null},
+      suya: [['lo mio', 'w3 mio']],
+      local: 'lo mio 4',
+      nube: 'w3 mio',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
+
+  it('R9-243: con el doc en conflicto, W1 sube; restauro mi respaldo bajo el piso y el servidor lo rechaza: su eco (`removed`, con W1) no retira mis relojes, y la reversion con W1 no pasa a ser «su version»', async () => {
+    const uid = 'uid-243-vuelo';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const vistos: string[] = [];
+    engine.subscribe(st =>
+      vistos.push(
+        ...st.conflicts.map(
+          c => `${c.localVersion.value}|${c.remoteVersion.value}`,
+        ),
+      ),
+    );
+    const W1 = {value: 'w1 mio', updatedAt: T + 100_000};
+    localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W1);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    const desde = mockDelivered.length;
+    // importBackup: local y cola con el updatedAt del archivo, bajo el piso.
+    const W0 = {value: 'mi respaldo', updatedAt: T - 2 * DAY};
+    localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+    mockSetShouldFail = true;
+    engine.queueWrite('test', 'doc-c', W0);
+    await settle();
+    mockSetShouldFail = false;
+
+    // Sin la excepcion: el eco de W0 llega con W0 en vuelo y trae W1 (la
+    // ultima copia que casaba), y se tomaba por una escritura del otro que
+    // saca el doc de la query: retiraba el sello de W1, y la reversion del
+    // rechazo, con W1, pasaba a ser «su version».
+    expect({
+      entregas: mockDelivered // CONTROL: el eco de W0 y la reversion
+        .slice(desde)
+        .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+        .map(d => `${d.type}:${d.via}`),
+      suya: parejas(engine),
+      fantasma: vistos.filter(v => v.endsWith('|w1 mio')),
+    }).toEqual({
+      entregas: ['removed:echo', 'added:revert'],
+      suya: [['lo mio', 'lo suyo']],
+      fantasma: [],
+    });
+    engine.stop();
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
