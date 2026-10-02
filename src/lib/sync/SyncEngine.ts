@@ -2920,7 +2920,10 @@ export class SyncEngine {
     this.conflicts = this.conflicts.filter(c => c.id !== conflictId);
     this.conflictsWrittenHere.delete(conflictId);
     this.updateState({conflicts: [...this.conflicts]});
-    // R9-193 — and so are its own stamps.
+    // R9-193 — and so are its own stamps. R9-236 — now, not when the echo of
+    // the resolution settles the doc: that echo can wait in line (R9-175)
+    // past the ack, and a backup with the last one arriving meanwhile was
+    // «mine».
     this.forgetOwnStamps(conflict.collection, conflict.docId);
 
     // R9-39 / R9-106 — the doc is settled: stop holding the query floor

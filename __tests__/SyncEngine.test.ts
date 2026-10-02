@@ -9931,6 +9931,105 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     },
   );
 
+  it('R9-236: el conflicto retenido se asienta con una copia MIA (el enganche entrega W3, igual a lo local); despues subo L4, y el otro restaura un respaldo con W3: dentro de los 30 s, «lo mio 4» contra «w3 mio»', async () => {
+    const uid = 'uid-236-fsettle';
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore} = await conflictFor(uid, T, L, R);
+    const mia = async (w: Data) => {
+      localStore.set('doc-c', w as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', w);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    };
+    const W3 = {value: 'w3 mio', updatedAt: T + 110_000};
+    await mia(W3);
+    // La misma cuenta vuelve a enganchar: sin ninguna copia ajena, el enganche
+    // entrega W3 y el conflicto retenido se asienta por LWW.
+    engine.stop();
+    await settle();
+    await engine.start(uid);
+    await settle();
+    const tras = {
+      conflictos: parejas(engine),
+      marca: Object.keys((await persisted(uid)).unsettled),
+    };
+    await mia({value: 'lo mio 4', updatedAt: T + 115_000});
+    write(uid, 'doc-c', {...W3});
+    await settle();
+
+    // Pre-fix (sin soltar los sellos al asentarse): el sello de W3 decia
+    // «mio» al respaldo: sin conflicto, con local L4 y nube W3 en silencio.
+    expect({
+      tras, // CONTROL: el conflicto se asento
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      tras: {conflictos: [], marca: []},
+      conflictos: [['lo mio 4', 'w3 mio']],
+      local: 'lo mio 4',
+      nube: 'w3 mio',
+    });
+    engine.stop();
+  });
+
+  it('R9-236: con la cadena de lotes ocupada, keepTheirs sube R encima de W3, y el otro restaura un respaldo con W3 antes de que se procese el eco de la resolucion: dentro de los 30 s, «lo suyo» contra «w3 mio»', async () => {
+    const uid = 'uid-236-fresolve';
+    const T = Date.now() - 100_000;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+    const W3 = {value: 'w3 mio', updatedAt: T + 90_000};
+    localStore.set('doc-c', W3 as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', 'doc-c', W3);
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    // La cadena de lotes queda ocupada: el eco de la resolucion llega y espera.
+    let abrir!: () => void;
+    const gate = new Promise<void>(r => (abrir = r));
+    const getLocal = adapter.getLocal.bind(adapter);
+    adapter.getLocal = async id => {
+      if (id === 'docX') await gate;
+      return getLocal(id);
+    };
+    write(uid, 'docX', {value: 'x', updatedAt: T + 50_000});
+    await flush();
+    await engine.resolveConflict('test__doc-c', 'keepTheirs');
+    await settle();
+    await engine.__flushForTests();
+    await settle();
+    const tras = {
+      cola: engine.__getQueueForTests().length,
+      nube: await nubeDe(uid, 'doc-c'),
+      docX: localStore.get('docX')?.value ?? null,
+    };
+    write(uid, 'doc-c', {...W3});
+    await flush();
+    abrir();
+    await settle();
+    await settle();
+
+    // Sin soltar los sellos al resolver: el eco de la resolucion, que los
+    // suelta al asentar el doc, esperaba la cadena; el sello de W3 decia
+    // «mio» al respaldo, sin conflicto, con local «lo suyo» y nube W3.
+    expect({
+      tras, // CONTROL: R subio y la cadena seguia ocupada
+      conflictos: parejas(engine),
+      local: localStore.get('doc-c')?.value,
+      nube: await nubeDe(uid, 'doc-c'),
+    }).toEqual({
+      tras: {cola: 0, nube: 'lo suyo', docX: null},
+      conflictos: [['lo suyo', 'w3 mio']],
+      local: 'lo suyo',
+      nube: 'w3 mio',
+    });
+    engine.stop();
+  });
+
   it('R9-237: W0 y W1 suben sin conflicto, y el otro restaura un respaldo con W0, una escritura mia MAS VIEJA de este proceso: dentro de los 30 s, «w1 mio» contra «w0 mio»', async () => {
     const uid = 'uid-237-viejo';
     const T = Date.now() - HOUR;
