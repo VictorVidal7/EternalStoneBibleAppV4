@@ -1,14 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-01, fin de la sesión 38.** La 38 hizo el (r): arregló lo de la 37
-> en la terminal, sin agentes, un commit por hallazgo en `fix/s38-arreglos-s37`. Cerró 12 (`R9-221`
-> el mock primero; `R9-220`/`R9-222` con `noteArrived`), decidió `R9-227`, cerró la mitad de
-> `R9-229` y registró 3 nuevos (`R9-234`, `R9-235` y, de la matriz, `R9-236`).
+> **Última actualización: 2026-10-01, fin de la sesión 39.** La 39 hizo el (s): revisó el diff de la
+> 38 en la terminal, sin agentes y sin tocar código. Registró 4 nuevos, todos P3: `R9-237` (lo abrió
+> la 38), `R9-238`, `R9-239` y `R9-240` (Modo C). También midió `R9-236` y la mitad abierta de
+> `R9-229`.
 >
-> La 37 ya está mergeada y pusheada (`main` = `29c63c3`, CI verde en el log, run `36941443455`,
-> 368/4508). Las ramas de la 38 (`fix/s38-arreglos-s37` y `docs/review-s38-fix-s37`) van **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 236 hallazgos. **Lo
-> siguiente es el mensaje (s): revisar el diff de la 38.**
+> La 38 ya está mergeada y pusheada (`main` = `538409e`, CI verde en el log, run `36947870377`,
+> 368/4518). La rama de la 39 (`docs/review-s39-diff-s38`, solo docs) va **sin mergear hasta el OK
+> de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 240 hallazgos. **Lo siguiente es el mensaje
+> (t): arreglar lo de la 39.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -469,11 +469,49 @@ terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igu
 (la (n), sesión 34, en la terminal con 3 agentes que solo midieron) y la revisión del diff de la
 34 (la (o), sesión 35, en la terminal y sin agentes), sus arreglos (la (p), sesión 36, en el mismo
 chat y sin agentes), la revisión del diff de la 36 (la (q), sesión 37, en la terminal con 7 agentes
-que solo midieron; el checkpoint, en un chat nuevo y sin agentes) y sus arreglos (la (r), sesión 38,
-en la terminal y sin agentes).
-**Lo siguiente es el (s).**
+que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos (la (r), sesión 38,
+en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual).
+**Lo siguiente es el (t).**
 
-**(s) Sesión 39: revisar el diff de la 38.**
+**(t) Sesión 40: arreglar lo de la 39.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (t) y la sección 5), `detail/S39-revision-del-diff-s38.md` y, en `BUGS.md`, las entradas de
+> `R9-236` a `R9-240`. En la memoria, la de la sesión 39 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s39-diff-s38`, pedime el OK para el fast-forward.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 240.
+> - **Las herramientas** (en `_scratch`): las sondas `S39-sondas{,2,3,4}.body.txt`, las piezas
+>   `S39-piezas.cjs.txt` (incluye las de la 38), la base `S39-SyncEngine-base.ts.txt` (= `0b84a7e`),
+>   el motor de la 36 `S39-SyncEngine-36.ts.txt` con `S39-motor.cjs.txt`, y `S38-sonda.cjs.txt`,
+>   `S34-rev.cjs.txt` y la matriz `S38-matriz.cjs.txt`.
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla**, en una rama `fix/...`, un commit por hallazgo, cada prueba vista fallar
+> con su pieza revertida:
+>
+> 1. **`R9-237` primero** (lo abrió la 38): `recentAcked` con solo los relojes del último ack (quitar
+>    `207acum` y `207fold` juntas). `S39-2` es la prueba. Ya se midió 242/242 en la suite; falta la
+>    matriz entera (corolario 46).
+> 2. **`R9-239`:** la misma idea para `ownStamps`, medida contra `R9-193` y `R9-208`.
+> 3. **`R9-238`:** que la lectura de un `removed` retire lo mismo que `noteArrived` cuando la copia
+>    leída no es mía.
+> 4. **`R9-236`:** la prueba de `Fsettle` (`S39-5`) y, por la regla 37, quitar `Fresolve`, con la
+>    matriz entera después.
+> 5. **`R9-229`:** la prueba del bucle (`S39-7`: la lectura de las tablas que no vuelve desde la 60).
+>
+> `R9-240` es Modo C en el emulador: solo con mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:** lo mismo que en el (q).
+
+**(s) Sesión 39: revisar el diff de la 38 — ya HECHO en la sesión 39, en la terminal y sin agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (s) y la sección 5), `detail/S38-arreglos-s37.md` y, en la memoria, la de la sesión 38 y
@@ -1468,20 +1506,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 38 (2026-10-01).**
+**Medido al cerrar la sesión 39 (2026-10-01).**
 
-- **`main` = `origin/main` = `29c63c3`** (el checkpoint de la 37, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `2bfbcf8`). **CI verificado en el log:** run `36941443455`,
-  3 jobs verdes, Node v24.21.0, 368/4508, cero «failed to run». La rama de la 37 se borró.
-- **Dos ramas de la 38, sin mergear a propósito y sin pushear:** `fix/s38-arreglos-s37` (10
-  commits sobre `29c63c3`, `0681c6e`..`0b84a7e`) y, encima, `docs/review-s38-fix-s37` (el
-  checkpoint). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las
+- **`main` = `origin/main` = `538409e`** (el checkpoint de la 38, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `0b84a7e`). **CI verificado en el log:** run `36947870377`,
+  3 jobs verdes, Node v24.21.0, 368/4518, cero «failed to run». Las ramas de la 38 se borraron.
+- **Una rama de la 39, sin mergear a propósito y sin pushear:** `docs/review-s39-diff-s38` (solo
+  docs, el checkpoint). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
   incluye.
-- **Los worktrees:** el de la matriz (`C:/projects/essb-s38-matriz`) se borra al terminar, con la
-  junction primero. No debería quedar ninguno.
+- **Los worktrees:** ninguno (la 39 no hizo matriz).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 38):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 39):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1684,6 +1720,14 @@ Alternativas legítimas:
   de `R9-223` encolaba L2 después de la copia del otro, y el arreglo de `R9-222` hizo que L2 ya no
   llevara el reloj: el caso seguía abierto con la entrada ya en cola. Antes de cerrar, preguntá si
   el caso sigue construible por otro orden.
+- **Una premisa que dice «sin X entre medias» tiene que preguntar si el caso mismo es X (sesión 39,
+  `R9-237`).** La 38 razonó «sin copia ajena entre medias, toda entrega de la copia de la nube es
+  mía», y el respaldo que el otro restaura ES la copia ajena, solo que trae mi reloj.
+- **«El ack» tiene dos relojes (sesión 39, `R9-240`):** el del SDK y el de la continuación del
+  `set` en el motor. Una premisa sobre el SDK no vale para el motor sin medir en qué orden llegan a
+  JS la respuesta y el snapshot.
+- **Dos guardas que se cubren entre ellas dan 0 cada una en la matriz (sesión 39, `R9-236`).** Y
+  juntas pueden ser la causa de un daño: `207fold` y `207acum`. La matriz mide de a una pieza.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

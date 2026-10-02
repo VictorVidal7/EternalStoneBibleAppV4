@@ -469,7 +469,21 @@
 > - **La matriz entera:** 138 piezas, control 0/242; contra la de la 37, 95 de 143 iguales (las 5 `R216*` ya no existen, 7 nuevas, y el resto son pruebas nuevas que caen). Cuatro piezas viejas bajan a 0: `R9-236`.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **236**. Ramas `fix/s38-arreglos-s37` y
-> `docs/review-s38-fix-s37`, sin mergear hasta el OK. Detalle: `detail/S38-arreglos-s37.md`.
+> `docs/review-s38-fix-s37`: mergeadas y pusheadas con el OK de Victor (`main` = `538409e`, CI verde
+> en el log, run `36947870377`, 368/4518). Detalle: `detail/S38-arreglos-s37.md`.
+>
+> **Sesión 39 (2026-10-01): REVISIÓN del diff de la 38** (`29c63c3..0b84a7e`), solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **4 hallazgos nuevos, `R9-237`..`R9-240`, todos P3:** un respaldo del otro con una escritura mía
+>   más vieja del mismo proceso pasa por «mía» (`R9-237`, lo abrió la 38); `R9-224` sigue abierto por
+>   la lectura de un `removed` (`R9-238`) y por el respaldo directo (`R9-239`), los dos ya existían;
+>   y la premisa de `noteArrived` depende de un orden de RNFirebase sin medir (`R9-240`, Modo C).
+> - **Medido:** `R9-236` (a `Fsettle` le falta una prueba, `Fresolve` no decide, y `207fold` y
+>   `207acum` juntas son la causa de `R9-237`) y la forma de la prueba que falta para `R9-229`.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **240**. Rama `docs/review-s39-diff-s38`, sin
+> mergear hasta el OK. Detalle: `detail/S39-revision-del-diff-s38.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -967,6 +981,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 39 — 2026-10-01. Revisión del diff de la 38.** Solo en la terminal, sin agentes y sin
+  tocar código; arrancó con `_scratch/S39-PROMPT.md`.
+  - **Cómo se trabajó:** una sonda por pregunta del prompt (`_scratch/S39-sondas*.body.txt`), cada
+    «¿de la 38?» medido con el motor de la 36 entero (`S39-motor.cjs.txt`), y las guardas de
+    `R9-236` con sus piezas (`S39-piezas.cjs.txt`).
+  - **Resultado:** 4 nuevos (`R9-237`..`R9-240`); `R9-236` y la mitad abierta de `R9-229`, medidos.
+    Queda 1 P0 abierto.
+  - **Detalle: `detail/S39-revision-del-diff-s38.md`.**
+  - **Las lecciones:**
+    - **una premisa que dice «sin X entre medias» tiene que preguntar si el caso mismo es X:** el
+      respaldo del otro es la copia ajena, y trae mi reloj;
+    - **«el ack» tiene dos relojes**, el del SDK y el de la continuación del motor;
+    - **dos guardas que se cubren entre ellas dan 0 cada una en la matriz**, y juntas pueden ser la
+      causa de un daño.
 
 - **Sesión 38 — 2026-10-01. Arreglos de lo de la 37.** Solo en la terminal, sin agentes; arrancó
   con `_scratch/S38-PROMPT.md`.

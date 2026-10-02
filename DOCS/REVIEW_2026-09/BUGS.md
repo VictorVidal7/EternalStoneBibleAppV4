@@ -449,7 +449,8 @@
 > `detail/S37-revision-del-diff-s36.md`.
 >
 > **Sesión 38 (2026-10-01): ARREGLOS de lo de la 37**, solo en la terminal y sin agentes. Rama
-> `fix/s38-arreglos-s37` (10 commits, `0681c6e`..`0b84a7e`), **sin mergear hasta el OK de Victor**.
+> `fix/s38-arreglos-s37` (10 commits, `0681c6e`..`0b84a7e`), mergeada y pusheada con el OK de Victor
+> junto con su checkpoint (`main` = `538409e`, CI verde en el log, run `36947870377`, 368/4518).
 >
 > - **Cerrados:** `R9-221` (el mock), `R9-220` y `R9-222` (con `noteArrived`: el veredicto se toma al
 >   llegar la entrega, y una copia ajena retira los relojes tomados), `R9-223`, `R9-224`, `R9-225`
@@ -461,6 +462,21 @@
 > - **La matriz entera:** 138 piezas, control 0/242; contra la de la 37, 95 de 143 iguales (las 5 `R216*` ya no existen, 7 nuevas, y el resto son pruebas nuevas que caen). Cuatro piezas viejas bajan a 0: `R9-236`.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **236**. Detalle: `detail/S38-arreglos-s37.md`.
+>
+> **Sesión 39 (2026-10-01): REVISIÓN del diff de la 38** (`29c63c3..0b84a7e`), solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **4 hallazgos nuevos, `R9-237`..`R9-240`, todos P3.** `R9-237` lo abrió la 38: un respaldo del
+>   otro con una escritura mía más vieja del mismo proceso pasa por «mía» (hipótesis medida en parte:
+>   `recentAcked` con solo el último ack, 242/242). `R9-238` y `R9-239` son dos caminos por los que
+>   `R9-224` sigue abierto (la lectura de un `removed` y el respaldo directo), y ya existían. `R9-240`:
+>   la premisa de `noteArrived` depende de un orden de RNFirebase que nadie midió (Modo C).
+> - **`R9-236`, medido:** a `Fsettle` le falta una prueba (`S39-5`); `Fresolve` no decide (candidata a
+>   la regla 37); `207fold` y `207acum`, juntas, son la causa de `R9-237`. **`R9-229`:** la prueba del
+>   bucle se puede escribir sin colgar jest (`S39-7`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **240**. Detalle:
+> `detail/S39-revision-del-diff-s38.md`.
 
 ---
 
@@ -3950,6 +3966,12 @@ pending.remoteVersion.updatedAt`.
       `L32table`, por `conflictos` y `vistos`. La de Beto (de `R9-217`) cae con `R226sin` (sin
       guarda). Salidas: `S38-rev226c-*.out.txt`.
     - El `descarte` de A6 sigue igual: es `R9-227`.
+  - **Leído en la sesión 39 (quién más escribe en `ownStamps` antes del enganche): nadie.**
+    `noteOwnAcked` escribe en el mapa solo si el doc es conflicto, y `stop()` vacía `conflicts` y
+    `unsettled`. `noteArrived` necesita una entrega, y `rereadOwn` sale si la sesión cambió.
+    `ownStampsUid` puede quedar viejo con otra cuenta entre medias (Ana, Beto, Ana): entonces la
+    edición de Ana antes del enganche no lleva sellos, como antes de este arreglo, pero nunca los de
+    otra cuenta. El daño pide además la tabla ilegible. Sin medir.
 
 - **`R9-227` (S37, `SyncEngine` / conflictos — P3) — 🐛 una edición posterior DESCARTADA (8
   rechazos) con la tabla ilegible toda la sesión da «d mio 3 contra d mio 2» al reiniciar.** MEDIDO
@@ -4002,6 +4024,11 @@ pending.remoteVersion.updatedAt`.
     (`_scratch/S38-rev229-*.out.txt`). **Sigue abierta la otra mitad:** ninguna prueba fija el
     `return` de la rama `waiting` (dos tablas que fallan siempre). Su revert (`altDiferir`) es un
     bucle caliente que mata jest por memoria, y una prueba tendría que medirlo sin colgar el runner.
+  - **La sesión 39 midió cómo escribir esa prueba** (`_scratch/S39-sondas4.body.txt`, `S39-7`): dos
+    tablas que fallan siempre, cada una con una escritura tomada con su doc en conflicto. A partir de
+    la lectura 60, la lectura de las tablas no vuelve nunca, así que un bucle se detiene en vez de
+    matar jest. Con todo puesto hay 5 lecturas; con `altDiferir`, 60, y jest termina
+    (`S39-bucle-*.out.txt`). Falta convertirla en prueba.
 
 - **`R9-230` (S37, `SyncEngine` / comentario — P3) — 🐛 `R9-219` cerró solo uno de los dos textos que
   nombraba: la regla de `R9-190` sigue sin la excepción.** MEDIDO (A4).
@@ -4071,6 +4098,11 @@ pending.remoteVersion.updatedAt`.
   - **¿De la 38? No:** antes de la 36, igual. La 36 lo mostraba como un conflicto, con «wa mio» (una
     escritura de este teléfono) como «su versión» (`R9-220`), y la 38 vuelve a lo de antes.
   - Sin medir: si la interfaz puede escribir en esa ventana.
+  - **Leído en la sesión 39:** el `stop()` + `start()` del arranque en frío es el efecto de
+    `SyncEngineContext.tsx:91-127`. `user` pasa un render por `null` o anónimo y vuelve; la ventana
+    dura lo que Firebase Auth tarda en rehidratar, mientras se monta la primera pantalla. Una edición
+    del usuario ahí es improbable; una escritura automática del arranque, si la hay, caería en ella.
+    Sin medir en el teléfono.
 
 - **`R9-236` (S38, `SyncEngine` / guardas — P3) — 🐛 cuatro guardas viejas que la 38 dejó sin
   ninguna prueba que las vea.** MEDIDO (la matriz entera, `_scratch/S38-matriz-s38-0b84a7e.out.txt`;
@@ -4084,6 +4116,98 @@ pending.remoteVersion.updatedAt`.
   - **De la 38** (corolario 46: una guarda del primer arreglo, subsumida por el segundo). **Para la
     39:** por cada una, o falta la prueba (un orden en el que todavía decide) o es equivalente por
     construcción y se quita (regla 37), con la matriz entera otra vez.
+  - **Medido en la sesión 39** (`_scratch/S39-guardas-*.out.txt`; sondas en
+    `S39-sondas.body.txt` y `S39-sondas3.body.txt`, piezas en `S39-piezas.cjs.txt`):
+    - **`Fsettle`: falta la prueba.** Decide cuando el doc se asienta con una copia MÍA, sin ninguna
+      copia ajena. En `S39-5`, la misma cuenta vuelve a enganchar, el enganche entrega W3 (igual a lo
+      local) y el conflicto retenido se asienta por LWW. Con la guarda, los sellos se van, y el
+      respaldo del otro con W2 da «w3 mio | w2». Sin ella quedan `[100000, 110000]`, y el respaldo
+      pasa en silencio (local `w3 mio`, nube `w2`). `S39-5` es la prueba que falta.
+    - **`Fresolve`: no decide en `S39-6`** (keepMine): el eco de la subida asienta el doc, y
+      `Fsettle` olvida los sellos igual. Por lectura, toda resolución de un doc con sellos sube algo:
+      keepMine y merge siempre, y keepTheirs porque el doc tiene escrituras tomadas durante el
+      conflicto (`R9-161`, `R9-199`). Su eco asienta el doc. Es candidata a la regla 37, con la
+      matriz entera después (corolario 46).
+    - **`S34-207fold` y `S34-207acum` no son guardas equivalentes: juntas son la causa de
+      `R9-237`.** Cada una sola no cambia `S39-2`: la entrada de W1 lleva el reloj de W0 en `own`
+      (`R9-194`), `fold` lo pliega y, sin `fold`, `acum` lo conserva. Quitadas juntas, `S39-2` da el
+      conflicto y la suite de sync pasa 242/242 (`S39-rev-acumfold.out.txt`).
+
+- **`R9-237` (S39, `SyncEngine` / conflictos — P3) — 🐛 de la 38: el respaldo que el otro restaura con
+  una escritura MÍA más vieja del mismo proceso (W0, después de subir W1) pasa por «mía», porque
+  ninguna copia ajena llegó antes. Dentro de los 30 s no hay conflicto, y local (W1) y nube (W0) quedan
+  distintos en silencio.** MEDIDO en el mock (`_scratch/S39-sondas.body.txt`, `S39-2`).
+  - `noteArrived` decide con `isOwnCopy`, y `recentAcked` tiene los relojes de todos los acks del doc
+    en el proceso. El de W0 entra por el ack de W0 (`S34-207acum`) y otra vez por el `own` de la
+    entrada de W1 (`R9-194`, plegado por `S34-207fold`). La premisa de `24a61bc` («sin una copia ajena
+    entre medias, toda entrega de la copia de la nube es mía») no cubre este caso: la copia ajena es
+    el respaldo mismo, y trae mi reloj.
+  - **Medido** (`S39-sondas-hoy.out.txt`): W0 (T+10 s) y W1 (T+20 s) suben sin conflicto
+    (`recentAcked` `[10000, 20000]`), y el otro restaura W0. Resultado: `conflictos []`, local
+    `w1 mio`, nube `w0 mio`. El control (el mismo valor con el reloj del otro, +1 ms) da
+    `[["w1 mio","w0 mio"]]`.
+  - **¿De la 38? Sí.** Con el motor de la 36 (`29c63c3`, `S39-sondas-motor36.out.txt`), el respaldo
+    da `[["w1 mio","w0 mio"]]`: para `recentEchoed` solo era mío el objeto del eco de W0. Fuera de la
+    ventana, y sin conflicto, los dos motores dan lo mismo: LWW ignora una copia más vieja.
+  - **Hipótesis, medida en parte:** que `recentAcked` guarde solo los relojes del último ack del doc
+    (quitar `207acum` y `207fold` juntas). Con las dos piezas, `S39-2` da el conflicto
+    (`S39-viejo-acumfold.out.txt`), y la suite de sync pasa 242/242 (`S39-rev-acumfold.out.txt`). El
+    porqué: las re-entregas en otro objeto que necesita `R9-220` (la reversión de un rechazo, el
+    re-enganche) traen la copia de la nube, que es la del último ack. Los ecos que se procesan tarde
+    los cubre `ownArrived`. Y un reloj más viejo, después de un ack posterior, solo vuelve con un
+    respaldo. Falta la matriz entera (corolario 46) y la prueba.
+
+- **`R9-238` (S39, `SyncEngine` / conflictos — P3) — 🐛 la retirada de relojes de la 38 (`R9-220`,
+  `R9-223`, `R9-224`) solo ocurre en el callback de `onSnapshot`. Una copia ajena que el motor ve
+  solo por la LECTURA de un `removed` no retira nada, y un respaldo posterior con W2 sigue siendo
+  «mío».** MEDIDO en el mock (`_scratch/S39-sondas2.body.txt`, `S39-4`).
+  - La escritura del otro con su reloj atrasado (bajo el piso) saca el doc de la query. El `removed`
+    trae la última versión que casaba (W3, que `noteArrived` juzga mía), y la copia del otro llega por
+    `lookup`, que no pasa por `noteArrived`.
+  - **Medido** (`S39-lectura-hoy.out.txt`): la rama pendiente de la sonda de `R9-224`, con R2 bajo el
+    piso. Después de R2 los sellos siguen en `[100000, 110000]`; el respaldo de W2 no pasa a «su
+    versión» (sigue `r2 suyo`), y keepTheirs deja local `r2 suyo` y nube `w2`. En el control, R2
+    llega por el listener, los sellos se retiran, y local y nube terminan en `w2`.
+  - **¿De la 38? No: ya existía.** Con el motor de la 36 (`S39-lectura-motor36.out.txt`), los dos
+    modos dan el daño, que es el de `R9-224`. La 38 cerró la ruta del listener y no esta.
+  - **Leído, lo mismo por los otros caminos:** el `removed` sintético de `R9-186` no trae copia
+    (`noteArrived` vuelve sin hacer nada), y su lectura es una lectura más. Y el `removed` del eco de
+    una escritura mía que saca el doc de la query trae la copia ANTERIOR (puede ser la del otro, ya
+    juzgada), que `noteArrived` vuelve a juzgar como si recién llegara.
+  - **Hipótesis, sin medir:** que la lectura de un `removed` retire lo mismo que `noteArrived` cuando
+    la copia leída no es mía. La lectura ve la vista del SDK con mis escrituras encima (`R9-179`), así
+    que una copia ajena leída es posterior a todo lo que el servidor tomó.
+
+- **`R9-239` (S39, `SyncEngine` / conflictos — P3) — 🐛 `R9-224` sigue abierto para el respaldo
+  DIRECTO: con el doc en conflicto subo W2 y W3, y el otro restaura W2 sin escribir nada antes. La
+  copia pasa por «mía» por `ownStamps`, «su versión» sigue en R, y keepTheirs sube R encima del
+  respaldo.** MEDIDO en el mock (`_scratch/S39-sondas.body.txt`, `S39-3`).
+  - **Medido** (`S39-sondas-hoy.out.txt`): sellos `[100000, 110000]`. Después del respaldo de W2,
+    «su versión» sigue en `lo suyo`, y keepTheirs deja local y nube en `lo suyo`: el respaldo del
+    otro se pierde. La prueba de `R9-224` (con R2 entre medias) termina en `w2` en los dos.
+  - **¿De la 38? No: ya existía.** El motor de la 36 da lo mismo (`S39-sondas-motor36.out.txt`). La
+    38 cerró la variante con R2; aquí, como en `R9-237`, la copia ajena es el respaldo mismo.
+  - **Hipótesis, sin medir:** la misma de `R9-237`, para `ownStamps` (solo el último sello del doc).
+    Hay que medirla contra `R9-193` y `R9-208` (los sellos tras reiniciar).
+
+- **`R9-240` (S39, `SyncEngine` / premisa de `noteArrived` — P3) — ❓ SIN MEDIR EN NATIVO: la premisa
+  de `24a61bc` («una escritura en vuelo está encima de la vista del SDK, así que ninguna copia del
+  otro llega antes de su ack») vale para el ack del SDK, pero el motor anota el ack en la
+  continuación del `set`. Si RNFirebase entrega a JS la copia del otro antes que la respuesta del
+  `set`, la retirada no alcanza ese reloj y vuelve el daño de `R9-216`.** MEDIDO en el mock con el
+  ack demorado (`_scratch/S39-piezas.cjs.txt`, pieza `S39ackTarde`; `S39-1`).
+  - El mock entrega con `setImmediate`, así que el motor anota el ack primero
+    (`S39-sondas-log.out.txt`: el «ack» sale antes que «llega ajena»), y la sonda da lo correcto.
+  - **Con el ack dos vueltas más tarde** (`S39-envuelo-acktarde.out.txt`): llega la copia del otro y
+    se registra el conflicto; después, el ack de W1 va a `ownStamps` (el doc ya es conflicto), donde
+    nada lo retira. El respaldo con W1 pasa por «mío», keepTheirs sube `lo suyo` encima, y el
+    respaldo se pierde. El control (R después del ack) termina con `w1` en los dos.
+  - **Lo que hay que medir (Modo C, con el OK de Victor):** en el emulador, el orden en JS entre la
+    respuesta del `set` y el snapshot con la copia del otro, cuando la escritura del otro se aplica en
+    el servidor mientras la mía está en vuelo.
+  - **Leído, `{merge: true}`: sin caso.** La vista con mi escritura en vuelo es la copia del servidor
+    con mis campos encima, y cada payload lleva su `updatedAt` (todos los campos, con `null` en los
+    opcionales: `R9-44`). Esa entrega trae mi reloj, así que pasa por «mía», y lo es.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
