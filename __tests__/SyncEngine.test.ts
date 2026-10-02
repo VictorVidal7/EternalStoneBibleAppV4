@@ -10827,6 +10827,117 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       otro: esperado,
     });
   });
+
+  // R9-245 — W1 sube (sin conflicto, o con el doc en conflicto); el usuario
+  // restaura su respaldo W0, con el updatedAt del archivo (bajo el piso), y el
+  // servidor lo rechaza una vez: la reversion trae W1, mia y mas nueva que lo
+  // local, con W0 esperando en la cola. Despues la app se reinicia y W0 se
+  // reintenta, ya aceptado. `rechazo`, o el mismo respaldo aceptado a la
+  // primera (`sin rechazo`, CONTROL): los dos tienen que terminar igual.
+  it.each<['sin conflicto' | 'con conflicto']>([
+    ['sin conflicto'],
+    ['con conflicto'],
+  ])(
+    'R9-245: (%s) W1 sube y restauro mi respaldo bajo el piso, que el servidor rechaza: la reversion con W1 no entra en lo local ni es conflicto, y tras reiniciar y reintentar, lo local y la nube quedan en mi respaldo',
+    async variante => {
+      const T = Date.now() - HOUR;
+      const L = {value: 'lo mio', updatedAt: T + 60_000};
+      const R = {value: 'lo suyo', updatedAt: T + 65_000};
+      const enConflicto = variante === 'con conflicto';
+      const caso = async (modo: 'rechazo' | 'sin rechazo') => {
+        const uid = `uid-245-${enConflicto ? 'c' : 's'}-${modo}`;
+        const {engine, localStore} = enConflicto
+          ? await conflictFor(uid, T, L, R)
+          : await engineFor(uid, T);
+        const vistos: string[] = [];
+        engine.subscribe(st =>
+          vistos.push(
+            ...st.conflicts.map(
+              c => `${c.localVersion.value}|${c.remoteVersion.value}`,
+            ),
+          ),
+        );
+        const W1 = {value: 'w1 mio', updatedAt: T + 100_000};
+        localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+        engine.queueWrite('test', 'doc-c', W1);
+        await settle();
+        await engine.__flushForTests();
+        await settle();
+        // importBackup: local y cola con el updatedAt del archivo.
+        const W0 = {value: 'mi respaldo', updatedAt: T - 2 * DAY};
+        localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+        mockSetShouldFail = modo === 'rechazo';
+        engine.queueWrite('test', 'doc-c', W0);
+        await settle();
+        mockSetShouldFail = false;
+        const subida = {
+          cola: engine
+            .__getQueueForTests()
+            .filter(q => q.uid === uid)
+            .map(q => q.attempts),
+          nube: await nubeDe(uid, 'doc-c'),
+        };
+        const tras = {
+          suya: parejas(engine),
+          local: localStore.get('doc-c')?.value,
+        };
+        engine.stop();
+        await engine.start(uid);
+        await settle();
+        const reinicio = {
+          suya: parejas(engine),
+          local: localStore.get('doc-c')?.value,
+        };
+        for (const q of engine.__getQueueForTests()) {
+          (q as {lastAttemptAt?: number}).lastAttemptAt = 0;
+        }
+        await engine.__flushForTests();
+        await settle();
+        const r = {
+          subida, // CONTROL: con el rechazo, W0 espera y la nube sigue en W1
+          tras,
+          reinicio,
+          mioContraMio: vistos.filter(
+            v => v.endsWith('|w1 mio') || v.endsWith('|mi respaldo'),
+          ),
+          alFinal: {
+            cola: engine.__getQueueForTests().filter(q => q.uid === uid).length,
+            suya: parejas(engine),
+            local: localStore.get('doc-c')?.value,
+            nube: await nubeDe(uid, 'doc-c'),
+          },
+        };
+        engine.stop();
+        return r;
+      };
+
+      // Pre-fix: la reversion con W1 (mas nueva que el respaldo) entraba por
+      // LWW, y el reintento de W0 dejaba lo local en «w1 mio» y la nube en «mi
+      // respaldo», para siempre. Con el conflicto, tras reiniciar la rama del
+      // conflicto retenido la tomaba por el otro: «mi respaldo» contra «w1
+      // mio», que seguia despues del reintento.
+      const esperado = (modo: 'rechazo' | 'sin rechazo') => ({
+        subida:
+          modo === 'rechazo'
+            ? {cola: [1], nube: 'w1 mio'}
+            : {cola: [], nube: 'mi respaldo'},
+        tras: {
+          suya: enConflicto ? [['lo mio', 'lo suyo']] : [],
+          local: 'mi respaldo',
+        },
+        reinicio: {suya: [], local: 'mi respaldo'},
+        mioContraMio: [],
+        alFinal: {cola: 0, suya: [], local: 'mi respaldo', nube: 'mi respaldo'},
+      });
+      expect({
+        rechazo: await caso('rechazo'),
+        sinRechazo: await caso('sin rechazo'),
+      }).toEqual({
+        rechazo: esperado('rechazo'),
+        sinRechazo: esperado('sin rechazo'),
+      });
+    },
+  );
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

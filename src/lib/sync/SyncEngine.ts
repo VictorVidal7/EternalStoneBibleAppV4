@@ -1894,6 +1894,25 @@ export class SyncEngine {
     // write lands after the read copy: nothing is applied (R9-176).
     if (ownQueued && !local) return true;
 
+    // R9-245 — nor, while a write of this device to the doc waits in the
+    // queue, a copy of its own: that write lands after it, like the one a read
+    // finds (R9-176). The branches below take a copy newer than the local one
+    // for the cloud moving on, and a queued write is newer than any copy of
+    // this device's only while it carries the clock of its edit: a restored
+    // backup keeps the `updatedAt` of the file. When the server rejected it,
+    // the take-back (the copy this device had pushed before) came in by LWW
+    // over the backup, which went up on its retry and left this phone and the
+    // cloud apart for good; with the doc a held conflict, after a restart it
+    // showed «mine» against «mine». Like a backup of its own a read finds
+    // (R9-190), a held conflict settles: the write lands over both copies.
+    if (
+      data &&
+      this.hasQueuedWrite(this.uid, adapter.collection, id) &&
+      this.isOwnCopy(this.uid, adapter.collection, id, data)
+    ) {
+      return true;
+    }
+
     if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;
       const remoteTs = typeof data.updatedAt === 'number' ? data.updatedAt : 0;
@@ -1939,7 +1958,8 @@ export class SyncEngine {
       // as it is now, which may be long past the 30 s window: detected again
       // anyway, or LWW would settle it without the user choosing.
       // - Newer than the local copy: the other device kept writing, or deleted
-      //   it, meanwhile (R9-160).
+      //   it, meanwhile (R9-160). A copy of this device's own with its write
+      //   queued (a restored backup) does not get here (R9-245).
       // - R9-193 — older, and not a copy of this device (`isOwnCopy`): the
       //   other device, with its clock behind this one's. Before, any older
       //   copy was taken for this device's own earlier write (R9-188), and
