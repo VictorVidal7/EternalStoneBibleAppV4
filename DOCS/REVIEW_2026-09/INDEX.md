@@ -512,8 +512,26 @@
 >   prueba de `R9-218`). Las seis preguntas del prompt, respondidas en el detalle. Sin la matriz
 >   entera: no hubo cambio de código.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **244**. Rama `docs/review-s41-diff-s40`, sin mergear
-> hasta el OK. Detalle: `detail/S41-revision-del-diff-s40.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **244**. Rama `docs/review-s41-diff-s40`: mergeada y
+> pusheada con el OK de Victor (`main` = `2d8eb49`, CI verde en el log, run `36974151089`,
+> 368/4526). Detalle: `detail/S41-revision-del-diff-s40.md`.
+>
+> **Sesión 42 (2026-10-02): ARREGLOS de lo de la 41**, solo en la terminal y sin agentes.
+>
+> - **Cerrados**, un commit por hallazgo en `fix/s42-arreglos-s41` (`7c8c0fa`..`1a77b78`): `R9-242`
+>   (el ack de una subida reemplazada deja en la entrada viva solo su reloj), `R9-234` (la relectura
+>   de la tabla de sellos no trae lo que la sesión ya decidió; es también lo que quedaba de
+>   `R9-239`), `R9-244` (la prueba del eco tardío de `R9-160`, con el orden que da el SDK), `R9-243`
+>   (un `removed` del otro retira al LLEGAR; la reversión de un rechazo, no) y el comentario de
+>   `R9-229`.
+> - **2 nuevos:** `R9-245` (mi propio respaldo rechazado por el servidor: tras reiniciar, «lo mío
+>   contra lo mío»; medido, sin diagnosticar, ya existía) y `R9-246` (dos guardas sin una prueba que
+>   las vea solas, una de ellas la retirada de la lectura de `R9-238`).
+> - **La matriz entera:** 150 piezas, control 0/256 (las 8 ausentes de siempre); contra la de la 40, 120 de 150 iguales (9 nuevas, todas caen salvo `R234mem`; el resto, pruebas nuevas que caen). De las viejas, solo `S40-R238` baja a 0 (de 2): `R9-246`. Dos anclas viejas se rehicieron (`S34-208unionPoda` y `S40-R238`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **246**. Ramas `fix/s42-arreglos-s41` y
+> `docs/review-s42-fix-s41`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S42-arreglos-s41.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1011,6 +1029,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     - **una decisión que dice «X, o lo que la medición diga» no decide X:** la X medida era la rama B;
     - **los heredocs halvan las barras, también dentro de Python** (dos NUL en `SyncEngine.ts`, otra
       vez).
+
+- **Sesión 42 — 2026-10-02. Arreglos de lo de la 41.** Solo en la terminal, sin agentes; arrancó
+  con `_scratch/S42-PROMPT.md`.
+  - **Cómo se trabajó:** un commit por hallazgo en `fix/s42-arreglos-s41`, cada prueba vista caer
+    con su pieza (`_scratch/S42-piezas.cjs.txt`) sobre la base de su commit, por la consecuencia y
+    contra su control (+1 ms); `R9-243` medido antes de diseñar; la matriz entera en un worktree
+    aparte.
+  - **Resultado:** 5 cerrados, 2 nuevos (`R9-245`, `R9-246`). Queda 1 P0 abierto.
+  - **Detalle: `detail/S42-arreglos-s41.md`.**
+  - **Las lecciones:**
+    - **una hipótesis que cierra la sonda puede no cerrar el caso que nombra la entrada**
+      (`H239join` y `R9-234`);
+    - **una decisión tomada con un veredicto que puede estar mal no se guarda sin lo que permite
+      corregirla** (la retirada con la tabla ilegible, `R9-208`);
+    - **una herramienta que restaura una base la restaura también cuando falla** (`S41-motor`).
 
 - **Sesión 41 — 2026-10-01/02. Revisión del diff de la 40.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S41-PROMPT.md`.

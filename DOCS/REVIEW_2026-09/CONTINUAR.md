@@ -1,13 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 41.** La 41 hizo el (u): revisó el diff de
-> la 40 en la terminal, sin agentes y sin tocar código. Registró 3 nuevos, `R9-242`..`R9-244` (todos
-> P3, y los tres ya existían), y midió `R9-234`.
+> **Última actualización: 2026-10-02, fin de la sesión 42.** La 42 hizo el (v): arregló lo de la
+> 41 en la terminal, sin agentes. Cerró `R9-242`, `R9-234` (con lo que quedaba de `R9-239`),
+> `R9-244`, `R9-243` y el comentario de `R9-229`, y registró 2 nuevos: `R9-245` (medido, sin
+> diagnosticar, ya existía) y `R9-246` (dos guardas sin prueba propia tras la 42).
 >
-> La 40 ya está mergeada y pusheada (`main` = `48bee85`, CI verde en el log, run `36968376017`,
-> 368/4526). La rama de la 41 (`docs/review-s41-diff-s40`) va **sin mergear hasta el OK de
-> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 244 hallazgos. **Lo siguiente es el mensaje (v):
-> arreglar lo de la 41.**
+> La 41 ya está mergeada y pusheada (`main` = `2d8eb49`, CI verde en el log, run `36974151089`,
+> 368/4526). Las ramas de la 42 (`fix/s42-arreglos-s41` y, encima, `docs/review-s42-fix-s41`) van
+> **sin mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 246 hallazgos. **Lo
+> siguiente es el mensaje (w): revisar el diff de la 42.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -470,9 +471,56 @@ terminal y sin agentes), la revisión del diff de la 32 (la (m), sesión 33, igu
 chat y sin agentes), la revisión del diff de la 36 (la (q), sesión 37, en la terminal con 7 agentes
 que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos (la (r), sesión 38,
 en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual), y sus arreglos (la (t), sesión 40,
-igual), y la revisión del diff de la 40 (la (u), sesión 41, igual). **Lo siguiente es el (v).**
+igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arreglos (la (v), sesión
+42, igual). **Lo siguiente es el (w).**
 
-**(v) Sesión 42: arreglar lo de la 41.**
+**(w) Sesión 43: revisar el diff de la 42.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (w) y la sección 5), `detail/S42-arreglos-s41.md` y, en `BUGS.md`, los cierres de la 42
+> (al final de `R9-242`, `R9-234`, `R9-244`, `R9-243` y `R9-229`), las notas de la 42 en `R9-240` y
+> `R9-238`, y `R9-245` y `R9-246`. En la memoria, la de la sesión 42 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s42-arreglos-s41` y `docs/review-s42-fix-s41`, pedime el OK
+>   para el fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 246.
+> - **Las herramientas** (en `_scratch`): las piezas `S42-piezas.cjs.txt` (reexporta las de la 41,
+>   la 40, la 39 y la 38, y las de `R9-218`), la última base `S42-SyncEngine-R243.ts.txt` (= el
+>   motor de `1a77b78`), `S38-sonda.cjs.txt`, `S41-motor.cjs.txt` (el motor va por NOMBRE dentro de
+>   `_scratch`, y restaura su base de la 40 encima aunque falle: commiteá antes) y la matriz
+>   `S42-matriz.cjs.txt`. **`S32_BASE` y `S34_PIEZAS`, con la ruta ABSOLUTA.**
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión revisa el diff de la 42** (`2d8eb49..1a77b78`: `SyncEngine.ts`, `types.ts` y
+> `SyncEngine.test.ts`), sin tocar código. Preguntas para empezar:
+>
+> - `rejectedAwaitingRevert` (`R9-243`): ¿qué entregas consumen la anotación antes que la reversión?
+>   ¿Un rechazo cuya reversión no llega (`stop()`, datos iguales a la nube) deja una anotación que
+>   tapa un `removed` del otro más adelante? ¿Y el `removed` que llega con mi escritura en vuelo
+>   pero es del otro (¿lo permite el SDK?)?
+> - `ownRetired` (`R9-234`): ¿qué otras retiradas con la tabla ilegible hacen falta corregir con la
+>   relectura (la de la lectura de un `removed`, `R9-238`)? ¿Hay un orden en que la guarda de memoria
+>   (`R234mem`) decida sola?
+> - `H41own` (`R9-242`): el `own` de la entrada aparcada tras un `stop()` con la subida en vuelo
+>   (leído en la entrada); ¿qué más lee el `own` de una entrada después del ack de otra?
+> - `R9-246`: la retirada de la lectura de un `removed` (`R9-238`) quedó en 0 en la matriz: ¿se
+>   construye el `removed` sintético de `R9-186`, o el eco de mi escritura, con una copia ajena en la
+>   lectura y un daño visible? Si no, medilo y proponé quitarla.
+> - `R9-245`: diagnosticarlo (¿por qué tras reiniciar «mi respaldo» contra «w1 mio», si el sello de
+>   W1 está en la tabla?).
+>
+> `R9-240` es Modo C en el emulador: solo con mi OK.
+>
+> **Pendiente, NO salvo que te lo pida:** lo mismo que en el (q).
+
+**(v) Sesión 42: arreglar lo de la 41 — ya HECHO en la sesión 42, en la terminal y sin agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (v) y la sección 5), `detail/S41-revision-del-diff-s40.md` y, en `BUGS.md`, las entradas
@@ -1589,18 +1637,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 41 (2026-10-02).**
+**Medido al cerrar la sesión 42 (2026-10-02).**
 
-- **`main` = `origin/main` = `48bee85`** (el checkpoint de la 40, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `e9d6e89`). **CI verificado en el log:** run `36968376017`,
-  3 jobs verdes, Node v24.21.0, 368/4526, cero «failed to run». Las ramas de la 40 se borraron.
-- **Una rama de la 41, sin mergear a propósito y sin pushear:** `docs/review-s41-diff-s40` (solo
-  docs, el checkpoint). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
-  incluye.
-- **Los worktrees:** ninguno (la 41 no corrió la matriz).
+- **`main` = `origin/main` = `2d8eb49`** (el checkpoint de la 41, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `e9d6e89`). **CI verificado en el log:** run `36974151089`,
+  3 jobs verdes, Node v24.21.0, 368/4526, cero «failed to run». La rama de la 41 se borró.
+- **Dos ramas de la 42, sin mergear a propósito y sin pushear:** `fix/s42-arreglos-s41` (5 commits,
+  `7c8c0fa`..`1a77b78`) y, encima, `docs/review-s42-fix-s41` (el checkpoint). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s42m`, se borró al cerrar).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 41):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 42):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1833,6 +1881,17 @@ Alternativas legítimas:
 - **Un `fire` del mock con los datos de la nube y nada en vuelo es un evento que el SDK no levanta
   (sesión 41, `R9-244`).** El `View` del SDK compara los datos (`docsEqual`), y `__fire` no. Antes
   de leer una prueba con `fire`, preguntá si esa copia difiere de la nube.
+- **Una hipótesis que cierra la sonda puede no cerrar el caso que nombra la entrada (sesión 42,
+  `R9-234`).** `H239join` cerraba `S41-6` (con un ack en medio) y no la retirada sin nada después,
+  que era lo que decía la entrada. Antes de aplicar la hipótesis de una revisión, construí el caso
+  de la entrada, no solo el de la sonda.
+- **Una decisión tomada con un veredicto que puede estar mal no se guarda sin lo que permite
+  corregirla (sesión 42).** Con la tabla ilegible, «esta copia no es mía» puede ser falso
+  (`R9-230`); guardar la retirada sola tumbó cuatro pruebas de `R9-208`, y guardarla con el reloj
+  de la copia deja que la relectura la corrija.
+- **`S41-motor` restaura su base encima de `SyncEngine.ts` también cuando falla (sesión 42).** Toma
+  el motor por NOMBRE dentro de `_scratch`; con la ruta absoluta falla, y borró un arreglo sin
+  commitear. Commiteá antes de correr una sonda con otro motor.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
