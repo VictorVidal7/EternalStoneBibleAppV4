@@ -438,14 +438,19 @@ export class SyncEngine {
    */
   private conflictsWrittenHere = new Set<string>();
   /**
-   * R9-193 — per collection, docId → the `updatedAt` of this device's writes
-   * of a doc that is a pending conflict (in memory or held), once they left
-   * the queue: the server took them (or the entry that carried them, see
-   * `PendingWrite.own`). `updatedAt` is a client clock, and the other device's
-   * can run behind this one's: a copy older than the local one is this
-   * device's own only if it carries one of these, or is a write still queued
-   * (see `isOwnCopy`). Before this, "older than local" was all it took, and
-   * the other device's write with its clock behind was taken for an echo.
+   * R9-193 / R9-239 — per collection, docId → the `updatedAt` of the LAST
+   * write of this device of a doc that is a pending conflict (in memory or
+   * held), once it left the queue: the server took it. `updatedAt` is a
+   * client clock, and the other device's can run behind this one's: a copy
+   * older than the local one is this device's own only if it carries this
+   * one, or is a write still queued (see `isOwnCopy`). Before this, "older
+   * than local" was all it took, and the other device's write with its clock
+   * behind was taken for an echo. Only the last one, like `recentAcked`:
+   * after a later ack, an older clock comes back only in a backup the other
+   * device restored. Kept here (every ack's, and the ones each entry
+   * carried), that backup was «mine», «theirs» stayed, and keepTheirs
+   * uploaded it over the backup (R9-239). A list, as on disk: a table written
+   * before this, or joined again by `rereadOwn`, holds more.
    *
    * Persisted per uid (`ownStorageKey`) in the SAME write as the queue that
    * no longer holds them (see `persistQueue`): at every instant a stamp is on
@@ -1030,7 +1035,7 @@ export class SyncEngine {
     }
     this.ownGaveUp.clear();
     // R9-193 — the own stamps that changed go in the SAME write as the queue
-    // (see `ownStamps`): an entry that left it (acked) took its stamps there,
+    // (see `ownStamps`): an entry that left it (acked) took its stamp there,
     // and written apart, a process that died between the two writes had the
     // entry gone from disk and its stamps not there yet. Both payloads are
     // taken now, and the calls issued in this same turn, so a later write
@@ -2576,9 +2581,9 @@ export class SyncEngine {
 
   /**
    * R9-193 — the server took `item`: while its doc is a conflict, its clock
-   * and the ones it carried become own stamps (see `ownStamps`). Written with
-   * the next write of the queue, which is the one that drops the entry.
-   * Otherwise its clock goes to `recentAcked`, in memory.
+   * becomes the doc's own stamp (see `ownStamps`). Written with the next
+   * write of the queue, which is the one that drops the entry. Otherwise it
+   * goes to `recentAcked`, in memory.
    */
   private noteOwnAcked(item: PendingWrite): void {
     if (!this.isConflictDoc(item.collection, item.id)) {
@@ -2587,12 +2592,9 @@ export class SyncEngine {
       this.recentAcked.set(key, withStamp([], updatedAtOf(item.data)));
       return;
     }
+    // R9-239 — see `ownStamps`: this one, alone.
     const byId = this.ownStamps.get(item.collection) ?? new Map();
-    let stamps = byId.get(item.id) ?? [];
-    for (const ts of [...ownOf(item), updatedAtOf(item.data)]) {
-      stamps = withStamp(stamps, ts);
-    }
-    byId.set(item.id, stamps);
+    byId.set(item.id, withStamp([], updatedAtOf(item.data)));
     this.ownStamps.set(item.collection, byId);
     this.ownDirty.add(item.collection);
   }
