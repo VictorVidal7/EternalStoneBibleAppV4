@@ -10616,6 +10616,217 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
     engine.stop();
   });
+
+  // R9-246 — la retirada de la LECTURA de un `removed` (R9-238), sola: W1
+  // sube (recentAcked [W1]); W2 sale y queda en vuelo, y el otro escribe R2
+  // bajo el piso (la vista lleva W2 encima: no llega nada). El servidor
+  // rechaza W2, y la reversion es un `removed` que trae W2 (el payload
+  // rechazado): no retira al llegar (R9-243), y solo su lectura ve R2.
+  // Despues el otro restaura un respaldo con W1 (`mio`), o lo mismo con su
+  // reloj (+1 ms, `otro`, CONTROL). Los dos tienen que dar lo mismo.
+  it('R9-246: sin conflicto, W1 sube; el servidor rechaza W2 con R2 del otro bajo el piso (solo la lectura de la reversion ve R2), y el otro restaura un respaldo con W1: dentro de los 30 s, «w2 mio» contra «w1 mio»', async () => {
+    const T = Date.now() - HOUR;
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-246-lectura-${modo}`;
+      const {engine, localStore} = await engineFor(uid, T);
+      const W1 = {value: 'w1 mio', updatedAt: T + 20_000};
+      localStore.set('doc-c', W1 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W1);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      let rechazar!: (e: Error) => void;
+      const puerta = new Promise<void>((_r, j) => (rechazar = j));
+      let n = 0;
+      mockSetGate = (_p, id) =>
+        id === 'doc-c' && n++ === 0 ? puerta : undefined;
+      const W2 = {value: 'w2 mio', updatedAt: T + 30_000};
+      localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W2);
+      await settle();
+      const desde = mockDelivered.length;
+      write(uid, 'doc-c', {value: 'r2 suyo', updatedAt: T - 20 * 60_000});
+      await settle();
+      rechazar(new Error('permission-denied'));
+      await settle();
+      mockSetGate = null;
+      const rechazo = {
+        entregas: mockDelivered
+          .slice(desde)
+          .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+          .map(d => `${d.type}:${d.via}`),
+        nube: await nubeDe(uid, 'doc-c'),
+        cola: engine
+          .__getQueueForTests()
+          .filter(q => q.uid === uid)
+          .map(q => `${String(q.data.value)}:${q.attempts}`),
+      };
+      write(uid, 'doc-c', {
+        ...W1,
+        updatedAt: W1.updatedAt + (modo === 'otro' ? 1 : 0),
+      });
+      await settle();
+      const r = {
+        rechazo, // CONTROL: solo llego la reversion, y la nube quedo en R2
+        conflictos: parejas(engine),
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      };
+      engine.stop();
+      return r;
+    };
+
+    // Sin la retirada de la lectura, recentAcked seguia en [W1] (la reversion
+    // no retira al llegar, y la lectura encontraba R2 sin retirar nada): el
+    // respaldo con W1 pasaba por «mio», sin conflicto, y W2 subiria encima.
+    const esperado = {
+      rechazo: {
+        entregas: ['removed:revert'],
+        nube: 'r2 suyo',
+        cola: ['w2 mio:1'],
+      },
+      conflictos: [['w2 mio', 'w1 mio']],
+      local: 'w2 mio',
+      nube: 'w1 mio',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
+
+  // R9-246 — la guarda de memoria de la relectura (R9-234), sola, en el orden
+  // de R9-230: el proceso anterior dejo doc-c en conflicto retenido, el sello
+  // de W3 en la tabla y L4 en la cola, sin `own`. La nube tiene W3. Este
+  // arranca sin red y no puede leer la tabla: el enganche entrega MI W3, que
+  // no reconoce, y lo retira. L4 sube (sello [L4]) antes de que vuelva la
+  // relectura, que espera; el otro restaura un respaldo con W3 (`mio`), o lo
+  // mismo con su reloj (+1 ms, `otro`, CONTROL), y la app se reinicia.
+  it('R9-246: con la tabla de sellos ilegible, el enganche retira mi W3; L4 sube antes de que vuelva la relectura, y el otro restaura un respaldo con W3: tras reiniciar, el conflicto «lo mio 4» contra «w3 mio» sigue', async () => {
+    const T = Date.now() - HOUR;
+    const W3 = {value: 'w3 mio', updatedAt: T + 110_000};
+    const L4 = {value: 'lo mio 4', updatedAt: T + 115_000};
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-246-mem-${modo}`;
+      let soltar!: () => void;
+      const puertaLectura = new Promise<void>(r => (soltar = r));
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      await AsyncStorage.setItem(
+        unsettledStorageKey('test', uid),
+        JSON.stringify({'doc-c': T + 65_000}),
+      );
+      await AsyncStorage.setItem(
+        `@sync_conflicted_test:${uid}`,
+        JSON.stringify(['doc-c']),
+      );
+      await AsyncStorage.setItem(
+        `@sync_own_test:${uid}`,
+        JSON.stringify({'doc-c': [W3.updatedAt]}),
+      );
+      await AsyncStorage.setItem(
+        '@sync_queue_v1',
+        JSON.stringify([
+          {
+            uid,
+            collection: 'test',
+            id: 'doc-c',
+            data: {...L4, deleted: false, deletedAt: null},
+            queuedAt: 0,
+            attempts: 0,
+          },
+        ]),
+      );
+      const fx = makeAdapter({getMaterialFields: () => ['value']});
+      fx.localStore.set('doc-c', L4 as unknown as SyncEntity<TestEntity>);
+      (
+        mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+          __fire: (changes: unknown[]) => void;
+        }
+      ).__fire([
+        {type: 'modified', doc: {id: 'doc-c', exists: true, data: () => W3}},
+      ]);
+      const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+      const realImpl = getItemMock.getMockImplementation()!;
+      let lecturas = 0;
+      getItemMock.mockImplementation((k: string) => {
+        if (k !== `@sync_own_test:${uid}`) return realImpl(k);
+        lecturas += 1;
+        if (lecturas === 1) return Promise.reject(new Error('disco'));
+        if (lecturas === 2) return puertaLectura.then(() => realImpl(k));
+        return realImpl(k);
+      });
+      const e = new SyncEngine();
+      try {
+        e.register(fx.adapter);
+        const netInfo = jest.requireMock('@react-native-community/netinfo')
+          .default as {fetch: jest.Mock};
+        netInfo.fetch.mockResolvedValueOnce({
+          isConnected: false,
+          isInternetReachable: false,
+        });
+        await e.start(uid);
+        await settle();
+        const enganche = {
+          conflictos: parejas(e),
+          own: e.__getQueueForTests().map(q => q.own ?? []),
+        };
+        e.__setOnlineForTests(true);
+        await settle();
+        await e.__flushForTests();
+        await settle();
+        await settle();
+        soltar();
+        await settle();
+        await settle();
+        const releida = {
+          lecturas,
+          cola: e.__getQueueForTests().length,
+          nube: await nubeDe(uid, 'doc-c'),
+        };
+        write(uid, 'doc-c', {
+          ...W3,
+          updatedAt: W3.updatedAt + (modo === 'otro' ? 1 : 0),
+        });
+        await settle();
+        const suya = parejas(e);
+        e.stop();
+        await e.start(uid);
+        await settle();
+        await settle();
+        return {
+          enganche, // CONTROL: mi W3 llego al enganchar, y L4 no lo nombra
+          releida, // CONTROL: L4 subio y la tabla se leyo otra vez
+          suya,
+          conflictos: parejas(e),
+          marca: Object.keys((await persisted(uid)).unsettled),
+          local: fx.localStore.get('doc-c')?.value,
+          nube: await nubeDe(uid, 'doc-c'),
+        };
+      } finally {
+        getItemMock.mockImplementation(realImpl);
+        e.stop();
+      }
+    };
+
+    // Sin la guarda de memoria, la relectura unia el sello de disco de W3 con
+    // el de L4 ([W3, L4]): el respaldo con W3 pasaba por «mio», asentaba el
+    // doc, y tras reiniciar el conflicto desaparecia en silencio (local «lo
+    // mio 4», nube «w3 mio», nada en la cola).
+    const esperado = {
+      enganche: {conflictos: [['lo mio 4', 'w3 mio']], own: [[]]},
+      releida: {lecturas: 2, cola: 0, nube: 'lo mio 4'},
+      suya: [['lo mio 4', 'w3 mio']],
+      conflictos: [['lo mio 4', 'w3 mio']],
+      marca: ['doc-c'],
+      local: 'lo mio 4',
+      nube: 'w3 mio',
+    };
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado,
+      otro: esperado,
+    });
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
