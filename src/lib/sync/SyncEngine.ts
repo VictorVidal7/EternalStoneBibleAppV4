@@ -1541,6 +1541,18 @@ export class SyncEngine {
             continue;
           }
           const currentData = current?.exists ? current.data() : undefined;
+          // R9-238 — the read found a copy of the other device: it retires
+          // this device's clocks of the doc, like one delivered (see
+          // `retireOwn`). The read sees the SDK's view, with this device's
+          // writes in flight on top (R9-179), so that copy came after every
+          // write of the doc the server had taken. Not when it is this
+          // device's own (R9-190: a backup of the user's, the write queued).
+          if (
+            currentData &&
+            !this.isOwnCopy(uid, adapter.collection, id, currentData)
+          ) {
+            this.retireOwn(uid, adapter.collection, id);
+          }
           // R9-176 / R9-178 — a write of this device to the doc still waits in
           // the queue: an edit or a delete made during the read, or the
           // resolution of its conflict (keepMine, merge, keepTheirs when it
@@ -2549,6 +2561,18 @@ export class SyncEngine {
       this.ownArrived.add(copy);
       return;
     }
+    this.retireOwn(uid, collection, id);
+  }
+
+  /**
+   * R9-220 / R9-238 — a copy of the other device reached this device: the
+   * cloud moved past the writes of the doc the server had taken, and this
+   * device's clocks of them go (see `noteArrived`). Delivered, or found by
+   * the read of a `removed` (`handleSnapshot`): a copy below the floor
+   * reaches the engine only that way, and a backup with one of those clocks
+   * stayed «mine» after it.
+   */
+  private retireOwn(uid: string | null, collection: string, id: string): void {
     this.recentAcked.delete(`${uid}\u0000${suppressKey(collection, id)}`);
     // R9-223 — and the ones the doc's queued entry carries (`own`): the
     // backup with one of them was «mine» by the queue. On disk, for a restart

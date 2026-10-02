@@ -9777,6 +9777,102 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
   );
 
   it.each<['pendiente' | 'nuevo']>([['pendiente'], ['nuevo']])(
+    'R9-238: con el doc en conflicto subo W3 y L4 espera en la cola; el otro escribe R2 con su reloj atrasado (sale de la query y llega por la LECTURA del `removed`) y despues restaura un respaldo con W3 (rama %s): pasa a ser «su version»',
+    async rama => {
+      const uid = `uid-238-lectura-${rama}`;
+      const T = Date.now() - HOUR;
+      const L = {value: 'lo mio', updatedAt: T + 60_000};
+      const R = {value: 'lo suyo', updatedAt: T + 65_000};
+      const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+      const W3 = {value: 'w3 mio', updatedAt: T + 110_000};
+      localStore.set('doc-c', W3 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W3);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      // Otra subida tarda en confirmarse: L4 espera detras, en la cola.
+      let soltar: () => void = () => {};
+      const puerta = new Promise<void>(r => (soltar = r));
+      mockSetGate = (_p, id) => (id === 'otro' ? puerta : undefined);
+      const O = {value: 'otro', updatedAt: T + 111_000};
+      localStore.set('otro', O as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'otro', O);
+      await settle();
+      const L4 = {value: 'lo mio 4', updatedAt: T + 115_000};
+      localStore.set('doc-c', L4 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', L4);
+      await settle();
+      const desde = mockDelivered.length;
+      write(uid, 'doc-c', {value: 'r2 suyo', updatedAt: T - 20 * 60_000});
+      await settle();
+      const entregas = mockDelivered
+        .slice(desde)
+        .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+        .map(d => `${d.type}:${d.via}`);
+      const antes = parejas(engine);
+      // Lo que encuentra un proceso que muere ahora, sin `stop()`.
+      const enDisco = {
+        sellos: (
+          (
+            JSON.parse(
+              (await AsyncStorage.getItem(`@sync_own_test:${uid}`)) ?? '{}',
+            ) as Record<string, number[]>
+          )['doc-c'] ?? []
+        ).map(t => t - T),
+        own: (
+          JSON.parse(
+            (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
+          ) as PendingWrite[]
+        )
+          .filter(q => q.id === 'doc-c')
+          .map(q => (q.own ?? []).map(t => t - T)),
+      };
+      let e2: SyncEngine = engine;
+      if (rama === 'pendiente') {
+        write(uid, 'doc-c', {...W3});
+        await settle();
+      } else {
+        engine.stop();
+        await settle();
+        write(uid, 'doc-c', {...W3});
+        await settle();
+        e2 = await procesoNuevo(uid, adapter);
+      }
+      const suya = parejas(e2);
+      const local = localStore.get('doc-c')?.value;
+      const nube = await nubeDe(uid, 'doc-c');
+      soltar();
+      mockSetGate = null;
+      await settle();
+
+      // Pre-fix: la retirada de R9-223 y R9-224 solo pasaba en el callback
+      // del listener, y R2 llego por la lectura: el sello de W3 y el `own` de
+      // L4 decian «mio» al respaldo. Pendiente: «su version» seguia R2.
+      // Proceso nuevo (los dos en disco): el conflicto retenido se asentaba en
+      // silencio, con L4 en la cola para subir encima del respaldo.
+      expect({
+        entregas, // CONTROL: R2 llego como `removed`
+        antes, // CONTROL: la lectura encontro R2
+        enDisco,
+        suya,
+        local,
+        nube,
+      }).toEqual({
+        entregas: ['removed:fire'],
+        antes: [['lo mio', 'r2 suyo']],
+        enDisco: {sellos: [], own: [[]]},
+        suya:
+          rama === 'pendiente'
+            ? [['lo mio', 'w3 mio']]
+            : [['lo mio 4', 'w3 mio']],
+        local: 'lo mio 4',
+        nube: 'w3 mio',
+      });
+      e2.stop();
+    },
+  );
+
+  it.each<['pendiente' | 'nuevo']>([['pendiente'], ['nuevo']])(
     'R9-239: con el doc en conflicto subo W2 y W3, y el otro restaura un respaldo con W2 sin escribir nada antes (rama %s): pasa a ser «su version»',
     async rama => {
       const uid = `uid-239-directo-${rama}`;
