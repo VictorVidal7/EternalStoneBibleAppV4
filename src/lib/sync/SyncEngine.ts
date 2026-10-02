@@ -508,6 +508,16 @@ export class SyncEngine {
    * copy of this device retires them too (R9-230): the read keeps the
    * table's stamps of a doc only if they hold the clock of every copy that
    * retired them.
+   * R9-250 — the copy noted is the one `retireOwn` got: delivered, or found
+   * by the read of a `removed`. A `removed` that retires on arrival (R9-243)
+   * notes the copy it carries, the last one that matched, not the write
+   * that took the doc out: often this device's, with its stamp in the table,
+   * so the read may keep what it retired. Without harm as far as measured:
+   * the read of that `removed` notes the copy it finds, or retires again
+   * once the table is back; and a backup with that stamp changes «theirs»
+   * only if «theirs» is another copy, which got there through `retireOwn`
+   * and noted a clock the table does not have. A take-back retires on
+   * arrival (R9-247) only with the table read, so it notes nothing.
    */
   private ownRetired = new Map<string, Map<string, number[]>>();
   /**
