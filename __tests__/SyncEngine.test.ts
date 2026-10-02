@@ -4585,42 +4585,66 @@ describe('R9-160 — con un conflicto pendiente, lo que escribe despues el otro 
 
   it('el eco de una edicion propia durante el conflicto no pasa a ser «su version»', async () => {
     const uid = 'uid-160-eco';
-    const {engine, T, localStore} = await pendingConflict(uid);
+    const {engine, T, localStore, adapter} = await pendingConflict(uid);
+    // La cadena de lotes de la coleccion queda ocupada (R9-175): el lote de
+    // otro doc espera su lectura local.
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    const getLocal = adapter.getLocal.bind(adapter);
+    adapter.getLocal = async id => {
+      if (id === 'docX') await puerta;
+      return getLocal(id);
+    };
+    fire(uid, [{id: 'docX', data: {value: 'x', updatedAt: T + 5_000}}]);
+    await settle();
+    const desde = mockDelivered.length;
 
-    // El usuario sigue escribiendo en ESTE telefono (el caso de R9-36).
-    const edit1 = {value: 'L1: sigo escribiendo', updatedAt: T + 12_000};
-    localStore.set('doc-c', edit1);
-    engine.queueWrite('test', 'doc-c', edit1);
-    await settle();
-    // El eco exacto de esa edicion: mismo updatedAt que lo local.
-    fire(uid, [{id: 'doc-c', data: edit1}]);
-    await settle();
-    const trasEcoExacto = theirs(engine);
-
-    // Otra edicion 3 s despues, sin red, y el eco de la ANTERIOR llega tarde:
-    // es mas viejo que lo local, esta dentro de la ventana y tiene otro valor.
-    // Llega con L2 en la cola: el SDK levanta el eco de L1 al aplicar su
-    // `set`, y el `set` de L2 sale despues del ack de L1. Una copia de L1 que
-    // llega despues del ack de L2 es un respaldo del otro (R9-239).
-    engine.__setOnlineForTests(false);
-    const edit2 = {value: 'L2: y un poco mas', updatedAt: T + 15_000};
-    localStore.set('doc-c', edit2);
-    engine.queueWrite('test', 'doc-c', edit2);
-    fire(uid, [{id: 'doc-c', data: edit1}]);
-    await settle();
-    engine.__setOnlineForTests(true);
+    // El usuario sigue escribiendo en ESTE telefono (el caso de R9-36): L1 y,
+    // 3 s despues, L2 suben. El eco de cada una LLEGA con su escritura en
+    // vuelo, como en el SDK, y espera la cadena; los acks pasan. Al abrirla,
+    // el eco de L1 se procesa con la nube y el sello ya en L2: es mas viejo
+    // que lo local, esta dentro de la ventana y tiene otro valor. Lo decide el
+    // veredicto de su llegada (`ownArrived`).
+    for (const edit of [
+      {value: 'L1: sigo escribiendo', updatedAt: T + 12_000},
+      {value: 'L2: y un poco mas', updatedAt: T + 15_000},
+    ]) {
+      localStore.set('doc-c', edit);
+      engine.queueWrite('test', 'doc-c', edit);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+    }
+    const antes = {
+      entregas: mockDelivered
+        .slice(desde)
+        .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+        .map(d => `${d.type}:${d.via}`),
+      docX: localStore.get('docX')?.value ?? null,
+      cola: engine.__getQueueForTests().length,
+    };
+    abrir();
     await settle();
 
     // Pre-fix: el eco tardio se registraba como conflicto nuevo y L1 (lo mio)
-    // pasaba a ser «su version».
+    // pasaba a ser «su version». R9-244 — esta prueba entregaba antes dos
+    // copias de L1 con `fire`, con la nube ya en L1 y nada en vuelo: el SDK
+    // no levanta un cambio con los mismos datos (`docsEqual`), y el eco tardio
+    // de verdad no tenia prueba.
     expect({
-      trasEcoExacto,
-      trasEcoTardio: theirs(engine),
+      antes, // CONTROL: los dos ecos llegaron y esperan, y los acks pasaron
+      suya: theirs(engine),
       local: localStore.get('doc-c')?.value,
+      nube: pushesOf(uid, 'doc-c').map(p => p.value),
     }).toEqual({
-      trasEcoExacto: [{value: R, deleted: false}],
-      trasEcoTardio: [{value: R, deleted: false}],
+      antes: {
+        entregas: ['modified:echo', 'modified:echo'],
+        docX: null,
+        cola: 0,
+      },
+      suya: [{value: R, deleted: false}],
       local: 'L2: y un poco mas',
+      nube: ['L1: sigo escribiendo', 'L2: y un poco mas'],
     });
   });
 
