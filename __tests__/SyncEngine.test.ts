@@ -9371,6 +9371,85 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       engine.stop();
     },
   );
+
+  it.each<['pendiente' | 'nuevo']>([['pendiente'], ['nuevo']])(
+    'R9-224: con el doc en conflicto subo W2 y W3 (van a `ownStamps`); el otro escribe R2 y despues restaura un respaldo con W2 (rama %s): pasa a ser «su version»',
+    async rama => {
+      const uid = `uid-224-sellos-${rama}`;
+      const T = Date.now() - HOUR;
+      const L = {value: 'lo mio', updatedAt: T + 60_000};
+      const R = {value: 'lo suyo', updatedAt: T + 65_000};
+      const {engine, localStore, adapter} = await conflictFor(uid, T, L, R);
+      for (const [value, dt] of [
+        ['w2', 100_000],
+        ['w3 mio', 110_000],
+      ] as const) {
+        const w = {value, updatedAt: T + dt};
+        localStore.set('doc-c', w as unknown as SyncEntity<TestEntity>);
+        engine.queueWrite('test', 'doc-c', w);
+        await settle();
+        await engine.__flushForTests();
+        await settle();
+      }
+      const sellos = (
+        (
+          engine as unknown as {ownStamps: Map<string, Map<string, number[]>>}
+        ).ownStamps
+          .get('test')
+          ?.get('doc-c') ?? []
+      ).map(t => t - T);
+      write(uid, 'doc-c', {value: 'r2 suyo', updatedAt: T + 120_000});
+      await settle();
+      const antes = parejas(engine);
+      // Lo que encuentra un proceso que muere ahora, sin `stop()`.
+      const enDisco = (
+        (
+          JSON.parse(
+            (await AsyncStorage.getItem(`@sync_own_test:${uid}`)) ?? '{}',
+          ) as Record<string, number[]>
+        )['doc-c'] ?? []
+      ).map(t => t - T);
+      let e2: SyncEngine = engine;
+      if (rama === 'pendiente') {
+        write(uid, 'doc-c', {value: 'w2', updatedAt: T + 100_000});
+        await settle();
+      } else {
+        engine.stop();
+        await settle();
+        write(uid, 'doc-c', {value: 'w2', updatedAt: T + 100_000});
+        await settle();
+        e2 = await procesoNuevo(uid, adapter);
+      }
+      const suya = parejas(e2);
+      if (rama === 'pendiente') {
+        await e2.resolveConflict('test__doc-c', 'keepTheirs');
+        await settle();
+        await e2.__flushForTests();
+        await settle();
+      }
+
+      // Pre-fix: el sello de W2 decia «mio» al respaldo. Pendiente: «su
+      // version» seguia R2, y keepTheirs dejaba local R2 y nube W2. Proceso
+      // nuevo (los sellos estan en disco): el conflicto se asentaba en
+      // silencio, con local W3 y nube W2.
+      expect({
+        sellos, // CONTROL: W2 y W3 subieron con el doc en conflicto
+        antes, // CONTROL
+        enDisco,
+        suya,
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+      }).toEqual({
+        sellos: [100_000, 110_000],
+        antes: [['lo mio', 'r2 suyo']],
+        enDisco: [],
+        suya: rama === 'pendiente' ? [['lo mio', 'w2']] : [['w3 mio', 'w2']],
+        local: rama === 'pendiente' ? 'w2' : 'w3 mio',
+        nube: 'w2',
+      });
+      e2.stop();
+    },
+  );
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {

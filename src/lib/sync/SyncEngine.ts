@@ -2533,10 +2533,18 @@ export class SyncEngine {
     const queued = this.queue.find(
       q => q.uid === uid && q.collection === collection && q.id === id,
     );
+    let write = false;
     if (queued && ownOf(queued).length > 0) {
       delete queued.own;
-      void this.persistQueue();
+      write = true;
     }
+    // R9-224 — and the doc's own stamps (`ownStamps`), which are on disk: the
+    // backup with one of them was «mine» in this process and after a restart.
+    if (this.ownStamps.get(collection)?.has(id)) {
+      this.forgetOwnStamps(collection, id);
+      write = true;
+    }
+    if (write) void this.persistQueue();
   }
 
   /** R9-193 — whether `id` is a pending conflict, in memory or held. */
