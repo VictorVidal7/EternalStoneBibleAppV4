@@ -2665,7 +2665,13 @@ export class SyncEngine {
         this.retireOwn(uid, collection, id, copy);
       }
     }
-    if (this.isOwnCopy(uid, collection, id, copy)) {
+    // R9-248 — the copy a take-back carries is the rejected payload, this
+    // device's own even when the rejection dropped the write (R9-182): gone
+    // from the queue, `isOwnCopy` no longer knew it. Taken for the other
+    // device's, it retired the stamp of this device's backup in the cloud,
+    // the read of the `removed` found that backup «theirs», and the mark of
+    // a held conflict moved to it: «mine» against «mine».
+    if (takeBack || this.isOwnCopy(uid, collection, id, copy)) {
       this.ownArrived.add(copy);
       return;
     }

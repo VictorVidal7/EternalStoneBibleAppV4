@@ -11122,6 +11122,103 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       otro: esperado,
     });
   });
+
+  // R9-248 — la prueba de R9-190 (mi respaldo W0 bajo el piso, con el
+  // conflicto retenido; W0 se confirma: sello [W0]) con el rechazo de W2 en su
+  // octavo intento, que la DESCARTA de la cola (`descarta`), o el rechazo de
+  // siempre, que la deja esperando (`rechaza`, CONTROL). La reversion es un
+  // `removed` que trae W2 y vuelve a W0. Los dos tienen que dar lo mismo.
+  it('R9-248: con el doc en conflicto, mi respaldo bajo el piso sube y el servidor rechaza W2 por ultima vez (la descarta): la reversion no retira el sello de mi respaldo, y no aparece «lo mio contra lo mio»', async () => {
+    const T = Date.now() - HOUR;
+    const L = {value: 'lo mio', updatedAt: T + 60_000};
+    const R = {value: 'lo suyo', updatedAt: T + 65_000};
+    const caso = async (modo: 'descarta' | 'rechaza') => {
+      const uid = `uid-248-${modo}`;
+      const {engine, localStore} = await conflictFor(uid, T, L, R);
+      const vistos: string[] = [];
+      engine.subscribe(st =>
+        vistos.push(
+          ...st.conflicts.map(
+            c => `${c.localVersion.value}|${c.remoteVersion.value}`,
+          ),
+        ),
+      );
+      // importBackup: local y cola con el updatedAt del archivo, bajo el piso.
+      const W0 = {value: 'mi respaldo', updatedAt: T - 2 * DAY};
+      localStore.set('doc-c', W0 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W0);
+      await settle();
+      const interno = engine as unknown as {
+        ownStamps: Map<string, Map<string, number[]>>;
+      };
+      const sellos = () =>
+        (interno.ownStamps.get('test')?.get('doc-c') ?? []).map(t => t - T);
+      engine.__setOnlineForTests(false);
+      const W2 = {value: 'lo mio nuevo', updatedAt: T + 300_000};
+      localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-c', W2);
+      await settle();
+      if (modo === 'descarta') {
+        for (const q of engine.__getQueueForTests()) {
+          if (q.uid !== uid) continue;
+          // MAX_RETRY_ATTEMPTS (8) - 1: este rechazo es el ultimo.
+          (q as {attempts: number}).attempts = 7;
+          (q as {lastAttemptAt?: number}).lastAttemptAt = 0;
+        }
+      }
+      const desde = mockDelivered.length;
+      mockSetShouldFail = true;
+      engine.__setOnlineForTests(true);
+      await settle();
+      await engine.__flushForTests();
+      await settle();
+      mockSetShouldFail = false;
+      const enSesion = {
+        entregas: mockDelivered // CONTROL: el eco de W2 y la reversion
+          .slice(desde)
+          .filter(d => d.path === `users/${uid}/test` && d.id === 'doc-c')
+          .map(d => `${d.type}:${d.via}`),
+        cola: engine.__getQueueForTests().filter(q => q.uid === uid).length,
+        sellos: sellos(),
+        suya: parejas(engine),
+        local: localStore.get('doc-c')?.value,
+        nube: await nubeDe(uid, 'doc-c'),
+        marca: await persisted(uid),
+      };
+      engine.stop();
+      await engine.start(uid);
+      await settle();
+      const r = {
+        enSesion,
+        tras: parejas(engine),
+        fantasma: vistos.filter(v => v.endsWith('|mi respaldo')),
+      };
+      engine.stop();
+      return r;
+    };
+
+    // Pre-fix: descartada W2, la reversion ya no era «mia» por la cola y
+    // retiraba al llegar el sello de W0; la lectura encontraba W0, que ya no
+    // era «mio», y la marca pasaba a el: «lo mio | mi respaldo» en la sesion y
+    // «lo mio nuevo | mi respaldo» tras reiniciar.
+    const esperado = (modo: 'descarta' | 'rechaza') => ({
+      enSesion: {
+        entregas: ['added:echo', 'removed:revert'],
+        cola: modo === 'descarta' ? 0 : 1,
+        sellos: [-2 * DAY],
+        suya: [['lo mio', 'lo suyo']],
+        local: 'lo mio nuevo',
+        nube: 'mi respaldo',
+        marca: {unsettled: {}, conflicted: []},
+      },
+      tras: [],
+      fantasma: [],
+    });
+    expect({
+      descarta: await caso('descarta'),
+      rechaza: await caso('rechaza'),
+    }).toEqual({descarta: esperado('descarta'), rechaza: esperado('rechaza')});
+  });
 });
 
 describe('R9-175 — los lotes de una coleccion corren de a uno', () => {
