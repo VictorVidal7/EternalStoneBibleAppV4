@@ -139,23 +139,18 @@ export const highlightsSyncAdapter: SyncAdapter<RemoteHighlight> = {
     }
   },
 
+  // R9-257 — a failed read throws: both callers log it, and the bulk push
+  // retries this collection on the next start. Read as `[]`, the account was
+  // marked pushed with these rows never queued.
   async pullAllLocal() {
-    try {
-      await bibleDB.initialize();
-      const service = getService();
-      await service.initialize();
-      const all = await service.getAllHighlights();
-      return all.map(h => ({
-        id: h.verseId, // verseId is the sync primary key
-        data: highlightToRemote(h),
-      }));
-    } catch (err) {
-      logger.warn('highlights adapter: pullAllLocal failed', {
-        component: 'sync/highlights',
-        error: err instanceof Error ? err.message : String(err),
-      });
-      return [];
-    }
+    await bibleDB.initialize();
+    const service = getService();
+    await service.initialize();
+    const all = await service.getAllHighlights();
+    return all.map(h => ({
+      id: h.verseId, // verseId is the sync primary key
+      data: highlightToRemote(h),
+    }));
   },
 
   // Sprint 43 — color/category/note are the user-editable bits of a

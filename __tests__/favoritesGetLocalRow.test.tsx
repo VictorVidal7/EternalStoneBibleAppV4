@@ -503,4 +503,52 @@ describe('favoritos: el motor ve la fila de SQLite aunque React vaya atrasado', 
       flag: '2',
     });
   });
+
+  it('R9-257: la lectura de los favoritos falla en el bulk push: el start siguiente los sube', async () => {
+    const T = Date.now() - HOUR;
+    const db = jest.requireMock('../src/lib/database').default as {
+      getFavorites: jest.Mock;
+    };
+    mockRows.set('fav-1', rowWith('lo mio', T + 60_000));
+    render(
+      <FavoritesProvider>
+        <Capture />
+      </FavoritesProvider>,
+    );
+    await act(async () => {
+      await settle();
+    });
+    // Con la carga ya terminada, la lectura del bulk push falla una vez.
+    const cargados = captured?.favorites.length;
+    db.getFavorites.mockImplementationOnce(async () => {
+      throw new Error('SQLITE_BUSY');
+    });
+    await act(async () => {
+      await engine.start(UID);
+      await settle();
+    });
+    const enSesion = {
+      nube: mockServer.get(`${PATH}/fav-1`)?.note ?? null,
+      reintento: await AsyncStorage.getItem(`@sync_first_push_retry:${UID}`),
+    };
+    engine.stop();
+    await act(async () => {
+      await engine.start(UID);
+      await settle();
+    });
+
+    // Sin R9-257, el flag '2' se grababa igual, y el favorito no subia nunca
+    // por esa via (antes de R9-214 subia desde el ref, ya cargado).
+    expect({
+      cargados, // CONTROL: la carga habia terminado
+      enSesion, // CONTROL: la lectura fallo, y nada subio
+      trasOtroStart: mockServer.get(`${PATH}/fav-1`)?.note ?? null,
+      flag: await AsyncStorage.getItem(`@sync_first_push_done:${UID}`),
+    }).toEqual({
+      cargados: 1,
+      enSesion: {nube: null, reintento: '["favorites"]'},
+      trasOtroStart: 'lo mio',
+      flag: '2',
+    });
+  });
 });

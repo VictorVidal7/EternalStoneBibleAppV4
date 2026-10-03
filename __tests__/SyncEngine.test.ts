@@ -916,6 +916,49 @@ describe('initial bulk push', () => {
     expect(mockDocSets).toHaveLength(0);
   });
 
+  it('R9-257: una coleccion cuyo pullAllLocal falla se reintenta en el start siguiente, y solo ella', async () => {
+    const uid = 'uid-257';
+    const ok = makeAdapter();
+    ok.localStore.set('a', {value: 'a', updatedAt: 1});
+    let falla = true;
+    const otra = makeAdapter({
+      collection: 'otra',
+      async pullAllLocal() {
+        if (falla) {
+          falla = false;
+          throw new Error('SQLITE_BUSY');
+        }
+        return [{id: 'b', data: {value: 'b', updatedAt: 2}}];
+      },
+    });
+    const subidas = () =>
+      mockDocSets.map(d => `${d.path.split('/').pop()}/${d.id}`).sort();
+    const arrancar = async () => {
+      const engine = new SyncEngine();
+      engine.register(ok.adapter);
+      engine.register(otra.adapter);
+      await engine.start(uid);
+      await drain();
+      await engine.__flushForTests();
+      engine.stop();
+      return {
+        subidas: subidas(),
+        flag: await AsyncStorage.getItem(`@sync_first_push_done:${uid}`),
+        reintento: await AsyncStorage.getItem(`@sync_first_push_retry:${uid}`),
+      };
+    };
+    const primera = await arrancar();
+    const segunda = await arrancar();
+
+    // Sin R9-257, el flag '2' se grababa igual y `otra/b` no subia nunca. Y
+    // `test/a` sube una sola vez: el reintento no vuelve a subir lo que ya
+    // subio (con su reloj, encima de una copia mas nueva, R9-126).
+    expect({primera, segunda}).toEqual({
+      primera: {subidas: ['test/a'], flag: '2', reintento: '["otra"]'},
+      segunda: {subidas: ['otra/b', 'test/a'], flag: '2', reintento: null},
+    });
+  });
+
   it('re-pushes ONCE when the flag holds the legacy value (S78 healing)', async () => {
     // Pre-fix devices hold '1'; their queue silently dropped any entity
     // whose payload carried an undefined field, so the bulk push re-runs

@@ -134,21 +134,16 @@ export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
     }
   },
 
+  // R9-257 — a failed read throws: both callers log it, and the bulk push
+  // retries this collection on the next start. Read as `[]`, the account was
+  // marked pushed with these rows never queued.
   async pullAllLocal() {
-    try {
-      await bibleDB.initialize();
-      const all = await bibleDB.getNotes();
-      return all.map(n => ({
-        id: n.id,
-        data: noteToRemote(n),
-      }));
-    } catch (err) {
-      logger.warn('notes adapter: pullAllLocal failed', {
-        component: 'sync/notes',
-        error: err instanceof Error ? err.message : String(err),
-      });
-      return [];
-    }
+    await bibleDB.initialize();
+    const all = await bibleDB.getNotes();
+    return all.map(n => ({
+      id: n.id,
+      data: noteToRemote(n),
+    }));
   },
 
   // Sprint 43 — `note` is the user's commentary, `text` is the quoted

@@ -69,6 +69,14 @@ const BULK_PUSH_FLAG_PREFIX = '@sync_first_push_done:';
  */
 const BULK_PUSH_DONE_VALUE = '2';
 const BULK_PUSH_SKIP_VALUE = 'skip';
+/**
+ * R9-257 — per uid, the collections whose rows the bulk push could not read
+ * (`pullAllLocal` threw): the next `start()` pushes those, and only those. The
+ * done-marker is written anyway: pushing every collection again would put the
+ * rows of the ones already pushed back over the cloud with their clocks, and
+ * a newer copy there would lose to them (R9-126).
+ */
+const BULK_PUSH_RETRY_PREFIX = '@sync_first_push_retry:';
 const MAX_RETRY_ATTEMPTS = 8;
 /**
  * Sprint 47 — a safety-net flush interval. The queue is normally drained by
@@ -3412,20 +3420,39 @@ export class SyncEngine {
       });
       return;
     }
+    const retryKey = `${BULK_PUSH_RETRY_PREFIX}${uid}`;
+    // R9-257 — with the push done, the collections still to push, if any.
+    let only: Set<string> | null = null;
     try {
       const done = await AsyncStorage.getItem(flagKey);
       // Legacy '1' deliberately falls through: re-push once to heal the
       // entries the pre-fix engine dropped (see BULK_PUSH_DONE_VALUE).
-      if (done === BULK_PUSH_DONE_VALUE || done === BULK_PUSH_SKIP_VALUE) {
-        return;
-      }
+      if (done === BULK_PUSH_SKIP_VALUE) return;
+      if (done === BULK_PUSH_DONE_VALUE) only = new Set();
     } catch {
       // If we can't read the flag, do the push — duplicate writes are
       // idempotent (the doc id is stable), so the worst case is
       // bandwidth, not correctness.
     }
+    if (only) {
+      // Not read, or not a list: nothing this time (the list stays on disk
+      // for the next start), never every collection again.
+      try {
+        const retry: unknown = JSON.parse(
+          (await AsyncStorage.getItem(retryKey)) ?? '[]',
+        );
+        if (Array.isArray(retry)) {
+          for (const c of retry) if (typeof c === 'string') only.add(c);
+        }
+      } catch {
+        return;
+      }
+      if (only.size === 0) return;
+    }
     let queuedCount = 0;
+    const failed: string[] = [];
     for (const adapter of this.adapters.values()) {
+      if (only && !only.has(adapter.collection)) continue;
       try {
         const rows = await adapter.pullAllLocal();
         for (const row of rows) {
@@ -3456,10 +3483,22 @@ export class SyncEngine {
           collection: adapter.collection,
           error: err instanceof Error ? err.message : String(err),
         });
+        failed.push(adapter.collection);
+      }
+    }
+    // R9-257 — a collection to retry with no adapter this time stays.
+    if (only) {
+      for (const collection of only) {
+        if (!this.adapters.has(collection)) failed.push(collection);
       }
     }
     try {
       await AsyncStorage.setItem(flagKey, BULK_PUSH_DONE_VALUE);
+      if (failed.length > 0) {
+        await AsyncStorage.setItem(retryKey, JSON.stringify(failed));
+      } else {
+        await AsyncStorage.removeItem(retryKey);
+      }
     } catch {
       // best-effort; if we can't persist, next session retries the push
     }
