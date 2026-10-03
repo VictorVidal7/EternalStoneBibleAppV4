@@ -286,6 +286,60 @@ function parseOwnTable(raw: string | null): Record<string, unknown> {
   }
 }
 
+/**
+ * The queue as read from `QUEUE_STORAGE_KEY`, and whether entries were
+ * dropped. R9-212 — a value that is not JSON (or not a list) holds no
+ * entries, as `parseOwnTable` does: reading it again gives the same, so the
+ * next write replaces it. A copy kept aside would have no reader, and would
+ * weigh as much again in AsyncStorage (6 MB by default on Android). Only a
+ * read that FAILS leaves the queue unknown (see `queueUnread`).
+ */
+function parseQueue(raw: string | null): {
+  entries: PendingWrite[];
+  dropped: boolean;
+} {
+  let parsed: unknown;
+  try {
+    parsed = raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    logger.warn('SyncEngine: the queue on disk is not JSON', {
+      component: 'SyncEngine',
+      error: err instanceof Error ? err.message : String(err),
+    });
+    return {entries: [], dropped: false};
+  }
+  if (!Array.isArray(parsed)) return {entries: [], dropped: false};
+  // Defensive filter — drop anything that doesn't look like a
+  // PendingWrite. A malformed entry would block the flush loop.
+  const entries = parsed.filter(
+    (e): e is PendingWrite =>
+      e &&
+      // R9-22 — an entry with no `uid` predates ownership tracking,
+      // so there is no way to tell whose it is. Dropping it is the
+      // conservative read: the local change it represents is already
+      // applied locally and is NOT lost, whereas pushing it could
+      // write one account's data into another's cloud (and a parked
+      // tombstone could delete a row on all of that account's
+      // devices). Only ever affects writes that were still unflushed
+      // across the upgrade.
+      typeof e.uid === 'string' &&
+      typeof e.collection === 'string' &&
+      typeof e.id === 'string' &&
+      e.data &&
+      typeof e.data === 'object',
+  );
+  if (entries.length < parsed.length) {
+    logger.info(
+      'SyncEngine: dropped pre-R9-22 queue entries with no owner uid',
+      {
+        component: 'SyncEngine',
+        dropped: parsed.length - entries.length,
+      },
+    );
+  }
+  return {entries, dropped: entries.length < parsed.length};
+}
+
 /** R9-193 — the stamps an entry carries (`PendingWrite.own`), as numbers. */
 function ownOf(entry: PendingWrite): number[] {
   return Array.isArray(entry.own)
@@ -382,6 +436,39 @@ export class SyncEngine {
   private uid: string | null = null;
   private queue: PendingWrite[] = [];
   private queueHydrated = false;
+  /**
+   * R9-212 — the queue on disk could not be read (`getItem` failed): the one
+   * in memory lacks its entries, every account's (the parked ones too).
+   * Written from memory, it lost them all, and their edits stayed on this
+   * phone only. While it is unread, no write takes the queue: `persistQueue`
+   * reads it again first (`rereadQueue`, and every `start()` does too), and
+   * the entries on disk join the ones in memory. Until then, the entries on
+   * disk are neither counted (`pendingWrites`) nor pushed, and `stop()`
+   * writes the own stamps without the queue.
+   * Not forever: if the read a write waits for fails too (the third, after
+   * the hydration and the start), the queue is written from memory, as
+   * before, and the entries on disk are lost. A read can fail every time
+   * (Android reads a value through a `CursorWindow`, 2 MB, and a queue a
+   * bulk push filled offline can be bigger): waiting longer kept every later
+   * edit off disk, for good, and gained nothing.
+   * A queue that is not JSON reads the same every time: it is read as empty
+   * (`parseQueue`).
+   */
+  private queueUnread = false;
+  /** R9-212 — the read of `rereadQueue` on its way, if any: one at a time. */
+  private queueRereading: Promise<void> | null = null;
+  /** R9-212 — a write waits for that read (see `queueUnread`). */
+  private queueWaiting = false;
+  /**
+   * R9-212 — uid + `suppressKey` of each doc whose local copy this process
+   * changed while the queue was unread: an edit queued (whether or not it
+   * left the queue since), or a copy applied from the cloud. An entry on disk
+   * of one of these docs is older than the copy here, and `set` has no
+   * guard: pushed after that, it took the cloud back to it. The read drops
+   * it (the one in memory, if any, takes its clocks, as `upsertQueueEntry`
+   * does).
+   */
+  private queueTouched = new Set<string>();
   private flushInFlight = false;
   /**
    * R9-104 — bumped by every `stop()`. A flush belongs to the session it
@@ -727,6 +814,8 @@ export class SyncEngine {
     this.updateState({isActive: true, lastError: null});
 
     await this.hydrateQueue();
+    // R9-212 — see `queueUnread`: before any listener can change a doc.
+    if (this.queueUnread) await this.rereadQueue();
     // R9-22 follow-up — `hydrateQueue()` returns early once the queue has
     // been read from disk, so on a SECOND `start()` in the same app session
     // (one account signs out, another signs in) nothing recomputed this for
@@ -940,6 +1029,10 @@ export class SyncEngine {
     fn: () => Promise<T>,
   ): Promise<T> {
     const key = suppressKey(collection, id);
+    // R9-212 — see `queueTouched`.
+    if (this.queueUnread && this.uid) {
+      this.queueTouched.add(`${this.uid}\u0000${key}`);
+    }
     this.suppressedDocs.set(key, (this.suppressedDocs.get(key) ?? 0) + 1);
     try {
       return await fn();
@@ -958,56 +1051,94 @@ export class SyncEngine {
 
   private async hydrateQueue(): Promise<void> {
     if (this.queueHydrated) return;
-    let droppedOnHydrate = false;
+    let raw: string | null = null;
     try {
-      const raw = await AsyncStorage.getItem(QUEUE_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) {
-          // Defensive filter — drop anything that doesn't look like a
-          // PendingWrite. A malformed entry would block the flush loop.
-          const before = parsed.length;
-          this.queue = parsed.filter(
-            (e): e is PendingWrite =>
-              e &&
-              // R9-22 — an entry with no `uid` predates ownership tracking,
-              // so there is no way to tell whose it is. Dropping it is the
-              // conservative read: the local change it represents is already
-              // applied locally and is NOT lost, whereas pushing it could
-              // write one account's data into another's cloud (and a parked
-              // tombstone could delete a row on all of that account's
-              // devices). Only ever affects writes that were still unflushed
-              // across the upgrade.
-              typeof e.uid === 'string' &&
-              typeof e.collection === 'string' &&
-              typeof e.id === 'string' &&
-              e.data &&
-              typeof e.data === 'object',
-          );
-          if (this.queue.length < before) {
-            logger.info(
-              'SyncEngine: dropped pre-R9-22 queue entries with no owner uid',
-              {
-                component: 'SyncEngine',
-                dropped: before - this.queue.length,
-              },
-            );
-            // Write the cleaned queue back, or the dropped entries sit on
-            // disk forever and get re-filtered on every single launch.
-            droppedOnHydrate = true;
-          }
-        }
-      }
+      raw = await AsyncStorage.getItem(QUEUE_STORAGE_KEY);
     } catch (err) {
       logger.warn('SyncEngine: failed to hydrate queue', {
         component: 'SyncEngine',
         error: err instanceof Error ? err.message : String(err),
       });
-    } finally {
-      this.queueHydrated = true;
-      this.updateState({pendingWrites: this.pendingForActiveUid()});
+      // R9-212 — see `queueUnread`.
+      this.queueUnread = true;
     }
-    if (droppedOnHydrate) await this.persistQueue();
+    const {entries, dropped} = parseQueue(raw);
+    this.queue = entries;
+    this.queueHydrated = true;
+    this.updateState({pendingWrites: this.pendingForActiveUid()});
+    // Write the cleaned queue back, or the dropped entries sit on disk
+    // forever and get re-filtered on every single launch.
+    if (dropped) await this.persistQueue();
+  }
+
+  /** R9-212 — see `queueUnread`. One read at a time, whoever asks. */
+  private rereadQueue(): Promise<void> {
+    if (!this.queueRereading) {
+      this.queueRereading = this.readQueueAgain().finally(() => {
+        this.queueRereading = null;
+      });
+    }
+    return this.queueRereading;
+  }
+
+  /**
+   * R9-212 — read the queue again, and join its entries to the ones in
+   * memory: the disk still holds what it held when the process started (no
+   * write took the queue since). The queue is every account's, not the
+   * session's: a read that is back after a `stop()` still joins.
+   */
+  private async readQueueAgain(): Promise<void> {
+    let raw: string | null;
+    try {
+      raw = await AsyncStorage.getItem(QUEUE_STORAGE_KEY);
+    } catch (err) {
+      if (!this.queueWaiting) {
+        logger.warn('SyncEngine: failed to read the queue again', {
+          component: 'SyncEngine',
+          error: err instanceof Error ? err.message : String(err),
+        });
+        return;
+      }
+      // A write waits for it: written from memory (see `queueUnread`).
+      logger.error(
+        'SyncEngine: the queue on disk could not be read, it is written without its entries',
+        err instanceof Error ? err : new Error(String(err)),
+        {component: 'SyncEngine'},
+      );
+      this.queueUnread = false;
+      this.queueWaiting = false;
+      this.queueTouched.clear();
+      void this.persistQueue();
+      return;
+    }
+    const before: PendingWrite[] = [];
+    for (const entry of parseQueue(raw).entries) {
+      const i = this.queue.findIndex(
+        e =>
+          e.uid === entry.uid &&
+          e.collection === entry.collection &&
+          e.id === entry.id,
+      );
+      if (i >= 0) {
+        // Replaced since, as `upsertQueueEntry` does: the clocks go with it.
+        // Changed in place (R9-11), like R9-242.
+        let own = withStamp(ownOf(entry), updatedAtOf(entry.data));
+        for (const ts of ownOf(this.queue[i])) own = withStamp(own, ts);
+        this.queue[i].own = own;
+      } else if (
+        !this.queueTouched.has(
+          `${entry.uid}\u0000${suppressKey(entry.collection, entry.id)}`,
+        )
+      ) {
+        before.push(entry);
+      }
+    }
+    this.queue = [...before, ...this.queue];
+    this.queueUnread = false;
+    this.queueWaiting = false;
+    this.queueTouched.clear();
+    this.updateState({pendingWrites: this.pendingForActiveUid()});
+    void this.persistQueue();
   }
 
   /**
@@ -1072,8 +1203,16 @@ export class SyncEngine {
     // writes the queue anyway, without the tables still unread.
     const unread = [...this.ownDirty].filter(c => this.ownUnread.has(c));
     const waiting = unread.filter(c => !this.ownGaveUp.has(c));
-    if (uid && waiting.length > 0 && !force) {
-      for (const collection of waiting) void this.rereadOwn(collection, uid);
+    // R9-212 — and the queue itself, if it could not be read (see
+    // `queueUnread`). `force` writes the own stamps without it.
+    if (!force && (this.queueUnread || (uid && waiting.length > 0))) {
+      if (this.queueUnread) {
+        this.queueWaiting = true;
+        void this.rereadQueue();
+      }
+      if (uid) {
+        for (const collection of waiting) void this.rereadOwn(collection, uid);
+      }
       return;
     }
     this.ownGaveUp.clear();
@@ -1083,9 +1222,12 @@ export class SyncEngine {
     // entry gone from disk and its stamps not there yet. Both payloads are
     // taken now, and the calls issued in this same turn, so a later write
     // always lands after this one.
-    const pairs: Array<[string, string]> = [
-      [QUEUE_STORAGE_KEY, JSON.stringify(this.queue)],
-    ];
+    // R9-212 — an unread queue is not written (see `queueUnread`): the disk
+    // keeps its entries, and the stamps they carry. The own stamps can go
+    // without it: on disk in a table AND in an entry is still on disk.
+    const pairs: Array<[string, string]> = this.queueUnread
+      ? []
+      : [[QUEUE_STORAGE_KEY, JSON.stringify(this.queue)]];
     const emptied: string[] = [];
     const written = [...this.ownDirty].filter(c => !this.ownUnread.has(c));
     if (uid) {
@@ -1106,7 +1248,7 @@ export class SyncEngine {
       // Removing an emptied set needs no care: it only ever loses stamps
       // nothing needs any more.
       await Promise.all([
-        AsyncStorage.multiSet(pairs),
+        pairs.length > 0 ? AsyncStorage.multiSet(pairs) : Promise.resolve(),
         emptied.length > 0
           ? AsyncStorage.multiRemove(emptied)
           : Promise.resolve(),
@@ -1169,6 +1311,12 @@ export class SyncEngine {
     // legitimately hold a pending write for the SAME (collection, id): the
     // memoryCards id is the verseKey and the highlights id is the verseId,
     // both stable across users, so Juan 3:16 collides between Ana and Beto.
+    // R9-212 — see `queueTouched`.
+    if (this.queueUnread) {
+      this.queueTouched.add(
+        `${entry.uid}\u0000${suppressKey(entry.collection, entry.id)}`,
+      );
+    }
     const idx = this.queue.findIndex(
       e =>
         e.uid === entry.uid &&

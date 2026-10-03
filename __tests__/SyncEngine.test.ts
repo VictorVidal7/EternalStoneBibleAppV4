@@ -9225,6 +9225,492 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     }
   });
 
+  // ---- R9-212 — la cola ilegible al hidratar ----
+
+  /** R9-212 — las lecturas (`getItem`) de la cola: las primeras `fallos`
+   *  fallan; con `puerta`, las siguientes esperan a que se abra. `disco()` la
+   *  lee sin pasar por ellas. `restaurar()` en un `finally`. */
+  function colaIlegible(fallos: number, puerta?: Promise<void>) {
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realImpl = getItemMock.getMockImplementation()!;
+    let n = 0;
+    getItemMock.mockImplementation((k: string) => {
+      if (k !== '@sync_queue_v1') return realImpl(k);
+      n += 1;
+      if (n <= fallos) return Promise.reject(new Error('disco'));
+      return puerta ? puerta.then(() => realImpl(k)) : realImpl(k);
+    });
+    return {
+      lecturas: () => n,
+      disco: async () =>
+        JSON.parse(
+          ((await realImpl('@sync_queue_v1')) as string | null) ?? '[]',
+        ) as Array<{uid: string; id: string; own?: number[]}>,
+      restaurar: () => getItemMock.mockImplementation(realImpl),
+    };
+  }
+
+  /** R9-212 — las entradas de una cola, como `uid:id`. */
+  const ids = (cola: Array<{uid: string; id: string}>) =>
+    cola.map(e => `${e.uid}:${e.id}`);
+
+  /** R9-212 — la edicion `value` de `id` espera en la cola de disco: se
+   *  encola sin red (con cero intentos: sube en cuanto hay red). */
+  async function enColaSinRed(
+    uid: string,
+    id: string,
+    value: string,
+    T: number,
+  ) {
+    const {engine, localStore, adapter} = await engineFor(uid, T);
+    engine.__setOnlineForTests(false);
+    const d = {value, updatedAt: T + 60_000};
+    localStore.set(id, d as unknown as SyncEntity<TestEntity>);
+    engine.queueWrite('test', id, d);
+    await settle();
+    engine.stop();
+    await settle();
+    return {localStore, adapter};
+  }
+
+  /** R9-212 — el usuario escribe `value` en `id`. */
+  async function escribir(
+    e: SyncEngine,
+    localStore: Map<string, SyncEntity<TestEntity>>,
+    id: string,
+    value: string,
+    updatedAt: number,
+  ) {
+    const d = {value, updatedAt};
+    localStore.set(id, d as unknown as SyncEntity<TestEntity>);
+    e.queueWrite('test', id, d);
+    await settle();
+  }
+
+  const valorDe = (
+    localStore: Map<string, SyncEntity<TestEntity>>,
+    id: string,
+  ) => (localStore.get(id) as unknown as Data | undefined)?.value;
+
+  it('R9-212: con la cola ilegible al hidratar, la primera escritura no la reescribe sin las entradas de antes, ni la propia ni la aparcada de otra cuenta', async () => {
+    const T = Date.now() - HOUR;
+    await enColaSinRed('uid-212-ana', 'doc-a', 'de ana', T);
+    const {localStore, adapter} = await enColaSinRed(
+      'uid-212-beto',
+      'doc-q',
+      'q',
+      T,
+    );
+    const cola = colaIlegible(2);
+    let p1: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo('uid-212-beto', adapter);
+      const antes = {
+        lecturas: cola.lecturas(),
+        pendientes: p1.getState().pendingWrites,
+      };
+      await escribir(p1, localStore, 'doc-z', 'z', T + 300_000);
+
+      // Sin R9-212, en disco solo la de doc-z: q y la de Ana no suben nunca.
+      expect({
+        // CONTROL: fallaron la hidratacion y la relectura de `start()`, y
+        // mientras tanto la entrada de disco no se cuenta (`queueUnread`).
+        antes,
+        lecturas: cola.lecturas(), // CONTROL: la escritura la volvio a leer
+        disco: ids(await cola.disco()),
+        pendientes: p1.getState().pendingWrites,
+      }).toEqual({
+        antes: {lecturas: 2, pendientes: 0},
+        lecturas: 3,
+        disco: [
+          'uid-212-ana:doc-a',
+          'uid-212-beto:doc-q',
+          'uid-212-beto:doc-z',
+        ],
+        pendientes: 2,
+      });
+    } finally {
+      cola.restaurar();
+      p1?.stop();
+    }
+  });
+
+  it('R9-212: una copia del otro, mas nueva, entra mientras la cola no se lee: la edicion vieja que esperaba en disco no sube encima', async () => {
+    // Sin R9-212 la consecuencia es la misma (la entrada se perdia), y cae
+    // solo por el control de las lecturas. Vigila la union: una entrada de
+    // disco de un doc cuya copia local cambio en este proceso es mas vieja
+    // que esa copia, y `set` no tiene guarda. Con la cola legible, el mismo
+    // caso deja la nube en «q vieja» (R9-254).
+    const uid = 'uid-212-remoto';
+    const T = Date.now() - HOUR;
+    const {localStore, adapter} = await enColaSinRed(
+      uid,
+      'doc-q',
+      'q vieja',
+      T,
+    );
+    const cola = colaIlegible(2);
+    let p1: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo(uid, adapter);
+      write(uid, 'doc-q', {value: 'R', updatedAt: T + 120_000});
+      await settle();
+      const localAntes = valorDe(localStore, 'doc-q');
+      await escribir(p1, localStore, 'doc-z', 'z', T + 300_000);
+      p1.__setOnlineForTests(true);
+      await settle();
+      await p1.__flushForTests();
+      await settle();
+
+      // Sin la marca de la copia aplicada (`queueTouched`), la entrada vieja
+      // vuelve a la cola y sube: la nube queda en «q vieja» y el telefono en R.
+      expect({
+        lecturas: cola.lecturas(), // CONTROL: la union fue despues de R
+        localAntes, // CONTROL: R entro por LWW con la cola sin leer
+        nubeZ: await nubeDe(uid, 'doc-z'), // CONTROL: hubo red y subida
+        nube: await nubeDe(uid, 'doc-q'),
+        local: valorDe(localStore, 'doc-q'),
+      }).toEqual({
+        lecturas: 3,
+        localAntes: 'R',
+        nubeZ: 'z',
+        nube: 'R',
+        local: 'R',
+      });
+    } finally {
+      cola.restaurar();
+      p1?.stop();
+    }
+  });
+
+  it('R9-212: la edicion nueva del doc sube antes de que vuelva la lectura de la cola: la de disco, mas vieja, no sube despues', async () => {
+    // Pasa tambien sin R9-212 (la entrada se perdia). Vigila la union, como
+    // la de arriba, con la edicion que ya salio de la cola.
+    const uid = 'uid-212-sube';
+    const T = Date.now() - HOUR;
+    const {localStore, adapter} = await enColaSinRed(
+      uid,
+      'doc-q',
+      'q vieja',
+      T,
+    );
+    let abrir: () => void = () => {};
+    const puerta = new Promise<void>(resolve => {
+      abrir = resolve;
+    });
+    const cola = colaIlegible(2, puerta);
+    let p1: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo(uid, adapter);
+      p1.__setOnlineForTests(true);
+      await settle();
+      await escribir(p1, localStore, 'doc-q', 'q nueva', T + 300_000);
+      const trasSubir = {
+        nube: await nubeDe(uid, 'doc-q'),
+        cola: p1.__getQueueForTests().length,
+      };
+      abrir();
+      await settle();
+      await p1.__flushForTests();
+      await settle();
+
+      // Sin la marca de la edicion encolada (`queueTouched`), la entrada de
+      // disco vuelve a la cola y sube encima: la nube queda en «q vieja».
+      expect({
+        trasSubir, // CONTROL: la edicion subio con la lectura en vuelo
+        nube: await nubeDe(uid, 'doc-q'),
+        local: valorDe(localStore, 'doc-q'),
+        disco: ids(await cola.disco()),
+      }).toEqual({
+        trasSubir: {nube: 'q nueva', cola: 0},
+        nube: 'q nueva',
+        local: 'q nueva',
+        disco: [],
+      });
+    } finally {
+      abrir();
+      cola.restaurar();
+      p1?.stop();
+    }
+  });
+
+  it('R9-212: la lectura de la cola falla una sola vez al hidratar: `start()` la relee antes de enganchar, y la entrada de disco sube en esa sesion', async () => {
+    const uid = 'uid-212-unavez';
+    const T = Date.now() - HOUR;
+    const {adapter} = await enColaSinRed(uid, 'doc-q', 'q', T);
+    const cola = colaIlegible(1);
+    let p1: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo(uid, adapter);
+      const pendientes = p1.getState().pendingWrites;
+      p1.__setOnlineForTests(true);
+      await settle();
+
+      // Sin la relectura de `start()`, la entrada espera en disco a la
+      // primera escritura de la sesion (sin ninguna, a otro arranque), y la UI
+      // dice 0 pendientes.
+      expect({
+        lecturas: cola.lecturas(), // CONTROL: fallo una, la segunda leyo
+        pendientes,
+        nube: await nubeDe(uid, 'doc-q'),
+        disco: ids(await cola.disco()),
+      }).toEqual({lecturas: 2, pendientes: 1, nube: 'q', disco: []});
+    } finally {
+      cola.restaurar();
+      p1?.stop();
+    }
+  });
+
+  it('R9-212: la relectura de la cola sigue en vuelo tras el `stop()` de Ana, y Beto entra en el mismo proceso: al volver, la cola de disco conserva las dos entradas de Ana', async () => {
+    // La cola es de todas las cuentas: su relectura no es de una sesion,
+    // como la de la tabla de sellos (R9-215), y une tambien despues.
+    const T = Date.now() - HOUR;
+    const {localStore, adapter} = await enColaSinRed(
+      'uid-212-ana2',
+      'doc-a',
+      'de ana',
+      T,
+    );
+    await AsyncStorage.setItem('@sync_first_push_done:uid-212-beto2', '2');
+    let abrir: () => void = () => {};
+    const puerta = new Promise<void>(resolve => {
+      abrir = resolve;
+    });
+    const cola = colaIlegible(2, puerta);
+    let p1: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo('uid-212-ana2', adapter);
+      await escribir(p1, localStore, 'doc-za', 'za', T + 300_000);
+      p1.stop();
+      await settle();
+      const enVuelo = ids(await cola.disco());
+      const inicio = p1.start('uid-212-beto2');
+      await settle();
+      abrir();
+      await inicio;
+      await settle();
+
+      // Sin R9-212, en disco solo la de doc-za, desde la escritura de Ana.
+      expect({
+        enVuelo, // CONTROL: mientras la lectura no vuelve, nada escribe la cola
+        lecturas: cola.lecturas(), // CONTROL: el `start()` de Beto espero esa
+        disco: ids(await cola.disco()),
+        pendientesBeto: p1.getState().pendingWrites,
+      }).toEqual({
+        enVuelo: ['uid-212-ana2:doc-a'],
+        lecturas: 3,
+        disco: ['uid-212-ana2:doc-a', 'uid-212-ana2:doc-za'],
+        pendientesBeto: 0,
+      });
+    } finally {
+      abrir();
+      cola.restaurar();
+      p1?.stop();
+    }
+  });
+
+  it('R9-212: la sesion termina con la relectura de la cola en vuelo y un sello de conflicto por escribir: `stop()` escribe la tabla de sellos sin la cola, y la entrada de disco no se pierde', async () => {
+    const uid = 'uid-212-stop';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.__setOnlineForTests(false);
+    await escribir(engine, localStore, 'doc-x', 'x vieja', T + 150_000);
+    engine.stop();
+    await settle();
+    let abrir: () => void = () => {};
+    const puerta = new Promise<void>(resolve => {
+      abrir = resolve;
+    });
+    const cola = colaIlegible(2, puerta);
+    let p1: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo(uid, adapter);
+      p1.__setOnlineForTests(true);
+      await settle();
+      await escribirD(p1, localStore, 'd mio 2', T + 200_000, true);
+      p1.stop();
+      await settle();
+      const trasStop = {
+        disco: ids(await cola.disco()),
+        tabla: await tablaDe(uid),
+      };
+      abrir();
+      await settle();
+
+      // Si `stop()` escribia la cola sin leerla, en disco quedaba la de
+      // memoria, sin doc-x, y la lectura que volvio despues ya no la traia.
+      expect({
+        nubeD: await nubeDe(uid, 'doc-d'), // CONTROL: d2 subio
+        trasStop,
+        disco: ids(await cola.disco()),
+      }).toEqual({
+        nubeD: 'd mio 2',
+        // La tabla, con el sello de d2.
+        trasStop: {disco: ['uid-212-stop:doc-x'], tabla: ['doc-d']},
+        disco: ['uid-212-stop:doc-x'],
+      });
+    } finally {
+      abrir();
+      cola.restaurar();
+      p1?.stop();
+    }
+  });
+
+  it('R9-212: la cola sigue ilegible al releerla para una escritura: esa escritura la saca de memoria, sin la entrada de disco; si el proceso muere despues, tras reiniciar no aparece «lo mio contra lo mio» y la edicion en espera no se pierde', async () => {
+    const uid = 'uid-212-sigue';
+    const {engine, localStore, adapter, T} = await dosConflictos(uid);
+    engine.__setOnlineForTests(false);
+    await escribir(engine, localStore, 'doc-x', 'x vieja', T + 150_000);
+    engine.stop();
+    await settle();
+    const cola = colaIlegible(Infinity);
+    const disco = caida();
+    let p1: SyncEngine | null = null;
+    let otro: SyncEngine | null = null;
+    try {
+      p1 = await procesoNuevo(uid, adapter);
+      p1.__setOnlineForTests(true);
+      await settle();
+      await escribirD(p1, localStore, 'd mio 2', T + 200_000, true);
+      await escribirD(p1, localStore, 'd mio 3', T + 250_000, false);
+      const lecturas = cola.lecturas();
+      disco.morir();
+      p1.stop();
+      await settle();
+      disco.revivir();
+      cola.restaurar();
+      otro = await procesoNuevo(uid, adapter);
+
+      // Sin rendirse, ninguna escritura de la sesion llegaba a disco: tras
+      // reiniciar, «d mio 3 | d mio 2» (el sello de d2 no llego a la tabla), y
+      // en la cola la de doc-x sin la de d3. La de doc-x se pierde: el coste
+      // de rendirse (`queueUnread`), el mismo final que sin R9-212 (que cae
+      // solo por las lecturas).
+      expect({
+        // CONTROL: la hidratacion, la de `start()` y la de la escritura de d2;
+        // ninguna mas despues.
+        lecturas,
+        nubeD: await nubeDe(uid, 'doc-d'), // CONTROL: d2 subio
+        cola: otro
+          .__getQueueForTests()
+          .filter(q => q.uid === uid)
+          .map(q => (q.data as Data).value),
+        conflictos: parejas(otro),
+      }).toEqual({
+        lecturas: 3,
+        nubeD: 'd mio 2',
+        cola: ['d mio 3'],
+        conflictos: [],
+      });
+    } finally {
+      disco.revivir();
+      cola.restaurar();
+      otro?.stop();
+    }
+  });
+
+  it('R9-212: el usuario vuelve a editar el doc de una entrada de disco con la cola sin leer: al unirlas, la entrada nueva lleva el reloj de la de disco, como con la cola leida', async () => {
+    // Mide el mecanismo, no un dano: el caso en que importa (una copia con
+    // ese reloj que llega despues de la union, mientras la entrada espera) no
+    // se construyo en el mock.
+    const T = Date.now() - HOUR;
+    const caso = async (uid: string, fallos: number) => {
+      const {localStore, adapter} = await enColaSinRed(uid, 'doc-q', 'q', T);
+      const cola = colaIlegible(fallos);
+      let p1: SyncEngine | null = null;
+      try {
+        p1 = await procesoNuevo(uid, adapter);
+        await escribir(p1, localStore, 'doc-q', 'q nueva', T + 300_000);
+        return (await cola.disco())
+          .filter(e => e.uid === uid)
+          .map(e => ({id: e.id, own: (e.own ?? []).map(ts => ts - T)}));
+      } finally {
+        cola.restaurar();
+        p1?.stop();
+        await settle();
+      }
+    };
+    const leida = await caso('uid-212-leida', 0);
+    const sinLeer = await caso('uid-212-sinleer', 2);
+
+    expect({leida, sinLeer}).toEqual({
+      leida: [{id: 'doc-q', own: [60_000]}], // CONTROL: como la reemplaza
+      sinLeer: [{id: 'doc-q', own: [60_000]}],
+    });
+  });
+
+  it('R9-212: la cola y la tabla de sellos ilegibles en el mismo arranque: las mismas escrituras y el mismo final que con la tabla sola', async () => {
+    // Las dos guardas juntas (corolario 50): la escritura espera a las dos
+    // relecturas.
+    const caso = async (uid: string, fallosCola: number) => {
+      const {engine, localStore, adapter, T} = await dosConflictos(uid);
+      await escribirD(engine, localStore, 'd mio 2', T + 200_000, false);
+      engine.stop();
+      await settle();
+      const tabla = tablaIlegible(uid, 1);
+      const cola = colaIlegible(fallosCola);
+      const escrituras: string[][] = [];
+      const store = AsyncStorage as unknown as {multiSet: jest.Mock};
+      const realSet = store.multiSet.getMockImplementation()!;
+      store.multiSet.mockImplementation(
+        (pairs: Array<[string, string]>, cb?: unknown) => {
+          escrituras.push(
+            pairs.map(([k, v]) =>
+              k === '@sync_queue_v1'
+                ? `cola ${(JSON.parse(v) as Array<{uid: string; data: Data}>)
+                    .filter(q => q.uid === uid)
+                    .map(q => q.data.value)
+                    .join(',')}`
+                : k.split(':')[0],
+            ),
+          );
+          return realSet(pairs, cb);
+        },
+      );
+      let p1: SyncEngine | null = null;
+      let otro: SyncEngine | null = null;
+      try {
+        p1 = await procesoNuevo(uid, adapter);
+        p1.__setOnlineForTests(true);
+        await settle();
+        await escribirD(p1, localStore, 'd mio 3', T + 250_000, true);
+        await escribirD(p1, localStore, 'd mio 4', T + 300_000, false);
+        p1.stop();
+        await settle();
+        store.multiSet.mockImplementation(realSet);
+        cola.restaurar();
+        tabla.restaurar();
+        otro = await procesoNuevo(uid, adapter);
+        return {
+          lecturas: cola.lecturas(),
+          escrituras,
+          cola: otro
+            .__getQueueForTests()
+            .filter(q => q.uid === uid)
+            .map(q => (q.data as Data).value),
+          tabla: await tablaDe(uid),
+          conflictos: parejas(otro),
+        };
+      } finally {
+        store.multiSet.mockImplementation(realSet);
+        cola.restaurar();
+        tabla.restaurar();
+        otro?.stop();
+      }
+    };
+    const soloTabla = await caso('uid-212-tabla', 0);
+    const juntas = await caso('uid-212-juntas', 2);
+
+    // CONTROL: la cola fallo al hidratar y en `start()`, y se leyo para la
+    // escritura de d3.
+    expect([soloTabla.lecturas, juntas.lecturas]).toEqual([1, 3]);
+    expect({
+      cola: soloTabla.cola,
+      tabla: soloTabla.tabla,
+      conflictos: soloTabla.conflictos,
+    }).toEqual({cola: ['d mio 4'], tabla: ['doc-c', 'doc-d'], conflictos: []});
+    expect({...juntas, lecturas: 1}).toEqual(soloTabla);
+  });
+
   it('R9-217: con la tabla de sellos ilegible toda la sesion, d2 sube y d3 queda en cola: la entrada de d3 lleva el reloj de d2, y tras reiniciar no aparece «d mio 3 contra d mio 2»', async () => {
     const uid = 'uid-217-coste';
     const {engine, localStore, adapter, T} = await dosConflictos(uid);
