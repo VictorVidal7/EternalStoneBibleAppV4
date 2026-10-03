@@ -1,13 +1,12 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 47.** La 47 hizo el (aa) en el mismo chat
-> que la 45 y la 46: revisó el diff de la 46 en la terminal, sin agentes y sin tocar código.
-> Registró 1 nuevo (`R9-253`, P3: el comentario de `R9-252`).
+> **Última actualización: 2026-10-02, fin de la sesión 48.** La 48 hizo el (ab) en el mismo chat
+> que la 45 a la 47: cerró `R9-253` (solo un comentario), en la terminal y sin agentes.
 >
-> La 46 ya está mergeada y pusheada (`main` = `87d14ce`, CI verde en el log, run `37085207637`,
-> 368/4541). La rama de la 47 (`docs/review-s47-diff-s46`) va **sin mergear hasta el OK de
-> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 253 hallazgos. **Lo siguiente es el mensaje
-> (ab): arreglar lo de la 47.**
+> La 47 ya está mergeada y pusheada (`main` = `afbf460`, CI verde en el log, run `37089759242`,
+> 368/4541). Las ramas de la 48 (`fix/s48-arreglos-s47` y `docs/review-s48-fix-s47`) van **sin
+> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 253 hallazgos. **Lo
+> siguiente lo decide Victor:** el diff de la 48 es un comentario. Puede revisarlo una sesión (la 49) o seguir con lo pendiente (sección «Pendiente» del mensaje (ab) y de los anteriores).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -474,9 +473,11 @@ igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arre
 42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual), y sus arreglos (la (x),
 sesión 44, igual), y la revisión del diff de la 44 (la (y), sesión 45, igual), y sus arreglos (la
 (z), sesión 46, en el mismo chat), y la revisión del diff de la 46 (la (aa), sesión 47, igual).
-**Lo siguiente es el (ab).**
+Y sus arreglos (la (ab), sesión 48, igual). **Lo siguiente lo decide Victor** (ver la cabecera).
 
-**(ab) Sesión 48: arreglar lo de la 47.**
+**(ab) Sesión 48: arreglar lo de la 47 — ya HECHO en la sesión 48, en el mismo chat, en la
+terminal y sin agentes.** Las herramientas de hoy: la base `S48-SyncEngine-final.ts.txt` y
+`S48-motor.cjs.txt` (no uses `S46-motor` ni `S45-motor`).
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (ab) y la sección 5), `detail/S47-revision-del-diff-s46.md` y, en `BUGS.md`, `R9-253`. En
@@ -1810,18 +1811,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 47 (2026-10-02).**
+**Medido al cerrar la sesión 48 (2026-10-02).**
 
-- **`main` = `origin/main` = `87d14ce`** (el checkpoint de la 46, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `e57fa16`). **CI verificado en el log:** run `37085207637`,
-  3 jobs verdes, Node v24.21.0, 368/4541, cero «failed to run». Las ramas de la 46 se borraron.
-- **Una rama de la 47, sin mergear a propósito y sin pushear:** `docs/review-s47-diff-s46` (el
-  checkpoint; no toca código). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
-  `main` la incluye.
+- **`main` = `origin/main` = `afbf460`** (el checkpoint de la 47, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `e57fa16`). **CI verificado en el log:** run `37089759242`,
+  3 jobs verdes, Node v24.21.0, 368/4541, cero «failed to run». La rama de la 47 se borró.
+- **Dos ramas de la 48, sin mergear a propósito y sin pushear:** `fix/s48-arreglos-s47` (1
+  commit, `05e089e`) y, encima, `docs/review-s48-fix-s47` (el checkpoint). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 47):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 48):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,

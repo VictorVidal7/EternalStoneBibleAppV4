@@ -600,8 +600,8 @@
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Detalle: `detail/S46-arreglos-s45.md`.
 >
 > **Sesión 47 (2026-10-02): revisión del diff de la 46**, en el mismo chat, solo en la terminal,
-> sin agentes y sin tocar código. Rama `docs/review-s47-diff-s46`, sin mergear hasta el OK de
-> Victor.
+> sin agentes y sin tocar código. Rama `docs/review-s47-diff-s46`, mergeada y pusheada con el OK
+> de Victor (`main` = `afbf460`, CI verde en el log, run `37089759242`, 368/4541).
 >
 > - **1 nuevo, P3, de la 46:** `R9-253` (el comentario de `R9-252` dice que un respaldo restaurado
 >   ya asentó el conflicto en la sesión; eso vale solo bajo el piso: medido con `S47-1`).
@@ -612,6 +612,15 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Detalle:
 > `detail/S47-revision-del-diff-s46.md`.
+>
+> **Sesión 48 (2026-10-02): ARREGLOS de lo de la 47**, en el mismo chat, solo en la terminal y sin
+> agentes. Rama `fix/s48-arreglos-s47` (1 commit, `05e089e`), sin mergear hasta el OK de Victor.
+>
+> - **Cerrado:** `R9-253` (el comentario de `R9-252`: solo un respaldo bajo el piso asienta el
+>   conflicto en la sesión; uno sobre el piso es como una edición). El motor cambió solo en ese
+>   comentario.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Detalle: `detail/S48-arreglos-s47.md`.
 
 ---
 
@@ -5020,6 +5029,11 @@ pending.remoteVersion.updatedAt`.
     el comentario, que cuenta por qué.
   - **De la 46** (`5a2c377`): el comentario es suyo. El motor no cambió.
   - **Propuesta:** «(a restored backup below the floor settled it already, R9-190)».
+  - **✅ Cerrado en la sesión 48** (`05e089e`, solo el comentario): dice que un respaldo bajo el
+    piso lo asentó ya en la sesión (su eco salió de la query, y la lectura lo encontró mío,
+    `R9-190`), y que uno sobre el piso es como una edición. Sobre la base nueva
+    (`_scratch/S48-SyncEngine-final.ts.txt`), las piezas aplican y la prueba de `R9-251` sigue
+    cayendo con `R247unread`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

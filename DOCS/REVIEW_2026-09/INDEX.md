@@ -604,8 +604,16 @@
 > - **La prueba de `R9-251`:** medida con 12 piezas de a una; cae por la consecuencia con
 >   `R247unread` y `R234own`, y por la tabla de su control con `R234ret` y `R238hoy`.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Rama `docs/review-s47-diff-s46`, sin
-> mergear hasta el OK de Victor. Detalle: `detail/S47-revision-del-diff-s46.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Rama `docs/review-s47-diff-s46`: mergeada
+> y pusheada con el OK de Victor (`main` = `afbf460`, CI verde en el log, run `37089759242`,
+> 368/4541). Detalle: `detail/S47-revision-del-diff-s46.md`.
+>
+> **Sesión 48 (2026-10-02): ARREGLOS de lo de la 47**, en el mismo chat, solo en la terminal y sin
+> agentes. Cerró `R9-253` (`05e089e`, solo el comentario de `R9-252`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Ramas `fix/s48-arreglos-s47` y
+> `docs/review-s48-fix-s47`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S48-arreglos-s47.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1148,6 +1156,11 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Resultado:** 1 nuevo (`R9-253`, P3). Queda 1 P0 abierto.
   - **Detalle: `detail/S47-revision-del-diff-s46.md`.**
   - **La lección:** un comentario que enumera casos se mide caso por caso.
+
+- **Sesión 48 — 2026-10-02. Arreglos de lo de la 47.** En el mismo chat, solo en la terminal y sin
+  agentes. 1 cerrado (`R9-253`, un comentario). Base nueva para las piezas:
+  `_scratch/S48-SyncEngine-final.ts.txt`, con `S48-motor.cjs.txt`. **Detalle:
+  `detail/S48-arreglos-s47.md`.**
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
