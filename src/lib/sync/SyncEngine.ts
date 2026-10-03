@@ -2016,12 +2016,14 @@ export class SyncEngine {
       //   conflict waited: it went up over «theirs», which only the conflict
       //   in memory still holds. After a restart that write is the copy
       //   delivered, this device's own, and the conflict settles without the
-      //   user choosing: by LWW, or by R9-245 with a later write queued (a
-      //   restored backup settled it already, R9-190). Accepted (Victor,
-      //   S46): keeping «theirs» on disk would be one more table with cases
-      //   of its own (unreadable, another account, read again), like the
-      //   own stamps (R9-193). Within the session, keepTheirs pushes it back
-      //   (R9-161).
+      //   user choosing: by LWW, or by R9-245 with a later write queued. A
+      //   restored backup below the floor settled it already in the session:
+      //   its echo left the query, and the read found it this device's own
+      //   (R9-190); one above the floor is like an edit (R9-253). Accepted
+      //   (Victor, S46): keeping «theirs» on disk would be one more table
+      //   with cases of its own (unreadable, another account, read again),
+      //   like the own stamps (R9-193). Within the session, keepTheirs pushes
+      //   it back (R9-161).
       if (
         !pending &&
         (remoteTs > localTs ||
