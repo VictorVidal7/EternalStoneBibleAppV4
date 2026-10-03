@@ -10699,7 +10699,10 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
   // `removed` sintetico de R9-186 no trae copia, y la llegada no retira nada.
   // El proceso anterior dejo doc-c en conflicto retenido con la marca de
   // relectura (la lectura de su `removed` fallo), el sello de W3 en la tabla
-  // (murio antes de escribir la retirada de la llegada) y L4 en la cola. La
+  // y L4 en la cola. La retirada de la llegada escribe la tabla en el mismo
+  // turno, antes de que falle la lectura: el sello sigue ahi si esa escritura
+  // esperaba la relectura de la tabla de otra coleccion cuando el proceso
+  // murio, si fallo, o si esta tabla no se pudo leer en ese proceso. La
   // nube tiene R2 del otro, bajo el piso. Este arranca sin red, y el enganche
   // lee doc-c: encuentra R2. Despues el otro restaura un respaldo con W3
   // (`mio`), o lo mismo con su reloj (+1 ms, `otro`, CONTROL).
