@@ -629,8 +629,16 @@
 > `R9-214` (P3), uno es anterior a la 49 (`R9-256`, P2: un borrado en cola y una copia del otro más
 > vieja que él), y uno junta los comentarios de la 49.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **258**. Rama `docs/review-s50-diff-s49`, sin
-> mergear hasta el OK de Victor. Detalle: `detail/S50-revision-del-diff-s49.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **258**. Rama `docs/review-s50-diff-s49`: mergeada
+> y pusheada con el OK de Victor (`main` = `af8a5ae`, CI verde en el log, run `37145852120`,
+> 368/4551). Detalle: `detail/S50-revision-del-diff-s49.md`.
+>
+> **Sesión 51 (2026-10-03): ARREGLOS de lo de la 50**, en el mismo chat, solo en la terminal y sin
+> agentes. Cerró `R9-256` (P2), `R9-254` con `R9-115`, `R9-257` y `R9-258`; aceptó `R9-255`; abrió
+> `R9-259` (P3: la guarda de `R9-197` ya no tiene prueba propia).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **259**. Ramas `fix/s51-arreglos-s50` y
+> `docs/review-s51-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S51-arreglos-s50.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1199,6 +1207,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Resultado:** 5 nuevos (`R9-254`..`R9-258`; uno P2, anterior a la 49). Queda 1 P0 abierto.
   - **Detalle: `detail/S50-revision-del-diff-s49.md`.**
   - **La lección:** una pieza que dice «el arreglo entero» se compara con el motor de antes.
+
+- **Sesión 51 — 2026-10-03. Arreglos de lo de la 50.** En el mismo chat, solo en la terminal y sin
+  agentes.
+  - **Cómo se trabajó:** una base por commit (`_scratch/S51-SyncEngine-*.ts.txt`), las piezas de
+    a una (`S51-piezas.cjs.txt`), las sondas de la 50 sobre cada arreglo, y la matriz de la 44 en
+    un worktree aparte.
+  - **Resultado:** 5 cerrados (`R9-256`, `R9-254`, `R9-115`, `R9-257`, `R9-258`), 1 aceptado
+    (`R9-255`) y 1 nuevo (`R9-259`). Queda 1 P0 abierto.
+  - **Detalle: `detail/S51-arreglos-s50.md`.**
+  - **La lección:** «los duplicados son inocuos» se coteja con el ledger (`R9-126` dice lo
+    contrario).
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

@@ -4,6 +4,11 @@ En un chat nuevo, solo en la terminal y sin agentes, con `_scratch/S49-PROMPT.md
 al cerrar la 48 («por donde mejor convenga»): `R9-212` era el único P2 de lo pendiente que se hace
 en la terminal.
 
+> **⚠️ Sesión 50 (`R9-258`):** dos afirmaciones de este detalle no se sostienen. La pieza `R212` no
+> es «el arreglo entero»: deja la asignación nueva de `hydrateQueue` (`R9-254`), y un «sin
+> `R9-212`» se mide con el motor de `8f59942`. Y la entrada que la unión descarta no siempre es «la
+> que LWW ya perdió»: sin copia local no hay LWW (`R9-256`).
+
 - **Ramas:** `fix/s49-arreglos` (3 commits: `024bef8` `R9-212`, `d3e45a7` `R9-214`, `f287fc6` un
   comentario de prueba) y, encima, `docs/review-s49-fix` (este checkpoint). Sin mergear hasta el
   OK de Victor.

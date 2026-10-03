@@ -638,8 +638,8 @@
 > `detail/S49-arreglos-r212-r214.md`.
 >
 > **Sesión 50 (2026-10-03): revisión del diff de la 49**, en un chat nuevo, solo en la terminal,
-> sin agentes y sin tocar código. Rama `docs/review-s50-diff-s49`, sin mergear hasta el OK de
-> Victor.
+> sin agentes y sin tocar código. Rama `docs/review-s50-diff-s49`: mergeada y pusheada con el OK
+> de Victor (`main` = `af8a5ae`, CI verde en el log, run `37145852120`, 368/4551).
 >
 > - **5 nuevos, `R9-254`..`R9-258`:**
 >   - `R9-254` (P3, lo abrió `R9-212`): una edición hecha durante la hidratación que falla sale de
@@ -656,6 +656,19 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **258**. Detalle:
 > `detail/S50-revision-del-diff-s49.md`.
+>
+> **Sesión 51 (2026-10-03): ARREGLOS de lo de la 50**, en el mismo chat que la 50, solo en la
+> terminal y sin agentes. Rama `fix/s51-arreglos-s50` (4 commits: `88fb219`, `e97cd95`, `ec5bc70`
+> y `6d834c5`), sin mergear hasta el OK de Victor.
+>
+> - **Cerrados:** `R9-256` (P2: sin copia local, la lápida en cola gana a una copia más vieja),
+>   `R9-254` y `R9-115` (la cola no se escribe hasta hidratarla, y la hidratación une lo escrito
+>   durante su lectura), `R9-257` (una colección cuyo `pullAllLocal` falla se reintenta, y solo
+>   ella) y `R9-258` (los comentarios). **Aceptado:** `R9-255`, con el porqué en `queueUnread`.
+> - **1 nuevo:** `R9-259` (P3, lo abrió `R9-256`): la guarda de `R9-197` ya no tiene una prueba
+>   que la vea sola.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **259**. Detalle: `detail/S51-arreglos-s50.md`.
 
 ---
 
@@ -5130,6 +5143,19 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** la de `R9-115`, no aceptar escrituras hasta hidratar (el
     `queueWrite` de ese rato espera la hidratación). Cerraría las dos mitades. Lo mínimo para la
     mitad nueva: en el fallo, conservar la memoria.
+  - **✅ ARREGLADO en la sesión 51** (`e97cd95`, rama `fix/s51-arreglos-s50`), con `R9-115`. En
+    vez de hacer esperar a `queueWrite`, `persistQueue` no escribe la cola antes de hidratarla.
+    La hidratación une lo leído con lo de memoria: es la unión de `readQueueAgain`, extraída a
+    `joinQueue`. Con la lectura fallida, lo de memoria espera a la relectura. Lo escrito antes de
+    la primera lectura marca su doc (`queueTouched`), como mientras la cola no se lee.
+    - **Medido (`HIDRATA`, `_scratch/S51-hidrata-fix.out.txt`):** `legible`, `dos` y `tres` dan
+      `["doc-q","doc-w","doc-z"]`, `["doc-q","doc-w","doc-z"]` y `["doc-w","doc-z"]`; tras el
+      arranque, el disco sigue con `doc-q`. En `tres`, `doc-q` se pierde por diseño (se rinde).
+    - **Pruebas: 2.** Las tres formas en un `it`, y el caso de `R9-115` (la nube) con la lectura
+      que vuelve antes y después del ack. Piezas (`_scratch/S51-piezas.cjs.txt`): `R254hyd`
+      tumba las dos; `R254keep` y `R254write`, la primera; `R254touch`, las dos (la segunda por
+      `lenta`: sin la marca, la entrada vieja sube después del ack de la nueva). Todas por la
+      consecuencia.
 
 - **`R9-255` (S50, `SyncEngine` / cola — P3) — 🐛 mientras la relectura que espera una escritura
   no vuelve, el disco guarda la entrada vieja de un doc que ya subió más nuevo; si el proceso muere
@@ -5149,6 +5175,16 @@ pending.remoteVersion.updatedAt`.
     vuelve rápido y se rinde, y entonces escribe la memoria.
   - **Arreglo (hipótesis, sin medir):** decirlo en el comentario de `queueUnread`, o no subir un doc
     marcado hasta que la unión esté escrita. Lo segundo no salva la escritura sin red.
+  - **✅ ACEPTADO en la sesión 51** (`6d834c5`, solo el comentario de `queueUnread`), con el
+    porqué escrito donde ocurre (como `R9-252`).
+    - **La variante sin red, medida** (`_scratch/S51-sonda-sinred.body.txt`): `cerrada` deja la
+      nube en «q vieja» y lo local en «q nueva», y la cola vacía tras reiniciar: la edición nueva
+      no sube nunca. El control (`abierta`) y `8f59942` dan «q nueva».
+    - **Por qué se acepta:** la ventana es una lectura de almacenamiento local (milisegundos),
+      después de dos lecturas fallidas, y el proceso tiene que morir justo ahí. Un fallo
+      determinista vuelve rápido y se rinde. Cerrarla pediría guardar en disco la escritura que
+      espera y la marca, en una clave más con sus propios casos (ilegible, otra cuenta), como la
+      tabla de sellos (`R9-193`).
 
 - **`R9-256` (S50, `SyncEngine` / borrados — P2) — 🐛 una lápida en cola y una copia del otro más
   vieja que el borrado: la fila resucita en este teléfono, y la nube y el otro teléfono la tienen
@@ -5171,6 +5207,19 @@ pending.remoteVersion.updatedAt`.
     más nueva que la copia, no aplicar (como la salida de `ownQueued`). Antes, preguntar por una
     copia MÁS nueva que la lápida (el otro la recreó después): ahí la lápida sube encima, y eso es
     `R9-126`.
+  - **✅ ARREGLADO en la sesión 51** (`88fb219`, rama `fix/s51-arreglos-s50`). Sin copia local y
+    con una lápida de esta cuenta en cola, la copia que llega se compara con la lápida, y la lápida
+    gana el empate, como LWW. Solo lápidas: una edición en cola sin copia local no es un camino
+    normal.
+    - **Medido (`BORRA`, `_scratch/S51-borra-R256fix.out.txt`):** `legible` y `uno` dan local
+      nulo y nube borrada. `dos` (la cola sin leer toda la sesión) sigue igual que antes de la 49:
+      la lápida no está en memoria. Se acepta, y lo dice el comentario de `queueTouched`.
+    - **Prueba: 1**, con su control en el mismo `it`: una copia MÁS nueva que el borrado sí entra
+      al enganchar (lo que pasa después es `R9-126`, y no se mira). Cae sin el arreglo (`R256`),
+      por la consecuencia: local R.
+    - **Coste:** si la lápida se descarta después (`R9-33`), lo local queda borrado y la nube con
+      R, como cualquier escritura descartada.
+    - **Abrió `R9-259`:** tapa a la guarda de `R9-197` en su única prueba.
 
 - **`R9-257` (S50, favoritos / sync — P3) — 🐛 un fallo de `getFavorites()` en el bulk push graba
   el flag `'2'` sin subir nada, y los favoritos no suben nunca por esa vía.** MEDIDO con el provider
@@ -5189,6 +5238,16 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** no grabar el flag si un `pullAllLocal` lanzó (el próximo
     `start()` reintenta; los duplicados son idempotentes, lo dice el propio motor). Para subrayados
     y notas, que lancen en vez de devolver `[]`.
+  - **✅ ARREGLADO en la sesión 51** (`ec5bc70`, rama `fix/s51-arreglos-s50`), con un cambio sobre
+    la hipótesis. Omitir el flag haría que el `start()` siguiente repitiera el push entero, y
+    volvería a subir las colecciones que ya subieron con sus relojes, encima de una copia más
+    nueva (`R9-126`: los duplicados NO son inocuos). Así que el flag `'2'` se graba igual, y las
+    colecciones que fallaron quedan en `@sync_first_push_retry:<uid>`. El `start()` siguiente sube
+    esas, y solo esas. Si la lista no se lee, no se hace nada, y queda para el siguiente.
+    Subrayados y notas lanzan en vez de devolver `[]`.
+    - **Pruebas: 4.** El motor (`R257` tumba el reintento; `R257only`, que sea solo de la que
+      falló), favoritos con el provider y el motor reales (cae con `R257`), y los dos adaptadores
+      (caen con su `catch` de antes).
 
 - **`R9-258` (S50, `SyncEngine` / comentarios de `R9-212` — P3) — 🐛 cuatro afirmaciones de los
   comentarios nuevos y dos del detalle de la 49 no se sostienen caso por caso.** MEDIDO
@@ -5207,6 +5266,22 @@ pending.remoteVersion.updatedAt`.
     (sin copia local, no).
   - **Propuesta:** corregir los cuatro comentarios cuando se arreglen `R9-254` y `R9-256` (los dos
     cambian lo que dicen), y anotar el detalle de la 49 con esta entrada.
+  - **✅ ARREGLADO en la sesión 51** (`6d834c5`, solo comentarios). Cada afirmación nueva tiene su
+    medición. `queueUnread`: la relectura que se rinde puede ser la segunda (`RINDE·durante`), y
+    las de disco tampoco las ven `hasQueuedWrite` ni `isOwnCopy` (`BORRA·dos`). `queueTouched`:
+    la entrada no siempre es más vieja, porque sin copia local la lápida se descarta, igual que
+    antes de la 49 (`BORRA·dos`, también en `8f59942`). `readQueueAgain`: ya es cierto que nada
+    tomó la cola, por `R9-254` (`HIDRATA·dos` con el arreglo). El detalle de la 49 lleva una nota.
+
+- **`R9-259` (S51, `SyncEngine` / guardas — P3) — 🐛 la guarda de `R9-197` (`ownQueued && !local`)
+  ya no tiene una prueba que la vea sola: `R9-256` la tapa.** MEDIDO con la pieza `R197local`
+  (`_scratch/S51-piezas.cjs.txt`). **Lo abrió `R9-256`.**
+  - Sobre el motor de antes (`S49-SyncEngine-R212.ts.txt`), `R197local` tumba la prueba de
+    `R9-197`. Sobre el de la 51, sola, 0. Junto con `R256` (corolario 50), vuelve a tumbarla.
+  - **No son equivalentes:** la vieja también salta una copia leída MÁS nueva que la lápida en
+    cola (y una edición en cola sin copia local). Esa diferencia es el caso de `R9-126`: la
+    lápida sube encima de la copia más nueva. Una prueba que la fije congelaría ese daño.
+  - **Propuesta:** decidirlo con `R9-126`. Hasta entonces, la guarda se queda con este porqué.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -5431,6 +5506,12 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **⚠️ Sesión 50:** desde `R9-212`, la hidratación también pisa la memoria cuando la lectura falla
   (`R9-254`, medido). «Hidratar antes de aceptar escrituras» cerraría las dos.
+
+  **✅ ARREGLADO en la sesión 51** (`e97cd95`, con `R9-254`): la hidratación une lo escrito
+  durante su lectura (la más nueva gana, con los relojes de la vieja), y la cola no se escribe
+  antes de hidratarla. El caso medido (X «viejo» en disco, reeditado a «nuevo» durante la
+  hidratación) es una prueba: sube solo «nuevo», con la lectura que vuelve antes y después del
+  ack. El pariente (la escritura que desaparecía de la cola) lo cubre la prueba de las tres formas.
 
 - **`R9-116` (S19, prueba de respaldo) — 🐛 la prueba de `R9-28` cubre 1 de los 4 providers del
   arreglo.** El arreglo suscribe a la señal de restauración (`subscribeBackupRestored`) a
