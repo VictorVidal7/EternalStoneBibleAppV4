@@ -40,6 +40,7 @@ import {
 } from './firestore';
 import {getNetInfo, isStateOnline} from './netinfo';
 import {deepNullifyUndefined} from './sanitize';
+import {LOCAL_STORE_OWNER_KEY, storeOwnerAccount} from './localStoreOwner';
 import type {
   ConflictChoice,
   ConflictRecord,
@@ -446,6 +447,14 @@ export class SyncEngine {
   private queueHydrated = false;
   /** R9-260 — the first read of the queue (see `hydrateQueue`). */
   private queueHydrating: Promise<void> | null = null;
+  /** R9-38 — the owner of the local store (see `queueWrite`): `undefined`
+   *  until read, or until a `start()` tells it (the account that starts is
+   *  the one `AuthContext` claimed it for). */
+  private storeOwner: string | null | undefined = undefined;
+  /** R9-38 — the writes that wait for the owner to be read, in order (see
+   *  `enqueue`), and how many. */
+  private ownerChain: Promise<void> = Promise.resolve();
+  private ownerWaiting = 0;
   /**
    * R9-212 — the queue on disk could not be read (`getItem` failed): the one
    * in memory lacks its entries, every account's (the parked ones too).
@@ -838,6 +847,7 @@ export class SyncEngine {
       this.stop();
     }
     this.uid = uid;
+    this.storeOwner = uid;
     this.updateState({isActive: true, lastError: null});
 
     await this.hydrateQueue();
@@ -978,9 +988,16 @@ export class SyncEngine {
    * Queue an upsert. Called by every context's add/update function
    * after the local persistence succeeds.
    *
-   * No-op when the engine isn't active (anonymous user, or no auth
-   * yet). The local change still went through; we just don't bother
-   * recording a queue entry that would never have anywhere to land.
+   * R9-38 — with no session (signed out, anonymous, or before `start()` in a
+   * cold start), the entry goes to the account the local store belongs to,
+   * and waits there like another account's (R9-22): it goes up when that
+   * account starts again, as an edit made offline does. It used to be
+   * dropped, and nothing took that edit up later: the bulk push runs once per
+   * account, and running it again would push every row back over newer
+   * copies (R9-126). No other account gets it: a new one takes the local
+   * store through the bulk push, after the question (R9-23, R9-166). With no
+   * owner (never signed in here) nothing is queued: the first sign-in pushes
+   * every row.
    *
    * R9-45 — the write CLEARS the tombstone explicitly (`deleted: false`).
    * Adapters whose doc id is a reusable natural key (highlights use the
@@ -993,9 +1010,7 @@ export class SyncEngine {
    * wrote `deleted: false`; this is the one place that can.
    */
   queueWrite(collection: string, id: string, data: object): void {
-    if (!this.uid) return;
     if (this.isSuppressed(collection, id)) return;
-    this.noteOwnWrite(collection, id);
     const asRecord = data as Record<string, unknown>;
     const entity: SyncEntity<object> = {
       ...asRecord,
@@ -1006,15 +1021,7 @@ export class SyncEngine {
       deleted: false,
       deletedAt: null,
     };
-    this.upsertQueueEntry({
-      uid: this.uid,
-      collection,
-      id,
-      data: entity,
-      queuedAt: Date.now(),
-      attempts: 0,
-    });
-    void this.flush();
+    this.enqueue(collection, id, entity);
   }
 
   /**
@@ -1022,9 +1029,7 @@ export class SyncEngine {
    * so other devices can see the delete on their next pull.
    */
   queueDelete(collection: string, id: string, lastKnownData?: object): void {
-    if (!this.uid) return;
     if (this.isSuppressed(collection, id)) return;
-    this.noteOwnWrite(collection, id);
     const base = (lastKnownData as Record<string, unknown> | undefined) ?? {};
     const tombstone: SyncEntity<object> = {
       ...base,
@@ -1032,15 +1037,84 @@ export class SyncEngine {
       deleted: true,
       deletedAt: Date.now(),
     };
-    this.upsertQueueEntry({
-      uid: this.uid,
-      collection,
-      id,
-      data: tombstone,
-      queuedAt: Date.now(),
-      attempts: 0,
-    });
-    void this.flush();
+    this.enqueue(collection, id, tombstone);
+  }
+
+  /**
+   * R9-38 — queue `data` for the session's account or, with no session, for
+   * the owner of the local store (see `queueWrite`). The owner is read once
+   * per process, unless a `start()` tells it; while a write waits for that
+   * read, the later ones wait behind it, the session's too, so they join the
+   * queue in the order they were made. Joined first, a newer edit of the same
+   * doc in the session could go up and leave the queue before the older one
+   * joined it, and that one went up over it.
+   */
+  private enqueue(collection: string, id: string, data: SyncEntity<object>) {
+    const uid = this.uid;
+    const queuedAt = Date.now();
+    if (uid && this.ownerWaiting === 0) {
+      this.queueFor(uid, collection, id, data, queuedAt);
+      return;
+    }
+    this.ownerWaiting += 1;
+    this.ownerChain = this.ownerChain
+      .then(async () => {
+        const owner = uid ?? (await this.loadStoreOwner());
+        if (owner) this.queueFor(owner, collection, id, data, queuedAt);
+      })
+      .catch(err => {
+        logger.warn('SyncEngine: a write with no session was not queued', {
+          component: 'SyncEngine',
+          error: err instanceof Error ? err.message : String(err),
+        });
+      })
+      .finally(() => {
+        this.ownerWaiting -= 1;
+      });
+  }
+
+  private queueFor(
+    uid: string,
+    collection: string,
+    id: string,
+    data: SyncEntity<object>,
+    queuedAt: number,
+  ): void {
+    if (uid === this.uid) this.noteOwnWrite(collection, id);
+    this.upsertQueueEntry({uid, collection, id, data, queuedAt, attempts: 0});
+    // R9-38 — written once the queue on disk is read (R9-254): with no
+    // session yet, nothing else asks for that read.
+    if (!this.queueHydrated) void this.hydrateQueue();
+    if (uid === this.uid) void this.flush();
+  }
+
+  /** R9-38 — the owner of the local store; null when there is none, or it
+   *  could not be read (read again on the next write). */
+  private async loadStoreOwner(): Promise<string | null> {
+    if (this.storeOwner !== undefined) return this.storeOwner;
+    let owner: string | null = null;
+    try {
+      owner = storeOwnerAccount(
+        await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY),
+      );
+    } catch (err) {
+      logger.warn('SyncEngine: could not read the local store owner', {
+        component: 'SyncEngine',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      return null;
+    }
+    // A `start()` while it was read told the owner already.
+    if (this.storeOwner === undefined) this.storeOwner = owner;
+    return this.storeOwner;
+  }
+
+  /**
+   * R9-38 — the account that owned the local store was deleted
+   * (`AuthContext.deleteAccount`): nothing edited from now on waits for it.
+   */
+  forgetStoreOwner(): void {
+    this.storeOwner = null;
   }
 
   /**

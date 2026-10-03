@@ -38,10 +38,13 @@ let mockEngineStub: {
   exportLocalData: jest.Mock;
   queueSkipNextBulkPush: jest.Mock;
   stop?: jest.Mock;
+  forgetStoreOwner?: jest.Mock;
 } | null = null;
+const mockDeleteAllCloudData = jest.fn().mockResolvedValue(undefined);
 jest.mock('@lib/sync', () => ({
   __esModule: true,
   getSyncEngine: () => mockEngineStub,
+  deleteAllCloudData: (uid: string) => mockDeleteAllCloudData(uid),
 }));
 
 // --- Mocks must be set up BEFORE importing AuthContext (which lazily
@@ -1080,5 +1083,38 @@ describe('useAuth', () => {
       /useAuth must be used within an AuthProvider/,
     );
     console.error = origError;
+  });
+});
+
+describe('R9-38 — deleteAccount', () => {
+  it('la cuenta borrada deja de ser la duena del almacen: lo editado despues no la espera, y el siguiente inicio de sesion sigue preguntando', async () => {
+    const engine = {
+      exportLocalData: jest.fn(async () => []),
+      queueSkipNextBulkPush: jest.fn(),
+      stop: jest.fn(),
+      forgetStoreOwner: jest.fn(),
+    };
+    mockEngineStub = engine;
+    await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {uid: 'ana-uid', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('ana-uid'));
+    await act(async () => {
+      await ref.current!.deleteAccount();
+    });
+    // Sin R9-38 el motor no sabia de la cuenta borrada: lo editado despues se
+    // encolaba para ella, para siempre.
+    expect({
+      borrada: mockDeleteUser.mock.calls.length, // CONTROL
+      olvidado: engine.forgetStoreOwner.mock.calls.length,
+      dueno: await AsyncStorage.getItem('@local_store_owner_uid'),
+    }).toEqual({borrada: 1, olvidado: 1, dueno: '(deleted)'});
+    mockEngineStub = null;
   });
 });

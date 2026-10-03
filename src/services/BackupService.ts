@@ -991,9 +991,11 @@ function allRowsFailedValidation(
  * Hand off the 6 Firestore-synced collections' just-restored entities to the
  * EXISTING sync engine via its own public `queueWrite` — the same call every
  * Context already makes on a normal add/edit (see e.g. `FavoritesContext.
- * addFavorite`). This is deliberately NOT a new sync mechanism: `queueWrite`
- * already no-ops when nobody is signed in (`SyncEngine.queueWrite` returns
- * immediately if `this.uid` is unset), so this is safe to call unconditionally.
+ * addFavorite`). This is deliberately NOT a new sync mechanism, and it is safe
+ * to call unconditionally: with nobody signed in, `queueWrite` queues for the
+ * account the local store belongs to, which takes it up when it signs in
+ * again, as with any edit made signed out (R9-38); with no owner it queues
+ * nothing, and the first sign-in's bulk push takes the rows.
  *
  * Why not rely SOLELY on the engine's one-time "initial bulk push" (which
  * reads local storage via `pullAllLocal` on first sign-in)? That mechanism

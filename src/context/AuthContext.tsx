@@ -40,6 +40,10 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
 import {getSyncEngine, deleteAllCloudData} from '@lib/sync';
+import {
+  DELETED_STORE_OWNER,
+  LOCAL_STORE_OWNER_KEY,
+} from '@lib/sync/localStoreOwner';
 import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {linkUser as linkOfferingUser} from '@lib/offering/offeringService';
@@ -84,9 +88,10 @@ export interface AuthContextValue {
  * branch is the one a brand-new Google account takes, and it had no guard at
  * all. Comparing the stored owner against the uid about to own the store
  * routes that case through the SAME `askMigration()` prompt.
+ *
+ * The marker is `LOCAL_STORE_OWNER_KEY`: R9-38 — the sync engine queues for
+ * that account what is edited with no session.
  */
-const LOCAL_STORE_OWNER_KEY = '@local_store_owner_uid';
-
 async function getLocalStoreOwner(): Promise<string | null> {
   try {
     return await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY);
@@ -683,6 +688,13 @@ export function AuthProvider({children}: AuthProviderProps) {
         throw reauthErr;
       }
     }
+
+    // R9-38 — the account the local store belonged to is gone: what is edited
+    // from now on waits for no account (this one never comes back to take
+    // it). The marker keeps a value that is no account's, so the next sign-in
+    // still asks before taking the store, as with the deleted uid there.
+    engine?.forgetStoreOwner();
+    await claimLocalStore(DELETED_STORE_OWNER);
 
     if (gs) {
       try {

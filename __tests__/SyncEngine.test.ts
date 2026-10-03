@@ -1046,6 +1046,228 @@ describe('initial bulk push', () => {
   });
 });
 
+describe('R9-38 — lo editado sin sesion', () => {
+  it('sube cuando vuelve la misma cuenta, en el mismo proceso o tras reiniciar; otra cuenta no se lo lleva; sin dueno no se encola', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const subidas = (uid: string) =>
+      mockDocSets
+        .filter(d => d.path === `users/${uid}/test`)
+        .map(d => d.id)
+        .sort();
+    const caso = async (
+      modo: 'mismoProceso' | 'reinicio' | 'otraCuenta' | 'sinDueno',
+    ) => {
+      const ana = `uid-38-${modo}`;
+      const beto = `uid-38-${modo}-beto`;
+      // Las dos cuentas ya hicieron su bulk push: lo que suba es de la cola.
+      await AsyncStorage.setItem(`@sync_first_push_done:${ana}`, '2');
+      await AsyncStorage.setItem(`@sync_first_push_done:${beto}`, '2');
+      if (modo === 'sinDueno') {
+        await AsyncStorage.removeItem('@local_store_owner_uid');
+      } else {
+        await AsyncStorage.setItem('@local_store_owner_uid', ana);
+      }
+      const {adapter, localStore} = makeAdapter();
+      let e = new SyncEngine();
+      e.register(adapter);
+      if (modo === 'mismoProceso') {
+        await e.start(ana);
+        await drain();
+        e.stop();
+        await drain();
+      }
+      // Sin sesion, tres notas.
+      for (const id of ['n1', 'n2', 'n3']) {
+        const d = {value: id, updatedAt: T + 1000};
+        localStore.set(id, d);
+        e.queueWrite('test', id, d);
+      }
+      await drain();
+      const enDisco = (
+        JSON.parse(
+          (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
+        ) as Array<{
+          uid: string;
+          id: string;
+        }>
+      )
+        .filter(q => q.uid === ana)
+        .map(q => q.id)
+        .sort();
+      if (modo !== 'mismoProceso') {
+        // El proceso termina; el siguiente lee el disco.
+        e = new SyncEngine();
+        e.register(adapter);
+      }
+      await e.start(modo === 'otraCuenta' ? beto : ana);
+      await drain();
+      await e.__flushForTests();
+      await drain();
+      const r: Record<string, unknown> = {
+        enDisco,
+        ana: subidas(ana),
+        beto: subidas(beto),
+      };
+      e.stop();
+      await drain();
+      if (modo === 'otraCuenta') {
+        // Ana vuelve: lo suyo sigue en la cola, a su nombre.
+        await e.start(ana);
+        await drain();
+        await e.__flushForTests();
+        await drain();
+        r.anaAlVolver = subidas(ana);
+        e.stop();
+        await drain();
+      }
+      return r;
+    };
+    const res = {
+      mismoProceso: await caso('mismoProceso'),
+      reinicio: await caso('reinicio'),
+      otraCuenta: await caso('otraCuenta'),
+      sinDueno: await caso('sinDueno'),
+    };
+
+    // Sin R9-38, `queueWrite` no hacia nada sin sesion: la cola quedaba vacia
+    // y las tres notas no subian nunca (el bulk push ya estaba hecho).
+    const tres = ['n1', 'n2', 'n3'];
+    expect(res).toEqual({
+      mismoProceso: {enDisco: tres, ana: tres, beto: []},
+      reinicio: {enDisco: tres, ana: tres, beto: []},
+      otraCuenta: {enDisco: tres, ana: [], beto: [], anaAlVolver: tres},
+      sinDueno: {enDisco: [], ana: [], beto: []},
+    });
+  });
+
+  it('va a la cuenta de la ultima sesion, en el orden en que se edito aunque el dueno se lea despacio, y a ninguna tras borrar la cuenta', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGet = getItemMock.getMockImplementation()!;
+    const enCola = async () =>
+      (
+        JSON.parse(
+          (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
+        ) as Array<{
+          uid: string;
+          id: string;
+          data: {value: string};
+        }>
+      )
+        .filter(q => q.uid.startsWith('uid-38b-') || q.uid === '(deleted)')
+        .map(q => `${q.uid}:${q.id}:${q.data.value}`)
+        .sort();
+    const nubeValue = async (uid: string, id: string) => {
+      const snap = await mockCollections
+        .get(`users/${uid}/test`)!
+        .doc(id)
+        .get();
+      return snap.exists ? (snap.data() as {value: string}).value : null;
+    };
+    const escribir = (
+      e: SyncEngine,
+      localStore: Map<string, unknown>,
+      id: string,
+      value: string,
+      updatedAt: number,
+    ) => {
+      const d = {value, updatedAt};
+      localStore.set(id, d);
+      e.queueWrite('test', id, d);
+    };
+
+    // 1. El dueno se leyo (Ana) y despues entra Beto (AuthContext le reclama
+    //    el almacen): lo que se edita tras su stop() espera a Beto.
+    await AsyncStorage.setItem('@sync_first_push_done:uid-38b-beto', '2');
+    await AsyncStorage.setItem('@local_store_owner_uid', 'uid-38b-ana');
+    const a = makeAdapter();
+    const e1 = new SyncEngine();
+    e1.register(a.adapter);
+    e1.__setOnlineForTests(false);
+    escribir(e1, a.localStore, 'n1', 'de ana', T + 1000);
+    await drain();
+    await AsyncStorage.setItem('@local_store_owner_uid', 'uid-38b-beto');
+    const netInfo = jest.requireMock('@react-native-community/netinfo')
+      .default as {fetch: jest.Mock};
+    netInfo.fetch.mockResolvedValueOnce({
+      isConnected: false,
+      isInternetReachable: false,
+    });
+    await e1.start('uid-38b-beto');
+    await drain();
+    e1.stop();
+    escribir(e1, a.localStore, 'n2', 'de beto', T + 2000);
+    await drain();
+    const cambioDeDueno = await enCola();
+    await AsyncStorage.removeItem('@sync_queue_v1');
+
+    // 2. La lectura del dueno tarda: mientras, entra Ana y reedita x, que sube.
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    getItemMock.mockImplementation((k: string) => {
+      if (k !== '@local_store_owner_uid') return realGet(k);
+      const foto = realGet(k);
+      return puerta.then(() => foto);
+    });
+    let lento: unknown;
+    const b = makeAdapter();
+    const e2 = new SyncEngine();
+    e2.register(b.adapter);
+    try {
+      await AsyncStorage.setItem('@sync_first_push_done:uid-38b-lenta', '2');
+      await AsyncStorage.setItem('@local_store_owner_uid', 'uid-38b-lenta');
+      escribir(e2, b.localStore, 'x', 'viejo', T + 1000);
+      escribir(e2, b.localStore, 'y', 'y', T + 1000);
+      await drain();
+      await e2.start('uid-38b-lenta');
+      await drain();
+      escribir(e2, b.localStore, 'x', 'nuevo', T + 2000);
+      await drain();
+      const antes = mockDocSets.filter(
+        s => s.path === 'users/uid-38b-lenta/test',
+      ).length;
+      abrir();
+      await drain();
+      lento = {
+        subidasAntes: antes, // CONTROL: nada subio mientras se leia
+        nubeX: await nubeValue('uid-38b-lenta', 'x'),
+        nubeY: await nubeValue('uid-38b-lenta', 'y'),
+      };
+    } finally {
+      abrir();
+      getItemMock.mockImplementation(realGet);
+      e2.stop();
+      await drain();
+    }
+
+    // 3. La cuenta duena se borro: nada espera a nadie.
+    const c = makeAdapter();
+    const e3 = new SyncEngine();
+    e3.register(c.adapter);
+    await AsyncStorage.setItem('@local_store_owner_uid', 'uid-38b-borrada');
+    e3.forgetStoreOwner();
+    escribir(e3, c.localStore, 'z', 'z', T + 1000);
+    await drain();
+    // Y en el proceso siguiente, con el marcador que deja `deleteAccount`.
+    await AsyncStorage.setItem('@local_store_owner_uid', '(deleted)');
+    const e4 = new SyncEngine();
+    e4.register(c.adapter);
+    escribir(e4, c.localStore, 'z2', 'z2', T + 2000);
+    await drain();
+    const olvidado = await enCola();
+
+    // Sin el dueno que dice el start(), n2 esperaba a Ana: sus ediciones sin
+    // sesion subian a la nube de Ana cuando ella volviera. Sin la cadena, x
+    // «nuevo» subia y salia de la cola antes de que «viejo» entrara, y
+    // «viejo» subia despues, encima.
+    expect({cambioDeDueno, lento, olvidado}).toEqual({
+      cambioDeDueno: ['uid-38b-ana:n1:de ana', 'uid-38b-beto:n2:de beto'],
+      lento: {subidasAntes: 0, nubeX: 'nuevo', nubeY: 'y'},
+      olvidado: [],
+    });
+  });
+});
+
 describe('engine boundary sanitization (Sprint 78 + R9-50)', () => {
   it('nullifies undefined fields before the Firestore set so the write lands', async () => {
     const engine = new SyncEngine();
@@ -8267,10 +8489,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
       ) as Array<{id: string}>
     ).map(q => q.id);
-    // Sin sesion, la edicion queda solo en local (queueWrite no hace nada).
+    // Sin sesion, una edicion solo en local. Desde R9-38, `queueWrite` la
+    // encola para el dueno del almacen, y su entrada decidiria antes que el
+    // sello de L1: aqui queda fuera de la cola, como cuando no habia dueno.
     const L2 = {value: 'L2: sin sesion', updatedAt: T + 200_000};
     localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
-    engine.queueWrite('test', 'doc-c', L2);
     const netInfo = jest.requireMock('@react-native-community/netinfo')
       .default as {fetch: jest.Mock};
     netInfo.fetch.mockResolvedValueOnce({
@@ -8323,10 +8546,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
       ) as Array<{id: string}>
     ).map(q => q.id);
-    // Sin sesion, la edicion queda solo en local (queueWrite no hace nada).
+    // Sin sesion, una edicion solo en local. Desde R9-38, `queueWrite` la
+    // encola para el dueno del almacen, y su entrada decidiria antes que el
+    // sello de L1: aqui queda fuera de la cola, como cuando no habia dueno.
     const L2 = {value: 'L2: sin sesion', updatedAt: T + 200_000};
     localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
-    engine.queueWrite('test', 'doc-c', L2);
     const netInfo = jest.requireMock('@react-native-community/netinfo')
       .default as {fetch: jest.Mock};
     netInfo.fetch.mockResolvedValueOnce({
