@@ -2085,6 +2085,29 @@ export class SyncEngine {
       return true;
     }
 
+    // R9-256 — no local copy to run LWW against, because the user deleted the
+    // doc here and its tombstone still waits in the queue: the tombstone is
+    // what the copy is compared with. One no newer than it is a version the
+    // delete replaced (the other device wrote it before, and it arrived after).
+    // Applied, the row came back on this phone, and the tombstone's echo (this
+    // device's own, still queued) did not take it away again: the cloud and the
+    // other device had it deleted.
+    if (!local && data && !deleted) {
+      const queued = this.queue.find(
+        q =>
+          q.uid === this.uid &&
+          q.collection === adapter.collection &&
+          q.id === id,
+      );
+      if (
+        queued &&
+        (queued.data as {deleted?: unknown}).deleted === true &&
+        updatedAtOf(data) <= updatedAtOf(queued.data)
+      ) {
+        return true;
+      }
+    }
+
     if (local && data) {
       const localTs = typeof local.updatedAt === 'number' ? local.updatedAt : 0;
       const remoteTs = typeof data.updatedAt === 'number' ? data.updatedAt : 0;

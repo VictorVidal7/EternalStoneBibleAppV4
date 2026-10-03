@@ -9711,6 +9711,64 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     expect({...juntas, lecturas: 1}).toEqual(soloTabla);
   });
 
+  it('R9-256: una lapida en cola y una copia del otro mas vieja que el borrado: la fila no resucita aqui, y la nube queda borrada', async () => {
+    const T = Date.now() - HOUR;
+    const nubeB = async (uid: string) => {
+      const snap = await mockCollections
+        .get(`users/${uid}/test`)!
+        .doc('doc-b')
+        .get();
+      if (!snap.exists) return null;
+      const data = snap.data() as Data & {deleted?: boolean};
+      return `${data.value}${data.deleted ? ' (borrada)' : ''}`;
+    };
+    /** d sube; sin red, el usuario la borra; el otro escribio `R` (con
+     *  `updatedAt`), y este telefono no la vio. Al volver, R llega al enganchar. */
+    const caso = async (uid: string, updatedAt: number) => {
+      const {engine, localStore, adapter} = await engineFor(uid, T);
+      const d = {value: 'd', updatedAt: T + 60_000};
+      localStore.set('doc-b', d as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-b', d);
+      await settle();
+      engine.__setOnlineForTests(false);
+      localStore.delete('doc-b');
+      engine.queueDelete('test', 'doc-b', d);
+      await settle();
+      engine.stop();
+      await settle();
+      write(uid, 'doc-b', {value: 'R', updatedAt});
+      const p1 = await procesoNuevo(uid, adapter);
+      try {
+        const alEnganchar = valorDe(localStore, 'doc-b') ?? null;
+        p1.__setOnlineForTests(true);
+        await settle();
+        await p1.__flushForTests();
+        await settle();
+        return {
+          alEnganchar,
+          local: valorDe(localStore, 'doc-b') ?? null,
+          nube: await nubeB(uid),
+        };
+      } finally {
+        p1.stop();
+        await settle();
+      }
+    };
+    const vieja = await caso('uid-256-vieja', T + 120_000);
+    // CONTROL: con el mismo camino, una copia MAS NUEVA que el borrado (el otro
+    // la recreo despues) entra al enganchar: la copia llega, y la guarda
+    // compara relojes. Lo que pasa despues con ella (la lapida sube encima) es
+    // R9-126, y no se mira aqui.
+    const nueva = await caso('uid-256-nueva', Date.now() + 60_000);
+
+    // Sin R9-256, R entraba sin LWW (no hay copia local) y la fila resucitaba:
+    // local R, nube borrada.
+    expect({vieja, controlAlEnganchar: nueva.alEnganchar}).toEqual({
+      vieja: {alEnganchar: null, local: null, nube: 'd (borrada)'},
+      controlAlEnganchar: 'R',
+    });
+  });
+
   it('R9-217: con la tabla de sellos ilegible toda la sesion, d2 sube y d3 queda en cola: la entrada de d3 lleva el reloj de d2, y tras reiniciar no aparece «d mio 3 contra d mio 2»', async () => {
     const uid = 'uid-217-coste';
     const {engine, localStore, adapter, T} = await dosConflictos(uid);
