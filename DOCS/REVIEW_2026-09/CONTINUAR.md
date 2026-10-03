@@ -1,12 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 48.** La 48 hizo el (ab) en el mismo chat
-> que la 45 a la 47: cerró `R9-253` (solo un comentario), en la terminal y sin agentes.
+> **Última actualización: 2026-10-03, fin de la sesión 49.** La 49 hizo el (ac) en un chat nuevo,
+> en la terminal y sin agentes: cerró `R9-212` (P2, la cola ilegible al hidratar) y `R9-214` (P3,
+> el bulk push de favoritos en la carga en frío), y anotó en `R9-126` un disparador medido.
 >
-> La 47 ya está mergeada y pusheada (`main` = `afbf460`, CI verde en el log, run `37089759242`,
-> 368/4541). Las ramas de la 48 (`fix/s48-arreglos-s47` y `docs/review-s48-fix-s47`) van **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 253 hallazgos. **Lo
-> siguiente lo decide Victor:** el diff de la 48 es un comentario. Puede revisarlo una sesión (la 49) o seguir con lo pendiente (sección «Pendiente» del mensaje (ab) y de los anteriores).
+> La 48 ya está mergeada y pusheada (`main` = `8f59942`, CI verde en el log, run `37099120504`,
+> 368/4541). Las ramas de la 49 (`fix/s49-arreglos` y `docs/review-s49-fix`) van **sin mergear
+> hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 253 hallazgos. **Lo
+> siguiente:** la 50 revisa el diff de la 49 (mensaje (ad)).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -473,7 +474,61 @@ igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arre
 42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual), y sus arreglos (la (x),
 sesión 44, igual), y la revisión del diff de la 44 (la (y), sesión 45, igual), y sus arreglos (la
 (z), sesión 46, en el mismo chat), y la revisión del diff de la 46 (la (aa), sesión 47, igual).
-Y sus arreglos (la (ab), sesión 48, igual). **Lo siguiente lo decide Victor** (ver la cabecera).
+Y sus arreglos (la (ab), sesión 48, igual). Y los arreglos de `R9-212` y `R9-214` (la (ac),
+sesión 49, en un chat nuevo, con `_scratch/S49-PROMPT.md`). **Lo siguiente es el (ad).**
+
+**(ad) Sesión 50: revisar el diff de la 49.** También en `_scratch/S50-PROMPT.md`.
+
+> Seguimos con la revisión profunda: **sesión 50, revisar el diff de la 49** (`8f59942..f287fc6`:
+> `R9-212` en `SyncEngine.ts`, `R9-214` en `FavoritesContext.tsx` y sus 10 pruebas), en la terminal,
+> sin agentes y sin tocar código. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (la sección 5 y la
+> §2), `detail/S49-arreglos-r212-r214.md` y, en `BUGS.md`, los cierres de `R9-212` y `R9-214` y la
+> nota de la 49 en `R9-126`. En la memoria, la de la sesión 49 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `fix/s49-arreglos` y `docs/review-s49-fix`, pedime el OK para el
+>   fast-forward. Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 253.
+> - **Las herramientas** (en `_scratch`): la base `S49-SyncEngine-R212.ts.txt` (= el motor de
+>   `024bef8`, que es también el de `f287fc6`); las piezas `S49-piezas.cjs.txt` (reexporta las de
+>   la 44); `S49-msg.cjs.txt "FILTRO" PIEZA[,PIEZA]` (el diff de cada caída); `S49-rev214.cjs.txt
+R214|R214init`, sobre `S49-Favorites-R214.tsx.txt`; las sondas
+>   `S49-sonda-{hoy,fix,mas,gaveup,lww}.body.txt`; `S38-sonda.cjs.txt`, `S34-rev.cjs.txt` y
+>   `S47-varias.cjs.txt`. **`S32_BASE` y `S34_PIEZAS`, con la ruta ABSOLUTA.** `S38-sonda` restaura
+>   `S32_BASE` encima del motor al terminar: con un motor sin commitear, guardalo antes como base.
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que
+>   dar 0.
+>
+> **Esta sesión revisa el diff de la 49**, sin tocar código. Preguntas para empezar:
+>
+> - `queueTouched`: ¿hay un camino que cambie la copia local sin pasar por
+>   `withLocalWriteSuppressed` ni por `upsertQueueEntry`? ¿Y la marca por `uid`: una copia que
+>   la sesión de Beto aplica a un doc con una entrada aparcada de Ana?
+> - La salida: una escritura que llega durante la relectura de `start()` hace que se rinda con dos
+>   lecturas (lo dice el detalle). ¿Es aceptable, o hay un orden peor?
+> - La unión pone las de disco antes que las de memoria. ¿Importa el orden para `flush` (el
+>   backoff de `R9-33`, las aparcadas de otra cuenta)?
+> - `stop()` con la cola sin leer escribe la tabla de sellos sin la cola. ¿Hay un caso en que ese
+>   sello y la cola de disco se contradigan tras reiniciar?
+> - `R9-214`: `pullAllLocal` ya no tiene `catch`. ¿Qué hace `exportLocalData` (el diálogo de
+>   migración) con el fallo?
+> - El coste: mientras la cola no se lee, la UI no cuenta las de disco. ¿Algo más decide con
+>   `pendingWrites`?
+>
+> **Pendiente, NO salvo que te lo pida:** `R9-240` (Modo C, con mi OK), `R9-126` (con la nota de la
+> 49), `R9-235`, `R9-241`, `R9-211`, `R9-213`, `R9-201`..`R9-203`, `R9-198`, `R9-205`, `R9-177`,
+> `R9-38` (con mi decisión de `R9-59`), `A12`, `R9-164`, `R9-127`, `R9-173`, la parte de
+> `MemoryDeckContext` de `R9-133`; mis decisiones: `R9-59`, el efecto de `R9-146`, el tope de cuota
+> del piso de no asentados y `R9-158`.
+
+**(ac) Sesión 49: arreglar `R9-212` y `R9-214` — ya HECHO en la sesión 49, en un chat nuevo, en la
+terminal y sin agentes.** El mensaje está en `_scratch/S49-PROMPT.md`.
 
 **(ab) Sesión 48: arreglar lo de la 47 — ya HECHO en la sesión 48, en el mismo chat, en la
 terminal y sin agentes.** Las herramientas de hoy: la base `S48-SyncEngine-final.ts.txt` y
@@ -1811,14 +1866,14 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 48 (2026-10-02).**
+**Medido al cerrar la sesión 49 (2026-10-03).**
 
-- **`main` = `origin/main` = `afbf460`** (el checkpoint de la 47, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `e57fa16`). **CI verificado en el log:** run `37089759242`,
-  3 jobs verdes, Node v24.21.0, 368/4541, cero «failed to run». La rama de la 47 se borró.
-- **Dos ramas de la 48, sin mergear a propósito y sin pushear:** `fix/s48-arreglos-s47` (1
-  commit, `05e089e`) y, encima, `docs/review-s48-fix-s47` (el checkpoint). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **`main` = `origin/main` = `8f59942`** (el checkpoint de la 48, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `05e089e`). **CI verificado en el log:** run `37099120504`,
+  3 jobs verdes, Node v24.21.0, 368/4541, cero «failed to run». Las ramas de la 48 se borraron.
+- **Dos ramas de la 49, sin mergear a propósito y sin pushear:** `fix/s49-arreglos` (3 commits:
+  `024bef8`, `d3e45a7`, `f287fc6`) y, encima, `docs/review-s49-fix` (el checkpoint). Se mergean
+  en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
@@ -2096,6 +2151,15 @@ Alternativas legítimas:
   re-descubra como hallazgo.
 - **Un comentario que enumera casos se mide caso por caso (sesión 47, `R9-253`).** El de `R9-252`
   generalizó «un respaldo restaurado» a partir de una sonda que tenía uno solo, bajo el piso.
+- **Una guarda que espera a releer necesita una salida (sesión 49, `R9-212`).** Una lectura puede
+  fallar siempre (un valor más grande que la `CursorWindow` de Android), y «no escribir hasta
+  leer» convertía una pérdida de una vez en una permanente. Antes de esperar, preguntá si el fallo
+  puede ser determinista.
+- **Una unión que devuelve una entrada vieja pregunta si su doc cambió desde entonces (sesión 49).**
+  `set` no tiene guarda: sin la marca, la entrada de disco subía encima de la edición nueva o de la
+  copia del otro.
+- **El control también se lee entero (sesión 49).** El caso con la cola legible era solo el control
+  de la unión, y su final (local R, nube D) era un disparador común de `R9-126`.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

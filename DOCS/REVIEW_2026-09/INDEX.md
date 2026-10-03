@@ -612,8 +612,17 @@
 > agentes. Cerró `R9-253` (`05e089e`, solo el comentario de `R9-252`).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Ramas `fix/s48-arreglos-s47` y
-> `docs/review-s48-fix-s47`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S48-arreglos-s47.md`.
+> `docs/review-s48-fix-s47`: mergeadas y pusheadas con el OK de Victor (`main` = `8f59942`, CI
+> verde en el log, run `37099120504`, 368/4541). Detalle: `detail/S48-arreglos-s47.md`.
+>
+> **Sesión 49 (2026-10-03): ARREGLOS de `R9-212` y `R9-214`**, en un chat nuevo, solo en la
+> terminal y sin agentes. Cerró `R9-212` (P2, `024bef8`: la cola ilegible al hidratar se relee y se
+> une; 9 pruebas) y `R9-214` (P3, `d3e45a7`: el bulk push de favoritos lee SQLite; 1 prueba).
+> Anotó en `R9-126` un disparador común, medido (local R, nube D).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Ramas `fix/s49-arreglos` y
+> `docs/review-s49-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S49-arreglos-r212-r214.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1161,6 +1170,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   agentes. 1 cerrado (`R9-253`, un comentario). Base nueva para las piezas:
   `_scratch/S48-SyncEngine-final.ts.txt`, con `S48-motor.cjs.txt`. **Detalle:
   `detail/S48-arreglos-s47.md`.**
+
+- **Sesión 49 — 2026-10-03. Arreglos de `R9-212` y `R9-214`.** En un chat nuevo, solo en la
+  terminal y sin agentes.
+  - **Cómo se trabajó:** las tres formas de la cola ilegible, medidas hoy antes de tocar nada
+    (`_scratch/S49-sonda-hoy.body.txt`); las piezas de a una sobre la base de su commit
+    (`S49-piezas.cjs.txt`, `S49-SyncEngine-R212.ts.txt`), con el diff de cada caída
+    (`S49-msg.cjs.txt`).
+  - **Resultado:** 2 cerrados (`R9-212`, `R9-214`); una nota medida en `R9-126`. Queda 1 P0
+    abierto.
+  - **Detalle: `detail/S49-arreglos-r212-r214.md`.**
+  - **La lección:** una guarda que espera a releer necesita una salida, porque una lectura puede
+    fallar siempre.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

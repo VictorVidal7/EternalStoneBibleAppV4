@@ -614,13 +614,27 @@
 > `detail/S47-revision-del-diff-s46.md`.
 >
 > **Sesión 48 (2026-10-02): ARREGLOS de lo de la 47**, en el mismo chat, solo en la terminal y sin
-> agentes. Rama `fix/s48-arreglos-s47` (1 commit, `05e089e`), sin mergear hasta el OK de Victor.
+> agentes. Rama `fix/s48-arreglos-s47` (1 commit, `05e089e`), mergeada y pusheada con el OK de
+> Victor (`main` = `8f59942`, CI verde en el log, run `37099120504`, 368/4541).
 >
 > - **Cerrado:** `R9-253` (el comentario de `R9-252`: solo un respaldo bajo el piso asienta el
 >   conflicto en la sesión; uno sobre el piso es como una edición). El motor cambió solo en ese
 >   comentario.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Detalle: `detail/S48-arreglos-s47.md`.
+>
+> **Sesión 49 (2026-10-03): ARREGLOS de `R9-212` y `R9-214`**, en un chat nuevo, solo en la
+> terminal y sin agentes. Rama `fix/s49-arreglos` (3 commits: `024bef8`, `d3e45a7` y `f287fc6`),
+> sin mergear hasta el OK de Victor.
+>
+> - **Cerrados:** `R9-212` (P2: la cola ilegible al hidratar se relee y se une, en vez de
+>   reescribirse sin sus entradas; 9 pruebas) y `R9-214` (P3: el bulk push de favoritos lee las
+>   filas de SQLite; 1 prueba).
+> - **Anotado en `R9-126`, medido:** un disparador común. Una edición que espera en la cola sin red
+>   sube encima de la copia más nueva del otro: local R, nube D.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Detalle:
+> `detail/S49-arreglos-r212-r214.md`.
 
 ---
 
@@ -1652,6 +1666,15 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     queda en ella (`R9-197`, bien). Después sube W y la pisa en la nube; tras otro reinicio el
     conflicto y la marca desaparecen (la nube ya no la tiene, y W es propia), y el otro teléfono se
     queda con su copia. Es esta entrada, no un hallazgo nuevo.
+  - **⚠️ Sesión 49 (medido, `_scratch/S49-sonda-lww.body.txt`, el caso `legible`): el disparador
+    común, sin conflicto ni respaldo.** Una edición D espera en la cola sin red, y el otro escribe R
+    60 s después. Al volver, LWW aplica R (fuera de la ventana de 30 s no hay conflicto) y la entrada
+    de D sigue en la cola: sube encima. **Local R, nube D**, y el otro teléfono ignora D (más
+    vieja). Era el control de la unión de `R9-212`, que con la cola sin leer descarta esa entrada.
+    Es esta entrada, no un hallazgo nuevo.
+    - **Arreglo (hipótesis, sin medir):** cuando LWW aplica una copia más nueva que la entrada en
+      cola del doc, quitar la entrada, que ya perdió en este teléfono. Antes, preguntar qué vigila
+      esa entrada mientras espera: sus relojes (`own`) y la guarda de `R9-245`.
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -3742,6 +3765,24 @@ pending.remoteVersion.updatedAt`.
     de `AsyncStorage`.
   - **Arreglo (hipótesis, sin medir):** con la cola ilegible, no escribirla hasta releerla y unir,
     como los sellos de `R9-208`.
+  - **✅ ARREGLADO en la sesión 49** (`024bef8`, rama `fix/s49-arreglos`). La hipótesis, medida y
+    con una salida. Mientras `getItem` de la cola falla (`queueUnread`), ninguna escritura la toma.
+    Se relee en `start()` (antes de enganchar) y en la escritura, y las de disco se unen a las de
+    memoria. La relectura es del proceso: la cola es de todas las cuentas.
+    - **Lo que la medición cambió de la hipótesis:**
+      - la unión no devuelve una entrada de un doc cuya copia cambió aquí (una edición encolada, o
+        una copia aplicada desde la nube): `set` no tiene guarda, y la subía encima;
+      - esperar no es para siempre: si la relectura que una escritura espera también falla, la
+        cola se escribe desde memoria, como antes. Una lectura puede fallar siempre (la
+        `CursorWindow` de 2 MB de Android, leído, sin medir), y esperando, ninguna edición
+        posterior llegaba a disco nunca más.
+    - **Un texto que no es JSON** se lee como vacío, como la tabla de sellos. Releerlo da lo mismo,
+      y una copia aparte no tendría lector.
+    - **Pruebas: 9.** Cada pieza tumba la suya por la consecuencia (`R212own`, el mecanismo, y lo
+      dice). Las dos guardas juntas, la tabla de sellos y la cola, dan lo mismo que la tabla sola.
+    - **Coste:** con la relectura que también falla, las entradas de disco se pierden, como antes.
+      Mientras la cola no se lee, la UI no las cuenta.
+    - **Lo que encontró el control:** un disparador común de `R9-126`, anotado ahí.
 
 - **`R9-213` (S34, `SyncEngine` / conflictos — P3) — 🐛 keepTheirs de un conflicto registrado contra
   una copia local que el servidor YA había tomado no sube «lo suyo».** MEDIDO en el mock (S34-A2,
@@ -3767,6 +3808,11 @@ pending.remoteVersion.updatedAt`.
   - Es la raíz de `R9-133` en otra línea.
   - **Arreglo (hipótesis MEDIDA por A3, sin prueba):** `pullAllLocal` = `initialize()` +
     `getFavorites()`.
+  - **✅ ARREGLADO en la sesión 49** (`d3e45a7`, rama `fix/s49-arreglos`): la hipótesis, sin
+    `catch`, como `getLocal` (los dos que la llaman registran el fallo). `exportLocalData` lee la
+    misma. Prueba: 1, en `favoritesGetLocalRow.test.tsx`, con el provider y el motor reales y
+    `initialize()` detenido. Cae sin el arreglo y sin el `initialize()`, por la consecuencia: la
+    nube sin el favorito.
 
 - **`R9-215` (S35, `SyncEngine` / cola — P3) — 🐛 una relectura de la tabla de sellos que sigue en
   vuelo tras un `stop()` deja sin escribir la cola de la sesión siguiente.** MEDIDO en el mock
