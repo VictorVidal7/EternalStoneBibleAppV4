@@ -593,8 +593,19 @@
 > - **Sin la matriz:** el motor cambió solo en comentarios.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Ramas `fix/s46-arreglos-s45` y
-> `docs/review-s46-fix-s45`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S46-arreglos-s45.md`.
+> `docs/review-s46-fix-s45`: mergeadas y pusheadas con el OK de Victor (`main` = `87d14ce`, CI
+> verde en el log, run `37085207637`, 368/4541). Detalle: `detail/S46-arreglos-s45.md`.
+>
+> **Sesión 47 (2026-10-02): revisión del diff de la 46**, en el mismo chat, solo en la terminal,
+> sin agentes y sin tocar código.
+>
+> - **1 nuevo:** `R9-253` (P3, de la 46: el comentario de `R9-252` dice que un respaldo restaurado
+>   ya asentó el conflicto en la sesión; solo vale bajo el piso, `S47-1`).
+> - **La prueba de `R9-251`:** medida con 12 piezas de a una; cae por la consecuencia con
+>   `R247unread` y `R234own`, y por la tabla de su control con `R234ret` y `R238hoy`.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Rama `docs/review-s47-diff-s46`, sin
+> mergear hasta el OK de Victor. Detalle: `detail/S47-revision-del-diff-s46.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1129,6 +1140,14 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S46-arreglos-s45.md`.**
   - **La lección:** una decisión de aceptar un daño también se escribe donde ocurre (`R9-252`, en
     la rama del conflicto retenido).
+
+- **Sesión 47 — 2026-10-02. Revisión del diff de la 46.** En el mismo chat, solo en la terminal,
+  sin agentes y sin tocar código.
+  - **Cómo se trabajó:** la prueba de `R9-251`, contra 12 piezas de a una
+    (`_scratch/S47-varias.cjs.txt`); el comentario de `R9-252`, con una sonda por caso (`S47-1`).
+  - **Resultado:** 1 nuevo (`R9-253`, P3). Queda 1 P0 abierto.
+  - **Detalle: `detail/S47-revision-del-diff-s46.md`.**
+  - **La lección:** un comentario que enumera casos se mide caso por caso.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

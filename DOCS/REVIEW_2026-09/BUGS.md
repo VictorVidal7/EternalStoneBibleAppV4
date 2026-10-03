@@ -586,8 +586,9 @@
 > `detail/S45-revision-del-diff-s44.md`.
 >
 > **Sesión 46 (2026-10-02): ARREGLOS de lo de la 45**, en el mismo chat que la 45, solo en la
-> terminal y sin agentes. Rama `fix/s46-arreglos-s45` (4 commits, `a79dcbe`..`e57fa16`), sin mergear
-> hasta el OK de Victor.
+> terminal y sin agentes. Rama `fix/s46-arreglos-s45` (4 commits, `a79dcbe`..`e57fa16`),
+> mergeada y pusheada con el OK de Victor (`main` = `87d14ce`, CI verde en el log, run
+> `37085207637`, 368/4541).
 >
 > - **Cerrados:** `R9-251` (la prueba de la guarda `ownUnread`, de `S45-1`; cae con `R247unread`
 >   por la consecuencia) y `R9-252` (decisión de Victor: aceptado, y escrito en el motor).
@@ -597,6 +598,20 @@
 >   una prueba nueva solo puede sumar caídas. Ninguna ancla de la matriz toca esas líneas.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Detalle: `detail/S46-arreglos-s45.md`.
+>
+> **Sesión 47 (2026-10-02): revisión del diff de la 46**, en el mismo chat, solo en la terminal,
+> sin agentes y sin tocar código. Rama `docs/review-s47-diff-s46`, sin mergear hasta el OK de
+> Victor.
+>
+> - **1 nuevo, P3, de la 46:** `R9-253` (el comentario de `R9-252` dice que un respaldo restaurado
+>   ya asentó el conflicto en la sesión; eso vale solo bajo el piso: medido con `S47-1`).
+> - **La prueba de `R9-251`, medida con 12 piezas de a una** (`_scratch/S47-varias.out.txt`): cae
+>   por la consecuencia con `R247unread` y `R234own`, y por la tabla de su control con `R234ret` y
+>   `R238hoy`. Sus controles del orden (`lecturas` 1 y 2) cuentan las lecturas de la tabla.
+> - **Los otros dos comentarios** dicen la verdad.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Detalle:
+> `detail/S47-revision-del-diff-s46.md`.
 
 ---
 
@@ -4946,6 +4961,18 @@ pending.remoteVersion.updatedAt`.
     (264/265), por la consecuencia: la tabla queda sin doc-c y, tras reiniciar, «lo mio nuevo | mi
     respaldo»; el control `otro` no cambia (`_scratch/S46-rev251-R247unread.out.txt`, y sobre el
     árbol final, `S46-rev251-R247unread-final.out.txt`).
+  - **Nota de la sesión 47, medido** (`_scratch/S47-varias.cjs.txt`, 12 piezas de a una sobre el
+    árbol de `e57fa16`; resumen en `S47-varias.out.txt`):
+    - **Cae por la consecuencia** con `R247unread` y con `R234own` (la relectura no trae el sello de
+      ningún doc retirado): tras reiniciar, «lo mio nuevo | mi respaldo».
+    - **Cae por la tabla de su control** (`otro` guarda doc-c con un sello que no es la copia de la
+      nube) con `R234ret` (la relectura no mira `ownRetired`) y `R238hoy` (la lectura no retira).
+      Ahí vigila el mecanismo, no un daño visible.
+    - **No cae** con `R247`, `R247piso`, `R247siempre`, `R248`, `R234mem` ni `R245`. `R243vuelo` no
+      se aplicó (su ancla es de antes de la 44). Juntas, `R247unread` y `R234mem` la tumban igual.
+    - **Leído:** sus controles del orden son contadores de lecturas de la tabla. Si la relectura
+      empezara antes de la reversión, `lecturas` daría 2 en `rechazo` y la aserción caería. Y la
+      puerta garantiza que la relectura procese después de las dos retiradas.
 
 - **`R9-252` (S45, `SyncEngine` / conflictos — P3) — 🐛 una escritura mía del doc que sube mientras
   su conflicto espera pisa «lo suyo» en la nube. El conflicto sigue en la sesión, pero tras reiniciar
@@ -4977,6 +5004,22 @@ pending.remoteVersion.updatedAt`.
     raro (editar durante un conflicto y reiniciar antes de elegir), y en la sesión keepTheirs lo
     devuelve (`R9-161`). El comentario de la rama del conflicto retenido de `applyRemoteChange`
     lo dice. Las pruebas de `R9-245` y `R9-248` ya lo esperan así.
+  - **Nota de la sesión 47:** el comentario no dice la verdad entera para un respaldo restaurado
+    sobre el piso: ver `R9-253`.
+
+- **`R9-253` (S47, `SyncEngine` / comentario — P3) — 🐛 el comentario de `R9-252` dice que un
+  respaldo restaurado ya asentó el conflicto en la sesión («a restored backup settled it already,
+  R9-190»). Eso vale solo para un respaldo bajo el piso, cuyo eco sale de la query y lo lee la
+  lectura. Uno sobre el piso se comporta como una edición: la marca sigue en la sesión, y tras
+  reiniciar lo asienta LWW.** MEDIDO en el mock (`_scratch/S47-sondas1.body.txt`, `S47-1`;
+  `S47-1-hoy.out.txt`).
+  - El caso: conflicto «lo mio | lo suyo» pendiente; el usuario restaura un respaldo y sube. `bajo`
+    (de hace dos días): en la sesión la marca ya no está. `sobre` (de T + 10 s, sobre el piso de T −
+    5 min y más viejo que lo local): la marca sigue en la sesión, como con `edita` (el control), y
+    tras reiniciar no hay conflicto. El resultado visible es el mismo de `R9-252`; lo que falla es
+    el comentario, que cuenta por qué.
+  - **De la 46** (`5a2c377`): el comentario es suyo. El motor no cambió.
+  - **Propuesta:** «(a restored backup below the floor settled it already, R9-190)».
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

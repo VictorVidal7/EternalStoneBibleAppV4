@@ -1,13 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 46.** La 46 hizo el (z) en el mismo chat
-> que la 45: arregló lo de la 45 en la terminal, sin agentes. Cerró `R9-251` (su prueba) y
-> `R9-252` (aceptado por Victor, escrito en el motor), y corrigió dos comentarios.
+> **Última actualización: 2026-10-02, fin de la sesión 47.** La 47 hizo el (aa) en el mismo chat
+> que la 45 y la 46: revisó el diff de la 46 en la terminal, sin agentes y sin tocar código.
+> Registró 1 nuevo (`R9-253`, P3: el comentario de `R9-252`).
 >
-> La 45 ya está mergeada y pusheada (`main` = `b1f83f8`, CI verde en el log, run `37083545252`,
-> 368/4540). Las ramas de la 46 (`fix/s46-arreglos-s45` y `docs/review-s46-fix-s45`) van **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 252 hallazgos. **Lo
-> siguiente es el mensaje (aa): revisar el diff de la 46.**
+> La 46 ya está mergeada y pusheada (`main` = `87d14ce`, CI verde en el log, run `37085207637`,
+> 368/4541). La rama de la 47 (`docs/review-s47-diff-s46`) va **sin mergear hasta el OK de
+> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 253 hallazgos. **Lo siguiente es el mensaje
+> (ab): arreglar lo de la 47.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -473,9 +473,31 @@ en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 
 igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arreglos (la (v), sesión
 42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual), y sus arreglos (la (x),
 sesión 44, igual), y la revisión del diff de la 44 (la (y), sesión 45, igual), y sus arreglos (la
-(z), sesión 46, en el mismo chat). **Lo siguiente es el (aa).**
+(z), sesión 46, en el mismo chat), y la revisión del diff de la 46 (la (aa), sesión 47, igual).
+**Lo siguiente es el (ab).**
 
-**(aa) Sesión 47: revisar el diff de la 46.**
+**(ab) Sesión 48: arreglar lo de la 47.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (ab) y la sección 5), `detail/S47-revision-del-diff-s46.md` y, en `BUGS.md`, `R9-253`. En
+> la memoria, la de la sesión 47.
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes solo si te los pido. Este chat
+> gasta mi cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s47-diff-s46`, pedime el OK para el fast-forward.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 253.
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla lo de la 47:** `R9-253`, solo el comentario de `R9-252` en la rama del
+> conflicto retenido de `applyRemoteChange` («a restored backup below the floor settled it
+> already, R9-190»). Después, una base nueva para las piezas (`S48-SyncEngine-final.ts.txt`) y un
+> `S48-motor.cjs.txt` que la restaure. El motor no cambia: sin la matriz.
+
+**(aa) Sesión 47: revisar el diff de la 46 — ya HECHO en la sesión 47, en el mismo chat, en la
+terminal y sin agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (aa) y la sección 5), `detail/S46-arreglos-s45.md` y, en `BUGS.md`, los cierres de la 46
@@ -1788,18 +1810,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 46 (2026-10-02).**
+**Medido al cerrar la sesión 47 (2026-10-02).**
 
-- **`main` = `origin/main` = `b1f83f8`** (el checkpoint de la 45, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `c429604`). **CI verificado en el log:** run `37083545252`,
-  3 jobs verdes, Node v24.21.0, 368/4540, cero «failed to run». La rama de la 45 se borró.
-- **Dos ramas de la 46, sin mergear a propósito y sin pushear:** `fix/s46-arreglos-s45` (4
-  commits, `a79dcbe`..`e57fa16`) y, encima, `docs/review-s46-fix-s45` (el checkpoint). Se mergean
-  en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **`main` = `origin/main` = `87d14ce`** (el checkpoint de la 46, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `e57fa16`). **CI verificado en el log:** run `37085207637`,
+  3 jobs verdes, Node v24.21.0, 368/4541, cero «failed to run». Las ramas de la 46 se borraron.
+- **Una rama de la 47, sin mergear a propósito y sin pushear:** `docs/review-s47-diff-s46` (el
+  checkpoint; no toca código). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
+  `main` la incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 46):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 47):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2071,6 +2093,8 @@ Alternativas legítimas:
 - **Una decisión de aceptar un daño también se escribe donde ocurre (sesión 46, `R9-252`).** El
   comentario va en la rama que asienta el conflicto, para que la próxima revisión no lo
   re-descubra como hallazgo.
+- **Un comentario que enumera casos se mide caso por caso (sesión 47, `R9-253`).** El de `R9-252`
+  generalizó «un respaldo restaurado» a partir de una sonda que tenía uno solo, bajo el piso.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
