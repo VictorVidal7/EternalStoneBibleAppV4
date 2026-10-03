@@ -9340,7 +9340,7 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     // solo por el control de las lecturas. Vigila la union: una entrada de
     // disco de un doc cuya copia local cambio en este proceso es mas vieja
     // que esa copia, y `set` no tiene guarda. Con la cola legible, el mismo
-    // caso deja la nube en «q vieja» (R9-254).
+    // caso deja la nube en «q vieja» (otro disparador de R9-126).
     const uid = 'uid-212-remoto';
     const T = Date.now() - HOUR;
     const {localStore, adapter} = await enColaSinRed(
