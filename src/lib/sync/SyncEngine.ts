@@ -3467,9 +3467,12 @@ export class SyncEngine {
       if (done === BULK_PUSH_SKIP_VALUE) return;
       if (done === BULK_PUSH_DONE_VALUE) only = new Set();
     } catch {
-      // If we can't read the flag, do the push — duplicate writes are
-      // idempotent (the doc id is stable), so the worst case is
-      // bandwidth, not correctness.
+      // R9-263 — not read: nothing this time, as with the list below. Pushed
+      // again, the rows of an account already pushed went back over the
+      // cloud with their clocks, over a newer copy there (R9-126). The flag is
+      // a short value: no read of it fails every time for its size (unlike
+      // the queue, R9-212), so the next `start()` reads it.
+      return;
     }
     if (only) {
       // Not read, or not a list: nothing this time (the list stays on disk

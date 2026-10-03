@@ -959,6 +959,63 @@ describe('initial bulk push', () => {
     });
   });
 
+  it('R9-263: con la lectura del flag fallida, el bulk push no se repite entero', async () => {
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGet = getItemMock.getMockImplementation()!;
+    const caso = async (uid: string, fallaFlag: boolean) => {
+      const ok = makeAdapter();
+      ok.localStore.set('a', {value: 'a', updatedAt: 1});
+      const desde = mockDocSets.length;
+      const subidas = () =>
+        mockDocSets
+          .slice(desde)
+          .filter(d => d.path.startsWith(`users/${uid}/`))
+          .map(d => `${d.path.split('/').pop()}/${d.id}`);
+      const arrancar = async () => {
+        const engine = new SyncEngine();
+        engine.register(ok.adapter);
+        await engine.start(uid);
+        await drain();
+        await engine.__flushForTests();
+        await drain();
+        engine.stop();
+        await drain();
+      };
+      await arrancar();
+      const primera = subidas();
+      let fallidas = 0;
+      if (fallaFlag) {
+        getItemMock.mockImplementation((k: string) => {
+          if (k === `@sync_first_push_done:${uid}` && fallidas === 0) {
+            fallidas += 1;
+            return Promise.reject(new Error('disco'));
+          }
+          return realGet(k);
+        });
+      }
+      try {
+        await arrancar();
+      } finally {
+        getItemMock.mockImplementation(realGet);
+      }
+      return {primera, segunda: subidas().slice(primera.length), fallidas};
+    };
+    const res = {
+      sana: await caso('uid-263-sana', false),
+      fallaFlag: await caso('uid-263-falla', true),
+    };
+
+    // Sin R9-263, `test/a` volvia a subir con su reloj (R9-126).
+    expect(res).toEqual({
+      sana: {primera: ['test/a'], segunda: [], fallidas: 0},
+      fallaFlag: {
+        primera: ['test/a'],
+        segunda: [],
+        fallidas: 1, // CONTROL: la lectura del flag fallo
+      },
+    });
+  });
+
   it('re-pushes ONCE when the flag holds the legacy value (S78 healing)', async () => {
     // Pre-fix devices hold '1'; their queue silently dropped any entity
     // whose payload carried an undefined field, so the bulk push re-runs
