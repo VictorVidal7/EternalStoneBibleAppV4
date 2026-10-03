@@ -9272,7 +9272,10 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
 
   /** R9-212 — las lecturas (`getItem`) de la cola: las primeras `fallos`
    *  fallan; con `puerta`, las siguientes esperan a que se abra. `disco()` la
-   *  lee sin pasar por ellas. `restaurar()` en un `finally`. */
+   *  lee sin pasar por ellas. `restaurar()` en un `finally`.
+   *  R9-260 — una lectura retenida devuelve el disco de cuando se pidio, no
+   *  lo escrito mientras espera: AsyncStorage en Android corre en un ejecutor
+   *  serie, y una escritura pedida durante la lectura va detras. */
   function colaIlegible(fallos: number, puerta?: Promise<void>) {
     const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
     const realImpl = getItemMock.getMockImplementation()!;
@@ -9281,7 +9284,9 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       if (k !== '@sync_queue_v1') return realImpl(k);
       n += 1;
       if (n <= fallos) return Promise.reject(new Error('disco'));
-      return puerta ? puerta.then(() => realImpl(k)) : realImpl(k);
+      if (!puerta) return realImpl(k);
+      const foto = realImpl(k);
+      return puerta.then(() => foto);
     });
     return {
       lecturas: () => n,
@@ -9962,6 +9967,58 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         local: 'nuevo',
       },
     });
+  });
+
+  it('R9-260: un stop() y un start() del mismo uid con la primera lectura de la cola en vuelo no piden otra: la entrada vieja del doc reeditado no vuelve a la cola ni sube encima', async () => {
+    const uid = 'uid-260';
+    const T = Date.now() - HOUR;
+    const {localStore, adapter} = await enColaSinRed(uid, 'doc-x', 'viejo', T);
+    let abrirLectura: (() => void) | null = null;
+    const cola = colaIlegible(0, new Promise<void>(r => (abrirLectura = r)));
+    const p1 = new SyncEngine();
+    p1.register(adapter);
+    try {
+      // El caso `lenta` de R9-254: la edicion sube y sale de la cola antes de
+      // que vuelva la lectura de la hidratacion.
+      const arranque = p1.start(uid);
+      await escribir(p1, localStore, 'doc-x', 'nuevo', T + 300_000);
+      const enColaAlVolver = p1.__getQueueForTests().length;
+      // La sesion pasa por nulo y vuelve (`SyncEngineContext`).
+      p1.stop();
+      await settle();
+      const arranque2 = p1.start(uid);
+      await settle();
+      const lecturas = cola.lecturas();
+      abrirLectura!();
+      await arranque;
+      await arranque2;
+      await settle();
+      await p1.__flushForTests();
+      await settle();
+      expect({
+        enColaAlVolver,
+        lecturas,
+        subidas: mockDocSets
+          .filter(s => s.path === `users/${uid}/test` && s.id === 'doc-x')
+          .map(s => (s.data as Data).value),
+        nube: await nubeDe(uid, 'doc-x'),
+        local: valorDe(localStore, 'doc-x'),
+      }).toEqual({
+        enColaAlVolver: 0, // CONTROL: ya subio y salio de la cola
+        // Sin R9-260, 2: las dos lecturas ven el disco con «viejo», y la
+        // segunda union ya no lo descarta. Sube despues y la nube vuelve a el.
+        lecturas: 1,
+        subidas: ['nuevo'],
+        nube: 'nuevo',
+        local: 'nuevo',
+      });
+    } finally {
+      (abrirLectura as (() => void) | null)?.();
+      cola.restaurar();
+      p1.stop();
+      await settle();
+      await AsyncStorage.removeItem('@sync_queue_v1');
+    }
   });
 
   it('R9-217: con la tabla de sellos ilegible toda la sesion, d2 sube y d3 queda en cola: la entrada de d3 lleva el reloj de d2, y tras reiniciar no aparece «d mio 3 contra d mio 2»', async () => {

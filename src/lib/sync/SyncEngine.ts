@@ -444,6 +444,8 @@ export class SyncEngine {
   private uid: string | null = null;
   private queue: PendingWrite[] = [];
   private queueHydrated = false;
+  /** R9-260 — the first read of the queue (see `hydrateQueue`). */
+  private queueHydrating: Promise<void> | null = null;
   /**
    * R9-212 — the queue on disk could not be read (`getItem` failed): the one
    * in memory lacks its entries, every account's (the parked ones too).
@@ -1072,8 +1074,20 @@ export class SyncEngine {
 
   // ---------- private: queue persistence ----------
 
-  private async hydrateQueue(): Promise<void> {
-    if (this.queueHydrated) return;
+  /**
+   * R9-260 — one read, whoever asks, as `rereadQueue`. A `stop()` and a
+   * `start()` of the same uid with the first read on its way (the user goes
+   * through null while the session is restored) asked for a second one: both
+   * saw the same disk, and the first join emptied `queueTouched`, so the
+   * second put back the entry on disk of a doc edited since, and it went up
+   * over the edit.
+   */
+  private hydrateQueue(): Promise<void> {
+    if (!this.queueHydrating) this.queueHydrating = this.readQueueFirst();
+    return this.queueHydrating;
+  }
+
+  private async readQueueFirst(): Promise<void> {
     let raw: string | null = null;
     try {
       raw = await AsyncStorage.getItem(QUEUE_STORAGE_KEY);
