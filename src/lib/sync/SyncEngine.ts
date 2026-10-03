@@ -461,7 +461,8 @@ export class SyncEngine {
   private queueWaiting = false;
   /**
    * R9-212 — uid + `suppressKey` of each doc whose local copy this process
-   * changed while the queue was unread: an edit queued (whether or not it
+   * changed while the queue was not read yet (R9-254: the first read on its
+   * way) or unread: an edit queued (whether or not it
    * left the queue since), or a copy applied from the cloud. An entry on disk
    * of one of these docs is older than the copy here, and `set` has no
    * guard: pushed after that, it took the cloud back to it. The read drops
@@ -1029,8 +1030,8 @@ export class SyncEngine {
     fn: () => Promise<T>,
   ): Promise<T> {
     const key = suppressKey(collection, id);
-    // R9-212 — see `queueTouched`.
-    if (this.queueUnread && this.uid) {
+    // R9-212 / R9-254 — see `queueTouched`.
+    if ((this.queueUnread || !this.queueHydrated) && this.uid) {
       this.queueTouched.add(`${this.uid}\u0000${key}`);
     }
     this.suppressedDocs.set(key, (this.suppressedDocs.get(key) ?? 0) + 1);
@@ -1063,12 +1064,19 @@ export class SyncEngine {
       this.queueUnread = true;
     }
     const {entries, dropped} = parseQueue(raw);
-    this.queue = entries;
+    // R9-254 / R9-115 — `start()` sets the uid before this read, so a write
+    // can be queued while it is on its way, and `persistQueue` leaves the disk
+    // alone until it is back. Assigned over, that write left the queue (and,
+    // read or not, it had replaced the queue on disk). It joins the entries
+    // read, as after a read again; with the read failed, it waits in memory
+    // for that one.
+    const wrote = this.queueTouched.size > 0 || this.ownDirty.size > 0;
+    if (!this.queueUnread) this.joinQueue(entries);
     this.queueHydrated = true;
     this.updateState({pendingWrites: this.pendingForActiveUid()});
     // Write the cleaned queue back, or the dropped entries sit on disk
     // forever and get re-filtered on every single launch.
-    if (dropped) await this.persistQueue();
+    if (dropped || (wrote && !this.queueUnread)) await this.persistQueue();
   }
 
   /** R9-212 — see `queueUnread`. One read at a time, whoever asks. */
@@ -1111,8 +1119,22 @@ export class SyncEngine {
       void this.persistQueue();
       return;
     }
+    this.joinQueue(parseQueue(raw).entries);
+    this.queueUnread = false;
+    this.queueWaiting = false;
+    this.updateState({pendingWrites: this.pendingForActiveUid()});
+    void this.persistQueue();
+  }
+
+  /**
+   * R9-212 — the entries read from disk join the ones in memory, written
+   * since the process started: an entry of a doc this process changed since
+   * (`queueTouched`) is dropped, and one replaced since gives its clocks to the
+   * entry that replaced it.
+   */
+  private joinQueue(entries: PendingWrite[]): void {
     const before: PendingWrite[] = [];
-    for (const entry of parseQueue(raw).entries) {
+    for (const entry of entries) {
       const i = this.queue.findIndex(
         e =>
           e.uid === entry.uid &&
@@ -1134,11 +1156,7 @@ export class SyncEngine {
       }
     }
     this.queue = [...before, ...this.queue];
-    this.queueUnread = false;
-    this.queueWaiting = false;
     this.queueTouched.clear();
-    this.updateState({pendingWrites: this.pendingForActiveUid()});
-    void this.persistQueue();
   }
 
   /**
@@ -1203,6 +1221,10 @@ export class SyncEngine {
     // writes the queue anyway, without the tables still unread.
     const unread = [...this.ownDirty].filter(c => this.ownUnread.has(c));
     const waiting = unread.filter(c => !this.ownGaveUp.has(c));
+    // R9-254 — nor before the queue was ever read: the one in memory lacks the
+    // entries on disk, and written now, it replaced them. `hydrateQueue`
+    // writes it once they are joined.
+    if (!force && !this.queueHydrated) return;
     // R9-212 — and the queue itself, if it could not be read (see
     // `queueUnread`). `force` writes the own stamps without it.
     if (!force && (this.queueUnread || (uid && waiting.length > 0))) {
@@ -1225,9 +1247,11 @@ export class SyncEngine {
     // R9-212 — an unread queue is not written (see `queueUnread`): the disk
     // keeps its entries, and the stamps they carry. The own stamps can go
     // without it: on disk in a table AND in an entry is still on disk.
-    const pairs: Array<[string, string]> = this.queueUnread
-      ? []
-      : [[QUEUE_STORAGE_KEY, JSON.stringify(this.queue)]];
+    // R9-254 — nor one not read yet.
+    const pairs: Array<[string, string]> =
+      this.queueUnread || !this.queueHydrated
+        ? []
+        : [[QUEUE_STORAGE_KEY, JSON.stringify(this.queue)]];
     const emptied: string[] = [];
     const written = [...this.ownDirty].filter(c => !this.ownUnread.has(c));
     if (uid) {
@@ -1311,8 +1335,8 @@ export class SyncEngine {
     // legitimately hold a pending write for the SAME (collection, id): the
     // memoryCards id is the verseKey and the highlights id is the verseId,
     // both stable across users, so Juan 3:16 collides between Ana and Beto.
-    // R9-212 — see `queueTouched`.
-    if (this.queueUnread) {
+    // R9-212 / R9-254 — see `queueTouched`.
+    if (this.queueUnread || !this.queueHydrated) {
       this.queueTouched.add(
         `${entry.uid}\u0000${suppressKey(entry.collection, entry.id)}`,
       );

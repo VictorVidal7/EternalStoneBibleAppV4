@@ -9769,6 +9769,158 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
   });
 
+  it('R9-254: una edicion hecha mientras se hidrata la cola no la reescribe sin las entradas de disco, y no sale de memoria: con la lectura sana, fallida una vez o fallida hasta rendirse', async () => {
+    const T = Date.now() - HOUR;
+    /** `doc-q` espera en disco; `doc-w` se escribe sin red con la lectura de
+     *  la hidratacion en vuelo (`start()` ya fijo el uid); `doc-z`, despues. */
+    const caso = async (uid: string, fallos: number) => {
+      const {localStore, adapter} = await enColaSinRed(uid, 'doc-q', 'q', T);
+      const cola = colaIlegible(fallos);
+      const netInfo = jest.requireMock('@react-native-community/netinfo')
+        .default as {fetch: jest.Mock};
+      netInfo.fetch.mockResolvedValueOnce({
+        isConnected: false,
+        isInternetReachable: false,
+      });
+      const p1 = new SyncEngine();
+      p1.register(adapter);
+      p1.__setOnlineForTests(false);
+      const mio = async () =>
+        (await cola.disco()).filter(e => e.uid === uid).map(e => e.id);
+      try {
+        const arranque = p1.start(uid);
+        const w = {value: 'w', updatedAt: T + 200_000};
+        localStore.set('doc-w', w as unknown as SyncEntity<TestEntity>);
+        p1.queueWrite('test', 'doc-w', w);
+        await arranque;
+        await settle();
+        const trasArranque = await mio();
+        await escribir(p1, localStore, 'doc-z', 'z', T + 300_000);
+        return {trasArranque, lecturas: cola.lecturas(), final: await mio()};
+      } finally {
+        cola.restaurar();
+        p1.stop();
+        await settle();
+        await AsyncStorage.removeItem('@sync_queue_v1');
+      }
+    };
+    const res = {
+      legible: await caso('uid-254-legible', 0),
+      dos: await caso('uid-254-dos', 2),
+      tres: await caso('uid-254-tres', 3),
+    };
+
+    // Sin R9-254: el `multiSet` de doc-w reescribia el disco antes de que
+    // volviera la lectura (doc-q se perdia con la lectura fallida), y la
+    // hidratacion sacaba a doc-w de memoria (con la lectura sana, R9-115; con
+    // la fallida, desde R9-212). Con 3 fallos se rinde, y doc-q se pierde por
+    // diseno (ver `queueUnread`); doc-w no.
+    expect(res).toEqual({
+      legible: {
+        trasArranque: ['doc-q', 'doc-w'],
+        lecturas: 1, // CONTROL: la lectura no fallo
+        final: ['doc-q', 'doc-w', 'doc-z'],
+      },
+      dos: {
+        trasArranque: ['doc-q'],
+        lecturas: 3, // CONTROL: la hidratacion y `start()` fallaron
+        final: ['doc-q', 'doc-w', 'doc-z'],
+      },
+      tres: {
+        trasArranque: ['doc-q'],
+        lecturas: 3, // CONTROL: la de la escritura de doc-z tambien
+        final: ['doc-w', 'doc-z'],
+      },
+    });
+  });
+
+  it('R9-254 / R9-115: el usuario reedita, mientras se hidrata la cola, el doc de una entrada de disco: sube la edicion nueva, y la nube no vuelve a la vieja, vuelva la lectura antes o despues de su ack', async () => {
+    const T = Date.now() - HOUR;
+    /** Sin `lenta`, la subida de la edicion nueva espera a que vuelva la
+     *  lectura de la hidratacion (el caso de R9-115, con la subida en vuelo);
+     *  con `lenta`, la lectura vuelve despues de que la edicion subio y salio
+     *  de la cola. */
+    const caso = async (uid: string, lenta: boolean) => {
+      const {localStore, adapter} = await enColaSinRed(
+        uid,
+        'doc-x',
+        'viejo',
+        T,
+      );
+      let abrirLectura: (() => void) | null = null;
+      let abrirSubida: (() => void) | null = null;
+      const cola = colaIlegible(
+        0,
+        lenta ? new Promise<void>(r => (abrirLectura = r)) : undefined,
+      );
+      if (!lenta) {
+        const subida = new Promise<void>(r => (abrirSubida = r));
+        mockSetGate = (path, id) =>
+          path === `users/${uid}/test` && id === 'doc-x' ? subida : undefined;
+      }
+      const p1 = new SyncEngine();
+      p1.register(adapter);
+      try {
+        const arranque = p1.start(uid);
+        const x = {value: 'nuevo', updatedAt: T + 300_000};
+        localStore.set('doc-x', x as unknown as SyncEntity<TestEntity>);
+        p1.queueWrite('test', 'doc-x', x);
+        let enColaAlVolver: number;
+        if (lenta) {
+          await settle();
+          enColaAlVolver = p1.__getQueueForTests().length;
+          abrirLectura!();
+          await arranque;
+        } else {
+          await arranque;
+          enColaAlVolver = p1.__getQueueForTests().length;
+          abrirSubida!();
+        }
+        await settle();
+        await p1.__flushForTests();
+        await settle();
+        return {
+          enColaAlVolver,
+          subidas: mockDocSets
+            .filter(s => s.path === `users/${uid}/test` && s.id === 'doc-x')
+            .map(s => (s.data as Data).value),
+          nube: await nubeDe(uid, 'doc-x'),
+          local: valorDe(localStore, 'doc-x'),
+        };
+      } finally {
+        (abrirLectura as (() => void) | null)?.();
+        (abrirSubida as (() => void) | null)?.();
+        mockSetGate = null;
+        cola.restaurar();
+        p1.stop();
+        await settle();
+        await AsyncStorage.removeItem('@sync_queue_v1');
+      }
+    };
+    const res = {
+      rapida: await caso('uid-254-rapida', false),
+      lenta: await caso('uid-254-lenta', true),
+    };
+
+    // Sin R9-254 sube tambien la vieja, despues: la nube acaba en «viejo».
+    // `lenta` vigila la marca de lo escrito antes de la primera lectura
+    // (`queueTouched`): la edicion nueva ya no esta en la cola cuando vuelve.
+    expect(res).toEqual({
+      rapida: {
+        enColaAlVolver: 1, // CONTROL: la edicion nueva sigue en la cola
+        subidas: ['nuevo'],
+        nube: 'nuevo',
+        local: 'nuevo',
+      },
+      lenta: {
+        enColaAlVolver: 0, // CONTROL: ya subio y salio de la cola
+        subidas: ['nuevo'],
+        nube: 'nuevo',
+        local: 'nuevo',
+      },
+    });
+  });
+
   it('R9-217: con la tabla de sellos ilegible toda la sesion, d2 sube y d3 queda en cola: la entrada de d3 lleva el reloj de d2, y tras reiniciar no aparece «d mio 3 contra d mio 2»', async () => {
     const uid = 'uid-217-coste';
     const {engine, localStore, adapter, T} = await dosConflictos(uid);
