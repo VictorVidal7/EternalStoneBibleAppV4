@@ -124,9 +124,9 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   const syncEngine = syncCtx?.engine ?? null;
 
   // The favorites as of the last render, for the reads that run outside
-  // render (`pullAllLocal`, the tombstone of `removeFavorite`). It is copied
-  // after each render, so it lags SQLite until then; `getLocal` reads the row
-  // instead (R9-210).
+  // render (the tombstone of `removeFavorite`). It is copied after each
+  // render, so it lags SQLite until then; `getLocal` and `pullAllLocal` read
+  // the rows instead (R9-210, R9-214).
   const favoritesRef = useRef<Favorite[]>([]);
   useEffect(() => {
     favoritesRef.current = favorites;
@@ -229,8 +229,14 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
         }
         setFavorites(prev => prev.filter(f => f.id !== id));
       },
+      // R9-214 — the rows in SQLite too, like `getLocal`: until the first
+      // load ends the ref is empty, and the first bulk push of a cold start
+      // queued nothing and still marked the account as pushed. Both callers
+      // log a failed read.
       async pullAllLocal() {
-        return favoritesRef.current.map(f => ({
+        await bibleDB.initialize();
+        const rows = await bibleDB.getFavorites();
+        return rows.map(f => ({
           id: f.id,
           data: favoriteToRemote(f),
         }));

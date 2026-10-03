@@ -464,4 +464,43 @@ describe('favoritos: el motor ve la fila de SQLite aunque React vaya atrasado', 
       marca: null,
     });
   });
+
+  it('R9-214: el primer bulk push durante la carga en frio sube los favoritos de la fila', async () => {
+    // `pullAllLocal` leia `favoritesRef`, vacio hasta que termina la primera
+    // carga: el bulk push no encolaba nada, grababa el flag '2', y esos
+    // favoritos no subian nunca por esa via.
+    const T = Date.now() - HOUR;
+    let releaseInit!: () => void;
+    mockReady = false;
+    mockInitGate = new Promise<void>(resolve => (releaseInit = resolve));
+    mockRows.set('fav-1', rowWith('lo mio', T + 60_000));
+    // Sin flag: el primer `start()` de esta cuenta hace el bulk push.
+
+    render(
+      <FavoritesProvider>
+        <Capture />
+      </FavoritesProvider>,
+    );
+    await act(async () => {
+      await engine.start(UID);
+      await settle();
+    });
+    // Control del mecanismo: el bulk push empezo con la carga sin terminar.
+    const dentro = {loading: captured?.loading, cargas: mockLoadsDone};
+    await act(async () => {
+      releaseInit();
+      await settle();
+    });
+
+    // Pre-fix: fav-1 no sube, y el flag queda en '2'.
+    expect({
+      dentro,
+      nube: mockServer.get(`${PATH}/fav-1`)?.note ?? null,
+      flag: await AsyncStorage.getItem(`@sync_first_push_done:${UID}`),
+    }).toEqual({
+      dentro: {loading: true, cargas: 0},
+      nube: 'lo mio',
+      flag: '2',
+    });
+  });
 });
