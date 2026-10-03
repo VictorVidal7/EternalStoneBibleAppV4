@@ -2419,6 +2419,19 @@ Alternativas legítimas:
 
 ## 7. Decisiones de Victor que NO hay que volver a preguntarle
 
+- **`R9-59` y `R9-38`, decididos el 2026-10-03 (tras la sesión 51), con la recomendación de
+  Claude:**
+  - **La Mesa de preparación (`@prep_notes`, `@prep_series`, `@prep_illustrations`,
+    `@prep_self_review`) se guarda por cuenta** (la opción (b) de la sesión 22). Cada uno ve solo
+    lo suyo en un teléfono compartido, y cerrar sesión no borra nada. Se corrige también la frase
+    de `prepNotes.ts` («theirs alone»). Progreso y logros siguen por aparato, como hoy: la decisión
+    es para la Mesa.
+  - **`R9-38`:** si vuelve a entrar la misma cuenta, se sube lo editado con la sesión cerrada. Si
+    entra otra, se le pregunta antes, como la pregunta del dueño anterior (`R9-166`).
+  - **El cómo es técnico y está delegado:** qué pasa con los datos de la Mesa sin dueño de
+    antes, con el respaldo exportado, y con qué se registra lo editado sin sesión. Sin repetir el
+    bulk push entero (`R9-126`). Se decide midiendo, y se deja escrito.
+
 - **Las 2 preguntas que dejó abierta la sesión 3 están RESPONDIDAS** (ofrenda = premium para
   siempre; `R9-13` no está en producción). No las vuelvas a plantear.
 - **Los 4 hallazgos de campo `R9-40`..`R9-43` NO se arreglan todavía** — quedan registrados
@@ -2474,10 +2487,8 @@ Alternativas legítimas:
 - **`R9-158`:** si no se puede leer el marcador del dueño del almacén, ¿se pregunta (fallar
   cerrado) o se sigue sin preguntar, como hoy? Desde la 25 está medido (suben las 12 notas), y va
   junto con su gemelo: `claimLocalStore` también se traga el fallo al ESCRIBIR el marcador.
-- **`R9-59`:** ¿«device-local» debe significar también «visible para cualquiera que use el
-  aparato»? Hoy, cerrar sesión **no** limpia la Mesa, ni el progreso, ni los logros, y está
-  **documentado como decisión** (`deleteAccountData.ts:12-13`) — pero nadie se lo preguntó
-  a Victor con el caso del teléfono compartido de la iglesia delante.
+- ~~**`R9-59`:** ¿«device-local» debe significar también «visible para cualquiera que use el
+  aparato»?~~ **Decidido el 2026-10-03:** la Mesa, por cuenta (ver la §7).
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
 

@@ -1072,6 +1072,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   LWW compara timestamps lo local es más nuevo y nada delata la divergencia. **Repro
   (sonda):** flag = `'2'`, 3 notas con el motor detenido, cola = 0 entradas, documentos
   empujados tras `start()` = `[]`. Detalle: `detail/A4-syncengine.md`.
+  **✅ DESBLOQUEADO el 2026-10-03 (tras la sesión 51): Victor decidió `R9-59`, y con él la regla de
+  este arreglo.** Si vuelve a entrar la misma cuenta, se sube lo editado con la sesión cerrada; si
+  entra otra, se le pregunta antes (como `R9-166`). El mecanismo está delegado, sin repetir el bulk
+  push entero (`R9-126`): ver la §7 de `CONTINUAR.md`. Queda por arreglar.
 
 - **`R9-39` (A4, conflictos) — 🐛 un conflicto pendiente lo entierra el cursor que adelanta
   cualquier OTRO documento de la misma colección.** Severidad **media**.
@@ -6276,6 +6280,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   significar también «visible para cualquiera que use el aparato». Detalle:
   `detail/A9-mesa-persistencia.md`.
   **⚠️ Sesión 22 (lectura): se sostiene en P2, y la decisión sigue siendo de Victor.** Las opciones son (a) borrar `@prep_*` al cerrar sesión, (b) ponerle uid a las claves, o (c) dejarlo como está y corregir la frase. Lo único claramente mal hoy es el comentario: `prepNotes.ts:14` dice que el estudio sin terminar es «theirs alone», y en un teléfono compartido no lo es. Además, «sin fuga hacia afuera» no es exacto: un respaldo exportado por Beto lleva el `@prep_notes` y el `@prep_series` de Ana. `R9-24` sigue siendo cierto.
+  **✅ DECIDIDO por Victor el 2026-10-03 (tras la sesión 51): la opción (b).** La Mesa se guarda por cuenta, y cerrar sesión no borra nada. Progreso y logros siguen por aparato. El cómo (los datos sin dueño de antes, el respaldo exportado) está delegado: ver la §7 de `CONTINUAR.md`. Queda por arreglar.
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y
