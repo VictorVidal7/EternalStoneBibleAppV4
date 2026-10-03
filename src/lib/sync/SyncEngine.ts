@@ -598,8 +598,10 @@ export class SyncEngine {
    * with (0 for the unfiltered fallback: nothing leaves that query but a
    * delete). A take-back that leaves the query went back to a copy below it,
    * or to none. Set before the listener subscribes, so every delivery reads
-   * its own listener's; one that arrives after a `stop()` has no `uid`, and
-   * no rejection waits under that key.
+   * its own listener's. One that arrives after a `stop()` reads no `uid`, or
+   * the next account's if it signed in meanwhile: no rejection of that
+   * account waits with the clock of a payload the last one pushed, so it
+   * never reads the floor.
    */
   private queryFloors = new Map<string, number>();
   /**
