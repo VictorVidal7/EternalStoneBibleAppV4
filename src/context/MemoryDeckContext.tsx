@@ -141,11 +141,15 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     void refreshEasePrior();
   }, [refreshEasePrior]);
 
+  // R9-264 — the last load of the deck, and whether it read the disk:
+  // `pullAllLocal` waits for it.
+  const deckLoad = useRef<Promise<boolean> | null>(null);
+
   // Read the deck off disk and adopt it. Extracted from the mount effect so
   // the backup-restore signal can re-run exactly the same parse (R9-28).
   const hydrateFromStorage = useCallback(async () => {
-    await AsyncStorage.getItem(STORAGE_KEY)
-      .then(raw => {
+    const load = AsyncStorage.getItem(STORAGE_KEY).then(
+      raw => {
         if (raw) {
           try {
             const parsed = JSON.parse(raw) as Record<string, MemoryCard>;
@@ -182,12 +186,21 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
               }
             }
             setDeck(clean);
+            // R9-264 — the ref follows `deck` after the render; a caller
+            // that waited for this load reads it now.
+            deckRef.current = clean;
           } catch {
             // fall through to empty deck
           }
         }
-      })
-      .finally(() => setHydrated(true));
+        // A value that is not JSON reads the same every time, and the deck
+        // written next replaces it: read, as an empty deck.
+        return true;
+      },
+      () => false,
+    );
+    deckLoad.current = load;
+    await load.finally(() => setHydrated(true));
   }, []);
 
   // Hydrate from storage once.
@@ -265,7 +278,15 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
           return rest;
         });
       },
+      // R9-264 — after the load, as R9-214 does with SQLite: until it ends
+      // the ref is empty, and the first bulk push of a cold start queued
+      // nothing and still marked the account as pushed. A load that could not
+      // read the disk throws: both callers log it, and the bulk push tries
+      // this collection again on the next start (R9-257).
       async pullAllLocal() {
+        if (!(await deckLoad.current)) {
+          throw new Error('memory deck: the load did not read the disk');
+        }
         return Object.values(deckRef.current).map(c => ({
           id: c.verseKey,
           data: cardToRemote(c),
