@@ -2010,6 +2010,16 @@ export class SyncEngine {
       //   found (a restart with the list unreadable re-reads every held
       //   conflict, R9-191) showed «mine» against «mine», restart after
       //   restart.
+      // - R9-252 — not a write of this device the server took while the
+      //   conflict waited: it went up over «theirs», which only the conflict
+      //   in memory still holds. After a restart that write is the copy
+      //   delivered, this device's own, and the conflict settles without the
+      //   user choosing: by LWW, or by R9-245 with a later write queued (a
+      //   restored backup settled it already, R9-190). Accepted (Victor,
+      //   S46): keeping «theirs» on disk would be one more table with cases
+      //   of its own (unreadable, another account, read again), like the
+      //   own stamps (R9-193). Within the session, keepTheirs pushes it back
+      //   (R9-161).
       if (
         !pending &&
         (remoteTs > localTs ||
