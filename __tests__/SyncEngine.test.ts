@@ -11220,6 +11220,173 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     }).toEqual({descarta: esperado('descarta'), rechaza: esperado('rechaza')});
   });
 
+  // R9-251 — la guarda `ownUnread` de R9-247: el proceso anterior dejo doc-c en
+  // conflicto retenido con la marca de relectura, el sello de mi respaldo W0
+  // en la tabla (la nube es W0, bajo el piso) y W2 en la cola. Este arranca
+  // sin red y no puede leer la tabla (la relectura espera): el enganche lee
+  // W0, no lo reconoce, y doc-c queda en conflicto EN MEMORIA. El servidor
+  // rechaza W2; la reversion (`removed`, con W2) vuelve a W0. Despues el ack
+  // de Wd (doc-d, en conflicto) dispara la relectura, que vuelve DESPUES de
+  // las dos retiradas, y la app se reinicia sin red. `mio`, o la nube con la
+  // misma copia y +1 ms, que la tabla no tiene (`otro`, CONTROL: es del otro,
+  // y el conflicto sigue).
+  it('R9-251: con la tabla de sellos ilegible y doc-c en conflicto, el servidor rechaza W2 (la reversion vuelve a mi respaldo bajo el piso) y la relectura vuelve despues: tras reiniciar, mi respaldo no es «su version»', async () => {
+    const T = Date.now() - HOUR;
+    const W2 = {value: 'lo mio nuevo', updatedAt: T + 300_000};
+    const Ld = {value: 'ld mio', updatedAt: T + 200_000};
+    const Rd = {value: 'rd suyo', updatedAt: T + 210_000};
+    const Wd = {value: 'wd mio', updatedAt: T + 400_000};
+    const caso = async (modo: 'mio' | 'otro') => {
+      const uid = `uid-251-${modo}`;
+      const sello = T - 2 * DAY;
+      const W0 = {
+        value: 'mi respaldo',
+        updatedAt: sello + (modo === 'otro' ? 1 : 0),
+      };
+      let soltar!: () => void;
+      const puerta = new Promise<void>(r => (soltar = r));
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      await AsyncStorage.setItem(
+        unsettledStorageKey('test', uid),
+        JSON.stringify({'doc-c': T + 65_000}),
+      );
+      await AsyncStorage.setItem(
+        `@sync_conflicted_test:${uid}`,
+        JSON.stringify(['doc-c']),
+      );
+      await AsyncStorage.setItem(
+        `@sync_reread_test:${uid}`,
+        JSON.stringify(['doc-c']),
+      );
+      await AsyncStorage.setItem(
+        `@sync_own_test:${uid}`,
+        JSON.stringify({'doc-c': [sello]}),
+      );
+      await AsyncStorage.setItem(
+        '@sync_queue_v1',
+        JSON.stringify([
+          {
+            uid,
+            collection: 'test',
+            id: 'doc-c',
+            data: {...W2, deleted: false, deletedAt: null},
+            queuedAt: 0,
+            attempts: 0,
+          },
+        ]),
+      );
+      const fx = makeAdapter({getMaterialFields: () => ['value']});
+      fx.localStore.set('doc-c', W2 as unknown as SyncEntity<TestEntity>);
+      fx.localStore.set('doc-d', Ld as unknown as SyncEntity<TestEntity>);
+      (
+        mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+          __fire: (changes: unknown[]) => void;
+        }
+      ).__fire([
+        {type: 'modified', doc: {id: 'doc-c', exists: true, data: () => W0}},
+      ]);
+      const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+      const realImpl = getItemMock.getMockImplementation()!;
+      let lecturas = 0;
+      getItemMock.mockImplementation((k: string) => {
+        if (k !== `@sync_own_test:${uid}`) return realImpl(k);
+        lecturas += 1;
+        if (lecturas === 1) return Promise.reject(new Error('disco'));
+        if (lecturas === 2) return puerta.then(() => realImpl(k));
+        return realImpl(k);
+      });
+      const e = new SyncEngine();
+      const conflictos = () =>
+        e
+          .__getConflictsForTests()
+          .map(
+            c =>
+              `${c.docId}: ${c.localVersion.value} | ${c.remoteVersion.value}`,
+          );
+      const tabla = async () => {
+        const raw = (await realImpl(`@sync_own_test:${uid}`)) as string | null;
+        const t = raw ? (JSON.parse(raw) as Record<string, number[]>) : {};
+        return Object.fromEntries(
+          Object.entries(t).map(([id, v]) => [id, v.map(x => x - T)]),
+        );
+      };
+      const netInfo = jest.requireMock('@react-native-community/netinfo')
+        .default as {fetch: jest.Mock};
+      try {
+        e.register(fx.adapter);
+        netInfo.fetch.mockResolvedValueOnce({
+          isConnected: false,
+          isInternetReachable: false,
+        });
+        await e.start(uid);
+        await settle();
+        await settle();
+        const enganche = conflictos();
+        write(uid, 'doc-d', Rd);
+        await settle();
+        mockSetShouldFail = true;
+        e.__setOnlineForTests(true);
+        await settle();
+        await e.__flushForTests();
+        await settle();
+        await settle();
+        mockSetShouldFail = false;
+        const rechazo = {lecturas, nube: await nubeDe(uid, 'doc-c')};
+        fx.localStore.set('doc-d', Wd as unknown as SyncEntity<TestEntity>);
+        e.queueWrite('test', 'doc-d', Wd);
+        await settle();
+        await e.__flushForTests();
+        await settle();
+        const ack = lecturas;
+        e.__setOnlineForTests(false);
+        soltar();
+        await settle();
+        await settle();
+        const relectura = await tabla();
+        e.stop();
+        netInfo.fetch.mockResolvedValueOnce({
+          isConnected: false,
+          isInternetReachable: false,
+        });
+        await e.start(uid);
+        await settle();
+        await settle();
+        return {
+          enganche, // CONTROL: el conflicto esta en memoria
+          rechazo, // CONTROL: la relectura todavia no empezo
+          ack, // CONTROL: el ack de Wd la disparo
+          relectura,
+          tras: conflictos(),
+          local: fx.localStore.get('doc-c')?.value,
+        };
+      } finally {
+        getItemMock.mockImplementation(realImpl);
+        e.stop();
+      }
+    };
+
+    // Sin la guarda, la reversion retiraba al llegar y anotaba en `ownRetired`
+    // el reloj de W2, que ninguna tabla tiene: la relectura descartaba el
+    // sello de W0, la tabla se reescribia sin doc-c, y tras reiniciar mi
+    // respaldo era «su version» (como en `otro`).
+    const esperado = (modo: 'mio' | 'otro') => ({
+      enganche: ['doc-c: lo mio nuevo | mi respaldo'],
+      rechazo: {lecturas: 1, nube: 'mi respaldo'},
+      ack: 2,
+      relectura:
+        modo === 'mio'
+          ? {'doc-c': [-2 * DAY], 'doc-d': [400_000]}
+          : {'doc-d': [400_000]},
+      tras: modo === 'mio' ? [] : ['doc-c: lo mio nuevo | mi respaldo'],
+      local: 'lo mio nuevo',
+    });
+    expect({mio: await caso('mio'), otro: await caso('otro')}).toEqual({
+      mio: esperado('mio'),
+      otro: esperado('otro'),
+    });
+  });
+
   // R9-249 — la de R9-242 con un `stop()` en medio: W0 sube; W1 sale y queda
   // en vuelo, y el usuario edita W2 (la entrada lleva `own` [W0, W1]). La
   // sesion termina con W1 en vuelo, y el servidor la confirma despues. La
