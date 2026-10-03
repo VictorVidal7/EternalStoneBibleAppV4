@@ -570,7 +570,8 @@
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **251**. Detalle: `detail/S44-arreglos-s43.md`.
 >
 > **Sesión 45 (2026-10-02): revisión del diff de la 44**, solo en la terminal, sin agentes y sin
-> tocar código. Rama `docs/review-s45-diff-s44`, sin mergear hasta el OK de Victor.
+> tocar código. Rama `docs/review-s45-diff-s44`, mergeada y pusheada con el OK de Victor (`main` =
+> `b1f83f8`, CI verde en el log, run `37083545252`, 368/4540).
 >
 > - **`R9-251`: la guarda `ownUnread` decide, con daño** (`S45-1`). Con la tabla ilegible y doc-c
 >   en conflicto en memoria, sin la guarda la relectura descarta el sello de mi respaldo, y tras
@@ -583,6 +584,19 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Detalle:
 > `detail/S45-revision-del-diff-s44.md`.
+>
+> **Sesión 46 (2026-10-02): ARREGLOS de lo de la 45**, en el mismo chat que la 45, solo en la
+> terminal y sin agentes. Rama `fix/s46-arreglos-s45` (4 commits, `a79dcbe`..`e57fa16`), sin mergear
+> hasta el OK de Victor.
+>
+> - **Cerrados:** `R9-251` (la prueba de la guarda `ownUnread`, de `S45-1`; cae con `R247unread`
+>   por la consecuencia) y `R9-252` (decisión de Victor: aceptado, y escrito en el motor).
+> - **Comentarios:** el de `queryFloors` (`R9-247`: una entrega tardía puede leer el `uid` de la
+>   cuenta siguiente) y el de la prueba de la lectura sola (`R9-246`: cómo se llega al sello).
+> - **Sin la matriz entera:** el motor cambió solo en comentarios (el diff no tiene otra línea), y
+>   una prueba nueva solo puede sumar caídas. Ninguna ancla de la matriz toca esas líneas.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Detalle: `detail/S46-arreglos-s45.md`.
 
 ---
 
@@ -4731,7 +4745,7 @@ pending.remoteVersion.updatedAt`.
     escribe en orden. Se llega si esa escritura esperó la relectura de la tabla de OTRA colección
     (`persistQueue` vuelve sin escribir), si falló, o si la tabla de esta colección no se pudo leer
     en ese proceso (no se escribe). El comentario de la prueba («murió antes de escribir la
-    retirada de la llegada») podría decir eso.
+    retirada de la llegada») podría decir eso. **Lo dice desde la sesión 46** (`e57fa16`).
 
 - **`R9-247` (S43, `SyncEngine` / conflictos — P3) — 🐛 la excepción de `R9-243` para la reversión de
   un rechazo exime también la escritura del otro que esa reversión TRAE: si R2 (bajo el piso) llegó
@@ -4797,7 +4811,8 @@ pending.remoteVersion.updatedAt`.
       relectura de la tabla, y esa es la guarda `ownUnread` (`R9-251`).
     - **El comentario de `queryFloors`** («one that arrives after a `stop()` has no `uid`»): si ya
       entró otra cuenta, una entrega tardía lee su `uid`. La conclusión vale igual: ninguna
-      anotación de esa cuenta tiene el reloj de ese payload.
+      anotación de esa cuenta tiene el reloj de ese payload. **Lo dice desde la sesión 46**
+      (`70f8b71`).
 
 - **`R9-248` (S43, `SyncEngine` / conflictos — P3) — 🐛 cuando el rechazo DESCARTA la escritura
   (`MAX_RETRY_ATTEMPTS`), su reversión llega «no mía» (la entrada ya salió de la cola) y retira al
@@ -4925,6 +4940,12 @@ pending.remoteVersion.updatedAt`.
       reversión no retiraba al llegar. La guarda conserva eso con la tabla sin leer.
     - **Propuesta:** la guarda se queda; `S45-1` pasa a ser su prueba (con el control en la misma
       aserción), y debe caer con `R247unread`.
+  - **✅ Cerrado en la sesión 46** (`a79dcbe`): la prueba, de `S45-1`, con los controles del
+    mecanismo en la misma aserción (el conflicto en memoria al enganchar, la relectura que todavía
+    no empezó al llegar la reversión y que el ack de Wd dispara). Cae con `R247unread` solo ella
+    (264/265), por la consecuencia: la tabla queda sin doc-c y, tras reiniciar, «lo mio nuevo | mi
+    respaldo»; el control `otro` no cambia (`_scratch/S46-rev251-R247unread.out.txt`, y sobre el
+    árbol final, `S46-rev251-R247unread-final.out.txt`).
 
 - **`R9-252` (S45, `SyncEngine` / conflictos — P3) — 🐛 una escritura mía del doc que sube mientras
   su conflicto espera pisa «lo suyo» en la nube. El conflicto sigue en la sesión, pero tras reiniciar
@@ -4950,6 +4971,12 @@ pending.remoteVersion.updatedAt`.
     volver a mostrarlo tras reiniciar si la entrega es mía. Es una decisión de Victor: guardar en
     disco la copia del otro mientras el conflicto espera, o aceptar que una escritura mía con el
     conflicto pendiente lo cierra en el próximo reinicio.
+  - **✅ Cerrado en la sesión 46 por decisión de Victor: ACEPTADO** (`5a2c377`, solo un
+    comentario). Guardar «lo suyo» en disco sería una tabla más, con sus propios casos (ilegible,
+    otra cuenta, relectura), como la de sellos de `R9-193`, que trajo una docena de hallazgos. Es
+    raro (editar durante un conflicto y reiniciar antes de elegir), y en la sesión keepTheirs lo
+    devuelve (`R9-161`). El comentario de la rama del conflicto retenido de `applyRemoteChange`
+    lo dice. Las pruebas de `R9-245` y `R9-248` ya lo esperan así.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

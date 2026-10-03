@@ -579,8 +579,22 @@
 > - **Sin daño:** el piso de `queryFloors`, la anotación del rechazo, el ack de `R9-249` en disco y
 >   las pruebas nuevas (`attempts = 7` equivale a ocho rechazos de verdad, `S45-2`).
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Rama `docs/review-s45-diff-s44`, sin
-> mergear hasta el OK de Victor. Detalle: `detail/S45-revision-del-diff-s44.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Rama `docs/review-s45-diff-s44`: mergeada
+> y pusheada con el OK de Victor (`main` = `b1f83f8`, CI verde en el log, run `37083545252`,
+> 368/4540). Detalle: `detail/S45-revision-del-diff-s44.md`.
+>
+> **Sesión 46 (2026-10-02): ARREGLOS de lo de la 45**, en el mismo chat, solo en la terminal y sin
+> agentes.
+>
+> - **Cerrados**, un commit por hallazgo en `fix/s46-arreglos-s45` (`a79dcbe`..`e57fa16`):
+>   `R9-251` (la prueba de la guarda `ownUnread`, de `S45-1`; cae con `R247unread`) y `R9-252`
+>   (aceptado por Victor y escrito en el motor). Y dos comentarios: `queryFloors` (`R9-247`) y la
+>   prueba de la lectura sola (`R9-246`).
+> - **Sin la matriz:** el motor cambió solo en comentarios.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Ramas `fix/s46-arreglos-s45` y
+> `docs/review-s46-fix-s45`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S46-arreglos-s45.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1105,6 +1119,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
       `R9-251`, el conflicto en memoria en vez de retenido);
     - **lo que una prueba da por esperado también se revisa** (el «tras reiniciar, ningún
       conflicto» de `R9-245` y `R9-248` es `R9-252`).
+
+- **Sesión 46 — 2026-10-02. Arreglos de lo de la 45.** En el mismo chat que la 45, solo en la
+  terminal y sin agentes.
+  - **Cómo se trabajó:** un commit por hallazgo en `fix/s46-arreglos-s45`; la prueba nueva, vista
+    caer con su pieza en la suite de sync entera, también sobre el árbol final.
+  - **Resultado:** 2 cerrados (`R9-251`; `R9-252`, aceptado por Victor) y dos comentarios. Queda 1
+    P0 abierto.
+  - **Detalle: `detail/S46-arreglos-s45.md`.**
+  - **La lección:** una decisión de aceptar un daño también se escribe donde ocurre (`R9-252`, en
+    la rama del conflicto retenido).
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
