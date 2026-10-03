@@ -451,14 +451,24 @@ export class SyncEngine {
    * phone only. While it is unread, no write takes the queue: `persistQueue`
    * reads it again first (`rereadQueue`, and every `start()` does too), and
    * the entries on disk join the ones in memory. Until then, the entries on
-   * disk are neither counted (`pendingWrites`) nor pushed, and `stop()`
-   * writes the own stamps without the queue.
-   * Not forever: if the read a write waits for fails too (the third, after
-   * the hydration and the start), the queue is written from memory, as
-   * before, and the entries on disk are lost. A read can fail every time
-   * (Android reads a value through a `CursorWindow`, 2 MB, and a queue a
-   * bulk push filled offline can be bigger): waiting longer kept every later
-   * edit off disk, for good, and gained nothing.
+   * disk are not counted (`pendingWrites`) nor pushed, nor seen by what reads
+   * the queue (`hasQueuedWrite`, `isOwnCopy`), and `stop()` writes the own
+   * stamps without the queue.
+   * Not forever: if the read a write waits for fails too, the queue is
+   * written from memory, as before, and the entries on disk are lost. That
+   * read is the third (after the hydration and the start), or the second
+   * when the write arrives while the one of `start()` is on its way (R9-258).
+   * A read can fail every time (Android reads a value through a
+   * `CursorWindow`, 2 MB, and a queue a bulk push filled offline can be
+   * bigger): waiting longer kept every later edit off disk, for good, and
+   * gained nothing.
+   * R9-255 — accepted (S51): while that read is on its way, the disk holds
+   * neither the write that waits nor the drop of the entries it made stale
+   * (`queueTouched` lives in memory). A process that dies there left the old
+   * entry to go up over the new one after the restart, and a new one not yet
+   * pushed never went up. The window is one read of local storage, after two
+   * that failed; keeping that state on disk too would be one more key with
+   * cases of its own (unreadable, another account), like the own stamps.
    * A queue that is not JSON reads the same every time: it is read as empty
    * (`parseQueue`).
    */
@@ -470,12 +480,16 @@ export class SyncEngine {
   /**
    * R9-212 — uid + `suppressKey` of each doc whose local copy this process
    * changed while the queue was not read yet (R9-254: the first read on its
-   * way) or unread: an edit queued (whether or not it
-   * left the queue since), or a copy applied from the cloud. An entry on disk
-   * of one of these docs is older than the copy here, and `set` has no
-   * guard: pushed after that, it took the cloud back to it. The read drops
-   * it (the one in memory, if any, takes its clocks, as `upsertQueueEntry`
-   * does).
+   * way) or unread: an edit queued (whether or not it left the queue since),
+   * or a copy applied from the cloud. An entry on disk of one of these docs
+   * lost to the copy here (a later edit, or LWW), and `set` has no guard:
+   * pushed after that, it took the cloud back to it. The read drops it (the
+   * one in memory, if any, takes its clocks, as `upsertQueueEntry` does).
+   * R9-258 — not always older, though: with no local copy there is no LWW,
+   * and a copy older than a tombstone on disk is applied (the tombstone is
+   * not in memory to stop it, R9-256). The read drops the tombstone too, and
+   * the delete is lost, as it was before R9-212: it takes the hydration and
+   * the read of `start()` both failing.
    */
   private queueTouched = new Set<string>();
   private flushInFlight = false;
@@ -1100,7 +1114,8 @@ export class SyncEngine {
   /**
    * R9-212 — read the queue again, and join its entries to the ones in
    * memory: the disk still holds what it held when the process started (no
-   * write took the queue since). The queue is every account's, not the
+   * write took the queue since, R9-254: not even one queued while the first
+   * read was on its way). The queue is every account's, not the
    * session's: a read that is back after a `stop()` still joins.
    */
   private async readQueueAgain(): Promise<void> {
