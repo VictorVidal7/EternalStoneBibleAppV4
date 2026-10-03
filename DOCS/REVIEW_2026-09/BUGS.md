@@ -625,7 +625,8 @@
 >
 > **Sesión 49 (2026-10-03): ARREGLOS de `R9-212` y `R9-214`**, en un chat nuevo, solo en la
 > terminal y sin agentes. Rama `fix/s49-arreglos` (3 commits: `024bef8`, `d3e45a7` y `f287fc6`),
-> sin mergear hasta el OK de Victor.
+> mergeada y pusheada con el OK de Victor (`main` = `d976c2d`, CI verde en el log, run
+> `37112335538`, 368/4551).
 >
 > - **Cerrados:** `R9-212` (P2: la cola ilegible al hidratar se relee y se une, en vez de
 >   reescribirse sin sus entradas; 9 pruebas) y `R9-214` (P3: el bulk push de favoritos lee las
@@ -635,6 +636,26 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Detalle:
 > `detail/S49-arreglos-r212-r214.md`.
+>
+> **Sesión 50 (2026-10-03): revisión del diff de la 49**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. Rama `docs/review-s50-diff-s49`, sin mergear hasta el OK de
+> Victor.
+>
+> - **5 nuevos, `R9-254`..`R9-258`:**
+>   - `R9-254` (P3, lo abrió `R9-212`): una edición hecha durante la hidratación que falla sale de
+>     memoria;
+>   - `R9-255` (P3, lo abrió `R9-212`): mientras la relectura no vuelve, el disco guarda la entrada
+>     vieja de un doc que ya subió más nuevo, y tras morir el proceso sube encima;
+>   - `R9-256` (**P2, anterior a la 49**, con la cola legible): una lápida en cola y una copia del
+>     otro más vieja que el borrado. La fila resucita aquí, y la nube queda borrada;
+>   - `R9-257` (P3, lo abrió `R9-214`): un fallo de `getFavorites()` en el bulk push graba el flag
+>     `'2'` sin subir nada;
+>   - `R9-258` (P3): los comentarios de la 49, medidos caso por caso.
+> - Cada «¿lo abrió la 49?», con el motor de `8f59942`. La pieza `R212` no equivale a quitar el
+>   arreglo cuando se escribe durante la hidratación.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **258**. Detalle:
+> `detail/S50-revision-del-diff-s49.md`.
 
 ---
 
@@ -3783,6 +3804,9 @@ pending.remoteVersion.updatedAt`.
     - **Coste:** con la relectura que también falla, las entradas de disco se pierden, como antes.
       Mientras la cola no se lee, la UI no las cuenta.
     - **Lo que encontró el control:** un disparador común de `R9-126`, anotado ahí.
+    - **⚠️ Sesión 50:** el arreglo abrió `R9-254` (una edición durante la hidratación que falla
+      sale de memoria) y `R9-255` (la entrada vieja sigue en disco hasta la unión), y cuatro de sus
+      comentarios no se sostienen caso por caso (`R9-258`).
 
 - **`R9-213` (S34, `SyncEngine` / conflictos — P3) — 🐛 keepTheirs de un conflicto registrado contra
   una copia local que el servidor YA había tomado no sube «lo suyo».** MEDIDO en el mock (S34-A2,
@@ -3813,6 +3837,8 @@ pending.remoteVersion.updatedAt`.
     misma. Prueba: 1, en `favoritesGetLocalRow.test.tsx`, con el provider y el motor reales y
     `initialize()` detenido. Cae sin el arreglo y sin el `initialize()`, por la consecuencia: la
     nube sin el favorito.
+  - **⚠️ Sesión 50:** sin `catch`, un fallo de `getFavorites()` en el bulk push graba el flag `'2'`
+    sin subir nada (`R9-257`, medido). Antes subía desde el ref, si la carga ya había terminado.
 
 - **`R9-215` (S35, `SyncEngine` / cola — P3) — 🐛 una relectura de la tabla de sellos que sigue en
   vuelo tras un `stop()` deja sin escribir la cola de la sesión siguiente.** MEDIDO en el mock
@@ -5081,6 +5107,107 @@ pending.remoteVersion.updatedAt`.
     (`_scratch/S48-SyncEngine-final.ts.txt`), las piezas aplican y la prueba de `R9-251` sigue
     cayendo con `R247unread`.
 
+- **`R9-254` (S50, `SyncEngine` / cola — P3) — 🐛 con la lectura de la hidratación fallando, una
+  edición hecha durante esa lectura sale de memoria, y si la relectura también falla se pierde.**
+  MEDIDO en el mock (`_scratch/S50-sonda.body.txt`, `HIDRATA`; `S50-sonda-hoy.out.txt`). **Lo
+  abrió `R9-212`** (medido con el motor de `8f59942`, `S50-sonda-s48.out.txt`).
+  - `start()` fija `this.uid` antes de `await this.hydrateQueue()`, así que `queueWrite` encola
+    durante la lectura. Desde la 49, `hydrateQueue` hace `this.queue = entries` también cuando
+    `getItem` falla (`entries` = `[]`). Antes, en el fallo, la memoria no se tocaba.
+  - **Medido** (`doc-q` en disco; `doc-w`, escrita durante la hidratación sin red; `doc-z`,
+    después): con 3 lecturas fallidas, `{"trasArranque":{"memoria":[],"disco":["doc-w"]},
+"final":{"disco":["doc-z"]}}`, y en `8f59942`, `["doc-w","doc-z"]`. Con 2 (`dos`), la unión la
+    recupera del disco: `["doc-w","doc-z"]`. **La edición queda solo en local y no sube nunca.**
+  - **Preexistente, en el mismo orden:** el `multiSet` de esa edición reescribe la cola de disco
+    antes de que vuelva la lectura. `doc-q`, justo la entrada que `R9-212` protege, se pierde en
+    `dos` y en `tres`, como en `8f59942`. Con la cola legible, la hidratación pisa la memoria y se
+    pierde `doc-w` (`legible`). Es la familia de `R9-115`.
+  - **La pieza `R212` no lo revierte:** solo quita `this.queueUnread = true`, y con ella `HIDRATA`
+    da lo mismo que hoy.
+  - P3: hacen falta 3 lecturas fallidas y una edición en los milisegundos de la primera. Un fallo
+    determinista (un valor más grande que la `CursorWindow`) deja de fallar tras ese `multiSet`, que
+    escribe un valor chico.
+  - **Arreglo (hipótesis, sin medir):** la de `R9-115`, no aceptar escrituras hasta hidratar (el
+    `queueWrite` de ese rato espera la hidratación). Cerraría las dos mitades. Lo mínimo para la
+    mitad nueva: en el fallo, conservar la memoria.
+
+- **`R9-255` (S50, `SyncEngine` / cola — P3) — 🐛 mientras la relectura que espera una escritura
+  no vuelve, el disco guarda la entrada vieja de un doc que ya subió más nuevo; si el proceso muere
+  ahí, tras reiniciar la vieja sube encima.** MEDIDO en el mock (`S50-sonda.body.txt`,
+  `VENTANA`). **Lo abrió `R9-212`** (en `8f59942`, la nube queda en la nueva).
+  - Con la cola sin leer, `persistQueue` no escribe hasta la unión, y la marca que descarta la
+    entrada vieja (`queueTouched`) vive solo en memoria.
+  - **Medido** (`doc-q` «q vieja» en disco; la hidratación y la relectura de `start()` fallan; el
+    usuario escribe «q nueva», que sube y se confirma, con la relectura todavía en vuelo; `stop()` y
+    el proceso muere): tras reiniciar, **local «q nueva», nube «q vieja».** El control, con la
+    relectura ya vuelta antes del `stop()` (`abierta`), da la nube en «q nueva».
+  - **La tabla de sellos** que escribe `stop()` queda en `null` (el doc no está en conflicto). Lo
+    que se contradice es la cola de disco y la nube, no el sello.
+  - **Sin medir, por lectura:** lo mismo con una escritura sin red. La edición nueva no llega a
+    disco antes de la unión, así que tras reiniciar no sube nunca, y la vieja sube.
+  - P3: la ventana es lo que tarda la lectura frente a la subida y su ack. Un fallo determinista
+    vuelve rápido y se rinde, y entonces escribe la memoria.
+  - **Arreglo (hipótesis, sin medir):** decirlo en el comentario de `queueUnread`, o no subir un doc
+    marcado hasta que la unión esté escrita. Lo segundo no salva la escritura sin red.
+
+- **`R9-256` (S50, `SyncEngine` / borrados — P2) — 🐛 una lápida en cola y una copia del otro más
+  vieja que el borrado: la fila resucita en este teléfono, y la nube y el otro teléfono la tienen
+  borrada.** MEDIDO en el mock (`_scratch/S50-sonda-borra.body.txt`, `BORRA`;
+  `S50-borra-hoy.out.txt`), **con la cola legible**, igual en `8f59942` (`S50-borra-s48.out.txt`).
+  - **El caso:** «d» subida; sin red, el usuario la borra (la lápida, con el reloj de ahora); el
+    otro había escrito R antes del borrado, y este teléfono no la vio. Al volver, R llega al
+    enganchar.
+  - **El mecanismo, por lectura:** sin copia local, `applyRemoteChange` no compara relojes y aplica
+    R. La salida `ownQueued && !local` vale solo para la lectura de un `removed`. La lápida sube, y
+    su eco llega con ella todavía en cola: es propio (`hasQueuedWrite` + `isOwnCopy`) y no se aplica.
+  - **Medido:** `{"legible":{"local":"R","nube":"d (borrado)"}}`, y lo mismo con la relectura de
+    `start()` que vuelve (`uno`). Por lectura, no se cura solo: el eco de la lápida ya pasó, y la
+    copia borrada no vuelve a llegar mientras nadie cambie el doc (sin medir tras reiniciar).
+  - **Con la cola sin leer toda la sesión** (`dos`), la unión descarta la lápida, porque el doc está
+    marcado: **local R, nube R**, y el borrado se pierde. En `8f59942` da lo mismo (`uno` y `dos`).
+  - P2: no hace falta ningún fallo. Basta un borrado sin red y una edición del otro, anterior al
+    borrado, que este teléfono no vio.
+  - **Arreglo (hipótesis, sin medir):** sin copia local y con una entrada de esta cuenta en cola
+    más nueva que la copia, no aplicar (como la salida de `ownQueued`). Antes, preguntar por una
+    copia MÁS nueva que la lápida (el otro la recreó después): ahí la lápida sube encima, y eso es
+    `R9-126`.
+
+- **`R9-257` (S50, favoritos / sync — P3) — 🐛 un fallo de `getFavorites()` en el bulk push graba
+  el flag `'2'` sin subir nada, y los favoritos no suben nunca por esa vía.** MEDIDO con el provider
+  y el motor reales (`_scratch/S50-fav.cjs.txt`, `S50-fav.out.txt`). **Lo abrió `R9-214`** (con el
+  contexto de `8f59942`, `S50-fav-s48.out.txt`, subía desde el ref).
+  - `pullAllLocal` ya no tiene `catch`. `maybeRunInitialBulkPush` registra el fallo y sigue, y
+    graba `BULK_PUSH_DONE_VALUE` igual.
+  - **Medido** (la carga del provider ya terminó; `getFavorites()` falla una vez): `{"falla":
+{"cargados":1,"enSesion":{"nube":null,"flag":"2"},"exportados":[],"trasOtroStart":null}}`. El
+    control sano: nube «lo mio» y `exportados` 1.
+  - **`exportLocalData`** salta el adaptador. Con los favoritos solos, el total es 0: no hay diálogo
+    de migración, y la pregunta del dueño anterior (`R9-166`) no se hace.
+  - **Preexistente en el motor:** el flag se graba aunque un adaptador haya fallado. Los de
+    subrayados y notas atrapan su propio fallo y devuelven `[]`, así que el motor ni se entera.
+  - P3: hace falta un fallo de SQLite justo en el bulk push, con la carga ya terminada.
+  - **Arreglo (hipótesis, sin medir):** no grabar el flag si un `pullAllLocal` lanzó (el próximo
+    `start()` reintenta; los duplicados son idempotentes, lo dice el propio motor). Para subrayados
+    y notas, que lancen en vez de devolver `[]`.
+
+- **`R9-258` (S50, `SyncEngine` / comentarios de `R9-212` — P3) — 🐛 cuatro afirmaciones de los
+  comentarios nuevos y dos del detalle de la 49 no se sostienen caso por caso.** MEDIDO
+  (`S50-sonda.body.txt`, `S50-sonda-borra.body.txt`), salvo lo que se dice.
+  - `queueUnread`: se rinde en «la tercera» lectura. Con una escritura durante la relectura de
+    `start()`, en la segunda (`RINDE·durante`: `lecturas: 2`, `doc-q` perdida; el control
+    `despues`, 3 lecturas, y `doc-q` queda).
+  - `queueUnread`: las de disco «ni se cuentan ni se suben». Tampoco las ven `hasQueuedWrite` ni
+    `isOwnCopy` (por lectura, sin medir). Solo cuenta si también falla la relectura de `start()`.
+  - `queueTouched`: la entrada de disco de un doc marcado «es más vieja que la copia de aquí». Sin
+    copia local no hay LWW: la lápida más nueva que R se descarta (`R9-256`, `dos`).
+  - `readQueueAgain`: el disco tiene lo del arranque (ninguna escritura tomó la cola). Una
+    escritura durante la hidratación la tomó (`R9-254`: `["doc-w"]` en disco tras el arranque).
+  - Del detalle de la 49: la tabla dice que `R212` es «el arreglo entero» (deja la asignación de
+    `R9-254`), y el coste dice que la entrada descartada es «la que LWW ya perdió en el teléfono»
+    (sin copia local, no).
+  - **Propuesta:** corregir los cuatro comentarios cuando se arreglen `R9-254` y `R9-256` (los dos
+    cambian lo que dicen), y anotar el detalle de la 49 con esta entrada.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -5301,6 +5428,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **Arreglo:** que la hidratación no pise una entrada en memoria más nueva (comparar `updatedAt`, o
   hidratar antes de aceptar escrituras).
+
+  **⚠️ Sesión 50:** desde `R9-212`, la hidratación también pisa la memoria cuando la lectura falla
+  (`R9-254`, medido). «Hidratar antes de aceptar escrituras» cerraría las dos.
 
 - **`R9-116` (S19, prueba de respaldo) — 🐛 la prueba de `R9-28` cubre 1 de los 4 providers del
   arreglo.** El arreglo suscribe a la señal de restauración (`subscribeBackupRestored`) a

@@ -621,8 +621,16 @@
 > Anotó en `R9-126` un disparador común, medido (local R, nube D).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **253**. Ramas `fix/s49-arreglos` y
-> `docs/review-s49-fix`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S49-arreglos-r212-r214.md`.
+> `docs/review-s49-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `d976c2d`, CI verde en
+> el log, run `37112335538`, 368/4551). Detalle: `detail/S49-arreglos-r212-r214.md`.
+>
+> **Sesión 50 (2026-10-03): revisión del diff de la 49**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. 5 nuevos (`R9-254`..`R9-258`). Dos los abrió `R9-212` (P3), uno
+> `R9-214` (P3), uno es anterior a la 49 (`R9-256`, P2: un borrado en cola y una copia del otro más
+> vieja que él), y uno junta los comentarios de la 49.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **258**. Rama `docs/review-s50-diff-s49`, sin
+> mergear hasta el OK de Victor. Detalle: `detail/S50-revision-del-diff-s49.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1182,6 +1190,15 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S49-arreglos-r212-r214.md`.**
   - **La lección:** una guarda que espera a releer necesita una salida, porque una lectura puede
     fallar siempre.
+
+- **Sesión 50 — 2026-10-03. Revisión del diff de la 49.** En un chat nuevo, solo en la terminal,
+  sin agentes y sin tocar código.
+  - **Cómo se trabajó:** una sonda por pregunta, cada una con su control en el mismo `it`
+    (`_scratch/S50-sonda.body.txt`, `S50-sonda-borra.body.txt`, `S50-fav.cjs.txt`). Cada «¿lo
+    abrió la 49?», con el motor y el contexto de `8f59942` (`S50-viejo.cjs.txt`).
+  - **Resultado:** 5 nuevos (`R9-254`..`R9-258`; uno P2, anterior a la 49). Queda 1 P0 abierto.
+  - **Detalle: `detail/S50-revision-del-diff-s49.md`.**
+  - **La lección:** una pieza que dice «el arreglo entero» se compara con el motor de antes.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
