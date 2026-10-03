@@ -1740,6 +1740,24 @@ describe('exportLocalData', () => {
     const data = await engine.exportLocalData();
     expect(data).toEqual([{collection: 'test', count: 2}]);
   });
+
+  it('R9-265: una coleccion cuyo pullAllLocal falla sale como no leida, no se omite', async () => {
+    const engine = new SyncEngine();
+    engine.register(makeAdapter().adapter);
+    engine.register(
+      makeAdapter({
+        collection: 'otra',
+        async pullAllLocal() {
+          throw new Error('SQLITE_BUSY');
+        },
+      }).adapter,
+    );
+    // Sin R9-265, `otra` no aparecia: con `test` vacia, el total 0 decia al
+    // dialogo de migracion que no habia nada que preguntar.
+    expect(await engine.exportLocalData()).toEqual([
+      {collection: 'otra', count: 0, unread: true},
+    ]);
+  });
 });
 
 describe('queueSkipNextBulkPush', () => {

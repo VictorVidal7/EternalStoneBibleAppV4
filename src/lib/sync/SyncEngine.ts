@@ -2754,10 +2754,15 @@ export class SyncEngine {
    * by the AuthContext migration dialog to tell the user "you have X
    * favorites / Y notes on this device — migrate them?".
    *
-   * Best-effort: adapters that throw are skipped, not propagated.
+   * Best-effort: adapters that throw are not propagated. R9-265 — they are
+   * listed as `unread` (count 0): a collection not read may hold rows, and
+   * left out, a total of 0 told the dialog there was nothing to ask about,
+   * while the bulk push retried it on the next start (R9-257) with no question.
    */
-  async exportLocalData(): Promise<Array<{collection: string; count: number}>> {
-    const out: Array<{collection: string; count: number}> = [];
+  async exportLocalData(): Promise<
+    Array<{collection: string; count: number; unread?: true}>
+  > {
+    const out: Array<{collection: string; count: number; unread?: true}> = [];
     for (const adapter of this.adapters.values()) {
       try {
         const rows = await adapter.pullAllLocal();
@@ -2770,6 +2775,7 @@ export class SyncEngine {
           collection: adapter.collection,
           error: err instanceof Error ? err.message : String(err),
         });
+        out.push({collection: adapter.collection, count: 0, unread: true});
       }
     }
     return out;

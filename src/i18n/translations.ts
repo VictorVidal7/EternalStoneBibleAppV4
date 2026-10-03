@@ -3960,6 +3960,8 @@ export const translations = {
       migrationTitle: '¿Migrar este dispositivo?',
       migrationBody:
         'Encontramos una cuenta de Google ya registrada. Tienes {{count}} cambios locales en este dispositivo. ¿Quieres migrarlos a esa cuenta?',
+      migrationBodyUnread:
+        'Encontramos una cuenta de Google ya registrada. No pudimos contar los cambios locales de este dispositivo. ¿Quieres migrarlos a esa cuenta?',
       migrationYes: 'Migrar',
       migrationNo: 'Solo iniciar sesión',
       migrationDoneToast: 'Datos locales migrados a tu cuenta',
@@ -10505,6 +10507,8 @@ export const translations = {
       migrationTitle: 'Migrate this device?',
       migrationBody:
         'We found an existing Google account. You have {{count}} local changes on this device. Do you want to migrate them to that account?',
+      migrationBodyUnread:
+        'We found an existing Google account. We could not count the local changes on this device. Do you want to migrate them to that account?',
       migrationYes: 'Migrate',
       migrationNo: 'Just sign in',
       migrationDoneToast: 'Local data migrated to your account',

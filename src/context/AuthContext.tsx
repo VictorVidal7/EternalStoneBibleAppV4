@@ -283,13 +283,15 @@ export function AuthProvider({children}: AuthProviderProps) {
   // Themed replacement for the old Alert.alert-wrapped migration prompt
   // (UX audit): the dialog is state-driven, but the calling code below still
   // needs to `await` a yes/no answer, so a pending resolver bridges the two.
+  // R9-265 — `count` is null when a collection could not be read: the
+  // dialog asks without a number.
   const [migrationPrompt, setMigrationPrompt] = useState<{
-    count: number;
+    count: number | null;
   } | null>(null);
   const migrationResolveRef = useRef<((wantMigrate: boolean) => void) | null>(
     null,
   );
-  const askMigration = useCallback((count: number): Promise<boolean> => {
+  const askMigration = useCallback((count: number | null): Promise<boolean> => {
     return new Promise(resolve => {
       migrationResolveRef.current = resolve;
       setMigrationPrompt({count});
@@ -401,7 +403,11 @@ export function AuthProvider({children}: AuthProviderProps) {
       try {
         const localData = await engine.exportLocalData();
         const total = localData.reduce((acc, d) => acc + d.count, 0);
-        if (total === 0 || (await askMigration(total))) return false;
+        // R9-265 — a collection that could not be read may hold rows: a total
+        // of 0 does not say there is nothing to ask about.
+        const unread = localData.some(d => d.unread);
+        if (total === 0 && !unread) return false;
+        if (await askMigration(unread ? null : total)) return false;
         logger.info(
           'AuthProvider: declined migrating a previous owner’s local data',
           {component: 'AuthProvider', localItems: total},
@@ -504,8 +510,10 @@ export function AuthProvider({children}: AuthProviderProps) {
           try {
             const localData = await engine.exportLocalData();
             const total = localData.reduce((acc, d) => acc + d.count, 0);
-            if (total > 0) {
-              const wantMigrate = await askMigration(total);
+            // R9-265 — as in `declinesPreviousOwnersData`.
+            const unread = localData.some(d => d.unread);
+            if (total > 0 || unread) {
+              const wantMigrate = await askMigration(unread ? null : total);
               if (!wantMigrate) {
                 engine.queueSkipNextBulkPush();
                 logger.info('AuthProvider: user declined migration', {
@@ -709,12 +717,14 @@ export function AuthProvider({children}: AuthProviderProps) {
         visible={!!migrationPrompt}
         title={t.conflicts.migrationTitle}
         message={
-          migrationPrompt
-            ? t.conflicts.migrationBody.replace(
-                '{{count}}',
-                String(migrationPrompt.count),
-              )
-            : ''
+          !migrationPrompt
+            ? ''
+            : migrationPrompt.count === null
+              ? t.conflicts.migrationBodyUnread
+              : t.conflicts.migrationBody.replace(
+                  '{{count}}',
+                  String(migrationPrompt.count),
+                )
         }
         confirmLabel={t.conflicts.migrationYes}
         cancelLabel={t.conflicts.migrationNo}

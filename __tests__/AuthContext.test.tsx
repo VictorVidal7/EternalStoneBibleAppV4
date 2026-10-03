@@ -623,6 +623,76 @@ describe('AuthProvider', () => {
       mockEngineStub = null;
     });
 
+    it('R9-265: con una coleccion que no se pudo leer, un total de 0 no basta para no preguntar', async () => {
+      const engine = freshEngine({count: 0});
+      (engine.exportLocalData as jest.Mock).mockImplementation(async () => [
+        {collection: 'notes', count: 0, unread: true},
+      ]);
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      const {ref, onReady} = captureAuthApi();
+      const {getByText, queryByText} = render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockCurrentUser = {uid: 'anon-beto', isAnonymous: true};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-beto'));
+
+      // Beto enlaza una cuenta nueva sobre el almacen de Ana, y las notas no
+      // se pudieron leer. Sin R9-265 no habia pregunta: el enlace seguia, y el
+      // bulk push subia las notas de Ana a la cuenta de Beto en cuanto se
+      // pudieran leer (el reintento de R9-257).
+      let signInPromise!: Promise<AuthUser | null>;
+      act(() => {
+        signInPromise = ref.current!.signInWithGoogle();
+      });
+      const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
+      const sinNumero = queryByText(/No pudimos contar los cambios locales/);
+      await act(async () => {
+        fireEvent.press(cancelBtn);
+        await signInPromise;
+      });
+      expect({
+        sinNumero: sinNumero !== null,
+        exportados: engine.exportLocalData.mock.calls.length, // CONTROL
+        enlazado: mockLinkWithCredential.mock.calls.length,
+        saltar: engine.queueSkipNextBulkPush.mock.calls.length,
+      }).toEqual({sinNumero: true, exportados: 1, enlazado: 1, saltar: 1});
+    });
+
+    it('R9-265: lo mismo en la rama de colision (la pregunta del Sprint 43)', async () => {
+      const engine = freshEngine({count: 0});
+      (engine.exportLocalData as jest.Mock).mockImplementation(async () => [
+        {collection: 'notes', count: 0, unread: true},
+      ]);
+      const {ref, onReady} = captureAuthApi();
+      const {getByText} = render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockCurrentUser = {uid: 'anon-ana', isAnonymous: true};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-ana'));
+      mockLinkWithCredential.mockRejectedValueOnce(collision());
+      nextSignInLandsAs('ana-uid');
+      let signInPromise!: Promise<AuthUser | null>;
+      act(() => {
+        signInPromise = ref.current!.signInWithGoogle();
+      });
+      const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
+      await act(async () => {
+        fireEvent.press(cancelBtn);
+        await signInPromise;
+      });
+      expect({
+        enlazado: mockLinkWithCredential.mock.calls.length, // CONTROL: colision
+        exportados: engine.exportLocalData.mock.calls.length,
+        saltar: engine.queueSkipNextBulkPush.mock.calls.length,
+      }).toEqual({enlazado: 1, exportados: 1, saltar: 1});
+    });
+
     it('walks the three branches — collision, no anonymous user, link success — and each one hands the store to the next guard', async () => {
       const localNotes = {count: 0};
       const engine = freshEngine(localNotes);
