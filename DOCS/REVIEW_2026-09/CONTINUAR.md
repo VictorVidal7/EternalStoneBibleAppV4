@@ -1,14 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-03, fin de la sesión 52.** La 52 hizo el (af) en un chat nuevo,
-> en la terminal, sin agentes y sin tocar código: revisó el diff de la 51 y registró 7 hallazgos P3
-> (`R9-260`..`R9-266`), tres de ellos abiertos por la 51.
+> **Última actualización: 2026-10-03, fin de la sesión 53.** La 53 hizo el (ag) en un chat nuevo,
+> en la terminal y sin agentes: arregló lo de la 52 (`R9-260`, `R9-262`..`R9-266`; aceptó `R9-261`)
+> e implementó `R9-38` (el último P0) y `R9-59` (la Mesa por cuenta) con la regla de Victor (§7).
+> Registró 2 hallazgos por lectura (`R9-267`, `R9-268`).
 >
-> La 51 ya está mergeada y pusheada (`main` = `3e4b758`, y encima `8e5cfaf`, la decisión de
-> `R9-59`; CI verde en el log, run `37148855758`, 369/4558). La rama de la 52
-> (`docs/review-s52-diff-s51`) va **sin mergear hasta el OK de Victor**. Queda **1 P0 abierto**
-> (`R9-38`), y hay 266 hallazgos. **Lo siguiente:** la 53 arregla lo de la 52 e implementa `R9-59`
-> y `R9-38` (mensaje (ag), en `_scratch/S53-PROMPT.md`).
+> La 52 ya está mergeada y pusheada (`main` = `cc005d2`, CI verde en el log, run `37153675553`,
+> 369/4558). Las ramas de la 53 (`fix/s53-arreglos-s52`, `fix/s53-r59-r38` y
+> `docs/review-s53-fix`, apiladas) van **sin mergear hasta el OK de Victor**. **No queda ningún P0
+> abierto**, y hay 268 hallazgos. **Lo siguiente:** la 54 revisa el diff de la 53 (mensaje (ah), en
+> `_scratch/S54-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -479,10 +480,15 @@ Y sus arreglos (la (ab), sesión 48, igual). Y los arreglos de `R9-212` y `R9-21
 sesión 49, en un chat nuevo, con `_scratch/S49-PROMPT.md`). Y la revisión del diff de la 49 (la
 (ad), sesión 50, en un chat nuevo, con `_scratch/S50-PROMPT.md`). Y sus arreglos (la (ae), sesión
 51, en el mismo chat, con `_scratch/S51-PROMPT.md`). Y la revisión del diff de la 51 (la (af),
-sesión 52, en un chat nuevo, con `_scratch/S52-PROMPT.md`). **Lo siguiente es el (ag).**
+sesión 52, en un chat nuevo, con `_scratch/S52-PROMPT.md`). Y sus arreglos, con `R9-59` y
+`R9-38` (la (ag), sesión 53, en un chat nuevo, con `_scratch/S53-PROMPT.md`). **Lo siguiente es el
+(ah).**
 
-**(ag) Sesión 53: arreglar lo de la 52 (`R9-260`..`R9-266`) e implementar `R9-59` y `R9-38`.** El
-mensaje está en `_scratch/S53-PROMPT.md`, que manda sobre este archivo.
+**(ah) Sesión 54: revisar el diff de la 53** (`cc005d2..a85df96`, las dos ramas de código). El
+mensaje está en `_scratch/S54-PROMPT.md`, que manda sobre este archivo.
+
+**(ag) Sesión 53: arreglar lo de la 52 e implementar `R9-59` y `R9-38` — ya HECHO en la sesión
+53, en un chat nuevo, en la terminal y sin agentes.** El mensaje está en `_scratch/S53-PROMPT.md`.
 
 **(af) Sesión 52: revisar el diff de la 51 — ya HECHO en la sesión 52, en un chat nuevo, en la
 terminal y sin agentes.** El mensaje está en `_scratch/S52-PROMPT.md`.
@@ -1880,19 +1886,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 52 (2026-10-03).**
+**Medido al cerrar la sesión 53 (2026-10-03).**
 
-- **`main` = `origin/main` = `8e5cfaf`** (el checkpoint de la 51, `3e4b758`, y encima la decisión
-  de `R9-59`, solo docs; el último código es `6d834c5`). **CI verificado en el log:** run
-  `37148855758`, 3 jobs verdes, Node v24.21.0, 369/4558, cero «failed to run». Las ramas de la 51
-  se borraron.
-- **Una rama de la 52, sin mergear a propósito y sin pushear:** `docs/review-s52-diff-s51` (el
-  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
-  incluye.
-- **Los worktrees:** ninguno.
+- **`main` = `origin/main` = `cc005d2`** (el checkpoint de la 52, solo docs; el último código en
+  `main` es `6d834c5`). **CI verificado en el log:** run `37153675553`, 3 jobs verdes, Node
+  v24.21.0, 369/4558, cero «failed to run». La rama de la 52 se borró.
+- **Tres ramas de la 53, apiladas, sin mergear a propósito y sin pushear:**
+  `fix/s53-arreglos-s52` (7 commits, `6b768eb`..`3f73e50`), encima `fix/s53-r59-r38` (`ea182dc`,
+  `a85df96`), y encima `docs/review-s53-fix` (el checkpoint). Se mergean en fast-forward con el OK
+  de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s53-matriz`, se borró al terminar,
+  con `.Delete()` sobre su junction a `node_modules` primero).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 52):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 53):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2207,6 +2214,18 @@ Alternativas legítimas:
   espera a otra escritura retiene; no asienta.
 - **Una aceptación vale para la ventana que midió (sesión 52, `R9-261`).** `R9-255` se aceptó
   «tras dos lecturas fallidas», y la 51 abrió la misma ventana sin ninguna.
+- **Una escritura que espera una lectura previa se ordena con las que vienen detrás (sesión 53,
+  `R9-38`).** La edición sin sesión espera a leer el dueño; la de la sesión que llegaba después
+  subía y salía de la cola antes, y la vieja subía encima. Ninguna comprobación sobre la cola lo ve
+  después: se ordenan en la misma cadena.
+- **Un marcador que significa algo no usa un valor vacío (sesión 53).** `''` vuelve como `null` en
+  el mock de AsyncStorage, y un dueño nulo significa «no preguntar». Se usa un valor explícito que
+  no es de nadie (`(deleted)`).
+- **Antes de arreglar un camino del motor, comprobá que los llamadores llegan a él (sesión 53).**
+  Con la sesión cerrada el motor existe, parado: si `getSyncEngine()` hubiera devuelto `null`, el
+  arreglo de `R9-38` habría pasado sus pruebas sin servir en la app.
+- **Una guarda que pasa de asentar a retener puede cubrir a otra en su prueba (sesión 53).**
+  `S176cola` perdió el testigo de `R9-197`; con `R256` vuelve a caer. Medilas juntas.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -2448,6 +2467,8 @@ Alternativas legítimas:
   - **El cómo es técnico y está delegado:** qué pasa con los datos de la Mesa sin dueño de
     antes, con el respaldo exportado, y con qué se registra lo editado sin sesión. Sin repetir el
     bulk push entero (`R9-126`). Se decide midiendo, y se deja escrito.
+  - **IMPLEMENTADOS en la sesión 53** (`ea182dc`, `a85df96`): el cómo está en las entradas de
+    `R9-38` y `R9-59`, en `SyncEngine.queueWrite` y en `src/features/study/prepAccount.ts`.
 
 - **Las 2 preguntas que dejó abierta la sesión 3 están RESPONDIDAS** (ofrenda = premium para
   siempre; `R9-13` no está en producción). No las vuelvas a plantear.
@@ -2506,6 +2527,10 @@ Alternativas legítimas:
   junto con su gemelo: `claimLocalStore` también se traga el fallo al ESCRIBIR el marcador.
 - ~~**`R9-59`:** ¿«device-local» debe significar también «visible para cualquiera que use el
   aparato»?~~ **Decidido el 2026-10-03:** la Mesa, por cuenta (ver la §7).
+- **`R9-268` (sesión 53):** a una cuenta que ya hizo su bulk push en este teléfono se le pregunta
+  «¿Migrar?», y «Migrar» no sube nada. ¿No se le pregunta (y se le dice que los datos locales no se
+  migran), o se migra solo lo que falta en su nube? Repetir el push entero no es una opción
+  (`R9-126`).
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
 

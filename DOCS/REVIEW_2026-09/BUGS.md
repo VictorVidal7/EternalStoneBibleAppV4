@@ -672,8 +672,8 @@
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **259**. Detalle: `detail/S51-arreglos-s50.md`.
 >
 > **Sesión 52 (2026-10-03): revisión del diff de la 51**, en un chat nuevo, solo en la terminal,
-> sin agentes y sin tocar código. Rama `docs/review-s52-diff-s51`, sin mergear hasta el OK de
-> Victor.
+> sin agentes y sin tocar código. Rama `docs/review-s52-diff-s51`: mergeada y pusheada con el OK
+> de Victor (`main` = `cc005d2`, CI verde en el log, run `37153675553`, 369/4558).
 >
 > - **7 nuevos, `R9-260`..`R9-266`, todos P3:**
 >   - `R9-260` (lo abrió `R9-254`): dos hidrataciones a la vez (`start`, `stop`, `start` con la
@@ -698,6 +698,26 @@
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **266**. Detalle:
 > `detail/S52-revision-del-diff-s51.md`.
+>
+> **Sesión 53 (2026-10-03): ARREGLOS de lo de la 52, y `R9-59` y `R9-38`**, en un chat nuevo,
+> solo en la terminal y sin agentes. Dos ramas apiladas, sin mergear hasta el OK de Victor:
+> `fix/s53-arreglos-s52` (7 commits, `6b768eb`..`3f73e50`) y, encima, `fix/s53-r59-r38` (`ea182dc`
+> y `a85df96`).
+>
+> - **Cerrados:** `R9-260` (una sola lectura de hidratación), `R9-262` (la guarda de `R9-256`
+>   retiene en vez de asentar), `R9-263` (con el flag ilegible no se repite el push), `R9-264` (el
+>   `pullAllLocal` de `memoryCards` espera a la carga), `R9-265` (una colección no leída no cuenta
+>   como «nada que migrar») y `R9-266` (los comentarios). **Aceptado:** `R9-261`, con el porqué en
+>   `persistQueue`.
+> - **`R9-38` (el último P0) y `R9-59`, cerrados con la regla de Victor:** lo editado sin sesión
+>   se encola para el dueño del almacén y sube cuando esa cuenta vuelve; otra cuenta solo recibe
+>   los datos locales por la migración, tras la pregunta. La Mesa se guarda por cuenta
+>   (`prepAccount.ts`).
+> - **2 nuevos:** `R9-267` (P2, por lectura: una lectura fallida del mazo lo deja en `{}` y se
+>   escribe encima) y `R9-268` (P3, por lectura: «Migrar» no migra nada a una cuenta que ya hizo
+>   su bulk push aquí).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **268**. Detalle: `detail/S53-arreglos-s52.md`.
 
 ---
 
@@ -1105,6 +1125,35 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   este arreglo.** Si vuelve a entrar la misma cuenta, se sube lo editado con la sesión cerrada; si
   entra otra, se le pregunta antes (como `R9-166`). El mecanismo está delegado, sin repetir el bulk
   push entero (`R9-126`): ver la §7 de `CONTINUAR.md`. Queda por arreglar.
+  **✅ ARREGLADO en la sesión 53** (`ea182dc`, rama `fix/s53-r59-r38`). **El cómo, decidido
+  midiendo:**
+  - Sin sesión, `queueWrite`/`queueDelete` encolan la entrada a nombre del dueño del almacén
+    (`@local_store_owner_uid`, la última cuenta que inició sesión aquí; la constante pasó a
+    `src/lib/sync/localStoreOwner.ts`). Espera como las de otra cuenta (`R9-22`) y sube cuando esa
+    cuenta arranca, como una edición hecha sin red: las mismas guardas (`R9-176`, `R9-245`), sin
+    bulk push (`R9-126`). La misma cuenta sube lo editado sin sesión, sin preguntar.
+  - Otra cuenta nunca recibe esas entradas: los datos locales le llegan solo por la migración, tras
+    la pregunta (`R9-23`, `R9-166`). Cuando el dueño vuelve, lo suyo sigue en cola a su nombre.
+  - Sin dueño (nunca se inició sesión aquí), no se encola nada: el primer inicio de sesión sube todo
+    con el bulk push.
+  - El dueño se lee una vez por proceso, o lo dice el `start()` (la cuenta que arranca es la que
+    `AuthContext` reclamó). Mientras se lee, las escrituras siguientes esperan detrás, las de la
+    sesión también: si no, una edición nueva podía subir y salir de la cola antes de que entrara la
+    vieja, y la vieja subía encima (medido: nube «viejo»).
+  - `deleteAccount` escribe `(deleted)` en el marcador, y el motor olvida al dueño: nada espera a la
+    cuenta borrada, y el inicio de sesión siguiente sigue preguntando. No `''`: el mock de
+    AsyncStorage lo devuelve como `null`, y un dueño nulo deja de preguntar.
+  - Cubre también lo editado durante el arranque en frío, antes del `start()`.
+  - El motor existe aunque no haya sesión (`SyncEngineContext` lo crea una vez y lo para), así que
+    los llamadores llegan a `queueWrite`. Se corrigieron los comentarios de `instance.ts` y
+    `BackupService.ts`, que decían «no-op».
+  - Pruebas nuevas: dos en `SyncEngine.test.ts` («R9-38 — lo editado sin sesion») y una en
+    `AuthContext.test.tsx`. Cada pieza cae sola (`_scratch/S53-rev38.cjs.txt`: el dueño del
+    `start()`, la cadena, `forgetStoreOwner`, la hidratación sin sesión, el marcador de la cuenta
+    borrada, y todo). Las dos pruebas de `R9-193` que decían «sin sesión, `queueWrite` no hace nada»
+    codificaban este bug: ahora dejan L2 fuera de la cola, y siguen cayendo con sus piezas de
+    `stop()` (medido).
+  - Su borde, a la vista: `R9-268`.
 
 - **`R9-39` (A4, conflictos) — 🐛 un conflicto pendiente lo entierra el cursor que adelanta
   cualquier OTRO documento de la misma colección.** Severidad **media**.
@@ -5368,6 +5417,13 @@ pending.remoteVersion.updatedAt`.
     y la suite de `SyncEngine.test.ts` sigue 278/278.
   - **Para medir:** que la puerta de `colaIlegible` lea el disco al pedir (la `colaFoto` de la
     sonda), o un «¿lo abrió?» con el motor viejo vuelve a engañar.
+    **✅ ARREGLADO en la sesión 53** (`6b768eb`): una sola lectura de hidratación, la pida quien la
+    pida (`queueHydrating`, como `rereadQueue`); es `H260once`. Prueba nueva («R9-260: un stop() y un
+    start() del mismo uid…»): sin el arreglo, `lecturas: 2` y nube «viejo»; con él, 1 y «nuevo». La
+    puerta de `colaIlegible` devuelve ahora el disco de cuando se pidió: con el motor de `af8a5ae`,
+    los dos casos de la prueba de `R9-254` caen (`lenta` antes «pasaba»), como el `R9-115` original.
+    Con una sola unión por proceso, los comentarios de `readQueueAgain` y `joinQueue` vuelven a ser
+    ciertos (`R9-266`).
 
 - **`R9-261` (S52, `SyncEngine` / cola — P3) — 🐛 una edición hecha durante la PRIMERA lectura de
   la cola (sana) no llega a disco hasta que vuelve: si el proceso muere ahí, tras reiniciar la
@@ -5388,6 +5444,12 @@ pending.remoteVersion.updatedAt`.
   - **Propuesta:** decidirlo con el mismo argumento que `R9-255`: cerrarla pide guardar en disco
     lo escrito antes de hidratar, en otra clave con sus propios casos. Si se acepta, se escribe en
     `persistQueue`, donde ocurre. Victor delega el diseño técnico de sync.
+    **✅ ACEPTADO en la sesión 53** (`3f73e50`), con el argumento de `R9-255`: la ventana es la
+    primera lectura de la cola del proceso (una de AsyncStorage, detrás de las del arranque), y
+    cerrarla pide otra clave para lo escrito antes, con sus propios casos (ilegible, otra cuenta, la
+    unión de las dos). Escrito en `persistQueue`, donde ocurre, y nombrado en `queueUnread`. `MUERE`
+    sigue dando lo medido en la 52 (`_scratch/S53-sondas52-hoy.out.txt`). Victor delega el diseño
+    técnico de sync.
 
 - **`R9-262` (S52, `SyncEngine` / borrados — P3) — 🐛 la lápida de `R9-256` rechazada del todo, con
   un reinicio entre el primer rechazo y el último: local nulo, y la nube y el otro teléfono con R,
@@ -5412,6 +5474,17 @@ pending.remoteVersion.updatedAt`.
     la vuelve a traer, y la última reversión es un `modified`: `rechazaTras` da local R, nube R.
     `sana`, `descarta` y `retenido`, igual que hoy, y la suite sigue 278/278. Coste: el piso se
     queda en R mientras la lápida espera, como con cualquier doc no aplicado.
+    **✅ ARREGLADO en la sesión 53** (`c633eb8`): la guarda retiene la copia (`false`, como un doc no
+    aplicado) en vez de asentarla; es `H261hold`. Prueba nueva («R9-262: la lapida de R9-256
+    rechazada…»): `rechazaTras` da local R y nube R; sin el arreglo, local nulo.
+  - **El piso mientras la lápida espera:** R queda retenida (`unsettled` con su reloj), y el piso
+    del enganche siguiente queda por debajo de R: cada enganche la vuelve a leer, como cualquier doc
+    no aplicado. Cuando la lápida sube, su eco asienta el doc y el piso vuelve a avanzar (`sana`:
+    nada retenido, R fuera de la query).
+  - **Con la guarda de `R9-176` (corolario 50):** `S176cola` sola da 9 caídas (10 en la 51): la
+    prueba de `R9-197` ya no cae sin ella, porque esta guarda, ahora reteniendo, da el mismo final.
+    `S176cola` + `R256` da 13 (12 en la 51: vuelve esa, más la de `R9-262`). No se perdió ninguna
+    guarda.
 
 - **`R9-263` (S52, sync / bulk push — P3) — 🐛 con la lectura del flag fallida, el bulk push entero
   se repite, y el comentario de ese `catch` sigue diciendo que los duplicados son inocuos.**
@@ -5430,6 +5503,14 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis, sin medir):** con el flag ilegible, no hacer nada esta vez, como con la
     lista. El flag es un valor chico, así que un fallo determinista (la `CursorWindow`) no lo deja
     sin salida. Como mínimo, corregir el comentario.
+    **✅ ARREGLADO en la sesión 53** (`c685b63`): con el flag ilegible no se hace nada esta vez, como
+    con la lista. El flag es un valor chico (ningún fallo determinista por tamaño), y el `start()`
+    siguiente lo lee. El comentario de los «duplicados inocuos» se fue. Prueba nueva («R9-263: con la
+    lectura del flag fallida…»): sin el arreglo, `test/a` vuelve a subir.
+  - **Lo «por lectura» queda como estaba, a propósito:** cualquier orden de las dos escrituras (flag
+    y lista) deja abierto uno de los dos fallos, y juntarlas en un `multiSet` cambia «la colección
+    espera a su próxima edición» por «todo vuelve a subir» cuando la escritura falla (`R9-126`). Se
+    prefirió no repetir el push.
 
 - **`R9-264` (S52, memoria / sync — P3) — 🐛 el bulk push de `memoryCards` durante la carga en frío
   sube 0 tarjetas y graba el flag `'2'`, y el reintento de `R9-257` no lo ve.** POR LECTURA: es la
@@ -5442,6 +5523,13 @@ pending.remoteVersion.updatedAt`.
     carga, o con la carga fallida. `exportLocalData` (el diálogo de migración) lee lo mismo.
   - **Arreglo (hipótesis):** como `R9-214`, leer el almacenamiento (esperando a la carga) y lanzar
     si falla.
+    **✅ ARREGLADO en la sesión 53** (`420c49c`): `pullAllLocal` espera a la carga del mazo
+    (`deckLoad`), que deja puesto el ref, y lanza si la lectura del disco falló: el motor anota
+    `memoryCards` para el reintento de `R9-257`, y el export la marca como no leída (`R9-265`). Un
+    JSON que no se lee cuenta como leído y vacío, como en `parseQueue`: el mazo que se escribe después
+    lo reemplaza. Prueba nueva (`__tests__/memoryDeckPullAllLocal.test.tsx`, provider real): sin el
+    arreglo, devolvía `[]` durante la carga, y `[]` en vez de lanzar con la carga fallida; la pieza
+    `deckRef.current = clean` sola también cae. Al lado, uno que ya existía: `R9-267`.
 
 - **`R9-265` (S52, sync / migración — P3) — 🐛 `exportLocalData` salta el adaptador que falla, y
   con el total en 0 el diálogo de migración no pregunta (`R9-166`); con el reintento de `R9-257`,
@@ -5455,6 +5543,13 @@ pending.remoteVersion.updatedAt`.
   - P3: hace falta un fallo de SQLite justo al iniciar sesión.
   - **Arreglo (hipótesis):** que `exportLocalData` diga qué colecciones no pudo leer, y que el
     diálogo trate «no leída» como «puede haber datos»: preguntar, o no migrar en ese inicio.
+    **✅ ARREGLADO en la sesión 53** (`849141b`): `exportLocalData` lista la colección que no pudo leer
+    como `unread` (cuenta 0), y las dos preguntas (la del dueño anterior y la de la colisión) se
+    hacen igual, con un texto sin número (`migrationBodyUnread`). Pruebas nuevas: en el motor y en
+    `AuthContext.test.tsx` (las dos ramas); cada pieza cae sola.
+  - **Fuera, a propósito:** si `exportLocalData` entero lanza (el motor real no lo hace), la
+    comprobación sigue sin preguntar, como decía el código. Es la familia de la decisión abierta de
+    `R9-158` (fallar cerrado o abierto).
 
 - **`R9-266` (S52, `SyncEngine` / comentarios de la 51 — P3) — 🐛 tres afirmaciones nuevas no se
   sostienen caso por caso.**
@@ -5471,6 +5566,37 @@ pending.remoteVersion.updatedAt`.
     marcado se descarta» son falsos con dos hidrataciones (`R9-260`).
   - **Propuesta:** corregirlos con los arreglos de `R9-260` y `R9-262`, y quitar `ownDirty` de
     `wrote` o decir por qué se queda.
+    **✅ ARREGLADO en la sesión 53** (`f3bb0e5`): la guarda de `R9-256` dice que compara por reloj,
+    como LWW, y que su propia prueba es el otro con el reloj atrasado; `readQueueAgain` y `joinQueue`
+    dicen que hay una sola unión por proceso (`R9-260`); y `hydrateQueue` ya no mira `ownDirty` en
+    `wrote` (antes de la primera lectura no puede haber sellos), con el porqué. La suite sigue verde;
+    la pieza de `ownDirty` no podía tumbar nada.
+
+- **`R9-267` (S53, memoria — P2) — 🐛 una lectura fallida de `@memory_deck` deja el mazo en `{}`, y
+  el efecto de persistencia lo escribe encima: se pierden todas las tarjetas.** POR LECTURA, al
+  arreglar `R9-264`.
+  - `MemoryDeckContext.tsx`: la carga marca `hydrated` también cuando `getItem` falla (antes y
+    después de `R9-264`), y el efecto que persiste cada cambio escribe `JSON.stringify(deck)`, que es
+    `{}`.
+  - Es la forma de `R9-212` (la cola ilegible escrita desde memoria), en el mazo. Un JSON que no se
+    lee es otra cosa: ya está perdido, y lo estaba antes.
+  - P2: hace falta un fallo de lectura de AsyncStorage (raro: el mazo cabe de sobra en la
+    `CursorWindow` de 2 MB).
+  - **Arreglo (hipótesis):** con la lectura fallida, no persistir hasta leer, con una salida (una
+    guarda que espera necesita una, `R9-212`): por ejemplo, releer en la primera escritura y
+    rendirse si vuelve a fallar.
+
+- **`R9-268` (S53, identidad / migración — P3) — 🐛 una cuenta que ya hizo su bulk push en este
+  teléfono responde «Migrar» y no se migra nada.** POR LECTURA.
+  - La pregunta de la colisión (Sprint 43) se hace con `total > 0`, sin mirar si esa cuenta ya tiene
+    el flag `'2'`, y la del dueño anterior igual. Con el flag `'2'`, `maybeRunInitialBulkPush` solo
+    mira la lista de reintento: «Migrar» no sube nada, y el texto promete migrar.
+  - Es el borde de `R9-38`: otra cuenta recibe los datos locales solo por la migración, y una que
+    vuelve no la tiene. Al dueño que vuelve no le afecta: lo suyo editado sin sesión sube igual.
+    Repetir el push entero no es el arreglo (`R9-126`).
+  - **Arreglo (hipótesis):** no hacerle la pregunta a una cuenta con el flag `'2'` (y decirle que
+    los datos locales no se migran), o migrar solo lo que falta en su nube, leyéndola. Es decisión
+    de producto.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -6469,6 +6595,22 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `detail/A9-mesa-persistencia.md`.
   **⚠️ Sesión 22 (lectura): se sostiene en P2, y la decisión sigue siendo de Victor.** Las opciones son (a) borrar `@prep_*` al cerrar sesión, (b) ponerle uid a las claves, o (c) dejarlo como está y corregir la frase. Lo único claramente mal hoy es el comentario: `prepNotes.ts:14` dice que el estudio sin terminar es «theirs alone», y en un teléfono compartido no lo es. Además, «sin fuga hacia afuera» no es exacto: un respaldo exportado por Beto lleva el `@prep_notes` y el `@prep_series` de Ana. `R9-24` sigue siendo cierto.
   **✅ DECIDIDO por Victor el 2026-10-03 (tras la sesión 51): la opción (b).** La Mesa se guarda por cuenta, y cerrar sesión no borra nada. Progreso y logros siguen por aparato. El cómo (los datos sin dueño de antes, el respaldo exportado) está delegado: ver la §7 de `CONTINUAR.md`. Queda por arreglar.
+  **✅ ARREGLADO en la sesión 53** (`a85df96`, rama `fix/s53-r59-r38`), en
+  `src/features/study/prepAccount.ts`. **El cómo, decidido y escrito ahí:**
+  - Las cuatro claves llevan el uid de la cuenta de Google abierta (`@prep_notes:<uid>`); sin cuenta
+    (anónimo o sin usuario), la clave de siempre: la Mesa «sin cuenta». Un uid anónimo no es una
+    cuenta: cambia en cada cierre de sesión.
+  - La Mesa de antes va UNA vez al dueño del almacén, o a la cuenta abierta si no hay dueño
+    registrado; sin ninguno, queda como la «sin cuenta».
+  - Al iniciar sesión sin rechazar la migración, la «sin cuenta» se une a la de la cuenta (en la
+    misma entrada gana la de la cuenta); rechazada, se queda. Al borrar la cuenta, su Mesa vuelve a
+    la «sin cuenta» (nunca estuvo en la nube).
+  - El respaldo exporta y restaura la Mesa de la cuenta abierta: el de Beto ya no lleva la de Ana.
+  - Las claves esperan al primer estado de auth (`AuthProvider` lo dice al montar), y una escritura
+    va a la cuenta de cuando se pidió. Se corrigió la frase de `prepNotes.ts` («theirs alone»).
+  - Pruebas nuevas: `__tests__/prepAccount.test.ts` (8, stores reales), 4 en `AuthContext.test.tsx`
+    y 1 en `backupDegradedSections.test.ts`. Cada pieza cae sola (`_scratch/S53-rev59.cjs.txt`).
+    Progreso y logros siguen por aparato.
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y

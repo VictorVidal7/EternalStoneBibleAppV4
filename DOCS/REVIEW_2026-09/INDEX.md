@@ -646,8 +646,18 @@
 > (dos hidrataciones a la vez, el proceso que muere durante la primera lectura, y la lápida de
 > `R9-256` rechazada con un reinicio entre medias), y cuatro son vecinos de `R9-257` o comentarios.
 >
-> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **266**. Rama `docs/review-s52-diff-s51`, sin
-> mergear hasta el OK de Victor. Detalle: `detail/S52-revision-del-diff-s51.md`.
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **266**. Rama `docs/review-s52-diff-s51`: mergeada
+> y pusheada con el OK de Victor (`main` = `cc005d2`, CI verde en el log, run `37153675553`,
+> 369/4558). Detalle: `detail/S52-revision-del-diff-s51.md`.
+>
+> **Sesión 53 (2026-10-03): ARREGLOS de lo de la 52, y `R9-59` y `R9-38`**, en un chat nuevo,
+> solo en la terminal y sin agentes. Cerrados `R9-260`, `R9-262`..`R9-266`, `R9-38` (el último
+> P0) y `R9-59` (la Mesa por cuenta); aceptado `R9-261`. 2 nuevos, por lectura: `R9-267` (P2) y
+> `R9-268` (P3).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **268**. Ramas `fix/s53-arreglos-s52`,
+> `fix/s53-r59-r38` y `docs/review-s53-fix`, apiladas y sin mergear hasta el OK de Victor.
+> Detalle: `detail/S53-arreglos-s52.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1237,6 +1247,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S52-revision-del-diff-s51.md`.**
   - **La lección:** una puerta del mock que lee al abrirse produce un orden que AsyncStorage (un
     ejecutor serie) no produce.
+
+- **Sesión 53 — 2026-10-03. Arreglos de lo de la 52, y `R9-59` y `R9-38`.** En un chat nuevo,
+  solo en la terminal y sin agentes.
+  - **Cómo se trabajó:** cada prueba nueva vista caer sin su arreglo (el motor de antes encima, o
+    un revert por pieza con `_scratch/S53-rev*.cjs.txt`); las sondas de la 52 re-corridas; la
+    matriz de la 44 en un worktree aparte, y las guardas que se cubren, medidas juntas.
+  - **Resultado:** 6 cerrados y 1 aceptado de la 52, más `R9-38` y `R9-59`; 2 nuevos (`R9-267`,
+    `R9-268`). No queda ningún P0 abierto.
+  - **Detalle: `detail/S53-arreglos-s52.md`.**
+  - **La lección:** una escritura que espera una lectura previa se ordena con las que vienen
+    detrás; y antes de arreglar un camino del motor, comprobá que los llamadores llegan a él.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
