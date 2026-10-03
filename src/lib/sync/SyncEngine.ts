@@ -1105,8 +1105,9 @@ export class SyncEngine {
     // alone until it is back. Assigned over, that write left the queue (and,
     // read or not, it had replaced the queue on disk). It joins the entries
     // read, as after a read again; with the read failed, it waits in memory
-    // for that one.
-    const wrote = this.queueTouched.size > 0 || this.ownDirty.size > 0;
+    // for that one. R9-266 — no own stamp can be waiting here: they are noted
+    // only for docs in conflict, known once a listener attaches, after this.
+    const wrote = this.queueTouched.size > 0;
     if (!this.queueUnread) this.joinQueue(entries);
     this.queueHydrated = true;
     this.updateState({pendingWrites: this.pendingForActiveUid()});
@@ -1129,7 +1130,8 @@ export class SyncEngine {
    * R9-212 — read the queue again, and join its entries to the ones in
    * memory: the disk still holds what it held when the process started (no
    * write took the queue since, R9-254: not even one queued while the first
-   * read was on its way). The queue is every account's, not the
+   * read was on its way, and there is one first read, R9-260). The queue is
+   * every account's, not the
    * session's: a read that is back after a `stop()` still joins.
    */
   private async readQueueAgain(): Promise<void> {
@@ -1167,7 +1169,8 @@ export class SyncEngine {
    * R9-212 — the entries read from disk join the ones in memory, written
    * since the process started: an entry of a doc this process changed since
    * (`queueTouched`) is dropped, and one replaced since gives its clocks to the
-   * entry that replaced it.
+   * entry that replaced it. It runs once per process (R9-260): after the first
+   * read, or after the read again if that one failed, never both.
    */
   private joinQueue(entries: PendingWrite[]): void {
     const before: PendingWrite[] = [];
@@ -2148,8 +2151,9 @@ export class SyncEngine {
 
     // R9-256 — no local copy to run LWW against, because the user deleted the
     // doc here and its tombstone still waits in the queue: the tombstone is
-    // what the copy is compared with. One no newer than it is a version the
-    // delete replaced (the other device wrote it before, and it arrived after).
+    // what the copy is compared with, by clock, as LWW does. One no newer than
+    // it loses to the delete: written before it, or after it with the other
+    // device's clock behind (R9-266: its own test is that case; R9-193).
     // Applied, the row came back on this phone, and the tombstone's echo (this
     // device's own, still queued) did not take it away again: the cloud and the
     // other device had it deleted.
