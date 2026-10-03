@@ -143,6 +143,10 @@ import {
   extractIdToken,
   type AuthUser,
 } from '../src/context/AuthContext';
+import {
+  __resetPrepAccountForTests,
+  prepKey,
+} from '../src/features/study/prepAccount';
 
 // Spy on the real logger — the lazy Crashlytics require returns null
 // in jest (no native binding), so logger calls are effectively no-ops
@@ -162,6 +166,8 @@ function flushListenerWith(user: unknown) {
 
 beforeEach(async () => {
   await AsyncStorage.clear();
+  // R9-59 — the Mesa account is module state: each test mounts its own.
+  __resetPrepAccountForTests();
   mockListeners.length = 0;
   mockCurrentUser = null;
   mockOnAuthStateChanged.mockClear();
@@ -1116,5 +1122,160 @@ describe('R9-38 — deleteAccount', () => {
       dueno: await AsyncStorage.getItem('@local_store_owner_uid'),
     }).toEqual({borrada: 1, olvidado: 1, dueno: '(deleted)'});
     mockEngineStub = null;
+  });
+});
+
+describe('R9-59 — la Mesa por cuenta, desde AuthProvider', () => {
+  const MESA = JSON.stringify({
+    'Rom/8/28': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+  });
+  const stubEngine = () => {
+    const engine = {
+      exportLocalData: jest.fn(async () => [{collection: 'notes', count: 3}]),
+      queueSkipNextBulkPush: jest.fn(),
+      stop: jest.fn(),
+      forgetStoreOwner: jest.fn(),
+    };
+    mockEngineStub = engine;
+    return engine;
+  };
+  /** Resuelve `prepKey`, o 'colgada' si no resuelve pronto. */
+  const claveAhora = () =>
+    Promise.race([
+      prepKey('@prep_notes'),
+      new Promise<string>(r => setTimeout(() => r('colgada'), 200)),
+    ]);
+  afterEach(() => {
+    mockEngineStub = null;
+  });
+
+  it('la cuenta se dice: la Mesa de un usuario de Google es la suya, y la de un anonimo, la «sin cuenta»', async () => {
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    const antes = await claveAhora();
+    mockCurrentUser = {uid: 'anon-x', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-x'));
+    const anonimo = await claveAhora();
+    mockCurrentUser = {uid: 'ana-uid', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('ana-uid'));
+    expect({antes, anonimo, ana: await claveAhora()}).toEqual({
+      antes: 'colgada', // CONTROL: espera al primer estado de auth
+      anonimo: '@prep_notes',
+      ana: '@prep_notes:ana-uid',
+    });
+  });
+
+  it('un enlace sin dueno anterior se lleva la Mesa «sin cuenta»; uno que rechaza la migracion la deja', async () => {
+    stubEngine();
+    await AsyncStorage.setItem('@prep_notes', MESA);
+    const {ref, onReady} = captureAuthApi();
+    const {getByText} = render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    // 1. Ana, anonima, enlaza una cuenta nueva: sin dueno, no hay pregunta.
+    mockCurrentUser = {uid: 'anon-ana', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-ana'));
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+    const deAna = await AsyncStorage.getItem('@prep_notes:anon-ana');
+    const sinCuentaTrasAna = await AsyncStorage.getItem('@prep_notes');
+
+    // 2. Ana sale; alguien escribe en la Mesa «sin cuenta»; Beto, anonimo,
+    //    enlaza su cuenta y dice «Solo iniciar sesion».
+    await AsyncStorage.setItem('@prep_notes', MESA);
+    mockCurrentUser = {uid: 'anon-beto', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-beto'));
+    let signInPromise!: Promise<AuthUser | null>;
+    act(() => {
+      signInPromise = ref.current!.signInWithGoogle();
+    });
+    const cancelBtn = await waitFor(() => getByText('Solo iniciar sesión'));
+    await act(async () => {
+      fireEvent.press(cancelBtn);
+      await signInPromise;
+    });
+
+    // Sin R9-59 no habia nada que llevar: una sola clave para todos.
+    expect({
+      deAna: deAna !== null,
+      sinCuentaTrasAna,
+      deBeto: await AsyncStorage.getItem('@prep_notes:anon-beto'),
+      sinCuentaTrasBeto: (await AsyncStorage.getItem('@prep_notes')) !== null,
+    }).toEqual({
+      deAna: true,
+      sinCuentaTrasAna: null,
+      deBeto: null,
+      sinCuentaTrasBeto: true,
+    });
+  });
+
+  it('en la rama de colision, «Migrar» se lleva la Mesa «sin cuenta» a la cuenta que ya existia', async () => {
+    stubEngine();
+    await AsyncStorage.setItem('@prep_notes', MESA);
+    const {ref, onReady} = captureAuthApi();
+    const {getByText} = render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {uid: 'anon-carla', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-carla'));
+    mockLinkWithCredential.mockRejectedValueOnce(
+      Object.assign(new Error('already in use'), {
+        code: 'auth/credential-already-in-use',
+      }),
+    );
+    mockSignInWithCredential.mockImplementationOnce(async () => {
+      mockCurrentUser = {uid: 'carla-uid', isAnonymous: false};
+      return {user: mockCurrentUser};
+    });
+    let signInPromise!: Promise<AuthUser | null>;
+    act(() => {
+      signInPromise = ref.current!.signInWithGoogle();
+    });
+    const migrar = await waitFor(() => getByText('Migrar'));
+    await act(async () => {
+      fireEvent.press(migrar);
+      await signInPromise;
+    });
+    expect({
+      enlazado: mockLinkWithCredential.mock.calls.length, // CONTROL: colision
+      deCarla: (await AsyncStorage.getItem('@prep_notes:carla-uid')) !== null,
+      sinCuenta: await AsyncStorage.getItem('@prep_notes'),
+    }).toEqual({enlazado: 1, deCarla: true, sinCuenta: null});
+  });
+
+  it('borrar la cuenta devuelve su Mesa a la «sin cuenta»', async () => {
+    stubEngine();
+    await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+    await AsyncStorage.setItem('@prep_notes:ana-uid', MESA);
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {uid: 'ana-uid', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('ana-uid'));
+    await act(async () => {
+      await ref.current!.deleteAccount();
+    });
+    expect({
+      deAna: await AsyncStorage.getItem('@prep_notes:ana-uid'),
+      sinCuenta: (await AsyncStorage.getItem('@prep_notes')) !== null,
+    }).toEqual({deAna: null, sinCuenta: true});
   });
 });

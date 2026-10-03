@@ -14,6 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
+import {prepKey} from './prepAccount';
 import {
   type IllustrationCategory,
   type PrepIllustration,
@@ -33,7 +34,9 @@ const PREP_ILLUSTRATIONS_KEY = '@prep_illustrations';
 /** Read the whole map (empty map if none/corrupt). */
 export async function getAllPrepIllustrations(): Promise<PrepIllustrationsMap> {
   try {
-    const raw = await AsyncStorage.getItem(PREP_ILLUSTRATIONS_KEY);
+    const raw = await AsyncStorage.getItem(
+      await prepKey(PREP_ILLUSTRATIONS_KEY),
+    );
     return parsePrepIllustrationsMap(raw);
   } catch (error) {
     logger.warn('Failed to read prep illustrations', {error: String(error)});
@@ -56,13 +59,12 @@ let writeQueue: Promise<void> = Promise.resolve();
 function mutate(
   fn: (map: PrepIllustrationsMap) => PrepIllustrationsMap,
 ): Promise<void> {
+  // R9-59 — the account of when the write was asked for.
+  const key = prepKey(PREP_ILLUSTRATIONS_KEY);
   const run = async () => {
-    const raw = await AsyncStorage.getItem(PREP_ILLUSTRATIONS_KEY);
+    const raw = await AsyncStorage.getItem(await key);
     const next = fn(parsePrepIllustrationsMap(raw));
-    await AsyncStorage.setItem(
-      PREP_ILLUSTRATIONS_KEY,
-      serializePrepIllustrationsMap(next),
-    );
+    await AsyncStorage.setItem(await key, serializePrepIllustrationsMap(next));
   };
   // `attempt` reflects the real outcome for the immediate caller; `writeQueue`
   // always resolves so a failed write never wedges the next one behind it.

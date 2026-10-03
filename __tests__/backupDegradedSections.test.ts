@@ -68,6 +68,11 @@ import {
   BACKUP_FORMAT_VERSION,
   type BackupPayload,
 } from '../src/services/BackupService';
+import {
+  __resetPrepAccountForTests,
+  managePrepAccount,
+  setPrepAccount,
+} from '../src/features/study/prepAccount';
 
 interface MockDbInstance {
   initialize: jest.Mock;
@@ -351,5 +356,58 @@ describe('R9-27/R9-49 — a degraded section never wipes local data on import', 
     expect(sqlCallsStartingWith('DELETE FROM favorites')).toHaveLength(1);
     expect(result.failedSections).toEqual([]);
     expect(result.restoredSections).toContain('favorites');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-59 — the backup carries the Mesa of the account signed in
+// ---------------------------------------------------------------------------
+
+describe('R9-59 — el respaldo lleva la Mesa de la cuenta con la sesion abierta', () => {
+  afterEach(() => {
+    __resetPrepAccountForTests();
+  });
+
+  it('exporta la de Ana y no la de Beto, y restaura en la de quien lo abre', async () => {
+    await AsyncStorage.setItem(
+      '@prep_notes:ana',
+      JSON.stringify({
+        'Rom/8/28': {sections: {observation: 'de Ana'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem(
+      '@prep_notes:beto',
+      JSON.stringify({
+        'Ps/23/1-6': {sections: {observation: 'de Beto'}, updatedAt: 1},
+      }),
+    );
+    __resetPrepAccountForTests();
+    managePrepAccount();
+    await setPrepAccount('ana');
+    const {payload} = await buildBackup();
+    const exportadas = Object.keys(payload.prep.notes ?? {});
+
+    // Beto lo abre en su sesion: va a su Mesa, no a la de Ana.
+    setAchievementServiceInstance({
+      initialize: jest.fn().mockResolvedValue(undefined),
+      restoreBackup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AchievementService);
+    await setPrepAccount('beto');
+    await importBackup(
+      basePayload({prep: {notes: payload.prep.notes, series: null}}),
+    );
+    const deBeto = Object.keys(
+      JSON.parse((await AsyncStorage.getItem('@prep_notes:beto')) ?? '{}'),
+    );
+    const deAna = Object.keys(
+      JSON.parse((await AsyncStorage.getItem('@prep_notes:ana')) ?? '{}'),
+    );
+
+    // Sin R9-59 el respaldo leia y escribia `@prep_notes`, la clave de todos.
+    expect({exportadas, deBeto, deAna}).toEqual({
+      exportadas: ['Rom/8/28'],
+      deBeto: ['Rom/8/28'],
+      deAna: ['Rom/8/28'],
+    });
   });
 });

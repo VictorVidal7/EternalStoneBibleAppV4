@@ -5,14 +5,16 @@
  * Persists the preparer's per-passage prose ([[prepNotes]]) under one key so a
  * passage re-opens with the work in progress. Writes are SERIALIZED through a
  * single promise chain — the screen autosaves on blur from several fields and a
- * read-modify-write race would otherwise drop an edit. NOT synced: an unfinished
- * sermon is the preparer's alone (privacy-first, like [[feelingsLogStore]]).
+ * read-modify-write race would otherwise drop an edit. NOT synced (privacy-
+ * first, like [[feelingsLogStore]]), and kept per account: the key is the
+ * account's ([[prepAccount]], R9-59).
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
+import {prepKey} from './prepAccount';
 import type {PrepSection, PrepTemplateId} from './prepTable';
 import {
   type PrepNotes,
@@ -28,7 +30,7 @@ const PREP_NOTES_KEY = '@prep_notes';
 /** Read the whole map (empty map if none/corrupt). */
 export async function getAllPrepNotes(): Promise<PrepNotesMap> {
   try {
-    const raw = await AsyncStorage.getItem(PREP_NOTES_KEY);
+    const raw = await AsyncStorage.getItem(await prepKey(PREP_NOTES_KEY));
     return parsePrepNotesMap(raw);
   } catch (error) {
     logger.warn('Failed to read prep notes', {error: String(error)});
@@ -63,8 +65,10 @@ export function savePrepNote(
   now: number = Date.now(),
   template?: PrepTemplateId,
 ): Promise<void> {
+  // R9-59 — the account of when the write was asked for.
+  const key = prepKey(PREP_NOTES_KEY);
   const run = async () => {
-    const raw = await AsyncStorage.getItem(PREP_NOTES_KEY);
+    const raw = await AsyncStorage.getItem(await key);
     const next = setMapSectionNote(
       parsePrepNotesMap(raw),
       passageKey,
@@ -73,7 +77,7 @@ export function savePrepNote(
       now,
       template,
     );
-    await AsyncStorage.setItem(PREP_NOTES_KEY, serializePrepNotesMap(next));
+    await AsyncStorage.setItem(await key, serializePrepNotesMap(next));
   };
   writeQueue = writeQueue.then(run).catch(error => {
     logger.warn('Failed to save prep note', {error: String(error)});

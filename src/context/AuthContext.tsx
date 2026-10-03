@@ -48,6 +48,12 @@ import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {linkUser as linkOfferingUser} from '@lib/offering/offeringService';
 import {clearMemoryStatsFloor} from '@lib/memory/memoryStatsSync';
+import {
+  adoptNoAccountPrep,
+  managePrepAccount,
+  releasePrepAccount,
+  setPrepAccount,
+} from '../features/study/prepAccount';
 
 // Web OAuth client id from google-services.json (oauth_client where
 // client_type === 3). It is already public in the bundled
@@ -285,6 +291,17 @@ export function AuthProvider({children}: AuthProviderProps) {
   // we do not loop if the first onAuthStateChanged fires with a null
   // user (which it will on a fresh install). Re-armed on signOut.
   const triggeredAnonymousRef = useRef(false);
+  // R9-59 — the Mesa is kept per account (see `prepAccount`): its keys wait
+  // for the first auth state, said here before any screen below can ask.
+  const prepManaged = useRef(false);
+  if (!prepManaged.current) {
+    prepManaged.current = true;
+    managePrepAccount();
+  }
+  useEffect(() => {
+    if (isLoading) return;
+    void setPrepAccount(user && !user.isAnonymous ? user.uid : null);
+  }, [user, isLoading]);
   // Themed replacement for the old Alert.alert-wrapped migration prompt
   // (UX audit): the dialog is state-driven, but the calling code below still
   // needs to `await` a yes/no answer, so a pending resolver bridges the two.
@@ -371,6 +388,14 @@ export function AuthProvider({children}: AuthProviderProps) {
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
+    // R9-59 — whether this sign-in keeps the local data: false once the bulk
+    // push is skipped (the person declined). The Mesa «sin cuenta» follows
+    // the same answer (see `prepAccount`).
+    let keepsLocal = true;
+    const skipBulkPush = () => {
+      keepsLocal = false;
+      getSyncEngine()?.queueSkipNextBulkPush();
+    };
     const authMod = getAuth();
     const gs = getGoogleSignin();
     if (!authMod || !gs) {
@@ -452,8 +477,9 @@ export function AuthProvider({children}: AuthProviderProps) {
         // the person said so above. The skip is queued only now — armed
         // before a link that then fails, it would outlive this attempt and
         // swallow the bulk push of whichever account starts the engine next.
-        if (declined) getSyncEngine()?.queueSkipNextBulkPush();
+        if (declined) skipBulkPush();
         await claimLocalStore(current.uid);
+        if (keepsLocal) await adoptNoAccountPrep(current.uid);
 
         // linkWithCredential doesn't copy the Google profile onto the
         // Firebase user the way a fresh signInWithCredential does, so
@@ -509,7 +535,7 @@ export function AuthProvider({children}: AuthProviderProps) {
         // R9-166 — unless the previous-owner question above already ran,
         // before the link: it was about the same data going into this same
         // sign-in, so apply that answer instead of asking twice.
-        if (declined) getSyncEngine()?.queueSkipNextBulkPush();
+        if (declined) skipBulkPush();
         const engine = declined === undefined ? getSyncEngine() : null;
         if (engine) {
           try {
@@ -520,7 +546,7 @@ export function AuthProvider({children}: AuthProviderProps) {
             if (total > 0 || unread) {
               const wantMigrate = await askMigration(unread ? null : total);
               if (!wantMigrate) {
-                engine.queueSkipNextBulkPush();
+                skipBulkPush();
                 logger.info('AuthProvider: user declined migration', {
                   component: 'AuthProvider',
                   localItems: total,
@@ -553,7 +579,7 @@ export function AuthProvider({children}: AuthProviderProps) {
       // same (a returning owner is asked there too; harmless, the data is
       // theirs). An unclaimed store is still the signer's own: no question.
       if (await declinesPreviousOwnersData()) {
-        getSyncEngine()?.queueSkipNextBulkPush();
+        skipBulkPush();
       }
     }
 
@@ -564,6 +590,7 @@ export function AuthProvider({children}: AuthProviderProps) {
     // stays `null`, which every guard above reads as "first sign-in, don't
     // ask", and the next account to sign in inherits this one's data.
     if (signedIn?.uid) await claimLocalStore(signedIn.uid);
+    if (signedIn?.uid && keepsLocal) await adoptNoAccountPrep(signedIn.uid);
     // Same reasoning as the linked-anonymous-account return above: return
     // the fresh user directly instead of making the caller read `user`
     // from context, which won't reflect this sign-in until the
@@ -695,6 +722,9 @@ export function AuthProvider({children}: AuthProviderProps) {
     // still asks before taking the store, as with the deleted uid there.
     engine?.forgetStoreOwner();
     await claimLocalStore(DELETED_STORE_OWNER);
+    // R9-59 — its Mesa was never in the cloud: it goes back to the Mesa
+    // «sin cuenta» instead of staying under a uid nobody signs in as again.
+    await releasePrepAccount(uid);
 
     if (gs) {
       try {

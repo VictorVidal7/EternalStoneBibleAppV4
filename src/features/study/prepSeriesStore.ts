@@ -14,6 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
+import {prepKey} from './prepAccount';
 import {
   type PrepSeries,
   type PrepSeriesMap,
@@ -37,7 +38,7 @@ const PREP_SERIES_KEY = '@prep_series';
 /** Read the whole map (empty map if none/corrupt). */
 export async function getAllPrepSeries(): Promise<PrepSeriesMap> {
   try {
-    const raw = await AsyncStorage.getItem(PREP_SERIES_KEY);
+    const raw = await AsyncStorage.getItem(await prepKey(PREP_SERIES_KEY));
     return parsePrepSeriesMap(raw);
   } catch (error) {
     logger.warn('Failed to read prep series', {error: String(error)});
@@ -56,10 +57,12 @@ let writeQueue: Promise<void> = Promise.resolve();
 
 /** Read-modify-write the whole map through the shared queue. */
 function mutate(fn: (map: PrepSeriesMap) => PrepSeriesMap): Promise<void> {
+  // R9-59 — the account of when the write was asked for.
+  const key = prepKey(PREP_SERIES_KEY);
   const run = async () => {
-    const raw = await AsyncStorage.getItem(PREP_SERIES_KEY);
+    const raw = await AsyncStorage.getItem(await key);
     const next = fn(parsePrepSeriesMap(raw));
-    await AsyncStorage.setItem(PREP_SERIES_KEY, serializePrepSeriesMap(next));
+    await AsyncStorage.setItem(await key, serializePrepSeriesMap(next));
   };
   // `attempt` reflects the real outcome for the immediate caller; `writeQueue`
   // always resolves so a failed write never wedges the next one behind it.

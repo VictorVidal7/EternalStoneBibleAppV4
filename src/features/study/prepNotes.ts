@@ -11,7 +11,10 @@
  *
  * Kept React-/storage-free (the [[prepNotesStore]] does the AsyncStorage I/O),
  * mirroring [[feelingsLog]] / [[feelingsLogStore]]. The notes are DEVICE-LOCAL
- * and never leave the phone — a preparer's unfinished study is theirs alone.
+ * and never leave the phone. R9-59 — they are kept per account
+ * ([[prepAccount]]): on a shared phone, each Google account sees only its
+ * own, and with no account signed in, the Mesa «sin cuenta». Signing out
+ * deletes nothing.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */

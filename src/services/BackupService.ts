@@ -57,6 +57,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
+import {prepKey} from '../features/study/prepAccount';
 import {getTranslations} from '../i18n/languageUtils';
 import type {Note} from '../types/bible';
 import type {Favorite} from '../context/FavoritesContext';
@@ -459,6 +460,12 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     ? canonicalizeProgressMap(chapterProgressMapRaw)
     : null;
 
+  // R9-59 — the Mesa of the account signed in, not every account's: a backup
+  // made by one account no longer carries another's (see `prepAccount`).
+  const [prepNotesKey, prepSeriesKey] = await Promise.all([
+    prepKey(KEYS.prepNotes),
+    prepKey(KEYS.prepSeries),
+  ]);
   const [
     planProgress,
     planReadChapters,
@@ -491,8 +498,8 @@ export async function buildBackup(): Promise<BuildBackupResult> {
       'memoryDeck',
       degradedSections,
     ),
-    readRaw(KEYS.prepNotes, 'prepNotes', degradedSections),
-    readRaw(KEYS.prepSeries, 'prepSeries', degradedSections),
+    readRaw(prepNotesKey, 'prepNotes', degradedSections),
+    readRaw(prepSeriesKey, 'prepSeries', degradedSections),
   ]);
 
   // R9-49 — `{strict: true}` on the four reading-history ledgers. Those
@@ -1385,9 +1392,10 @@ export async function importBackup(
       );
     }
   }
+  // R9-59 — restored into the Mesa of the account signed in.
   if (prepNotesPresent && prepNotesIn) {
     queuePair(
-      KEYS.prepNotes,
+      await prepKey(KEYS.prepNotes),
       serializePrepNotesMap(prepNotesIn),
       'prepNotes',
       'prepNotes',
@@ -1395,7 +1403,7 @@ export async function importBackup(
   }
   if (prepSeriesPresent && prepSeriesIn) {
     queuePair(
-      KEYS.prepSeries,
+      await prepKey(KEYS.prepSeries),
       serializePrepSeriesMap(prepSeriesIn),
       'prepSeries',
       'prepSeries',
