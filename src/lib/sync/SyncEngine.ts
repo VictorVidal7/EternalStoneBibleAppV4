@@ -471,6 +471,8 @@ export class SyncEngine {
    * pushed never went up. The window is one read of local storage, after two
    * that failed; keeping that state on disk too would be one more key with
    * cases of its own (unreadable, another account), like the own stamps.
+   * The same window opens on the first read, with none failed (R9-261,
+   * accepted too: see `persistQueue`).
    * A queue that is not JSON reads the same every time: it is read as empty
    * (`parseQueue`).
    */
@@ -1264,6 +1266,15 @@ export class SyncEngine {
     // R9-254 — nor before the queue was ever read: the one in memory lacks the
     // entries on disk, and written now, it replaced them. `hydrateQueue`
     // writes it once they are joined.
+    // R9-261 — accepted (S53), as R9-255: until then, a write waits in memory.
+    // A process that dies there left the old entry on disk to go up over the
+    // new edit after the restart, or a new one not yet pushed never went up.
+    // The window is the first read of the queue in the process (one read of
+    // local storage, behind the others of the launch: AsyncStorage runs them
+    // one at a time), and it takes an edit and the process dying inside it.
+    // Closing it means a second
+    // key for what is written before that read, with cases of its own
+    // (unreadable, another account, the join of the two), as R9-255 says.
     if (!force && !this.queueHydrated) return;
     // R9-212 — and the queue itself, if it could not be read (see
     // `queueUnread`). `force` writes the own stamps without it.
