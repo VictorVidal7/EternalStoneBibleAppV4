@@ -2165,7 +2165,15 @@ export class SyncEngine {
         (queued.data as {deleted?: unknown}).deleted === true &&
         updatedAtOf(data) <= updatedAtOf(queued.data)
       ) {
-        return true;
+        // R9-262 — held, not settled: settled, the cursor moved past the copy,
+        // and if the server then rejected the tombstone for good, the last
+        // take-back did not bring it back (after a restart it is a `removed`):
+        // the row stayed deleted here, and the cloud and the other device kept
+        // the copy.
+        // Held, every attach reads it again until the tombstone lands (its echo
+        // settles the doc) or is dropped (the copy comes in), like any doc not
+        // applied.
+        return false;
       }
     }
 

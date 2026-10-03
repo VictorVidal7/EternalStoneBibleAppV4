@@ -9817,6 +9817,114 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     });
   });
 
+  it('R9-262: la lapida de R9-256 rechazada una vez en la sesion y descartada en la siguiente: la copia del otro vuelve aqui, como en la nube; y el doc queda retenido solo mientras la lapida espera', async () => {
+    const T = Date.now() - HOUR;
+    const R = T + 120_000;
+    /** El caso de R9-256 (R, mas vieja que el borrado, llega al enganchar).
+     *  La lapida sube y el servidor la rechaza (`rechazaTras`, una vez, y la
+     *  ultima en el proceso siguiente) o la toma (`sana`). */
+    const caso = async (uid: string, modo: 'rechazaTras' | 'sana') => {
+      const {engine, localStore, adapter} = await engineFor(uid, T);
+      const d = {value: 'd', updatedAt: T + 60_000};
+      localStore.set('doc-b', d as unknown as SyncEntity<TestEntity>);
+      engine.queueWrite('test', 'doc-b', d);
+      await settle();
+      engine.__setOnlineForTests(false);
+      localStore.delete('doc-b');
+      engine.queueDelete('test', 'doc-b', d);
+      await settle();
+      engine.stop();
+      await settle();
+      write(uid, 'doc-b', {value: 'R', updatedAt: R});
+      const p1 = await procesoNuevo(uid, adapter);
+      let p2: SyncEngine | null = null;
+      try {
+        const alEnganchar = (await persisted(uid)).unsettled;
+        if (modo === 'rechazaTras') mockSetShouldFail = true;
+        p1.__setOnlineForTests(true);
+        await settle();
+        await p1.__flushForTests();
+        await settle();
+        mockSetShouldFail = false;
+        const enSesion = {
+          cola: p1.__getQueueForTests().filter(q => q.uid === uid).length,
+          local: valorDe(localStore, 'doc-b') ?? null,
+          retenido: (await persisted(uid)).unsettled,
+        };
+        p1.stop();
+        await settle();
+        p2 = await procesoNuevo(uid, adapter);
+        const rEnLaQuery = floorOf(uid) < R;
+        if (modo === 'rechazaTras') {
+          for (const q of p2.__getQueueForTests()) {
+            if (q.uid !== uid) continue;
+            (q as {attempts: number}).attempts = 7;
+            (q as {lastAttemptAt?: number}).lastAttemptAt = 0;
+          }
+          mockSetShouldFail = true;
+        }
+        p2.__setOnlineForTests(true);
+        await settle();
+        await p2.__flushForTests();
+        await settle();
+        mockSetShouldFail = false;
+        const snap = await mockCollections
+          .get(`users/${uid}/test`)!
+          .doc('doc-b')
+          .get();
+        const nube = snap.data() as Data & {deleted?: boolean};
+        return {
+          alEnganchar,
+          enSesion,
+          rEnLaQuery,
+          tras: {
+            avisos: p2.getState().droppedWrites,
+            local: valorDe(localStore, 'doc-b') ?? null,
+            nube: `${nube.value}${nube.deleted ? ' (borrada)' : ''}`,
+            retenido: (await persisted(uid)).unsettled,
+          },
+        };
+      } finally {
+        mockSetShouldFail = false;
+        p1.stop();
+        p2?.stop();
+        await settle();
+      }
+    };
+    const res = {
+      rechazaTras: await caso('uid-262-tras', 'rechazaTras'),
+      sana: await caso('uid-262-sana', 'sana'),
+    };
+
+    // Sin R9-262, la guarda asentaba R y el cursor pasaba por encima: tras
+    // reiniciar, R ya no entraba en la query, la ultima reversion era un
+    // `removed`, y lo local quedaba nulo con la nube en R. El coste: mientras
+    // la lapida espera, cada enganche vuelve a leer R (`sana` lo suelta).
+    expect(res).toEqual({
+      rechazaTras: {
+        alEnganchar: {'doc-b': R},
+        enSesion: {
+          cola: 1, // CONTROL: la lapida sigue en cola tras el primer rechazo
+          local: null,
+          retenido: {'doc-b': R},
+        },
+        rEnLaQuery: true,
+        tras: {
+          avisos: 1, // CONTROL: el ultimo rechazo la descarto
+          local: 'R',
+          nube: 'R',
+          retenido: {},
+        },
+      },
+      sana: {
+        alEnganchar: {'doc-b': R},
+        enSesion: {cola: 0, local: null, retenido: {}},
+        rEnLaQuery: false,
+        tras: {avisos: 0, local: null, nube: 'd (borrada)', retenido: {}},
+      },
+    });
+  });
+
   it('R9-254: una edicion hecha mientras se hidrata la cola no la reescribe sin las entradas de disco, y no sale de memoria: con la lectura sana, fallida una vez o fallida hasta rendirse', async () => {
     const T = Date.now() - HOUR;
     /** `doc-q` espera en disco; `doc-w` se escribe sin red con la lectura de
