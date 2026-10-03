@@ -1,13 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-03, fin de la sesión 51.** La 51 hizo el (ae) en el mismo chat
-> que la 50, en la terminal y sin agentes. Cerró `R9-256` (P2), `R9-254` con `R9-115`, `R9-257` y
-> `R9-258`; aceptó `R9-255` (con el porqué en el código); y abrió `R9-259`.
+> **Última actualización: 2026-10-03, fin de la sesión 52.** La 52 hizo el (af) en un chat nuevo,
+> en la terminal, sin agentes y sin tocar código: revisó el diff de la 51 y registró 7 hallazgos P3
+> (`R9-260`..`R9-266`), tres de ellos abiertos por la 51.
 >
-> La 50 ya está mergeada y pusheada (`main` = `af8a5ae`, CI verde en el log, run `37145852120`,
-> 368/4551). Las ramas de la 51 (`fix/s51-arreglos-s50` y `docs/review-s51-fix`) van **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 259 hallazgos. **Lo
-> siguiente:** la 52 revisa el diff de la 51 (mensaje (af), también en `_scratch/S52-PROMPT.md`).
+> La 51 ya está mergeada y pusheada (`main` = `3e4b758`, y encima `8e5cfaf`, la decisión de
+> `R9-59`; CI verde en el log, run `37148855758`, 369/4558). La rama de la 52
+> (`docs/review-s52-diff-s51`) va **sin mergear hasta el OK de Victor**. Queda **1 P0 abierto**
+> (`R9-38`), y hay 266 hallazgos. **Lo siguiente:** la 53 arregla lo de la 52 e implementa `R9-59`
+> y `R9-38` (mensaje (ag), en `_scratch/S53-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -477,10 +478,14 @@ sesión 44, igual), y la revisión del diff de la 44 (la (y), sesión 45, igual)
 Y sus arreglos (la (ab), sesión 48, igual). Y los arreglos de `R9-212` y `R9-214` (la (ac),
 sesión 49, en un chat nuevo, con `_scratch/S49-PROMPT.md`). Y la revisión del diff de la 49 (la
 (ad), sesión 50, en un chat nuevo, con `_scratch/S50-PROMPT.md`). Y sus arreglos (la (ae), sesión
-51, en el mismo chat, con `_scratch/S51-PROMPT.md`). **Lo siguiente es el (af).**
+51, en el mismo chat, con `_scratch/S51-PROMPT.md`). Y la revisión del diff de la 51 (la (af),
+sesión 52, en un chat nuevo, con `_scratch/S52-PROMPT.md`). **Lo siguiente es el (ag).**
 
-**(af) Sesión 52: revisar el diff de la 51.** El mensaje está en `_scratch/S52-PROMPT.md`, que
-manda sobre este archivo.
+**(ag) Sesión 53: arreglar lo de la 52 (`R9-260`..`R9-266`) e implementar `R9-59` y `R9-38`.** El
+mensaje está en `_scratch/S53-PROMPT.md`, que manda sobre este archivo.
+
+**(af) Sesión 52: revisar el diff de la 51 — ya HECHO en la sesión 52, en un chat nuevo, en la
+terminal y sin agentes.** El mensaje está en `_scratch/S52-PROMPT.md`.
 
 **(ae) Sesión 51: arreglar lo de la 50 — ya HECHO en la sesión 51, en el mismo chat que la 50, en
 la terminal y sin agentes.** El mensaje está en `_scratch/S51-PROMPT.md`.
@@ -1875,20 +1880,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 51 (2026-10-03).**
+**Medido al cerrar la sesión 52 (2026-10-03).**
 
-- **`main` = `origin/main` = `af8a5ae`** (el checkpoint de la 50, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `f287fc6`). **CI verificado en el log:** run `37145852120`,
-  3 jobs verdes, Node v24.21.0, 368/4551, cero «failed to run». La rama de la 50 se borró.
-- **Dos ramas de la 51, sin mergear a propósito y sin pushear:** `fix/s51-arreglos-s50` (4
-  commits: `88fb219`, `e97cd95`, `ec5bc70`, `6d834c5`) y, encima, `docs/review-s51-fix` (el
-  checkpoint). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las
+- **`main` = `origin/main` = `8e5cfaf`** (el checkpoint de la 51, `3e4b758`, y encima la decisión
+  de `R9-59`, solo docs; el último código es `6d834c5`). **CI verificado en el log:** run
+  `37148855758`, 3 jobs verdes, Node v24.21.0, 369/4558, cero «failed to run». Las ramas de la 51
+  se borraron.
+- **Una rama de la 52, sin mergear a propósito y sin pushear:** `docs/review-s52-diff-s51` (el
+  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
   incluye.
-- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s51m`, se borró al terminar, la
-  junction primero).
+- **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 51):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 52):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2190,6 +2194,19 @@ Alternativas legítimas:
   `R9-256` tapó la guarda de `R9-197` en su única prueba: sola daba 0, y con `R256` volvía a caer.
 - **El control de una prueba de orden se fuerza, no se supone (sesión 51).** «La lectura vuelve
   antes del ack» era falso sin `mockSetGate`, y lo mostró el control en la primera corrida.
+- **Una puerta del mock en una lectura tiene que ver el disco de cuando se pidió (sesión 52,
+  `R9-260`).** AsyncStorage en Android corre en un `SerialExecutor`: una escritura pedida durante
+  una lectura lenta va detrás. La puerta de `colaIlegible` lee al abrirse, y con el motor viejo el
+  caso de `R9-115` «pasaba». Antes de un «¿lo abrió?», preguntá si la sonda deja escribir durante
+  la lectura.
+- **Una marca que se vacía al usarse pregunta qué pasa si se usa dos veces (sesión 52,
+  `R9-260`).** `joinQueue` vacía `queueTouched`, y dos `start()` del mismo uid pedían dos
+  hidrataciones: la segunda unión volvía a meter la entrada vieja.
+- **Una guarda que dice «atendido» adelanta el cursor (sesión 52, `R9-262`).** Lo que deja fuera
+  no vuelve a llegar, y el final cambia según haya o no un reinicio entre medias. Una guarda que
+  espera a otra escritura retiene; no asienta.
+- **Una aceptación vale para la ventana que midió (sesión 52, `R9-261`).** `R9-255` se aceptó
+  «tras dos lecturas fallidas», y la 51 abrió la misma ventana sin ninguna.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

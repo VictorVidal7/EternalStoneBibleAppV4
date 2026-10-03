@@ -5,7 +5,9 @@ En el mismo chat que la 50, solo en la terminal y sin agentes, con `_scratch/S51
 
 - **Ramas:** `fix/s51-arreglos-s50` (4 commits: `88fb219` `R9-256`, `e97cd95` `R9-254` y
   `R9-115`, `ec5bc70` `R9-257`, `6d834c5` los comentarios de `R9-255` y `R9-258`) y, encima,
-  `docs/review-s51-fix` (este checkpoint). Sin mergear hasta el OK de Victor.
+  `docs/review-s51-fix` (este checkpoint). Mergeadas y pusheadas con el OK de Victor (`main` =
+  `3e4b758`, CI verde en el log, run `37148855758`). La revisión de este diff es la 52
+  (`S52-revision-del-diff-s51.md`): abrió `R9-260`, `R9-261` y `R9-262`.
 - **Estado al empezar:** `main` = `origin/main` = `af8a5ae` (la 50 mergeada y pusheada, CI verde en
   el log, run `37145852120`). La base `S49-SyncEngine-R212.ts.txt` = el motor de `f287fc6`.
 - **Resultado:** 5 cerrados (`R9-256`, `R9-254`, `R9-115`, `R9-257`, `R9-258`), 1 aceptado

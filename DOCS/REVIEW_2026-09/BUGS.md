@@ -659,7 +659,8 @@
 >
 > **Sesión 51 (2026-10-03): ARREGLOS de lo de la 50**, en el mismo chat que la 50, solo en la
 > terminal y sin agentes. Rama `fix/s51-arreglos-s50` (4 commits: `88fb219`, `e97cd95`, `ec5bc70`
-> y `6d834c5`), sin mergear hasta el OK de Victor.
+> y `6d834c5`): mergeada y pusheada con el OK de Victor (`main` = `3e4b758`, CI verde en el log,
+> run `37148855758`, 369/4558).
 >
 > - **Cerrados:** `R9-256` (P2: sin copia local, la lápida en cola gana a una copia más vieja),
 >   `R9-254` y `R9-115` (la cola no se escribe hasta hidratarla, y la hidratación une lo escrito
@@ -669,6 +670,34 @@
 >   que la vea sola.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **259**. Detalle: `detail/S51-arreglos-s50.md`.
+>
+> **Sesión 52 (2026-10-03): revisión del diff de la 51**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. Rama `docs/review-s52-diff-s51`, sin mergear hasta el OK de
+> Victor.
+>
+> - **7 nuevos, `R9-260`..`R9-266`, todos P3:**
+>   - `R9-260` (lo abrió `R9-254`): dos hidrataciones a la vez (`start`, `stop`, `start` con la
+>     primera lectura en vuelo): la segunda vuelve a meter la entrada vieja de un doc ya reeditado,
+>     y sube encima;
+>   - `R9-261` (lo abrió `R9-254`): una edición hecha durante la PRIMERA lectura, sin ningún fallo,
+>     no llega a disco hasta que vuelve; si el proceso muere ahí, la vieja sube encima o la nueva no
+>     sube nunca. Es `R9-255` sin las dos lecturas fallidas de su aceptación;
+>   - `R9-262` (lo abrió `R9-256`): la lápida rechazada del todo con un reinicio entre medias deja
+>     local nulo y nube R, y la entrada de `R9-256` decía lo contrario del caso en la sesión;
+>   - `R9-263` (anterior; la afirmación es de la 51): la lectura fallida del flag repite el bulk
+>     push entero, y su comentario sigue diciendo que los duplicados son inocuos;
+>   - `R9-264` (anterior, vecino de `R9-257`): el `pullAllLocal` de `MemoryDeckContext` lee el ref,
+>     vacío durante la carga, y no lanza;
+>   - `R9-265` (la mitad de `R9-257` que no se cerró): `exportLocalData` salta un adaptador que
+>     falla, y con total 0 el diálogo de migración no pregunta;
+>   - `R9-266`: tres comentarios de la 51, medidos caso por caso.
+> - Cada «¿lo abrió la 51?», con el motor de `af8a5ae` y, en la hidratación, con una lectura que
+>   ve el disco de cuando se pidió (el `SerialExecutor` de AsyncStorage).
+> - `R9-259` respondido: otra diferencia entre las dos guardas, una edición en cola con `getLocal`
+>   nulo (la parte abierta de `R9-133`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **266**. Detalle:
+> `detail/S52-revision-del-diff-s51.md`.
 
 ---
 
@@ -5160,6 +5189,8 @@ pending.remoteVersion.updatedAt`.
       tumba las dos; `R254keep` y `R254write`, la primera; `R254touch`, las dos (la segunda por
       `lenta`: sin la marca, la entrada vieja sube después del ack de la nueva). Todas por la
       consecuencia.
+    - **⚠️ Sesión 52:** el arreglo abrió dos vecinos: `R9-260` (dos hidrataciones a la vez) y
+      `R9-261` (el proceso muere durante la primera lectura).
 
 - **`R9-255` (S50, `SyncEngine` / cola — P3) — 🐛 mientras la relectura que espera una escritura
   no vuelve, el disco guarda la entrada vieja de un doc que ya subió más nuevo; si el proceso muere
@@ -5189,6 +5220,8 @@ pending.remoteVersion.updatedAt`.
       determinista vuelve rápido y se rinde. Cerrarla pediría guardar en disco la escritura que
       espera y la marca, en una clave más con sus propios casos (ilegible, otra cuenta), como la
       tabla de sellos (`R9-193`).
+    - **⚠️ Sesión 52:** desde `R9-254`, la misma ventana se abre en la primera lectura de cada
+      arranque, sin ninguna lectura fallida (`R9-261`), y esta aceptación no la cubre.
 
 - **`R9-256` (S50, `SyncEngine` / borrados — P2) — 🐛 una lápida en cola y una copia del otro más
   vieja que el borrado: la fila resucita en este teléfono, y la nube y el otro teléfono la tienen
@@ -5223,6 +5256,9 @@ pending.remoteVersion.updatedAt`.
       por la consecuencia: local R.
     - **Coste:** si la lápida se descarta después (`R9-33`), lo local queda borrado y la nube con
       R, como cualquier escritura descartada.
+      **⚠️ Sesión 52, medido: al revés en la sesión.** Descartada en la misma sesión, la última
+      reversión trae R (local R, nube R). Solo con un reinicio entre medias queda borrada aquí, y
+      eso lo abrió este arreglo: `R9-262`.
     - **Abrió `R9-259`:** tapa a la guarda de `R9-197` en su única prueba.
 
 - **`R9-257` (S50, favoritos / sync — P3) — 🐛 un fallo de `getFavorites()` en el bulk push graba
@@ -5252,6 +5288,9 @@ pending.remoteVersion.updatedAt`.
     - **Pruebas: 4.** El motor (`R257` tumba el reintento; `R257only`, que sea solo de la que
       falló), favoritos con el provider y el motor reales (cae con `R257`), y los dos adaptadores
       (caen con su `catch` de antes).
+    - **⚠️ Sesión 52:** quedan tres vecinos. La lectura fallida del flag repite el push entero
+      (`R9-263`), `memoryCards` no lanza (`R9-264`), y la mitad del diálogo de migración no se
+      cerró (`R9-265`).
 
 - **`R9-258` (S50, `SyncEngine` / comentarios de `R9-212` — P3) — 🐛 cuatro afirmaciones de los
   comentarios nuevos y dos del detalle de la 49 no se sostienen caso por caso.** MEDIDO
@@ -5286,6 +5325,152 @@ pending.remoteVersion.updatedAt`.
     cola (y una edición en cola sin copia local). Esa diferencia es el caso de `R9-126`: la
     lápida sube encima de la copia más nueva. Una prueba que la fije congelaría ese daño.
   - **Propuesta:** decidirlo con `R9-126`. Hasta entonces, la guarda se queda con este porqué.
+  - **Sesión 52: hay otra diferencia, aparte de `R9-126`, y llega solo por otro hallazgo
+    abierto.** Por lectura. La salida de `R9-197` (`ownQueued && !local`) también salta una
+    EDICIÓN en cola, y la de `R9-256` solo una lápida. Una edición en cola «sin copia local» se da
+    cuando `getLocal` dice nulo con la fila en local: el `getLocal` de `MemoryDeckContext` lee
+    `deckRef`, vacío durante la carga (la parte abierta de `R9-133`). Ahí la vieja retiene la
+    copia leída, y sin ella entra por LWW (el daño de `R9-133`). La nota de `R9-256` («una edición
+    en cola sin copia local no sale de un camino normal») es cierta solo con `getLocal` sano.
+    - Las otras dos diferencias no cambian nada. Un `removed` leído con la escritura recién
+      descartada (`justDropped`) no llega a la rama de `R9-197` con una lápida: esa rama pide la
+      marca retenida, y la guarda de `R9-256` la asienta antes, al enganchar (medido,
+      `_scratch/S52-sonda-lapida.body.txt`, `retenido`: tras el enganche, marcas vacías). Y con
+      una copia leída borrada, el final es el mismo: local nulo.
+
+- **`R9-260` (S52, `SyncEngine` / cola — P3) — 🐛 dos hidrataciones a la vez: la segunda vuelve a
+  meter la entrada vieja de un doc que el usuario ya reeditó, y sube encima.** MEDIDO en el mock
+  (`_scratch/S52-sonda-doble.body.txt`, `DOBLE`; `S52-doble-hoy.out.txt`). **Lo abrió `R9-254`**
+  (con el motor de `af8a5ae`, `S52-doble-af8a5ae.out.txt`).
+  - `start()` → `stop()` → `start()` del mismo uid con la primera lectura de la cola en vuelo:
+    `queueHydrated` sigue en `false`, y el segundo `start()` pide otra lectura. Las dos ven el
+    mismo disco, porque `persistQueue` no escribe antes de hidratar. La primera unión descarta la
+    entrada de disco del doc marcado y vacía `queueTouched`, y la segunda ya no la descarta.
+  - **Medido** («viejo» en disco; el usuario reedita «nuevo» con la lectura retenida, y sube y sale
+    de la cola): `doble`, `{"lecturas":2,"subidas":["nuevo","viejo"],"nube":"viejo",
+"local":"nuevo"}`. El control (`una`, sin `stop`/`start`) da nube «nuevo».
+  - **Con el motor de `af8a5ae`:** `una` da «viejo» (el `R9-115` original) y `doble`, «nuevo»: la
+    segunda lectura veía el disco que la edición había escrito, y su asignación lo arreglaba de
+    casualidad. La 51 cerró `una` y abrió `doble`.
+  - **Medido con una lectura que ve el disco de cuando se pidió.** En Android, AsyncStorage corre
+    en un `SerialExecutor` (`AsyncStorageModule.java`): una escritura pedida durante una lectura
+    lenta va detrás de ella. La puerta de `colaIlegible` lee el disco al abrirse, y con el motor
+    viejo daba `una` = «nuevo», un orden que el almacenamiento real no produce. Con el de hoy da
+    igual, porque no escribe la cola antes de hidratar.
+  - **En `own`:** la segunda unión le suma a cada entrada de disco ya unida su propio reloj. Es
+    redundante, y con la lista llena desaloja el sello más viejo. Por lectura, sin medir.
+  - **Alcance:** `SyncEngineContext` llama a `start()`/`stop()` según `user`, y su comentario dice
+    que `user` pasa por nulo o anónimo durante la restauración de la sesión en el arranque en frío
+    (visto el 2026-07-09). Además, hace falta una edición que suba y salga de la cola dentro de
+    esa primera lectura, y una entrada de disco del mismo doc. P3.
+  - **Arreglo (hipótesis MEDIDA, `_scratch/S52-piezas.cjs.txt`, `H260once`):** una sola lectura
+    de hidratación, la pida quien la pida, como `rereadQueue`. `doble` da «nuevo» con una lectura,
+    y la suite de `SyncEngine.test.ts` sigue 278/278.
+  - **Para medir:** que la puerta de `colaIlegible` lea el disco al pedir (la `colaFoto` de la
+    sonda), o un «¿lo abrió?» con el motor viejo vuelve a engañar.
+
+- **`R9-261` (S52, `SyncEngine` / cola — P3) — 🐛 una edición hecha durante la PRIMERA lectura de
+  la cola (sana) no llega a disco hasta que vuelve: si el proceso muere ahí, tras reiniciar la
+  entrada vieja sube encima, o la nueva no sube nunca.** MEDIDO en el mock
+  (`_scratch/S52-sonda-muere.body.txt`, `MUERE`; `S52-muere-hoy.out.txt`). **Lo abrió `R9-254`**
+  (`S52-muere-af8a5ae.out.txt`).
+  - Desde la 51, `persistQueue` no escribe nada antes de hidratar, y la marca de lo escrito
+    (`queueTouched`) vive en memoria. Es la ventana de `R9-255`, pero en la primera lectura de
+    cada arranque, sin ninguna lectura fallida.
+  - **Medido** («q vieja» en disco; con la lectura de la hidratación retenida, el usuario escribe
+    «q nueva»; el proceso muere antes de que vuelva): sin red y con red (sube y sale de la cola),
+    `{"disco":["doc-q:q vieja"],"nube":"q vieja","local":"q nueva","cola":0}`. El control, con la
+    lectura vuelta antes de morir, da nube «q nueva». Con `af8a5ae`, «q nueva» en los tres.
+  - **La aceptación de `R9-255` no lo cubre.** El comentario de `queueUnread` dice «la ventana es
+    una lectura de almacenamiento local, después de dos que fallaron», y aquí no falló ninguna.
+  - P3: la primera lectura va detrás de las demás lecturas de AsyncStorage del arranque (el
+    ejecutor es serie), y hace falta escribir y que el proceso muera dentro de esa ventana.
+  - **Propuesta:** decidirlo con el mismo argumento que `R9-255`: cerrarla pide guardar en disco
+    lo escrito antes de hidratar, en otra clave con sus propios casos. Si se acepta, se escribe en
+    `persistQueue`, donde ocurre. Victor delega el diseño técnico de sync.
+
+- **`R9-262` (S52, `SyncEngine` / borrados — P3) — 🐛 la lápida de `R9-256` rechazada del todo, con
+  un reinicio entre el primer rechazo y el último: local nulo, y la nube y el otro teléfono con R,
+  para siempre.** MEDIDO en el mock (`_scratch/S52-sonda-lapida.body.txt`, `LAPIDA`;
+  `S52-lapida-hoy.out.txt`). **Lo abrió `R9-256`** (`S52-lapida-af8a5ae.out.txt`).
+  - La guarda de `R9-256` devuelve «atendido»: el doc se asienta y el cursor pasa a R. Si la
+    lápida se rechaza, cada reversión llega con ella todavía en cola, y la guarda la deja fuera
+    (bien: la lápida vuelve a intentar).
+  - **Medido:** `descarta` (el último rechazo en la misma sesión) da la reversión `modified`, R
+    entra: local R, nube R. `rechazaTras` (el primero en la sesión, el último en el proceso
+    siguiente) da `["added:echo","removed:revert"]`: R ya está bajo el piso, la reversión es un
+    `removed`, y la lectura, con la escritura recién descartada (`justDropped`), asienta sin
+    aplicar. **Local nulo, nube R.** Con `af8a5ae`, R ya había entrado al enganchar (el daño de
+    `R9-256`), y el final era R en los dos.
+  - **La entrada de `R9-256` dice el coste al revés para la sesión:** «si la lápida se descarta
+    después, lo local queda borrado y la nube con R». En la sesión, R vuelve. Solo con un reinicio
+    entre medias queda borrado.
+  - P3: hace falta que el servidor rechace la lápida en todos los intentos (se avisa como
+    escritura descartada) y un reinicio antes del último.
+  - **Arreglo (hipótesis MEDIDA, `H261hold` en `_scratch/S52-piezas.cjs.txt`):** que la guarda
+    retenga la copia (`false`, como un doc no aplicado) en vez de asentarla. El enganche siguiente
+    la vuelve a traer, y la última reversión es un `modified`: `rechazaTras` da local R, nube R.
+    `sana`, `descarta` y `retenido`, igual que hoy, y la suite sigue 278/278. Coste: el piso se
+    queda en R mientras la lápida espera, como con cualquier doc no aplicado.
+
+- **`R9-263` (S52, sync / bulk push — P3) — 🐛 con la lectura del flag fallida, el bulk push entero
+  se repite, y el comentario de ese `catch` sigue diciendo que los duplicados son inocuos.**
+  MEDIDO en el mock (`_scratch/S52-sonda-flag.body.txt`, `FLAG`; `S52-flag-hoy.out.txt`).
+  Anterior a la 51; lo que es de la 51 es la afirmación contraria.
+  - `maybeRunInitialBulkPush`: si `getItem(flagKey)` lanza, `only` queda nulo y se suben todas las
+    colecciones. El comentario: «duplicate writes are idempotent … the worst case is bandwidth,
+    not correctness». `R9-257` mostró que no (`R9-126`), y su propio comentario
+    (`BULK_PUSH_RETRY_PREFIX`) dice lo contrario en la misma función. El detalle de la 51 dice
+    «nunca se repite el push entero».
+  - **Medido** (el push ya hecho; en el segundo arranque, la lectura del flag falla una vez):
+    `{"segunda":["test/a"],"lecturasFallidas":1}`. El control sano: `"segunda":[]`.
+  - **Por lectura, sin medir:** si el `removeItem` de la lista falla tras un reintento sano, el
+    `start()` siguiente vuelve a subir esa colección; si su `setItem` falla, la lista se pierde y
+    la colección no sube nunca (`R9-257` otra vez).
+  - **Arreglo (hipótesis, sin medir):** con el flag ilegible, no hacer nada esta vez, como con la
+    lista. El flag es un valor chico, así que un fallo determinista (la `CursorWindow`) no lo deja
+    sin salida. Como mínimo, corregir el comentario.
+
+- **`R9-264` (S52, memoria / sync — P3) — 🐛 el bulk push de `memoryCards` durante la carga en frío
+  sube 0 tarjetas y graba el flag `'2'`, y el reintento de `R9-257` no lo ve.** POR LECTURA: es la
+  forma de `R9-214`, que se midió con el provider de favoritos.
+  - `MemoryDeckContext.tsx:268`: `pullAllLocal` devuelve `Object.values(deckRef.current)`, y
+    `deckRef` vale `{}` hasta que `hydrateFromStorage` termina, y para siempre si el JSON no se
+    lee (`:185`, «fall through to empty deck»). No lanza, así que el motor no lo anota en
+    `@sync_first_push_retry`.
+  - Alcance, como `R9-214`: un `start()` con el flag sin `'2'` ni `'skip'` antes de que termine la
+    carga, o con la carga fallida. `exportLocalData` (el diálogo de migración) lee lo mismo.
+  - **Arreglo (hipótesis):** como `R9-214`, leer el almacenamiento (esperando a la carga) y lanzar
+    si falla.
+
+- **`R9-265` (S52, sync / migración — P3) — 🐛 `exportLocalData` salta el adaptador que falla, y
+  con el total en 0 el diálogo de migración no pregunta (`R9-166`); con el reintento de `R9-257`,
+  esa colección sube después a la cuenta sin la pregunta.** POR LECTURA, con lo medido en la 50
+  (`S50-fav.out.txt`: `"exportados":[]`) y la prueba de `R9-257` (el reintento).
+  - Es la mitad de `R9-257` que el cierre de la 51 no menciona: la entrada decía que, con los
+    favoritos solos, el total era 0 y la pregunta del dueño anterior no se hacía.
+  - `AuthContext.tsx:402-404`: `total === 0` no pregunta, y sigue el bulk push. Antes de la 51
+    pasaba igual (subrayados y notas devolvían `[]`). Lo nuevo es el final cuando el bulk push
+    también falla: antes no subía nunca, y ahora sube en el `start()` siguiente, sin la pregunta.
+  - P3: hace falta un fallo de SQLite justo al iniciar sesión.
+  - **Arreglo (hipótesis):** que `exportLocalData` diga qué colecciones no pudo leer, y que el
+    diálogo trate «no leída» como «puede haber datos»: preguntar, o no migrar en ese inicio.
+
+- **`R9-266` (S52, `SyncEngine` / comentarios de la 51 — P3) — 🐛 tres afirmaciones nuevas no se
+  sostienen caso por caso.**
+  - **La guarda de `R9-256`:** «una copia no más nueva que la lápida es una versión que el borrado
+    reemplazó (el otro la escribió antes)». «No más nueva» es por reloj. La propia prueba de
+    `R9-256` escribe R DESPUÉS del borrado, con un reloj más viejo: es el otro con el reloj
+    atrasado (`R9-193`), y el borrado gana por reloj, como en LWW. Lo que hace es lo de LWW; el
+    porqué del comentario no.
+  - **`hydrateQueue`:** `wrote` mira también `ownDirty`, que antes de la primera hidratación está
+    siempre vacío: los sellos son solo de docs en conflicto, que se conocen al enganchar, después
+    de hidratar (`DOBLE`, `soloStop`: tras un `stop()` durante la lectura, la tabla de sellos sigue
+    vacía). Por lectura; su pieza no podría tumbar nada.
+  - **`readQueueAgain` y `joinQueue`:** «el disco tiene lo del arranque» y «una entrada de un doc
+    marcado se descarta» son falsos con dos hidrataciones (`R9-260`).
+  - **Propuesta:** corregirlos con los arreglos de `R9-260` y `R9-262`, y quitar `ownDirty` de
+    `wrote` o decir por qué se queda.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -5516,6 +5701,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   antes de hidratarla. El caso medido (X «viejo» en disco, reeditado a «nuevo» durante la
   hidratación) es una prueba: sube solo «nuevo», con la lectura que vuelve antes y después del
   ack. El pariente (la escritura que desaparecía de la cola) lo cubre la prueba de las tres formas.
+
+  **⚠️ Sesión 52:** con dos hidrataciones a la vez, el caso vuelve (`R9-260`): la segunda unión
+  mete otra vez la entrada vieja.
 
 - **`R9-116` (S19, prueba de respaldo) — 🐛 la prueba de `R9-28` cubre 1 de los 4 providers del
   arreglo.** El arreglo suscribe a la señal de restauración (`subscribeBackupRestored`) a

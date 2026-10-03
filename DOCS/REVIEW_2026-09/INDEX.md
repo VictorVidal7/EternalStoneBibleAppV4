@@ -638,7 +638,16 @@
 > `R9-259` (P3: la guarda de `R9-197` ya no tiene prueba propia).
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **259**. Ramas `fix/s51-arreglos-s50` y
-> `docs/review-s51-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S51-arreglos-s50.md`.
+> `docs/review-s51-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `3e4b758`, CI verde en
+> el log, run `37148855758`, 369/4558). Detalle: `detail/S51-arreglos-s50.md`.
+>
+> **Sesión 52 (2026-10-03): revisión del diff de la 51**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. 7 nuevos, todos P3 (`R9-260`..`R9-266`): tres los abrió la 51
+> (dos hidrataciones a la vez, el proceso que muere durante la primera lectura, y la lápida de
+> `R9-256` rechazada con un reinicio entre medias), y cuatro son vecinos de `R9-257` o comentarios.
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **266**. Rama `docs/review-s52-diff-s51`, sin
+> mergear hasta el OK de Victor. Detalle: `detail/S52-revision-del-diff-s51.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1218,6 +1227,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S51-arreglos-s50.md`.**
   - **La lección:** «los duplicados son inocuos» se coteja con el ledger (`R9-126` dice lo
     contrario).
+
+- **Sesión 52 — 2026-10-03. Revisión del diff de la 51.** En un chat nuevo, solo en la terminal,
+  sin agentes y sin tocar código.
+  - **Cómo se trabajó:** una sonda por pregunta, con su control en el mismo `it`
+    (`_scratch/S52-sonda-*.body.txt`); cada «¿lo abrió la 51?», con el motor de `af8a5ae` y una
+    lectura que ve el disco de cuando se pidió; dos hipótesis medidas (`S52-piezas.cjs.txt`).
+  - **Resultado:** 7 nuevos (`R9-260`..`R9-266`, P3). Queda 1 P0 abierto.
+  - **Detalle: `detail/S52-revision-del-diff-s51.md`.**
+  - **La lección:** una puerta del mock que lee al abrirse produce un orden que AsyncStorage (un
+    ejecutor serie) no produce.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
