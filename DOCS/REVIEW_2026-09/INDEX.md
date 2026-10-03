@@ -566,8 +566,21 @@
 >   a caer. Ninguna vieja baja a 0. Cuatro anclas de la 42 se rehicieron.
 >
 > **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **251**. Ramas `fix/s44-arreglos-s43` y
-> `docs/review-s44-fix-s43`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S44-arreglos-s43.md`.
+> `docs/review-s44-fix-s43`: mergeadas y pusheadas con el OK de Victor (`main` = `35529db`, CI
+> verde en el log, run `37069485600`, 368/4540). Detalle: `detail/S44-arreglos-s43.md`.
+>
+> **Sesión 45 (2026-10-02): revisión del diff de la 44**, solo en la terminal, sin agentes y sin
+> tocar código.
+>
+> - **`R9-251`: la guarda `ownUnread` decide, con daño** (`S45-1`): sin ella, tras reiniciar queda
+>   «lo mio nuevo | mi respaldo». Se queda; `S45-1` pasa a ser su prueba.
+> - **1 nuevo:** `R9-252` (P3, ya existía: una escritura mía que sube con el conflicto pendiente
+>   lo cierra en el próximo reinicio, y «lo suyo» se pierde sin que nadie elija).
+> - **Sin daño:** el piso de `queryFloors`, la anotación del rechazo, el ack de `R9-249` en disco y
+>   las pruebas nuevas (`attempts = 7` equivale a ocho rechazos de verdad, `S45-2`).
+>
+> **Queda 1 P0 abierto** (`R9-38`). Hallazgos: **252**. Rama `docs/review-s45-diff-s44`, sin
+> mergear hasta el OK de Victor. Detalle: `detail/S45-revision-del-diff-s44.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1078,6 +1091,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
       escribir** (`R9-247` y la prueba de la lectura de `R9-246`);
     - **una guarda agregada por un veredicto incierto también se mide** (`R9-251`);
     - **«equivalente por construcción» se razona con la cadena entera** (el `clear()` del piso).
+
+- **Sesión 45 — 2026-10-02. Revisión del diff de la 44.** Solo en la terminal, sin agentes y sin
+  tocar código; arrancó con `_scratch/S45-PROMPT.md`.
+  - **Cómo se trabajó:** tres sondas (`_scratch/S45-sondas1..3.body.txt`), cada una con su
+    control en el mismo `it`, la pieza vista aplicada y el «¿de la 44?» medido con el motor de
+    `1a77b78` (`S45-motor`).
+  - **Resultado:** `R9-251` tiene su orden con daño (la guarda se queda), 1 nuevo (`R9-252`). Queda
+    1 P0 abierto.
+  - **Detalle: `detail/S45-revision-del-diff-s44.md`.**
+  - **Las lecciones:**
+    - **una guarda que da 0 en la matriz puede decidir en un estado que ninguna prueba arma** (con
+      `R9-251`, el conflicto en memoria en vez de retenido);
+    - **lo que una prueba da por esperado también se revisa** (el «tras reiniciar, ningún
+      conflicto» de `R9-245` y `R9-248` es `R9-252`).
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

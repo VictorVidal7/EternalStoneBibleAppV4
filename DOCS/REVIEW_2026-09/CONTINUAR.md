@@ -1,13 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-02, fin de la sesión 44.** La 44 hizo el (x): arregló lo de la 43
-> en la terminal, sin agentes. Cerró 6 (`R9-245`..`R9-250`), con un commit por hallazgo, y registró
-> 1 nuevo (`R9-251`, P3).
+> **Última actualización: 2026-10-02, fin de la sesión 45.** La 45 hizo el (y): revisó el diff de
+> la 44 en la terminal, sin agentes y sin tocar código. `R9-251` tiene un orden con daño (la guarda
+> se queda; falta su prueba), y registró 1 nuevo (`R9-252`, P3, ya existía).
 >
-> La 43 ya está mergeada y pusheada (`main` = `a731c23`, CI verde en el log, run `37063248540`,
-> 368/4532). Las ramas de la 44 (`fix/s44-arreglos-s43` y `docs/review-s44-fix-s43`) van **sin
-> mergear hasta el OK de Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 251 hallazgos. **Lo
-> siguiente es el mensaje (y): revisar el diff de la 44.**
+> La 44 ya está mergeada y pusheada (`main` = `35529db`, CI verde en el log, run `37069485600`,
+> 368/4540). La rama de la 45 (`docs/review-s45-diff-s44`) va **sin mergear hasta el OK de
+> Victor**. Queda **1 P0 abierto** (`R9-38`), y hay 252 hallazgos. **Lo siguiente es el mensaje
+> (z): arreglar lo de la 45.**
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -472,9 +472,46 @@ que solo midieron; el checkpoint, en un chat nuevo y sin agentes), sus arreglos 
 en la terminal y sin agentes) y la revisión del diff de la 38 (la (s), sesión 39, igual), y sus arreglos (la (t), sesión 40,
 igual), y la revisión del diff de la 40 (la (u), sesión 41, igual), y sus arreglos (la (v), sesión
 42, igual), y la revisión del diff de la 42 (la (w), sesión 43, igual), y sus arreglos (la (x),
-sesión 44, igual). **Lo siguiente es el (y).**
+sesión 44, igual), y la revisión del diff de la 44 (la (y), sesión 45, igual). **Lo siguiente es
+el (z).**
 
-**(y) Sesión 45: revisar el diff de la 44.**
+**(z) Sesión 46: arreglar lo de la 45.**
+
+> Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
+> mensaje (z) y la sección 5), `detail/S45-revision-del-diff-s44.md` y, en `BUGS.md`, `R9-252` y
+> las notas de la 45 al final de `R9-251`, `R9-245`, `R9-246`, `R9-247`, `R9-248` y `R9-249`. En la
+> memoria, la de la sesión 45 y la regla fija de las pruebas
+> (`feedback_essb-regression-test-must-fail-first`).
+>
+> **Modo: solo terminal.** No propongas sesiones en la nube. Agentes en worktree, solo si te los
+> pido y 3 como máximo; su worktree nace en `main`: decile el commit esperado. Este chat gasta mi
+> cuota semanal: sé económico.
+>
+> **Estado:**
+>
+> - Si `main` todavía no incluye `docs/review-s45-diff-s44`, pedime el OK para el fast-forward.
+>   Antes de empezar, comprobá en el log el run de CI de `origin/main`.
+> - Queda 1 P0 abierto: `R9-38`. Hallazgos: 252.
+> - **Las herramientas** (en `_scratch`): las sondas `S45-sondas1..3.body.txt`, las piezas
+>   `S44-piezas.cjs.txt`, la base `S44-SyncEngine-R250.ts.txt` (= el motor de `c429604`),
+>   `S38-sonda.cjs.txt`, `S45-motor.cjs.txt`, `S34-rev.cjs.txt` y la matriz `S44-matriz.cjs.txt`.
+>   **`S32_BASE` y `S34_PIEZAS`, con la ruta ABSOLUTA.**
+> - **El control de NUL es `tr -cd '\000' < src/lib/sync/SyncEngine.ts | wc -c`**, que tiene que dar 0.
+>
+> **Esta sesión arregla lo de la 45**, un commit por hallazgo, cada prueba vista caer con su pieza:
+>
+> - `R9-251`: la prueba de la guarda `ownUnread`, de `S45-1` (con el control en la misma
+>   aserción); tiene que caer con `R247unread` (en la 45 da, sin la guarda, «lo mio nuevo | mi
+>   respaldo» tras reiniciar);
+> - `R9-252`: es una decisión mía (guardar «lo suyo» en disco con la marca, o aceptar que una
+>   escritura mía con el conflicto pendiente lo cierra en el próximo reinicio). Preguntame antes;
+> - si cabe, los dos comentarios: el de la prueba de la lectura sola (`R9-246`) y la premisa de
+>   `queryFloors` (`R9-247`).
+>
+> `R9-240` es Modo C en el emulador: solo con mi OK.
+
+**(y) Sesión 45: revisar el diff de la 44 — ya HECHO en la sesión 45, en la terminal y sin
+agentes.**
 
 > Seguimos con la revisión profunda. Leé primero `DOCS/REVIEW_2026-09/CONTINUAR.md` (sobre todo el
 > mensaje (y) y la sección 5), `detail/S44-arreglos-s43.md` y, en `BUGS.md`, los cierres de la 44
@@ -1718,19 +1755,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 44 (2026-10-02).**
+**Medido al cerrar la sesión 45 (2026-10-02).**
 
-- **`main` = `origin/main` = `a731c23`** (el checkpoint de la 43, mergeado y pusheado con el OK de
-  Victor; el último código en `main` es `1a77b78`). **CI verificado en el log:** run `37063248540`,
-  3 jobs verdes, Node v24.21.0, 368/4532, cero «failed to run». La rama de la 43 se borró.
-- **Dos ramas de la 44, sin mergear a propósito y sin pushear:** `fix/s44-arreglos-s43` (7 commits,
-  `3e35415`..`c429604`) y, encima, `docs/review-s44-fix-s43` (el checkpoint). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s44m`, se borró: la junction
-  primero, con `.Delete()`).
+- **`main` = `origin/main` = `35529db`** (el checkpoint de la 44, mergeado y pusheado con el OK de
+  Victor; el último código en `main` es `c429604`). **CI verificado en el log:** run `37069485600`,
+  3 jobs verdes, Node v24.21.0, 368/4540, cero «failed to run». Las ramas de la 44 se borraron.
+- **Una rama de la 45, sin mergear a propósito y sin pushear:** `docs/review-s45-diff-s44` (el
+  checkpoint; no toca código). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
+  `main` la incluye.
+- **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 44):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 45):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -1992,6 +2028,13 @@ Alternativas legítimas:
 - **«Equivalente por construcción» se razona con la cadena entera (sesión 44).** El `clear()` del
   piso en `stop()` parecía higiene. Una entrega tardía lee `uid` nulo, ninguna anotación casa, y
   nunca llega a leer el piso.
+- **Una guarda que da 0 en la matriz puede decidir en un estado que ninguna prueba arma (sesión
+  45, `R9-251`).** La de `ownUnread` decide con el conflicto EN MEMORIA cuando vuelve la
+  relectura. `S44-2` lo tenía retenido, y el eco de mi escritura lo asentaba antes. Antes de
+  proponer quitar una guarda, variá el estado del doc, no solo el orden.
+- **Lo que una prueba da por esperado también se revisa (sesión 45, `R9-252`).** Las pruebas de
+  `R9-245` y `R9-248` esperan «tras reiniciar, ningún conflicto» con «lo suyo» todavía en la
+  sesión, y eso era el daño.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
