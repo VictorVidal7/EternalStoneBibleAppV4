@@ -14,7 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
-import {prepKey} from './prepAccount';
+import {prepKey, prepWrite} from './prepAccount';
 import {
   type PrepSeries,
   type PrepSeriesMap,
@@ -59,14 +59,14 @@ let writeQueue: Promise<void> = Promise.resolve();
 function mutate(fn: (map: PrepSeriesMap) => PrepSeriesMap): Promise<void> {
   // R9-59 — the account of when the write was asked for.
   const key = prepKey(PREP_SERIES_KEY);
-  const run = async () => {
-    const raw = await AsyncStorage.getItem(await key);
+  const run = async (resolved: string) => {
+    const raw = await AsyncStorage.getItem(resolved);
     const next = fn(parsePrepSeriesMap(raw));
-    await AsyncStorage.setItem(await key, serializePrepSeriesMap(next));
+    await AsyncStorage.setItem(resolved, serializePrepSeriesMap(next));
   };
   // `attempt` reflects the real outcome for the immediate caller; `writeQueue`
   // always resolves so a failed write never wedges the next one behind it.
-  const attempt = writeQueue.then(run);
+  const attempt = writeQueue.then(() => prepWrite(key, run));
   writeQueue = attempt.catch(error => {
     logger.warn('Failed to save prep series', {error: String(error)});
   });

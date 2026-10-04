@@ -14,7 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
-import {prepKey} from './prepAccount';
+import {prepKey, prepWrite} from './prepAccount';
 import type {PrepSection, PrepTemplateId} from './prepTable';
 import {
   type PrepNotes,
@@ -67,8 +67,8 @@ export function savePrepNote(
 ): Promise<void> {
   // R9-59 — the account of when the write was asked for.
   const key = prepKey(PREP_NOTES_KEY);
-  const run = async () => {
-    const raw = await AsyncStorage.getItem(await key);
+  const run = async (resolved: string) => {
+    const raw = await AsyncStorage.getItem(resolved);
     const next = setMapSectionNote(
       parsePrepNotesMap(raw),
       passageKey,
@@ -77,10 +77,12 @@ export function savePrepNote(
       now,
       template,
     );
-    await AsyncStorage.setItem(await key, serializePrepNotesMap(next));
+    await AsyncStorage.setItem(resolved, serializePrepNotesMap(next));
   };
-  writeQueue = writeQueue.then(run).catch(error => {
-    logger.warn('Failed to save prep note', {error: String(error)});
-  });
+  writeQueue = writeQueue
+    .then(() => prepWrite(key, run))
+    .catch(error => {
+      logger.warn('Failed to save prep note', {error: String(error)});
+    });
   return writeQueue;
 }

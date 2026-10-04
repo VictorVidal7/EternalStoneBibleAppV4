@@ -14,7 +14,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
-import {prepKey} from './prepAccount';
+import {prepKey, prepWrite} from './prepAccount';
 import {
   type IllustrationCategory,
   type PrepIllustration,
@@ -61,14 +61,14 @@ function mutate(
 ): Promise<void> {
   // R9-59 — the account of when the write was asked for.
   const key = prepKey(PREP_ILLUSTRATIONS_KEY);
-  const run = async () => {
-    const raw = await AsyncStorage.getItem(await key);
+  const run = async (resolved: string) => {
+    const raw = await AsyncStorage.getItem(resolved);
     const next = fn(parsePrepIllustrationsMap(raw));
-    await AsyncStorage.setItem(await key, serializePrepIllustrationsMap(next));
+    await AsyncStorage.setItem(resolved, serializePrepIllustrationsMap(next));
   };
   // `attempt` reflects the real outcome for the immediate caller; `writeQueue`
   // always resolves so a failed write never wedges the next one behind it.
-  const attempt = writeQueue.then(run);
+  const attempt = writeQueue.then(() => prepWrite(key, run));
   writeQueue = attempt.catch(error => {
     logger.warn('Failed to save prep illustrations', {error: String(error)});
   });

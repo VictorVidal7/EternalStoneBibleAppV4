@@ -26,7 +26,18 @@
  *   synced data does. Declined, it stays where it was (R9-23, R9-166).
  * - Deleting the account gives its Mesa back to the Mesa «sin cuenta»: it was
  *   never in the cloud, and deleting the account deletes the cloud copy only.
- * A join keeps both maps; on the same entry, the one already there wins.
+ *
+ * R9-269 — a join loses no entry. An entry the destination does not have
+ * moves; on the same entry (the same passage written in both), the one
+ * already there stays, and the other STAYS WHERE IT WAS: joining into an
+ * account, the Mesa «sin cuenta» keeps it, and it is there on signing out.
+ * It used to go with its key, and signing in again deleted the sermon written
+ * signed out (or restored from a backup signed out). Giving the Mesa back on
+ * deleting the account is the one join whose source goes away: there, of two
+ * entries with a clock (`updatedAt`), the newer one stays; else the one
+ * already there. And the Mesa's writes and its joins run one at a time
+ * (`prepWrite`): a write that landed between a join's reads and its removal
+ * went with the key.
  *
  * The backup exports and restores the Mesa of the account signed in, so a
  * backup made by one account does not carry another's (R9-59).
@@ -76,6 +87,30 @@ export function prepKey(base: string): Promise<string> {
   return known.then(() => prepKeyFor(base, account));
 }
 
+/** R9-269 — the Mesa's writes and its joins, one at a time. */
+let turn: Promise<void> = Promise.resolve();
+function oneAtATime<T>(fn: () => Promise<T>): Promise<T> {
+  const run = turn.then(fn);
+  turn = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
+}
+
+/**
+ * R9-269 — a store's read-modify-write of its key (from `prepKey`, taken when
+ * the write was asked for), one at a time with the joins. The key is awaited
+ * first: it waits for the first auth state, whose join takes a turn.
+ */
+export async function prepWrite(
+  key: Promise<string>,
+  fn: (key: string) => Promise<void>,
+): Promise<void> {
+  const resolved = await key;
+  return oneAtATime(() => fn(resolved));
+}
+
 /** `AuthProvider`, as it mounts: keys wait for the first auth state. */
 export function managePrepAccount(): void {
   if (managed) return;
@@ -106,7 +141,7 @@ async function migrateLegacyPrep(signedIn: string | null): Promise<void> {
     const owner =
       storeOwnerAccount(await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY)) ??
       signedIn;
-    if (owner) await joinPrep(null, owner);
+    if (owner) await oneAtATime(() => joinPrep(null, owner));
     await AsyncStorage.setItem(MIGRATED_KEY, '1');
   } catch (error) {
     // Tried again on the next start; until then, the Mesa «sin cuenta».
@@ -119,7 +154,7 @@ async function migrateLegacyPrep(signedIn: string | null): Promise<void> {
 /** A sign-in that keeps the local data: the Mesa «sin cuenta» joins `uid`'s. */
 export async function adoptNoAccountPrep(uid: string): Promise<void> {
   try {
-    await joinPrep(null, uid);
+    await oneAtATime(() => joinPrep(null, uid));
   } catch (error) {
     logger.warn('Failed to bring the Mesa into the account', {
       error: String(error),
@@ -130,7 +165,7 @@ export async function adoptNoAccountPrep(uid: string): Promise<void> {
 /** The account was deleted: its Mesa joins the Mesa «sin cuenta». */
 export async function releasePrepAccount(uid: string): Promise<void> {
   try {
-    await joinPrep(uid, null);
+    await oneAtATime(() => joinPrep(uid, null, true));
   } catch (error) {
     logger.warn('Failed to give the Mesa back', {error: String(error)});
   }
@@ -148,12 +183,26 @@ function asMap(raw: string | null): Record<string, unknown> | null {
   }
 }
 
+/** R9-269 — whether `a` has a later clock than `b` (both need one). */
+function isNewer(a: unknown, b: unknown): boolean {
+  const at = (a as {updatedAt?: unknown} | null)?.updatedAt;
+  const bt = (b as {updatedAt?: unknown} | null)?.updatedAt;
+  return typeof at === 'number' && typeof bt === 'number' && at > bt;
+}
+
 /**
- * Every Mesa key of `from` joins the one of `to`, and `from`'s goes. A value
- * that is not a map is left where it is: nothing would read it there, and
- * nothing is lost by keeping it.
+ * Every Mesa key of `from` joins the one of `to`. R9-269 — an entry `to`
+ * lacks moves, and one `to` holds as well stays in `from` (see the header);
+ * `sourceGoes` (the account deleted): it cannot stay, and the newer of the
+ * two is kept. `from`'s key goes once nothing is left in it. A value that is
+ * not a map is left where it is: nothing would read it there, and nothing is
+ * lost by keeping it.
  */
-async function joinPrep(from: string | null, to: string | null) {
+async function joinPrep(
+  from: string | null,
+  to: string | null,
+  sourceGoes = false,
+) {
   const pairs: Array<[string, string]> = [];
   const gone: string[] = [];
   for (const base of PREP_KEYS) {
@@ -167,13 +216,32 @@ async function joinPrep(from: string | null, to: string | null) {
     if (!source) continue;
     const target = toRaw == null ? {} : asMap(toRaw);
     if (!target) continue;
-    pairs.push([toKey, JSON.stringify({...source, ...target})]);
-    gone.push(fromKey);
+    const joined: Record<string, unknown> = {...target};
+    const stays: Record<string, unknown> = {};
+    let moved = false;
+    for (const [id, entry] of Object.entries(source)) {
+      if (!(id in target)) {
+        joined[id] = entry;
+        moved = true;
+      } else if (JSON.stringify(entry) === JSON.stringify(target[id])) {
+        // Already there, the same.
+      } else if (!sourceGoes) {
+        stays[id] = entry;
+      } else if (isNewer(entry, target[id])) {
+        joined[id] = entry;
+        moved = true;
+      }
+    }
+    if (moved) pairs.push([toKey, JSON.stringify(joined)]);
+    const left = Object.keys(stays).length;
+    if (left === 0) gone.push(fromKey);
+    else if (left < Object.keys(source).length) {
+      pairs.push([fromKey, JSON.stringify(stays)]);
+    }
   }
-  if (pairs.length === 0) return;
   // The joined copies first: a process that dies between the two keeps both.
-  await AsyncStorage.multiSet(pairs);
-  await AsyncStorage.multiRemove(gone);
+  if (pairs.length > 0) await AsyncStorage.multiSet(pairs);
+  if (gone.length > 0) await AsyncStorage.multiRemove(gone);
 }
 
 export function __resetPrepAccountForTests(): void {
@@ -182,4 +250,5 @@ export function __resetPrepAccountForTests(): void {
   known = Promise.resolve();
   markKnown = null;
   firstState = true;
+  turn = Promise.resolve();
 }

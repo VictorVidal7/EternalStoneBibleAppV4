@@ -23,7 +23,7 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
-import {prepKey} from './prepAccount';
+import {prepKey, prepWrite} from './prepAccount';
 import {
   type PrepSelfReview,
   type PrepSelfReviewMap,
@@ -71,8 +71,8 @@ export function setPrepSelfReviewQuestion(
 ): Promise<void> {
   // R9-59 — the account of when the write was asked for.
   const key = prepKey(PREP_SELF_REVIEW_KEY);
-  const run = async () => {
-    const raw = await AsyncStorage.getItem(await key);
+  const run = async (resolved: string) => {
+    const raw = await AsyncStorage.getItem(resolved);
     const next = setMapQuestionChecked(
       parsePrepSelfReviewMap(raw),
       passageKey,
@@ -80,10 +80,12 @@ export function setPrepSelfReviewQuestion(
       checked,
       now,
     );
-    await AsyncStorage.setItem(await key, serializePrepSelfReviewMap(next));
+    await AsyncStorage.setItem(resolved, serializePrepSelfReviewMap(next));
   };
-  writeQueue = writeQueue.then(run).catch(error => {
-    logger.warn('Failed to save prep self-review', {error: String(error)});
-  });
+  writeQueue = writeQueue
+    .then(() => prepWrite(key, run))
+    .catch(error => {
+      logger.warn('Failed to save prep self-review', {error: String(error)});
+    });
   return writeQueue;
 }
