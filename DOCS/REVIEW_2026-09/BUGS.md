@@ -721,8 +721,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **268**. Detalle: `detail/S53-arreglos-s52.md`.
 >
 > **Sesión 54 (2026-10-03): revisión del diff de la 53**, en un chat nuevo, solo en la terminal,
-> sin agentes y sin tocar código. Rama `docs/review-s54-diff-s53`, sin mergear hasta el OK de
-> Victor.
+> sin agentes y sin tocar código. Rama `docs/review-s54-diff-s53`: mergeada y pusheada con el OK
+> de Victor (`main` = `a64786b`, CI verde en el log, run `37167615407`, 371/4582).
 >
 > - **4 nuevos:** `R9-269` (P1, lo abrió la 53: la unión de la Mesa «sin cuenta» borra el trabajo
 >   del mismo pasaje), `R9-270` (P2, lo abrió la 53: con el marcador del dueño viejo, lo editado
@@ -734,6 +734,18 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **272**. Detalle:
 > `detail/S54-revision-del-diff-s53.md`.
+>
+> **Sesión 55 (2026-10-03): ARREGLOS de lo de la 54**, en el mismo chat, solo en la terminal y sin
+> agentes. Rama `fix/s55-arreglos-s54` (`4d0cae7`..`50f209d`), sin mergear hasta el OK de Victor.
+>
+> - **Cerrados los 4:** `R9-269` (la unión de la Mesa no pierde ninguna entrada, y las escrituras
+>   y las uniones van de a una), `R9-270` (el almacén se reclama también con la sesión restaurada
+>   y al cerrarla), `R9-271` (sin sesión, la cola ilegible se relee y la lectura del dueño se
+>   reintenta) y `R9-272` (el comentario).
+> - Ningún nuevo. La matriz de la 44 sobre `50f209d`: las 157 piezas
+>   dan lo mismo que sobre `a85df96` (control: 0 de 285).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **272**. Detalle: `detail/S55-arreglos-s54.md`.
 
 ---
 
@@ -2610,6 +2622,15 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     entradas sin choque, y las que chocan se quedan en su clave (las de la «sin cuenta» siguen a
     la vista al cerrar sesión). O la más nueva por `updatedAt`, guardando la otra. La carrera se
     cierra pasando la unión por las colas de escritura de los stores, o borrando solo lo movido.
+    **✅ ARREGLADO en la sesión 55** (`4d0cae7`, rama `fix/s55-arreglos-s54`), con el cómo en
+    `prepAccount.ts`. La unión no pierde ninguna entrada: lo que el destino no tiene se mueve, y en
+    la misma entrada se queda la del destino y la otra se queda donde estaba (al entrar, en la Mesa
+    «sin cuenta», a la vista al cerrar sesión). Al borrar la cuenta, cuyo origen desaparece, gana
+    la más nueva por `updatedAt` (sin reloj, la que ya estaba). Las escrituras de los cuatro stores
+    y las uniones van de a una (`prepWrite`; la clave se resuelve antes de pedir turno). Prueba
+    nueva («R9-269: volver a entrar no borra…», con el respaldo restaurado y la carrera forzada), y
+    la de la 53 corregida: esperaba la clave «sin cuenta» borrada, y codificaba el defecto. Cada
+    pieza cae sola (`_scratch/S55-rev269.cjs.txt`: todo, la unión, el turno y «gana la más nueva»).
 
 ---
 
@@ -5668,6 +5689,13 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis):** reclamar el almacén también al restaurar una sesión de Google (la
     pregunta se hizo antes de entrar) y reintentar el claim fallido; o que el motor guarde el dueño
     que dice `start()`.
+    **✅ ARREGLADO en la sesión 55** (`1152965`): `AuthContext` reclama el almacén en cada estado de
+    auth con una cuenta de Google (la sesión restaurada ya pasó por la pregunta), y otra vez en
+    `signOut` (un claim fallido en el mismo proceso). Cubre también la instalación sin marcador.
+    Prueba nueva en `AuthContext.test.tsx`; las dos piezas caen solas (`S55-rev270.cjs.txt`).
+    **Queda, a la vista:** en el arranque en frío, una edición sin sesión hecha antes del primer
+    `start()` lee el dueño del disco, y si llega antes que el reclamo del estado restaurado va a la
+    cuenta anterior (`start()` lo corrige si llega mientras se lee).
 
 - **`R9-271` (S54, `SyncEngine` / `R9-38` — P3) — 🐛 sin sesión, una lectura fallida deja la
   edición sin subir: la del dueño la descarta, y la primera de la cola la deja solo en memoria sin
@@ -5688,6 +5716,13 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis):** con la hidratación fallida y una escritura esperando, pedir la
     relectura, como `start()`; y en el `catch` de `loadStoreOwner`, devolver el dueño que dijo un
     `start()`, o dejar la escritura en la cadena para la lectura siguiente.
+    **✅ ARREGLADO en la sesión 55** (`96f78c4`): sin sesión, la hidratación fallida pide la
+    relectura, como `start()` (esa relectura no rinde nada: la rendición de `R9-212` es la de la que
+    una escritura espera). La lectura del dueño se intenta otra vez antes de rendirse, y un
+    `start()` que dijo el dueño mientras se leía responde por ella; si las dos fallan, la edición no
+    se encola y la siguiente vuelve a leer (la salida). Prueba nueva («R9-271: sin sesion, una
+    lectura fallida…», cuatro casos); las tres piezas y el motor de `a85df96` caen
+    (`S55-rev271.cjs.txt`).
 
 - **`R9-272` (S54, pruebas de `R9-193` — P3) — 🐛 el comentario de las dos pruebas que cambió la
   53 dice que la entrada de L2 «decidiría antes que el sello de L1», y con la pieza A decide el
@@ -5702,6 +5737,8 @@ pending.remoteVersion.updatedAt`.
     vacía) es ese caso.
   - **Arreglo:** corregir el comentario: con L2 en cola la pieza A sigue cayendo, y la prueba deja
     L2 fuera para vigilar también la B, que solo se ve sin dueño.
+    **✅ ARREGLADO en la sesión 55** (`50f209d`): el comentario dice lo medido. Las piezas de
+    `S53-rev193` siguen tumbándolas igual (A, la segunda; B, las dos).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

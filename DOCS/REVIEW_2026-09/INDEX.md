@@ -665,8 +665,16 @@
 > cuenta» borra el trabajo del mismo pasaje), `R9-270` (P2, lo abrió la 53: con el marcador del
 > dueño viejo, lo editado sin sesión sube a la cuenta anterior), `R9-271` y `R9-272` (P3).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **272**. Rama `docs/review-s54-diff-s53`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S54-revision-del-diff-s53.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **272**. Rama `docs/review-s54-diff-s53`: mergeada y
+> pusheada con el OK de Victor (`main` = `a64786b`, CI verde en el log, run `37167615407`,
+> 371/4582). Detalle: `detail/S54-revision-del-diff-s53.md`.
+>
+> **Sesión 55 (2026-10-03): ARREGLOS de lo de la 54**, en el mismo chat, solo en la terminal y sin
+> agentes. Cerrados `R9-269`..`R9-272`; ningún nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **272**. Ramas `fix/s55-arreglos-s54` y
+> `docs/review-s55-fix`, apiladas y sin mergear hasta el OK de Victor. Detalle:
+> `detail/S55-arreglos-s54.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1278,6 +1286,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     abierto.
   - **Detalle: `detail/S54-revision-del-diff-s53.md`.**
   - **La lección:** una unión que dice «gana X» pregunta qué pasa con lo que pierde.
+
+- **Sesión 55 — 2026-10-03. Arreglos de lo de la 54.** En el mismo chat, solo en la terminal y sin
+  agentes.
+  - **Cómo se trabajó:** cada prueba nueva vista caer por la razón correcta, pieza por pieza
+    (`_scratch/S55-rev269.cjs.txt`, `S55-rev270.cjs.txt`, `S55-rev271.cjs.txt`); la matriz de la
+    44 sobre `50f209d`, en un worktree aparte.
+  - **Resultado:** 4 cerrados (`R9-269`..`R9-272`), ningún nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S55-arreglos-s54.md`.**
+  - **La lección:** una prueba de una carrera tiene que construirla: si la unión no escribe, la
+    puerta no retiene nada.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
