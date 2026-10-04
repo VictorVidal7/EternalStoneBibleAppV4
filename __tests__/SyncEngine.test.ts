@@ -8489,9 +8489,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
       ) as Array<{id: string}>
     ).map(q => q.id);
-    // Sin sesion, una edicion solo en local. Desde R9-38, `queueWrite` la
-    // encola para el dueno del almacen, y su entrada decidiria antes que el
-    // sello de L1: aqui queda fuera de la cola, como cuando no habia dueno.
+    // Sin sesion, una edicion solo en local, fuera de la cola: el caso sin
+    // dueno de R9-38 (un proceso nuevo sin marcador; aqui, en el mismo). Con
+    // L2 en cola, como la encola la app con el dueno conocido, la pieza A de
+    // stop() sigue mostrando «lo mio contra lo mio» y la B no: la entrada
+    // lleva el sello (R9-217, R9-226). Fuera de la cola caen las dos (R9-272).
     const L2 = {value: 'L2: sin sesion', updatedAt: T + 200_000};
     localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
     const netInfo = jest.requireMock('@react-native-community/netinfo')
@@ -8546,9 +8548,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
         (await AsyncStorage.getItem('@sync_queue_v1')) ?? '[]',
       ) as Array<{id: string}>
     ).map(q => q.id);
-    // Sin sesion, una edicion solo en local. Desde R9-38, `queueWrite` la
-    // encola para el dueno del almacen, y su entrada decidiria antes que el
-    // sello de L1: aqui queda fuera de la cola, como cuando no habia dueno.
+    // Sin sesion, una edicion solo en local, fuera de la cola: el caso sin
+    // dueno de R9-38 (un proceso nuevo sin marcador; aqui, en el mismo). Con
+    // L2 en cola, como la encola la app con el dueno conocido, la pieza A de
+    // stop() sigue mostrando «lo mio contra lo mio» y la B no: la entrada
+    // lleva el sello (R9-217, R9-226). Fuera de la cola caen las dos (R9-272).
     const L2 = {value: 'L2: sin sesion', updatedAt: T + 200_000};
     localStore.set('doc-c', L2 as unknown as SyncEntity<TestEntity>);
     const netInfo = jest.requireMock('@react-native-community/netinfo')
