@@ -9639,6 +9639,112 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     id: string,
   ) => (localStore.get(id) as unknown as Data | undefined)?.value;
 
+  it('R9-271: sin sesion, una lectura fallida (la de la cola o la del dueno) no deja la edicion sin subir', async () => {
+    const T = Date.now() - HOUR;
+    const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
+    // La cola: su primera lectura falla una vez, y el proceso termina tras
+    // UNA edicion sin sesion.
+    const cola = async (uid: string) => {
+      const {localStore, adapter} = await enColaSinRed(
+        uid,
+        'doc-q',
+        'q vieja',
+        T,
+      );
+      await AsyncStorage.setItem('@local_store_owner_uid', uid);
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      const c = colaIlegible(1);
+      const p1 = new SyncEngine();
+      p1.register(adapter);
+      p1.__setOnlineForTests(false);
+      let p2: SyncEngine | null = null;
+      try {
+        await escribir(p1, localStore, 'doc-z', 'z', T + 300_000);
+        await settle();
+        const lecturas = c.lecturas();
+        c.restaurar();
+        // El proceso termina (stop() no escribe la cola: no hay sellos).
+        p1.stop();
+        await settle();
+        p2 = await procesoNuevo(uid, adapter);
+        p2.__setOnlineForTests(true);
+        await settle();
+        await p2.__flushForTests();
+        await settle();
+        return {
+          lecturas,
+          z: await nubeDe(uid, 'doc-z'),
+          q: await nubeDe(uid, 'doc-q'),
+        };
+      } finally {
+        c.restaurar();
+        p1.stop();
+        p2?.stop();
+        await settle();
+      }
+    };
+    // El dueno: su lectura falla `fallos` veces (la primera, retenida hasta
+    // abrir); `conStart`, un start() del dueno llega mientras se lee.
+    const dueno = async (uid: string, fallos: number, conStart: boolean) => {
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem('@local_store_owner_uid', uid);
+      const {adapter, localStore} = makeAdapter();
+      const realImpl = getItemMock.getMockImplementation()!;
+      let n = 0;
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      getItemMock.mockImplementation((k: string) => {
+        if (k !== '@local_store_owner_uid') return realImpl(k);
+        n += 1;
+        if (n > fallos) return realImpl(k);
+        const falla = () => Promise.reject(new Error('disco'));
+        return n === 1 ? puerta.then(falla) : falla();
+      });
+      const e = new SyncEngine();
+      e.register(adapter);
+      e.__setOnlineForTests(false);
+      try {
+        await escribir(e, localStore, 'doc-o', 'primera', T + 1000);
+        e.__setOnlineForTests(true);
+        if (conStart) {
+          const arranque = e.start(uid);
+          await settle();
+          abrir();
+          await arranque;
+        } else {
+          abrir();
+          await settle();
+          await e.start(uid);
+        }
+        await settle();
+        await e.__flushForTests();
+        await settle();
+        return {lecturas: n, nube: await nubeDe(uid, 'doc-o')};
+      } finally {
+        abrir();
+        getItemMock.mockImplementation(realImpl);
+        e.stop();
+        await settle();
+      }
+    };
+    const res = {
+      cola: await cola('uid-271-cola'),
+      duenoUnFallo: await dueno('uid-271-d1', 1, false),
+      duenoConStart: await dueno('uid-271-d2', 2, true),
+      duenoSiempre: await dueno('uid-271-d9', 99, false),
+    };
+
+    // Sin R9-271, «z» quedaba solo en memoria (nadie releia sin sesion) y no
+    // subia nunca; la edicion cuya lectura del dueno fallaba no se encolaba,
+    // tampoco con el dueno ya dicho por un start().
+    expect(res).toEqual({
+      cola: {lecturas: 2, z: 'z', q: 'q vieja'},
+      duenoUnFallo: {lecturas: 2, nube: 'primera'},
+      duenoConStart: {lecturas: 1, nube: 'primera'},
+      duenoSiempre: {lecturas: 2, nube: null}, // la salida: se rinde
+    });
+  });
+
   it('R9-212: con la cola ilegible al hidratar, la primera escritura no la reescribe sin las entradas de antes, ni la propia ni la aparcada de otra cuenta', async () => {
     const T = Date.now() - HOUR;
     await enColaSinRed('uid-212-ana', 'doc-a', 'de ana', T);

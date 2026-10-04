@@ -1084,25 +1084,44 @@ export class SyncEngine {
     this.upsertQueueEntry({uid, collection, id, data, queuedAt, attempts: 0});
     // R9-38 — written once the queue on disk is read (R9-254): with no
     // session yet, nothing else asks for that read.
-    if (!this.queueHydrated) void this.hydrateQueue();
+    if (!this.queueHydrated) {
+      void this.hydrateQueue().then(() => {
+        // R9-271 — and read again if it failed, as `start()` does: with no
+        // session nothing else asked before the next write, and a process
+        // that ended first had this edit in memory only. A read again that
+        // fails gives up nothing (R9-212): the next write's does.
+        if (this.queueUnread) void this.rereadQueue();
+      });
+    }
     if (uid === this.uid) void this.flush();
   }
 
-  /** R9-38 — the owner of the local store; null when there is none, or it
-   *  could not be read (read again on the next write). */
+  /**
+   * R9-38 — the owner of the local store; null when there is none, or it
+   * could not be read (read again on the next write). R9-271 — a failed read
+   * is tried once more before the write is given up (it is not queued, and a
+   * failed read used to drop it at once), and a `start()` that told the owner
+   * meanwhile answers for it. Not more: the writes behind wait for this one
+   * (see `enqueue`), the session's too.
+   */
   private async loadStoreOwner(): Promise<string | null> {
     if (this.storeOwner !== undefined) return this.storeOwner;
     let owner: string | null = null;
-    try {
-      owner = storeOwnerAccount(
-        await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY),
-      );
-    } catch (err) {
-      logger.warn('SyncEngine: could not read the local store owner', {
-        component: 'SyncEngine',
-        error: err instanceof Error ? err.message : String(err),
-      });
-      return null;
+    for (let attempt = 1; ; attempt++) {
+      try {
+        owner = storeOwnerAccount(
+          await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY),
+        );
+        break;
+      } catch (err) {
+        if (this.storeOwner !== undefined) return this.storeOwner;
+        if (attempt < 2) continue;
+        logger.warn('SyncEngine: could not read the local store owner', {
+          component: 'SyncEngine',
+          error: err instanceof Error ? err.message : String(err),
+        });
+        return null;
+      }
     }
     // A `start()` while it was read told the owner already.
     if (this.storeOwner === undefined) this.storeOwner = owner;
