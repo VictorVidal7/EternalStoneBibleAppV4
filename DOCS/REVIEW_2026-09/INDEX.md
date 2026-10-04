@@ -656,8 +656,17 @@
 > `R9-268` (P3).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **268**. Ramas `fix/s53-arreglos-s52`,
-> `fix/s53-r59-r38` y `docs/review-s53-fix`, apiladas y sin mergear hasta el OK de Victor.
-> Detalle: `detail/S53-arreglos-s52.md`.
+> `fix/s53-r59-r38` y `docs/review-s53-fix`: mergeadas y pusheadas con el OK de Victor (`main` =
+> `4807078`, CI verde en el log, run `37163774992`, 371/4582). Detalle:
+> `detail/S53-arreglos-s52.md`.
+>
+> **Sesión 54 (2026-10-03): revisión del diff de la 53**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. 4 nuevos: `R9-269` (P1, lo abrió la 53: la unión de la Mesa «sin
+> cuenta» borra el trabajo del mismo pasaje), `R9-270` (P2, lo abrió la 53: con el marcador del
+> dueño viejo, lo editado sin sesión sube a la cuenta anterior), `R9-271` y `R9-272` (P3).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **272**. Rama `docs/review-s54-diff-s53`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S54-revision-del-diff-s53.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1258,6 +1267,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S53-arreglos-s52.md`.**
   - **La lección:** una escritura que espera una lectura previa se ordena con las que vienen
     detrás; y antes de arreglar un camino del motor, comprobá que los llamadores llegan a él.
+
+- **Sesión 54 — 2026-10-03. Revisión del diff de la 53.** En un chat nuevo, solo en la terminal,
+  sin agentes y sin tocar código.
+  - **Cómo se trabajó:** una sonda por pregunta, con su control en el mismo `it`
+    (`_scratch/S54-sondas.body.txt`, y la Mesa con los stores reales en `S54-prep.test.ts.txt`);
+    cada «¿lo abrió la 53?», con el motor de `3f73e50`; las piezas de `R9-193` sobre una sonda
+    nueva (`S54-rev193.cjs.txt`); la matriz de la 53, comparada (157 de 157).
+  - **Resultado:** 4 nuevos (`R9-269` P1, `R9-270` P2, `R9-271` y `R9-272` P3). No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S54-revision-del-diff-s53.md`.**
+  - **La lección:** una unión que dice «gana X» pregunta qué pasa con lo que pierde.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

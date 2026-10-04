@@ -1,15 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-03, fin de la sesión 53.** La 53 hizo el (ag) en un chat nuevo,
-> en la terminal y sin agentes: arregló lo de la 52 (`R9-260`, `R9-262`..`R9-266`; aceptó `R9-261`)
-> e implementó `R9-38` (el último P0) y `R9-59` (la Mesa por cuenta) con la regla de Victor (§7).
-> Registró 2 hallazgos por lectura (`R9-267`, `R9-268`).
+> **Última actualización: 2026-10-03, fin de la sesión 54.** La 54 hizo el (ah) en un chat nuevo,
+> en la terminal, sin agentes y sin tocar código: revisó el diff de la 53 (`cc005d2..a85df96`) y
+> registró 4 hallazgos, `R9-269`..`R9-272`. **`R9-269` es P1 y lo abrió la 53:** la unión de la
+> Mesa «sin cuenta» borra el trabajo del mismo pasaje.
 >
-> La 52 ya está mergeada y pusheada (`main` = `cc005d2`, CI verde en el log, run `37153675553`,
-> 369/4558). Las ramas de la 53 (`fix/s53-arreglos-s52`, `fix/s53-r59-r38` y
-> `docs/review-s53-fix`, apiladas) van **sin mergear hasta el OK de Victor**. **No queda ningún P0
-> abierto**, y hay 268 hallazgos. **Lo siguiente:** la 54 revisa el diff de la 53 (mensaje (ah), en
-> `_scratch/S54-PROMPT.md`).
+> La 53 ya está mergeada y pusheada (`main` = `4807078`, CI verde en el log, run `37163774992`,
+> 371/4582). La rama de la 54 (`docs/review-s54-diff-s53`, solo docs) va **sin mergear hasta el
+> OK de Victor**. **No queda ningún P0 abierto**, y hay 272 hallazgos. **Lo siguiente:** la 55
+> arregla lo de la 54 (mensaje (ai), en `_scratch/S55-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -481,11 +480,15 @@ sesión 49, en un chat nuevo, con `_scratch/S49-PROMPT.md`). Y la revisión del 
 (ad), sesión 50, en un chat nuevo, con `_scratch/S50-PROMPT.md`). Y sus arreglos (la (ae), sesión
 51, en el mismo chat, con `_scratch/S51-PROMPT.md`). Y la revisión del diff de la 51 (la (af),
 sesión 52, en un chat nuevo, con `_scratch/S52-PROMPT.md`). Y sus arreglos, con `R9-59` y
-`R9-38` (la (ag), sesión 53, en un chat nuevo, con `_scratch/S53-PROMPT.md`). **Lo siguiente es el
-(ah).**
+`R9-38` (la (ag), sesión 53, en un chat nuevo, con `_scratch/S53-PROMPT.md`). Y la revisión del
+diff de la 53 (la (ah), sesión 54, en un chat nuevo, con `_scratch/S54-PROMPT.md`). **Lo siguiente
+es el (ai).**
 
-**(ah) Sesión 54: revisar el diff de la 53** (`cc005d2..a85df96`, las dos ramas de código). El
-mensaje está en `_scratch/S54-PROMPT.md`, que manda sobre este archivo.
+**(ai) Sesión 55: arreglar lo de la 54** (`R9-269`..`R9-272`; primero `R9-269`, el P1). El mensaje
+está en `_scratch/S55-PROMPT.md`, que manda sobre este archivo.
+
+**(ah) Sesión 54: revisar el diff de la 53 — ya HECHO en la sesión 54, en un chat nuevo, en la
+terminal y sin agentes.** El mensaje está en `_scratch/S54-PROMPT.md`.
 
 **(ag) Sesión 53: arreglar lo de la 52 e implementar `R9-59` y `R9-38` — ya HECHO en la sesión
 53, en un chat nuevo, en la terminal y sin agentes.** El mensaje está en `_scratch/S53-PROMPT.md`.
@@ -1886,20 +1889,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 53 (2026-10-03).**
+**Medido al cerrar la sesión 54 (2026-10-03).**
 
-- **`main` = `origin/main` = `cc005d2`** (el checkpoint de la 52, solo docs; el último código en
-  `main` es `6d834c5`). **CI verificado en el log:** run `37153675553`, 3 jobs verdes, Node
-  v24.21.0, 369/4558, cero «failed to run». La rama de la 52 se borró.
-- **Tres ramas de la 53, apiladas, sin mergear a propósito y sin pushear:**
-  `fix/s53-arreglos-s52` (7 commits, `6b768eb`..`3f73e50`), encima `fix/s53-r59-r38` (`ea182dc`,
-  `a85df96`), y encima `docs/review-s53-fix` (el checkpoint). Se mergean en fast-forward con el OK
-  de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (el de la matriz, `C:/projects/essb-s53-matriz`, se borró al terminar,
-  con `.Delete()` sobre su junction a `node_modules` primero).
+- **`main` = `origin/main` = `4807078`** (el checkpoint de la 53; el último código en `main` es
+  `a85df96`). **CI verificado en el log:** run `37163774992`, 3 jobs verdes, Node v24.21.0,
+  371/4582, cero «failed to run». Las ramas de la 53 se borraron.
+- **Una rama de la 54, sin mergear a propósito y sin pushear:** `docs/review-s54-diff-s53` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 53):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 54):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2226,6 +2226,18 @@ Alternativas legítimas:
   arreglo de `R9-38` habría pasado sus pruebas sin servir en la app.
 - **Una guarda que pasa de asentar a retener puede cubrir a otra en su prueba (sesión 53).**
   `S176cola` perdió el testigo de `R9-197`; con `R256` vuelve a caer. Medilas juntas.
+- **Una unión que dice «gana X» pregunta qué pasa con lo que pierde (sesión 54, `R9-269`).**
+  `joinPrep` borraba la clave de origen entera, también la entrada que no ganó: «cerrar sesión no
+  borra nada» se cumplía al cerrar y se rompía al volver a entrar.
+- **Un marcador escrito por otro, después y tragándose el fallo, puede decir la cuenta anterior
+  (sesión 54, `R9-270`).** El motor usa el dueño que dice `start()` en el proceso, y en el
+  siguiente, el disco.
+- **Una ventana sin sesión no tiene quien relea (sesión 54, `R9-271`).** Con sesión, `start()`
+  relee la cola; sin ella, la edición espera a la escritura siguiente.
+- **En el mock, `setItem` pasa por `multiSet` (sesión 54).** Una puerta sobre todo `multiSet`
+  cuelga la prueba, y un `spyOn` sobre un `jest.fn` devuelve el mismo, que se llama a sí mismo
+  (memoria agotada): la puerta, solo en la llamada a retener, y la implementación real con
+  `getMockImplementation()`.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -2531,6 +2543,9 @@ Alternativas legítimas:
   «¿Migrar?», y «Migrar» no sube nada. ¿No se le pregunta (y se le dice que los datos locales no se
   migran), o se migra solo lo que falta en su nube? Repetir el push entero no es una opción
   (`R9-126`).
+- **La severidad de `R9-269` (sesión 54):** se propuso P1 (la unión de la Mesa «sin cuenta» borra
+  el trabajo del mismo pasaje; hace falta ese pasaje en las dos Mesas). ¿P1, o P0 por ser pérdida
+  de datos?
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
 

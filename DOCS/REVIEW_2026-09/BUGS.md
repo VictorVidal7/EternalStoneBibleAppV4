@@ -700,9 +700,10 @@
 > `detail/S52-revision-del-diff-s51.md`.
 >
 > **Sesión 53 (2026-10-03): ARREGLOS de lo de la 52, y `R9-59` y `R9-38`**, en un chat nuevo,
-> solo en la terminal y sin agentes. Dos ramas apiladas, sin mergear hasta el OK de Victor:
-> `fix/s53-arreglos-s52` (7 commits, `6b768eb`..`3f73e50`) y, encima, `fix/s53-r59-r38` (`ea182dc`
-> y `a85df96`).
+> solo en la terminal y sin agentes. Dos ramas apiladas: `fix/s53-arreglos-s52` (7 commits,
+> `6b768eb`..`3f73e50`) y, encima, `fix/s53-r59-r38` (`ea182dc` y `a85df96`). **Mergeadas y
+> pusheadas con el OK de Victor** (`main` = `4807078`, CI verde en el log, run `37163774992`,
+> 371/4582; corregido en la 54).
 >
 > - **Cerrados:** `R9-260` (una sola lectura de hidratación), `R9-262` (la guarda de `R9-256`
 >   retiene en vez de asentar), `R9-263` (con el flag ilegible no se repite el push), `R9-264` (el
@@ -718,6 +719,21 @@
 >   su bulk push aquí).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **268**. Detalle: `detail/S53-arreglos-s52.md`.
+>
+> **Sesión 54 (2026-10-03): revisión del diff de la 53**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. Rama `docs/review-s54-diff-s53`, sin mergear hasta el OK de
+> Victor.
+>
+> - **4 nuevos:** `R9-269` (P1, lo abrió la 53: la unión de la Mesa «sin cuenta» borra el trabajo
+>   del mismo pasaje), `R9-270` (P2, lo abrió la 53: con el marcador del dueño viejo, lo editado
+>   sin sesión sube a la cuenta anterior), `R9-271` (P3: sin sesión, una lectura fallida deja la
+>   edición sin subir) y `R9-272` (P3: el comentario de dos pruebas de `R9-193`).
+> - Sin hallazgo: la cadena del dueño (AsyncStorage es un ejecutor serie), el `flush` en vuelo y
+>   el conteo, el primer estado de auth, la lápida que espera (el coste de `R9-39`), el flag
+>   ilegible siempre, y la matriz (157 de 157).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **272**. Detalle:
+> `detail/S54-revision-del-diff-s53.md`.
 
 ---
 
@@ -1154,6 +1170,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     codificaban este bug: ahora dejan L2 fuera de la cola, y siguen cayendo con sus piezas de
     `stop()` (medido).
   - Su borde, a la vista: `R9-268`.
+  - **⚠️ Sesión 54:** dos bordes medidos. Con el marcador del dueño viejo, lo editado sin sesión
+    sube a la cuenta anterior (`R9-270`); y sin sesión, una lectura fallida deja la edición sin
+    subir (`R9-271`).
 
 - **`R9-39` (A4, conflictos) — 🐛 un conflicto pendiente lo entierra el cursor que adelanta
   cualquier OTRO documento de la misma colección.** Severidad **media**.
@@ -2564,6 +2583,32 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   plan) → `newlyCompleted: [{planId:'iam-7', day:1}]` y toast «¡Día 1 completado!». Detalle:
   `detail/A11-progreso-rachas.md`.
   **⚠️ Sesión 22 (sonda): se sostiene en P1.** El disparador es ancho: el lector llama a `markChapterRead` tras 5 s en cualquier capítulo. La prueba existente (`readingPlanProgressContext.test.tsx:65-82`) destilda sin haber leído el capítulo del día, así que no pasa por este caso. El toast real dice `✅ Día 1 de "<plan>" completado`. Líneas de hoy: `toggleDay` `:222-257`, el escaneo `:319-338` y `restartPlan` `:441-478`.
+
+- **`R9-269` (S54, Mesa / `R9-59` — P1) — 🐛 la unión de la Mesa «sin cuenta» borra el trabajo del
+  mismo pasaje: gana la entrada de la cuenta, y la otra se va con su clave.** MEDIDO con los stores
+  reales (`_scratch/S54-prep.test.ts.txt`, `UNION`; `S54-prep-hoy.out.txt`). **Lo abrió `R9-59`**
+  (`a85df96`): antes había una sola Mesa y nada se unía.
+  - `joinPrep` (`src/features/study/prepAccount.ts`) escribe `{...source, ...target}` por pasaje y
+    después hace `multiRemove` de la clave de origen. Un pasaje que está en las dos Mesas pierde la
+    entrada de origen entera.
+  - **Medido:** Ana tiene `John/3/16-21` con una sección; cierra sesión y, en la Mesa «sin
+    cuenta», escribe ese pasaje (la sección, más nueva, y otra sección); vuelve a entrar con la
+    misma cuenta (sin pregunta). Su Mesa queda con la versión vieja sola, y la clave «sin cuenta»
+    ya no existe. CONTROL (otro pasaje): las dos entradas quedan.
+  - **Disparadores:** la misma cuenta que vuelve; otra que responde «Migrar»; y un respaldo
+    restaurado sin sesión (va a la Mesa «sin cuenta», y lo restaurado del mismo pasaje se borra al
+    entrar). Al revés, `releasePrepAccount` (borrar la cuenta): gana la «sin cuenta».
+  - Contradice la regla de Victor («cerrar sesión no borra nada», §7 de `CONTINUAR.md`) y el
+    comentario de `prepAccount.ts` («A join keeps both maps»).
+  - **Además, por el mismo `multiRemove` (`CARRERA`):** una escritura de la Mesa «sin cuenta» que
+    cae entre las lecturas de la unión y su borrado se pierde. Por la interfaz no parece
+    alcanzable: la unión corre durante el inicio de sesión.
+  - P1 y no P0: hace falta el mismo pasaje en las dos Mesas (con la sesión cerrada, la Mesa de la
+    cuenta no se ve). La pérdida es silenciosa y para siempre. Severidad propuesta; decide Victor.
+  - **Arreglo (hipótesis, sin medir):** no borrar la entrada que pierde. La unión mueve solo las
+    entradas sin choque, y las que chocan se quedan en su clave (las de la «sin cuenta» siguen a
+    la vista al cerrar sesión). O la más nueva por `updatedAt`, guardando la otra. La carrera se
+    cierra pasando la unión por las colas de escritura de los stores, o borrando solo lo movido.
 
 ---
 
@@ -5598,6 +5643,65 @@ pending.remoteVersion.updatedAt`.
     los datos locales no se migran), o migrar solo lo que falta en su nube, leyéndola. Es decisión
     de producto.
 
+- **`R9-270` (S54, identidad / `R9-38` — P2) — 🐛 si el marcador del dueño no llegó a disco, lo
+  editado sin sesión en el proceso siguiente sube a la nube de la cuenta ANTERIOR.** MEDIDO en el
+  mock (`_scratch/S54-sondas.body.txt`, `DUENO`; `S54-sondas-hoy.out.txt`). **Lo abrió `R9-38`**
+  (`ea182dc`): con `3f73e50` (`S54-sondas-3f73e50.out.txt`) no se encolaba nada.
+  - `@local_store_owner_uid` lo escribe solo `claimLocalStore`, después de
+    `signInWithCredential`/`linkWithCredential`, y se traga el fallo. Si no llega (un `setItem` que
+    falla, o el proceso que muere entre el inicio de sesión y el claim), queda la cuenta anterior.
+    El motor usa en el proceso el dueño que dice `start()`, y en el siguiente, el disco.
+  - **Medido:** con el marcador en Ana, Beto entra y cierra sesión; en el proceso siguiente edita
+    sin sesión. La edición se encola para Ana, y cuando Ana entra (su dueño en disco: `AuthContext`
+    no pregunta) sube a SU nube: `nubeAna.b = "de beto sin sesion"`. En el mismo proceso iba a
+    Beto. CONTROL (el claim sano): a Beto, y la nube de Ana nula.
+  - Contradice el comentario de `queueWrite` («No other account gets it») y la regla de `R9-38`
+    (otra cuenta recibe los datos locales solo tras la pregunta).
+  - El fallo al escribir el marcador ya estaba anotado como gemelo de `R9-158` (§8 de
+    `CONTINUAR.md`); lo nuevo es lo que le hace `R9-38`: antes solo cambiaba la pregunta.
+  - P2: hace falta que falle el `setItem` de un valor chico, o que el proceso muera en esa
+    ventana, y después otra cuenta en el teléfono.
+  - **Al lado, por lectura:** una cuenta que inició sesión antes de que existiera el marcador
+    (`R9-23`) deja el almacén sin dueño, y lo editado sin sesión no se encola (el caso «sin
+    dueño»). Con 0 usuarios, solo los teléfonos de prueba.
+  - **Arreglo (hipótesis):** reclamar el almacén también al restaurar una sesión de Google (la
+    pregunta se hizo antes de entrar) y reintentar el claim fallido; o que el motor guarde el dueño
+    que dice `start()`.
+
+- **`R9-271` (S54, `SyncEngine` / `R9-38` — P3) — 🐛 sin sesión, una lectura fallida deja la
+  edición sin subir: la del dueño la descarta, y la primera de la cola la deja solo en memoria sin
+  que nadie relea.** MEDIDO en el mock (`COLA` y `DUENOFALLA`; `S54-sondas-hoy.out.txt`,
+  `S54-duenofalla-hoy.out.txt`). No lo abrió la 53: con `3f73e50` no se encolaba ninguna edición
+  sin sesión. Es lo que el arreglo de `R9-38` deja sin cubrir.
+  - **La cola:** sin sesión, `queueFor` pide la hidratación; si falla, la entrada vive en memoria.
+    Con sesión, `start()` relee en el acto; sin ella, la relectura la pide solo la escritura
+    siguiente (`persistQueue`). Medido: `sinSesionFalla` da 1 lectura y el disco sin la edición;
+    si el proceso muere, la nube no la recibe nunca. `sinSesionSana` (CONTROL) y `conSesionFalla`
+    (2 lecturas) la suben.
+  - **El dueño:** `loadStoreOwner` devuelve `null` si su lectura falla, y `enqueue` no encola
+    nada (solo avisa de la lectura). También cuando un `start()` del dueño llegó mientras se leía:
+    el `catch` no mira `storeOwner`. Medido: la edición queda en local y no sube nunca; la
+    siguiente, sí.
+  - P3: hace falta un fallo de lectura de AsyncStorage y, en la cola, que el proceso muera antes
+    de otra escritura.
+  - **Arreglo (hipótesis):** con la hidratación fallida y una escritura esperando, pedir la
+    relectura, como `start()`; y en el `catch` de `loadStoreOwner`, devolver el dueño que dijo un
+    `start()`, o dejar la escritura en la cadena para la lectura siguiente.
+
+- **`R9-272` (S54, pruebas de `R9-193` — P3) — 🐛 el comentario de las dos pruebas que cambió la
+  53 dice que la entrada de L2 «decidiría antes que el sello de L1», y con la pieza A decide el
+  sello.** MEDIDO (`_scratch/S54-sondas.body.txt`, `R193`, con las piezas de `S53-rev193` por
+  `S54-rev193.cjs.txt`; `S54-r193-A.out.txt` y `S54-r193-B.out.txt`).
+  - Con L2 encolada, como la encola hoy la app (tras el `start()`, el dueño se conoce), la pieza A
+    (`stop()` no anota la subida en vuelo) sigue mostrando «lo mío contra lo mío». La pieza B
+    (`stop()` no escribe los sellos), no: la entrada lleva el sello (`R9-217`, `R9-226`).
+  - Las pruebas siguen tumbando sus piezas (A, la segunda; B, las dos). Lo que construyen (L2 fuera
+    de la cola tras una sesión, en el mismo proceso) la app no lo produce; sí en un proceso nuevo
+    sin dueño (`R9-270`, `R9-271`), con los sellos en disco. Su final (local L2, nube L1, cola
+    vacía) es ese caso.
+  - **Arreglo:** corregir el comentario: con L2 en cola la pieza A sigue cayendo, y la prueba deja
+    L2 fuera para vigilar también la B, que solo se ve sin dueño.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -6611,6 +6715,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   - Pruebas nuevas: `__tests__/prepAccount.test.ts` (8, stores reales), 4 en `AuthContext.test.tsx`
     y 1 en `backupDegradedSections.test.ts`. Cada pieza cae sola (`_scratch/S53-rev59.cjs.txt`).
     Progreso y logros siguen por aparato.
+  - **⚠️ Sesión 54:** la unión borra la entrada que pierde, en el mismo pasaje: `R9-269` (P1).
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y
