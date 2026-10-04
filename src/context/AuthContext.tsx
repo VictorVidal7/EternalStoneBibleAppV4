@@ -301,6 +301,13 @@ export function AuthProvider({children}: AuthProviderProps) {
   useEffect(() => {
     if (isLoading) return;
     void setPrepAccount(user && !user.isAnonymous ? user.uid : null);
+    // R9-270 — the store is claimed on every state with a Google account,
+    // not only by the sign-in: a claim that failed there (or a process that
+    // died before it) left the previous account on disk, and what was edited
+    // signed out in the next process waited for that account and went up to
+    // its cloud. The account here already went through the question (it is
+    // asked before signing in), and a restored session is one that did.
+    if (user && !user.isAnonymous) void claimLocalStore(user.uid);
   }, [user, isLoading]);
   // Themed replacement for the old Alert.alert-wrapped migration prompt
   // (UX audit): the dialog is state-driven, but the calling code below still
@@ -614,6 +621,12 @@ export function AuthProvider({children}: AuthProviderProps) {
     // Mirrors deleteAccount's engine.stop()-before-anything-auth-related
     // ordering below.
     getSyncEngine()?.stop();
+    // R9-270 — the account leaving owns the store, and what is edited signed
+    // out from now on waits for it (R9-38): its claim is written once more
+    // here, so one that failed in this process does not leave the previous
+    // account on disk for the next one.
+    const leaving = authMod?.().currentUser;
+    if (leaving && !leaving.isAnonymous) await claimLocalStore(leaving.uid);
 
     if (gs) {
       try {

@@ -595,6 +595,66 @@ describe('AuthProvider', () => {
     mockEngineStub = null;
   });
 
+  it('R9-270 — el almacen se reclama tambien con la sesion restaurada, y otra vez al cerrarla', async () => {
+    const setItemMock = AsyncStorage.setItem as unknown as jest.Mock;
+    const realSet = setItemMock.getMockImplementation()!;
+    let falla = false;
+    setItemMock.mockImplementation((k: string, v: string) =>
+      falla && k === '@local_store_owner_uid'
+        ? Promise.reject(new Error('disco'))
+        : realSet(k, v),
+    );
+    const marcador = () => AsyncStorage.getItem('@local_store_owner_uid');
+    const vueltas = () =>
+      act(async () => {
+        for (let i = 0; i < 5; i++) await new Promise(r => setTimeout(r, 0));
+      });
+    const montar = async () => {
+      mockListeners.length = 0;
+      const api = captureAuthApi();
+      const r = render(
+        <AuthProvider>
+          <Probe onReady={api.onReady} />
+        </AuthProvider>,
+      );
+      mockCurrentUser = {uid: 'beto-uid', isAnonymous: false};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(api.ref.current?.user?.uid).toBe('beto-uid'));
+      await vueltas();
+      return {api, r};
+    };
+    try {
+      // 1. Arranque en frio con la sesion de Beto restaurada y el marcador en
+      //    Ana (el claim de Beto fallo, o el proceso murio antes).
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      const uno = await montar();
+      const restaurada = await marcador();
+      uno.r.unmount();
+
+      // 2. Con sesion, el claim falla; despues Beto cierra sesion.
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+      falla = true;
+      const dos = await montar();
+      const conSesion = await marcador(); // CONTROL: fallo
+      falla = false;
+      await act(async () => {
+        await dos.api.ref.current!.signOut();
+      });
+      const alCerrar = await marcador();
+      dos.r.unmount();
+
+      // Sin R9-270, el marcador seguia en Ana: lo editado sin sesion en el
+      // proceso siguiente esperaba a Ana y subia a su nube.
+      expect({restaurada, conSesion, alCerrar}).toEqual({
+        restaurada: 'beto-uid',
+        conSesion: 'ana-uid',
+        alCerrar: 'beto-uid',
+      });
+    } finally {
+      setItemMock.mockImplementation(realSet);
+    }
+  });
+
   describe('R9-125 / R9-130 — the previous owner is checked on EVERY branch', () => {
     // `signInWithCredential` must leave a real current user behind (the
     // default mock doesn't), since the direct path claims the store for
