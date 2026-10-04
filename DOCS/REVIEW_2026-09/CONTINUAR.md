@@ -2543,9 +2543,9 @@ Alternativas legítimas:
   «¿Migrar?», y «Migrar» no sube nada. ¿No se le pregunta (y se le dice que los datos locales no se
   migran), o se migra solo lo que falta en su nube? Repetir el push entero no es una opción
   (`R9-126`).
-- **La severidad de `R9-269` (sesión 54):** se propuso P1 (la unión de la Mesa «sin cuenta» borra
-  el trabajo del mismo pasaje; hace falta ese pasaje en las dos Mesas). ¿P1, o P0 por ser pérdida
-  de datos?
+- ~~**La severidad de `R9-269` (sesión 54):** ¿P1, o P0 por ser pérdida de datos?~~ **Decidido
+  P1** por el orquestador con la delegación de Victor («como mejor convenga», 2026-10-03): hace
+  falta el mismo pasaje en las dos Mesas. Se arregla primero en la 55.
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
 

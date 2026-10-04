@@ -2604,7 +2604,8 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     cae entre las lecturas de la unión y su borrado se pierde. Por la interfaz no parece
     alcanzable: la unión corre durante el inicio de sesión.
   - P1 y no P0: hace falta el mismo pasaje en las dos Mesas (con la sesión cerrada, la Mesa de la
-    cuenta no se ve). La pérdida es silenciosa y para siempre. Severidad propuesta; decide Victor.
+    cuenta no se ve). La pérdida es silenciosa y para siempre. **Decidido P1** por el orquestador,
+    con la delegación de Victor («como mejor convenga», 2026-10-03); se arregla primero en la 55.
   - **Arreglo (hipótesis, sin medir):** no borrar la entrada que pierde. La unión mueve solo las
     entradas sin choque, y las que chocan se quedan en su clave (las de la «sin cuenta» siguen a
     la vista al cerrar sesión). O la más nueva por `updatedAt`, guardando la otra. La carrera se
