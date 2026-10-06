@@ -239,6 +239,86 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
   });
 
+  it('R9-276: una devolucion que no termino no la pisa otra del mismo proceso, y el arranque siguiente las termina todas', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const Q = 'Rom/8/28-30';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    const mesa = (pasaje: string) =>
+      JSON.stringify({
+        [pasaje]: {sections: {observation: 'de la cuenta'}, updatedAt: T},
+      });
+    // Ana y Beto tienen su Mesa, y las dos cuentas se borran en el mismo
+    // proceso; la union de las que dice `fallan` (a la Mesa «sin cuenta»)
+    // falla.
+    const caso = async (fallan: string[]) => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      await AsyncStorage.multiSet([
+        ['@prep_notes:ana', mesa(P)],
+        ['@prep_notes:beto', mesa(Q)],
+        ['@prep_by_account', '1'],
+      ]);
+      managePrepAccount();
+      await setPrepAccount('ana');
+      let falla = false;
+      ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+        if (falla && pairs.some(([k]) => k === '@prep_notes')) {
+          throw new Error('disco');
+        }
+        return real(pairs);
+      });
+      let anaSeQuedo = false;
+      try {
+        for (const uid of ['ana', 'beto']) {
+          falla = fallan.includes(uid);
+          await releasePrepAccount(uid);
+          if (uid === 'ana') {
+            anaSeQuedo = (await claves()).includes('@prep_notes:ana');
+          }
+        }
+      } finally {
+        ms.mockImplementation(real);
+      }
+      await setPrepAccount(null);
+      // El proceso siguiente, sin sesion.
+      __resetPrepAccountForTests();
+      managePrepAccount();
+      await setPrepAccount(null);
+      return {anaSeQuedo, sinCuenta: await pasajes(), claves: await claves()};
+    };
+    // La nota de antes de R9-276 (un uid, no una lista) se sigue terminando.
+    const antigua = async () => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      await AsyncStorage.multiSet([
+        ['@prep_notes:ana', mesa(P)],
+        ['@prep_release_pending', 'ana'],
+        ['@prep_by_account', '1'],
+      ]);
+      managePrepAccount();
+      await setPrepAccount(null);
+      return {sinCuenta: await pasajes(), claves: await claves()};
+    };
+    const devueltas = {
+      anaSeQuedo: true, // CONTROL: la union de Ana fallo
+      sinCuenta: [P, Q],
+      claves: ['@prep_by_account', '@prep_notes'],
+    };
+    // Sin R9-276 la nota tenia un solo lugar: la de Beto pisaba la de Ana, y
+    // la Mesa de Ana se quedaba bajo su uid.
+    expect({
+      primera: await caso(['ana']),
+      lasDos: await caso(['ana', 'beto']),
+      antigua: await antigua(),
+    }).toEqual({
+      primera: devueltas,
+      lasDos: devueltas,
+      antigua: {sinCuenta: [P], claves: ['@prep_by_account', '@prep_notes']},
+    });
+  });
+
   it('R9-269: volver a entrar no borra lo escrito sin sesion en el mismo pasaje (ni lo restaurado), y una escritura durante la union no se pierde', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';

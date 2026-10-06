@@ -68,7 +68,11 @@ export const PREP_KEYS = [
 /** Set once the Mesa written before R9-59 found its account. */
 const MIGRATED_KEY = '@prep_by_account';
 
-/** R9-274 — the deleted account whose Mesa is being given back. */
+/**
+ * R9-274 — the deleted accounts whose Mesa is being given back. R9-276 — a
+ * list: a give-back that failed waits for the next start, and another account
+ * deleted before it took the one place there was (before R9-276, one uid).
+ */
 const RELEASE_KEY = '@prep_release_pending';
 
 let account: string | null = null;
@@ -190,7 +194,7 @@ export async function adoptNoAccountPrep(uid: string): Promise<void> {
  */
 export async function releasePrepAccount(uid: string): Promise<void> {
   try {
-    await AsyncStorage.setItem(RELEASE_KEY, uid);
+    await noteReleases(uids => (uids.includes(uid) ? uids : [...uids, uid]));
   } catch (error) {
     // The join is tried all the same: only its retry is lost.
     logger.warn('Failed to note the Mesa to give back', {
@@ -200,11 +204,11 @@ export async function releasePrepAccount(uid: string): Promise<void> {
   await giveBack(uid);
 }
 
-/** R9-274 — a Mesa given back that did not finish (see `releasePrepAccount`). */
+/** R9-274 — the Mesas given back that did not finish (see `releasePrepAccount`). */
 async function finishRelease(): Promise<void> {
-  let uid: string | null;
+  let uids: string[];
   try {
-    uid = await AsyncStorage.getItem(RELEASE_KEY);
+    uids = await readReleases();
   } catch (error) {
     // Read again on the next start.
     logger.warn('Failed to read the Mesa to give back', {
@@ -212,16 +216,53 @@ async function finishRelease(): Promise<void> {
     });
     return;
   }
-  if (uid) await giveBack(uid);
+  // R9-276 — each on its own: one that fails again waits for the next start.
+  for (const uid of uids) await giveBack(uid);
 }
 
 async function giveBack(uid: string): Promise<void> {
   try {
     await oneAtATime(() => joinPrep(uid, null, true));
-    await AsyncStorage.removeItem(RELEASE_KEY);
+    await noteReleases(uids => uids.filter(u => u !== uid));
   } catch (error) {
     logger.warn('Failed to give the Mesa back', {error: String(error)});
   }
+}
+
+async function readReleases(): Promise<string[]> {
+  const raw = await AsyncStorage.getItem(RELEASE_KEY);
+  if (!raw) return [];
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((u): u is string => typeof u === 'string' && !!u);
+    }
+  } catch {
+    // Not a list: the note of before R9-276.
+  }
+  return [raw];
+}
+
+/**
+ * R9-276 — the note's read-modify-writes, one at a time. Not in the Mesa's
+ * turn: the note is written first, right after `deleteUser`, and a turn
+ * taken by a long write would widen that window.
+ */
+let noteTurn: Promise<void> = Promise.resolve();
+function noteReleases(change: (uids: string[]) => string[]): Promise<void> {
+  const run = noteTurn.then(async () => {
+    const uids = change(await readReleases());
+    if (uids.length > 0) {
+      await AsyncStorage.setItem(RELEASE_KEY, JSON.stringify(uids));
+    } else {
+      await AsyncStorage.removeItem(RELEASE_KEY);
+    }
+  });
+  noteTurn = run.then(
+    () => undefined,
+    () => undefined,
+  );
+  return run;
 }
 
 function asMap(raw: string | null): Record<string, unknown> | null {
@@ -304,4 +345,5 @@ export function __resetPrepAccountForTests(): void {
   markKnown = null;
   firstState = true;
   turn = Promise.resolve();
+  noteTurn = Promise.resolve();
 }
