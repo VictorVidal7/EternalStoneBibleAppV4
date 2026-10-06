@@ -1,5 +1,6 @@
 /**
- * El mazo y su disco: R9-133 (el `getLocal` de `memoryCards`).
+ * El mazo y su disco: R9-133 (el `getLocal` de `memoryCards`) y R9-277 (lo
+ * editado mientras la carga esta en vuelo).
  *
  * Provider real y AsyncStorage real; del SyncEngineContext solo
  * `useSyncEngineOptional`, para capturar el adaptador. `motor` hace lo que hace
@@ -40,6 +41,7 @@ import {
   useMemoryDeck,
   type MemoryDeckContextValue,
 } from '../src/context/MemoryDeckContext';
+import {emitBackupRestored} from '../src/lib/backup/restoreSignal';
 
 const card = (verseKey: string, updatedAt: number): MemoryCard => ({
   verseKey,
@@ -70,15 +72,46 @@ const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
 let realGet: (k: string) => Promise<string | null>;
 let lecturas = 0;
 
-/** Las primeras `fallos` lecturas de `@memory_deck` fallan; las demas esperan a `puerta`. */
-const mazo = (fallos: number, puerta?: Promise<void>) =>
+/**
+ * Las primeras `fallos` lecturas de `@memory_deck` fallan; las demas esperan a
+ * `puerta` (con una lista, la lectura n espera a la n-esima). Cada una ve el
+ * disco de cuando se pidio.
+ */
+const mazo = (
+  fallos: number,
+  puerta?: Promise<void> | Array<Promise<void> | undefined>,
+) =>
   getItemMock.mockImplementation((k: string) => {
     if (k !== '@memory_deck') return realGet(k);
     lecturas++;
     if (lecturas <= fallos) return Promise.reject(new Error('disco'));
     const foto = realGet(k);
-    return puerta ? puerta.then(() => foto) : foto;
+    const p = Array.isArray(puerta) ? puerta[lecturas - 1] : puerta;
+    return p ? p.then(() => foto) : foto;
   });
+
+const MARK = {
+  bookName: 'Mark',
+  chapter: 1,
+  verse: 1,
+  text: 'El principio del evangelio',
+  version: 'RVR1960',
+};
+const RESTAURADA = card('Mark/9/9', 3000);
+
+/** Lo que hace `importBackup`: escribe el mazo por detras del provider, y avisa. */
+const restaurar = async () => {
+  await AsyncStorage.setItem(
+    '@memory_deck',
+    JSON.stringify({[RESTAURADA.verseKey]: RESTAURADA}),
+  );
+  await act(async () => {
+    emitBackupRestored();
+    await new Promise(r => setTimeout(r, 0));
+  });
+};
+
+const pantalla = () => ctx!.cards.map(c => c.verseKey).sort();
 
 const montar = () =>
   render(
@@ -212,5 +245,88 @@ describe('R9-133 — el getLocal del mazo no dice «ausente» sin haber leido el
       reviewCount: john.reviewCount,
       disco: (await disco())!['John/3/16'] === 2000 ? 'remota' : 'repaso',
     }).toEqual({local: 'repaso', reviewCount: 1, disco: 'repaso'});
+  });
+});
+
+describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', () => {
+  it('una tarjeta agregada durante la carga en frio queda, en pantalla y en disco', async () => {
+    let abrir: () => void = () => undefined;
+    mazo(0, new Promise<void>(r => (abrir = r)));
+    montar();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const hidratadoAlAgregar = ctx!.hydrated;
+    await act(async () => {
+      abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+
+    // Sin R9-277, la carga reemplazaba el mazo: Mark no estaba en ninguno.
+    expect({
+      hidratadoAlAgregar,
+      pantalla: pantalla(),
+      disco: Object.keys((await disco())!),
+    }).toEqual({
+      hidratadoAlAgregar: false, // CONTROL: la carga seguia en vuelo
+      pantalla: ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
+      disco: ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
+    });
+  });
+
+  it('lo editado antes de la carga no vuelve encima de lo que lee (el respaldo reemplaza el mazo)', async () => {
+    mazo(0);
+    montar();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await restaurar();
+    await tick();
+
+    // Si lo editado no se soltara al leer, Mark/1/1 volveria sobre lo restaurado.
+    expect({
+      pantalla: pantalla(),
+      disco: Object.keys((await disco())!),
+    }).toEqual({
+      pantalla: ['Mark/9/9'],
+      disco: ['Mark/9/9'],
+    });
+  });
+
+  it('con dos cargas en vuelo, lo editado entre la primera y la segunda queda', async () => {
+    let abrir1: () => void = () => undefined;
+    let abrir2: () => void = () => undefined;
+    mazo(0, [
+      new Promise<void>(r => (abrir1 = r)),
+      new Promise<void>(r => (abrir2 = r)),
+    ]);
+    montar();
+    // El respaldo llega con la carga del montaje todavia en vuelo.
+    await restaurar();
+    await act(async () => {
+      abrir1();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const trasLaPrimera = pantalla();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await act(async () => {
+      abrir2();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+
+    // Si la primera carga soltara lo editado, la segunda reemplazaba el mazo
+    // sin Mark/1/1.
+    expect({trasLaPrimera, pantalla: pantalla()}).toEqual({
+      trasLaPrimera: ['John/3/16', 'Luke/2/1'], // CONTROL: la primera leyo el mazo de antes
+      pantalla: ['Mark/1/1', 'Mark/9/9'],
+    });
   });
 });

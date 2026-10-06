@@ -121,11 +121,17 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // render, so a remote copy that came in between was judged against the card
   // before the review, and replaced it.
   const deckRef = useRef<Record<string, MemoryCard>>({});
+  // R9-277 — the edits made since a load began, until the last load in flight
+  // reads the disk: each read lays them over what it reads. The load used to
+  // replace the deck, and a card added while it was in flight was gone from
+  // the screen and the disk.
+  const unsaved = useRef<Map<string, MemoryCard | null> | null>(null);
   const edit = useCallback((changes: Record<string, MemoryCard | null>) => {
     const next = {...deckRef.current};
     for (const [k, v] of Object.entries(changes)) {
       if (v) next[k] = v;
       else delete next[k];
+      unsaved.current?.set(k, v);
     }
     deckRef.current = next;
     setDeck(next);
@@ -154,10 +160,13 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // R9-264 — the last load of the deck, and whether it read the disk:
   // `pullAllLocal` waits for it.
   const deckLoad = useRef<Promise<boolean> | null>(null);
+  const loadSeq = useRef(0);
 
   // Read the deck off disk and adopt it. Extracted from the mount effect so
   // the backup-restore signal can re-run exactly the same parse (R9-28).
   const hydrateFromStorage = useCallback(async () => {
+    const seq = ++loadSeq.current;
+    unsaved.current ??= new Map();
     const load = AsyncStorage.getItem(STORAGE_KEY).then(
       raw => {
         if (raw) {
@@ -195,6 +204,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                 };
               }
             }
+            for (const [k, v] of unsaved.current ?? []) {
+              if (v) clean[k] = v;
+              else delete clean[k];
+            }
             // R9-264 — with the state, so a caller that waited for this load
             // reads it now.
             deckRef.current = clean;
@@ -204,7 +217,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
           }
         }
         // A value that is not JSON reads the same every time, and the deck
-        // written next replaces it: read, as an empty deck.
+        // written next replaces it: read, as an empty deck. Without a deck on
+        // disk, memory already holds the edits.
+        // R9-277 — a newer load (the backup's) reads what came after this one.
+        if (seq === loadSeq.current) unsaved.current = null;
         return true;
       },
       () => false,
