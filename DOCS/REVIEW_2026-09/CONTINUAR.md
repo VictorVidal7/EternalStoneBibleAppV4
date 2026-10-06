@@ -1,14 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 61.** La 61 hizo el (ao) en un chat nuevo,
-> en la terminal y sin agentes: arregló `R9-267` y la parte del mazo de `R9-133`, y encontró dos
-> que ya existían: `R9-277` (cerrado en la misma rama) y `R9-278` (abierto, P3).
+> **Última actualización: 2026-10-06, fin de la sesión 62.** La 62 hizo el (ap) en el mismo chat
+> que la 61, con 3 agentes en worktree que solo midieron (a pedido de Victor) y sin tocar código.
+> Revisó el diff de la 61 y registró 5 nuevos, todos P3 (`R9-279`..`R9-283`); además midió
+> `R9-278`.
 >
-> `main` = `origin/main` = `6667c40` (la 59). **La 60 no se mergeó** (faltaba el OK), y las ramas de
-> la 61 van apiladas encima: `docs/review-s60-diff-s59` → `fix/s61-mazo-r267-r133` →
-> `docs/review-s61-fix`, todo **sin mergear hasta el OK de Victor** (un solo fast-forward). **No
-> queda ningún P0 abierto**, y hay 278 hallazgos. **Lo siguiente:** la 62 revisa el diff de la 61,
-> en un chat nuevo (mensaje (ap), en `_scratch/S62-PROMPT.md`).
+> La 60 y la 61 ya están mergeadas y pusheadas (`main` = `9b78865`, CI verde en el log, run
+> `37425511083`, 373/4603). La rama de la 62 (`docs/review-s62-diff-s61`) va **sin mergear hasta el
+> OK de Victor**. **No queda ningún P0 abierto**, y hay 283 hallazgos. **Lo siguiente:** la 63
+> arregla lo de la 62, en un chat nuevo (mensaje (aq), en `_scratch/S63-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -488,12 +488,16 @@ sesión 57, en el mismo chat, con `_scratch/S57-PROMPT.md`). Y la revisión del 
 (al), sesión 58, en un chat nuevo, con `_scratch/S58-PROMPT.md`). Y sus arreglos (la (am), sesión
 59, en el mismo chat, con `_scratch/S59-PROMPT.md`). Y la revisión del diff de la 59 (la (an),
 sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. Y los arreglos del mazo
-de memoria (la (ao), sesión 61, en un chat nuevo, con `_scratch/S61-PROMPT.md`). **Lo siguiente es
-el (ap).**
+de memoria (la (ao), sesión 61, en un chat nuevo, con `_scratch/S61-PROMPT.md`). Y la revisión del
+diff de la 61 (la (ap), sesión 62, en el mismo chat con 3 agentes, con `_scratch/S62-PROMPT.md`).
+**Lo siguiente es el (aq).**
 
-**(ap) Sesión 62: revisar el diff de la 61** (`6667c40..d69c529` en el código: solo
-`MemoryDeckContext.tsx` y su prueba nueva), en un chat nuevo. El mensaje está en
-`_scratch/S62-PROMPT.md`, que manda sobre este archivo.
+**(aq) Sesión 63: arreglar lo de la 62** (`R9-279`..`R9-283`, y `R9-278` si va con `R9-281`: los
+dos piden un aviso antes del `multiSet` del respaldo), en un chat nuevo. El mensaje está en
+`_scratch/S63-PROMPT.md`, que manda sobre este archivo. Victor puede recortar la lista.
+
+**(ap) Sesión 62: revisar el diff de la 61 — ya HECHO en la sesión 62, en el mismo chat que la 61,
+con 3 agentes que solo midieron.** Cinco nuevos, P3. El mensaje está en `_scratch/S62-PROMPT.md`.
 
 **(ao) Sesión 61: arreglar el mazo de memoria — ya HECHO en la sesión 61, en un chat nuevo, en la
 terminal y sin agentes.** Cerrados `R9-267`, la parte del mazo de `R9-133` y `R9-277` (nuevo); abierto
@@ -1919,20 +1923,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 61 (2026-10-06).**
+**Medido al cerrar la sesión 62 (2026-10-06).**
 
-- **`main` = `origin/main` = `6667c40`** (el checkpoint de la 59, solo docs; el último código en
-  `main` es `37ba5f7`). **CI verificado en el log:** run `37417036066`, 3 jobs verdes, Node
-  v24.21.0, 372/4591, cero «failed to run». Las ramas de la 59 se borraron.
-- **Tres ramas apiladas, sin mergear a propósito y sin pushear** (entran en un solo
-  fast-forward con el OK de Victor; si ya se mergearon, `main` las incluye):
-  - `docs/review-s60-diff-s59` (el checkpoint de la 60, solo docs; la 61 la encontró sin mergear);
-  - `fix/s61-mazo-r267-r133`, encima (`57cab83`, `6d87069`, `d69c529`: el código de la 61);
-  - `docs/review-s61-fix`, encima (el checkpoint de la 61).
-- **Los worktrees:** ninguno.
+- **`main` = `origin/main` = `9b78865`** (el checkpoint de la 61, que incluye la 60; el último
+  código en `main` es `d69c529`). **CI verificado en el log:** run `37425511083`, 3 jobs verdes,
+  Node v24.21.0, 373/4603. Las ramas de la 60 y la 61 se borraron tras `git cherry` vacío.
+- **Una rama de la 62, sin mergear a propósito y sin pushear:** `docs/review-s62-diff-s61` (el
+  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main`
+  la incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 62 se borraron solos; `git worktree
+prune`).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las tres de arriba):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 62):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2321,14 +2324,27 @@ Alternativas legítimas:
 - **Una revisión en el mismo chat que escribió los arreglos no es una mirada fresca (sesión 60).**
   Se dice en el detalle, y se compensa con sondas que buscan romperlos (casos de fallo, basura,
   datos que crecen), no con las que ya pasaban.
-- **Una prueba de orden de AsyncStorage entrega cada lectura en su propio callback (sesión 61).**
-  Con dos lecturas abiertas por la misma puerta, la segunda se resolvía en la misma ronda de
-  microtareas que la primera. La guarda «una carga más nueva decide» (`nueva`, `R9-267`) no caía,
-  porque la recarga adoptaba antes de que la salida se rindiera; en el ejecutor serie llega
-  después. Una puerta por lectura, abiertas en `act` distintos.
+- **El ejecutor serie de AsyncStorage ordena lo que CORRE, no solo lo que llega (sesiones 61 y 62,
+  `R9-281`, `R9-283`).** La 61 escribió «una puerta por lectura, abiertas en `act` distintos», y no
+  alcanzaba. Su puerta tomaba la foto al pedir y solo demoraba la entrega, así que la escritura del
+  respaldo se completaba mientras la relectura esperaba: un orden que el teléfono no produce. La
+  prueba de la guarda `nueva` afirmaba lo contrario de lo que pasa (en orden serie, la salida pisa
+  el respaldo). En el ejecutor serie, nada pedido después de una operación pendiente corre ni llega
+  antes que ella. Usá el modelo de `_scratch/S62-sondas-agente-3/S62a3-orden.test.tsx.txt`, y con
+  el mock plano preguntá qué orden construye la puerta.
 - **Una carga que reemplaza el estado pregunta qué se escribió mientras estaba en vuelo (sesión 61,
   `R9-277`).** `setDeck(clean)` borraba lo agregado durante la lectura. Y la relectura de una guarda
-  que espera es también una carga: lo editado que la disparó tiene que quedar encima.
+  que espera es también una carga: lo editado que la disparó tiene que quedar encima. **Pero (sesión
+  62, `R9-279`)** poner encima lo editado no distingue un alta condicional («si no está») de una
+  edición: un alta sobre un mazo sin leer reemplaza lo que había.
+- **Una salida que vive en un efecto necesita un render (sesión 62, `R9-280`).** `setHydrated(true)`
+  con `hydrated` ya en `true` no renderiza, y la relectura de la recarga fallida quedaba esperando
+  otra edición. Antes de escribir «espera solo lo que tarda una lectura», recorré cada camino que
+  falla.
+- **El worktree de un agente que termina sin cambios trackeados se borra solo con su `_scratch`
+  (sesión 62).** Al agente 2 el harness no lo dejó escribir por ruta absoluta en el árbol principal,
+  y su sonda se perdió. Pedile que devuelva el informe íntegro en su mensaje final, y copiá enseguida
+  lo que haya en su `_scratch`.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

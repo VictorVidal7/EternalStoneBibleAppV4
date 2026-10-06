@@ -723,8 +723,18 @@
 > `R9-278` (una edición durante el `multiSet` del respaldo lo pisa; abierto, P3).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **278**. Ramas `fix/s61-mazo-r267-r133` y
-> `docs/review-s61-fix`, apiladas sobre la de la 60, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S61-arreglos-r267-r133.md`.
+> `docs/review-s61-fix`, apiladas sobre la de la 60: mergeadas y pusheadas juntas con el OK de
+> Victor (`main` = `9b78865`, CI verde en el log, run `37425511083`, 373/4603; corregido en la 62).
+> Detalle: `detail/S61-arreglos-r267-r133.md`.
+>
+> **Sesión 62 (2026-10-06): revisión del diff de la 61**, en el mismo chat, con 3 agentes en
+> worktree que solo midieron, sin tocar código. 5 nuevos, todos P3: `R9-279` (re-agregar borra el
+> progreso), `R9-280` (lo editado en una recarga que falla espera a otra edición), `R9-281` (la
+> salida de `R9-267` pisa el respaldo), `R9-282` (borrado remoto con el mazo sin leer) y `R9-283`
+> (pruebas con órdenes imposibles y piezas sin vigilar). `R9-278`, medido.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **283**. Rama `docs/review-s62-diff-s61`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S62-revision-del-diff-s61.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1408,7 +1418,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S61-arreglos-r267-r133.md`.**
   - **La lección:** una prueba del orden de AsyncStorage entrega cada lectura en su propio callback
     (el ejecutor serie): con dos lecturas en la misma ronda de microtareas, una guarda de «otra carga
-    decide» no caía.
+    decide» no caía. **Incompleta, corregida en la 62:** el ejecutor serie también ordena lo que
+    CORRE, no solo lo que llega.
+
+- **Sesión 62 — 2026-10-06. Revisión del diff de la 61.** En el mismo chat, con 3 agentes en
+  worktree que solo midieron (a pedido de Victor), sin tocar código.
+  - **Cómo se trabajó:** un agente por par de preguntas, con sondas sobre el provider real, el
+    motor real y el `importBackup` real, y cada una contra `37ba5f7`. El orquestador verificó a mano
+    lo que sostiene cada hallazgo.
+  - **Resultado:** 5 nuevos, todos P3 (`R9-279`..`R9-283`), y `R9-278` medido. No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S62-revision-del-diff-s61.md`.**
+  - **La lección:** una puerta que solo demora la entrega de una lectura no modela el ejecutor
+    serie. Nada pedido después de una operación pendiente corre antes que ella
+    (`_scratch/S62-sondas-agente-3/S62a3-orden.test.tsx.txt`).
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
