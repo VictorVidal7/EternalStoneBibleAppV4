@@ -1,15 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-05, fin de la sesión 56.** La 56 hizo el (aj) en un chat nuevo,
-> en la terminal, sin agentes y sin tocar código: revisó el diff de la 55 y registró 2 nuevos, P3:
-> `R9-273` (el respaldo escribe la Mesa sin turno: restaurado durante una unión, se pierde) y
-> `R9-274` (por lectura: si la unión de `deleteAccount` no llega, la Mesa queda bajo el uid
-> borrado).
+> **Última actualización: 2026-10-05, fin de la sesión 57.** La 57 hizo el (ak) en el mismo chat
+> que la 56, en la terminal y sin agentes: arregló `R9-273` (el respaldo escribe la Mesa en su
+> turno) y `R9-274` (la Mesa de la cuenta borrada se devuelve aunque la unión no termine). Ningún
+> nuevo.
 >
-> La 55 ya está mergeada y pusheada (`main` = `5b5c630`, CI verde en el log, run `37173764215`,
-> 371/4585). La rama de la 56 (`docs/review-s56-diff-s55`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 274 hallazgos. **Lo siguiente:** la 57 arregla
-> lo de la 56 (mensaje (ak), en `_scratch/S57-PROMPT.md`).
+> La 56 ya está mergeada y pusheada (`main` = `fb7cc73`, CI verde en el log, run `37394756731`,
+> 371/4585). Las ramas de la 57 (`fix/s57-arreglos-s56` y `docs/review-s57-fix`, apiladas) van
+> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 274 hallazgos. **Lo
+> siguiente:** la 58 revisa el diff de la 57 (mensaje (al), en `_scratch/S58-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -484,11 +483,14 @@ sesión 52, en un chat nuevo, con `_scratch/S52-PROMPT.md`). Y sus arreglos, con
 `R9-38` (la (ag), sesión 53, en un chat nuevo, con `_scratch/S53-PROMPT.md`). Y la revisión del
 diff de la 53 (la (ah), sesión 54, en un chat nuevo, con `_scratch/S54-PROMPT.md`). Y sus arreglos
 (la (ai), sesión 55, en el mismo chat, con `_scratch/S55-PROMPT.md`). Y la revisión del diff de la
-55 (la (aj), sesión 56, en un chat nuevo, con `_scratch/S56-PROMPT.md`). **Lo siguiente es el
-(ak).**
+55 (la (aj), sesión 56, en un chat nuevo, con `_scratch/S56-PROMPT.md`). Y sus arreglos (la (ak),
+sesión 57, en el mismo chat, con `_scratch/S57-PROMPT.md`). **Lo siguiente es el (al).**
 
-**(ak) Sesión 57: arreglar lo de la 56** (`R9-273` y `R9-274`). El mensaje está en
-`_scratch/S57-PROMPT.md`, que manda sobre este archivo.
+**(al) Sesión 58: revisar el diff de la 57** (`fb7cc73..3be46d3`). El mensaje está en
+`_scratch/S58-PROMPT.md`, que manda sobre este archivo.
+
+**(ak) Sesión 57: arreglar lo de la 56 — ya HECHO en la sesión 57, en el mismo chat que la 56, en
+la terminal y sin agentes.** El mensaje está en `_scratch/S57-PROMPT.md`.
 
 **(aj) Sesión 56: revisar el diff de la 55 — ya HECHO en la sesión 56, en un chat nuevo, en la
 terminal y sin agentes.** El mensaje está en `_scratch/S56-PROMPT.md`.
@@ -1898,18 +1900,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 56 (2026-10-05).**
+**Medido al cerrar la sesión 57 (2026-10-05).**
 
-- **`main` = `origin/main` = `5b5c630`** (el checkpoint de la 55, solo docs; el último código en
-  `main` es `50f209d`). **CI verificado en el log:** run `37173764215`, 3 jobs verdes, Node
-  v24.21.0, 371/4585. Las ramas de la 55 se borraron.
-- **Una rama de la 56, sin mergear a propósito y sin pushear:** `docs/review-s56-diff-s55` (el
-  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main`
-  la incluye.
+- **`main` = `origin/main` = `fb7cc73`** (el checkpoint de la 56, solo docs; el último código en
+  `main` es `50f209d`). **CI verificado en el log:** run `37394756731`, 3 jobs verdes, Node
+  v24.21.0, 371/4585, cero «failed to run». La rama de la 56 se borró.
+- **Dos ramas de la 57, apiladas, sin mergear a propósito y sin pushear:**
+  `fix/s57-arreglos-s56` (`831c7e4`, `3be46d3`) y, encima, `docs/review-s57-fix` (el checkpoint).
+  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 56):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 57):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2263,6 +2265,17 @@ Alternativas legítimas:
 - **Para sondear el respaldo, `importBackup` real con los mocks de `backupServiceImport.test.ts`
   (sesión 56).** SQLite y los logros, mockeados; el resto (la clave de la Mesa, el `multiSet`) es
   el de la app (`_scratch/S56-prep.test.ts.txt`).
+- **Una puerta armada con `getMockImplementation()` hereda lo que dejó la prueba anterior del
+  archivo (sesión 57, `R9-273`).** En `backupServiceImport.test.ts`, un `spyOn` sobre el `multiSet`
+  del mock y su `mockRestore` lo dejan llamándose a sí mismo: la prueba pasaba sola (`-t`) y caía
+  con el archivo entero. Una prueba con puerta va en un archivo donde nadie espía el mock
+  (`__tests__/backupPrepTurn.test.ts`).
+- **Una sonda de una carrera que espera (`await`) la escritura que compite se traba en cuanto el
+  arreglo la pone en turno (sesión 57).** `RESPALDO` de la 56 se esperaba a sí misma sobre el árbol
+  arreglado (y dejaba la puerta puesta para las siguientes). No esperes nada antes de abrir.
+- **Una nota que dice «termina esto al arrancar» se escribe cuando ya no queda nada que decidir
+  (sesión 57, `R9-274`).** Escrita antes de `deleteUser`, el arranque siguiente tendría que adivinar
+  si la cuenta existe, con un estado de auth que puede pasar por nulo al restaurar la sesión.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

@@ -749,8 +749,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **272**. Detalle: `detail/S55-arreglos-s54.md`.
 >
 > **Sesión 56 (2026-10-05): revisión del diff de la 55**, en un chat nuevo, solo en la terminal,
-> sin agentes y sin tocar código. Rama `docs/review-s56-diff-s55`, sin mergear hasta el OK de
-> Victor.
+> sin agentes y sin tocar código. Rama `docs/review-s56-diff-s55`: mergeada y pusheada con el OK de
+> Victor (`main` = `fb7cc73`, CI verde en el log, run `37394756731`, 371/4585; corregido en la 57).
 >
 > - **2 nuevos, P3:** `R9-273` (el respaldo escribe la Mesa sin turno: restaurado mientras corre
 >   una unión, se pierde; no lo abrió la 55, y su comentario lo daba por cubierto) y `R9-274` (por
@@ -764,6 +764,16 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **274**. Detalle:
 > `detail/S56-revision-del-diff-s55.md`.
+>
+> **Sesión 57 (2026-10-05): ARREGLOS de lo de la 56**, en el mismo chat, solo en la terminal y sin
+> agentes. Rama `fix/s57-arreglos-s56` (`831c7e4`, `3be46d3`), sin mergear hasta el OK de Victor.
+>
+> - **Cerrados los 2:** `R9-273` (el `multiSet` de `importBackup` va en el turno de la Mesa,
+>   `prepTurn`) y `R9-274` (la cuenta cuya Mesa se devuelve queda anotada en disco, y el arranque
+>   siguiente termina la unión; en `deleteAccount`, la unión va antes del reclamo).
+> - Ningún nuevo. El motor no se tocó (sin matriz).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **274**. Detalle: `detail/S57-arreglos-s56.md`.
 
 ---
 
@@ -2651,7 +2661,8 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     pieza cae sola (`_scratch/S55-rev269.cjs.txt`: todo, la unión, el turno y «gana la más nueva»).
     **⚠️ Sesión 56:** el respaldo escribe la Mesa sin turno, y restaurado durante una unión se
     pierde (`R9-273`, P3; no lo abrió la 55). Las cuatro Mesas tienen reloj (`updatedAt`), no solo
-    las notas y las series: al borrar la cuenta, gana la más nueva en todas.
+    las notas y las series: al borrar la cuenta, gana la más nueva en todas. `R9-273`, arreglado
+    en la 57 (`831c7e4`).
 
 ---
 
@@ -5784,6 +5795,13 @@ pending.remoteVersion.updatedAt`.
     `R9-269`.
   - **Arreglo (hipótesis):** que la escritura de AsyncStorage de `importBackup` tome un turno de
     `prepAccount` (exportar el turno, como `prepWrite`), con la clave resuelta antes de pedirlo.
+    **✅ ARREGLADO en la sesión 57** (`831c7e4`, rama `fix/s57-arreglos-s56`): `prepAccount`
+    exporta `prepTurn`, y el `multiSet` final de `importBackup` va dentro, con las claves resueltas
+    antes. Dentro solo hay ese `multiSet`: nada espera a un turno. Prueba nueva en
+    `__tests__/backupPrepTurn.test.ts` (la unión y la escritura de un store, cada una retenida en
+    una puerta, con el `importBackup` real), en un archivo aparte: en `backupServiceImport.test.ts`
+    un `spyOn` deja el `multiSet` del mock llamándose a sí mismo. Las dos piezas caen
+    (`_scratch/S57-rev.cjs.txt`: `turno` y `r273todo`).
 
 - **`R9-274` (S56, Mesa / `R9-59` — P3) — 🐛 si la unión de `deleteAccount` no llega, la Mesa de la
   cuenta borrada queda para siempre bajo un uid que nadie vuelve a usar.** POR LECTURA, al revisar
@@ -5801,6 +5819,16 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis):** anotar en disco el uid que se suelta antes de `deleteUser`, y
     terminar la unión en el arranque siguiente si esa cuenta ya no vuelve (sin usuario de Google
     restaurado, o con otro); y reintentar la unión que falló.
+    **✅ ARREGLADO en la sesión 57** (`3be46d3`), con otro momento para la nota: DESPUÉS de
+    `deleteUser`, no antes. Antes, el arranque siguiente tendría que adivinar si la cuenta existe, y
+    el estado de auth puede pasar por nulo mientras Firebase restaura la sesión: soltaría la Mesa de
+    una cuenta viva en la «sin cuenta». `releasePrepAccount` anota la cuenta
+    (`@prep_release_pending`), une y borra la nota; el primer estado de auth del proceso siguiente
+    termina la que quedó. En `deleteAccount`, la unión va antes del reclamo de `(deleted)`: queda una
+    sola escritura local tras `deleteUser` (la nota). Pruebas nuevas en `prepAccount.test.ts` (la
+    unión que falla y la que no vuelve; CONTROL: una cuenta que solo cierra sesión conserva su Mesa)
+    y en `AuthContext.test.tsx` (el reclamo que no vuelve). Cada pieza cae sola
+    (`S57-rev.cjs.txt`: `marca`, `arranque`, `orden` y `r274todo`).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -6817,7 +6845,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     Progreso y logros siguen por aparato.
   - **⚠️ Sesión 54:** la unión borra la entrada que pierde, en el mismo pasaje: `R9-269` (P1).
   - **⚠️ Sesión 56:** el respaldo, fuera del turno de la Mesa (`R9-273`, P3); y si la unión de
-    `deleteAccount` no llega, la Mesa queda bajo el uid borrado (`R9-274`, P3).
+    `deleteAccount` no llega, la Mesa queda bajo el uid borrado (`R9-274`, P3). Los dos,
+    arreglados en la 57 (`831c7e4`, `3be46d3`).
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y

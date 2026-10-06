@@ -3,7 +3,8 @@
 En un chat nuevo, solo en la terminal, sin agentes y sin tocar código, con `_scratch/S56-PROMPT.md`.
 Revisa `a64786b..50f209d`: los arreglos de `R9-269`..`R9-272`.
 
-- **Rama:** `docs/review-s56-diff-s55` (este checkpoint), sin mergear hasta el OK de Victor.
+- **Rama:** `docs/review-s56-diff-s55` (este checkpoint). Mergeada y pusheada con el OK de Victor
+  (`main` = `fb7cc73`, CI verde en el log, run `37394756731`, 371/4585; corregido en la 57).
 - **Estado al empezar:** `main` = `origin/main` = `5b5c630` (el checkpoint de la 55, mergeado y
   pusheado; CI verde en el log, run `37173764215`, 371/4585). Los docs decían que la 55 iba «sin
   mergear»: corregido aquí. La base del motor, `S55-SyncEngine-R271.ts.txt` (= `50f209d`, `cmp`
