@@ -1,13 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-05, fin de la sesión 59.** La 59 hizo el (am) en el mismo chat
-> que la 58, en la terminal y sin agentes: arregló `R9-276` (la nota de la devolución es una lista)
-> y `R9-275` (lo escrito para una cuenta ya devuelta no queda bajo su uid). Ningún nuevo.
+> **Última actualización: 2026-10-05, fin de la sesión 60.** La 60 hizo el (an) en el mismo chat
+> que la 59, en la terminal, sin agentes y sin tocar código: revisó el diff de la 59 y no encontró
+> nada nuevo. El hilo de la Mesa (`R9-59` → `R9-269` → `R9-273`..`R9-276`) queda cerrado.
 >
-> La 58 ya está mergeada y pusheada (`main` = `4a757ce`, CI verde en el log, run `37407024480`,
-> 372/4588). Las ramas de la 59 (`fix/s59-arreglos-s58` y `docs/review-s59-fix`, apiladas) van
-> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 276 hallazgos. **Lo
-> siguiente:** la 60 revisa el diff de la 59 (mensaje (an), en `_scratch/S60-PROMPT.md`).
+> La 59 ya está mergeada y pusheada (`main` = `6667c40`, CI verde en el log, run `37417036066`,
+> 372/4591). La rama de la 60 (`docs/review-s60-diff-s59`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 276 hallazgos. **Lo siguiente lo elige Victor**
+> entre los pendientes (la recomendación: `R9-267`, con la parte de `MemoryDeckContext` de
+> `R9-133`); no hay mensaje escrito para la 61.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -485,10 +486,14 @@ diff de la 53 (la (ah), sesión 54, en un chat nuevo, con `_scratch/S54-PROMPT.m
 55 (la (aj), sesión 56, en un chat nuevo, con `_scratch/S56-PROMPT.md`). Y sus arreglos (la (ak),
 sesión 57, en el mismo chat, con `_scratch/S57-PROMPT.md`). Y la revisión del diff de la 57 (la
 (al), sesión 58, en un chat nuevo, con `_scratch/S58-PROMPT.md`). Y sus arreglos (la (am), sesión
-59, en el mismo chat, con `_scratch/S59-PROMPT.md`). **Lo siguiente es el (an).**
+59, en el mismo chat, con `_scratch/S59-PROMPT.md`). Y la revisión del diff de la 59 (la (an),
+sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. **Lo siguiente lo elige
+Victor** entre los pendientes (la lista «Pendiente, NO salvo que te lo pida» al final de
+`_scratch/S60-PROMPT.md`; la recomendación: `R9-267`, con la parte de `MemoryDeckContext` de
+`R9-133`); no hay mensaje escrito para la 61.
 
-**(an) Sesión 60: revisar el diff de la 59** (`4a757ce..37ba5f7`). El mensaje está en
-`_scratch/S60-PROMPT.md`, que manda sobre este archivo.
+**(an) Sesión 60: revisar el diff de la 59 — ya HECHO en la sesión 60, en el mismo chat que la 59,
+en la terminal y sin agentes; ningún hallazgo.** El mensaje está en `_scratch/S60-PROMPT.md`.
 
 **(am) Sesión 59: arreglar lo de la 58 — ya HECHO en la sesión 59, en el mismo chat que la 58, en
 la terminal y sin agentes.** El mensaje está en `_scratch/S59-PROMPT.md`.
@@ -1907,18 +1912,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 59 (2026-10-05).**
+**Medido al cerrar la sesión 60 (2026-10-05).**
 
-- **`main` = `origin/main` = `4a757ce`** (el checkpoint de la 58, solo docs; el último código en
-  `main` es `3be46d3`). **CI verificado en el log:** run `37407024480`, 3 jobs verdes, Node
-  v24.21.0, 372/4588, cero «failed to run». La rama de la 58 se borró.
-- **Dos ramas de la 59, apiladas, sin mergear a propósito y sin pushear:**
-  `fix/s59-arreglos-s58` (`fb7696f`, `37ba5f7`) y, encima, `docs/review-s59-fix` (el checkpoint).
-  Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **`main` = `origin/main` = `6667c40`** (el checkpoint de la 59, solo docs; el último código en
+  `main` es `37ba5f7`). **CI verificado en el log:** run `37417036066`, 3 jobs verdes, Node
+  v24.21.0, 372/4591, cero «failed to run». Las ramas de la 59 se borraron.
+- **Una rama de la 60, sin mergear a propósito y sin pushear:** `docs/review-s60-diff-s59` (el
+  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main`
+  la incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 59):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 60):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2304,6 +2309,9 @@ Alternativas legítimas:
   editado. Se recuperó del respaldo que lint-staged deja en cada commit (un `git stash create`, que
   queda inalcanzable): `git fsck --unreachable --no-reflogs`, el «WIP on …» de la hora del último
   commit, y `git checkout <hash> -- <archivos>`. Commiteá el ledger antes de cambiar de rama.
+- **Una revisión en el mismo chat que escribió los arreglos no es una mirada fresca (sesión 60).**
+  Se dice en el detalle, y se compensa con sondas que buscan romperlos (casos de fallo, basura,
+  datos que crecen), no con las que ya pasaban.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

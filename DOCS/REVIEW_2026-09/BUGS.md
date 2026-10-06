@@ -791,7 +791,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **276**. Detalle: `detail/S58-revision-del-diff-s57.md`.
 >
 > **Sesión 59 (2026-10-05): ARREGLOS de lo de la 58**, en el mismo chat, solo en la terminal y sin
-> agentes. Rama `fix/s59-arreglos-s58` (`fb7696f`, `37ba5f7`), sin mergear hasta el OK de Victor.
+> agentes. Rama `fix/s59-arreglos-s58` (`fb7696f`, `37ba5f7`): mergeada y pusheada con el OK de
+> Victor (`main` = `6667c40`, CI verde en el log, run `37417036066`, 372/4591; corregido en la 60).
 >
 > - **Cerrados los 2:** `R9-276` (la nota de la devolución es una lista, y el arranque las termina
 >   todas) y `R9-275` (lo escrito para una cuenta ya devuelta: el store va a la «sin cuenta», y el
@@ -799,6 +800,19 @@
 > - Ningún nuevo. El motor no se tocó (sin matriz).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **276**. Detalle: `detail/S59-arreglos-s58.md`.
+>
+> **Sesión 60 (2026-10-05): revisión del diff de la 59**, en el mismo chat (no es una mirada
+> fresca: lo dice el detalle), solo en la terminal, sin agentes y sin tocar código. Rama
+> `docs/review-s60-diff-s59`, sin mergear hasta el OK de Victor.
+>
+> - **Ningún hallazgo nuevo.** Medido: la nota con basura, ilegible o que crece con una cuenta
+>   trabada no traba nada; el respaldo con su unión o su escritura fallando termina en el arranque
+>   siguiente, y lo dice; cada store lee y escribe la misma clave en su turno, así que la redirección
+>   es coherente. Una línea de log inexacta («Failed to give the Mesa back» cuando solo falló quitar
+>   la nota), sin efecto. El motor no cambió (sin matriz).
+> - El hilo de la Mesa (`R9-59` → `R9-269` → `R9-273`..`R9-276`) queda cerrado.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **276**. Detalle: `detail/S60-revision-del-diff-s59.md`.
 
 ---
 

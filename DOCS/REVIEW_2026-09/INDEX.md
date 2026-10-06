@@ -707,8 +707,14 @@
 > cuenta ya devuelta no queda bajo su uid); ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **276**. Ramas `fix/s59-arreglos-s58` y
-> `docs/review-s59-fix`, apiladas y sin mergear hasta el OK de Victor. Detalle:
-> `detail/S59-arreglos-s58.md`.
+> `docs/review-s59-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `6667c40`, CI verde en
+> el log, run `37417036066`, 372/4591; corregido en la 60). Detalle: `detail/S59-arreglos-s58.md`.
+>
+> **Sesión 60 (2026-10-05): revisión del diff de la 59**, en el mismo chat, solo en la terminal,
+> sin agentes y sin tocar código. Ningún hallazgo nuevo; el hilo de la Mesa queda cerrado.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **276**. Rama `docs/review-s60-diff-s59`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S60-revision-del-diff-s59.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1371,6 +1377,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S59-arreglos-s58.md`.**
   - **La lección:** antes de llevar una escritura tardía a donde fue su Mesa, preguntá si es un
     parche o un reemplazo.
+
+- **Sesión 60 — 2026-10-05. Revisión del diff de la 59.** En el mismo chat que los arreglos, solo
+  en la terminal, sin agentes y sin tocar código.
+  - **Cómo se trabajó:** una sonda por pregunta, con su control (`_scratch/S60-prep.test.ts.txt`:
+    la nota con basura, ilegible o que crece; el respaldo con su unión o su escritura fallando).
+  - **Resultado:** ningún hallazgo nuevo. El hilo de la Mesa queda cerrado. No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S60-revision-del-diff-s59.md`.**
+  - **La lección:** una revisión en el mismo chat que escribió los arreglos no es una mirada
+    fresca; se dice, y se compensa con sondas que buscan romperlos.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

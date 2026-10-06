@@ -4,8 +4,9 @@ En el mismo chat que la 58, solo en la terminal y sin agentes, con `_scratch/S59
 «continuemos por favor estimado»). Arregla `R9-275` y `R9-276`, que registró la revisión del diff
 de la 57.
 
-- **Ramas, sin mergear hasta el OK de Victor:** `fix/s59-arreglos-s58` (`fb7696f` `R9-276`,
-  `37ba5f7` `R9-275`) y, encima, `docs/review-s59-fix` (este checkpoint).
+- **Ramas:** `fix/s59-arreglos-s58` (`fb7696f` `R9-276`, `37ba5f7` `R9-275`) y, encima,
+  `docs/review-s59-fix` (este checkpoint): mergeadas y pusheadas con el OK de Victor (`main` =
+  `6667c40`, CI verde en el log, run `37417036066`, 372/4591; corregido en la 60).
 - **Estado al empezar:** `main` = `origin/main` = `4a757ce` (el checkpoint de la 58, mergeado y
   pusheado con el OK de Victor; CI verde en el log, run `37407024480`, 3 jobs, Node v24.21.0,
   372/4588). Los docs de la 58 decían «sin mergear»: corregido aquí. El motor no se toca: su base
