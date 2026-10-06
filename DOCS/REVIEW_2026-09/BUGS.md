@@ -856,8 +856,9 @@
 >
 > **Sesión 63 (2026-10-06): ARREGLOS de lo de la 62** (el mazo otra vez), en un chat nuevo, en la
 > terminal, con 3 agentes en worktree que solo midieron (a pedido de Victor). Rama
-> `fix/s63-mazo-r279-r283` (`1c82327`, `6ed063c`, `07b6c56`, `01eee54`, `a95a68b`), sin mergear
-> hasta el OK de Victor.
+> `fix/s63-mazo-r279-r283` (`1c82327`, `6ed063c`, `07b6c56`, `01eee54`, `a95a68b`) y
+> `docs/review-s63-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `23f5b96`, CI verde en
+> el log, run `37515408752`, 374/4625; corregido en la 64).
 >
 > - **Cerrados (6):** `R9-283` (las pruebas, en un modelo del ejecutor serie; primero), `R9-279`
 >   (el alta sobre un mazo sin leer es «agregar si falta»), `R9-280` (una carga que falla relee lo
@@ -870,6 +871,18 @@
 >   cambió solo un comentario (JS emitido idéntico; la matriz, igual a la de la 55).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **285**. Detalle: `detail/S63-arreglos-r279-r283.md`.
+>
+> **Sesión 64 (2026-10-06): revisión del diff de la 63**, en un chat nuevo, en la terminal y sin
+> agentes. Sin tocar código. Rama `docs/review-s64-diff-s63`, sin mergear hasta el OK de Victor.
+>
+> - **1 nuevo, P3:** `R9-286` (comentarios de la 63 que no se sostienen: el orden en la ventana del
+>   respaldo, «los providers retienen», y dos pruebas cuyo comentario no es lo que da su revert).
+> - **Se sostienen, medido:** las 45 piezas tumban lo mismo que en la 63; con las entregas del modelo
+>   serie separadas 50 microtareas, también (ninguna prueba depende de cómo se intercalan); una
+>   condicional que sobrevive a una carga que no es la última no pierde repasos; no hay bucle con
+>   lecturas que fallan siempre; ningún camino de `importBackup` emite el inicio sin el fin.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **286**. Detalle: `detail/S64-revision-del-diff-s63.md`.
 
 ---
 
@@ -6286,6 +6299,41 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     estado no tiene las tarjetas del disco: «3 versículos agregados» con 2 que ya estaban (con
     `R9-279`, esas conservan sus repasos y no suben).
   - Solo de pantalla. La ventana es la carga en frío o una lectura fallida.
+
+- **`R9-286` (S64, comentarios de la 63 / memoria / respaldo — P3) — 🐛 varios comentarios nuevos
+  de la 63 no se sostienen: el orden en la ventana del respaldo, «los providers retienen», y dos
+  pruebas cuyo comentario no es lo que da su revert.** MEDIDO (`_scratch/S64-sonda.cjs.txt`, sonda
+  `S64-turno`, y `S64-rev-<pieza>.out.txt`). Los abrió la 63 (`6ed063c`, `01eee54`). El código está
+  bien.
+  - **El orden:** `restoreSignal.ts:69-75`, `MemoryDeckContext.tsx:318-321`,
+    `BackupService.ts:1632-1634` y `backupRestoreSignal.test.ts:156-157` dicen que una escritura
+    pedida tras el aviso de inicio corre DESPUÉS del `multiSet`, y que la recarga la lee encima de lo
+    restaurado. Es uno de los dos casos. Con el turno de la Mesa (`prepMultiSet` espera
+    `oneAtATime` y `noteRelease` antes de pedirlo), corre ANTES, y el respaldo la borra.
+    - `S64-turno` (el mazo leído, el aviso dado, un alta, y después la escritura del respaldo): hoy,
+      0 escrituras del provider antes del respaldo, y quedan Mark/1/1 + Mark/9/9. CONTROL, con
+      `retieneRespaldo` revertida: el provider escribe John, Luke y Mark/1/1 antes del `multiSet`, y
+      queda solo Mark/9/9. Con el provider de `8d041c9`, lo mismo que el revert: la 63 arregló
+      también este caso, y su comentario no lo cuenta.
+  - **«Los providers retienen»:** `BackupService.ts:1632` («the providers that reload on the signal
+    below hold their writes from here») y `backupRestoreSignal.test.ts:2-3`. Solo el mazo escucha
+    `subscribeBackupRestoring` (`grep`); los otros tres no retienen (`R9-284`).
+  - **`memoryDeckDisk.test.tsx:414`** («con la relectura y la recarga del respaldo en vuelo»): dice
+    que sin la pieza la recarga leía el mazo de antes con Mark/1/1, sin Acts/1/8 ni Mark/9/9. Con
+    `ultima` o `adelanta` revertidas quedan Acts/1/8 + Mark/9/9: se pierde Mark/1/1, porque la
+    recarga ya está pedida cuando corre el efecto, y vuelve a retener.
+  - **`memoryDeckDisk.test.tsx:804`** («una baja antes de leer»): «la cola llevaba W John r0 y D
+    John». Con `deshace` revertida lleva solo `D John`; la `W` es de `cond` (sin `R9-279` entero).
+  - **«Sin leer», cuando ya se leyó:** «added while no load had read the disk» (`ifAbsent`, `:132`),
+    «no load has read the disk» (`addCard`, `:479`) y «was never seen» (`removeCard`, `:496`).
+    Durante el respaldo el mazo ya se había leído y el alta es condicional a propósito (lo vigila
+    «decide la última: gana el John restaurado»). Y tras una carga que no es la última, la del disco
+    ya se ve; una baja ahí se retira sin lápida y la recarga decide. Sin disparador: solo con una
+    edición durante el `multiSet` (`detail/S64` §2).
+  - P3: solo comentarios. Pero el primero es el que leería quien toque el aviso de inicio.
+  - **Arreglo (hipótesis):** reescribir los siete comentarios con los dos casos (el `multiSet` ya
+    pedido, o todavía no), con «el mazo» en vez de «los providers», y con lo que da cada revert.
+    Medir después de formatear (sesión 63).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

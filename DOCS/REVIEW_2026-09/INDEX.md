@@ -744,8 +744,16 @@
 > pantalla), los dos P3.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **285**. Ramas `fix/s63-mazo-r279-r283` y
-> `docs/review-s63-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s63-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `23f5b96`, CI verde
+> en el log, run `37515408752`, 374/4625; corregido en la 64). Detalle:
 > `detail/S63-arreglos-r279-r283.md`.
+>
+> **Sesión 64 (2026-10-06): revisión del diff de la 63**, en un chat nuevo, en la terminal y sin
+> agentes, sin tocar código. 1 nuevo, P3: `R9-286` (comentarios de la 63 que no se sostienen). Las
+> 45 piezas, re-medidas, tumban lo mismo, también con las entregas del modelo serie separadas.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **286**. Rama `docs/review-s64-diff-s63`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S64-revision-del-diff-s63.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1454,6 +1462,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un arreglo que agrega un aviso previo cambia qué órdenes son posibles. Dos
     pruebas pedían la escritura del respaldo antes de la relectura; con el aviso, el alta ya no
     relee, y lo mostró su control.
+
+- **Sesión 64 — 2026-10-06. Revisión del diff de la 63.** En un chat nuevo, en la terminal y sin
+  agentes, sin tocar código; arrancó con `_scratch/S64-PROMPT.md`.
+  - **Cómo se trabajó:** la matriz de la 63 re-medida en el árbol de hoy (`S64-rev.cjs.txt`), otra
+    vez con las entregas del modelo serie separadas 50 microtareas (`S64-serie.cjs.txt`), y tres
+    sondas sobre el provider real, con su control y contra `8d041c9` (`S64-sonda.cjs.txt`).
+  - **Resultado:** 1 nuevo, P3 (`R9-286`, comentarios). Ningún defecto de comportamiento nuevo. No
+    queda ningún P0 abierto.
+  - **Detalle: `detail/S64-revision-del-diff-s63.md`.**
+  - **La lección:** para saber si una prueba depende de cómo el modelo intercala las entregas,
+    separalas y re-medí la matriz entera.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

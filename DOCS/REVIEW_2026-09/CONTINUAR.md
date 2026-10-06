@@ -1,15 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 63.** La 63 hizo el (aq) en un chat nuevo,
-> con 3 agentes en worktree que solo midieron (a pedido de Victor). Cerró 6 (`R9-283`, `R9-279`,
-> `R9-280`, `R9-281`, `R9-278` para el mazo, `R9-282`) y registró 2 nuevos P3 (`R9-284`,
-> `R9-285`).
+> **Última actualización: 2026-10-06, fin de la sesión 64.** La 64 hizo el (ar) en un chat nuevo,
+> en la terminal y sin agentes: revisó el diff de la 63 sin tocar código. Registró 1 nuevo P3
+> (`R9-286`, comentarios de la 63 que no se sostienen); ningún defecto de comportamiento nuevo.
 >
-> La 62 ya está mergeada y pusheada (`main` = `8d041c9`, CI verde en el log, run `37503705122`,
-> 373/4603). Las ramas de la 63 (`fix/s63-mazo-r279-r283` y `docs/review-s63-fix`, encima) van
-> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 285 hallazgos. **Lo
-> siguiente:** la 64 revisa el diff de la 63, en un chat nuevo (mensaje (ar), en
-> `_scratch/S64-PROMPT.md`).
+> La 63 ya está mergeada y pusheada (`main` = `23f5b96`, CI verde en el log, run `37515408752`,
+> 374/4625). La rama de la 64 (`docs/review-s64-diff-s63`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 286 hallazgos. **Lo siguiente:** la 65 arregla
+> lo de la 64, en un chat nuevo (mensaje (as), en `_scratch/S65-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -492,11 +490,15 @@ sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. Y lo
 de memoria (la (ao), sesión 61, en un chat nuevo, con `_scratch/S61-PROMPT.md`). Y la revisión del
 diff de la 61 (la (ap), sesión 62, en el mismo chat con 3 agentes, con `_scratch/S62-PROMPT.md`).
 Y sus arreglos (la (aq), sesión 63, en un chat nuevo con 3 agentes, con `_scratch/S63-PROMPT.md`).
-**Lo siguiente es el (ar).**
+Y la revisión del diff de la 63 (la (ar), sesión 64, en un chat nuevo y sin agentes, con
+`_scratch/S64-PROMPT.md`). **Lo siguiente es el (as).**
 
-**(ar) Sesión 64: revisar el diff de la 63** (`8d041c9..a95a68b`: las pruebas en orden serie, el
-alta condicional, la salida de `R9-280`, el aviso antes del respaldo y `R9-282`), en un chat nuevo.
-El mensaje está en `_scratch/S64-PROMPT.md`, que manda sobre este archivo.
+**(as) Sesión 65: arreglar lo de la 64** (`R9-286`: solo comentarios, en el código y en las
+pruebas), en un chat nuevo. El mensaje está en `_scratch/S65-PROMPT.md`, que manda sobre este
+archivo.
+
+**(ar) Sesión 64: revisar el diff de la 63 — ya HECHO en la sesión 64, en un chat nuevo, en la
+terminal y sin agentes.** Un nuevo P3 (`R9-286`). El mensaje está en `_scratch/S64-PROMPT.md`.
 
 **(aq) Sesión 63: arreglar lo de la 62 — ya HECHO en la sesión 63, en un chat nuevo, con 3 agentes
 que solo midieron.** Seis cerrados y dos nuevos P3. El mensaje está en `_scratch/S63-PROMPT.md`.
@@ -1928,19 +1930,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 63 (2026-10-06).**
+**Medido al cerrar la sesión 64 (2026-10-06).**
 
-- **`main` = `origin/main` = `8d041c9`** (el checkpoint de la 62; el último código en `main` es
-  `d69c529`). **CI verificado en el log** en la 62: run `37503705122`, 373/4603. La rama de la 62
-  se borró.
-- **Dos ramas de la 63, sin mergear a propósito y sin pushear:** `fix/s63-mazo-r279-r283` (5
-  commits de código, `1c82327`..`a95a68b`) y `docs/review-s63-fix` (el checkpoint, encima). Se
-  mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (los de los 3 agentes de la 63 se borraron solos, y el de la matriz,
-  `C:/projects/essb-s63-matriz`, a mano, con su junction primero).
+- **`main` = `origin/main` = `23f5b96`** (el checkpoint de la 63; el último código en `main` es
+  `a95a68b`). **CI verificado en el log** en la 63: run `37515408752`, 374/4625. Las ramas de la
+  63 se borraron.
+- **Una rama de la 64, sin mergear a propósito y sin pushear:** `docs/review-s64-diff-s63` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las dos de la 63):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 64):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2362,6 +2362,13 @@ Alternativas legítimas:
 - **Medí después de formatear (sesión 63).** Prettier sangró una función entera al agregarle un
   parámetro: las anclas de una línea del revert siguieron casando como subcadena, las de varias no.
   El script tiene que decir «ancla … 0 veces» y seguir, no abortar ni pasar en silencio.
+- **Para saber si una prueba depende de cómo el modelo intercala las entregas, separalas y re-medí
+  la matriz (sesión 64).** `enSerie` entrega con microtareas, y la respuesta n+1 puede llegar en
+  medio de la cadena de la n; en el teléfono cada respuesta llega en su tarea. Demorar cada entrega
+  K microtareas (`_scratch/S64-serie.cjs.txt`) y comparar qué tumba cada pieza lo responde.
+- **Un comentario sobre el orden en la ventana del respaldo tiene dos casos (sesión 64, `R9-286`).**
+  Con el `multiSet` ya pedido, lo de después corre detrás y la recarga lo lee; con el turno de la
+  Mesa, todavía no está pedido, y lo de después corre antes y el respaldo lo borra. Contá los dos.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
