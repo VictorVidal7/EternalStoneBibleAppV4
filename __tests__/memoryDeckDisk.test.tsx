@@ -59,7 +59,10 @@ import {
   useMemoryDeck,
   type MemoryDeckContextValue,
 } from '../src/context/MemoryDeckContext';
-import {emitBackupRestored} from '../src/lib/backup/restoreSignal';
+import {
+  emitBackupRestored,
+  emitBackupRestoring,
+} from '../src/lib/backup/restoreSignal';
 
 const card = (verseKey: string, updatedAt: number): MemoryCard => ({
   verseKey,
@@ -170,13 +173,16 @@ const HECHOS = {
 const RESTAURADA = card('Mark/9/9', 3000);
 
 /**
- * Lo que hace `importBackup`: escribe el mazo por detras del provider (con
- * `puerta`, no corre hasta abrirla), y avisa apenas termina.
+ * Lo que hace `importBackup`: avisa que va a escribir (R9-278; sin `inicio`,
+ * la prueba ya avisó), escribe el mazo por detras del provider (con `puerta`,
+ * no corre hasta abrirla), y avisa apenas termina.
  */
 const escribirRespaldo = (
   p?: Promise<void>,
   restaurado: Record<string, MemoryCard> = {[RESTAURADA.verseKey]: RESTAURADA},
+  inicio = true,
 ) => {
+  if (inicio) emitBackupRestoring();
   puertaEscritura = p;
   return AsyncStorage.setItem('@memory_deck', JSON.stringify(restaurado)).then(
     () => emitBackupRestored(),
@@ -375,31 +381,26 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
   });
 
   it('con la relectura y la recarga del respaldo en vuelo, lo editado entre las dos queda', async () => {
-    const escritura = puerta();
     const relectura = puerta();
     const recarga = puerta();
-    // 1: falla. El respaldo pide su escritura, y Mark/1/1 pide la relectura
-    // (2), que va detras. La escritura corre y avisa: la recarga (3) se pide
-    // con la relectura todavia pendiente. Las dos leen lo restaurado.
+    // 1: falla. Mark/1/1 pide la relectura (2); el respaldo avisa y pide su
+    // escritura, detras. La relectura lee el mazo de antes; la escritura
+    // corre y avisa, y la recarga (3) espera.
     mazo(1, [undefined, relectura.p, recarga.p]);
     montar();
     await tick();
-    let avisado = false;
-    void escribirRespaldo(escritura.p).then(() => (avisado = true));
     await act(async () => {
       ctx!.addCard(MARK);
       await new Promise(r => setTimeout(r, 0));
     });
-    await act(async () => {
-      escritura.abrir();
-      await new Promise(r => setTimeout(r, 0));
-    });
-    const avisadoAntesDeLaRelectura = avisado;
+    let avisado = false;
+    void escribirRespaldo().then(() => (avisado = true));
     await act(async () => {
       relectura.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
     const trasLaRelectura = pantalla();
+    const avisadoAntesDeLaRecarga = avisado;
     await act(async () => {
       ctx!.addCard(HECHOS);
       await new Promise(r => setTimeout(r, 0));
@@ -410,62 +411,116 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
     });
     await tick();
 
-    // Si la relectura soltara lo editado, la recarga reemplazaba el mazo sin
-    // Acts/1/8 (y sin Mark/1/1).
+    // Si la relectura soltara lo editado, se escribia detras del respaldo, y
+    // la recarga leia el mazo de antes con Mark/1/1 (sin Acts/1/8 y sin
+    // Mark/9/9).
     expect({
       lecturas,
-      avisadoAntesDeLaRelectura,
       trasLaRelectura,
+      avisadoAntesDeLaRecarga,
       pantalla: pantalla(),
       disco: Object.keys(disco()!),
     }).toEqual({
       lecturas: 3,
-      avisadoAntesDeLaRelectura: true, // CONTROL: la recarga se pidio con la relectura pendiente
-      trasLaRelectura: ['Mark/1/1', 'Mark/9/9'], // CONTROL: la relectura leyo lo restaurado
+      trasLaRelectura: ['John/3/16', 'Luke/2/1', 'Mark/1/1'], // CONTROL: la relectura leyo el mazo de antes
+      avisadoAntesDeLaRecarga: true, // CONTROL: la recarga se pidio con la relectura ya llegada
       pantalla: ['Acts/1/8', 'Mark/1/1', 'Mark/9/9'],
       disco: ['Acts/1/8', 'Mark/1/1', 'Mark/9/9'],
     });
   });
 
-  it('si la relectura falla con la recarga del respaldo ya pedida, no se rinde: decide la recarga', async () => {
-    const escritura = puerta();
-    const relectura = puerta();
-    // 1 y 2 fallan. El respaldo pide su escritura, y Mark/1/1 pide la
-    // relectura (2), detras. La escritura corre y avisa: la recarga (3) se
-    // pide antes de que la relectura corra.
-    mazo(2, [undefined, relectura.p]);
+  it('con el respaldo ya avisado, lo editado con el mazo sin leer no relee: espera a la recarga', async () => {
+    // 1: falla. El respaldo avisa, y su escritura todavia no se pidio (la
+    // Mesa tiene el turno, R9-273) cuando se agrega Mark/1/1.
+    mazo(1);
     montar();
     await tick();
+    await act(async () => {
+      emitBackupRestoring();
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const lecturasAlEscribir = lecturas;
+    await act(async () => {
+      await escribirRespaldo(undefined, undefined, false);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+
+    // R9-278 — una relectura pedida ahi corria ANTES de la escritura del
+    // respaldo, y siendo la carga mas nueva soltaba lo editado: se escribia
+    // antes del respaldo, que lo reemplazaba, y la recarga no lo traia.
+    expect({
+      lecturasAlEscribir,
+      pantalla: pantalla(),
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      lecturasAlEscribir: 1,
+      pantalla: ['Mark/1/1', 'Mark/9/9'],
+      disco: ['Mark/1/1', 'Mark/9/9'],
+    });
+  });
+});
+
+describe('R9-278 — el respaldo avisa antes de escribir: lo editado mientras tanto espera a su recarga', () => {
+  it('un alta mientras el respaldo escribe queda encima de lo restaurado', async () => {
+    montar();
+    await tick();
+    const escritura = puerta();
     let avisado = false;
     void escribirRespaldo(escritura.p).then(() => (avisado = true));
     await act(async () => {
       ctx!.addCard(MARK);
       await new Promise(r => setTimeout(r, 0));
     });
+    const avisadoAlAgregar = avisado;
     await act(async () => {
       escritura.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
-    const avisadoAntesDeLaRelectura = avisado;
+    await tick();
+
+    // Sin el aviso, la escritura del alta (el mazo de antes con Mark/1/1)
+    // corria detras de la del respaldo, y la recarga la leia.
+    expect({
+      avisadoAlAgregar,
+      pantalla: pantalla(),
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      avisadoAlAgregar: false, // CONTROL: la escritura del respaldo seguia retenida
+      pantalla: ['Mark/1/1', 'Mark/9/9'],
+      disco: ['Mark/1/1', 'Mark/9/9'],
+    });
+  });
+
+  it('una copia remota que llega mientras el respaldo escribe se juzga contra lo restaurado', async () => {
+    montar();
+    await tick();
+    const escritura = puerta();
+    let avisado = false;
+    // El respaldo trae John de 5000; la copia remota (2000) es mas nueva que
+    // la local (1000) y mas vieja que la restaurada.
+    void escribirRespaldo(escritura.p, {
+      [JOHN.verseKey]: card('John/3/16', 5000),
+      [RESTAURADA.verseKey]: RESTAURADA,
+    }).then(() => (avisado = true));
+    const paso = motor('John/3/16', card('John/3/16', 2000));
+    await tick();
+    const avisadoAlPedir = avisado;
     await act(async () => {
-      relectura.abrir();
+      escritura.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
     await tick();
     await tick();
 
-    // Si la relectura que falla se rindiera, soltaba lo editado y escribia
-    // Mark/1/1 detras de la recarga, que leia Mark/9/9 sin nada encima.
-    expect({
-      lecturas,
-      avisadoAntesDeLaRelectura,
-      pantalla: pantalla(),
-      disco: Object.keys(disco()!),
-    }).toEqual({
-      lecturas: 3,
-      avisadoAntesDeLaRelectura: true, // CONTROL: la recarga se pidio con la relectura pendiente
-      pantalla: ['Mark/1/1', 'Mark/9/9'],
-      disco: ['Mark/1/1', 'Mark/9/9'],
+    // Sin el aviso, la copia entraba contra la local y su escritura corria
+    // detras del respaldo: la recarga leia John de 2000 y Luke. Sin la espera
+    // del getLocal, la copia entraba igual y quedaba encima del John de 5000.
+    expect({avisadoAlPedir, paso: await paso, disco: disco()}).toEqual({
+      avisadoAlPedir: false, // CONTROL: el motor pidio con la escritura retenida
+      paso: {local: 5000, aplicada: false},
+      disco: {'John/3/16': 5000, 'Mark/9/9': 3000},
     });
   });
 });
@@ -622,47 +677,43 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
     });
   });
 
-  // R9-281 — cae (Mark/1/1 solo) hasta su arreglo.
-  it.failing(
-    'si el respaldo escribe mientras relee y la relectura falla, la salida no pisa lo restaurado',
-    async () => {
-      const relectura = puerta();
-      // 1: falla; 2 (la relectura de Mark/1/1): no corre hasta abrir, y falla;
-      // 3 (la recarga del aviso): lee.
-      mazo(2, [undefined, relectura.p]);
-      montar();
-      await tick();
-      await act(async () => {
-        ctx!.addCard(MARK);
-        await new Promise(r => setTimeout(r, 0));
-      });
-      // El respaldo pide su escritura con la relectura pendiente: corre detras
-      // de ella, y avisa al terminar.
-      let avisado = false;
-      void escribirRespaldo().then(() => (avisado = true));
-      await act(async () => {
-        relectura.abrir();
-        await new Promise(r => setTimeout(r, 0));
-      });
-      await tick();
-      await tick();
+  it('si el respaldo escribe mientras relee y la relectura falla, la salida no pisa lo restaurado', async () => {
+    const relectura = puerta();
+    // 1: falla; 2 (la relectura de Mark/1/1): no corre hasta abrir, y falla;
+    // 3 (la recarga del aviso): lee.
+    mazo(2, [undefined, relectura.p]);
+    montar();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    // El respaldo pide su escritura con la relectura pendiente: corre detras
+    // de ella, y avisa al terminar.
+    let avisado = false;
+    void escribirRespaldo().then(() => (avisado = true));
+    await act(async () => {
+      relectura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
 
-      // R9-281 — el fallo de la relectura llega antes del aviso: la salida se
-      // rendia y su escritura corria detras de la del respaldo. La recarga leia
-      // Mark/1/1 solo.
-      expect({
-        avisado,
-        lecturas,
-        pantalla: pantalla(),
-        disco: Object.keys(disco()!),
-      }).toEqual({
-        avisado: true, // CONTROL: el respaldo escribio y aviso
-        lecturas: 3, // CONTROL: la relectura y la recarga
-        pantalla: ['Mark/1/1', 'Mark/9/9'],
-        disco: ['Mark/1/1', 'Mark/9/9'],
-      });
-    },
-  );
+    // R9-281 — el fallo de la relectura llega antes del aviso de fin: sin
+    // el de inicio, la salida se rendia y su escritura corria detras de la
+    // del respaldo. La recarga leia Mark/1/1 solo.
+    expect({
+      avisado,
+      lecturas,
+      pantalla: pantalla(),
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      avisado: true, // CONTROL: el respaldo escribio y aviso
+      lecturas: 3, // CONTROL: la relectura y la recarga
+      pantalla: ['Mark/1/1', 'Mark/9/9'],
+      disco: ['Mark/1/1', 'Mark/9/9'],
+    });
+  });
 });
 
 describe('R9-279 — un alta con el mazo sin leer es «agregar si falta»', () => {
@@ -865,26 +916,21 @@ describe('R9-279 — un alta con el mazo sin leer es «agregar si falta»', () =
   });
 
   it('con la relectura y la recarga en vuelo, decide la ultima: gana el John restaurado', async () => {
-    const escritura = puerta();
     const relectura = puerta();
-    // 1: falla. El respaldo (John con 9 repasos y Mark/9/9) pide su
-    // escritura; el alta de John pide la relectura (2), detras. La escritura
-    // corre y avisa: la recarga (3) se pide antes de que la relectura corra.
+    // 1: falla. El alta de John pide la relectura (2); el respaldo (John con
+    // 9 repasos y Mark/9/9) avisa y pide su escritura, detras. La relectura
+    // lee el John de 5 repasos sin ser la ultima; la recarga (3), el de 9.
     conRepasos();
     mazo(1, [undefined, relectura.p]);
     montar();
     await tick();
-    void escribirRespaldo(escritura.p, {
-      [JOHN.verseKey]: {...JOHN, box: 5, reviewCount: 9},
-      [RESTAURADA.verseKey]: RESTAURADA,
-    });
     await act(async () => {
       ctx!.addCard(JOHN_ALTA);
       await new Promise(r => setTimeout(r, 0));
     });
-    await act(async () => {
-      escritura.abrir();
-      await new Promise(r => setTimeout(r, 0));
+    void escribirRespaldo(undefined, {
+      [JOHN.verseKey]: {...JOHN, box: 5, reviewCount: 9},
+      [RESTAURADA.verseKey]: RESTAURADA,
     });
     await act(async () => {
       relectura.abrir();

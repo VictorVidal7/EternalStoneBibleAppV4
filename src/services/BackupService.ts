@@ -96,7 +96,10 @@ import {
   serializePrepSeriesMap,
 } from '../features/study/prepSeries';
 import {getSyncEngine, nullifyUndefined} from '../lib/sync';
-import {emitBackupRestored} from '../lib/backup/restoreSignal';
+import {
+  emitBackupRestored,
+  emitBackupRestoring,
+} from '../lib/backup/restoreSignal';
 import {buildNoteRemotePayload} from '../lib/sync/adapters/notes';
 import {buildHighlightRemotePayload} from '../lib/sync/adapters/highlights';
 import type {HighlightColor, HighlightCategory} from '../lib/highlights';
@@ -1128,7 +1131,8 @@ function pushImportedEntitiesToSync(data: {
  * Does NOT reload ALL in-memory app state, and there is no programmatic app
  * reload available in this project. Two things cover the gap, and the split
  * between them is deliberate (R9-28):
- *   - `emitBackupRestored()` fires once both storage engines are done, and
+ *   - `emitBackupRestored()` fires once both storage engines are done (or
+ *     something threw after `emitBackupRestoring()`, R9-278), and
  *     the providers that PERSIST ON EVERY CHANGE re-read their store
  *     (memory deck, both reading-progress stores, reader preferences).
  *     Those are not a cosmetic staleness problem: holding pre-import state
@@ -1625,52 +1629,60 @@ export async function importBackup(
   // of a flat, inaccurate "import failed" (see the docstring above
   // `importBackup`). ----
   let asyncStorageWriteFailed = false;
-  if (pairs.length > 0) {
-    try {
-      // R9-273 — in the Mesa's turn (see `prepMultiSet`): the Mesa keys in
-      // `pairs` were resolved above, and a join or a store's write that read
-      // them before this lands no longer writes over it. R9-275 — and if
-      // their account was deleted meanwhile, its Mesa is given back after.
-      await prepMultiSet(pairs);
-      restoredSections.push(...pendingAsyncStorageSections);
-    } catch (error) {
-      asyncStorageWriteFailed = true;
-      failedSections.push(...pendingAsyncStorageSections);
-      logger.error(
-        'Backup: AsyncStorage write failed AFTER the SQLite portion of the ' +
-          'restore already committed — device is left with the imported ' +
-          'SQLite sections but the pre-import AsyncStorage sections.',
-        error as Error,
-        {component: 'BackupService', action: 'importBackup'},
-      );
+  // R9-278 — the providers that reload on the signal below hold their writes
+  // from here: one asked for now runs after this `multiSet`, and its reload
+  // would read it back over what was restored. The signal always follows.
+  emitBackupRestoring();
+  try {
+    if (pairs.length > 0) {
+      try {
+        // R9-273 — in the Mesa's turn (see `prepMultiSet`): the Mesa keys in
+        // `pairs` were resolved above, and a join or a store's write that read
+        // them before this lands no longer writes over it. R9-275 — and if
+        // their account was deleted meanwhile, its Mesa is given back after.
+        await prepMultiSet(pairs);
+        restoredSections.push(...pendingAsyncStorageSections);
+      } catch (error) {
+        asyncStorageWriteFailed = true;
+        failedSections.push(...pendingAsyncStorageSections);
+        logger.error(
+          'Backup: AsyncStorage write failed AFTER the SQLite portion of the ' +
+            'restore already committed — device is left with the imported ' +
+            'SQLite sections but the pre-import AsyncStorage sections.',
+          error as Error,
+          {component: 'BackupService', action: 'importBackup'},
+        );
+      }
     }
+
+    // ---- Hand off the Firestore-synced collections to the normal sync path.
+    // favorites/notes/highlights/reviewEvents are SQLite-backed and already
+    // committed above regardless of the AsyncStorage outcome, so pushing them
+    // is always safe. memoryDeck is AsyncStorage-backed: pushing it to the
+    // cloud when the LOCAL write just failed would leave this device's cloud
+    // data ahead of what actually landed locally, so it's skipped in that one
+    // failure case. ----
+    pushImportedEntitiesToSync({
+      favorites: favoritesIn,
+      notes: notesIn,
+      highlights: highlightsIn,
+      memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
+      reviewEvents: reviewEventsIn,
+    });
+  } finally {
+    // ---- R9-28 — tell the providers that hydrated from these same stores at
+    // mount that what they hold is now stale. Emitted LAST, once both storage
+    // engines are done, so nobody re-reads a half-restored state. Without it
+    // the providers that persist on every change (memory deck, both reading-
+    // progress stores, reader preferences) write their PRE-import copy straight
+    // back over the restored data at the first interaction — no toast, no
+    // error, no log, right after telling the user the import succeeded. It does
+    // NOT cover everything (there is no programmatic app reload available in
+    // this project), which is why Settings still asks for a restart.
+    // R9-278 — in a `finally`: one that holds its writes since
+    // `emitBackupRestoring` waits for this, whatever throws on the way. ----
+    emitBackupRestored();
   }
-
-  // ---- Hand off the Firestore-synced collections to the normal sync path.
-  // favorites/notes/highlights/reviewEvents are SQLite-backed and already
-  // committed above regardless of the AsyncStorage outcome, so pushing them
-  // is always safe. memoryDeck is AsyncStorage-backed: pushing it to the
-  // cloud when the LOCAL write just failed would leave this device's cloud
-  // data ahead of what actually landed locally, so it's skipped in that one
-  // failure case. ----
-  pushImportedEntitiesToSync({
-    favorites: favoritesIn,
-    notes: notesIn,
-    highlights: highlightsIn,
-    memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
-    reviewEvents: reviewEventsIn,
-  });
-
-  // ---- R9-28 — tell the providers that hydrated from these same stores at
-  // mount that what they hold is now stale. Emitted LAST, once both storage
-  // engines are done, so nobody re-reads a half-restored state. Without it
-  // the providers that persist on every change (memory deck, both reading-
-  // progress stores, reader preferences) write their PRE-import copy straight
-  // back over the restored data at the first interaction — no toast, no
-  // error, no log, right after telling the user the import succeeded. It does
-  // NOT cover everything (there is no programmatic app reload available in
-  // this project), which is why Settings still asks for a restart. ----
-  emitBackupRestored();
 
   return {
     formatVersion: payload.formatVersion,

@@ -47,7 +47,8 @@ export function subscribeBackupRestored(listener: RestoreListener): () => void {
 /**
  * Announce that an import finished writing. Called by `importBackup` once
  * both storage engines are done, never before — a listener that re-read
- * mid-write would just cache a half-restored state.
+ * mid-write would just cache a half-restored state. R9-278 — and always
+ * after `emitBackupRestoring`, also when the import throws in between.
  *
  * A throwing listener must not take the others down with it (nor fail the
  * import, which has already committed by this point).
@@ -63,7 +64,37 @@ export function emitBackupRestored(): void {
   }
 }
 
+const startListeners = new Set<RestoreListener>();
+
+/**
+ * R9-278 — subscribe to "a backup is about to write your store". A write a
+ * provider asks for from here on runs after the backup's (AsyncStorage runs
+ * them one at a time, in order), and its reload would read it back over what
+ * was restored: hold the writes until `emitBackupRestored`, which always
+ * follows.
+ */
+export function subscribeBackupRestoring(
+  listener: RestoreListener,
+): () => void {
+  startListeners.add(listener);
+  return () => {
+    startListeners.delete(listener);
+  };
+}
+
+/** Announce that an import is about to write. `importBackup` only. */
+export function emitBackupRestoring(): void {
+  for (const listener of Array.from(startListeners)) {
+    try {
+      listener();
+    } catch {
+      // As in `emitBackupRestored`: one provider cannot stop the import.
+    }
+  }
+}
+
 /** Test-only: drop every subscription between cases. */
 export function __resetBackupRestoredListenersForTests(): void {
   listeners.clear();
+  startListeners.clear();
 }

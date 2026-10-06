@@ -49,7 +49,10 @@ import {
 import {historySummary} from '../lib/memory/history';
 import {computeEasePrior} from '../lib/memory/easePrior';
 import {maybeWriteMemoryStatsSummary} from '../lib/memory/memoryStatsSync';
-import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
+import {
+  subscribeBackupRestored,
+  subscribeBackupRestoring,
+} from '../lib/backup/restoreSignal';
 import {useSyncEngineOptional} from './SyncEngineContext';
 
 const STORAGE_KEY = '@memory_deck';
@@ -300,9 +303,36 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // R9-28 — an import writes `@memory_deck` directly, behind this provider's
   // back. Without this, the effect below would re-serialize the PRE-import
   // deck on the very next review and the restored one would vanish silently.
+  // R9-278 — resolves the `deckLoad` set when the backup began with its
+  // reload: the adapter waits for what that reload reads.
+  const restoreLoad = useRef<((load: Promise<boolean>) => void) | null>(null);
   useEffect(
-    () => subscribeBackupRestored(() => void hydrateFromStorage()),
+    () =>
+      subscribeBackupRestored(() => {
+        void hydrateFromStorage();
+        restoreLoad.current?.(deckLoad.current!);
+        restoreLoad.current = null;
+      }),
     [hydrateFromStorage],
+  );
+  // R9-278 — the backup is about to write the deck, and a write asked for now
+  // would run after it (AsyncStorage runs them one at a time, in order), so
+  // its reload read it back over what was restored. The edits wait for that
+  // reload, as they wait for a load, and no read starts before it.
+  // R9-281 — the reload is the newest load: one in flight neither lets the
+  // edits go nor gives up over what is restored.
+  useEffect(
+    () =>
+      subscribeBackupRestoring(() => {
+        loadSeq.current++;
+        unsaved.current ??= new Map();
+        unread.current = false;
+        // A remote copy is judged against what the reload reads (R9-133).
+        if (!restoreLoad.current) {
+          deckLoad.current = new Promise(r => (restoreLoad.current = r));
+        }
+      }),
+    [],
   );
 
   // Persist on every change post-hydration.
@@ -323,8 +353,8 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     }
     if (!unread.current || unsaved.current.size === 0) return;
     void hydrateFromStorage(true).then(read => {
-      // A newer load already in flight (the backup's reload) decides
-      // instead. One asked for after this answer does not (R9-281).
+      // A newer load (the backup's reload, from the moment the backup began:
+      // R9-281) decides instead.
       if (read || !unread.current) return;
       unsaved.current = null;
       // R9-279 — no read told whether the cards added if absent were there:
