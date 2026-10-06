@@ -1,11 +1,19 @@
 /**
  * El mazo y su disco: R9-133 (el `getLocal` de `memoryCards`), R9-277 (lo
- * editado mientras la carga esta en vuelo) y R9-267 (la lectura fallida).
+ * editado mientras la carga esta en vuelo), R9-267 (la lectura fallida) y
+ * R9-283 (cada escritor, la salida, y el orden de AsyncStorage).
  *
  * Provider real y AsyncStorage real; del SyncEngineContext solo
  * `useSyncEngineOptional`, para capturar el adaptador. `motor` hace lo que hace
  * `applyRemoteChange` con `memoryCards`, que no tiene campos materiales:
  * `getLocal`, LWW si hay copia local, y aplicar.
+ *
+ * R9-283 — `@memory_deck` pasa por un modelo del ejecutor serie de AsyncStorage
+ * en Android (`SerialExecutor`): cada operacion corre cuando termino la
+ * anterior, en el orden en que se pidio, y su respuesta llega despues de la de
+ * la anterior. Nada pedido despues de una operacion pendiente corre ni llega
+ * antes que ella. Una puerta demora cuando CORRE una operacion, y lo pedido
+ * detras espera con ella.
  */
 
 import {Text} from 'react-native';
@@ -68,27 +76,70 @@ function Capture() {
   return <Text>x</Text>;
 }
 
-const getItemMock = AsyncStorage.getItem as unknown as jest.Mock;
-let realGet: (k: string) => Promise<string | null>;
+const AS = AsyncStorage as unknown as {
+  multiGet: jest.Mock;
+  multiSet: jest.Mock;
+  __INTERNAL_MOCK_STORAGE__: Record<string, string>;
+};
+const realMultiGet = AS.multiGet.getMockImplementation()!;
+const realMultiSet = AS.multiSet.getMockImplementation()!;
+
+let cola: Promise<unknown> = Promise.resolve();
+let llegadas: Promise<unknown> = Promise.resolve();
+/** Corre `fn` cuando termino lo pedido antes (y, si hay `puerta`, al abrirla). */
+const enSerie = <T,>(fn: () => Promise<T>, puerta?: Promise<void>) => {
+  const corre = cola.then(async () => {
+    await puerta;
+    return fn();
+  });
+  cola = corre.catch(() => undefined);
+  const llega = llegadas.then(() => corre);
+  llegadas = llega.catch(() => undefined);
+  return llega;
+};
+
 let lecturas = 0;
+let falla: (n: number) => boolean = () => false;
+let puertasLectura: Array<Promise<void> | undefined> = [];
+let puertaEscritura: Promise<void> | undefined;
 
 /**
- * Las primeras `fallos` lecturas de `@memory_deck` fallan; las demas esperan a
- * `puerta` (con una lista, la lectura n espera a la n-esima). Cada una ve el
- * disco de cuando se pidio.
+ * La lectura n de `@memory_deck` falla si `fallos` la incluye (un numero: las
+ * primeras), y no corre hasta abrir `puertas[n - 1]`.
  */
 const mazo = (
-  fallos: number,
-  puerta?: Promise<void> | Array<Promise<void> | undefined>,
-) =>
-  getItemMock.mockImplementation((k: string) => {
-    if (k !== '@memory_deck') return realGet(k);
-    lecturas++;
-    if (lecturas <= fallos) return Promise.reject(new Error('disco'));
-    const foto = realGet(k);
-    const p = Array.isArray(puerta) ? puerta[lecturas - 1] : puerta;
-    return p ? p.then(() => foto) : foto;
-  });
+  fallos: number | ((n: number) => boolean),
+  puertas: Array<Promise<void> | undefined> = [],
+) => {
+  falla = typeof fallos === 'number' ? n => n <= fallos : fallos;
+  puertasLectura = puertas;
+};
+
+AS.multiGet.mockImplementation((keys: string[], cb?: unknown) => {
+  if (!keys.includes('@memory_deck')) return realMultiGet(keys, cb);
+  const n = ++lecturas;
+  return enSerie(
+    () =>
+      falla(n) ? Promise.reject(new Error('disco')) : realMultiGet(keys, cb),
+    puertasLectura[n - 1],
+  );
+});
+AS.multiSet.mockImplementation(
+  (pares: Array<[string, string]>, cb?: unknown) => {
+    if (!pares.some(([k]) => k === '@memory_deck')) {
+      return realMultiSet(pares, cb);
+    }
+    const puerta = puertaEscritura;
+    puertaEscritura = undefined;
+    return enSerie(() => realMultiSet(pares, cb), puerta);
+  },
+);
+
+const puerta = () => {
+  let abrir: () => void = () => undefined;
+  const p = new Promise<void>(r => (abrir = r));
+  return {p, abrir};
+};
 
 const MARK = {
   bookName: 'Mark',
@@ -97,19 +148,31 @@ const MARK = {
   text: 'El principio del evangelio',
   version: 'RVR1960',
 };
+const HECHOS = {
+  bookName: 'Acts',
+  chapter: 1,
+  verse: 8,
+  text: 'Pero recibireis poder',
+  version: 'RVR1960',
+};
 const RESTAURADA = card('Mark/9/9', 3000);
 
-/** Lo que hace `importBackup`: escribe el mazo por detras del provider, y avisa. */
-const restaurar = async () => {
-  await AsyncStorage.setItem(
+/**
+ * Lo que hace `importBackup`: escribe el mazo por detras del provider (con
+ * `puerta`, no corre hasta abrirla), y avisa apenas termina.
+ */
+const escribirRespaldo = (p?: Promise<void>) => {
+  puertaEscritura = p;
+  return AsyncStorage.setItem(
     '@memory_deck',
     JSON.stringify({[RESTAURADA.verseKey]: RESTAURADA}),
-  );
-  await act(async () => {
-    emitBackupRestored();
+  ).then(() => emitBackupRestored());
+};
+const restaurar = () =>
+  act(async () => {
+    await escribirRespaldo();
     await new Promise(r => setTimeout(r, 0));
   });
-};
 
 const pantalla = () => ctx!.cards.map(c => c.verseKey).sort();
 
@@ -125,10 +188,10 @@ const tick = () =>
     await new Promise(r => setTimeout(r, 0));
   });
 
-/** `@memory_deck` en disco: verseKey -> updatedAt. */
-const disco = async () => {
-  const raw = await realGet('@memory_deck');
-  if (raw === null) return null;
+/** `@memory_deck` en disco, sin pasar por la cola: verseKey -> updatedAt. */
+const disco = () => {
+  const raw = AS.__INTERNAL_MOCK_STORAGE__['@memory_deck'];
+  if (raw === undefined) return null;
   const m = JSON.parse(raw) as Record<string, MemoryCard>;
   return Object.fromEntries(
     Object.keys(m)
@@ -155,40 +218,38 @@ const motor = (id: string, remota: MemoryCard, retener?: Promise<void>) =>
 beforeEach(async () => {
   ctx = null;
   mockAdapter = null;
+  cola = Promise.resolve();
+  llegadas = Promise.resolve();
   lecturas = 0;
+  mazo(0);
+  puertaEscritura = undefined;
   await AsyncStorage.clear();
-  await AsyncStorage.setItem(
-    '@memory_deck',
-    JSON.stringify({[JOHN.verseKey]: JOHN, [LUKE.verseKey]: LUKE}),
-  );
-  realGet = getItemMock.getMockImplementation()!;
+  AS.__INTERNAL_MOCK_STORAGE__['@memory_deck'] = JSON.stringify({
+    [JOHN.verseKey]: JOHN,
+    [LUKE.verseKey]: LUKE,
+  });
 });
 
 afterEach(() => {
-  getItemMock.mockImplementation(realGet);
   cleanup();
 });
 
 describe('R9-133 — el getLocal del mazo no dice «ausente» sin haber leido el disco', () => {
   it('en la carga en frio espera al disco: una copia remota mas vieja no reemplaza la tarjeta', async () => {
-    let abrir: () => void = () => undefined;
-    mazo(0, new Promise<void>(r => (abrir = r)));
+    const carga = puerta();
+    mazo(0, [carga.p]);
     montar();
     // El motor pide la copia local durante la carga y aplica despues de ella.
-    let soltar: () => void = () => undefined;
-    const paso = motor(
-      'John/3/16',
-      card('John/3/16', 500),
-      new Promise<void>(r => (soltar = r)),
-    );
+    const retenido = puerta();
+    const paso = motor('John/3/16', card('John/3/16', 500), retenido.p);
     await tick();
     const hidratadoAlPedir = ctx!.hydrated;
     await act(async () => {
-      abrir();
+      carga.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
     await act(async () => {
-      soltar();
+      retenido.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
     await tick();
@@ -198,7 +259,7 @@ describe('R9-133 — el getLocal del mazo no dice «ausente» sin haber leido el
     expect({
       hidratadoAlPedir,
       paso: await paso,
-      disco: await disco(),
+      disco: disco(),
     }).toEqual({
       hidratadoAlPedir: false, // CONTROL: la carga seguia en vuelo
       paso: {local: 1000, aplicada: false},
@@ -225,10 +286,9 @@ describe('R9-133 — el getLocal del mazo no dice «ausente» sin haber leido el
   });
 
   it('despues de un repaso lee el repaso, no la tarjeta del render anterior', async () => {
-    mazo(0);
     montar();
     await tick();
-    let paso: unknown;
+    let paso: {local: unknown} = {local: null};
     // La copia remota (2000) es mas nueva que la tarjeta (1000) y mas vieja que
     // el repaso, y llega antes del render siguiente.
     await act(async () => {
@@ -237,21 +297,23 @@ describe('R9-133 — el getLocal del mazo no dice «ausente» sin haber leido el
     });
     await tick();
     const john = ctx!.cards.find(c => c.verseKey === 'John/3/16')!;
+    const repaso = (v: unknown) =>
+      typeof v === 'number' && v > 2000 ? 'repaso' : v;
 
     // Sin R9-133, getLocal leia la tarjeta de antes (1000), la copia de 2000
     // entraba, y el repaso se perdia en pantalla y en disco (reviewCount 0).
     expect({
-      local: (paso as {local: unknown}).local === 1000 ? 'antes' : 'repaso',
+      local: repaso(paso.local),
       reviewCount: john.reviewCount,
-      disco: (await disco())!['John/3/16'] === 2000 ? 'remota' : 'repaso',
+      disco: repaso(disco()!['John/3/16']),
     }).toEqual({local: 'repaso', reviewCount: 1, disco: 'repaso'});
   });
 });
 
 describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', () => {
   it('una tarjeta agregada durante la carga en frio queda, en pantalla y en disco', async () => {
-    let abrir: () => void = () => undefined;
-    mazo(0, new Promise<void>(r => (abrir = r)));
+    const carga = puerta();
+    mazo(0, [carga.p]);
     montar();
     await act(async () => {
       ctx!.addCard(MARK);
@@ -259,7 +321,7 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
     });
     const hidratadoAlAgregar = ctx!.hydrated;
     await act(async () => {
-      abrir();
+      carga.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
     await tick();
@@ -268,7 +330,7 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
     expect({
       hidratadoAlAgregar,
       pantalla: pantalla(),
-      disco: Object.keys((await disco())!),
+      disco: Object.keys(disco()!),
     }).toEqual({
       hidratadoAlAgregar: false, // CONTROL: la carga seguia en vuelo
       pantalla: ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
@@ -277,7 +339,6 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
   });
 
   it('lo editado antes de la carga no vuelve encima de lo que lee (el respaldo reemplaza el mazo)', async () => {
-    mazo(0);
     montar();
     await tick();
     await act(async () => {
@@ -290,43 +351,105 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
     // Si lo editado no se soltara al leer, Mark/1/1 volveria sobre lo restaurado.
     expect({
       pantalla: pantalla(),
-      disco: Object.keys((await disco())!),
+      disco: Object.keys(disco()!),
     }).toEqual({
       pantalla: ['Mark/9/9'],
       disco: ['Mark/9/9'],
     });
   });
 
-  it('con dos cargas en vuelo, lo editado entre la primera y la segunda queda', async () => {
-    let abrir1: () => void = () => undefined;
-    let abrir2: () => void = () => undefined;
-    mazo(0, [
-      new Promise<void>(r => (abrir1 = r)),
-      new Promise<void>(r => (abrir2 = r)),
-    ]);
+  it('con la relectura y la recarga del respaldo en vuelo, lo editado entre las dos queda', async () => {
+    const escritura = puerta();
+    const relectura = puerta();
+    const recarga = puerta();
+    // 1: falla. El respaldo pide su escritura, y Mark/1/1 pide la relectura
+    // (2), que va detras. La escritura corre y avisa: la recarga (3) se pide
+    // con la relectura todavia pendiente. Las dos leen lo restaurado.
+    mazo(1, [undefined, relectura.p, recarga.p]);
     montar();
-    // El respaldo llega con la carga del montaje todavia en vuelo.
-    await restaurar();
-    await act(async () => {
-      abrir1();
-      await new Promise(r => setTimeout(r, 0));
-    });
-    const trasLaPrimera = pantalla();
+    await tick();
+    let avisado = false;
+    void escribirRespaldo(escritura.p).then(() => (avisado = true));
     await act(async () => {
       ctx!.addCard(MARK);
       await new Promise(r => setTimeout(r, 0));
     });
     await act(async () => {
-      abrir2();
+      escritura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const avisadoAntesDeLaRelectura = avisado;
+    await act(async () => {
+      relectura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const trasLaRelectura = pantalla();
+    await act(async () => {
+      ctx!.addCard(HECHOS);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await act(async () => {
+      recarga.abrir();
       await new Promise(r => setTimeout(r, 0));
     });
     await tick();
 
-    // Si la primera carga soltara lo editado, la segunda reemplazaba el mazo
-    // sin Mark/1/1.
-    expect({trasLaPrimera, pantalla: pantalla()}).toEqual({
-      trasLaPrimera: ['John/3/16', 'Luke/2/1'], // CONTROL: la primera leyo el mazo de antes
+    // Si la relectura soltara lo editado, la recarga reemplazaba el mazo sin
+    // Acts/1/8 (y sin Mark/1/1).
+    expect({
+      lecturas,
+      avisadoAntesDeLaRelectura,
+      trasLaRelectura,
+      pantalla: pantalla(),
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      lecturas: 3,
+      avisadoAntesDeLaRelectura: true, // CONTROL: la recarga se pidio con la relectura pendiente
+      trasLaRelectura: ['Mark/1/1', 'Mark/9/9'], // CONTROL: la relectura leyo lo restaurado
+      pantalla: ['Acts/1/8', 'Mark/1/1', 'Mark/9/9'],
+      disco: ['Acts/1/8', 'Mark/1/1', 'Mark/9/9'],
+    });
+  });
+
+  it('si la relectura falla con la recarga del respaldo ya pedida, no se rinde: decide la recarga', async () => {
+    const escritura = puerta();
+    const relectura = puerta();
+    // 1 y 2 fallan. El respaldo pide su escritura, y Mark/1/1 pide la
+    // relectura (2), detras. La escritura corre y avisa: la recarga (3) se
+    // pide antes de que la relectura corra.
+    mazo(2, [undefined, relectura.p]);
+    montar();
+    await tick();
+    let avisado = false;
+    void escribirRespaldo(escritura.p).then(() => (avisado = true));
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await act(async () => {
+      escritura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const avisadoAntesDeLaRelectura = avisado;
+    await act(async () => {
+      relectura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+
+    // Si la relectura que falla se rindiera, soltaba lo editado y escribia
+    // Mark/1/1 detras de la recarga, que leia Mark/9/9 sin nada encima.
+    expect({
+      lecturas,
+      avisadoAntesDeLaRelectura,
+      pantalla: pantalla(),
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      lecturas: 3,
+      avisadoAntesDeLaRelectura: true, // CONTROL: la recarga se pidio con la relectura pendiente
       pantalla: ['Mark/1/1', 'Mark/9/9'],
+      disco: ['Mark/1/1', 'Mark/9/9'],
     });
   });
 });
@@ -345,18 +468,22 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
     await tick();
   };
 
-  it('con la lectura del arranque fallida, el disco conserva las tarjetas', async () => {
-    mazo(1);
+  it('con las lecturas fallando siempre y sin edicion, el disco conserva las tarjetas', async () => {
+    mazo(99);
     montar();
     await tick();
     await tick();
 
     // Sin R9-267, el efecto escribia el mazo vacio: el disco quedaba en {}.
+    // R9-283 — sin la guarda de `unsaved` vacio, relee sin edicion, se rinde y
+    // escribe {} igual.
     expect({
       hidratado: ctx!.hydrated,
-      disco: Object.keys((await disco())!),
+      lecturas,
+      disco: Object.keys(disco()!),
     }).toEqual({
       hidratado: true, // CONTROL: la carga termino
+      lecturas: 1,
       disco: ['John/3/16', 'Luke/2/1'],
     });
   });
@@ -368,7 +495,7 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
     expect({
       lecturas,
       pantalla: pantalla(),
-      disco: Object.keys((await disco())!),
+      disco: Object.keys(disco()!),
     }).toEqual({
       lecturas: 2, // CONTROL: la escritura releyo
       pantalla: ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
@@ -381,30 +508,50 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
 
     // Una lectura puede fallar siempre: esperando, ninguna edicion llegaria al
     // disco. Se pierden las tarjetas del disco, como antes de R9-267.
-    expect({lecturas, disco: Object.keys((await disco())!)}).toEqual({
+    expect({lecturas, disco: Object.keys(disco()!)}).toEqual({
       lecturas: 2, // CONTROL: releyo una vez
       disco: ['Mark/1/1'],
     });
   });
 
+  it('tras rendirse, lo editado despues llega al disco y getLocal responde', async () => {
+    await agregarTrasFallar(99);
+    await act(async () => {
+      ctx!.addCard(HECHOS);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    const local = await mockAdapter!.getLocal('Acts/1/8').then(
+      c => (c ? c.verseKey : null),
+      (e: Error) => 'lanza: ' + e.message,
+    );
+
+    // R9-283 — si la salida no soltara lo editado, Acts/1/8 esperaba para
+    // siempre; si no diera la carga por leida, getLocal lanzaba el resto del
+    // proceso.
+    expect({lecturas, disco: Object.keys(disco()!), local}).toEqual({
+      lecturas: 2, // CONTROL: no volvio a releer
+      disco: ['Acts/1/8', 'Mark/1/1'],
+      local: 'Acts/1/8',
+    });
+  });
+
   it('sin mazo en disco, lo agregado tras una lectura fallida llega al disco', async () => {
-    await AsyncStorage.removeItem('@memory_deck');
+    delete AS.__INTERNAL_MOCK_STORAGE__['@memory_deck'];
     await agregarTrasFallar(1);
 
     // La relectura no adopta nada: sin un render, el efecto no escribia.
-    expect({lecturas, disco: await disco()}).toEqual({
+    expect({lecturas, disco: disco()}).toEqual({
       lecturas: 2, // CONTROL: la escritura releyo
       disco: {'Mark/1/1': expect.any(Number)},
     });
   });
 
   it('si falla la recarga del respaldo, lo agregado despues no pisa lo restaurado', async () => {
-    mazo(0);
+    // La recarga (la lectura 2) falla; la relectura (la 3) lee.
+    mazo(n => n === 2);
     montar();
     await tick();
-    // La recarga (la lectura 2) falla; la relectura (la 3) lee.
-    mazo(2);
-    lecturas = 1;
     await restaurar();
     const trasLaRecarga = pantalla();
     await act(async () => {
@@ -416,62 +563,98 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
 
     // Sin R9-267, el mazo de antes del respaldo se escribia encima:
     // John, Luke y Mark/1/1, y Mark/9/9 perdido.
-    expect({trasLaRecarga, disco: Object.keys((await disco())!)}).toEqual({
+    expect({trasLaRecarga, disco: Object.keys(disco()!)}).toEqual({
       trasLaRecarga: ['John/3/16', 'Luke/2/1'], // CONTROL: la recarga no leyo
       disco: ['Mark/1/1', 'Mark/9/9'],
     });
   });
 
-  it('si llega un respaldo mientras relee, la relectura que falla no se rinde: decide la recarga', async () => {
-    let abrir2: () => void = () => undefined;
-    let abrir3: () => void = () => undefined;
-    const puerta2 = new Promise<void>(r => (abrir2 = r));
-    const puerta3 = new Promise<void>(r => (abrir3 = r));
-    // 1: falla; 2 (la relectura): espera y falla; 3 (la recarga): lee lo
-    // restaurado, en un callback posterior, como en el ejecutor serie de
-    // AsyncStorage.
-    getItemMock.mockImplementation((k: string) => {
-      if (k !== '@memory_deck') return realGet(k);
-      lecturas++;
-      if (lecturas === 1) return Promise.reject(new Error('disco'));
-      if (lecturas === 2) {
-        return puerta2.then(() => Promise.reject(new Error('disco')));
-      }
-      const foto = realGet(k);
-      return puerta3.then(() => foto);
-    });
+  // R9-281 — cae (Mark/1/1 solo) hasta su arreglo.
+  it.failing(
+    'si el respaldo escribe mientras relee y la relectura falla, la salida no pisa lo restaurado',
+    async () => {
+      const relectura = puerta();
+      // 1: falla; 2 (la relectura de Mark/1/1): no corre hasta abrir, y falla;
+      // 3 (la recarga del aviso): lee.
+      mazo(2, [undefined, relectura.p]);
+      montar();
+      await tick();
+      await act(async () => {
+        ctx!.addCard(MARK);
+        await new Promise(r => setTimeout(r, 0));
+      });
+      // El respaldo pide su escritura con la relectura pendiente: corre detras
+      // de ella, y avisa al terminar.
+      let avisado = false;
+      void escribirRespaldo().then(() => (avisado = true));
+      await act(async () => {
+        relectura.abrir();
+        await new Promise(r => setTimeout(r, 0));
+      });
+      await tick();
+      await tick();
+
+      // R9-281 — el fallo de la relectura llega antes del aviso: la salida se
+      // rendia y su escritura corria detras de la del respaldo. La recarga leia
+      // Mark/1/1 solo.
+      expect({
+        avisado,
+        lecturas,
+        pantalla: pantalla(),
+        disco: Object.keys(disco()!),
+      }).toEqual({
+        avisado: true, // CONTROL: el respaldo escribio y aviso
+        lecturas: 3, // CONTROL: la relectura y la recarga
+        pantalla: ['Mark/1/1', 'Mark/9/9'],
+        disco: ['Mark/1/1', 'Mark/9/9'],
+      });
+    },
+  );
+});
+
+describe('R9-283 — cada escritor pasa por `edit`: la edicion siguiente no lo deshace', () => {
+  it.each([
+    [
+      'applyRemoteUpsert',
+      () =>
+        mockAdapter!.applyRemoteUpsert('John/3/16', card('John/3/16', 2000)),
+      ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
+      2000,
+    ],
+    [
+      'applyRemoteDelete',
+      () => mockAdapter!.applyRemoteDelete('John/3/16'),
+      ['Luke/2/1', 'Mark/1/1'],
+      null,
+    ],
+    [
+      'removeCard',
+      () => ctx!.removeCard('John/3/16'),
+      ['Luke/2/1', 'Mark/1/1'],
+      null,
+    ],
+    ['resetDeck', () => ctx!.resetDeck(), ['Mark/1/1'], null],
+  ])('%s', async (_, escribir, enDisco, john) => {
     montar();
     await tick();
+    await act(async () => {
+      await escribir();
+      await new Promise(r => setTimeout(r, 0));
+    });
     await act(async () => {
       ctx!.addCard(MARK);
       await new Promise(r => setTimeout(r, 0));
     });
-    await restaurar();
-    await act(async () => {
-      abrir2();
-      await new Promise(r => setTimeout(r, 0));
-    });
-    const discoTrasLaRelectura = Object.keys((await disco())!);
-    await act(async () => {
-      abrir3();
-      await new Promise(r => setTimeout(r, 0));
-    });
     await tick();
-    await tick();
+    const local = await mockAdapter!.getLocal('John/3/16');
 
-    // Si la relectura que falla se rindiera, escribia lo de memoria (Mark/1/1)
-    // encima de lo restaurado y soltaba lo editado: la recarga leia Mark/1/1
-    // solo, y no le ponia nada encima.
+    // Una escritura que no pasara por `edit` no llegaba al ref: el alta
+    // siguiente partia del mazo de antes y la deshacia en pantalla y en disco
+    // (la copia remota volvia a 1000; la tarjeta borrada resucitaba).
     expect({
-      lecturas,
-      discoTrasLaRelectura,
-      pantalla: pantalla(),
-      disco: Object.keys((await disco())!),
-    }).toEqual({
-      lecturas: 3, // CONTROL: la relectura y la recarga, las dos en vuelo
-      discoTrasLaRelectura: ['Mark/9/9'],
-      pantalla: ['Mark/1/1', 'Mark/9/9'],
-      disco: ['Mark/1/1', 'Mark/9/9'],
-    });
+      disco: Object.keys(disco()!),
+      john: disco()!['John/3/16'] ?? null,
+      local: local ? local.updatedAt : null,
+    }).toEqual({disco: enDisco, john, local: john});
   });
 });

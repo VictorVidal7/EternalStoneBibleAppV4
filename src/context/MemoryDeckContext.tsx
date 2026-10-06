@@ -221,10 +221,14 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
             // fall through to empty deck
           }
         }
-        // A value that is not JSON reads the same every time, and the deck
-        // written next replaces it: read, as an empty deck. Without a deck on
-        // disk, memory already holds the edits.
-        // R9-277 — a newer load (the backup's) reads what came after this one.
+        // A value that is not JSON reads the same every time: it counts as
+        // read, and what memory holds is written over it (on a reload, the
+        // deck from before). Without a deck on disk, memory already holds the
+        // edits.
+        // R9-277 — only the last load in flight lets the edits go: a newer one
+        // (the backup's reload, asked for while a reread was out) reads the
+        // disk after this one, and what is edited until it arrives goes over
+        // it too.
         if (seq === loadSeq.current) unsaved.current = null;
         // R9-267 — the edits waited for this read: render, so the effect
         // writes them.
@@ -273,10 +277,12 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     }
     if (!unread.current || unsaved.current.size === 0) return;
     void hydrateFromStorage().then(read => {
-      // A newer load (the backup's) decides instead.
+      // A newer load already in flight (the backup's reload) decides
+      // instead. One asked for after this answer does not (R9-281).
       if (read || !unread.current) return;
-      unread.current = false;
       unsaved.current = null;
+      // R9-264 — memory is what the disk holds from here: the adapter answers
+      // from it.
       deckLoad.current = Promise.resolve(true);
       AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(deckRef.current)).catch(
         () => undefined,

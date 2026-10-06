@@ -2194,8 +2194,8 @@ export class SyncEngine {
       // dropped, never gets here: the guard of `handleSnapshot` takes it.
       //
       // R9-174 — nor is a NEWER copy always the other device's: when
-      // `getLocal` reads a ref updated after the render (`memoryCards` does;
-      // `favorites` did until R9-210), the echo of an edit made here can
+      // `getLocal` reads a ref updated after the render (`memoryCards` did
+      // until R9-133, `favorites` until R9-210), the echo of an edit made here can
       // arrive while it still holds the copy before it. Taken for «theirs», it showed this
       // device's edit as the other one's, and keepTheirs kept it. Either way,
       // a copy is «theirs» only if it is not this device's own.
