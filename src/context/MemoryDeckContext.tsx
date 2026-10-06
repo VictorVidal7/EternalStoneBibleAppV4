@@ -126,16 +126,30 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // replace the deck, and a card added while it was in flight was gone from
   // the screen and the disk.
   const unsaved = useRef<Map<string, MemoryCard | null> | null>(null);
-  const edit = useCallback((changes: Record<string, MemoryCard | null>) => {
-    const next = {...deckRef.current};
-    for (const [k, v] of Object.entries(changes)) {
-      if (v) next[k] = v;
-      else delete next[k];
-      unsaved.current?.set(k, v);
-    }
-    deckRef.current = next;
-    setDeck(next);
-  }, []);
+  // R9-279 — the cards in `unsaved` added while no load had read the disk:
+  // "add it if it is not there". The read keeps the card it finds, and only
+  // one it does not find goes to the cloud. Laid over as an edit, a verse
+  // already on disk lost its reviews.
+  const ifAbsent = useRef(new Set<string>());
+  /** `added`: a card added if absent; null takes the add back. */
+  const edit = useCallback(
+    (changes: Record<string, MemoryCard | null>, added = false) => {
+      const next = {...deckRef.current};
+      for (const [k, v] of Object.entries(changes)) {
+        if (v) next[k] = v;
+        else delete next[k];
+        const u = unsaved.current;
+        if (!u) continue;
+        if (added && v) ifAbsent.current.add(k);
+        else ifAbsent.current.delete(k);
+        if (added && !v) u.delete(k);
+        else u.set(k, v);
+      }
+      deckRef.current = next;
+      setDeck(next);
+    },
+    [],
+  );
 
   // Sprint 48 — calibrated ease prior for NEW cards. Derived from the synced
   // review-event log (so it's the same on every device, no new dataset), it
@@ -163,6 +177,16 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   const loadSeq = useRef(0);
   // R9-267 — the last load could not read the disk.
   const unread = useRef(false);
+  // R9-279 — the last load in flight read the disk: the cards added if absent
+  // that it did not find are the user's, and go to the cloud.
+  const queueAdds = useCallback((keys: string[]) => {
+    const engine = getSyncEngine();
+    for (const k of keys) {
+      const c = deckRef.current[k];
+      if (c) engine?.queueWrite('memoryCards', k, cardToRemote(c));
+    }
+    ifAbsent.current.clear();
+  }, []);
 
   // Read the deck off disk and adopt it. Extracted from the mount effect so
   // the backup-restore signal can re-run exactly the same parse (R9-28).
@@ -173,6 +197,8 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     const load = AsyncStorage.getItem(STORAGE_KEY).then(
       raw => {
         let adopted = false;
+        // R9-279 — the cards added if absent that this read did not find.
+        let missing = [...ifAbsent.current];
         if (raw) {
           try {
             const parsed = JSON.parse(raw) as Record<string, MemoryCard>;
@@ -208,7 +234,9 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                 };
               }
             }
+            missing = missing.filter(k => !clean[k]);
             for (const [k, v] of unsaved.current ?? []) {
+              if (ifAbsent.current.has(k) && clean[k]) continue;
               if (v) clean[k] = v;
               else delete clean[k];
             }
@@ -229,7 +257,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         // (the backup's reload, asked for while a reread was out) reads the
         // disk after this one, and what is edited until it arrives goes over
         // it too.
-        if (seq === loadSeq.current) unsaved.current = null;
+        if (seq === loadSeq.current) {
+          unsaved.current = null;
+          queueAdds(missing);
+        }
         // R9-267 — the edits waited for this read: render, so the effect
         // writes them.
         if (!adopted) {
@@ -245,7 +276,7 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     );
     deckLoad.current = load;
     return load.finally(() => setHydrated(true));
-  }, []);
+  }, [queueAdds]);
 
   // Hydrate from storage once.
   useEffect(() => {
@@ -281,6 +312,12 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       // instead. One asked for after this answer does not (R9-281).
       if (read || !unread.current) return;
       unsaved.current = null;
+      // R9-279 — no read told whether the cards added if absent were there:
+      // they stay, and none goes to the cloud. A read failing every time
+      // leaves the cloud the only copy of their reviews, and the verses the
+      // user adds back are the ones they had; a new one goes with its first
+      // review.
+      ifAbsent.current.clear();
       // R9-264 — memory is what the disk holds from here: the adapter answers
       // from it.
       deckLoad.current = Promise.resolve(true);
@@ -391,6 +428,12 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         // prior (DEFAULT_EASE until there's enough history to calibrate).
         ease: easePriorRef.current,
       });
+      // R9-279 — no load has read the disk, and nothing edited says what
+      // became of this card: the disk may have it, and the read decides.
+      if (unsaved.current && !unsaved.current.has(key)) {
+        edit({[key]: card}, true);
+        return;
+      }
       edit({[key]: card});
       getSyncEngine()?.queueWrite('memoryCards', key, cardToRemote(card));
     },
@@ -401,6 +444,12 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     (verseKey: string) => {
       const existing = deckRef.current[verseKey];
       if (!existing) return;
+      // R9-279 — removing a card added if absent takes the add back: the one
+      // on disk, if any, was never seen, and nothing went to the cloud.
+      if (ifAbsent.current.has(verseKey)) {
+        edit({[verseKey]: null}, true);
+        return;
+      }
       edit({[verseKey]: null});
       getSyncEngine()?.queueDelete(
         'memoryCards',
@@ -417,9 +466,14 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       if (!existing) return;
       const now = new Date();
       const updated = applyReview(existing, grade, now);
-      edit({[verseKey]: updated});
+      // R9-279 — a card added if absent stays so: if the disk has it, its
+      // reviews win, and the cloud gets this one only if the disk does not.
+      const added = ifAbsent.current.has(verseKey);
+      edit({[verseKey]: updated}, added);
       const engine = getSyncEngine();
-      engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
+      if (!added) {
+        engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
+      }
       // Local-first quota feature — append the immutable review event to the
       // local SQLite log ONLY. It is NO LONGER queued to Firestore per review
       // (that per-review reviewEvents write roughly halved the free-tier
@@ -442,6 +496,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   );
 
   const resetDeck = useCallback(() => {
+    // R9-279 — the cards added if absent are taken back, as `removeCard` does.
+    if (ifAbsent.current.size > 0) {
+      edit(Object.fromEntries([...ifAbsent.current].map(k => [k, null])), true);
+    }
     const snapshot = Object.values(deckRef.current);
     edit(Object.fromEntries(snapshot.map(c => [c.verseKey, null])));
     const engine = getSyncEngine();

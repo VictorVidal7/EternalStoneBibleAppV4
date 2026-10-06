@@ -43,6 +43,16 @@ jest.mock('../src/context/SyncEngineContext', () => ({
   ...jest.requireActual('../src/context/SyncEngineContext'),
   useSyncEngineOptional: () => mockEngineCtx,
 }));
+/** La cola del motor: `W <id> r<reviewCount>` y `D <id>`. */
+let mockCola: string[] = [];
+jest.mock('../src/lib/sync', () => ({
+  ...jest.requireActual('../src/lib/sync'),
+  getSyncEngine: () => ({
+    queueWrite: (_: string, id: string, d: {reviewCount: number}) =>
+      mockCola.push(`W ${id} r${d.reviewCount}`),
+    queueDelete: (_: string, id: string) => mockCola.push(`D ${id}`),
+  }),
+}));
 
 import {
   MemoryDeckProvider,
@@ -161,12 +171,14 @@ const RESTAURADA = card('Mark/9/9', 3000);
  * Lo que hace `importBackup`: escribe el mazo por detras del provider (con
  * `puerta`, no corre hasta abrirla), y avisa apenas termina.
  */
-const escribirRespaldo = (p?: Promise<void>) => {
+const escribirRespaldo = (
+  p?: Promise<void>,
+  restaurado: Record<string, MemoryCard> = {[RESTAURADA.verseKey]: RESTAURADA},
+) => {
   puertaEscritura = p;
-  return AsyncStorage.setItem(
-    '@memory_deck',
-    JSON.stringify({[RESTAURADA.verseKey]: RESTAURADA}),
-  ).then(() => emitBackupRestored());
+  return AsyncStorage.setItem('@memory_deck', JSON.stringify(restaurado)).then(
+    () => emitBackupRestored(),
+  );
 };
 const restaurar = () =>
   act(async () => {
@@ -218,6 +230,7 @@ const motor = (id: string, remota: MemoryCard, retener?: Promise<void>) =>
 beforeEach(async () => {
   ctx = null;
   mockAdapter = null;
+  mockCola = [];
   cola = Promise.resolve();
   llegadas = Promise.resolve();
   lecturas = 0;
@@ -610,6 +623,243 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
       });
     },
   );
+});
+
+describe('R9-279 — un alta con el mazo sin leer es «agregar si falta»', () => {
+  const JOHN_ALTA = {
+    bookName: 'John',
+    chapter: 3,
+    verse: 16,
+    text: 'Porque de tal manera amo Dios al mundo',
+    version: 'RVR1960',
+  };
+  const JOHN_REPASADO: MemoryCard = {...JOHN, box: 4, reviewCount: 5};
+  const conRepasos = () => {
+    AS.__INTERNAL_MOCK_STORAGE__['@memory_deck'] = JSON.stringify({
+      [JOHN.verseKey]: JOHN_REPASADO,
+      [LUKE.verseKey]: LUKE,
+    });
+  };
+  /** verseKey -> reviewCount, en pantalla y en disco. */
+  const repasos = () => {
+    const de = (cs: MemoryCard[]) =>
+      Object.fromEntries(cs.map(c => [c.verseKey, c.reviewCount]));
+    const raw = AS.__INTERNAL_MOCK_STORAGE__['@memory_deck'];
+    return {
+      pantalla: de(ctx!.cards),
+      disco: de(Object.values(JSON.parse(raw) as Record<string, MemoryCard>)),
+    };
+  };
+  /** John con 5 repasos en disco; `editar` corre con la carga en frio retenida. */
+  const durante = async (editar: () => void) => {
+    conRepasos();
+    const carga = puerta();
+    mazo(0, [carga.p]);
+    montar();
+    await act(async () => {
+      editar();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const hidratadoAlEditar = ctx!.hydrated;
+    await act(async () => {
+      carga.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    return hidratadoAlEditar;
+  };
+  const igual = (m: Record<string, number>) => ({pantalla: m, disco: m});
+
+  it('en la carga en frio, el versiculo que ya estaba conserva sus repasos, y solo sube el que faltaba', async () => {
+    const hidratadoAlEditar = await durante(() => {
+      ctx!.addCard(JOHN_ALTA);
+      ctx!.addCard(MARK);
+    });
+
+    // Sin R9-279, la lectura ponia encima la tarjeta nueva: John con 0
+    // repasos en pantalla, en disco y en la cola (W John r0).
+    expect({hidratadoAlEditar, ...repasos(), cola: mockCola}).toEqual({
+      hidratadoAlEditar: false, // CONTROL: la carga seguia en vuelo
+      ...igual({'John/3/16': 5, 'Luke/2/1': 0, 'Mark/1/1': 0}),
+      cola: ['W Mark/1/1 r0'],
+    });
+  });
+
+  it('tras una lectura fallida, la relectura decide igual', async () => {
+    conRepasos();
+    mazo(1);
+    montar();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(JOHN_ALTA);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+
+    expect({lecturas, ...repasos(), cola: mockCola}).toEqual({
+      lecturas: 2, // CONTROL: el alta releyo
+      ...igual({'John/3/16': 5, 'Luke/2/1': 0}),
+      cola: [],
+    });
+  });
+
+  it('una baja antes de leer retira el alta: sin lapida, y el disco conserva la suya', async () => {
+    await durante(() => {
+      ctx!.addCard(JOHN_ALTA);
+      ctx!.removeCard('John/3/16');
+    });
+
+    // Como borrado de verdad, la lectura quitaba el John del disco, y la
+    // cola llevaba W John r0 y D John.
+    expect({...repasos(), cola: mockCola}).toEqual({
+      ...igual({'John/3/16': 5, 'Luke/2/1': 0}),
+      cola: [],
+    });
+  });
+
+  it('un repaso antes de leer sigue siendo condicional', async () => {
+    await durante(() => {
+      ctx!.addCard(JOHN_ALTA);
+      ctx!.reviewCard('John/3/16', 'good');
+    });
+
+    // Como edicion de verdad, John quedaba con 1 repaso, y W John r1.
+    expect({...repasos(), cola: mockCola}).toEqual({
+      ...igual({'John/3/16': 5, 'Luke/2/1': 0}),
+      cola: [],
+    });
+  });
+
+  it('un borrado remoto de verdad sobre una condicional borra tambien la del disco', async () => {
+    await durante(() => {
+      ctx!.addCard(JOHN_ALTA);
+      void mockAdapter!.applyRemoteDelete('John/3/16');
+    });
+
+    // Si la edicion de verdad no le quitara la marca, la lectura se quedaba
+    // con el John del disco: el borrado de la nube no llegaba.
+    expect({...repasos(), cola: mockCola}).toEqual({
+      ...igual({'Luke/2/1': 0}),
+      cola: [],
+    });
+  });
+
+  it('reiniciar antes de leer retira las altas, y lo que no se veia queda', async () => {
+    await durante(() => {
+      ctx!.addCard(JOHN_ALTA);
+      ctx!.addCard(MARK);
+      ctx!.resetDeck();
+    });
+
+    // Como borrado de verdad, John salia del disco y la cola llevaba D John.
+    expect({...repasos(), cola: mockCola}).toEqual({
+      ...igual({'John/3/16': 5, 'Luke/2/1': 0}),
+      cola: [],
+    });
+  });
+
+  it('si las lecturas fallan siempre, el alta se escribe pero no sube a la nube', async () => {
+    conRepasos();
+    mazo(99);
+    montar();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(JOHN_ALTA);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+    const colaAlRendirse = [...mockCola];
+    await act(async () => {
+      ctx!.reviewCard('John/3/16', 'good');
+      await new Promise(r => setTimeout(r, 0));
+    });
+
+    // La salida de R9-267 escribe lo de memoria. Ninguna lectura dijo si John
+    // estaba: subirlo pisaria la copia de la nube, la unica con sus repasos.
+    // Desde ahi John es del usuario: su primer repaso sube.
+    expect({
+      lecturas,
+      disco: repasos().disco,
+      colaAlRendirse,
+      cola: mockCola,
+    }).toEqual({
+      lecturas: 2, // CONTROL: se rindio tras releer
+      disco: {'John/3/16': 1},
+      colaAlRendirse: [],
+      cola: ['W John/3/16 r1'],
+    });
+  });
+
+  it('un alta tras una baja de verdad no es condicional: la recarga no resucita la de antes', async () => {
+    conRepasos();
+    const recarga = puerta();
+    mazo(0, [undefined, recarga.p]);
+    montar();
+    await tick();
+    // La recarga del respaldo (con John de 9 repasos) queda en vuelo; con el
+    // mazo de antes en pantalla, se quita John y se vuelve a agregar.
+    void escribirRespaldo(undefined, {
+      [JOHN.verseKey]: {...JOHN, box: 5, reviewCount: 9},
+    });
+    await tick();
+    await act(async () => {
+      ctx!.removeCard('John/3/16');
+      ctx!.addCard(JOHN_ALTA);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await act(async () => {
+      recarga.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+
+    // La lapida ya salio: si el alta fuera condicional, la recarga se quedaba
+    // con el John restaurado y la nube lo borraba.
+    expect({lecturas, ...repasos(), cola: mockCola}).toEqual({
+      lecturas: 2, // CONTROL: la recarga
+      ...igual({'John/3/16': 0}),
+      cola: ['D John/3/16', 'W John/3/16 r0'],
+    });
+  });
+
+  it('con la relectura y la recarga en vuelo, decide la ultima: gana el John restaurado', async () => {
+    const escritura = puerta();
+    const relectura = puerta();
+    // 1: falla. El respaldo (John con 9 repasos y Mark/9/9) pide su
+    // escritura; el alta de John pide la relectura (2), detras. La escritura
+    // corre y avisa: la recarga (3) se pide antes de que la relectura corra.
+    conRepasos();
+    mazo(1, [undefined, relectura.p]);
+    montar();
+    await tick();
+    void escribirRespaldo(escritura.p, {
+      [JOHN.verseKey]: {...JOHN, box: 5, reviewCount: 9},
+      [RESTAURADA.verseKey]: RESTAURADA,
+    });
+    await act(async () => {
+      ctx!.addCard(JOHN_ALTA);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await act(async () => {
+      escritura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await act(async () => {
+      relectura.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+
+    // Si la relectura (que no es la ultima) soltara la marca, la recarga
+    // ponia encima el John nuevo, con 0 repasos.
+    expect({lecturas, ...repasos(), cola: mockCola}).toEqual({
+      lecturas: 3, // CONTROL: la relectura y la recarga
+      ...igual({'John/3/16': 9, 'Mark/9/9': 0}),
+      cola: [],
+    });
+  });
 });
 
 describe('R9-283 — cada escritor pasa por `edit`: la edicion siguiente no lo deshace', () => {
