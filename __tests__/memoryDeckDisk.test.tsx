@@ -1,6 +1,6 @@
 /**
- * El mazo y su disco: R9-133 (el `getLocal` de `memoryCards`) y R9-277 (lo
- * editado mientras la carga esta en vuelo).
+ * El mazo y su disco: R9-133 (el `getLocal` de `memoryCards`), R9-277 (lo
+ * editado mientras la carga esta en vuelo) y R9-267 (la lectura fallida).
  *
  * Provider real y AsyncStorage real; del SyncEngineContext solo
  * `useSyncEngineOptional`, para capturar el adaptador. `motor` hace lo que hace
@@ -327,6 +327,151 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
     expect({trasLaPrimera, pantalla: pantalla()}).toEqual({
       trasLaPrimera: ['John/3/16', 'Luke/2/1'], // CONTROL: la primera leyo el mazo de antes
       pantalla: ['Mark/1/1', 'Mark/9/9'],
+    });
+  });
+});
+
+describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', () => {
+  /** Monta con las primeras `fallos` lecturas fallando, y agrega Mark/1/1. */
+  const agregarTrasFallar = async (fallos: number) => {
+    mazo(fallos);
+    montar();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+  };
+
+  it('con la lectura del arranque fallida, el disco conserva las tarjetas', async () => {
+    mazo(1);
+    montar();
+    await tick();
+    await tick();
+
+    // Sin R9-267, el efecto escribia el mazo vacio: el disco quedaba en {}.
+    expect({
+      hidratado: ctx!.hydrated,
+      disco: Object.keys((await disco())!),
+    }).toEqual({
+      hidratado: true, // CONTROL: la carga termino
+      disco: ['John/3/16', 'Luke/2/1'],
+    });
+  });
+
+  it('lo agregado despues relee el disco y se le une', async () => {
+    await agregarTrasFallar(1);
+
+    // Sin R9-267, quedaba solo Mark/1/1 (John y Luke, borrados).
+    expect({
+      lecturas,
+      pantalla: pantalla(),
+      disco: Object.keys((await disco())!),
+    }).toEqual({
+      lecturas: 2, // CONTROL: la escritura releyo
+      pantalla: ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
+      disco: ['John/3/16', 'Luke/2/1', 'Mark/1/1'],
+    });
+  });
+
+  it('si la relectura tambien falla, escribe lo de memoria (la salida de R9-212)', async () => {
+    await agregarTrasFallar(99);
+
+    // Una lectura puede fallar siempre: esperando, ninguna edicion llegaria al
+    // disco. Se pierden las tarjetas del disco, como antes de R9-267.
+    expect({lecturas, disco: Object.keys((await disco())!)}).toEqual({
+      lecturas: 2, // CONTROL: releyo una vez
+      disco: ['Mark/1/1'],
+    });
+  });
+
+  it('sin mazo en disco, lo agregado tras una lectura fallida llega al disco', async () => {
+    await AsyncStorage.removeItem('@memory_deck');
+    await agregarTrasFallar(1);
+
+    // La relectura no adopta nada: sin un render, el efecto no escribia.
+    expect({lecturas, disco: await disco()}).toEqual({
+      lecturas: 2, // CONTROL: la escritura releyo
+      disco: {'Mark/1/1': expect.any(Number)},
+    });
+  });
+
+  it('si falla la recarga del respaldo, lo agregado despues no pisa lo restaurado', async () => {
+    mazo(0);
+    montar();
+    await tick();
+    // La recarga (la lectura 2) falla; la relectura (la 3) lee.
+    mazo(2);
+    lecturas = 1;
+    await restaurar();
+    const trasLaRecarga = pantalla();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+
+    // Sin R9-267, el mazo de antes del respaldo se escribia encima:
+    // John, Luke y Mark/1/1, y Mark/9/9 perdido.
+    expect({trasLaRecarga, disco: Object.keys((await disco())!)}).toEqual({
+      trasLaRecarga: ['John/3/16', 'Luke/2/1'], // CONTROL: la recarga no leyo
+      disco: ['Mark/1/1', 'Mark/9/9'],
+    });
+  });
+
+  it('si llega un respaldo mientras relee, la relectura que falla no se rinde: decide la recarga', async () => {
+    let abrir2: () => void = () => undefined;
+    let abrir3: () => void = () => undefined;
+    const puerta2 = new Promise<void>(r => (abrir2 = r));
+    const puerta3 = new Promise<void>(r => (abrir3 = r));
+    // 1: falla; 2 (la relectura): espera y falla; 3 (la recarga): lee lo
+    // restaurado, en un callback posterior, como en el ejecutor serie de
+    // AsyncStorage.
+    getItemMock.mockImplementation((k: string) => {
+      if (k !== '@memory_deck') return realGet(k);
+      lecturas++;
+      if (lecturas === 1) return Promise.reject(new Error('disco'));
+      if (lecturas === 2) {
+        return puerta2.then(() => Promise.reject(new Error('disco')));
+      }
+      const foto = realGet(k);
+      return puerta3.then(() => foto);
+    });
+    montar();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await restaurar();
+    await act(async () => {
+      abrir2();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const discoTrasLaRelectura = Object.keys((await disco())!);
+    await act(async () => {
+      abrir3();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+
+    // Si la relectura que falla se rindiera, escribia lo de memoria (Mark/1/1)
+    // encima de lo restaurado y soltaba lo editado: la recarga leia Mark/1/1
+    // solo, y no le ponia nada encima.
+    expect({
+      lecturas,
+      discoTrasLaRelectura,
+      pantalla: pantalla(),
+      disco: Object.keys((await disco())!),
+    }).toEqual({
+      lecturas: 3, // CONTROL: la relectura y la recarga, las dos en vuelo
+      discoTrasLaRelectura: ['Mark/9/9'],
+      pantalla: ['Mark/1/1', 'Mark/9/9'],
+      disco: ['Mark/1/1', 'Mark/9/9'],
     });
   });
 });

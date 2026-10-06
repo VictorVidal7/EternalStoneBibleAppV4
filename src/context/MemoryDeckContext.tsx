@@ -161,14 +161,18 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // `pullAllLocal` waits for it.
   const deckLoad = useRef<Promise<boolean> | null>(null);
   const loadSeq = useRef(0);
+  // R9-267 — the last load could not read the disk.
+  const unread = useRef(false);
 
   // Read the deck off disk and adopt it. Extracted from the mount effect so
   // the backup-restore signal can re-run exactly the same parse (R9-28).
-  const hydrateFromStorage = useCallback(async () => {
+  const hydrateFromStorage = useCallback(() => {
     const seq = ++loadSeq.current;
     unsaved.current ??= new Map();
+    unread.current = false;
     const load = AsyncStorage.getItem(STORAGE_KEY).then(
       raw => {
+        let adopted = false;
         if (raw) {
           try {
             const parsed = JSON.parse(raw) as Record<string, MemoryCard>;
@@ -212,6 +216,7 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
             // reads it now.
             deckRef.current = clean;
             setDeck(clean);
+            adopted = true;
           } catch {
             // fall through to empty deck
           }
@@ -221,12 +226,21 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         // disk, memory already holds the edits.
         // R9-277 — a newer load (the backup's) reads what came after this one.
         if (seq === loadSeq.current) unsaved.current = null;
+        // R9-267 — the edits waited for this read: render, so the effect
+        // writes them.
+        if (!adopted) {
+          deckRef.current = {...deckRef.current};
+          setDeck(deckRef.current);
+        }
         return true;
       },
-      () => false,
+      () => {
+        if (seq === loadSeq.current) unread.current = true;
+        return false;
+      },
     );
     deckLoad.current = load;
-    await load.finally(() => setHydrated(true));
+    return load.finally(() => setHydrated(true));
   }, []);
 
   // Hydrate from storage once.
@@ -243,12 +257,32 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   );
 
   // Persist on every change post-hydration.
+  // R9-267 — only once a load has read the disk. A load that failed left the
+  // deck empty, and writing it erased every card. The edits wait (`unsaved`)
+  // while a load is in flight or failed; after a failed one, the first edit
+  // reads again, and if that read fails too, memory is written as before: a
+  // read can fail every time (R9-212), and waiting would keep every edit off
+  // the disk. The cards on disk are lost then, as they were.
   useEffect(() => {
     if (!hydrated) return;
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(deck)).catch(
-      () => undefined,
-    );
-  }, [deck, hydrated]);
+    if (!unsaved.current) {
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(deck)).catch(
+        () => undefined,
+      );
+      return;
+    }
+    if (!unread.current || unsaved.current.size === 0) return;
+    void hydrateFromStorage().then(read => {
+      // A newer load (the backup's) decides instead.
+      if (read || !unread.current) return;
+      unread.current = false;
+      unsaved.current = null;
+      deckLoad.current = Promise.resolve(true);
+      AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(deckRef.current)).catch(
+        () => undefined,
+      );
+    });
+  }, [deck, hydrated, hydrateFromStorage]);
 
   // Local-first quota feature — push the memoryStats aggregate on app
   // background (NOT per review), at most once per unchanged snapshot. This is
