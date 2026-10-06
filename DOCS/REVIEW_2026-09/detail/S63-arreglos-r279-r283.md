@@ -126,8 +126,12 @@ frío y tras una lectura fallida); la pieza tumba las dos.
 - **Anclas de varias líneas:** al agregar el parámetro de `hydrateFromStorage`, prettier sangró la
   función dos espacios más. Las anclas de una línea siguieron casando como subcadena; las de varias
   no (el script avisa `ERROR ancla … 0 veces` y sigue). Se corrigieron.
-- **La matriz del motor** (la de la 44, en un worktree aparte, `C:/projects/essb-s63-matriz`):
-  MATRIZ_PENDIENTE.
+- **La matriz del motor** (la de la 44, en un worktree aparte, `C:/projects/essb-s63-matriz`,
+  borrado al terminar con `.Delete()` sobre su junction primero): `S44-matriz-s63-a95a68b.out.txt`,
+  comparada con la de `50f209d` (`S53-comparar.cjs.txt`): las 157 piezas dan lo mismo (control: 0
+  de 285).
+- **`npm run validate`** entero con `NODE_ENV=development`: verde, 374 suites / 4625 pruebas
+  (`_scratch/S63-validate.out.txt`).
 
 ## 7. Nuevos
 
