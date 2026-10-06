@@ -426,7 +426,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         edit({[id]: incoming});
       },
       async applyRemoteDelete(id) {
-        if (deckRef.current[id]) edit({[id]: null});
+        // R9-282 — the engine calls this without `getLocal` for a doc deleted
+        // for real: with no load that read the disk, the card may be there,
+        // and the read takes the deletion too.
+        if (deckRef.current[id] || unsaved.current) edit({[id]: null});
       },
       // R9-264 — after the load, as R9-214 does with SQLite: until it ends
       // the ref is empty, and the first bulk push of a cold start queued

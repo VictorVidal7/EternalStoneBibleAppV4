@@ -948,6 +948,54 @@ describe('R9-279 — un alta con el mazo sin leer es «agregar si falta»', () =
   });
 });
 
+describe('R9-282 — un borrado remoto de verdad con el mazo sin leer se anota', () => {
+  it('durante la carga en frio, la lectura lo aplica', async () => {
+    const carga = puerta();
+    mazo(0, [carga.p]);
+    montar();
+    await act(async () => {
+      await mockAdapter!.applyRemoteDelete('John/3/16');
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const hidratadoAlBorrar = ctx!.hydrated;
+    await act(async () => {
+      carga.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+
+    // Sin R9-282, el ref vacio decia «no esta», no se anotaba nada, y la
+    // lectura traia a John de vuelta (el motor ya lo dio por asentado).
+    expect({
+      hidratadoAlBorrar,
+      pantalla: pantalla(),
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      hidratadoAlBorrar: false, // CONTROL: la carga seguia en vuelo
+      pantalla: ['Luke/2/1'],
+      disco: ['Luke/2/1'],
+    });
+  });
+
+  it('tras una lectura fallida, el borrado relee y se aplica', async () => {
+    mazo(1);
+    montar();
+    await tick();
+    await act(async () => {
+      await mockAdapter!.applyRemoteDelete('John/3/16');
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+
+    // Sin R9-282, ni se anotaba ni releia: John seguia en el disco.
+    expect({lecturas, disco: Object.keys(disco()!)}).toEqual({
+      lecturas: 2, // CONTROL: el borrado releyo
+      disco: ['Luke/2/1'],
+    });
+  });
+});
+
 describe('R9-283 — cada escritor pasa por `edit`: la edicion siguiente no lo deshace', () => {
   it.each([
     [
