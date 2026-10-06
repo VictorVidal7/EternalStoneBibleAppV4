@@ -3,9 +3,10 @@
 En el mismo chat que la 54, solo en la terminal y sin agentes, con `_scratch/S55-PROMPT.md` (Victor:
 «continúa por favor»). Arregla `R9-269`..`R9-272`, que registró la revisión del diff de la 53.
 
-- **Ramas, sin mergear hasta el OK de Victor:** `fix/s55-arreglos-s54` (`4d0cae7` `R9-269`,
-  `1152965` `R9-270`, `96f78c4` `R9-271`, `50f209d` `R9-272`) y, encima, `docs/review-s55-fix` (este
-  checkpoint).
+- **Ramas:** `fix/s55-arreglos-s54` (`4d0cae7` `R9-269`, `1152965` `R9-270`, `96f78c4` `R9-271`,
+  `50f209d` `R9-272`) y, encima, `docs/review-s55-fix` (este checkpoint). Mergeadas y pusheadas
+  con el OK de Victor (`main` = `5b5c630`, CI verde en el log, run `37173764215`, 371/4585;
+  corregido en la 56).
 - **Estado al empezar:** `main` = `origin/main` = `a64786b` (el checkpoint de la 54, mergeado y
   pusheado; CI verde en el log, run `37167615407`, 371/4582). La base del motor,
   `S53-SyncEngine-R38.ts.txt` (= `a85df96`); el de `96f78c4`, `S55-SyncEngine-R271.ts.txt`.
@@ -33,8 +34,10 @@ En el mismo chat que la 54, solo en la terminal y sin agentes, con `_scratch/S55
   sesión) y «cerrar sesión no borra nada».
 - Una entrada igual en las dos se da por movida (nada que guardar dos veces).
 - **Al borrar la cuenta**, el origen desaparece y nada puede quedarse en él: de dos entradas con
-  reloj (`updatedAt`; las notas y las series lo tienen) gana la más nueva, y si no, la que ya
-  estaba. Es la única unión que puede soltar una entrada, y solo cuando la persona borra su cuenta.
+  reloj (`updatedAt`) gana la más nueva, y si no, la que ya estaba. Es la única unión que puede
+  soltar una entrada, y solo cuando la persona borra su cuenta. **Corregido en la 56:** aquí decía
+  «las notas y las series lo tienen»; lo tienen las cuatro (también las ilustraciones y la
+  autoevaluación), y la sesión 56 lo midió en las cuatro.
 - **Las escrituras de los cuatro stores y las uniones van de a una** (`prepWrite`, un turno
   compartido). La clave se resuelve antes de pedir turno: espera al primer estado de auth, cuya
   unión (la Mesa de antes de `R9-59`) toma un turno, y al revés se trabaría.

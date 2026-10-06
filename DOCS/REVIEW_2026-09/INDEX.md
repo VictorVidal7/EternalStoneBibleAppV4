@@ -673,8 +673,16 @@
 > agentes. Cerrados `R9-269`..`R9-272`; ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **272**. Ramas `fix/s55-arreglos-s54` y
-> `docs/review-s55-fix`, apiladas y sin mergear hasta el OK de Victor. Detalle:
-> `detail/S55-arreglos-s54.md`.
+> `docs/review-s55-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `5b5c630`, CI verde en
+> el log, run `37173764215`, 371/4585; corregido en la 56). Detalle: `detail/S55-arreglos-s54.md`.
+>
+> **Sesión 56 (2026-10-05): revisión del diff de la 55**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. 2 nuevos, P3: `R9-273` (el respaldo escribe la Mesa sin turno:
+> restaurado durante una unión, se pierde) y `R9-274` (por lectura: si la unión de `deleteAccount`
+> no llega, la Mesa queda bajo el uid borrado).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **274**. Rama `docs/review-s56-diff-s55`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S56-revision-del-diff-s55.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1296,6 +1304,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S55-arreglos-s54.md`.**
   - **La lección:** una prueba de una carrera tiene que construirla: si la unión no escribe, la
     puerta no retiene nada.
+
+- **Sesión 56 — 2026-10-05. Revisión del diff de la 55.** En un chat nuevo, solo en la terminal,
+  sin agentes y sin tocar código.
+  - **Cómo se trabajó:** una sonda por pregunta, con su control (la Mesa con los stores y el
+    `importBackup` reales, `_scratch/S56-prep.test.ts.txt`; el motor, `S56-motor.body.txt`); cada
+    «¿lo abrió la 55?», con los archivos de `a64786b` o el motor de `a85df96`; la matriz,
+    comparada (157 de 157).
+  - **Resultado:** 2 nuevos, P3 (`R9-273` medido, `R9-274` por lectura). No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S56-revision-del-diff-s55.md`.**
+  - **La lección:** un turno sobre una clave pregunta quién más escribe esa clave.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

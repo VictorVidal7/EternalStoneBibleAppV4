@@ -736,7 +736,8 @@
 > `detail/S54-revision-del-diff-s53.md`.
 >
 > **Sesión 55 (2026-10-03): ARREGLOS de lo de la 54**, en el mismo chat, solo en la terminal y sin
-> agentes. Rama `fix/s55-arreglos-s54` (`4d0cae7`..`50f209d`), sin mergear hasta el OK de Victor.
+> agentes. Rama `fix/s55-arreglos-s54` (`4d0cae7`..`50f209d`): mergeada y pusheada con el OK de
+> Victor (`main` = `5b5c630`, CI verde en el log, run `37173764215`, 371/4585; corregido en la 56).
 >
 > - **Cerrados los 4:** `R9-269` (la unión de la Mesa no pierde ninguna entrada, y las escrituras
 >   y las uniones van de a una), `R9-270` (el almacén se reclama también con la sesión restaurada
@@ -746,6 +747,23 @@
 >   dan lo mismo que sobre `a85df96` (control: 0 de 285).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **272**. Detalle: `detail/S55-arreglos-s54.md`.
+>
+> **Sesión 56 (2026-10-05): revisión del diff de la 55**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. Rama `docs/review-s56-diff-s55`, sin mergear hasta el OK de
+> Victor.
+>
+> - **2 nuevos, P3:** `R9-273` (el respaldo escribe la Mesa sin turno: restaurado mientras corre
+>   una unión, se pierde; no lo abrió la 55, y su comentario lo daba por cubierto) y `R9-274` (por
+>   lectura: si la unión de `deleteAccount` no llega, la Mesa de la cuenta borrada queda bajo un
+>   uid que nadie usa).
+> - Sin hallazgo: el turno no se traba; la unión repetida no acumula ni duplica; al borrar la
+>   cuenta no se pierde nada que antes no (las cuatro Mesas tienen reloj: corregido el detalle de
+>   la 55); el reclamo del efecto no se adelanta a la pregunta, y el de `signOut` no reabre la
+>   carrera de los listeners; la relectura sin sesión no choca con la de `start()`; el reintento
+>   del dueño retiene una lectura; la matriz (157 de 157).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **274**. Detalle:
+> `detail/S56-revision-del-diff-s55.md`.
 
 ---
 
@@ -2631,6 +2649,9 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     nueva («R9-269: volver a entrar no borra…», con el respaldo restaurado y la carrera forzada), y
     la de la 53 corregida: esperaba la clave «sin cuenta» borrada, y codificaba el defecto. Cada
     pieza cae sola (`_scratch/S55-rev269.cjs.txt`: todo, la unión, el turno y «gana la más nueva»).
+    **⚠️ Sesión 56:** el respaldo escribe la Mesa sin turno, y restaurado durante una unión se
+    pierde (`R9-273`, P3; no lo abrió la 55). Las cuatro Mesas tienen reloj (`updatedAt`), no solo
+    las notas y las series: al borrar la cuenta, gana la más nueva en todas.
 
 ---
 
@@ -5740,6 +5761,47 @@ pending.remoteVersion.updatedAt`.
     **✅ ARREGLADO en la sesión 55** (`50f209d`): el comentario dice lo medido. Las piezas de
     `S53-rev193` siguen tumbándolas igual (A, la segunda; B, las dos).
 
+- **`R9-273` (S56, Mesa / `R9-269` — P3) — 🐛 el respaldo escribe la Mesa sin turno: restaurado
+  mientras corre una unión, se pierde entero, y la restauración dice que salió bien.** MEDIDO con
+  los stores y el `importBackup` reales (`_scratch/S56-prep.test.ts.txt`, `RESPALDO`;
+  `S56-prep-hoy.out.txt`). **No lo abrió la 55:** con los 5 archivos de la Mesa de `a64786b` da lo
+  mismo (`S56-prep-viejo.out.txt`). Es lo que el arreglo de `R9-269` dejó fuera de su turno.
+  - `prepWrite` pone en turno las escrituras de los cuatro stores. `importBackup`
+    (`BackupService.ts:1396-1410`) resuelve la clave de la Mesa al empezar y la escribe en su
+    `multiSet` final, sin turno. Una unión que leyó antes y escribe después la pisa: escribe lo que
+    le quedaba al origen, o lo borra con `multiRemove`.
+  - **Medido:** sin sesión, la Mesa «sin cuenta» tiene un pasaje; Ana entra (la unión, con su
+    escritura retenida) y mientras tanto se restaura un respaldo con otro pasaje. `restoredSections`
+    incluye `prepNotes`, y el pasaje restaurado no está en ninguna de las dos Mesas. CONTROL:
+    restaurado antes de la unión, se mueve a la de Ana; después, se queda en la «sin cuenta».
+  - Contradice el comentario de la 55 en `prepAccount.ts` («the Mesa's writes and its joins run one
+    at a time») y el cierre de la carrera de `R9-269`.
+  - **Al lado, por lectura:** la misma ventana entre el respaldo y la escritura de un store (lee,
+    el respaldo escribe, y el store escribe encima lo de antes más su cambio). Existe desde que hay
+    stores, y el mismo turno la cerraría.
+  - P3: hace falta restaurar un respaldo mientras corre una unión (iniciar sesión o borrar la
+    cuenta durante la restauración). Por la interfaz no parece alcanzable, como la carrera de
+    `R9-269`.
+  - **Arreglo (hipótesis):** que la escritura de AsyncStorage de `importBackup` tome un turno de
+    `prepAccount` (exportar el turno, como `prepWrite`), con la clave resuelta antes de pedirlo.
+
+- **`R9-274` (S56, Mesa / `R9-59` — P3) — 🐛 si la unión de `deleteAccount` no llega, la Mesa de la
+  cuenta borrada queda para siempre bajo un uid que nadie vuelve a usar.** POR LECTURA, al revisar
+  el reclamo durante `deleteAccount` (`R9-270`). No lo abrió la 55: es del orden de `R9-59`
+  (`a85df96`).
+  - `deleteAccount` (`AuthContext.tsx`) hace `deleteUser`, después `claimLocalStore('(deleted)')` y
+    después `releasePrepAccount(uid)`. Si el proceso muere entre `deleteUser` y el final de la unión,
+    o la unión falla (`releasePrepAccount` se traga el error y solo avisa), nada la reintenta:
+    `@prep_*:<uid>` solo lo lee una sesión de ese uid, y la cuenta ya no existe (volver a entrar con
+    el mismo Google da otro uid).
+  - Lo que se pierde de vista es la Mesa entera de esa cuenta, que nunca estuvo en la nube: queda en
+    el disco, sin nadie que la lea.
+  - P3: hace falta que el proceso muera en una ventana de dos escrituras locales tras la llamada de
+    red, o un fallo de AsyncStorage.
+  - **Arreglo (hipótesis):** anotar en disco el uid que se suelta antes de `deleteUser`, y
+    terminar la unión en el arranque siguiente si esa cuenta ya no vuelve (sin usuario de Google
+    restaurado, o con otro); y reintentar la unión que falló.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -6754,6 +6816,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     y 1 en `backupDegradedSections.test.ts`. Cada pieza cae sola (`_scratch/S53-rev59.cjs.txt`).
     Progreso y logros siguen por aparato.
   - **⚠️ Sesión 54:** la unión borra la entrada que pierde, en el mismo pasaje: `R9-269` (P1).
+  - **⚠️ Sesión 56:** el respaldo, fuera del turno de la Mesa (`R9-273`, P3); y si la unión de
+    `deleteAccount` no llega, la Mesa queda bajo el uid borrado (`R9-274`, P3).
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y
