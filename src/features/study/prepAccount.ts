@@ -37,7 +37,8 @@
  * entries with a clock (`updatedAt`), the newer one stays; else the one
  * already there. And the Mesa's writes and its joins run one at a time
  * (`prepWrite`): a write that landed between a join's reads and its removal
- * went with the key.
+ * went with the key. R9-273 — the restore of a backup writes the Mesa too,
+ * and takes the same turn (`prepTurn`).
  *
  * The backup exports and restores the Mesa of the account signed in, so a
  * backup made by one account does not carry another's (R9-59).
@@ -109,6 +110,17 @@ export async function prepWrite(
 ): Promise<void> {
   const resolved = await key;
   return oneAtATime(() => fn(resolved));
+}
+
+/**
+ * R9-273 — a write of Mesa keys from outside the stores (the restore of a
+ * backup), one at a time with the stores' writes and the joins. Its keys are
+ * resolved before asking, as `prepWrite` does: nothing inside a turn may wait
+ * for one. Outside it, the restore landed between a join's reads and its
+ * writes, and the join wrote over it (or removed it with the key).
+ */
+export function prepTurn<T>(fn: () => Promise<T>): Promise<T> {
+  return oneAtATime(fn);
 }
 
 /** `AuthProvider`, as it mounts: keys wait for the first auth state. */
