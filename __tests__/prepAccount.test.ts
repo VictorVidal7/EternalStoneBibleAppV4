@@ -319,6 +319,72 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
   });
 
+  it('R9-275: una escritura de la Mesa pedida para la cuenta que se esta devolviendo va a la «sin cuenta», no bajo el uid borrado', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const R = 'Ps/23/1-6';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    // La escritura de la devolucion (en la Mesa «sin cuenta») espera en una
+    // puerta; mientras, con la sesion de Ana todavia, se piden dos escrituras:
+    // otra seccion de P y un pasaje nuevo. Su turno va detras de la union.
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    let abierta = false;
+    let retenida = 0;
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      if (!abierta && pairs.some(([k]) => k === '@prep_notes')) {
+        retenida += 1;
+        await puerta;
+      }
+      return real(pairs);
+    });
+    let escritas = 0;
+    try {
+      const devolucion = releasePrepAccount('ana');
+      for (let i = 0; i < 20 && retenida === 0; i++) {
+        await new Promise(r => setImmediate(r));
+      }
+      const tarde = Promise.all([
+        savePrepNote(P, 'application', 'tarde', T + 1000),
+        savePrepNote(R, 'observation', 'tarde', T + 2000),
+      ]).then(() => {
+        escritas = 2;
+      });
+      for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+      const antesDeAbrir = escritas;
+      abierta = true;
+      abrir();
+      await devolucion;
+      await tarde;
+      await setPrepAccount(null);
+      const sinCuenta = await getAllPrepNotes();
+      // Sin R9-275, las dos escribian en la Mesa de Ana despues de su
+      // devolucion: se quedaban bajo el uid borrado, que nadie vuelve a leer.
+      // Ahora van a donde fue esa Mesa, y P conserva las dos secciones.
+      expect({
+        retenida, // CONTROL: la union espero en la puerta
+        antesDeAbrir, // CONTROL: y las escrituras, detras de ella
+        sinCuenta: Object.keys(sinCuenta).sort(),
+        p: sinCuenta[P]?.sections,
+        claves: await claves(),
+      }).toEqual({
+        retenida: 1,
+        antesDeAbrir: 0,
+        sinCuenta: [P, R],
+        p: {observation: 'de Ana', application: 'tarde'},
+        claves: ['@prep_by_account', '@prep_notes'],
+      });
+    } finally {
+      abierta = true;
+      abrir();
+      ms.mockImplementation(real);
+    }
+  });
+
   it('R9-269: volver a entrar no borra lo escrito sin sesion en el mismo pasaje (ni lo restaurado), y una escritura durante la union no se pierde', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';

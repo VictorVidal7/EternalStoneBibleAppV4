@@ -6,12 +6,25 @@
  * `backupServiceImport.test.ts`. En un archivo aparte: alli una prueba hace
  * `spyOn` sobre el `multiSet` del mock (un `jest.fn`), y su `mockRestore` lo
  * deja llamandose a si mismo para las que vienen despues.
+ *
+ * R9-275 — la parte de SQLite del respaldo puede esperar en una puerta
+ * (`mockSqlite`): la clave de la Mesa ya esta resuelta, y falta escribirla.
  */
+const mockSqlite: {puerta: Promise<void> | null; retenida: number} = {
+  puerta: null,
+  retenida: 0,
+};
 jest.mock('../src/lib/database', () => {
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
     getDatabase: jest.fn().mockResolvedValue({
-      withTransactionAsync: async (fn: () => Promise<void>) => fn(),
+      withTransactionAsync: async (fn: () => Promise<void>) => {
+        if (mockSqlite.puerta) {
+          mockSqlite.retenida += 1;
+          await mockSqlite.puerta;
+        }
+        return fn();
+      },
     }),
     executeSql: jest.fn(async () => ({rows: {_array: [], length: 0}})),
   };
@@ -46,6 +59,7 @@ import {
   __resetPrepAccountForTests,
   adoptNoAccountPrep,
   managePrepAccount,
+  releasePrepAccount,
   setPrepAccount,
 } from '../src/features/study/prepAccount';
 import {savePrepNote} from '../src/features/study/prepNotesStore';
@@ -200,6 +214,116 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
       restaurado: true,
       sinCuenta: [R],
       ana: null,
+    },
+  });
+});
+
+it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa a la «sin cuenta», no bajo el uid borrado', async () => {
+  const T = Date.now() - 60 * 60 * 1000;
+  const P = 'John/3/16-21';
+  const R = 'Ps/23/1-6';
+  const pasajes = async (k: string) => {
+    const raw = await AsyncStorage.getItem(k);
+    return raw == null ? null : Object.keys(JSON.parse(raw)).sort();
+  };
+  const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+  const real = ms.getMockImplementation()!;
+  // Ana tiene P en su Mesa. El respaldo (con R) resuelve su clave, la de Ana;
+  // `durante`, su parte de SQLite espera en una puerta mientras se borra la
+  // cuenta (la devolucion de `deleteAccount` y el estado nulo). `muere`: como
+  // `durante`, y el proceso termina en la devolucion que hace el respaldo (su
+  // escritura en la Mesa «sin cuenta» no vuelve nunca).
+  const caso = async (cuando: 'antes' | 'durante' | 'muere') => {
+    __resetPrepAccountForTests();
+    await AsyncStorage.clear();
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    let abrir!: () => void;
+    mockSqlite.retenida = 0;
+    if (cuando !== 'antes') {
+      mockSqlite.puerta = new Promise<void>(r => (abrir = r));
+    }
+    let restaurado: boolean | null = null;
+    try {
+      const respaldo = importBackup(
+        respaldoConMesa({
+          [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+        }),
+      ).then(r => {
+        restaurado = r.restoredSections.includes('prepNotes');
+      });
+      if (cuando === 'antes') await respaldo;
+      for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+      const antesDeBorrar = restaurado;
+      await releasePrepAccount('ana');
+      await setPrepAccount(null);
+      mockSqlite.puerta = null;
+      if (cuando === 'muere') {
+        ms.mockImplementation(async (pairs: Array<[string, string]>) =>
+          pairs.some(([k]) => k === '@prep_notes')
+            ? new Promise(() => {})
+            : real(pairs),
+        );
+      }
+      if (cuando !== 'antes') abrir();
+      if (cuando === 'muere') {
+        for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+        ms.mockImplementation(real);
+      } else {
+        await respaldo;
+      }
+      // El proceso siguiente, sin sesion.
+      __resetPrepAccountForTests();
+      managePrepAccount();
+      await setPrepAccount(null);
+      return {
+        retenida: mockSqlite.retenida, // CONTROL: el respaldo espero en SQLite
+        antesDeBorrar, // CONTROL: y no habia terminado al borrar la cuenta
+        restaurado,
+        sinCuenta: await pasajes('@prep_notes'),
+        ana: await pasajes('@prep_notes:ana'),
+        nota: await AsyncStorage.getItem('@prep_release_pending'),
+      };
+    } finally {
+      mockSqlite.puerta = null;
+      abrir?.();
+      ms.mockImplementation(real);
+    }
+  };
+  const antes = await caso('antes');
+  const durante = await caso('durante');
+  const muere = await caso('muere');
+  // Sin R9-275, el respaldo escribia la Mesa de Ana despues de su devolucion:
+  // R se quedaba bajo el uid borrado, que nadie vuelve a leer, y la
+  // restauracion decia que si. Ahora termina como si se hubiera restaurado
+  // antes de borrar la cuenta (con P tambien, que la devolucion ya movio). Y
+  // si el proceso termina en esa devolucion, la nota (escrita antes) hace que
+  // el arranque siguiente la termine.
+  expect({antes, durante, muere}).toEqual({
+    antes: {
+      retenida: 0,
+      antesDeBorrar: true,
+      restaurado: true,
+      sinCuenta: [R],
+      ana: null,
+      nota: null,
+    },
+    durante: {
+      retenida: 1,
+      antesDeBorrar: null,
+      restaurado: true,
+      sinCuenta: [P, R],
+      ana: null,
+      nota: null,
+    },
+    muere: {
+      retenida: 1,
+      antesDeBorrar: null,
+      restaurado: null, // el proceso termino antes
+      sinCuenta: [P, R],
+      ana: null,
+      nota: null,
     },
   });
 });

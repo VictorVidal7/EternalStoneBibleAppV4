@@ -57,7 +57,7 @@ import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../lib/database';
 import {logger} from '../lib/utils/logger';
-import {prepKey, prepTurn} from '../features/study/prepAccount';
+import {prepKey, prepMultiSet} from '../features/study/prepAccount';
 import {getTranslations} from '../i18n/languageUtils';
 import type {Note} from '../types/bible';
 import type {Favorite} from '../context/FavoritesContext';
@@ -1627,10 +1627,11 @@ export async function importBackup(
   let asyncStorageWriteFailed = false;
   if (pairs.length > 0) {
     try {
-      // R9-273 — in the Mesa's turn (see `prepTurn`): the Mesa keys in
+      // R9-273 — in the Mesa's turn (see `prepMultiSet`): the Mesa keys in
       // `pairs` were resolved above, and a join or a store's write that read
-      // them before this lands no longer writes over it.
-      await prepTurn(() => AsyncStorage.multiSet(pairs));
+      // them before this lands no longer writes over it. R9-275 — and if
+      // their account was deleted meanwhile, its Mesa is given back after.
+      await prepMultiSet(pairs);
       restoredSections.push(...pendingAsyncStorageSections);
     } catch (error) {
       asyncStorageWriteFailed = true;

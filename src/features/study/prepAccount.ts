@@ -39,7 +39,14 @@
  * already there. And the Mesa's writes and its joins run one at a time
  * (`prepWrite`): a write that landed between a join's reads and its removal
  * went with the key. R9-273 — the restore of a backup writes the Mesa too,
- * and takes the same turn (`prepTurn`).
+ * and takes the same turn (`prepMultiSet`).
+ *
+ * R9-275 — a write goes to the account of when it was asked for, and that
+ * account may be deleted while it waits (the restore resolves its key before
+ * writing SQLite). Once its Mesa was given back, a store's write goes where
+ * that Mesa went (the Mesa «sin cuenta»), and the restore's is written and
+ * then given back by the same join as that Mesa. Before, both landed under
+ * the deleted uid, which nothing reads again.
  *
  * The backup exports and restores the Mesa of the account signed in, so a
  * backup made by one account does not carry another's (R9-59).
@@ -96,6 +103,21 @@ export function prepKey(base: string): Promise<string> {
   return known.then(() => prepKeyFor(base, account));
 }
 
+/** The account of a Mesa key (null: the Mesa «sin cuenta», or not a Mesa key). */
+function keyAccount(key: string): string | null {
+  for (const base of PREP_KEYS) {
+    if (key.startsWith(`${base}:`)) return key.slice(base.length + 1);
+  }
+  return null;
+}
+
+/**
+ * R9-275 — the accounts whose Mesa was given back in this process (see the
+ * header). Only this process can hold a write for them: no later one signs in
+ * as a deleted account.
+ */
+const givenBack = new Set<string>();
+
 /** R9-269 — the Mesa's writes and its joins, one at a time. */
 let turn: Promise<void> = Promise.resolve();
 function oneAtATime<T>(fn: () => Promise<T>): Promise<T> {
@@ -110,25 +132,61 @@ function oneAtATime<T>(fn: () => Promise<T>): Promise<T> {
 /**
  * R9-269 — a store's read-modify-write of its key (from `prepKey`, taken when
  * the write was asked for), one at a time with the joins. The key is awaited
- * first: it waits for the first auth state, whose join takes a turn.
+ * first: it waits for the first auth state, whose join takes a turn. R9-275 —
+ * if that account's Mesa was given back by the time the turn comes, the write
+ * goes to the Mesa «sin cuenta», where its entries went: it edits them there.
  */
 export async function prepWrite(
   key: Promise<string>,
   fn: (key: string) => Promise<void>,
 ): Promise<void> {
   const resolved = await key;
-  return oneAtATime(() => fn(resolved));
+  return oneAtATime(() => {
+    const uid = keyAccount(resolved);
+    return fn(
+      uid && givenBack.has(uid)
+        ? resolved.slice(0, resolved.length - uid.length - 1)
+        : resolved,
+    );
+  });
 }
 
 /**
- * R9-273 — a write of Mesa keys from outside the stores (the restore of a
- * backup), one at a time with the stores' writes and the joins. Its keys are
- * resolved before asking, as `prepWrite` does: nothing inside a turn may wait
- * for one. Outside it, the restore landed between a join's reads and its
+ * R9-273 — a `multiSet` with Mesa keys from outside the stores (the restore
+ * of a backup), one at a time with the stores' writes and the joins. Its keys
+ * are resolved before asking, as `prepWrite` does: nothing inside a turn may
+ * wait for one. Outside it, the restore landed between a join's reads and its
  * writes, and the join wrote over it (or removed it with the key).
+ *
+ * R9-275 — keys of an account whose Mesa was given back meanwhile are written
+ * all the same and given back after (noted first, as `releasePrepAccount`
+ * does): the restore REPLACES a Mesa, and written over the Mesa «sin cuenta»
+ * it would drop what the give-back put there. Inside the turn only storage
+ * calls run (the note's turn takes no Mesa turn). A give-back that fails here
+ * keeps its note: the next start finishes it, and the restore still landed.
  */
-export function prepTurn<T>(fn: () => Promise<T>): Promise<T> {
-  return oneAtATime(fn);
+export function prepMultiSet(pairs: Array<[string, string]>): Promise<void> {
+  return oneAtATime(async () => {
+    const gone = [
+      ...new Set(
+        pairs
+          .map(([key]) => keyAccount(key))
+          .filter((uid): uid is string => !!uid && givenBack.has(uid)),
+      ),
+    ];
+    for (const uid of gone) await noteRelease(uid);
+    await AsyncStorage.multiSet(pairs);
+    for (const uid of gone) {
+      try {
+        await joinPrep(uid, null, true);
+        await noteReleases(uids => uids.filter(u => u !== uid));
+      } catch (error) {
+        logger.warn('Failed to give the restored Mesa back', {
+          error: String(error),
+        });
+      }
+    }
+  });
 }
 
 /** `AuthProvider`, as it mounts: keys wait for the first auth state. */
@@ -193,6 +251,11 @@ export async function adoptNoAccountPrep(uid: string): Promise<void> {
  * `deleteUser`), so the next start gives it back without asking whether.
  */
 export async function releasePrepAccount(uid: string): Promise<void> {
+  await noteRelease(uid);
+  await giveBack(uid);
+}
+
+async function noteRelease(uid: string): Promise<void> {
   try {
     await noteReleases(uids => (uids.includes(uid) ? uids : [...uids, uid]));
   } catch (error) {
@@ -201,7 +264,6 @@ export async function releasePrepAccount(uid: string): Promise<void> {
       error: String(error),
     });
   }
-  await giveBack(uid);
 }
 
 /** R9-274 — the Mesas given back that did not finish (see `releasePrepAccount`). */
@@ -222,7 +284,11 @@ async function finishRelease(): Promise<void> {
 
 async function giveBack(uid: string): Promise<void> {
   try {
-    await oneAtATime(() => joinPrep(uid, null, true));
+    await oneAtATime(async () => {
+      await joinPrep(uid, null, true);
+      // R9-275 — in the same turn: a write behind it already sees it.
+      givenBack.add(uid);
+    });
     await noteReleases(uids => uids.filter(u => u !== uid));
   } catch (error) {
     logger.warn('Failed to give the Mesa back', {error: String(error)});
@@ -346,4 +412,5 @@ export function __resetPrepAccountForTests(): void {
   firstState = true;
   turn = Promise.resolve();
   noteTurn = Promise.resolve();
+  givenBack.clear();
 }
