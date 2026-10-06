@@ -715,6 +715,16 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **276**. Rama `docs/review-s60-diff-s59`, sin mergear
 > hasta el OK de Victor. Detalle: `detail/S60-revision-del-diff-s59.md`.
+>
+> **Sesión 61 (2026-10-06): ARREGLOS del mazo de memoria**, en un chat nuevo, solo en la terminal y
+> sin agentes. Cerrados `R9-267` (una lectura fallida ya no escribe el mazo vacío encima del disco)
+> y la parte del mazo de `R9-133` (`getLocal` espera a la carga y lanza si no leyó; el ref va con
+> cada escritura). Nuevos: `R9-277` (la carga reemplazaba lo escrito durante ella; cerrado) y
+> `R9-278` (una edición durante el `multiSet` del respaldo lo pisa; abierto, P3).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **278**. Ramas `fix/s61-mazo-r267-r133` y
+> `docs/review-s61-fix`, apiladas sobre la de la 60, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S61-arreglos-r267-r133.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1387,6 +1397,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S60-revision-del-diff-s59.md`.**
   - **La lección:** una revisión en el mismo chat que escribió los arreglos no es una mirada
     fresca; se dice, y se compensa con sondas que buscan romperlos.
+
+- **Sesión 61 — 2026-10-06. Arreglos del mazo de memoria** (`R9-267` y el mazo de `R9-133`,
+  elegidos por Victor). En un chat nuevo, solo en la terminal y sin agentes.
+  - **Cómo se trabajó:** primero medir, con el provider real (`_scratch/S61-sonda.test.tsx.txt`, un
+    caso por pregunta con su control); después un commit por hallazgo, y cada pieza revertida en el
+    árbol final (`_scratch/S61-rev.cjs.txt`).
+  - **Resultado:** 3 cerrados (`R9-133` en el mazo, `R9-277` y `R9-267`) y 1 nuevo abierto
+    (`R9-278`, P3). No queda ningún P0 abierto.
+  - **Detalle: `detail/S61-arreglos-r267-r133.md`.**
+  - **La lección:** una prueba del orden de AsyncStorage entrega cada lectura en su propio callback
+    (el ejecutor serie): con dos lecturas en la misma ronda de microtareas, una guarda de «otra carga
+    decide» no caía.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

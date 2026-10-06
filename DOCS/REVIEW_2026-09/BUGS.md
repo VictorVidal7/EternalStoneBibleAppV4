@@ -813,6 +813,23 @@
 > - El hilo de la Mesa (`R9-59` → `R9-269` → `R9-273`..`R9-276`) queda cerrado.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **276**. Detalle: `detail/S60-revision-del-diff-s59.md`.
+>
+> **Sesión 61 (2026-10-06): ARREGLOS del mazo de memoria** (elegidos por Victor tras la 60), en un
+> chat nuevo, solo en la terminal y sin agentes. Rama `fix/s61-mazo-r267-r133` (`57cab83`,
+> `6d87069`, `d69c529`), apilada sobre la de la 60 porque esa tampoco está mergeada todavía. Sin
+> mergear hasta el OK de Victor.
+>
+> - **Cerrados:** la parte del mazo de `R9-133` (`getLocal` espera a la carga y lanza si no leyó el
+>   disco, y el ref se pone en cada escritura: también estaba la ventana de la sesión 23) y `R9-267`
+>   (P2: no se escribe el mazo hasta leer el disco; la primera edición relee, y si falla, se escribe
+>   lo de memoria).
+> - **2 nuevos, P3, que ya existían:** `R9-277` (la carga reemplazaba lo escrito mientras estaba en
+>   vuelo; cerrado en la misma rama, porque la relectura de `R9-267` lo necesita) y `R9-278` (una
+>   edición durante el `multiSet` del respaldo lo pisa; abierto, por lectura).
+> - Todo medido antes con el provider real (`_scratch/S61-sonda.test.tsx.txt`). 12 pruebas nuevas, y
+>   cada pieza tumba la suya. El motor no se tocó (sin matriz).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **278**. Detalle: `detail/S61-arreglos-r267-r133.md`.
 
 ---
 
@@ -1118,6 +1135,10 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   **✅ ARREGLADO en la sesión 7** (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que se suscriben los cuatro providers que podían **destruir** lo restaurado escribiendo su copia pre-import encima — mazo de memoria, los dos de progreso de lectura y preferencias del lector. Para lo que la señal no alcanza (pantallas ya montadas), Ajustes **sí** muestra ahora el aviso bloqueante de cerrar y reabrir que el docstring llevaba tiempo afirmando que existía.
   **⚠️ Sesión 19:** la prueba cubre 1 de los 4 providers (`R9-116`), y `FavoritesContext` no escucha la señal (`R9-117`).
   **⚠️ Sesión 21:** el aviso de reiniciar tras importar no lo vigila ninguna prueba (`R9-141`).
+  **⚠️ Sesión 61, en el mazo:** si la recarga fallaba, la edición siguiente escribía el mazo de
+  antes encima de lo restaurado (cerrado con `R9-267`); lo editado durante la recarga se perdía
+  (cerrado con `R9-277`); y una edición mientras el `multiSet` del respaldo está en vuelo sigue
+  pisándolo (`R9-278`, abierto).
 
 - **`R9-33` (A4, `SyncEngine`) — 🐛 no hay backoff: una escritura se descarta en silencio
   tras 8 intentos, y Ajustes dice «sincronizado».** Severidad **alta**.
@@ -5723,6 +5744,32 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis):** con la lectura fallida, no persistir hasta leer, con una salida (una
     guarda que espera necesita una, `R9-212`): por ejemplo, releer en la primera escritura y
     rendirse si vuelve a fallar.
+    **✅ ARREGLADO en la sesión 61** (`d69c529`, sobre `R9-277`). Antes, MEDIDO con el provider real
+    (`_scratch/S61-sonda.test.tsx.txt`, `S61-sonda-hoy.out.txt`): una sola lectura fallida dejaba el
+    disco en `{}`; una tarjeta agregada después dejaba solo esa, aunque una relectura habría leído; y
+    con la recarga del respaldo fallando después de una carga buena (`R9-28`), la edición siguiente
+    escribía el mazo de antes encima de lo restaurado. CONTROL: con la lectura sana, nada se pierde.
+    - **El arreglo, la hipótesis medida:** el efecto escribe solo cuando una carga leyó el disco.
+      Mientras una está en vuelo o falló, lo editado espera (el `unsaved` de `R9-277`). Tras una que
+      falló, la primera edición relee y se une a lo leído; sin edición no se escribe nada, y el
+      arranque siguiente lee las tarjetas.
+    - **La salida (`R9-212`):** si la relectura también falla, se escribe lo de memoria, como
+      antes, y se pierden las tarjetas del disco. Una lectura puede fallar siempre, y esperando,
+      ninguna edición llegaría al disco. Lo editado espera solo lo que tarda una lectura.
+    - **Lo que la medición agregó:** una carga más nueva (la del respaldo) decide en vez de la
+      relectura que falla (sin esa guarda, se rendía encima de lo restaurado y soltaba lo editado);
+      y una lectura que no adopta nada (sin mazo en disco) renderiza igual, para que el efecto
+      escriba lo que esperaba.
+    - **Quién más escribe `@memory_deck`** (`grep`): solo el respaldo (`importBackup`, que
+      reemplaza el mapa y avisa). Su recarga pasa por la misma carga, así que la cubre lo mismo.
+      Lo que queda abierto es otra ventana: `R9-278`.
+    - **Coste:** con la lectura fallida, la pantalla muestra el mazo vacío (como antes), y un
+      «Reiniciar» en ese estado borra solo lo que se ve: las tarjetas del disco vuelven con la
+      relectura. Un `getLocal` lanza mientras no se lee (`R9-133`).
+    - **Pruebas: 6**, en `__tests__/memoryDeckDisk.test.tsx`. Cada pieza tumba la suya por la
+      consecuencia (`_scratch/S61-rev.cjs.txt`): `retiene` 6, `relee` 5, `rinde` 1, `nueva` 1,
+      `fuerza` 1, `marca` 5. `nueva` no caía con la recarga en la misma ronda de microtareas: la
+      prueba la entrega en un callback posterior, como el ejecutor serie.
 
 - **`R9-268` (S53, identidad / migración — P3) — 🐛 una cuenta que ya hizo su bulk push en este
   teléfono responde «Migrar» y no se migra nada.** POR LECTURA.
@@ -5940,6 +5987,39 @@ pending.remoteVersion.updatedAt`.
     con una o las dos uniones fallando, y la nota antigua). Caen `lista`, `todas`, `quita`,
     `antigua` y `r276todo` (`_scratch/S59-rev.cjs.txt`).
 
+- **`R9-277` (S61, memoria — P3) — 🐛 la carga del mazo reemplaza lo que se escribió mientras estaba
+  en vuelo.** MEDIDO con el provider real (`_scratch/S61-sonda.test.tsx.txt`, `AGREGA_CARGA`,
+  `FRIO`). Ya existía.
+  - `hydrateFromStorage` hacía `setDeck(clean)` con lo leído. Una tarjeta agregada durante la carga
+    del montaje desaparecía de la pantalla y del disco. CONTROL: agregada después, queda.
+  - Pasa lo mismo con una copia remota más nueva aplicada durante la carga en frío (5000 → 1000, y el
+    cursor ya la pasó), y con lo editado durante la recarga del respaldo (`R9-28`).
+  - P3: la carga dura una lectura de AsyncStorage al arrancar, o al restaurar.
+  - **✅ ARREGLADO en la sesión 61** (`6d87069`): `edit` anota cada cambio mientras hay una carga sin
+    terminar (`unsaved`), y la lectura lo pone encima de lo leído. Lo suelta la última carga en
+    vuelo, así que lo editado ANTES de una carga no vuelve sobre lo que lee (el respaldo reemplaza el
+    mazo), y con dos cargas en vuelo queda lo editado entre la primera y la segunda. La copia remota
+    ya no puede caer durante la carga en frío: `getLocal` la espera (`R9-133`).
+  - **Pruebas: 3**, en `__tests__/memoryDeckDisk.test.tsx`. `encima` tumba 2, `suelta` 1 (2 con
+    `R9-267` encima) y `ultima` 1. La de «lo editado antes no vuelve» pasa también sin el arreglo: es
+    la que vigila `suelta`.
+
+- **`R9-278` (S61, memoria / respaldo — P3) — 🐛 una edición del mazo mientras el `multiSet` del
+  respaldo está en vuelo escribe el mazo de antes detrás de él, y la recarga lo lee.** POR
+  LECTURA. Ya existía: es lo que queda de `R9-28`.
+  - `importBackup` escribe `@memory_deck` con el `multiSet` de las claves de AsyncStorage
+    (`await prepMultiSet(pairs)`); de ahí al aviso (`emitBackupRestored`) no hay otro `await`.
+  - Una edición (o una copia remota aplicada) mientras ese `multiSet` está en vuelo encuentra el mazo
+    leído, sin carga en vuelo (`unsaved` nulo), y el efecto pide su `setItem`. En el ejecutor serie de AsyncStorage va
+    detrás del `multiSet`. La recarga del aviso lee entonces el mazo de antes con la edición, y lo
+    restaurado se pierde sin aviso.
+  - La ventana es lo que tarda el `multiSet`, y desde Ajustes no se puede repasar al mismo tiempo: lo
+    alcanzable es una copia remota de `memoryCards` que llega justo entonces. Los otros tres
+    providers que escuchan la señal (los dos de progreso y las preferencias) tienen la misma forma,
+    sin mirar.
+  - **Arreglo (hipótesis, sin medir):** un aviso ANTES de escribir, para que el provider retenga sus
+    escrituras (el `unsaved` de `R9-277`) hasta la recarga.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -5972,6 +6052,26 @@ pending.remoteVersion.updatedAt`.
   del usuario se pierde en SQLite, en pantalla y en la cola, y se salta la UI de conflictos. El
   control con el remoto después del render da `conflicts=1`. `R9-102` no lo empeoró: con el código
   viejo, la misma sonda encola 0.
+  **✅ Sesión 61: la parte del MAZO, ARREGLADA** (`57cab83`). Antes, MEDIDO con el provider real y un
+  `motor` que hace lo de `applyRemoteChange` con `memoryCards` (sin campos materiales, así que solo
+  LWW; `_scratch/S61-sonda.test.tsx.txt`):
+  - **La carga en frío:** `getLocal` decía `null` durante la carga. Si el paso de aplicar caía después
+    de ella, una copia de 500 reemplazaba la tarjeta de 1000 (en pantalla y en disco). Si caía antes,
+    la carga reemplazaba el mazo y se perdía la copia remota MÁS NUEVA (`R9-277`).
+  - **La carga fallida:** `null` para siempre. La copia vieja entraba, y el efecto escribía un mazo de
+    una tarjeta (`R9-267`).
+  - **La ventana de la sesión 23 también estaba en el mazo, por el mismo mecanismo** (el ref seguía a
+    `deck` después del render). Una copia remota más nueva que la tarjeta y más vieja que el repaso,
+    llegada antes del render siguiente, borraba el repaso en pantalla y en disco (`reviewCount` 0).
+    CONTROL: después del render, `getLocal` leía el repaso.
+  - **El arreglo:** `getLocal` espera a la carga (`deckLoad`, de `R9-264`) y lanza si no leyó el
+    disco, como `R9-46`. El motor salta el doc, y su cursor queda detrás. Toda escritura pasa por
+    `edit`, que pone el ref antes de que React renderice, y el efecto que lo copiaba ya no existe.
+    No se lee el disco en `getLocal` (el modelo de `R9-210`): el efecto lo escribe después del
+    render, así que el disco va tan atrás como iba el ref.
+  - **Pruebas: 3**, en `__tests__/memoryDeckDisk.test.tsx`. `espera` tumba 2 y `ref` 1.
+  - Las pruebas de `R9-264` y `R9-28` siguen verdes con cada arreglo. Sigue abierto el bulk push de
+    favoritos (`R9-214`).
 
 - **`R9-134` (S21, memoria / identidad) — 🐛 la guarda de dueño de `R9-48` falla ABIERTA si no
   puede leer el marcador.** CONFIRMADO con sonda. `getReviewLogOwner` (`memoryStatsSync.ts:79-86`)

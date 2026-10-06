@@ -1,14 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-05, fin de la sesión 60.** La 60 hizo el (an) en el mismo chat
-> que la 59, en la terminal, sin agentes y sin tocar código: revisó el diff de la 59 y no encontró
-> nada nuevo. El hilo de la Mesa (`R9-59` → `R9-269` → `R9-273`..`R9-276`) queda cerrado.
+> **Última actualización: 2026-10-06, fin de la sesión 61.** La 61 hizo el (ao) en un chat nuevo,
+> en la terminal y sin agentes: arregló `R9-267` y la parte del mazo de `R9-133`, y encontró dos
+> que ya existían: `R9-277` (cerrado en la misma rama) y `R9-278` (abierto, P3).
 >
-> La 59 ya está mergeada y pusheada (`main` = `6667c40`, CI verde en el log, run `37417036066`,
-> 372/4591). La rama de la 60 (`docs/review-s60-diff-s59`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 276 hallazgos. **Lo siguiente, elegido por
-> Victor:** la 61 arregla `R9-267` y la parte de `MemoryDeckContext` de `R9-133`, en un chat nuevo
-> (mensaje (ao), en `_scratch/S61-PROMPT.md`).
+> `main` = `origin/main` = `6667c40` (la 59). **La 60 no se mergeó** (faltaba el OK), y las ramas de
+> la 61 van apiladas encima: `docs/review-s60-diff-s59` → `fix/s61-mazo-r267-r133` →
+> `docs/review-s61-fix`, todo **sin mergear hasta el OK de Victor** (un solo fast-forward). **No
+> queda ningún P0 abierto**, y hay 278 hallazgos. **Lo siguiente:** la 62 revisa el diff de la 61,
+> en un chat nuevo (mensaje (ap), en `_scratch/S62-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -487,12 +487,17 @@ diff de la 53 (la (ah), sesión 54, en un chat nuevo, con `_scratch/S54-PROMPT.m
 sesión 57, en el mismo chat, con `_scratch/S57-PROMPT.md`). Y la revisión del diff de la 57 (la
 (al), sesión 58, en un chat nuevo, con `_scratch/S58-PROMPT.md`). Y sus arreglos (la (am), sesión
 59, en el mismo chat, con `_scratch/S59-PROMPT.md`). Y la revisión del diff de la 59 (la (an),
-sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. **Lo siguiente es el
-(ao).**
+sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. Y los arreglos del mazo
+de memoria (la (ao), sesión 61, en un chat nuevo, con `_scratch/S61-PROMPT.md`). **Lo siguiente es
+el (ap).**
 
-**(ao) Sesión 61: arreglar el mazo de memoria** (`R9-267` y la parte de `MemoryDeckContext` de
-`R9-133`, elegidos por Victor tras la 60), en un chat nuevo. El mensaje está en
-`_scratch/S61-PROMPT.md`, que manda sobre este archivo.
+**(ap) Sesión 62: revisar el diff de la 61** (`6667c40..d69c529` en el código: solo
+`MemoryDeckContext.tsx` y su prueba nueva), en un chat nuevo. El mensaje está en
+`_scratch/S62-PROMPT.md`, que manda sobre este archivo.
+
+**(ao) Sesión 61: arreglar el mazo de memoria — ya HECHO en la sesión 61, en un chat nuevo, en la
+terminal y sin agentes.** Cerrados `R9-267`, la parte del mazo de `R9-133` y `R9-277` (nuevo); abierto
+`R9-278`. El mensaje está en `_scratch/S61-PROMPT.md`.
 
 **(an) Sesión 60: revisar el diff de la 59 — ya HECHO en la sesión 60, en el mismo chat que la 59,
 en la terminal y sin agentes; ningún hallazgo.** El mensaje está en `_scratch/S60-PROMPT.md`.
@@ -1914,18 +1919,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 60 (2026-10-05).**
+**Medido al cerrar la sesión 61 (2026-10-06).**
 
 - **`main` = `origin/main` = `6667c40`** (el checkpoint de la 59, solo docs; el último código en
   `main` es `37ba5f7`). **CI verificado en el log:** run `37417036066`, 3 jobs verdes, Node
   v24.21.0, 372/4591, cero «failed to run». Las ramas de la 59 se borraron.
-- **Una rama de la 60, sin mergear a propósito y sin pushear:** `docs/review-s60-diff-s59` (el
-  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main`
-  la incluye.
+- **Tres ramas apiladas, sin mergear a propósito y sin pushear** (entran en un solo
+  fast-forward con el OK de Victor; si ya se mergearon, `main` las incluye):
+  - `docs/review-s60-diff-s59` (el checkpoint de la 60, solo docs; la 61 la encontró sin mergear);
+  - `fix/s61-mazo-r267-r133`, encima (`57cab83`, `6d87069`, `d69c529`: el código de la 61);
+  - `docs/review-s61-fix`, encima (el checkpoint de la 61).
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 60):
+Las demás ramas locales, en total 11 contando `main` (sin las tres de arriba):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2314,6 +2321,14 @@ Alternativas legítimas:
 - **Una revisión en el mismo chat que escribió los arreglos no es una mirada fresca (sesión 60).**
   Se dice en el detalle, y se compensa con sondas que buscan romperlos (casos de fallo, basura,
   datos que crecen), no con las que ya pasaban.
+- **Una prueba de orden de AsyncStorage entrega cada lectura en su propio callback (sesión 61).**
+  Con dos lecturas abiertas por la misma puerta, la segunda se resolvía en la misma ronda de
+  microtareas que la primera. La guarda «una carga más nueva decide» (`nueva`, `R9-267`) no caía,
+  porque la recarga adoptaba antes de que la salida se rindiera; en el ejecutor serie llega
+  después. Una puerta por lectura, abiertas en `act` distintos.
+- **Una carga que reemplaza el estado pregunta qué se escribió mientras estaba en vuelo (sesión 61,
+  `R9-277`).** `setDeck(clean)` borraba lo agregado durante la lectura. Y la relectura de una guarda
+  que espera es también una carga: lo editado que la disparó tiene que quedar encima.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
