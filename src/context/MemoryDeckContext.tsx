@@ -129,10 +129,11 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // replace the deck, and a card added while it was in flight was gone from
   // the screen and the disk.
   const unsaved = useRef<Map<string, MemoryCard | null> | null>(null);
-  // R9-279 — the cards in `unsaved` added while no load had read the disk:
-  // "add it if it is not there". The read keeps the card it finds, and only
-  // one it does not find goes to the cloud. Laid over as an edit, a verse
-  // already on disk lost its reviews.
+  // R9-279 — the cards in `unsaved` added while no load had read the disk as
+  // it is now (before the first read, after a failed one, or while a backup
+  // writes): "add it if it is not there". Each read keeps the card it finds,
+  // and the one that lets the edits go sends those it does not find to the
+  // cloud. Laid over as an edit, a verse already on disk lost its reviews.
   const ifAbsent = useRef(new Set<string>());
   /** `added`: a card added if absent; null takes the add back. */
   const edit = useCallback(
@@ -315,10 +316,12 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       }),
     [hydrateFromStorage],
   );
-  // R9-278 — the backup is about to write the deck, and a write asked for now
-  // would run after it (AsyncStorage runs them one at a time, in order), so
-  // its reload read it back over what was restored. The edits wait for that
-  // reload, as they wait for a load, and no read starts before it.
+  // R9-278 — the backup is about to write the deck. If its `multiSet` was
+  // already asked for, a write asked for now runs after it (AsyncStorage runs
+  // them one at a time, in order), and its reload read it back over what was
+  // restored; if not (the Mesa has the turn, `prepMultiSet`), it runs before,
+  // and the backup erased it. Either way the edits wait for that reload, as
+  // they wait for a load, and no read starts before it.
   // R9-281 — the reload is the newest load: one in flight neither lets the
   // edits go nor gives up over what is restored.
   useEffect(
@@ -476,8 +479,9 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         // prior (DEFAULT_EASE until there's enough history to calibrate).
         ease: easePriorRef.current,
       });
-      // R9-279 — no load has read the disk, and nothing edited says what
-      // became of this card: the disk may have it, and the read decides.
+      // R9-279 — no load has read the disk as it is now (also while a backup
+      // writes), and nothing edited says what became of this card: the disk
+      // may have it, and the read decides.
       if (unsaved.current && !unsaved.current.has(key)) {
         edit({[key]: card}, true);
         return;
@@ -492,8 +496,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     (verseKey: string) => {
       const existing = deckRef.current[verseKey];
       if (!existing) return;
-      // R9-279 — removing a card added if absent takes the add back: the one
-      // on disk, if any, was never seen, and nothing went to the cloud.
+      // R9-279 — removing a card added if absent takes the add back: nothing
+      // went to the cloud, and the read that lets the edits go decides what
+      // the disk had. Only while a backup writes can an earlier read have
+      // shown the disk's card; the backup's reload decides then.
       if (ifAbsent.current.has(verseKey)) {
         edit({[verseKey]: null}, true);
         return;

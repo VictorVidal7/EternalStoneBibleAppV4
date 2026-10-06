@@ -411,9 +411,9 @@ describe('R9-277 — la carga pone encima lo editado mientras estaba en vuelo', 
     });
     await tick();
 
-    // Si la relectura soltara lo editado, se escribia detras del respaldo, y
-    // la recarga leia el mazo de antes con Mark/1/1 (sin Acts/1/8 y sin
-    // Mark/9/9).
+    // Si la relectura soltara lo editado, Mark/1/1 se perdia: la recarga ya
+    // estaba pedida cuando corria el efecto, que volvia a retener sin
+    // escribirlo (quedaban Acts/1/8 y Mark/9/9).
     expect({
       lecturas,
       trasLaRelectura,
@@ -802,7 +802,7 @@ describe('R9-279 — un alta con el mazo sin leer es «agregar si falta»', () =
     });
 
     // Como borrado de verdad, la lectura quitaba el John del disco, y la
-    // cola llevaba W John r0 y D John.
+    // cola llevaba D John: una lapida para la tarjeta de 5 repasos.
     expect({...repasos(), cola: mockCola}).toEqual({
       ...igual({'John/3/16': 5, 'Luke/2/1': 0}),
       cola: [],

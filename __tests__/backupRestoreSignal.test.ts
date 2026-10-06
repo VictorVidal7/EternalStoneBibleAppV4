@@ -1,8 +1,8 @@
 /**
  * R9-278 — `importBackup` avisa ANTES de escribir las claves de AsyncStorage
- * (los providers retienen sus escrituras desde ahi) y despues, siempre: con
- * el aviso de fin en un `finally`, uno que retiene no espera para siempre si
- * algo lanza entre medias.
+ * (el mazo retiene sus escrituras desde ahi; los otros providers no, R9-284)
+ * y despues, siempre: con el aviso de fin en un `finally`, el que retiene no
+ * espera para siempre si algo lanza entre medias.
  *
  * `importBackup` real; `bibleDB` y `AchievementService` mockeados como en
  * `backupPrepTurn.test.ts`, y el motor de sync (`getSyncEngine`), para que su
@@ -153,8 +153,9 @@ afterEach(() => {
 it('R9-278: avisa antes de escribir el mazo, y despues', async () => {
   const r = await importBackup(respaldoConMazo());
 
-  // Sin el aviso de inicio, un provider no sabia que su escritura correria
-  // detras de la del respaldo.
+  // Sin el aviso de inicio, el mazo no sabia que el respaldo iba a escribir:
+  // su escritura corria detras del `multiSet` (y la recarga la leia) o, con
+  // la Mesa en su turno, antes (y el respaldo la borraba).
   expect({
     restaurado: r.restoredSections.includes('memoryDeck'),
     vistos,

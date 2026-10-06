@@ -67,11 +67,13 @@ export function emitBackupRestored(): void {
 const startListeners = new Set<RestoreListener>();
 
 /**
- * R9-278 — subscribe to "a backup is about to write your store". A write a
- * provider asks for from here on runs after the backup's (AsyncStorage runs
- * them one at a time, in order), and its reload would read it back over what
- * was restored: hold the writes until `emitBackupRestored`, which always
- * follows.
+ * R9-278 — subscribe to "a backup is about to write your store". If the
+ * backup's `multiSet` was already asked for, a write a provider asks for from
+ * here on runs after it (AsyncStorage runs them one at a time, in order), and
+ * its reload would read it back over what was restored; if not (the Mesa has
+ * the turn, `prepMultiSet`), it runs before, and the backup would erase it.
+ * Hold the writes until `emitBackupRestored`, which always follows. Only the
+ * memory deck subscribes (R9-284).
  */
 export function subscribeBackupRestoring(
   listener: RestoreListener,

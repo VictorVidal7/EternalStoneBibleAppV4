@@ -1629,9 +1629,12 @@ export async function importBackup(
   // of a flat, inaccurate "import failed" (see the docstring above
   // `importBackup`). ----
   let asyncStorageWriteFailed = false;
-  // R9-278 — the providers that reload on the signal below hold their writes
-  // from here: one asked for now runs after this `multiSet`, and its reload
-  // would read it back over what was restored. The signal always follows.
+  // R9-278 — the memory deck holds its writes from here (the other stores
+  // that reload on the signal below do not: R9-284). If this `multiSet` was
+  // already asked for, a write asked for now runs after it, and its reload
+  // would read it back over what was restored; if not (the Mesa has the turn,
+  // see `prepMultiSet`), it runs before, and the backup would erase it. The
+  // signal always follows.
   emitBackupRestoring();
   try {
     if (pairs.length > 0) {
