@@ -190,93 +190,107 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
 
   // Read the deck off disk and adopt it. Extracted from the mount effect so
   // the backup-restore signal can re-run exactly the same parse (R9-28).
-  const hydrateFromStorage = useCallback(() => {
-    const seq = ++loadSeq.current;
-    unsaved.current ??= new Map();
-    unread.current = false;
-    const load = AsyncStorage.getItem(STORAGE_KEY).then(
-      raw => {
-        let adopted = false;
-        // R9-279 — the cards added if absent that this read did not find.
-        let missing = [...ifAbsent.current];
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw) as Record<string, MemoryCard>;
-            // Drop anything that doesn't look like a card so a corrupt
-            // blob can't crash the screen.
-            const clean: Record<string, MemoryCard> = {};
-            for (const [k, v] of Object.entries(parsed)) {
-              if (
-                v &&
-                typeof v.verseKey === 'string' &&
-                typeof v.box === 'number'
-              ) {
-                // Sprint 42 backfill: cards persisted before this
-                // sprint lack `updatedAt`. Default to addedAt (which
-                // every existing card has) or Date.now().
-                const updatedAt =
-                  typeof v.updatedAt === 'number'
-                    ? v.updatedAt
-                    : v.addedAt
-                      ? Date.parse(v.addedAt) || Date.now()
-                      : Date.now();
-                // Sprint 46 backfill: cards persisted before the adaptive
-                // scheduler lack `ease` — seed it to the neutral default so
-                // they behave like plain Leitner until reviewed again.
-                // lapseCount backfill: cards persisted before the local-first
-                // quota feature lack it — default 0.
-                clean[k] = {
-                  ...v,
-                  ease: normalizeEase(v.ease),
-                  lapseCount:
-                    typeof v.lapseCount === 'number' ? v.lapseCount : 0,
-                  updatedAt,
-                };
+  // `reread`: the effect's own read for what was edited after a failed one.
+  const hydrateFromStorage = useCallback(
+    (reread = false) => {
+      const seq = ++loadSeq.current;
+      unsaved.current ??= new Map();
+      unread.current = false;
+      const load = AsyncStorage.getItem(STORAGE_KEY).then(
+        raw => {
+          let adopted = false;
+          // R9-279 — the cards added if absent that this read did not find.
+          let missing = [...ifAbsent.current];
+          if (raw) {
+            try {
+              const parsed = JSON.parse(raw) as Record<string, MemoryCard>;
+              // Drop anything that doesn't look like a card so a corrupt
+              // blob can't crash the screen.
+              const clean: Record<string, MemoryCard> = {};
+              for (const [k, v] of Object.entries(parsed)) {
+                if (
+                  v &&
+                  typeof v.verseKey === 'string' &&
+                  typeof v.box === 'number'
+                ) {
+                  // Sprint 42 backfill: cards persisted before this
+                  // sprint lack `updatedAt`. Default to addedAt (which
+                  // every existing card has) or Date.now().
+                  const updatedAt =
+                    typeof v.updatedAt === 'number'
+                      ? v.updatedAt
+                      : v.addedAt
+                        ? Date.parse(v.addedAt) || Date.now()
+                        : Date.now();
+                  // Sprint 46 backfill: cards persisted before the adaptive
+                  // scheduler lack `ease` — seed it to the neutral default so
+                  // they behave like plain Leitner until reviewed again.
+                  // lapseCount backfill: cards persisted before the local-first
+                  // quota feature lack it — default 0.
+                  clean[k] = {
+                    ...v,
+                    ease: normalizeEase(v.ease),
+                    lapseCount:
+                      typeof v.lapseCount === 'number' ? v.lapseCount : 0,
+                    updatedAt,
+                  };
+                }
               }
+              missing = missing.filter(k => !clean[k]);
+              for (const [k, v] of unsaved.current ?? []) {
+                if (ifAbsent.current.has(k) && clean[k]) continue;
+                if (v) clean[k] = v;
+                else delete clean[k];
+              }
+              // R9-264 — with the state, so a caller that waited for this load
+              // reads it now.
+              deckRef.current = clean;
+              setDeck(clean);
+              adopted = true;
+            } catch {
+              // fall through to empty deck
             }
-            missing = missing.filter(k => !clean[k]);
-            for (const [k, v] of unsaved.current ?? []) {
-              if (ifAbsent.current.has(k) && clean[k]) continue;
-              if (v) clean[k] = v;
-              else delete clean[k];
-            }
-            // R9-264 — with the state, so a caller that waited for this load
-            // reads it now.
-            deckRef.current = clean;
-            setDeck(clean);
-            adopted = true;
-          } catch {
-            // fall through to empty deck
           }
-        }
-        // A value that is not JSON reads the same every time: it counts as
-        // read, and what memory holds is written over it (on a reload, the
-        // deck from before). Without a deck on disk, memory already holds the
-        // edits.
-        // R9-277 — only the last load in flight lets the edits go: a newer one
-        // (the backup's reload, asked for while a reread was out) reads the
-        // disk after this one, and what is edited until it arrives goes over
-        // it too.
-        if (seq === loadSeq.current) {
-          unsaved.current = null;
-          queueAdds(missing);
-        }
-        // R9-267 — the edits waited for this read: render, so the effect
-        // writes them.
-        if (!adopted) {
-          deckRef.current = {...deckRef.current};
-          setDeck(deckRef.current);
-        }
-        return true;
-      },
-      () => {
-        if (seq === loadSeq.current) unread.current = true;
-        return false;
-      },
-    );
-    deckLoad.current = load;
-    return load.finally(() => setHydrated(true));
-  }, [queueAdds]);
+          // A value that is not JSON reads the same every time: it counts as
+          // read, and what memory holds is written over it (on a reload, the
+          // deck from before). Without a deck on disk, memory already holds the
+          // edits.
+          // R9-277 — only the last load in flight lets the edits go: a newer one
+          // (the backup's reload, asked for while a reread was out) reads the
+          // disk after this one, and what is edited until it arrives goes over
+          // it too.
+          if (seq === loadSeq.current) {
+            unsaved.current = null;
+            queueAdds(missing);
+          }
+          // R9-267 — the edits waited for this read: render, so the effect
+          // writes them.
+          if (!adopted) {
+            deckRef.current = {...deckRef.current};
+            setDeck(deckRef.current);
+          }
+          return true;
+        },
+        () => {
+          if (seq === loadSeq.current) {
+            unread.current = true;
+            // R9-280 — render, so the effect reads again for what was edited
+            // meanwhile: `hydrated` may already be true (the backup's reload),
+            // and then nothing else renders until another edit. Not for the
+            // effect's own read, which gives up instead.
+            if (!reread) {
+              deckRef.current = {...deckRef.current};
+              setDeck(deckRef.current);
+            }
+          }
+          return false;
+        },
+      );
+      deckLoad.current = load;
+      return load.finally(() => setHydrated(true));
+    },
+    [queueAdds],
+  );
 
   // Hydrate from storage once.
   useEffect(() => {
@@ -294,8 +308,9 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // Persist on every change post-hydration.
   // R9-267 — only once a load has read the disk. A load that failed left the
   // deck empty, and writing it erased every card. The edits wait (`unsaved`)
-  // while a load is in flight or failed; after a failed one, the first edit
-  // reads again, and if that read fails too, memory is written as before: a
+  // while a load is in flight or failed; after a failed one, the effect reads
+  // again for them (the failure renders, R9-280, and so does every edit), and
+  // if that read fails too, memory is written as before: a
   // read can fail every time (R9-212), and waiting would keep every edit off
   // the disk. The cards on disk are lost then, as they were.
   useEffect(() => {
@@ -307,7 +322,7 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       return;
     }
     if (!unread.current || unsaved.current.size === 0) return;
-    void hydrateFromStorage().then(read => {
+    void hydrateFromStorage(true).then(read => {
       // A newer load already in flight (the backup's reload) decides
       // instead. One asked for after this answer does not (R9-281).
       if (read || !unread.current) return;

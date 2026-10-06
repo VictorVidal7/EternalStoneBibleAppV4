@@ -109,6 +109,7 @@ const enSerie = <T,>(fn: () => Promise<T>, puerta?: Promise<void>) => {
 };
 
 let lecturas = 0;
+let escrituras = 0;
 let falla: (n: number) => boolean = () => false;
 let puertasLectura: Array<Promise<void> | undefined> = [];
 let puertaEscritura: Promise<void> | undefined;
@@ -139,6 +140,7 @@ AS.multiSet.mockImplementation(
     if (!pares.some(([k]) => k === '@memory_deck')) {
       return realMultiSet(pares, cb);
     }
+    escrituras++;
     const puerta = puertaEscritura;
     puertaEscritura = undefined;
     return enSerie(() => realMultiSet(pares, cb), puerta);
@@ -234,6 +236,7 @@ beforeEach(async () => {
   cola = Promise.resolve();
   llegadas = Promise.resolve();
   lecturas = 0;
+  escrituras = 0;
   mazo(0);
   puertaEscritura = undefined;
   await AsyncStorage.clear();
@@ -521,9 +524,46 @@ describe('R9-267 — una lectura fallida del mazo no escribe encima del disco', 
 
     // Una lectura puede fallar siempre: esperando, ninguna edicion llegaria al
     // disco. Se pierden las tarjetas del disco, como antes de R9-267.
-    expect({lecturas, disco: Object.keys(disco()!)}).toEqual({
+    // R9-280 — una sola escritura: la relectura que falla no fuerza otro
+    // render, se rinde.
+    expect({lecturas, escrituras, disco: Object.keys(disco()!)}).toEqual({
       lecturas: 2, // CONTROL: releyo una vez
+      escrituras: 1,
       disco: ['Mark/1/1'],
+    });
+  });
+
+  it('lo agregado mientras falla la recarga del respaldo llega al disco sin otra edicion', async () => {
+    const recarga = puerta();
+    // 1 lee; la recarga del aviso (2) no corre hasta abrir, y falla; 3 lee.
+    mazo(n => n === 2, [undefined, recarga.p]);
+    montar();
+    await tick();
+    void escribirRespaldo();
+    await tick();
+    await act(async () => {
+      ctx!.addCard(MARK);
+      await new Promise(r => setTimeout(r, 0));
+    });
+    const hidratadoAlAgregar = ctx!.hydrated;
+    await act(async () => {
+      recarga.abrir();
+      await new Promise(r => setTimeout(r, 0));
+    });
+    await tick();
+    await tick();
+
+    // R9-280 — con `hydrated` ya en true, la recarga que fallaba no
+    // renderizaba: Mark/1/1 esperaba a otra edicion, y el disco seguia en
+    // Mark/9/9 (2 lecturas).
+    expect({
+      hidratadoAlAgregar,
+      lecturas,
+      disco: Object.keys(disco()!),
+    }).toEqual({
+      hidratadoAlAgregar: true, // CONTROL: una carga ya habia leido
+      lecturas: 3,
+      disco: ['Mark/1/1', 'Mark/9/9'],
     });
   });
 
