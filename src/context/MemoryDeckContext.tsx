@@ -116,10 +116,20 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // re-subscribing on every engine state tick.
   const syncEngine = syncCtx?.engine ?? null;
 
+  // R9-133 — the deck as of the last write: every write sets it before React
+  // renders, and the adapter reads it. It used to follow `deck` after the
+  // render, so a remote copy that came in between was judged against the card
+  // before the review, and replaced it.
   const deckRef = useRef<Record<string, MemoryCard>>({});
-  useEffect(() => {
-    deckRef.current = deck;
-  }, [deck]);
+  const edit = useCallback((changes: Record<string, MemoryCard | null>) => {
+    const next = {...deckRef.current};
+    for (const [k, v] of Object.entries(changes)) {
+      if (v) next[k] = v;
+      else delete next[k];
+    }
+    deckRef.current = next;
+    setDeck(next);
+  }, []);
 
   // Sprint 48 — calibrated ease prior for NEW cards. Derived from the synced
   // review-event log (so it's the same on every device, no new dataset), it
@@ -185,10 +195,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                 };
               }
             }
-            setDeck(clean);
-            // R9-264 — the ref follows `deck` after the render; a caller
-            // that waited for this load reads it now.
+            // R9-264 — with the state, so a caller that waited for this load
+            // reads it now.
             deckRef.current = clean;
+            setDeck(clean);
           } catch {
             // fall through to empty deck
           }
@@ -243,7 +253,14 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     if (!syncEngine) return;
     const adapter: SyncAdapter<MemoryCard> = {
       collection: 'memoryCards',
+      // R9-133 — after the load too: until it ends the ref is empty, and
+      // "absent" let any remote copy in without LWW (an older one replaced
+      // the card). A load that could not read the disk throws: the engine
+      // skips the doc and holds its cursor back (R9-46).
       async getLocal(id) {
+        if (!(await deckLoad.current)) {
+          throw new Error('memory deck: the load did not read the disk');
+        }
         const c = deckRef.current[id];
         return c ? cardToRemote(c) : null;
       },
@@ -268,15 +285,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
           updatedAt:
             typeof data.updatedAt === 'number' ? data.updatedAt : Date.now(),
         };
-        setDeck(prev => ({...prev, [id]: incoming}));
+        edit({[id]: incoming});
       },
       async applyRemoteDelete(id) {
-        setDeck(prev => {
-          if (!prev[id]) return prev;
-          const {[id]: _drop, ...rest} = prev;
-          void _drop;
-          return rest;
-        });
+        if (deckRef.current[id]) edit({[id]: null});
       },
       // R9-264 — after the load, as R9-214 does with SQLite: until it ends
       // the ref is empty, and the first bulk push of a cold start queued
@@ -304,43 +316,44 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     return () => {
       syncEngine.unregister('memoryCards');
     };
-  }, [syncEngine]);
+  }, [syncEngine, edit]);
 
-  const addCard = useCallback((input: AddCardInput) => {
-    const key = buildVerseKey(input.bookName, input.chapter, input.verse);
-    if (deckRef.current[key]) return; // already in deck — no-op
-    const now = new Date().toISOString();
-    const card = createCard({
-      verseKey: key,
-      bookName: input.bookName,
-      chapter: input.chapter,
-      verse: input.verse,
-      text: input.text,
-      version: input.version,
-      now,
-      // Sprint 48 — seed the new card with the calibrated population ease
-      // prior (DEFAULT_EASE until there's enough history to calibrate).
-      ease: easePriorRef.current,
-    });
-    setDeck(prev => (prev[key] ? prev : {...prev, [key]: card}));
-    getSyncEngine()?.queueWrite('memoryCards', key, cardToRemote(card));
-  }, []);
+  const addCard = useCallback(
+    (input: AddCardInput) => {
+      const key = buildVerseKey(input.bookName, input.chapter, input.verse);
+      if (deckRef.current[key]) return; // already in deck — no-op
+      const now = new Date().toISOString();
+      const card = createCard({
+        verseKey: key,
+        bookName: input.bookName,
+        chapter: input.chapter,
+        verse: input.verse,
+        text: input.text,
+        version: input.version,
+        now,
+        // Sprint 48 — seed the new card with the calibrated population ease
+        // prior (DEFAULT_EASE until there's enough history to calibrate).
+        ease: easePriorRef.current,
+      });
+      edit({[key]: card});
+      getSyncEngine()?.queueWrite('memoryCards', key, cardToRemote(card));
+    },
+    [edit],
+  );
 
-  const removeCard = useCallback((verseKey: string) => {
-    const existing = deckRef.current[verseKey];
-    if (!existing) return;
-    setDeck(prev => {
-      if (!prev[verseKey]) return prev;
-      const {[verseKey]: _drop, ...rest} = prev;
-      void _drop;
-      return rest;
-    });
-    getSyncEngine()?.queueDelete(
-      'memoryCards',
-      verseKey,
-      cardToRemote(existing),
-    );
-  }, []);
+  const removeCard = useCallback(
+    (verseKey: string) => {
+      const existing = deckRef.current[verseKey];
+      if (!existing) return;
+      edit({[verseKey]: null});
+      getSyncEngine()?.queueDelete(
+        'memoryCards',
+        verseKey,
+        cardToRemote(existing),
+      );
+    },
+    [edit],
+  );
 
   const reviewCard = useCallback(
     (verseKey: string, grade: ReviewGrade) => {
@@ -348,7 +361,7 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       if (!existing) return;
       const now = new Date();
       const updated = applyReview(existing, grade, now);
-      setDeck(prev => (prev[verseKey] ? {...prev, [verseKey]: updated} : prev));
+      edit({[verseKey]: updated});
       const engine = getSyncEngine();
       engine?.queueWrite('memoryCards', verseKey, cardToRemote(updated));
       // Local-first quota feature — append the immutable review event to the
@@ -369,19 +382,19 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
       // is calibrated from; recompute so the next added card uses fresh data.
       void refreshEasePrior();
     },
-    [refreshEasePrior],
+    [refreshEasePrior, edit],
   );
 
   const resetDeck = useCallback(() => {
     const snapshot = Object.values(deckRef.current);
-    setDeck({});
+    edit(Object.fromEntries(snapshot.map(c => [c.verseKey, null])));
     const engine = getSyncEngine();
     if (engine) {
       for (const card of snapshot) {
         engine.queueDelete('memoryCards', card.verseKey, cardToRemote(card));
       }
     }
-  }, []);
+  }, [edit]);
 
   const cards = useMemo(() => Object.values(deck), [deck]);
 
