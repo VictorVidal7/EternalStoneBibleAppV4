@@ -185,6 +185,60 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
   });
 
+  it('R9-274: si la union al borrar la cuenta no termina (falla, o el proceso termina en ella), el arranque siguiente la termina', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    const caso = async (como: 'falla' | 'termina' | 'cierraSesion') => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      managePrepAccount();
+      await setPrepAccount('ana');
+      await savePrepNote(P, 'observation', 'de Ana', T);
+      await setPrepAccount(null);
+      // La escritura de la union en la Mesa «sin cuenta»: falla, o no vuelve
+      // nunca (el proceso termina ahi).
+      ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+        if (pairs.some(([k]) => k === '@prep_notes')) {
+          if (como === 'falla') throw new Error('disco');
+          return new Promise(() => {});
+        }
+        return real(pairs);
+      });
+      try {
+        if (como === 'falla') await releasePrepAccount('ana');
+        if (como === 'termina') void releasePrepAccount('ana');
+        for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));
+      } finally {
+        ms.mockImplementation(real);
+      }
+      // El proceso siguiente, sin sesion.
+      __resetPrepAccountForTests();
+      managePrepAccount();
+      await setPrepAccount(null);
+      return {sinCuenta: await pasajes(), claves: await claves()};
+    };
+    const devuelta = {
+      sinCuenta: [P],
+      claves: ['@prep_by_account', '@prep_notes'],
+    };
+    // Sin R9-274, nada la reintentaba: la Mesa de la cuenta borrada se quedaba
+    // bajo su uid, que nadie vuelve a usar.
+    expect({
+      falla: await caso('falla'),
+      termina: await caso('termina'),
+      cierraSesion: await caso('cierraSesion'), // CONTROL: no se suelta
+    }).toEqual({
+      falla: devuelta,
+      termina: devuelta,
+      cierraSesion: {
+        sinCuenta: [],
+        claves: ['@prep_by_account', '@prep_notes:ana'],
+      },
+    });
+  });
+
   it('R9-269: volver a entrar no borra lo escrito sin sesion en el mismo pasaje (ni lo restaurado), y una escritura durante la union no se pierde', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';

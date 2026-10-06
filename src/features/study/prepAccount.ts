@@ -26,6 +26,7 @@
  *   synced data does. Declined, it stays where it was (R9-23, R9-166).
  * - Deleting the account gives its Mesa back to the Mesa «sin cuenta»: it was
  *   never in the cloud, and deleting the account deletes the cloud copy only.
+ *   R9-274 — a give-back that does not finish is finished at the next start.
  *
  * R9-269 — a join loses no entry. An entry the destination does not have
  * moves; on the same entry (the same passage written in both), the one
@@ -66,6 +67,9 @@ export const PREP_KEYS = [
 
 /** Set once the Mesa written before R9-59 found its account. */
 const MIGRATED_KEY = '@prep_by_account';
+
+/** R9-274 — the deleted account whose Mesa is being given back. */
+const RELEASE_KEY = '@prep_release_pending';
 
 let account: string | null = null;
 let managed = false;
@@ -134,14 +138,16 @@ export function managePrepAccount(): void {
 
 /**
  * The Google account signed in now (null: none). The first call of the
- * process moves the Mesa written before R9-59 (see the header) before any
- * key resolves.
+ * process moves the Mesa written before R9-59 (see the header), and finishes
+ * giving back the Mesa of a deleted account (R9-274), before any key
+ * resolves.
  */
 export async function setPrepAccount(uid: string | null): Promise<void> {
   account = uid;
   if (firstState) {
     firstState = false;
     await migrateLegacyPrep(uid);
+    await finishRelease();
   }
   markKnown?.();
   markKnown = null;
@@ -174,10 +180,45 @@ export async function adoptNoAccountPrep(uid: string): Promise<void> {
   }
 }
 
-/** The account was deleted: its Mesa joins the Mesa «sin cuenta». */
+/**
+ * The account was deleted: its Mesa joins the Mesa «sin cuenta». R9-274 —
+ * noted on disk first (`RELEASE_KEY`), and finished at the next start if it
+ * does not finish here (the join fails, or the process ends in it): nothing
+ * else reads a deleted account's keys, and its Mesa stayed under its uid for
+ * good. Noted only once the account is gone (`deleteAccount` calls this after
+ * `deleteUser`), so the next start gives it back without asking whether.
+ */
 export async function releasePrepAccount(uid: string): Promise<void> {
   try {
+    await AsyncStorage.setItem(RELEASE_KEY, uid);
+  } catch (error) {
+    // The join is tried all the same: only its retry is lost.
+    logger.warn('Failed to note the Mesa to give back', {
+      error: String(error),
+    });
+  }
+  await giveBack(uid);
+}
+
+/** R9-274 — a Mesa given back that did not finish (see `releasePrepAccount`). */
+async function finishRelease(): Promise<void> {
+  let uid: string | null;
+  try {
+    uid = await AsyncStorage.getItem(RELEASE_KEY);
+  } catch (error) {
+    // Read again on the next start.
+    logger.warn('Failed to read the Mesa to give back', {
+      error: String(error),
+    });
+    return;
+  }
+  if (uid) await giveBack(uid);
+}
+
+async function giveBack(uid: string): Promise<void> {
+  try {
     await oneAtATime(() => joinPrep(uid, null, true));
+    await AsyncStorage.removeItem(RELEASE_KEY);
   } catch (error) {
     logger.warn('Failed to give the Mesa back', {error: String(error)});
   }

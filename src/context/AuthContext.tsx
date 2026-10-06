@@ -734,10 +734,14 @@ export function AuthProvider({children}: AuthProviderProps) {
     // it). The marker keeps a value that is no account's, so the next sign-in
     // still asks before taking the store, as with the deleted uid there.
     engine?.forgetStoreOwner();
-    await claimLocalStore(DELETED_STORE_OWNER);
     // R9-59 — its Mesa was never in the cloud: it goes back to the Mesa
     // «sin cuenta» instead of staying under a uid nobody signs in as again.
+    // R9-274 — before the claim below: it notes the give-back on disk first,
+    // and the next start finishes it if this process ends. A process that
+    // ends before the claim leaves the store owned by the deleted uid, which
+    // gets nothing (nobody signs in as it) and is still asked about.
     await releasePrepAccount(uid);
+    await claimLocalStore(DELETED_STORE_OWNER);
 
     if (gs) {
       try {

@@ -1183,6 +1183,61 @@ describe('R9-38 — deleteAccount', () => {
     }).toEqual({borrada: 1, olvidado: 1, dueno: '(deleted)'});
     mockEngineStub = null;
   });
+
+  it('R9-274 — la Mesa se devuelve antes que el reclamo: si el proceso termina en el reclamo, ya esta en la «sin cuenta»', async () => {
+    mockEngineStub = {
+      exportLocalData: jest.fn(async () => []),
+      queueSkipNextBulkPush: jest.fn(),
+      stop: jest.fn(),
+      forgetStoreOwner: jest.fn(),
+    };
+    const P = 'John/3/16-21';
+    await AsyncStorage.setItem('@local_store_owner_uid', 'ana-uid');
+    await AsyncStorage.setItem(
+      '@prep_notes:ana-uid',
+      JSON.stringify({[P]: {sections: {observation: 'de Ana'}, updatedAt: 1}}),
+    );
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    // El reclamo de `(deleted)` no vuelve nunca: el proceso termina ahi.
+    ms.mockImplementation(async (pairs: Array<[string, string]>) =>
+      pairs.some(
+        ([k, v]) => k === '@local_store_owner_uid' && v === '(deleted)',
+      )
+        ? new Promise(() => {})
+        : real(pairs),
+    );
+    const antes = mockDeleteUser.mock.calls.length;
+    try {
+      const {ref, onReady} = captureAuthApi();
+      render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      mockCurrentUser = {uid: 'ana-uid', isAnonymous: false};
+      flushListenerWith(mockCurrentUser);
+      await waitFor(() => expect(ref.current?.user?.uid).toBe('ana-uid'));
+      await act(async () => {
+        void ref.current!.deleteAccount();
+        for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+      });
+      const notas = (k: string) =>
+        AsyncStorage.getItem(k).then(v =>
+          v ? Object.keys(JSON.parse(v)) : null,
+        );
+      // Sin R9-274 la union iba despues del reclamo, y quedaba sin hacer.
+      expect({
+        borrada: mockDeleteUser.mock.calls.length - antes, // CONTROL
+        dueno: await AsyncStorage.getItem('@local_store_owner_uid'), // CONTROL
+        sinCuenta: await notas('@prep_notes'),
+        ana: await notas('@prep_notes:ana-uid'),
+      }).toEqual({borrada: 1, dueno: 'ana-uid', sinCuenta: [P], ana: null});
+    } finally {
+      ms.mockImplementation(real);
+      mockEngineStub = null;
+    }
+  });
 });
 
 describe('R9-59 — la Mesa por cuenta, desde AuthProvider', () => {
