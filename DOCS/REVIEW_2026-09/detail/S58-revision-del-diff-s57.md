@@ -3,7 +3,8 @@
 En un chat nuevo, solo en la terminal, sin agentes y sin tocar código, con `_scratch/S58-PROMPT.md`.
 Revisa `fb7cc73..3be46d3`: los arreglos de `R9-273` (`831c7e4`) y `R9-274` (`3be46d3`).
 
-- **Rama:** `docs/review-s58-diff-s57` (solo docs), sin mergear hasta el OK de Victor.
+- **Rama:** `docs/review-s58-diff-s57` (solo docs): mergeada y pusheada con el OK de Victor
+  (`main` = `4a757ce`, CI verde en el log, run `37407024480`, 372/4588; corregido en la 59).
 - **Estado al empezar:** `main` = `origin/main` = `cbcc7df` (el checkpoint de la 57, mergeado y
   pusheado con el OK de Victor; CI verde en el log, run `37400931622`, 3 jobs, Node v24.21.0,
   372/4588). Los docs de la 57 decían «sin mergear»: corregido aquí. `git fetch` no trajo un `main`

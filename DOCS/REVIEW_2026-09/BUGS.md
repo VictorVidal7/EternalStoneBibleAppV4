@@ -777,8 +777,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **274**. Detalle: `detail/S57-arreglos-s56.md`.
 >
 > **Sesión 58 (2026-10-05): revisión del diff de la 57**, en un chat nuevo, solo en la terminal,
-> sin agentes y sin tocar código. Rama `docs/review-s58-diff-s57`, sin mergear hasta el OK de
-> Victor.
+> sin agentes y sin tocar código. Rama `docs/review-s58-diff-s57`: mergeada y pusheada con el OK de
+> Victor (`main` = `4a757ce`, CI verde en el log, run `37407024480`, 372/4588; corregido en la 59).
 >
 > - **2 nuevos, P3, ninguno abierto por la 57:** `R9-275` (una escritura de la Mesa resuelta para
 >   una cuenta que se borra mientras espera, como el respaldo con su parte de SQLite en medio, queda
@@ -789,6 +789,16 @@
 >   pruebas de la 57 construyen su carrera y sus controles. El motor no cambió (sin matriz).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **276**. Detalle: `detail/S58-revision-del-diff-s57.md`.
+>
+> **Sesión 59 (2026-10-05): ARREGLOS de lo de la 58**, en el mismo chat, solo en la terminal y sin
+> agentes. Rama `fix/s59-arreglos-s58` (`fb7696f`, `37ba5f7`), sin mergear hasta el OK de Victor.
+>
+> - **Cerrados los 2:** `R9-276` (la nota de la devolución es una lista, y el arranque las termina
+>   todas) y `R9-275` (lo escrito para una cuenta ya devuelta: el store va a la «sin cuenta», y el
+>   respaldo se escribe y se devuelve después).
+> - Ningún nuevo. El motor no se tocó (sin matriz).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **276**. Detalle: `detail/S59-arreglos-s58.md`.
 
 ---
 
@@ -5819,7 +5829,7 @@ pending.remoteVersion.updatedAt`.
     (`_scratch/S57-rev.cjs.txt`: `turno` y `r273todo`).
     **⚠️ Sesión 58:** el turno ordena, pero la clave sigue siendo la de cuando se pidió: con la
     cuenta borrada durante la restauración, lo restaurado queda bajo el uid borrado (`R9-275`, P3;
-    viene de `R9-59`).
+    viene de `R9-59`). Arreglado en la 59 (`37ba5f7`: `prepMultiSet`).
 
 - **`R9-274` (S56, Mesa / `R9-59` — P3) — 🐛 si la unión de `deleteAccount` no llega, la Mesa de la
   cuenta borrada queda para siempre bajo un uid que nadie vuelve a usar.** POR LECTURA, al revisar
@@ -5849,7 +5859,7 @@ pending.remoteVersion.updatedAt`.
     (`S57-rev.cjs.txt`: `marca`, `arranque`, `orden` y `r274todo`).
     **⚠️ Sesión 58:** la nota tiene un solo lugar, y otra devolución en el mismo proceso la pisa
     (`R9-276`, P3); y lo que se escribe para la cuenta después de su devolución queda bajo su uid
-    (`R9-275`, P3). Ninguno lo abrió la 57.
+    (`R9-275`, P3). Ninguno lo abrió la 57. Los dos, arreglados en la 59 (`fb7696f`, `37ba5f7`).
 
 - **`R9-275` (S58, Mesa / `R9-59` — P3) — 🐛 una escritura de la Mesa resuelta para una cuenta que
   se borra mientras espera queda bajo el uid borrado, para siempre; si es el respaldo, dice que
@@ -5876,8 +5886,21 @@ pending.remoteVersion.updatedAt`.
     pantalla (`settings.tsx`).
   - **Arreglo (hipótesis):** que la escritura de una clave de la Mesa, ya en su turno, mire si la
     cuenta de esa clave se devolvió (en este proceso, o con la nota de `R9-274` en disco), y en ese
-    caso la lleve a la «sin cuenta» con la misma unión de la devolución (`joinPrep(uid, null,
-true)` después de escribir). Lo mismo para el respaldo y para los stores.
+    caso la lleve a la «sin cuenta» con la misma unión de la devolución, después de escribir. Lo
+    mismo para el respaldo y para los stores.
+    **✅ ARREGLADO en la sesión 59** (`37ba5f7`, rama `fix/s59-arreglos-s58`), con la hipótesis
+    corregida para los stores: unir después borraba secciones (la escritura de un store, sobre la
+    clave ya borrada, deja una entrada con una sola sección y el reloj más nuevo, que gana la unión).
+    `prepAccount` recuerda en memoria las cuentas devueltas en el proceso (`givenBack`; ningún
+    proceso posterior entra como una cuenta borrada). En su turno, la escritura de un store para una
+    de ellas va a la «sin cuenta», donde fueron sus entradas; el respaldo (`prepMultiSet`, que
+    reemplaza a `prepTurn`) se escribe igual y se devuelve después, con la cuenta anotada antes: no se
+    redirige, porque reemplaza la Mesa y borraría lo devuelto. Con la devolución sin terminar, lo
+    escrito va a la clave de la cuenta, y la nota lo devuelve. Pruebas nuevas en
+    `backupPrepTurn.test.ts` (el respaldo retenido en SQLite mientras se borra la cuenta, y el
+    proceso que muere en su devolución) y en `prepAccount.test.ts` (dos escrituras de un store detrás
+    de la unión retenida). Caen `desvio`, `respaldo`, `anotaRespaldo` y `r275todo`
+    (`_scratch/S59-rev.cjs.txt`); `mismoTurno` no cae (ver el detalle de la 59).
 
 - **`R9-276` (S58, Mesa / `R9-274` — P3) — 🐛 la nota de la devolución tiene un solo lugar: otra
   devolución en el mismo proceso la pisa, y la Mesa de la primera cuenta se queda bajo su uid.**
@@ -5896,6 +5919,12 @@ true)` después de escribir). Lo mismo para el respaldo y para los stores.
   - **Arreglo (hipótesis):** una nota por cuenta (`@prep_release_pending:<uid>`, o una lista en la
     misma clave), y que `finishRelease` las termine todas; o que `releasePrepAccount` termine primero
     la que encuentra anotada.
+    **✅ ARREGLADO en la sesión 59** (`fb7696f`): la nota guarda una lista; sus lecturas y escrituras
+    van de a una en su propio turno (no en el de la Mesa, para no agrandar la ventana tras
+    `deleteUser`), y `finishRelease` devuelve cada cuenta por su lado. La nota de antes (un uid) se
+    sigue leyendo. Prueba nueva en `prepAccount.test.ts` (dos cuentas borradas en el mismo proceso,
+    con una o las dos uniones fallando, y la nota antigua). Caen `lista`, `todas`, `quita`,
+    `antigua` y `r276todo` (`_scratch/S59-rev.cjs.txt`).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -6916,7 +6945,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     arreglados en la 57 (`831c7e4`, `3be46d3`).
   - **⚠️ Sesión 58:** lo que se escribe para la cuenta después de su devolución (el respaldo, un
     store) queda bajo el uid borrado (`R9-275`, P3); y la nota de `R9-274` tiene un solo lugar
-    (`R9-276`, P3).
+    (`R9-276`, P3). Los dos, arreglados en la 59 (`37ba5f7`, `fb7696f`).
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y

@@ -698,8 +698,17 @@
 > de la Mesa para una cuenta que se borra mientras espera, como el respaldo, queda bajo el uid
 > borrado) y `R9-276` (la nota de `R9-274` tiene un solo lugar).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **276**. Rama `docs/review-s58-diff-s57`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S58-revision-del-diff-s57.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **276**. Rama `docs/review-s58-diff-s57`: mergeada y
+> pusheada con el OK de Victor (`main` = `4a757ce`, CI verde en el log, run `37407024480`,
+> 372/4588; corregido en la 59). Detalle: `detail/S58-revision-del-diff-s57.md`.
+>
+> **Sesión 59 (2026-10-05): ARREGLOS de lo de la 58**, en el mismo chat, solo en la terminal y sin
+> agentes. Cerrados `R9-276` (la nota de la devolución es una lista) y `R9-275` (lo escrito para una
+> cuenta ya devuelta no queda bajo su uid); ningún nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **276**. Ramas `fix/s59-arreglos-s58` y
+> `docs/review-s59-fix`, apiladas y sin mergear hasta el OK de Victor. Detalle:
+> `detail/S59-arreglos-s58.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1353,6 +1362,15 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S58-revision-del-diff-s57.md`.**
   - **La lección:** una escritura «para la cuenta de cuando se pidió» pregunta qué pasa si esa
     cuenta deja de existir mientras espera.
+
+- **Sesión 59 — 2026-10-05. Arreglos de lo de la 58.** En el mismo chat, solo en la terminal y sin
+  agentes.
+  - **Cómo se trabajó:** cada prueba nueva vista caer con el código de antes y pieza por pieza
+    (`_scratch/S59-rev.cjs.txt`); las sondas de la 58, re-corridas sobre el árbol nuevo.
+  - **Resultado:** 2 cerrados (`R9-275`, `R9-276`), ningún nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S59-arreglos-s58.md`.**
+  - **La lección:** antes de llevar una escritura tardía a donde fue su Mesa, preguntá si es un
+    parche o un reemplazo.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
