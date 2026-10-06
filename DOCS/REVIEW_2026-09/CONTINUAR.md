@@ -6,9 +6,9 @@
 >
 > La 59 ya está mergeada y pusheada (`main` = `6667c40`, CI verde en el log, run `37417036066`,
 > 372/4591). La rama de la 60 (`docs/review-s60-diff-s59`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 276 hallazgos. **Lo siguiente lo elige Victor**
-> entre los pendientes (la recomendación: `R9-267`, con la parte de `MemoryDeckContext` de
-> `R9-133`); no hay mensaje escrito para la 61.
+> Victor**. **No queda ningún P0 abierto**, y hay 276 hallazgos. **Lo siguiente, elegido por
+> Victor:** la 61 arregla `R9-267` y la parte de `MemoryDeckContext` de `R9-133`, en un chat nuevo
+> (mensaje (ao), en `_scratch/S61-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -487,10 +487,12 @@ diff de la 53 (la (ah), sesión 54, en un chat nuevo, con `_scratch/S54-PROMPT.m
 sesión 57, en el mismo chat, con `_scratch/S57-PROMPT.md`). Y la revisión del diff de la 57 (la
 (al), sesión 58, en un chat nuevo, con `_scratch/S58-PROMPT.md`). Y sus arreglos (la (am), sesión
 59, en el mismo chat, con `_scratch/S59-PROMPT.md`). Y la revisión del diff de la 59 (la (an),
-sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. **Lo siguiente lo elige
-Victor** entre los pendientes (la lista «Pendiente, NO salvo que te lo pida» al final de
-`_scratch/S60-PROMPT.md`; la recomendación: `R9-267`, con la parte de `MemoryDeckContext` de
-`R9-133`); no hay mensaje escrito para la 61.
+sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. **Lo siguiente es el
+(ao).**
+
+**(ao) Sesión 61: arreglar el mazo de memoria** (`R9-267` y la parte de `MemoryDeckContext` de
+`R9-133`, elegidos por Victor tras la 60), en un chat nuevo. El mensaje está en
+`_scratch/S61-PROMPT.md`, que manda sobre este archivo.
 
 **(an) Sesión 60: revisar el diff de la 59 — ya HECHO en la sesión 60, en el mismo chat que la 59,
 en la terminal y sin agentes; ningún hallazgo.** El mensaje está en `_scratch/S60-PROMPT.md`.
