@@ -873,7 +873,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **285**. Detalle: `detail/S63-arreglos-r279-r283.md`.
 >
 > **Sesión 64 (2026-10-06): revisión del diff de la 63**, en un chat nuevo, en la terminal y sin
-> agentes. Sin tocar código. Rama `docs/review-s64-diff-s63`, sin mergear hasta el OK de Victor.
+> agentes. Sin tocar código. Rama `docs/review-s64-diff-s63`: mergeada y pusheada con el OK de
+> Victor (`main` = `bfe18a0`, CI verde en el log, run `37545005882`, 374/4625; corregido en la 65).
 >
 > - **1 nuevo, P3:** `R9-286` (comentarios de la 63 que no se sostienen: el orden en la ventana del
 >   respaldo, «los providers retienen», y dos pruebas cuyo comentario no es lo que da su revert).
@@ -883,6 +884,18 @@
 >   lecturas que fallan siempre; ningún camino de `importBackup` emite el inicio sin el fin.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **286**. Detalle: `detail/S64-revision-del-diff-s63.md`.
+>
+> **Sesión 65 (2026-10-06): ARREGLOS de lo de la 64**, en el mismo chat que la 64 (Victor: «adelante
+> mi estimado»), en la terminal y sin agentes. Rama `fix/s65-comentarios-r286` (`2b05f4d`) y
+> `docs/review-s65-fix` encima, sin mergear hasta el OK de Victor.
+>
+> - **Cerrado (1):** `R9-286` (solo comentarios, en el código y en las pruebas). En los cinco
+>   archivos, el JS emitido sin comentarios es idéntico al de `main` (control: contra `01eee54`, el
+>   provider sale distinto). Las 45 piezas tumban las mismas pruebas que en la 64. `validate`
+>   374/4625.
+> - Ningún nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **286**. Detalle: `detail/S65-arreglos-r286.md`.
 
 ---
 
@@ -6334,6 +6347,19 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - **Arreglo (hipótesis):** reescribir los siete comentarios con los dos casos (el `multiSet` ya
     pedido, o todavía no), con «el mazo» en vez de «los providers», y con lo que da cada revert.
     Medir después de formatear (sesión 63).
+  - **✅ ARREGLADO en la sesión 65** (`2b05f4d`). Los siete comentarios, como la hipótesis:
+    - el orden, con los dos casos, en `restoreSignal.ts` (que dice además que solo el mazo se
+      suscribe, `R9-284`), `MemoryDeckContext.tsx`, `importBackup` y su prueba;
+    - «el mazo retiene; los otros no (`R9-284`)» en `importBackup` y en el docstring de la prueba;
+    - las dos pruebas de `memoryDeckDisk`, con lo que da su revert (`ultima`/`adelanta`: se pierde
+      Mark/1/1, porque el efecto vuelve a retener; `deshace`: solo `D John`);
+    - «sin leer» dice «el disco como está ahora» (también mientras el respaldo escribe), y `removeCard`
+      ya no dice «nunca se vio».
+    - **Verificado:** en los cinco archivos, NUL 0 y el JS emitido sin comentarios idéntico al de
+      `main` (`_scratch/S65-igual.cjs.txt`; control: contra `01eee54`, el provider y su prueba salen
+      distintos), también sobre lo commiteado (el hook pasó prettier). Las 45 piezas tumban lo mismo
+      que en la 64 (`S65-rev-todas.out.txt`, sin «ancla … 0 veces»). `validate` con
+      `NODE_ENV=development`: 374/4625, lint 0 errores (70 advertencias, como en la 63).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

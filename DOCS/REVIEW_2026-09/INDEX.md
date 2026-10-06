@@ -752,8 +752,16 @@
 > agentes, sin tocar código. 1 nuevo, P3: `R9-286` (comentarios de la 63 que no se sostienen). Las
 > 45 piezas, re-medidas, tumban lo mismo, también con las entregas del modelo serie separadas.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **286**. Rama `docs/review-s64-diff-s63`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S64-revision-del-diff-s63.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **286**. Rama `docs/review-s64-diff-s63`: mergeada y
+> pusheada con el OK de Victor (`main` = `bfe18a0`, CI verde en el log, run `37545005882`,
+> 374/4625; corregido en la 65). Detalle: `detail/S64-revision-del-diff-s63.md`.
+>
+> **Sesión 65 (2026-10-06): arreglos de lo de la 64**, en el mismo chat, en la terminal y sin
+> agentes. Cerrado `R9-286` (solo comentarios; el JS emitido, idéntico al de `main`, con control).
+> Ningún nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **286**. Ramas `fix/s65-comentarios-r286` y
+> `docs/review-s65-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S65-arreglos-r286.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1473,6 +1481,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S64-revision-del-diff-s63.md`.**
   - **La lección:** para saber si una prueba depende de cómo el modelo intercala las entregas,
     separalas y re-medí la matriz entera.
+
+- **Sesión 65 — 2026-10-06. Arreglos de lo de la 64** (`R9-286`). En el mismo chat que la 64, en
+  la terminal y sin agentes; arrancó con `_scratch/S65-PROMPT.md`.
+  - **Cómo se trabajó:** los siete comentarios en un commit; el JS emitido sin comentarios comparado
+    con el de `main` en los cinco archivos (`_scratch/S65-igual.cjs.txt`, con control), las 45
+    piezas re-medidas y `validate`.
+  - **Resultado:** 1 cerrado, ningún nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S65-arreglos-r286.md`.**
+  - **La lección:** un arreglo de solo comentarios se verifica con su control: el comprobador del JS
+    emitido tiene que saber decir «distinto», y se re-corre sobre lo commiteado.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
