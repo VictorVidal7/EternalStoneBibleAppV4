@@ -1,14 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 62.** La 62 hizo el (ap) en el mismo chat
-> que la 61, con 3 agentes en worktree que solo midieron (a pedido de Victor) y sin tocar código.
-> Revisó el diff de la 61 y registró 5 nuevos, todos P3 (`R9-279`..`R9-283`); además midió
-> `R9-278`.
+> **Última actualización: 2026-10-06, fin de la sesión 63.** La 63 hizo el (aq) en un chat nuevo,
+> con 3 agentes en worktree que solo midieron (a pedido de Victor). Cerró 6 (`R9-283`, `R9-279`,
+> `R9-280`, `R9-281`, `R9-278` para el mazo, `R9-282`) y registró 2 nuevos P3 (`R9-284`,
+> `R9-285`).
 >
-> La 60 y la 61 ya están mergeadas y pusheadas (`main` = `9b78865`, CI verde en el log, run
-> `37425511083`, 373/4603). La rama de la 62 (`docs/review-s62-diff-s61`) va **sin mergear hasta el
-> OK de Victor**. **No queda ningún P0 abierto**, y hay 283 hallazgos. **Lo siguiente:** la 63
-> arregla lo de la 62, en un chat nuevo (mensaje (aq), en `_scratch/S63-PROMPT.md`).
+> La 62 ya está mergeada y pusheada (`main` = `8d041c9`, CI verde en el log, run `37503705122`,
+> 373/4603). Las ramas de la 63 (`fix/s63-mazo-r279-r283` y `docs/review-s63-fix`, encima) van
+> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 285 hallazgos. **Lo
+> siguiente:** la 64 revisa el diff de la 63, en un chat nuevo (mensaje (ar), en
+> `_scratch/S64-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -490,11 +491,15 @@ sesión 57, en el mismo chat, con `_scratch/S57-PROMPT.md`). Y la revisión del 
 sesión 60, en el mismo chat, con `_scratch/S60-PROMPT.md`), sin hallazgos. Y los arreglos del mazo
 de memoria (la (ao), sesión 61, en un chat nuevo, con `_scratch/S61-PROMPT.md`). Y la revisión del
 diff de la 61 (la (ap), sesión 62, en el mismo chat con 3 agentes, con `_scratch/S62-PROMPT.md`).
-**Lo siguiente es el (aq).**
+Y sus arreglos (la (aq), sesión 63, en un chat nuevo con 3 agentes, con `_scratch/S63-PROMPT.md`).
+**Lo siguiente es el (ar).**
 
-**(aq) Sesión 63: arreglar lo de la 62** (`R9-279`..`R9-283`, y `R9-278` si va con `R9-281`: los
-dos piden un aviso antes del `multiSet` del respaldo), en un chat nuevo. El mensaje está en
-`_scratch/S63-PROMPT.md`, que manda sobre este archivo. Victor puede recortar la lista.
+**(ar) Sesión 64: revisar el diff de la 63** (`8d041c9..a95a68b`: las pruebas en orden serie, el
+alta condicional, la salida de `R9-280`, el aviso antes del respaldo y `R9-282`), en un chat nuevo.
+El mensaje está en `_scratch/S64-PROMPT.md`, que manda sobre este archivo.
+
+**(aq) Sesión 63: arreglar lo de la 62 — ya HECHO en la sesión 63, en un chat nuevo, con 3 agentes
+que solo midieron.** Seis cerrados y dos nuevos P3. El mensaje está en `_scratch/S63-PROMPT.md`.
 
 **(ap) Sesión 62: revisar el diff de la 61 — ya HECHO en la sesión 62, en el mismo chat que la 61,
 con 3 agentes que solo midieron.** Cinco nuevos, P3. El mensaje está en `_scratch/S62-PROMPT.md`.
@@ -1923,19 +1928,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 62 (2026-10-06).**
+**Medido al cerrar la sesión 63 (2026-10-06).**
 
-- **`main` = `origin/main` = `9b78865`** (el checkpoint de la 61, que incluye la 60; el último
-  código en `main` es `d69c529`). **CI verificado en el log:** run `37425511083`, 3 jobs verdes,
-  Node v24.21.0, 373/4603. Las ramas de la 60 y la 61 se borraron tras `git cherry` vacío.
-- **Una rama de la 62, sin mergear a propósito y sin pushear:** `docs/review-s62-diff-s61` (el
-  checkpoint, solo docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main`
-  la incluye.
-- **Los worktrees:** ninguno (los de los 3 agentes de la 62 se borraron solos; `git worktree
-prune`).
+- **`main` = `origin/main` = `8d041c9`** (el checkpoint de la 62; el último código en `main` es
+  `d69c529`). **CI verificado en el log** en la 62: run `37503705122`, 373/4603. La rama de la 62
+  se borró.
+- **Dos ramas de la 63, sin mergear a propósito y sin pushear:** `fix/s63-mazo-r279-r283` (5
+  commits de código, `1c82327`..`a95a68b`) y `docs/review-s63-fix` (el checkpoint, encima). Se
+  mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 63 se borraron solos, y el de la matriz,
+  `C:/projects/essb-s63-matriz`, a mano, con su junction primero).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 62):
+Las demás ramas locales, en total 11 contando `main` (sin las dos de la 63):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2345,6 +2350,18 @@ Alternativas legítimas:
   (sesión 62).** Al agente 2 el harness no lo dejó escribir por ruta absoluta en el árbol principal,
   y su sonda se perdió. Pedile que devuelva el informe íntegro en su mensaje final, y copiá enseguida
   lo que haya en su `_scratch`.
+- **Un arreglo que agrega un aviso previo cambia qué órdenes son posibles (sesión 63, `R9-281`).**
+  Dos pruebas pedían la escritura del respaldo antes de que el alta pidiera su relectura; con el
+  aviso de inicio, el alta ya no relee, y solo su control lo mostró (2 lecturas en vez de 3). Tras
+  un arreglo de orden, mirá que el control de cada prueba siga construyendo su caso, y reordená al
+  orden que el arreglo deja posible.
+- **Una prueba colgada tumba las siguientes del archivo (sesión 63).** Una prueba que hacía `await`
+  de la escritura que compite se colgó 20 s con una pieza revertida, y las 12 siguientes cayeron con
+  «Can't access .root on unmounted test renderer»: una caída que parecía trece. Mirá la duración de
+  cada prueba antes de leer una matriz, y usá banderas en vez de `await` (la regla de la 57).
+- **Medí después de formatear (sesión 63).** Prettier sangró una función entera al agregarle un
+  parámetro: las anclas de una línea del revert siguieron casando como subcadena, las de varias no.
+  El script tiene que decir «ancla … 0 veces» y seguir, no abortar ni pasar en silencio.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

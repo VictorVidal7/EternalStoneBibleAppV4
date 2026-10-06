@@ -834,7 +834,8 @@
 >
 > **Sesión 62 (2026-10-06): revisión del diff de la 61**, en el mismo chat que la escribió, pero con
 > 3 agentes en worktree que solo midieron (la mirada fresca, a pedido de Victor). Sin tocar código.
-> Rama `docs/review-s62-diff-s61`, sin mergear hasta el OK de Victor.
+> Rama `docs/review-s62-diff-s61`: mergeada y pusheada con el OK de Victor (`main` = `8d041c9`, CI
+> verde en el log, run `37503705122`, 373/4603; corregido en la 63).
 >
 > - **5 nuevos, todos P3:**
 >   - `R9-279`: un alta de un versículo que ya está en el disco, con el mazo sin leer, borra su
@@ -852,6 +853,23 @@
 >   una carga lenta no demora a otras colecciones. No hay bucle de relectura.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **283**. Detalle: `detail/S62-revision-del-diff-s61.md`.
+>
+> **Sesión 63 (2026-10-06): ARREGLOS de lo de la 62** (el mazo otra vez), en un chat nuevo, en la
+> terminal, con 3 agentes en worktree que solo midieron (a pedido de Victor). Rama
+> `fix/s63-mazo-r279-r283` (`1c82327`, `6ed063c`, `07b6c56`, `01eee54`, `a95a68b`), sin mergear
+> hasta el OK de Victor.
+>
+> - **Cerrados (6):** `R9-283` (las pruebas, en un modelo del ejecutor serie; primero), `R9-279`
+>   (el alta sobre un mazo sin leer es «agregar si falta»), `R9-280` (una carga que falla relee lo
+>   editado sin esperar otra edición), `R9-281` y `R9-278` para el mazo (el respaldo avisa antes del
+>   `multiSet`, y el aviso de fin va en un `finally`) y `R9-282`.
+> - **2 nuevos, P3, que ya existían:** `R9-284` (los otros tres providers del respaldo tienen la
+>   forma de `R9-278`; medido en el progreso de lectura) y `R9-285` (el aviso de `handleAddVerses`
+>   cuenta mal con el mazo sin leer).
+> - Cada pieza (45, las de la 61 incluidas) tumba al menos una prueba en el árbol final. El motor
+>   cambió solo un comentario (JS emitido idéntico; la matriz, igual a la de la 55).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **285**. Detalle: `detail/S63-arreglos-r279-r283.md`.
 
 ---
 
@@ -5796,6 +5814,10 @@ pending.remoteVersion.updatedAt`.
       la salida se rinde detrás del `multiSet` del respaldo (`R9-281`). Lo editado durante una
       recarga que falla espera a OTRA edición, no a una lectura (`R9-280`). Las pruebas 9 y 10 caen
       solo por el control con algunas piezas, y `vacio` no la vigila nadie (`R9-283`).
+    - **✅ Sesión 63:** cerrados `R9-280` (desde ahí, «lo editado espera solo lo que tarda una
+      lectura» es cierto también con la recarga del respaldo), `R9-281` y `R9-283` (cada pieza cae
+      con alguna prueba; las 9 y 10 vigilan `rinde` y `fuerza` por la consecuencia, y las demás
+      piezas solo por el control).
 
 - **`R9-268` (S53, identidad / migración — P3) — 🐛 una cuenta que ya hizo su bulk push en este
   teléfono responde «Migrar» y no se migra nada.** POR LECTURA.
@@ -6032,7 +6054,8 @@ pending.remoteVersion.updatedAt`.
   - **⚠️ Sesión 62:** poner encima lo editado no distingue un alta condicional de una edición: un
     alta de un versículo que ya está en el disco reemplaza su progreso (`R9-279`). Un borrado
     remoto de verdad no se anota (`R9-282`, ya existía). Y «dos cargas en vuelo» (la prueba de
-    `ultima`) no ocurre en el orden serie (`R9-283`).
+    `ultima`) no ocurre en el orden serie (`R9-283`). **✅ Sesión 63:** los tres, cerrados; `ultima`
+    la vigila ahora la relectura con la recarga del respaldo en vuelo.
 
 - **`R9-278` (S61, memoria / respaldo — P3) — 🐛 una edición del mazo mientras el `multiSet` del
   respaldo está en vuelo escribe el mazo de antes detrás de él, y la recarga lo lee.** POR
@@ -6063,6 +6086,19 @@ pending.remoteVersion.updatedAt`.
       devuelve la Mesa de una cuenta borrada durante la restauración (`R9-275`). La ventana es más
       larga.
     - Comparte arreglo con `R9-281`.
+  - **✅ ARREGLADO en la sesión 63 para el mazo** (`01eee54`, con `R9-281`). `importBackup` emite
+    `emitBackupRestoring()` justo antes del `multiSet` (después de SQLite), y el aviso de siempre va
+    en un `finally`. Al aviso de inicio, el mazo sube `loadSeq`, retiene lo editado (`unsaved`), no
+    empieza relecturas, y `deckLoad` espera a la recarga (el motor juzga una copia remota contra lo
+    restaurado). Medido antes por el agente 3 de la 63 (`_scratch/S63-agente-3.md`).
+    - **Pruebas:** `memoryDeckDisk.test.tsx` (un alta y una copia remota durante la escritura, y un
+      alta con el aviso dado y la escritura sin pedir) y `backupRestoreSignal.test.ts` (los dos
+      avisos, y el de fin cuando el push a sync lanza). Cada pieza tumba la suya
+      (`_scratch/S63-rev.cjs.txt`): `retieneRespaldo`, `noRelee`, `esperaRecarga`, `inicio` y
+      `finally`, por la consecuencia (lo restaurado o lo editado perdido; John de 5000 pisado por
+      2000), salvo `inicio`, que en `importBackup` es el mecanismo (su consecuencia la muestra
+      `r281todo`).
+    - **Los otros tres que escuchan la señal no entran:** `R9-284`.
 
 - **`R9-279` (S62, memoria / `R9-277` — P3) — 🐛 agregar un versículo que ya está en el disco, con
   el mazo sin leer, reemplaza la tarjeta y borra su progreso de repaso.** MEDIDO por los tres agentes
@@ -6085,6 +6121,23 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis):** que, mientras exista `unsaved`, el alta se anote como «agregar si
     falta». La lectura se queda con la del disco si existe, y el `queueWrite` sale solo para las que
     faltaban. Un `removeCard` de una agregada «si falta» la anula, sin `queueDelete`.
+  - **✅ ARREGLADO en la sesión 63** (`6ed063c`), con la hipótesis, medida antes por el agente 1
+    (`_scratch/S63-agente-1.md`, 35 casos).
+    - Si no hay carga que haya leído y nada en `unsaved` dice qué fue de esa tarjeta, el alta queda
+      condicional (`ifAbsent`, sin `queueWrite`). La lectura se queda con la del disco si existe, y
+      solo la carga que suelta `unsaved` encola las que faltaban.
+    - Sobre una condicional: `removeCard` y `resetDeck` retiran el alta sin lápida (alta y baja =
+      nada; el disco conserva la suya); un repaso sigue condicional (si el disco la tiene, ganan sus
+      repasos; el evento del repaso ya quedó en SQLite); una edición de verdad (el borrado remoto) le
+      quita la marca. Un alta tras una baja de verdad no es condicional (la lápida ya salió).
+    - **Decisión (delegada): la salida de `R9-267` escribe las condicionales pero no las encola.**
+      Con las lecturas fallando siempre, la nube puede ser la única copia de sus repasos, y el
+      usuario re-agrega justo lo que recuerda. Una tarjeta nueva de verdad sube con su primer repaso.
+    - `handleAddVerses` agrega en el mismo tick: cada alta es condicional, y solo sube la que faltaba.
+      Su aviso cuenta mal con el mazo sin leer (`R9-285`, ya existía).
+    - **Pruebas: 9** en `memoryDeckDisk.test.tsx`. Cada pieza tumba la suya por la consecuencia
+      (`cond` 8, `lee` 4, `faltan` 4, `quita` 2; `sabe`, `sube`, `ultimaMarca`, `rindeSube`,
+      `limpia`, `deshace`, `repasa`, `real` y `reset`, 1 cada una).
 
 - **`R9-280` (S62, memoria / `R9-267` — P3) — 🐛 lo editado durante una carga que falla, con
   `hydrated` ya en `true`, no se escribe hasta OTRA edición.** MEDIDO (agente 2, `S62a2-mazo`; la
@@ -6103,6 +6156,18 @@ pending.remoteVersion.updatedAt`.
   - **Arreglo (hipótesis):** una salida que no dependa de otra edición. Forzar la relectura desde
     la rama que falla se rinde enseguida ante un fallo determinista, y escribiría el mazo de antes
     encima de lo restaurado: mejor un plazo o `AppState` `background`.
+  - **✅ ARREGLADO en la sesión 63** (`07b6c56`): la rama que falla renderiza, y el efecto relee lo
+    editado; si esa lectura también falla, se rinde como antes. La relectura del propio efecto no
+    fuerza otro render (sin eso, una escritura de más).
+    - **Medido antes** por el agente 2 de la 63 (`_scratch/S63-agente-2.md`, con el modelo serie):
+      el render forzado, uno que no se rinde (sin salida: viola `R9-212`), un plazo (necesita un
+      `clearTimeout` y relee tras desmontar) y `AppState` `background` (la edición queda solo en
+      memoria hasta entonces).
+    - **Con un fallo determinista, toda opción con salida termina escribiendo el mazo de antes
+      encima de lo restaurado; solo cambia cuándo.** Esta lo hace al primer intento, como ya pasaba
+      con una edición posterior. Esperar más solo le da más lecturas a un fallo transitorio.
+    - **Pruebas:** una nueva en `memoryDeckDisk.test.tsx` (cae con `forzar`: 2 lecturas y Mark/1/1
+      fuera del disco) y la de la salida cuenta escrituras (cae con `releeSola`: 2 en vez de 1).
 
 - **`R9-281` (S62, memoria / `R9-267` / respaldo — P3) — 🐛 la salida de `R9-267` escribe lo de
   memoria detrás del `multiSet` del respaldo, y lo restaurado se pierde.** MEDIDO (agente 3,
@@ -6120,6 +6185,11 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - P3: hacen falta dos lecturas fallidas seguidas, un `addCard` y un respaldo en esa ventana.
   - **Arreglo (hipótesis):** el de `R9-278`, un aviso antes del `multiSet`, para que la salida no
     se rinda y el efecto retenga lo editado hasta la recarga.
+  - **✅ ARREGLADO en la sesión 63** (`01eee54`, con `R9-278`): al aviso de inicio, el mazo sube
+    `loadSeq`, y la recarga pasa a ser la carga más nueva desde que el respaldo empieza: una
+    relectura en vuelo que falla ni se rinde ni suelta lo editado. La prueba 12 de la 61, reescrita
+    en orden serie, cayó con el árbol de `1c82327` mostrando el daño (Mark/1/1 solo) y quedó como
+    `it.failing` hasta este commit. Cae con `adelanta` (y con `nueva`).
 
 - **`R9-282` (S62, memoria / sync — P3) — 🐛 un borrado remoto de verdad, con el mazo sin leer, no se
   anota, y la carga devuelve la tarjeta.** MEDIDO (agente 2, `S62a2-mazo`; agente 1, `BORRA_CARGA`).
@@ -6132,6 +6202,10 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - P3 baja: para `memoryCards` el borrado de verdad solo lo hace `deleteAccountData` (se borra con
     lápida, y la lápida pasa por `getLocal`).
   - **Arreglo (hipótesis):** `if (deckRef.current[id] || unsaved.current) edit({[id]: null})`.
+  - **✅ ARREGLADO en la sesión 63** (`a95a68b`), con la hipótesis: mientras ninguna carga leyó el
+    disco, el borrado se anota igual; la lectura lo aplica, y tras una lectura fallida dispara la
+    relectura como cualquier edición. **Pruebas: 2** (en frío y tras fallar); la pieza `r282` tumba
+    las dos.
 
 - **`R9-283` (S62, pruebas / comentarios de la 61 — P3) — 🐛 dos pruebas de la 61 construyen órdenes
   que AsyncStorage no permite, siete piezas no las vigila nadie, y varios comentarios no se
@@ -6170,6 +6244,48 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - **Arreglo (hipótesis):** reescribir la 6 y la 12 con el modelo serie (`S62a3-orden`), y añadir
     pruebas por escritor, para la salida y para lecturas que fallan siempre sin edición. Corregir
     los comentarios.
+  - **✅ ARREGLADO en la sesión 63** (`1c82327`, primero).
+    - Toda operación de `@memory_deck` en `memoryDeckDisk.test.tsx` pasa por un modelo del ejecutor
+      serie (corre y llega en el orden pedido; una puerta demora cuando CORRE).
+    - La 6 se reescribió con las dos cargas que sí pueden estar en vuelo (la relectura y la recarga
+      del respaldo), y la 12, en orden serie, cayó mostrando `R9-281`.
+    - Nuevas: una por escritor que pasa por `edit`, la salida (lo editado después llega al disco y
+      `getLocal` responde) y lecturas que fallan siempre sin edición (`vacio`: sin ella, `{}` en
+      disco). La 3 ya no acepta «lanza».
+    - `nueva` quedó en 0 en orden serie (solo la vigilaba la 12 con su orden imposible); se agregó su
+      caso posible, y desde `R9-281` la vigila la 12.
+    - Comentarios corregidos en el provider y en `SyncEngine.ts` (solo comentario: el JS emitido sin
+      comentarios es idéntico, `_scratch/S63-motor-igual.cjs.txt`). `unread.current = false` en la
+      salida se quitó: muerta por construcción.
+    - **Las piezas de la 61, re-medidas en el árbol final, caen todas** (`S63-rev-final-todas.out.txt`:
+      45 piezas, cada una con al menos una prueba).
+
+- **`R9-284` (S63, progreso / preferencias / respaldo — P3) — 🐛 los otros tres providers que
+  escuchan la señal del respaldo tienen la forma de `R9-278`: una escritura durante el `multiSet`
+  corre detrás de él, y la recarga la lee.** MEDIDO en `ReadingProgressContext` (agente 3 de la 63,
+  `_scratch/S63-sondas-agente-3/S63a3-aviso.test.tsx.txt`, caso `PROGRESO-*`, con el `importBackup`
+  real y el modelo serie); `ReadingPlanProgressContext` y `ReaderPreferencesContext`, POR LECTURA.
+  Ya existía.
+  - En disco, Luke 2 al 50; el respaldo trae John 3 al 100; con el `multiSet` retenido,
+    `updateChapterProgress('Mark','1',30)`. Pantalla y disco quedan en Luke y Mark: lo restaurado se
+    pierde. CONTROL: la misma escritura después del respaldo da John y Mark.
+  - `saveProgress`, `persist` (planes y capítulos leídos) y el efecto de las preferencias escriben el
+    mapa entero desde memoria, sin guarda.
+  - P3: el respaldo se hace desde Ajustes, y el lector y los planes no escriben solos mientras tanto.
+    La ventana es el `multiSet` (más, si la Mesa tiene el turno).
+  - **Arreglo (hipótesis):** el aviso de inicio ya existe (`subscribeBackupRestoring`, sesión 63).
+    Lo más barato: un ref `holding` que se pone al inicio y se suelta al fin, y saltar el `setItem`
+    mientras vale; pierde la edición hecha durante el respaldo, no lo restaurado. Unas 8-10 líneas
+    por provider y una prueba con el modelo serie. Conservar la edición pide un registro de
+    operaciones por provider.
+
+- **`R9-285` (S63, memoria / pantalla — P3) — 🐛 con el mazo sin leer, el aviso de
+  `handleAddVerses` cuenta como nuevos versículos que ya están en el disco.** POR LECTURA (agente 1
+  de la 63, y a mano: `app/features/memory/index.tsx:145`). Ya existía.
+  - `newCount` filtra con `hasCard`, que mira el estado. Mientras ninguna carga leyó el disco, el
+    estado no tiene las tarjetas del disco: «3 versículos agregados» con 2 que ya estaban (con
+    `R9-279`, esas conservan sus repasos y no suben).
+  - Solo de pantalla. La ventana es la carga en frío o una lectura fallida.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -733,8 +733,19 @@
 > salida de `R9-267` pisa el respaldo), `R9-282` (borrado remoto con el mazo sin leer) y `R9-283`
 > (pruebas con órdenes imposibles y piezas sin vigilar). `R9-278`, medido.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **283**. Rama `docs/review-s62-diff-s61`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S62-revision-del-diff-s61.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **283**. Rama `docs/review-s62-diff-s61`: mergeada y
+> pusheada con el OK de Victor (`main` = `8d041c9`, CI verde en el log, run `37503705122`,
+> 373/4603; corregido en la 63). Detalle: `detail/S62-revision-del-diff-s61.md`.
+>
+> **Sesión 63 (2026-10-06): arreglos de lo de la 62**, en un chat nuevo, con 3 agentes en worktree
+> que solo midieron. Cerrados 6: `R9-283` (las pruebas, en un modelo del ejecutor serie), `R9-279`
+> («agregar si falta»), `R9-280`, `R9-281` y `R9-278` (el respaldo avisa antes de escribir) y
+> `R9-282`. Nuevos: `R9-284` (los otros tres providers del respaldo) y `R9-285` (un aviso de
+> pantalla), los dos P3.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **285**. Ramas `fix/s63-mazo-r279-r283` y
+> `docs/review-s63-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S63-arreglos-r279-r283.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1432,6 +1443,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una puerta que solo demora la entrega de una lectura no modela el ejecutor
     serie. Nada pedido después de una operación pendiente corre antes que ella
     (`_scratch/S62-sondas-agente-3/S62a3-orden.test.tsx.txt`).
+
+- **Sesión 63 — 2026-10-06. Arreglos de lo de la 62** (`R9-278`..`R9-283`). En un chat nuevo, con
+  3 agentes en worktree que solo midieron (a pedido de Victor).
+  - **Cómo se trabajó:** las pruebas primero (`R9-283`, el modelo serie); mientras, un agente midió
+    cada diseño (el alta condicional, la salida, el aviso antes del respaldo). Un commit por
+    hallazgo, y cada pieza revertida en el árbol final (`_scratch/S63-rev.cjs.txt`, 45 piezas).
+  - **Resultado:** 6 cerrados y 2 nuevos P3 (`R9-284`, `R9-285`). No queda ningún P0 abierto.
+  - **Detalle: `detail/S63-arreglos-r279-r283.md`.**
+  - **La lección:** un arreglo que agrega un aviso previo cambia qué órdenes son posibles. Dos
+    pruebas pedían la escritura del respaldo antes de la relectura; con el aviso, el alta ya no
+    relee, y lo mostró su control.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

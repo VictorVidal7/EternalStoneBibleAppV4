@@ -101,6 +101,12 @@ abierto.
   fallo relee enseguida. Si el proceso muere ahí, se pierde esa edición, pero no las tarjetas del
   disco.
 
+> **⚠️ Corregido en las sesiones 62 y 63 (`R9-283`):** «con dos cargas en vuelo (el respaldo durante
+> la del montaje)» no puede ocurrir en el ejecutor serie: las dos que sí pueden estar en vuelo son la
+> relectura y la recarga del respaldo. «Una carga más nueva decide» solo valía si la recarga ya había
+> empezado (`R9-281`, cerrado en la 63 con un aviso antes del `multiSet`). Y «lo editado espera lo
+> que tarda una lectura» era falso con la recarga del respaldo fallando (`R9-280`, cerrado en la 63).
+
 ## 4. Las pruebas y las piezas
 
 `__tests__/memoryDeckDisk.test.tsx`: 12 pruebas (3 de `R9-133`, 3 de `R9-277` y 6 de `R9-267`), con
@@ -129,6 +135,11 @@ el provider real. Cada pieza, revertida en el árbol final:
 - La de «lo editado antes no vuelve» (`R9-277`) pasa también sin el arreglo: vigila `suelta`.
 - Las pruebas de `R9-264` (`memoryDeckPullAllLocal.test.tsx`) y `R9-28`
   (`MemoryDeckContext.test.tsx`) se re-corrieron tras cada arreglo: verdes.
+
+> **⚠️ Corregido en las sesiones 62 y 63 (`R9-283`):** no todas caían por la consecuencia (las 9 y
+> 10 caían solo por el control con `retiene`, `relee` o `r267todo`), y la puerta de las pruebas 6 y
+> 12 tomaba la foto al pedir: construía órdenes que el ejecutor serie no permite. La 63 pasó el
+> archivo a un modelo serie y re-midió cada pieza (`detail/S63-arreglos-r279-r283.md`).
 
 ## 5. Lo que no se hizo
 
