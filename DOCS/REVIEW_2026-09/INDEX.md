@@ -690,8 +690,16 @@
 > cuenta borrada se devuelve aunque la unión no termine); ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **274**. Ramas `fix/s57-arreglos-s56` y
-> `docs/review-s57-fix`, apiladas y sin mergear hasta el OK de Victor. Detalle:
-> `detail/S57-arreglos-s56.md`.
+> `docs/review-s57-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `cbcc7df`, CI verde en
+> el log, run `37400931622`, 372/4588; corregido en la 58). Detalle: `detail/S57-arreglos-s56.md`.
+>
+> **Sesión 58 (2026-10-05): revisión del diff de la 57**, en un chat nuevo, solo en la terminal,
+> sin agentes y sin tocar código. 2 nuevos, P3, ninguno abierto por la 57: `R9-275` (una escritura
+> de la Mesa para una cuenta que se borra mientras espera, como el respaldo, queda bajo el uid
+> borrado) y `R9-276` (la nota de `R9-274` tiene un solo lugar).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **276**. Rama `docs/review-s58-diff-s57`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S58-revision-del-diff-s57.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1333,6 +1341,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S57-arreglos-s56.md`.**
   - **La lección:** una puerta armada con `getMockImplementation()` hereda lo que dejó la prueba
     anterior del archivo.
+
+- **Sesión 58 — 2026-10-05. Revisión del diff de la 57.** En un chat nuevo, solo en la terminal,
+  sin agentes y sin tocar código.
+  - **Cómo se trabajó:** una sonda por pregunta, con su control (la Mesa con los stores, los joins
+    y el `importBackup` reales, con una puerta en la parte de SQLite del respaldo:
+    `_scratch/S58-prep.test.ts.txt`); cada «¿lo abrió la 57?», con los archivos de `fb7cc73`; las
+    piezas de la 57, re-corridas con su diff.
+  - **Resultado:** 2 nuevos, P3 (`R9-275`, `R9-276`), ninguno abierto por la 57. No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S58-revision-del-diff-s57.md`.**
+  - **La lección:** una escritura «para la cuenta de cuando se pidió» pregunta qué pasa si esa
+    cuenta deja de existir mientras espera.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
