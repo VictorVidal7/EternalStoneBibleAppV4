@@ -761,7 +761,16 @@
 > Ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **286**. Ramas `fix/s65-comentarios-r286` y
-> `docs/review-s65-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S65-arreglos-r286.md`.
+> `docs/review-s65-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `8755d2b`, CI verde en
+> el log, run `37547915783`, 374/4625; corregido en la 66). Detalle: `detail/S65-arreglos-r286.md`.
+>
+> **Sesión 66 (2026-10-06): revisión del diff de la 65**, en un chat nuevo, en la terminal y sin
+> agentes, sin tocar código. Solo comentarios, confirmado (con control). 2 nuevos, P3: `R9-287` (el
+> caso del turno no lo vigila ninguna prueba: con el aviso dentro del turno, el suite pasa) y
+> `R9-288` («the disk as it is now» no se sostiene en ese caso).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **288**. Rama `docs/review-s66-diff-s65`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S66-revision-del-diff-s65.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1491,6 +1500,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S65-arreglos-r286.md`.**
   - **La lección:** un arreglo de solo comentarios se verifica con su control: el comprobador del JS
     emitido tiene que saber decir «distinto», y se re-corre sobre lo commiteado.
+
+- **Sesión 66 — 2026-10-06. Revisión del diff de la 65.** En un chat nuevo, en la terminal, sin
+  agentes y sin tocar código; arrancó con el mensaje de `_scratch/S66-PROMPT.md`.
+  - **Cómo se trabajó:**
+    - el comprobador de la 65 con su control, más las líneas tocadas que no son comentario;
+    - las salidas de los reverts de la 65 cotejadas con las de la 64 (`_scratch/S66-cmp-rev.cjs.txt`);
+    - cada comentario contra el código y su revert;
+    - la sonda `TURNO` del agente 3 de la 63, con una pieza nueva (`enTurno`) y el suite relacionado
+      (`_scratch/S66-turno.cjs.txt`).
+  - **Resultado:** 2 nuevos, P3 (`R9-287`, `R9-288`). No queda ningún P0 abierto.
+  - **Detalle: `detail/S66-revision-del-diff-s65.md`.**
+  - **La lección:** cuando un comentario cuenta un segundo caso, buscá la pieza que conserva el
+    primero y rompe el segundo, y mirá si el suite la ve.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

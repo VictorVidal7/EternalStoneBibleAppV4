@@ -887,7 +887,8 @@
 >
 > **Sesión 65 (2026-10-06): ARREGLOS de lo de la 64**, en el mismo chat que la 64 (Victor: «adelante
 > mi estimado»), en la terminal y sin agentes. Rama `fix/s65-comentarios-r286` (`2b05f4d`) y
-> `docs/review-s65-fix` encima, sin mergear hasta el OK de Victor.
+> `docs/review-s65-fix` encima: mergeadas y pusheadas con el OK de Victor (`main` = `8755d2b`, CI
+> verde en el log, run `37547915783`, 374/4625; corregido en la 66).
 >
 > - **Cerrado (1):** `R9-286` (solo comentarios, en el código y en las pruebas). En los cinco
 >   archivos, el JS emitido sin comentarios es idéntico al de `main` (control: contra `01eee54`, el
@@ -896,6 +897,22 @@
 > - Ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **286**. Detalle: `detail/S65-arreglos-r286.md`.
+>
+> **Sesión 66 (2026-10-06): revisión del diff de la 65**, en un chat nuevo, en la terminal y sin
+> agentes. Sin tocar código. Rama `docs/review-s66-diff-s65`, sin mergear hasta el OK de Victor.
+>
+> - **Solo comentarios, confirmado:** el JS emitido sin comentarios es igual al de `bfe18a0` en los
+>   cinco archivos (control: contra `01eee54`, el provider y su prueba salen distintos), y ninguna
+>   línea tocada es código. Las 46 salidas de los reverts de la 65 tumban lo mismo que en la 64.
+> - **2 nuevos, P3:** `R9-287` (el caso del turno que la 65 escribió en cuatro comentarios no lo
+>   vigila ninguna prueba: con el aviso de inicio dentro del turno de la Mesa, el suite pasa y lo
+>   editado se pierde) y `R9-288` («the disk as it is now», el arreglo de `R9-286` en `ifAbsent` y
+>   `addCard`, no se sostiene en ese mismo caso).
+> - **Sin tercer caso del orden:** lo pedido antes del aviso corre antes del `multiSet` y el respaldo
+>   lo reemplaza (como lo vigila «el respaldo reemplaza el mazo»); si el respaldo no escribe el mazo,
+>   no se pierde nada.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **288**. Detalle: `detail/S66-revision-del-diff-s65.md`.
 
 ---
 
@@ -6304,6 +6321,12 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     mientras vale; pierde la edición hecha durante el respaldo, no lo restaurado. Unas 8-10 líneas
     por provider y una prueba con el modelo serie. Conservar la edición pide un registro de
     operaciones por provider.
+  - **Nota (sesión 66, POR LECTURA):** `restoreSignal.ts` dice «Hold the writes until
+    `emitBackupRestored`». El mazo retiene más: hasta que su recarga LEE, y pone lo editado encima.
+    Una escritura soltada al aviso de fin, con la recarga en vuelo, sale del estado de antes del
+    respaldo: corre detrás de la lectura de la recarga y deja en el disco lo de antes hasta la
+    escritura siguiente. Al arreglarlo, retener hasta que la recarga lea, y medir esa ventana. Y la
+    prueba tiene que pasar por `importBackup` real con el turno tomado (`R9-287`).
 
 - **`R9-285` (S63, memoria / pantalla — P3) — 🐛 con el mazo sin leer, el aviso de
   `handleAddVerses` cuenta como nuevos versículos que ya están en el disco.** POR LECTURA (agente 1
@@ -6360,6 +6383,60 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
       distintos), también sobre lo commiteado (el hook pasó prettier). Las 45 piezas tumban lo mismo
       que en la 64 (`S65-rev-todas.out.txt`, sin «ancla … 0 veces»). `validate` con
       `NODE_ENV=development`: 374/4625, lint 0 errores (70 advertencias, como en la 63).
+    - **⚠️ Sesión 66:** el arreglo deja dos cosas del caso del turno. Ninguna prueba lo vigila
+      (`R9-287`), y «the disk as it is now» no se sostiene en ese caso (`R9-288`).
+
+- **`R9-287` (S66, pruebas / respaldo / memoria — P3) — 🐛 el caso del turno de `R9-286` no lo
+  vigila ninguna prueba: con el aviso de inicio dentro del turno de la Mesa, el suite pasa entero, y
+  lo editado mientras el respaldo espera el turno se pierde.** MEDIDO (`_scratch/S66-turno.cjs.txt`,
+  con la sonda `TURNO` del agente 3 de la 63, `S63a3-aviso.test.tsx.txt`: `importBackup` y
+  `prepWrite` reales y el modelo serie). La colocación sin prueba es de la 63 (`01eee54`; su agente
+  3 midió `TURNO` en la sonda, pero no pasó al suite). La 65 (`2b05f4d`) escribió el caso en cuatro
+  comentarios, y en el de la prueba lo da por visto.
+  - `importBackup` emite `emitBackupRestoring()` ANTES de llamar a `prepMultiSet`, no dentro del
+    turno. Eso cubre el segundo caso de `R9-286`: con la Mesa en su turno, el `multiSet` todavía no
+    está pedido, y una escritura del mazo pedida entonces corre antes y el respaldo la borra.
+  - **Pieza `enTurno`** (el aviso, dentro de `prepMultiSet`, justo antes de pedir el `multiSet`): en
+    la sonda, `turnoLeido`, `turnoLee` y `turnoFalla` pierden Mark/1/1 (queda solo Mark/9/9), igual
+    que sin aviso (`inicio`). Hoy quedan Mark/1/1 y Mark/9/9. En `turnoLeido`, el provider escribe
+    John+Luke+Mark/1/1 antes de `pide-respaldo`. CONTROL: el caso del `multiSet` ya pedido (`R278`,
+    seis variantes) da lo mismo con `enTurno` que hoy, así que la pieza rompe solo el turno.
+  - **El suite no lo ve:** con `enTurno`, las 125 suites relacionadas (`--findRelatedTests` de
+    `BackupService`, `prepAccount`, `restoreSignal` y el provider) pasan, 997/997. CONTROL: con
+    `inicio`, caen 2 (`backupRestoreSignal`).
+  - Por qué: `backupRestoreSignal.test.ts` mira el disco en cada aviso con el turno libre
+    (`inicio: Luke/2/1`), y da lo mismo con el aviso dentro del turno. Las pruebas del provider
+    (`memoryDeckDisk`) emiten el aviso a mano. El comentario de `backupRestoreSignal.test.ts:156-158`
+    («o, con la Mesa en su turno, antes (y el respaldo la borraba)») dice una consecuencia que esa
+    prueba no ve (la regla de la 30), y ninguna otra prueba la ve.
+  - P3: hoy el código está bien. Pero quien mueva el aviso a donde de verdad se escribe, para acortar
+    la retención, no tiene ninguna prueba que lo pare.
+  - **Arreglo (hipótesis):** una prueba en `backupRestoreSignal.test.ts` con el turno de la Mesa
+    tomado (un `prepWrite` con puerta, como en `backupPrepTurn.test.ts`): el aviso de inicio llega
+    antes de abrir el turno, con el `multiSet` sin pedir. Verla caer con `enTurno` y con `inicio`. O
+    la consecuencia: `turnoLeido` como prueba del provider con `importBackup` real.
+
+- **`R9-288` (S66, comentarios de la 65 / memoria / respaldo — P3) — 🐛 «no load had read the disk
+  as it is now», el arreglo de `R9-286` en `ifAbsent` y `addCard`, no se sostiene en el caso del
+  turno: el mazo ya leyó el disco como está, y el alta es condicional porque el respaldo lo va a
+  cambiar.** MEDIDO por la traza (`S66-turno.cjs.txt nada`, `TURNO-turnoLeido`). Lo abrió la 65
+  (`2b05f4d`).
+  - `MemoryDeckContext.tsx:132-134` («added while no load had read the disk as it is now (… or while
+    a backup writes)») y `:482-484` («no load has read the disk as it is now (also while a backup
+    writes) … the disk may have it»).
+  - En `turnoLeido`, `get#1` leyó John+Luke. Después llega el aviso de inicio, y al agregar Mark/1/1
+    el `multiSet` todavía no se pidió (`pedidoAntesDeEditar: false`); entre medias solo escribió el
+    provider, John+Luke. Una lectura pedida en ese momento corre antes del `multiSet` y da lo leído.
+    El alta es condicional igual (`unsaved` desde el aviso), y está bien que lo sea: la que decide
+    es la recarga, después del `multiSet`.
+  - CONTROL: con el `multiSet` ya pedido (`R278-agrega`), una lectura pedida entonces corre detrás y
+    da lo restaurado, que nadie leyó. Ahí el comentario se sostiene. Son los dos casos de `R9-286`,
+    en los comentarios que la 65 cambió por otra viñeta.
+  - En `addCard`, «the disk may have it»: en el turno, el disco de ahora no la tiene (el mazo leído
+    no la tiene, o `addCard` volvía antes). La que puede tenerla es la del respaldo.
+  - P3: solo comentarios.
+  - **Arreglo (hipótesis):** «as the next read will find it» en vez de «as it is now», y en
+    `addCard`, «the disk the next read finds may have it». Medir con el comprobador de la 65.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
