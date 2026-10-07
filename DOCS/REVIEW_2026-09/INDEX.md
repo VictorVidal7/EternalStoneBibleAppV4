@@ -806,8 +806,19 @@
 > de la regresión es distinto del de `lento`). 1 nuevo, P3: `R9-291` (la prueba de `R9-273` pasa con
 > su propia regresión si el respaldo es más lento que sus 20 vueltas).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **291**. Rama `docs/review-s70-diff-s69`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S70-revision-del-diff-s69.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **291**. Rama `docs/review-s70-diff-s69`: mergeada y
+> pusheada con el OK de Victor (`main` = `8c4fc9a`, CI verde en el log, run `37577204278`,
+> 374/4626; corregido en la 71). Detalle: `detail/S70-revision-del-diff-s69.md`.
+>
+> **Sesión 71 (2026-10-07): arreglos de lo de la 70**, en el mismo chat, en la terminal, con 2
+> agentes en worktree que solo midieron. Cerrados `R9-291` y `R9-290` (controles de llegada en dos
+> pruebas de `backupPrepTurn`; la primera versión de `R9-290` abrió un hueco que vio el agente 2,
+> cerrado antes del commit final). 1 nuevo, P3: `R9-292` (la prueba de `R9-273` no ve una escritura
+> fuera del turno).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **292**. Ramas `fix/s71-llegada-r290-r291` y
+> `docs/review-s71-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S71-arreglos-r290-r291.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1595,6 +1606,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S70-revision-del-diff-s69.md`.**
   - **La lección:** la pieza que demora se corre también junto con la regresión. Una vuelta que
     espera el daño no lo ve llegar si el caso tarda más que ella.
+
+- **Sesión 71 — 2026-10-07. Arreglos de lo de la 70** (`R9-291`, `R9-290`). En el mismo chat, en la
+  terminal, con 2 agentes en worktree que solo midieron (Victor los pidió); arrancó con
+  `_scratch/S71-PROMPT.md`.
+  - **Cómo se trabajó:** un commit por hallazgo, medidos con `S70-turno` y `S59-rev`. Los agentes
+    buscaron romper cada arreglo; sus afirmaciones nuevas se re-midieron en el árbol principal
+    (`_scratch/S71-sonda2.cjs.txt`, `_scratch/S71-turno1.cjs.txt`). `validate`, sin worktrees.
+  - **Resultado:** 2 cerrados, 1 nuevo P3 (`R9-292`), y una corrección a la 70 en `R9-289`. No queda
+    ningún P0 abierto.
+  - **Detalle: `detail/S71-arreglos-r290-r291.md`.**
+  - **La lección:** antes de cambiar «N vueltas fijas» por «hasta que llegue», preguntá qué pasaba
+    en las vueltas que sobraban.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

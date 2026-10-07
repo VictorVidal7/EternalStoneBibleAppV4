@@ -1,15 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 70.** La 70 hizo el (ax) en el mismo chat
-> que la 69, en la terminal y sin agentes: revisó el diff de la 69 sin tocar código. El control
-> nuevo de `R9-289` se sostiene. Corrigió `R9-290` (el rojo de la regresión es distinto del de
-> `lento`) y registró 1 nuevo P3: `R9-291` (la prueba de `R9-273` pasa con su propia regresión si el
-> respaldo es más lento que sus 20 vueltas).
+> **Última actualización: 2026-10-07, fin de la sesión 71.** La 71 hizo el (ay) en el mismo chat
+> que la 69 y la 70, en la terminal, con 2 agentes en worktree que solo midieron (a pedido de
+> Victor). Cerró `R9-291` y `R9-290` (controles de llegada en dos pruebas de `backupPrepTurn`; la
+> primera versión de `R9-290` abrió un hueco que vio el agente 2, cerrado antes del commit final).
+> Registró 1 nuevo P3: `R9-292` (la prueba de `R9-273` ve que el respaldo espera el turno, no que
+> escribe dentro de él), y corrigió lo que la 70 dijo de `R9-289`.
 >
-> La 69 ya está mergeada y pusheada (`main` = `3d29d33`, CI verde en el log, run `37572992296`,
-> 374/4626). La rama de la 70 (`docs/review-s70-diff-s69`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 291 hallazgos. **Lo siguiente:** la 71 arregla
-> `R9-291` y `R9-290` (mensaje (ay), en `_scratch/S71-PROMPT.md`).
+> La 70 ya está mergeada y pusheada (`main` = `8c4fc9a`, CI verde en el log, run `37577204278`,
+> 374/4626). Las ramas de la 71 (`fix/s71-llegada-r290-r291` y `docs/review-s71-fix`) van **sin
+> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 292 hallazgos. **Lo
+> siguiente:** la 72 revisa el diff de la 71 (mensaje (az), en `_scratch/S72-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -499,11 +500,17 @@ sin agentes, con `_scratch/S66-PROMPT.md`). Y sus arreglos (la (au), sesión 67,
 con `_scratch/S67-PROMPT.md`). Y la revisión del diff de la 67 (la (av), sesión 68, en un chat nuevo
 y sin agentes, con `_scratch/S68-PROMPT.md`). Y sus arreglos (la (aw), sesión 69, en un chat
 nuevo y sin agentes, con `_scratch/S69-PROMPT.md`). Y la revisión del diff de la 69 (la (ax),
-sesión 70, en el mismo chat, con `_scratch/S70-PROMPT.md`). **Lo siguiente es el (ay).**
+sesión 70, en el mismo chat, con `_scratch/S70-PROMPT.md`). Y sus arreglos (la (ay), sesión 71, en
+el mismo chat con 2 agentes que solo midieron, con `_scratch/S71-PROMPT.md`). **Lo siguiente es el
+(az).**
 
-**(ay) Sesión 71: arreglar lo de la 70** (`R9-291` y `R9-290`: controles de llegada en dos pruebas
-de `backupPrepTurn.test.ts`). El mensaje está en `_scratch/S71-PROMPT.md`, que manda sobre este
-archivo.
+**(az) Sesión 72: revisar el diff de la 71** (`R9-291` y `R9-290`: controles de llegada en dos
+pruebas de `backupPrepTurn.test.ts`; y la entrada de `R9-292`). El mensaje está en
+`_scratch/S72-PROMPT.md`, que manda sobre este archivo.
+
+**(ay) Sesión 71: arreglar lo de la 70 — ya HECHO en la sesión 71, en el mismo chat, con 2 agentes
+en worktree que solo midieron.** Cerrados `R9-291` y `R9-290`; un nuevo P3 (`R9-292`). El mensaje
+está en `_scratch/S71-PROMPT.md`.
 
 **(ax) Sesión 70: revisar el diff de la 69 — ya HECHO en la sesión 70, en el mismo chat que la 69,
 en la terminal y sin agentes.** Un nuevo P3 (`R9-291`) y una corrección a `R9-290`. El mensaje
@@ -1959,17 +1966,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 70 (2026-10-06).**
+**Medido al cerrar la sesión 71 (2026-10-07).**
 
-- **`main` = `origin/main` = `3d29d33`** (el checkpoint de la 69; el último código en `main` es
-  `e96e8e6`, la prueba de `R9-289`). **CI verificado en el log** en la 69: run `37572992296`,
-  374/4626. Las ramas de la 69 se borraron.
-- **Una rama de la 70, sin mergear a propósito y sin pushear:** `docs/review-s70-diff-s69` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno.
+- **`main` = `origin/main` = `8c4fc9a`** (el checkpoint de la 70; el último código en `main` es
+  `e96e8e6`, la prueba de `R9-289`). **CI verificado en el log** en la 70: run `37577204278`,
+  374/4626. La rama de la 70 se borró.
+- **Dos ramas de la 71, sin mergear a propósito y sin pushear:** `fix/s71-llegada-r290-r291`
+  (`b5164d7`, `82bdc07`; solo pruebas) y `docs/review-s71-fix` encima (solo docs). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (los de los 2 agentes de la 71 se quitaron, con sus ramas).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 70):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 71):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2430,6 +2438,12 @@ Alternativas legítimas:
   pasa con `lentoSinTurno` (`_scratch/S70-turno.cjs.txt`). Y para comparar el rojo de una pieza
   que demora con el de la regresión, medí el segundo con el caso construido (`R9-290`: eran
   distintos).
+- **Antes de cambiar «N vueltas fijas» por «hasta que llegue», preguntá qué pasaba en las vueltas
+  que sobraban (sesión 71, `R9-290`).** La primera versión del arreglo salía en el primer `multiSet`
+  colgado y dejaba de ver lo que el proceso hace mientras la devolución cuelga: con la nota quitada
+  unas vueltas después, la prueba vieja caía y la nueva pasaba. Lo vio el agente que buscaba
+  romperla, no el que la escribió. Y un control que se lee al final de dos vueltas no dice en cuál
+  llegó: se lee al terminar la que lo espera.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
