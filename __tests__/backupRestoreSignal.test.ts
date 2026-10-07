@@ -54,6 +54,10 @@ import {
   subscribeBackupRestored,
   subscribeBackupRestoring,
 } from '../src/lib/backup/restoreSignal';
+import {
+  __resetPrepAccountForTests,
+  prepWrite,
+} from '../src/features/study/prepAccount';
 
 const JOHN = {
   verseKey: 'John/3/16',
@@ -155,7 +159,8 @@ it('R9-278: avisa antes de escribir el mazo, y despues', async () => {
 
   // Sin el aviso de inicio, el mazo no sabia que el respaldo iba a escribir:
   // su escritura corria detras del `multiSet` (y la recarga la leia) o, con
-  // la Mesa en su turno, antes (y el respaldo la borraba).
+  // la Mesa en su turno, antes (y el respaldo la borraba). Aqui se ve el
+  // aviso; que el mazo retiene desde el, en `memoryDeckDisk.test.tsx`.
   expect({
     restaurado: r.restoredSections.includes('memoryDeck'),
     vistos,
@@ -180,6 +185,49 @@ it('R9-278: si algo lanza despues de escribir, el aviso de fin llega igual', asy
   // recarga que no llegaba: lo editado no llegaba nunca al disco.
   expect({error, vistos}).toEqual({
     error: 'motor', // CONTROL: el push a sync lanzo tras el multiSet
+    vistos: ['inicio: Luke/2/1', 'fin: John/3/16'],
+  });
+});
+
+it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
+  // Una escritura de la Mesa tiene el turno: `prepMultiSet` espera, y el
+  // `multiSet` del respaldo no se pide hasta abrir la puerta.
+  __resetPrepAccountForTests();
+  let abrir!: () => void;
+  const puerta = new Promise<void>(r => (abrir = r));
+  const store = prepWrite(Promise.resolve('@prep_notes'), () => puerta);
+  const ms = AsyncStorage.multiSet as jest.Mock;
+  const antes = ms.mock.calls.length;
+  let terminado = false;
+  const respaldo = importBackup(respaldoConMazo()).then(
+    () => (terminado = true),
+  );
+  for (let i = 0; i < 20 && vistos.length === 0; i++) {
+    await new Promise(r => setImmediate(r));
+  }
+  const vistosAntesDeAbrir = [...vistos];
+  const mazoPedidoAntesDeAbrir = ms.mock.calls
+    .slice(antes)
+    .filter(([pares]: [Array<[string, string]>]) =>
+      pares.some(([k]) => k === '@memory_deck'),
+    ).length;
+  const terminadoAntesDeAbrir = terminado;
+  abrir();
+  await store;
+  await respaldo;
+
+  // Con el aviso dentro del turno, al pedir el `multiSet`, no llegaba hasta
+  // abrir: lo que el mazo escribia mientras tanto corria antes del `multiSet`,
+  // y el respaldo lo borraba (lo midio la sonda TURNO, R9-287).
+  expect({
+    vistosAntesDeAbrir,
+    mazoPedidoAntesDeAbrir,
+    terminadoAntesDeAbrir,
+    vistos,
+  }).toEqual({
+    vistosAntesDeAbrir: ['inicio: Luke/2/1'],
+    mazoPedidoAntesDeAbrir: 0, // CONTROL: el multiSet esperaba el turno
+    terminadoAntesDeAbrir: false, // CONTROL: el respaldo seguia esperando
     vistos: ['inicio: Luke/2/1', 'fin: John/3/16'],
   });
 });
