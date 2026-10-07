@@ -172,7 +172,9 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
         await new Promise(r => setImmediate(r));
       }
       // Con el turno, la vuelta no sale antes: un respaldo mas lento que ella
-      // no llegaba a escribir, y sin el turno pasaba igual (R9-291).
+      // no llegaba a escribir, y sin el turno pasaba igual (R9-291). Cuenta el
+      // PEDIDO, no la escritura: sin turno y con la escritura 20 vueltas
+      // despues, esta prueba pasa (R9-293). Eso lo ve la de R9-292.
       const turnoPedido = turno.mock.calls.length;
       turno.mockRestore();
       const antesDeAbrir = restaurado;
@@ -223,6 +225,137 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
       antesDeAbrir: false,
       restaurado: true,
       sinCuenta: [R],
+      ana: null,
+    },
+  });
+});
+
+it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la Mesa corre', async () => {
+  const T = Date.now() - 60 * 60 * 1000;
+  const P = 'John/3/16-21';
+  const R = 'Ps/23/1-6';
+  const Q = 'Rom/8/28';
+  const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+  const real = ms.getMockImplementation()!;
+  const pasajes = async (k: string) => {
+    const raw = await AsyncStorage.getItem(k);
+    return raw == null ? null : Object.keys(JSON.parse(raw)).sort();
+  };
+  // La escritura del respaldo en la Mesa «sin cuenta» (la reconoce su clave y
+  // su contenido, no el orden) espera en una puerta, y DESPUES se pide otra
+  // escritura de la Mesa. Con `borrada`, Ana tiene P y su cuenta se borra con
+  // el respaldo en SQLite: la escritura retenida es la devolucion (R9-275).
+  const caso = async (
+    borrada: boolean,
+    otra: () => Promise<void>,
+    esOtra: (pairs: Array<[string, string]>) => boolean,
+  ) => {
+    __resetPrepAccountForTests();
+    await AsyncStorage.clear();
+    managePrepAccount();
+    await setPrepAccount(borrada ? 'ana' : null);
+    await savePrepNote(P, 'observation', 'antes', T);
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    let abrirSqlite: (() => void) | undefined;
+    if (borrada) mockSqlite.puerta = new Promise<void>(r => (abrirSqlite = r));
+    let retenida = 0;
+    let escribio = 0;
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      if (
+        pairs.some(
+          ([k, v]) => k === '@prep_notes' && v.includes('del respaldo'),
+        )
+      ) {
+        retenida += 1;
+        await puerta;
+      } else if (esOtra(pairs)) {
+        escribio += 1;
+      }
+      return real(pairs);
+    });
+    let restaurado = false;
+    const turno = jest.spyOn(prepAccount, 'prepMultiSet');
+    try {
+      const respaldo = importBackup(
+        respaldoConMesa({
+          [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+        }),
+      ).then(r => {
+        restaurado = r.restoredSections.includes('prepNotes');
+      });
+      if (borrada) {
+        for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+        await releasePrepAccount('ana');
+        await setPrepAccount(null);
+        mockSqlite.puerta = null;
+        abrirSqlite!();
+      }
+      for (let i = 0; i < 40 && retenida === 0; i++) {
+        await new Promise(r => setImmediate(r));
+      }
+      const llego = retenida;
+      const pedido = turno.mock.calls.length;
+      turno.mockRestore();
+      const segunda = otra();
+      for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+      const escribioConElRespaldoRetenido = escribio;
+      abrir();
+      await respaldo;
+      await segunda;
+      return {
+        retenida: llego, // CONTROL: la escritura del respaldo llego y se retuvo
+        pedido, // CONTROL: por `prepMultiSet`
+        escribioConElRespaldoRetenido,
+        restaurado,
+        sinCuenta: await pasajes('@prep_notes'),
+        ana: await pasajes('@prep_notes:ana'),
+      };
+    } finally {
+      turno.mockRestore();
+      abrir();
+      mockSqlite.puerta = null;
+      abrirSqlite?.();
+      ms.mockImplementation(real);
+    }
+  };
+  const store = () => savePrepNote(Q, 'observation', 'despues', T + 2000);
+  const deStore = (pairs: Array<[string, string]>) =>
+    pairs.some(([, v]) => v.includes('despues'));
+  const deUnion = (pairs: Array<[string, string]>) =>
+    pairs.some(([k]) => k.endsWith(':ana'));
+  const conStore = await caso(false, store, deStore);
+  const conUnion = await caso(false, () => adoptNoAccountPrep('ana'), deUnion);
+  const devolucion = await caso(true, store, deStore);
+  // R9-273 pide el turno; esta mira que lo use para TODA su escritura. Si el
+  // respaldo lo suelta antes de escribir (o escribe fuera de el, o deja la
+  // devolucion fuera), la otra escritura corre con la suya en vuelo, y la que
+  // termina despues pisa a la otra: lo restaurado se perdia, y la
+  // restauracion decia que si (R9-292, R9-293, R9-294). El conteo de
+  // `prepMultiSet` no lo ve: el pedido se hace igual.
+  expect({conStore, conUnion, devolucion}).toEqual({
+    conStore: {
+      retenida: 1,
+      pedido: 1,
+      escribioConElRespaldoRetenido: 0,
+      restaurado: true,
+      sinCuenta: [R, Q],
+      ana: null,
+    },
+    conUnion: {
+      retenida: 1,
+      pedido: 1,
+      escribioConElRespaldoRetenido: 0,
+      restaurado: true,
+      sinCuenta: null,
+      ana: [R],
+    },
+    devolucion: {
+      retenida: 1,
+      pedido: 1,
+      escribioConElRespaldoRetenido: 0,
+      restaurado: true,
+      sinCuenta: [P, R, Q],
       ana: null,
     },
   });
