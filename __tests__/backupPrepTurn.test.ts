@@ -255,6 +255,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     managePrepAccount();
     await setPrepAccount(borrada ? 'ana' : null);
     await savePrepNote(P, 'observation', 'antes', T);
+    mockSqlite.retenida = 0;
     let abrir!: () => void;
     const puerta = new Promise<void>(r => (abrir = r));
     let abrirSqlite: (() => void) | undefined;
@@ -306,6 +307,10 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       await respaldo;
       await segunda;
       return {
+        // CONTROL: con `borrada`, el respaldo espero en SQLite con la clave de
+        // Ana (como `durante` en R9-275); si no, el rojo de un respaldo mas
+        // lento se leia como una perdida de P.
+        retenidaSqlite: mockSqlite.retenida,
         retenida: llego, // CONTROL: la escritura del respaldo llego y se retuvo
         pedido, // CONTROL: por `prepMultiSet`
         escribioConElRespaldoRetenido,
@@ -337,6 +342,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   // `prepMultiSet` no lo ve: el pedido se hace igual.
   expect({conStore, conUnion, devolucion}).toEqual({
     conStore: {
+      retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
       escribioConElRespaldoRetenido: 0,
@@ -345,6 +351,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       ana: null,
     },
     conUnion: {
+      retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
       escribioConElRespaldoRetenido: 0,
@@ -353,6 +360,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       ana: [R],
     },
     devolucion: {
+      retenidaSqlite: 1,
       retenida: 1,
       pedido: 1,
       escribioConElRespaldoRetenido: 0,
