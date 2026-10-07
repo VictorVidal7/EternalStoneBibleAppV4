@@ -7,12 +7,25 @@
  * `importBackup` real; `bibleDB` y `AchievementService` mockeados como en
  * `backupPrepTurn.test.ts`, y el motor de sync (`getSyncEngine`), para que su
  * `queueWrite` pueda lanzar.
+ *
+ * R9-303 — la parte de SQLite del respaldo puede esperar en una puerta
+ * (`mockSqlite`): el respaldo ya empezo, y todavia no pidio el turno.
  */
+const mockSqlite: {puerta: Promise<void> | null; retenida: number} = {
+  puerta: null,
+  retenida: 0,
+};
 jest.mock('../src/lib/database', () => {
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
     getDatabase: jest.fn().mockResolvedValue({
-      withTransactionAsync: async (fn: () => Promise<void>) => fn(),
+      withTransactionAsync: async (fn: () => Promise<void>) => {
+        if (mockSqlite.puerta) {
+          mockSqlite.retenida += 1;
+          await mockSqlite.puerta;
+        }
+        return fn();
+      },
     }),
     executeSql: jest.fn(async () => ({rows: {_array: [], length: 0}})),
   };
@@ -146,6 +159,8 @@ beforeEach(async () => {
   );
   setAchievementServiceInstance(null);
   mockEngine = null;
+  mockSqlite.puerta = null;
+  mockSqlite.retenida = 0;
   vistos.length = 0;
   subscribeBackupRestoring(() => vistos.push('inicio: ' + mazo()));
   subscribeBackupRestored(() => vistos.push('fin: ' + mazo()));
@@ -190,66 +205,86 @@ it('R9-278: si algo lanza despues de escribir, el aviso de fin llega igual', asy
   });
 });
 
-it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
-  // Una escritura de la Mesa tiene el turno: `prepMultiSet` espera, y el
-  // `multiSet` del respaldo no se pide hasta abrir la puerta.
-  __resetPrepAccountForTests();
-  const turno = jest.spyOn(prepAccount, 'prepMultiSet');
-  let abrir!: () => void;
-  const puerta = new Promise<void>(r => (abrir = r));
-  // Se espera a que el store este DENTRO de su turno antes de pedir el
-  // respaldo: con `prepWrite` una vuelta mas lento, el respaldo tomaba el turno
-  // primero, y el rojo era el de un `multiSet` sin turno (R9-302).
-  let dentro = false;
-  const store = prepWrite(Promise.resolve('@prep_notes'), () => {
-    dentro = true;
-    return puerta;
-  });
-  for (let i = 0; i < 40 && !dentro; i++) {
-    await new Promise(r => setImmediate(r));
-  }
-  const otraConElTurno = dentro;
-  const ms = AsyncStorage.multiSet as jest.Mock;
-  const antes = ms.mock.calls.length;
-  let terminado = false;
-  const respaldo = importBackup(respaldoConMazo()).then(
-    () => (terminado = true),
-  );
-  // Se espera a que el respaldo pida el turno, no al aviso: esperando el
-  // aviso, su falta daba el mismo rojo con el aviso dentro del turno que con
-  // un respaldo que no llego al turno en estas vueltas (R9-289).
-  for (let i = 0; i < 20 && turno.mock.calls.length === 0; i++) {
-    await new Promise(r => setImmediate(r));
-  }
-  const turnoPedidoAntesDeAbrir = turno.mock.calls.length;
-  turno.mockRestore();
-  const vistosAntesDeAbrir = [...vistos];
-  const mazoPedidoAntesDeAbrir = ms.mock.calls
-    .slice(antes)
-    .filter(([pares]: [Array<[string, string]>]) =>
-      pares.some(([k]) => k === '@memory_deck'),
-    ).length;
-  const terminadoAntesDeAbrir = terminado;
-  abrir();
-  await store;
-  await respaldo;
+// `antes`: el store toma el turno antes de que empiece el respaldo. `durante`:
+// lo toma con el respaldo ya empezado, esperando en SQLite, y el `multiSet`
+// tiene que esperarlo igual. Con la espera de R9-302, `antes` solo ya no lo
+// veia: el store entraba siempre antes de empezar el respaldo (R9-303).
+it.each(['antes', 'durante'] as const)(
+  'R9-287: con la Mesa en su turno, avisa antes de esperarlo (store %s)',
+  async caso => {
+    // Una escritura de la Mesa tiene el turno: `prepMultiSet` espera, y el
+    // `multiSet` del respaldo no se pide hasta abrir la puerta.
+    __resetPrepAccountForTests();
+    const turno = jest.spyOn(prepAccount, 'prepMultiSet');
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    let soltarSqlite = () => {};
+    if (caso === 'durante') {
+      mockSqlite.puerta = new Promise<void>(r => (soltarSqlite = r));
+    }
+    const ms = AsyncStorage.multiSet as jest.Mock;
+    const antes = ms.mock.calls.length;
+    let terminado = false;
+    const pedirRespaldo = () =>
+      importBackup(respaldoConMazo()).then(() => (terminado = true));
+    let respaldo = caso === 'durante' ? pedirRespaldo() : null;
+    for (let i = 0; i < 40 && respaldo && mockSqlite.retenida === 0; i++) {
+      await new Promise(r => setImmediate(r));
+    }
+    const respaldoEnSqlite = mockSqlite.retenida;
+    // Se espera a que el store este DENTRO de su turno antes de pedir (o
+    // soltar) el respaldo: con `prepWrite` una vuelta mas lento, el respaldo
+    // tomaba el turno primero, y el rojo era el de un `multiSet` sin turno
+    // (R9-302).
+    let dentro = false;
+    const store = prepWrite(Promise.resolve('@prep_notes'), () => {
+      dentro = true;
+      return puerta;
+    });
+    for (let i = 0; i < 40 && !dentro; i++) {
+      await new Promise(r => setImmediate(r));
+    }
+    const otraConElTurno = dentro;
+    if (respaldo) soltarSqlite();
+    else respaldo = pedirRespaldo();
+    // Se espera a que el respaldo pida el turno, no al aviso: esperando el
+    // aviso, su falta daba el mismo rojo con el aviso dentro del turno que con
+    // un respaldo que no llego al turno en estas vueltas (R9-289).
+    for (let i = 0; i < 20 && turno.mock.calls.length === 0; i++) {
+      await new Promise(r => setImmediate(r));
+    }
+    const turnoPedidoAntesDeAbrir = turno.mock.calls.length;
+    turno.mockRestore();
+    const vistosAntesDeAbrir = [...vistos];
+    const mazoPedidoAntesDeAbrir = ms.mock.calls
+      .slice(antes)
+      .filter(([pares]: [Array<[string, string]>]) =>
+        pares.some(([k]) => k === '@memory_deck'),
+      ).length;
+    const terminadoAntesDeAbrir = terminado;
+    abrir();
+    await store;
+    await respaldo;
 
-  // Con el aviso dentro del turno, al pedir el `multiSet`, no llegaba hasta
-  // abrir: lo que el mazo escribia mientras tanto corria antes del `multiSet`,
-  // y el respaldo lo borraba (lo midio la sonda TURNO, R9-287).
-  expect({
-    otraConElTurno,
-    turnoPedidoAntesDeAbrir,
-    vistosAntesDeAbrir,
-    mazoPedidoAntesDeAbrir,
-    terminadoAntesDeAbrir,
-    vistos,
-  }).toEqual({
-    otraConElTurno: true, // CONTROL: el store ya tenia el turno
-    turnoPedidoAntesDeAbrir: 1, // CONTROL: el respaldo pidio el turno
-    vistosAntesDeAbrir: ['inicio: Luke/2/1'],
-    mazoPedidoAntesDeAbrir: 0, // CONTROL: el multiSet esperaba el turno
-    terminadoAntesDeAbrir: false, // CONTROL: el respaldo seguia esperando
-    vistos: ['inicio: Luke/2/1', 'fin: John/3/16'],
-  });
-});
+    // Con el aviso dentro del turno, al pedir el `multiSet`, no llegaba hasta
+    // abrir: lo que el mazo escribia mientras tanto corria antes del `multiSet`,
+    // y el respaldo lo borraba (lo midio la sonda TURNO, R9-287).
+    expect({
+      respaldoEnSqlite,
+      otraConElTurno,
+      turnoPedidoAntesDeAbrir,
+      vistosAntesDeAbrir,
+      mazoPedidoAntesDeAbrir,
+      terminadoAntesDeAbrir,
+      vistos,
+    }).toEqual({
+      respaldoEnSqlite: caso === 'durante' ? 1 : 0, // CONTROL: ya habia empezado
+      otraConElTurno: true, // CONTROL: el store ya tenia el turno
+      turnoPedidoAntesDeAbrir: 1, // CONTROL: el respaldo pidio el turno
+      vistosAntesDeAbrir: ['inicio: Luke/2/1'],
+      mazoPedidoAntesDeAbrir: 0, // CONTROL: el multiSet esperaba el turno
+      terminadoAntesDeAbrir: false, // CONTROL: el respaldo seguia esperando
+      vistos: ['inicio: Luke/2/1', 'fin: John/3/16'],
+    });
+  },
+);
