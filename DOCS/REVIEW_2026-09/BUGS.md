@@ -929,7 +929,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **288**. Detalle: `detail/S67-arreglos-r287-r288.md`.
 >
 > **Sesión 68 (2026-10-06): revisión del diff de la 67**, en un chat nuevo, en la terminal y sin
-> agentes. Sin tocar código. Rama `docs/review-s68-diff-s67`, sin mergear hasta el OK de Victor.
+> agentes. Sin tocar código. Rama `docs/review-s68-diff-s67`: mergeada y pusheada con el OK de
+> Victor (`main` = `e9db115`, CI verde en el log, run `37563058370`, 374/4626; corregido en la 69).
 >
 > - **Solo comentarios, confirmado:** el JS del provider sin comentarios es igual al de `cc4ee6d`
 >   (control: contra `01eee54`, distinto), y ninguna línea tocada es código.
@@ -943,6 +944,20 @@
 >   haya pedido el turno).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **289**. Detalle: `detail/S68-revision-del-diff-s67.md`.
+>
+> **Sesión 69 (2026-10-06): ARREGLOS de lo de la 68**, en un chat nuevo, en la terminal y sin
+> agentes. Rama `fix/s69-control-r289` (`e96e8e6`, solo la prueba) y `docs/review-s69-fix` encima,
+> sin mergear hasta el OK de Victor.
+>
+> - **Cerrado (1):** `R9-289` (un tercer control en la prueba de `R9-287`: el respaldo pidió el
+>   turno, con un spy sobre `prepMultiSet`, y la vuelta espera ese pedido). Con `lento` cae en el
+>   control nuevo, con un diff distinto del de `enTurno`; con `enTurno` y `principio`, en los avisos
+>   con el control en 1. `validate` 374/4626.
+> - **1 nuevo, P3, sin arreglar:** `R9-290` (el caso `muere` de la prueba de `R9-275` tiene la misma
+>   forma: con `lento`, el respaldo no llega a la devolución en las 20 vueltas y la prueba cae como si
+>   se perdiera lo restaurado).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **290**. Detalle: `detail/S69-arreglos-r289.md`.
 
 ---
 
@@ -6514,6 +6529,35 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     `jest.spyOn` sobre `prepMultiSet` (funciona: el registro de `S68-turno`), y la vuelta esperando
     ese pedido en vez del aviso. Verla caer con `lento` en el control nuevo, y con `enTurno` en los
     avisos con el control en 1.
+  - **✅ ARREGLADO en la sesión 69** (`e96e8e6`, solo la prueba). Un spy sobre `prepMultiSet`
+    (restaurado en cuanto se lee el conteo, antes de abrir la puerta) y un tercer control,
+    `turnoPedidoAntesDeAbrir: 1` («el respaldo pidió el turno»). La vuelta espera ese pedido, y hoy
+    usa 1 (el aviso y el pedido salen en el mismo tick).
+    - **Medido** (`S68-turno <pieza> suite`, 998 pruebas): con `lento`, la prueba cae en el control
+      nuevo (0) y en los avisos, un diff distinto del de `enTurno`; con `enTurno` y `principio`, solo
+      en los avisos, con el control en 1 (1 de 998); con `sinTurno`, en los controles de siempre y en
+      el nuevo; sin pieza, 998/998.
+    - Con la prueba movida al principio del archivo, las otras dos pasan y `prepMultiSet` ya no es
+      un mock (`S69-vueltas.cjs.txt`).
+    - Con `lento` cae también otra prueba, de otro archivo: `R9-290`.
+
+- **`R9-290` (S69, pruebas / respaldo / Mesa — P3) — 🐛 el caso `muere` de la prueba de `R9-275`
+  espera 20 vueltas fijas a que el respaldo llegue a la devolución, y sus controles no lo dicen: con
+  el respaldo más lento, cae como si se perdiera lo restaurado.** MEDIDO
+  (`_scratch/S69-muere.cjs.txt`: la prueba con un contador de los `multiSet` colgados). Lo abrió la
+  59 (`37ba5f7`); la 68 no lo vio porque corrió `lento` solo en modo `archivo`.
+  - En `backupPrepTurn.test.ts`, el caso `muere` cuelga el `multiSet` de `@prep_notes` (la
+    devolución que hace el respaldo), da 20 vueltas de `setImmediate` y suelta el mock.
+  - Sin pieza se cuelga 1 `multiSet`, y la prueba pasa. Con `lento` (25 vueltas antes del aviso de
+    inicio, que va después de SQLite), se cuelgan 0: el caso no se construye, y la prueba cae con
+    `Ps/23/1-6` fuera de `sinCuenta`.
+  - Sus controles (`retenida: 1`, `antesDeBorrar: null`) miran la puerta de SQLite, que está antes, y
+    se cumplen igual. El rojo se lee como «se perdió lo restaurado» cuando el respaldo no llegó.
+  - P3: no da un verde falso con `lento`, y hoy construye su caso. No se midió qué rojo da la
+    regresión de `R9-275` con el caso construido.
+  - **Arreglo (hipótesis):** como el de `R9-289`, un control con el conteo de los `multiSet`
+    colgados («el respaldo llegó a la devolución») y la vuelta esperándolo en vez de 20 fijas. Verla
+    caer con `lento` en el control nuevo.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -788,8 +788,18 @@
 > respaldo más lento que las 20 vueltas, la prueba cae con el mismo diff que `enTurno`, y sus
 > controles no muestran que el respaldo haya pedido el turno).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **289**. Rama `docs/review-s68-diff-s67`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S68-revision-del-diff-s67.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **289**. Rama `docs/review-s68-diff-s67`: mergeada y
+> pusheada con el OK de Victor (`main` = `e9db115`, CI verde en el log, run `37563058370`,
+> 374/4626; corregido en la 69). Detalle: `detail/S68-revision-del-diff-s67.md`.
+>
+> **Sesión 69 (2026-10-06): arreglos de lo de la 68**, en un chat nuevo, en la terminal y sin
+> agentes. Cerrado `R9-289` (un tercer control en la prueba de `R9-287`: el respaldo pidió el
+> turno). 1 nuevo, P3, sin arreglar: `R9-290` (el caso `muere` de la prueba de `R9-275` tiene la
+> misma forma, y lo mostró `lento` en el suite).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **290**. Ramas `fix/s69-control-r289` y
+> `docs/review-s69-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S69-arreglos-r289.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1555,6 +1565,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** si una prueba espera N vueltas a que algo pase, corré la pieza que lo demora más
     allá de N con el código bueno. Si cae igual que la regresión, le falta el control que dice que
     el caso llegó.
+
+- **Sesión 69 — 2026-10-06. Arreglos de lo de la 68** (`R9-289`). En un chat nuevo, en la terminal
+  y sin agentes; arrancó con el mensaje de `_scratch/S69-PROMPT.md`.
+  - **Cómo se trabajó:** un commit (`e96e8e6`). La prueba se vio caer con cada pieza en las suites
+    relacionadas (`_scratch/S68-turno.cjs.txt <pieza> suite`); las vueltas y el turno de las otras
+    dos, con `_scratch/S69-vueltas.cjs.txt`; y `validate`.
+  - **Resultado:** 1 cerrado, 1 nuevo P3 (`R9-290`, medido con `_scratch/S69-muere.cjs.txt`). No
+    queda ningún P0 abierto.
+  - **Detalle: `detail/S69-arreglos-r289.md`.**
+  - **La lección:** una pieza que muestra una forma se corre en el suite, no solo en la prueba que
+    la motivó.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
