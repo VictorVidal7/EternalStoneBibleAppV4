@@ -402,12 +402,14 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       await releasePrepAccount('ana');
       await setPrepAccount(null);
       mockSqlite.puerta = null;
-      let colgando = 0;
-      let colgadas = 0;
+      // Los pasajes de cada escritura colgada de la Mesa «sin cuenta».
+      const colgando: string[][] = [];
+      let colgadas: string[][] = [];
       if (cuando === 'muere') {
         ms.mockImplementation(async (pairs: Array<[string, string]>) => {
-          if (!pairs.some(([k]) => k === '@prep_notes')) return real(pairs);
-          colgando += 1;
+          const sinCuenta = pairs.find(([k]) => k === '@prep_notes');
+          if (!sinCuenta) return real(pairs);
+          colgando.push(Object.keys(JSON.parse(sinCuenta[1])).sort());
           return new Promise(() => {});
         });
       }
@@ -415,13 +417,16 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       if (cuando === 'muere') {
         // Con 20 vueltas fijas, un respaldo mas lento no llegaba a la
         // devolucion, y la prueba caia como si se perdiera lo restaurado
-        // (R9-290): `colgadas` dice si llego en estas 20. Despues, 20 vueltas
-        // mas con la devolucion colgada, para ver lo que el proceso hace
-        // mientras tanto.
-        for (let i = 0; i < 20 && colgando === 0; i++) {
+        // (R9-290): `colgadas` dice si llego en estas 20, y QUE se colgo. Un
+        // conteo daba 1 tambien con otra escritura de la Mesa «sin cuenta» (la
+        // devolucion de `releasePrepAccount` sin esperar), y el rojo se leia
+        // como una perdida con el respaldo detras, sin escribir (R9-295).
+        // Despues, 20 vueltas mas con la devolucion colgada, para ver lo que
+        // el proceso hace mientras tanto.
+        for (let i = 0; i < 20 && colgando.length === 0; i++) {
           await new Promise(r => setImmediate(r));
         }
-        colgadas = colgando;
+        colgadas = [...colgando];
         for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
         ms.mockImplementation(real);
       } else {
@@ -434,7 +439,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       return {
         retenida: mockSqlite.retenida, // CONTROL: el respaldo espero en SQLite
         antesDeBorrar, // CONTROL: y no habia terminado al borrar la cuenta
-        colgadas, // CONTROL: en `muere`, se colgo la Mesa sin cuenta (la devolucion)
+        colgadas, // CONTROL: en `muere`, la devolucion del respaldo (con P y R)
         restaurado,
         sinCuenta: await pasajes('@prep_notes'),
         ana: await pasajes('@prep_notes:ana'),
@@ -459,7 +464,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     antes: {
       retenida: 0,
       antesDeBorrar: true,
-      colgadas: 0,
+      colgadas: [],
       restaurado: true,
       sinCuenta: [R],
       ana: null,
@@ -468,7 +473,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     durante: {
       retenida: 1,
       antesDeBorrar: null,
-      colgadas: 0,
+      colgadas: [],
       restaurado: true,
       sinCuenta: [P, R],
       ana: null,
@@ -477,7 +482,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     muere: {
       retenida: 1,
       antesDeBorrar: null,
-      colgadas: 1,
+      colgadas: [[P, R]],
       restaurado: null, // el proceso termino antes
       sinCuenta: [P, R],
       ana: null,
