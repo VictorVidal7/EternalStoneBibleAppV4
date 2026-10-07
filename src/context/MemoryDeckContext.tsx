@@ -129,11 +129,13 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   // replace the deck, and a card added while it was in flight was gone from
   // the screen and the disk.
   const unsaved = useRef<Map<string, MemoryCard | null> | null>(null);
-  // R9-279 — the cards in `unsaved` added while no load had read the disk as
-  // it is now (before the first read, after a failed one, or while a backup
-  // writes): "add it if it is not there". Each read keeps the card it finds,
-  // and the one that lets the edits go sends those it does not find to the
-  // cloud. Laid over as an edit, a verse already on disk lost its reviews.
+  // R9-279 — the cards in `unsaved`, added before the read that lets the edits
+  // go: the first read, the one after a failed one, or a backup's reload (once
+  // the backup is about to write; its `multiSet` may not be asked for yet, but
+  // the reload reads after it). That read may find what no load has read:
+  // "add it if it is not there". Each read keeps the card it finds, and the
+  // one that lets the edits go sends those it does not find to the cloud.
+  // Laid over as an edit, a verse already on disk lost its reviews.
   const ifAbsent = useRef(new Set<string>());
   /** `added`: a card added if absent; null takes the add back. */
   const edit = useCallback(
@@ -479,9 +481,9 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
         // prior (DEFAULT_EASE until there's enough history to calibrate).
         ease: easePriorRef.current,
       });
-      // R9-279 — no load has read the disk as it is now (also while a backup
-      // writes), and nothing edited says what became of this card: the disk
-      // may have it, and the read decides.
+      // R9-279 — the edits wait for a read (also once a backup is about to
+      // write), and nothing edited says what became of this card: the disk
+      // that read finds may have it, and the read decides.
       if (unsaved.current && !unsaved.current.has(key)) {
         edit({[key]: card}, true);
         return;
