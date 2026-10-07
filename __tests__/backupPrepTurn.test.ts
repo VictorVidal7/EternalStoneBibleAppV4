@@ -269,15 +269,26 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       await releasePrepAccount('ana');
       await setPrepAccount(null);
       mockSqlite.puerta = null;
+      let colgando = 0;
+      let colgadas = 0;
       if (cuando === 'muere') {
-        ms.mockImplementation(async (pairs: Array<[string, string]>) =>
-          pairs.some(([k]) => k === '@prep_notes')
-            ? new Promise(() => {})
-            : real(pairs),
-        );
+        ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+          if (!pairs.some(([k]) => k === '@prep_notes')) return real(pairs);
+          colgando += 1;
+          return new Promise(() => {});
+        });
       }
       if (cuando !== 'antes') abrir();
       if (cuando === 'muere') {
+        // Con 20 vueltas fijas, un respaldo mas lento no llegaba a la
+        // devolucion, y la prueba caia como si se perdiera lo restaurado
+        // (R9-290): `colgadas` dice si llego en estas 20. Despues, 20 vueltas
+        // mas con la devolucion colgada, para ver lo que el proceso hace
+        // mientras tanto.
+        for (let i = 0; i < 20 && colgando === 0; i++) {
+          await new Promise(r => setImmediate(r));
+        }
+        colgadas = colgando;
         for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
         ms.mockImplementation(real);
       } else {
@@ -290,6 +301,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       return {
         retenida: mockSqlite.retenida, // CONTROL: el respaldo espero en SQLite
         antesDeBorrar, // CONTROL: y no habia terminado al borrar la cuenta
+        colgadas, // CONTROL: en `muere`, se colgo la Mesa sin cuenta (la devolucion)
         restaurado,
         sinCuenta: await pasajes('@prep_notes'),
         ana: await pasajes('@prep_notes:ana'),
@@ -314,6 +326,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     antes: {
       retenida: 0,
       antesDeBorrar: true,
+      colgadas: 0,
       restaurado: true,
       sinCuenta: [R],
       ana: null,
@@ -322,6 +335,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     durante: {
       retenida: 1,
       antesDeBorrar: null,
+      colgadas: 0,
       restaurado: true,
       sinCuenta: [P, R],
       ana: null,
@@ -330,6 +344,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     muere: {
       retenida: 1,
       antesDeBorrar: null,
+      colgadas: 1,
       restaurado: null, // el proceso termino antes
       sinCuenta: [P, R],
       ana: null,
