@@ -1,17 +1,17 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 73.** La 73 hizo el (ba) en el mismo chat que
-> la 72, en la terminal, con 3 agentes en worktree que solo midieron (Victor pidió 7 y eligió la
-> recomendación). Cerró `R9-292`, `R9-293` y `R9-294` (una prueba nueva: con la escritura del
-> respaldo retenida, ninguna otra escritura de la Mesa corre) y `R9-295` (`colgadas` dice QUÉ se
-> colgó); dos huecos de la prueba nueva, vistos por los agentes, se cerraron antes del checkpoint.
-> Registró 6 nuevos P3, de pruebas, ninguno abierto por ella: `R9-296` («no escribió» no es «esperaba
-> el turno»), `R9-297`, y cuatro regresiones del camino de la devolución (`R9-298`..`R9-301`).
+> **Última actualización: 2026-10-07, fin de la sesión 74.** La 74 hizo el (bb) en un chat nuevo, en
+> la terminal y sin agentes, sin tocar código: revisó el diff de la 73. Lo medido de la 73 se
+> sostiene (la prueba nueva de `R9-292`, `colgadas`, y `R9-296`..`R9-301`, ninguno P2). Registró 1
+> nuevo P3, de pruebas, que no abrió la 73: `R9-302` (la prueba de `R9-287` cae con el diff exacto de
+> `sinCola` si el store da UNA vuelta más; arreglo medido). Corrigió `R9-297` (basta una vuelta,
+> no veinticinco) y escribió las dos decisiones de Victor de tras la 73 (`R9-289`, `R9-296`; ver la
+> §7).
 >
-> La 72 ya está mergeada y pusheada (`main` = `f6c1c3c`, CI verde en el log, run `37655696021`,
-> 374/4626). Las ramas de la 73 (`fix/s73-retenido-r292-r295` y `docs/review-s73-fix`) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 301 hallazgos. **Lo
-> siguiente:** la 74 revisa el diff de la 73 (mensaje (bb), en `_scratch/S74-PROMPT.md`).
+> La 73 ya está mergeada y pusheada (`main` = `64c4b88`, CI verde en el log, run `37661765310`,
+> 374/4627). La rama de la 74 (`docs/review-s74-diff-s73`, solo docs) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 302 hallazgos. **Lo siguiente:** la 75 arregla lo de
+> la 74 (mensaje (bc), en `_scratch/S75-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -505,11 +505,16 @@ sesión 70, en el mismo chat, con `_scratch/S70-PROMPT.md`). Y sus arreglos (la 
 el mismo chat con 2 agentes que solo midieron, con `_scratch/S71-PROMPT.md`). Y la revisión del
 diff de la 71 (la (az), sesión 72, en un chat nuevo con 3 agentes que solo midieron, con
 `_scratch/S72-PROMPT.md`). Y sus arreglos (la (ba), sesión 73, en el mismo chat con 3 agentes que
-solo midieron, con `_scratch/S73-PROMPT.md`). **Lo siguiente es el (bb).**
+solo midieron, con `_scratch/S73-PROMPT.md`). Y la revisión del diff de la 73 (la (bb), sesión 74,
+en un chat nuevo y sin agentes, con `_scratch/S74-PROMPT.md`). **Lo siguiente es el (bc).**
 
-**(bb) Sesión 74: revisar el diff de la 73** (`R9-292`..`R9-295`: la prueba nueva de
-`backupPrepTurn.test.ts` y `colgadas` con el contenido; y las entradas nuevas `R9-296`..`R9-301`).
-El mensaje está en `_scratch/S74-PROMPT.md`, que manda sobre este archivo.
+**(bc) Sesión 75: arreglar lo de la 74** (`R9-302`, la prueba de `R9-287` con el control de que el
+store tiene el turno; y, si Victor lo pide, `R9-296`/`R9-297`). El mensaje está en
+`_scratch/S75-PROMPT.md`, que manda sobre este archivo.
+
+**(bb) Sesión 74: revisar el diff de la 73 — ya HECHO en la sesión 74, en un chat nuevo, en la
+terminal y sin agentes.** Un nuevo P3 (`R9-302`), una corrección en `R9-297`, y las decisiones de
+Victor sobre `R9-289` y `R9-296` escritas. El mensaje está en `_scratch/S74-PROMPT.md`.
 
 **(ba) Sesión 73: arreglar lo de la 72 — ya HECHO en la sesión 73, en el mismo chat, con 3 agentes
 en worktree que solo midieron.** Cerrados `R9-292`..`R9-295`; seis nuevos P3 (`R9-296`..`R9-301`).
@@ -1977,15 +1982,14 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 73 (2026-10-07).**
+**Medido al cerrar la sesión 74 (2026-10-07).**
 
-- **`main` = `origin/main` = `f6c1c3c`** (el checkpoint de la 72; el último código en `main` es
-  `82bdc07`, la prueba de `R9-290`). **CI verificado en el log** en la 72: run `37655696021`, 3
-  jobs, Node v24.21.0, 374/4626. La rama de la 72 se borró tras `git cherry`.
-- **Dos ramas de la 73, sin mergear a propósito y sin pushear:** `fix/s73-retenido-r292-r295`
-  (`38a98da`, `cfaa004`, `abe6099`, `9c43e22`; solo pruebas) y `docs/review-s73-fix` encima (solo
-  docs). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (los de los 3 agentes de la 73 se quitaron a mano, con sus ramas).
+- **`main` = `origin/main` = `64c4b88`** (el checkpoint de la 73; el último código en `main` es
+  `9c43e22`, la prueba de `R9-292`). **CI verificado en el log** en la 73: run `37661765310`, 3
+  jobs, Node v24.21.0, 374/4627. Las ramas de la 73 se borraron tras `git cherry`.
+- **Una rama de la 74, sin mergear a propósito y sin pushear:** `docs/review-s74-diff-s73` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 71):
@@ -2471,6 +2475,10 @@ Alternativas legítimas:
   otra escritura llegó a pedir el turno y está esperando: si es lenta, «no escribió» vale igual, y
   la prueba pasa con el turno roto. Y un control que se lee después de abrir la puerta cuenta el
   paso, no la retención. Preguntá qué control dice que lo otro está EN LA COLA.
+- **Medí el corte, no solo una demora grande (sesión 74, `R9-297`, `R9-302`).** La 73 midió `tarde25`
+  y escribió «25 vueltas»; con `tarde1` (`_scratch/S74-sonda.cjs.txt`) ya caen la prueba de `R9-273`
+  y la de `R9-287`, esta con el diff exacto de `sinCola`: el margen de hoy es cero. Cuando una pieza
+  que demora tumba una prueba, bajá la demora hasta donde deja de tumbarla, y escribí ese número.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -2714,6 +2722,14 @@ Alternativas legítimas:
     bulk push entero (`R9-126`). Se decide midiendo, y se deja escrito.
   - **IMPLEMENTADOS en la sesión 53** (`ea182dc`, `a85df96`): el cómo está en las entradas de
     `R9-38` y `R9-59`, en `SyncEngine.queueWrite` y en `src/features/study/prepAccount.ts`.
+
+- **Decidido el 2026-10-07, tras la 73, con la recomendación de Claude** (escrito en la 74, también
+  en las entradas):
+  - **La corrección de la 71 en `R9-289` va SIN número.**
+  - **El arreglo de `R9-296`, cuando toque, PUEDE llevar un export solo para pruebas en
+    `src/features/study/prepAccount.ts`** (el gancho que cuenta los pedidos que esperan el turno,
+    como `__resetPrepAccountForTests`). Sin él, ninguna ventana de vueltas distingue «espera el
+    turno» de «es lenta».
 
 - **Las 2 preguntas que dejó abierta la sesión 3 están RESPONDIDAS** (ofrenda = premium para
   siempre; `R9-13` no está en producción). No las vuelvas a plantear.

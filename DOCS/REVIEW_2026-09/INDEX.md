@@ -841,8 +841,18 @@
 > (`R9-298`..`R9-301`).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **301**. Ramas `fix/s73-retenido-r292-r295` y
-> `docs/review-s73-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s73-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `64c4b88`, CI verde en
+> el log, run `37661765310`, 374/4627; corregido en la 74). Detalle:
 > `detail/S73-arreglos-r292-r295.md`.
+>
+> **Sesión 74 (2026-10-07): revisión del diff de la 73**, en un chat nuevo, en la terminal y sin
+> agentes, sin tocar código. Lo medido de la 73 se sostiene. 1 nuevo, P3: `R9-302` (la prueba de
+> `R9-287` cae con el diff exacto de `sinCola` si el store da UNA vuelta más antes de pedir el
+> turno; arreglo medido). Corrección en `R9-297` (basta una vuelta). Escritas las decisiones de
+> Victor sobre `R9-289` y `R9-296`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **302**. Rama `docs/review-s74-diff-s73`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S74-revision-del-diff-s73.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1668,6 +1678,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S73-arreglos-r292-r295.md`.**
   - **La lección:** «no pasó» no es «estaba esperando»: una prueba de invariante necesita un control
     de que lo otro está en la cola, no solo de que no corrió.
+
+- **Sesión 74 — 2026-10-07. Revisión del diff de la 73.** En un chat nuevo, en la terminal y sin
+  agentes, sin tocar código; arrancó con `_scratch/S74-PROMPT.md`.
+  - **Cómo se trabajó:** con los scripts de la 73 (`S73-turno1`, con `seRindeK` hasta 80;
+    `S73-a2m`; `S72-sonda2`) y uno nuevo, `_scratch/S74-sonda.cjs.txt` (pieza + archivos de prueba).
+  - **Resultado:** lo de la 73 se sostiene; 1 nuevo P3 (`R9-302`); corrección en `R9-297`; las
+    decisiones de Victor sobre `R9-289` y `R9-296`, escritas. No queda ningún P0 abierto.
+  - **Detalle: `detail/S74-revision-del-diff-s73.md`.**
+  - **La lección:** medí el corte, no solo una demora grande: «25 vueltas» era una de más; el margen
+    era cero.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

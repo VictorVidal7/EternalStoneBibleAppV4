@@ -1030,6 +1030,24 @@
 >   `R9-301` (`devolucionDosTurnos`, que solo ve `devuelta`, y `devuelta` da falsos rojos).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **301**. Detalle: `detail/S73-arreglos-r292-r295.md`.
+> Mergeada y pusheada con el OK de Victor (`main` = `64c4b88`, CI verde en el log, run
+> `37661765310`, 374/4627; corregido en la 74).
+>
+> **Sesión 74 (2026-10-07): revisión del diff de la 73**, en un chat nuevo, en la terminal y sin
+> agentes, sin tocar código. Rama `docs/review-s74-diff-s73` (solo docs), sin mergear hasta el OK de
+> Victor.
+>
+> - **Lo de la 73 se sostiene:** la prueba nueva de `R9-292` cae como dice el cierre; `colgadas`,
+>   también; `R9-296`..`R9-301`, re-medidos con sonda y control. Ninguno es P2 (el código de hoy
+>   está bien). El diff es solo `__tests__/backupPrepTurn.test.ts`.
+> - **1 nuevo, P3, de pruebas, no lo abrió la 73:** `R9-302` (la prueba de `R9-287` no tiene un
+>   control de que el store tenga el turno: con el store UNA vuelta más lento, cae con el diff exacto
+>   de `sinCola`). Arreglo medido, sin tocar código de la app.
+> - **Corregido:** `R9-297` (basta una vuelta, no 25: el margen de hoy es cero).
+> - **Decisiones de Victor escritas:** `R9-289` (la corrección de la 71, sin número) y `R9-296` (el
+>   arreglo puede llevar un export solo para pruebas en `prepAccount.ts`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **302**. Detalle: `detail/S74-revision-del-diff-s73.md`.
 
 ---
 
@@ -6631,6 +6649,9 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     corrió en el mismo tick que el pedido», no «esperaba el turno». Recomendación de la 72: sin número
     propio (la regresión de `R9-287`, el aviso dentro del turno, cae igual; lo que tiene consecuencia
     es `R9-293`), y reescribir ese comentario al arreglar `R9-293`. Sigue a criterio de Victor.
+  - **Decidido por Victor (2026-10-07, tras la 73, con la recomendación de Claude): la corrección de
+    la 71 va SIN número.** Escrito en la 74. Y el otro lado de esta misma prueba (el store más lento,
+    no el respaldo) sí lleva número: `R9-302`.
 
 - **`R9-290` (S69, pruebas / respaldo / Mesa — P3) — 🐛 el caso `muere` de la prueba de `R9-275`
   espera 20 vueltas fijas a que el respaldo llegue a la devolución, y sus controles no lo dicen: con
@@ -6903,6 +6924,16 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
     (nombra el caso no construido), y `nada` y `tardeDentro25` pasan. Toca código de la app (un
     export solo para pruebas, como `__resetPrepAccountForTests`): sin él, ninguna ventana finita
     distingue «espera el turno» de «es lenta».
+  - **Decidido por Victor (2026-10-07, tras la 73, con la recomendación de Claude): el arreglo,
+    cuando toque, PUEDE llevar ese export solo para pruebas en `src/features/study/prepAccount.ts`**
+    (el gancho que cuenta los pedidos que esperan el turno). Escrito en la 74.
+  - **Sesión 74: se sostiene** (`S73-turno1 <pieza> prep`): `sueltaAntes5TardeDentro25`,
+    `turnoSoloGoneTardeDentro25` y `tardeDentro25` pasan 6/6; `sueltaAntes5Tarde20` tumba la prueba
+    de `R9-292` y `Tarde21` no (sigue cayendo la de `R9-273`). El prototipo (piezas `…G`, forma
+    `enEspera`), re-medido: `nadaG` y `tardeDentro25G` pasan; `sueltaAntes5G`,
+    `sueltaAntes5TardeDentro25G` y `turnoSoloGoneTardeDentro25G` caen en «la otra no espera el turno:
+    0»; `tarde25G`, también (más `R9-273` y `R9-287`). El gancho no cubre un «se rinde» por tiempo
+    (`seRinde60`: la otra está esperando cuando se mira).
 
 - **`R9-297` (S73, pruebas / respaldo / Mesa — P3) — 🐛 en la prueba de `R9-273`, `retenida` se lee
   al final, después de abrir: con la otra escritura más lenta y el código bueno, cae con el síntoma
@@ -6919,6 +6950,13 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
     a que la otra escritura quede retenida ANTES de pedir el respaldo, y leer `retenida` ahí. `nada`
     pasa; con `tarde25`, la prueba de `R9-273` pasa; con `tarde45`, cae en `retenida: 0`; `sinTurno`,
     como hoy. No arregla `R9-287` con `tarde25`.
+  - **⚠️ Sesión 74, corrección: no hacen falta 25 vueltas, basta UNA** (`_scratch/S74-sonda.cjs.txt
+tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes de pedir el turno). La
+    prueba de `R9-273` cae en su caso `store` con `antesDeAbrir: true` y `sinCuenta: [P, R]`, y los
+    controles `retenida: 1` y `turnoPedido: 1` sin diff (el caso `union` pasa con 1 vuelta). Hoy el
+    margen es de cero vueltas. Re-medido además `tarde25`: el diff de la entrada.
+  - **Sesión 74: la caída de `R9-287` con `tarde25`, caracterizada:** es el diff exacto de `sinCola`,
+    y ya con `tarde1`. Tiene número propio y arreglo medido: `R9-302`.
 
 - **`R9-298` (S73, pruebas / respaldo / Mesa — P3) — 🐛 con `gone` calculado fuera del turno
   (`goneFuera`), lo restaurado queda bajo el uid borrado, y ninguna prueba lo ve.** MEDIDO por el
@@ -6937,6 +6975,11 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
     vuelo.
   - **Arreglo (hipótesis):** sumar el caso de la sonda `cola` a la prueba de `R9-275` o a la de
     `R9-292`.
+  - **Sesión 74: se sostiene** (`S73-a2m goneFuera sonda=S73-a2-cola.test.ts.txt`: `ana: [Ps/23/1-6]`;
+    sin pieza pasa; `prep`, 6/6). De las cuatro (`R9-298`..`R9-301`), es la que alguien escribiría
+    más fácil: la cabecera de `prepMultiSet` dice «Its keys are resolved before asking», y `gone` sale
+    de las claves. El arreglo puede sumar a esa cabecera que `givenBack` se lee DENTRO del turno, como
+    dice la de `prepWrite` («by the time the turn comes»).
 
 - **`R9-299` (S73, pruebas / respaldo / Mesa — P3) — 🐛 con el turno de `prepMultiSet` partido en
   dos y la nota en medio (`notaFuera`), lo restaurado queda bajo el uid borrado, y ninguna prueba lo
@@ -6968,6 +7011,11 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
   - **¿Lo abrió la 73?** No. P3.
   - **Arreglo (hipótesis):** un P en conflicto en `durante` de `R9-275` o en `devolucion` de
     `R9-292`.
+  - **Sesión 74: se sostiene** (`sonda=S73-a2-conflicto.test.ts.txt`: `ana: [John/3/16-21]` y el P
+    de la «sin cuenta», `de Ana`). Y el gemelo está vigilado: sin el `true` en la devolución de
+    `releasePrepAccount` (`giveBack`, `giveBackSinSourceGoes` en `_scratch/S74-sonda.cjs.txt`), cae
+    la prueba de R9-59 de `prepAccount.test.ts` («…al borrar la cuenta vuelve»). Lo que nadie ve es
+    solo la devolución del respaldo.
 
 - **`R9-301` (S73, pruebas / respaldo / Mesa — P3) — 🐛 `devolucionDosTurnos` solo la ve la sonda
   `devuelta`, y `devuelta` tal cual da falsos rojos con devoluciones benignas.** MEDIDO por el agente
@@ -6988,6 +7036,33 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
   - **¿Lo abrió la 73?** No: es lo que dejó sin sumar de la hipótesis de `R9-294`. P3, poco
     plausible.
   - **Arreglo (hipótesis):** sumar `devuelta2` a la prueba de `R9-292` o a la de `R9-275`.
+
+- **`R9-302` (S74, pruebas / respaldo — P3) — 🐛 la prueba de `R9-287` no tiene un control de que
+  el store tenga el turno: con el store UNA vuelta más lento (el código bueno), cae con el mismo diff
+  que `sinCola`, controles incluidos.** MEDIDO en el árbol principal (`_scratch/S74-sonda.cjs.txt
+<pieza> __tests__/backupRestoreSignal.test.ts -t R9-287`). Lo abrió la 67 (`8c168fb`); la 73 no
+  tocó ese archivo. Es lo que `R9-297` dejó «sin caracterizar».
+  - La prueba (`backupRestoreSignal.test.ts:193`) pide la escritura de un store con
+    `prepWrite(…, () => puerta)` y enseguida el respaldo, sin esperar a que el store tome el turno. Hoy
+    lo toma antes, por microtareas.
+  - Pieza `tarde1` (código bueno): `prepWrite` da 1 vuelta de `setImmediate` antes de pedir el turno.
+    Cae con `mazoPedidoAntesDeAbrir: 1`, `terminadoAntesDeAbrir: true` y `fin: John/3/16` antes de
+    abrir, con `turnoPedidoAntesDeAbrir: 1`. Es el diff exacto de `sinCola` (`prepMultiSet` sin el
+    turno; re-medido con `S73-turno1 sinCola prep`). Con `tarde2`, `tarde3`, `tarde25` y `tarde45`,
+    lo mismo. Los dos controles que caen («el multiSet esperaba el turno», «el respaldo seguía
+    esperando») caen igual en la regresión: el rojo dice dos cosas, como el de `R9-289` del otro
+    lado (allí el respaldo lento; aquí el store).
+  - En el suite se distinguen: `sinCola` tumba también la prueba de `R9-292`, y `tarde1` no (tumba la
+    de `R9-273`, en su caso `store`: `R9-297`). Ningún verde falso: con la regresión, cae igual.
+  - P3: solo el diagnóstico de una prueba, con margen 0. Una espera de una macrotarea en `prepWrite`
+    antes del turno basta para el rojo engañoso.
+  - **Arreglo (hipótesis, medida):** que la función del store marque que entró
+    (`() => { dentro = true; return puerta; }`), esperar hasta 40 vueltas a esa marca antes de pedir
+    el respaldo, y un control `otraConElTurno: true` (la forma `f287`). Sin pieza pasa; con `tarde1`
+    y `tarde25`, pasa; con `tarde45`, cae en `otraConElTurno: false`; `sinCola` cae como hoy (el
+    control en `true`); `lento`, en `turnoPedidoAntesDeAbrir: 0`, como hoy; `enTurno` (la regresión
+    de `R9-287`), en los avisos, el mismo diff que sin la forma. No toca código de la app (a
+    diferencia de `R9-296`, aquí la marca la da la propia función del store).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
