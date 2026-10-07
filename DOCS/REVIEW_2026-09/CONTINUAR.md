@@ -1,16 +1,17 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 72.** La 72 hizo el (az) en un chat nuevo,
-> en la terminal, con 3 agentes en worktree que solo midieron (a pedido de Victor), sin tocar
-> código. Lo medido de `R9-291` y `R9-290` se sostiene. Registró 3 nuevos P3, de pruebas: `R9-293`
-> (`turnoPedido` cuenta el pedido, no la escritura), `R9-294` (`turnoSoloGone` pasa las 998 y pierde
-> lo restaurado) y `R9-295` (lo abrió la 71: `colgadas` cuenta un colgado que no es la devolución
-> del respaldo). Corrigió `R9-289`..`R9-292`.
+> **Última actualización: 2026-10-07, fin de la sesión 73.** La 73 hizo el (ba) en el mismo chat que
+> la 72, en la terminal, con 3 agentes en worktree que solo midieron (Victor pidió 7 y eligió la
+> recomendación). Cerró `R9-292`, `R9-293` y `R9-294` (una prueba nueva: con la escritura del
+> respaldo retenida, ninguna otra escritura de la Mesa corre) y `R9-295` (`colgadas` dice QUÉ se
+> colgó); dos huecos de la prueba nueva, vistos por los agentes, se cerraron antes del checkpoint.
+> Registró 6 nuevos P3, de pruebas, ninguno abierto por ella: `R9-296` («no escribió» no es «esperaba
+> el turno»), `R9-297`, y cuatro regresiones del camino de la devolución (`R9-298`..`R9-301`).
 >
-> La 71 ya está mergeada y pusheada (`main` = `863747d`, CI verde en el log, run `37582666564`,
-> 374/4626). La rama de la 72 (`docs/review-s72-diff-s71`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 295 hallazgos. **Lo siguiente:** la 73 arregla
-> `R9-292`..`R9-295` (mensaje (ba), en `_scratch/S73-PROMPT.md`).
+> La 72 ya está mergeada y pusheada (`main` = `f6c1c3c`, CI verde en el log, run `37655696021`,
+> 374/4626). Las ramas de la 73 (`fix/s73-retenido-r292-r295` y `docs/review-s73-fix`) van **sin
+> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 301 hallazgos. **Lo
+> siguiente:** la 74 revisa el diff de la 73 (mensaje (bb), en `_scratch/S74-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -503,12 +504,16 @@ nuevo y sin agentes, con `_scratch/S69-PROMPT.md`). Y la revisión del diff de l
 sesión 70, en el mismo chat, con `_scratch/S70-PROMPT.md`). Y sus arreglos (la (ay), sesión 71, en
 el mismo chat con 2 agentes que solo midieron, con `_scratch/S71-PROMPT.md`). Y la revisión del
 diff de la 71 (la (az), sesión 72, en un chat nuevo con 3 agentes que solo midieron, con
-`_scratch/S72-PROMPT.md`). **Lo siguiente es el (ba).**
+`_scratch/S72-PROMPT.md`). Y sus arreglos (la (ba), sesión 73, en el mismo chat con 3 agentes que
+solo midieron, con `_scratch/S73-PROMPT.md`). **Lo siguiente es el (bb).**
 
-**(ba) Sesión 73: arreglar `R9-292`..`R9-295`** (solo pruebas, en `backupPrepTurn.test.ts`: la
-sonda `retenido` para `R9-292`, `R9-293` y `R9-294`; el caso `devuelta` en la prueba de `R9-275`; y
-`colgadaCon` para `R9-295`). El mensaje está en `_scratch/S73-PROMPT.md`, que manda sobre este
-archivo.
+**(bb) Sesión 74: revisar el diff de la 73** (`R9-292`..`R9-295`: la prueba nueva de
+`backupPrepTurn.test.ts` y `colgadas` con el contenido; y las entradas nuevas `R9-296`..`R9-301`).
+El mensaje está en `_scratch/S74-PROMPT.md`, que manda sobre este archivo.
+
+**(ba) Sesión 73: arreglar lo de la 72 — ya HECHO en la sesión 73, en el mismo chat, con 3 agentes
+en worktree que solo midieron.** Cerrados `R9-292`..`R9-295`; seis nuevos P3 (`R9-296`..`R9-301`).
+El mensaje está en `_scratch/S73-PROMPT.md`.
 
 **(az) Sesión 72: revisar el diff de la 71 — ya HECHO en la sesión 72, en un chat nuevo, con 3
 agentes en worktree que solo midieron.** Tres nuevos P3 (`R9-293`, `R9-294`, `R9-295`) y
@@ -1972,14 +1977,15 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 72 (2026-10-07).**
+**Medido al cerrar la sesión 73 (2026-10-07).**
 
-- **`main` = `origin/main` = `863747d`** (el checkpoint de la 71; el último código en `main` es
-  `82bdc07`, la prueba de `R9-290`). **CI verificado en el log** en la 71: run `37582666564`, 3
-  jobs, Node v24.21.0, 374/4626. Las ramas de la 71 se borraron tras `git cherry`.
-- **Una rama de la 72, sin mergear a propósito y sin pushear:** `docs/review-s72-diff-s71` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno (los de los 3 agentes de la 72 se quitaron, con sus ramas).
+- **`main` = `origin/main` = `f6c1c3c`** (el checkpoint de la 72; el último código en `main` es
+  `82bdc07`, la prueba de `R9-290`). **CI verificado en el log** en la 72: run `37655696021`, 3
+  jobs, Node v24.21.0, 374/4626. La rama de la 72 se borró tras `git cherry`.
+- **Dos ramas de la 73, sin mergear a propósito y sin pushear:** `fix/s73-retenido-r292-r295`
+  (`38a98da`, `cfaa004`, `abe6099`, `9c43e22`; solo pruebas) y `docs/review-s73-fix` encima (solo
+  docs). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 73 se quitaron a mano, con sus ramas).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 71):
@@ -2460,6 +2466,11 @@ Alternativas legítimas:
   `_scratch` está en `.gitignore` y no cuenta como cambio: al agente 1 se le perdieron las sondas.
   En el prompt, pedí desde el principio que copie su `_scratch` al principal con `cp` antes de
   terminar.
+- **«No pasó» no es «estaba esperando» (sesión 73, `R9-296`, `R9-297`).** Una prueba de invariante
+  («mientras la escritura del respaldo está en vuelo, ninguna otra corre») ve la regresión solo si la
+  otra escritura llegó a pedir el turno y está esperando: si es lenta, «no escribió» vale igual, y
+  la prueba pasa con el turno roto. Y un control que se lee después de abrir la puerta cuenta el
+  paso, no la retención. Preguntá qué control dice que lo otro está EN LA COLA.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

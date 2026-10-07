@@ -828,8 +828,21 @@
 > cuenta se borra durante la restauración) y `R9-295` (lo abrió la 71: `colgadas` cuenta la
 > devolución del borrado como si fuera la del respaldo). Correcciones en `R9-289`..`R9-292`.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **295**. Rama `docs/review-s72-diff-s71`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S72-revision-del-diff-s71.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **295**. Rama `docs/review-s72-diff-s71`: mergeada y
+> pusheada con el OK de Victor (`main` = `f6c1c3c`, CI verde en el log, run `37655696021`, 374/4626;
+> corregido en la 73). Detalle: `detail/S72-revision-del-diff-s71.md`.
+>
+> **Sesión 73 (2026-10-07): arreglos de lo de la 72**, en el mismo chat, en la terminal, con 3
+> agentes en worktree que solo midieron. Cerrados `R9-292`, `R9-293` y `R9-294` (una prueba nueva:
+> con la escritura del respaldo retenida, ninguna otra escritura de la Mesa corre) y `R9-295`
+> (`colgadas` dice QUÉ se colgó). Dos huecos de la prueba nueva, vistos por los agentes, cerrados
+> antes del checkpoint. 6 nuevos, P3, ninguno abierto por la 73: `R9-296` («no escribió» no es
+> «esperaba el turno»), `R9-297`, y cuatro regresiones del camino de la devolución que pasan las 999
+> (`R9-298`..`R9-301`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **301**. Ramas `fix/s73-retenido-r292-r295` y
+> `docs/review-s73-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S73-arreglos-r292-r295.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1642,6 +1655,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S72-revision-del-diff-s71.md`.**
   - **La lección:** un control de llegada tiene que nombrar QUÉ llegó: el pedido no es la escritura,
     y un colgado de la clave no es la devolución del respaldo.
+
+- **Sesión 73 — 2026-10-07. Arreglos de lo de la 72** (`R9-292`..`R9-295`). En el mismo chat, en la
+  terminal, con 3 agentes en worktree que solo midieron (Victor pidió 7 y eligió la recomendación);
+  arrancó con `_scratch/S73-PROMPT.md`.
+  - **Cómo se trabajó:** el orquestador escribió y midió los arreglos (`_scratch/S73-turno.cjs.txt`);
+    los agentes buscaron romperlos, con las herramientas copiadas por `S73-copiar.cjs.txt`, y
+    copiaron su `_scratch` al principal antes de terminar. Lo suyo se re-midió en el árbol principal
+    (`S73-turno1.cjs.txt`, `S73-a2m.cjs.txt`). `validate`, sin worktrees.
+  - **Resultado:** 4 cerrados; 2 huecos de la prueba nueva cerrados antes del checkpoint; 6 nuevos
+    P3 (`R9-296`..`R9-301`). No queda ningún P0 abierto.
+  - **Detalle: `detail/S73-arreglos-r292-r295.md`.**
+  - **La lección:** «no pasó» no es «estaba esperando»: una prueba de invariante necesita un control
+    de que lo otro está en la cola, no solo de que no corrió.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
