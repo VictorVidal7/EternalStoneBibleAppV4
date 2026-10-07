@@ -851,8 +851,17 @@
 > turno; arreglo medido). Corrección en `R9-297` (basta una vuelta). Escritas las decisiones de
 > Victor sobre `R9-289` y `R9-296`.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **302**. Rama `docs/review-s74-diff-s73`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S74-revision-del-diff-s73.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **302**. Rama `docs/review-s74-diff-s73`: mergeada y
+> pusheada con el OK de Victor (`main` = `bc845c0`, CI verde en el log, run `37667723424`, 374/4627;
+> corregido en la 75). Detalle: `detail/S74-revision-del-diff-s73.md`.
+>
+> **Sesión 75 (2026-10-07): arreglos de lo de la 74**, en un chat nuevo, en la terminal, con 2
+> agentes en worktree que solo midieron. Cerrados `R9-302` (la prueba de `R9-287` espera a que el
+> store tenga el turno) y `R9-303` (lo que esa espera le quitó: un turno tomado con el respaldo ya
+> empezado; ahora un caso `durante`). 2 nuevos, P3, de pruebas: `R9-304` y `R9-305`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **305**. Ramas `fix/s75-r302-store-con-el-turno` y
+> `docs/review-s75-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S75-arreglos-r302.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1688,6 +1697,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S74-revision-del-diff-s73.md`.**
   - **La lección:** medí el corte, no solo una demora grande: «25 vueltas» era una de más; el margen
     era cero.
+
+- **Sesión 75 — 2026-10-07. Arreglos de lo de la 74.** En un chat nuevo, en la terminal, con 2
+  agentes en worktree que solo midieron; arrancó con `_scratch/S75-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S75-sonda.cjs.txt` (corridas con `+`; `archivo`, `prep` o
+    `suite`) y `S75-sonda1.cjs.txt` (la del agente 1, con `de<sha>` y `antesSqliteK`); herramientas a
+    los agentes con `S75-copiar.cjs.txt`.
+  - **Resultado:** cerrados `R9-302` y `R9-303` (`a808c29`, `125736b`, solo
+    `backupRestoreSignal.test.ts`); 2 nuevos P3 (`R9-304`, `R9-305`). No queda ningún P0 abierto.
+  - **Detalle: `detail/S75-arreglos-r302.md`.**
+  - **La lección:** una espera que ordena dos cosas se lleva la cobertura del otro orden: construilo
+    como su propio caso, con una puerta.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

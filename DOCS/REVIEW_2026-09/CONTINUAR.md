@@ -1,17 +1,18 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 74.** La 74 hizo el (bb) en un chat nuevo, en
-> la terminal y sin agentes, sin tocar código: revisó el diff de la 73. Lo medido de la 73 se
-> sostiene (la prueba nueva de `R9-292`, `colgadas`, y `R9-296`..`R9-301`, ninguno P2). Registró 1
-> nuevo P3, de pruebas, que no abrió la 73: `R9-302` (la prueba de `R9-287` cae con el diff exacto de
-> `sinCola` si el store da UNA vuelta más; arreglo medido). Corrigió `R9-297` (basta una vuelta,
-> no veinticinco) y escribió las dos decisiones de Victor de tras la 73 (`R9-289`, `R9-296`; ver la
-> §7).
+> **Última actualización: 2026-10-07, fin de la sesión 75.** La 75 hizo el (bc) en un chat nuevo, en
+> la terminal, con 2 agentes en worktree que solo midieron (los pidió Victor). Cerró `R9-302` (la
+> prueba de `R9-287` espera a que el store tenga el turno, con el control `otraConElTurno`) y
+> `R9-303`: esa espera le quitaba a la prueba el caso de un turno tomado con el respaldo ya empezado
+> (lo vio el agente 1), y ahora es un caso propio, `durante`, con el respaldo retenido en SQLite.
+> Registró 2 nuevos P3, de pruebas: `R9-304` (el control nuevo dice «la función del store corrió»,
+> no «tiene el turno»; lo abrió la 75) y `R9-305` (`prepSeriesDetailScreen.test.tsx` con `prepWrite`
+> más lento; de T8.4.4).
 >
-> La 73 ya está mergeada y pusheada (`main` = `64c4b88`, CI verde en el log, run `37661765310`,
-> 374/4627). La rama de la 74 (`docs/review-s74-diff-s73`, solo docs) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 302 hallazgos. **Lo siguiente:** la 75 arregla lo de
-> la 74 (mensaje (bc), en `_scratch/S75-PROMPT.md`).
+> La 74 ya está mergeada y pusheada (`main` = `bc845c0`, CI verde en el log, run `37667723424`,
+> 374/4627). Las ramas de la 75 (`fix/s75-r302-store-con-el-turno` y `docs/review-s75-fix`) van
+> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 305 hallazgos. **Lo
+> siguiente:** la 76 revisa el diff de la 75 (mensaje (bd), en `_scratch/S76-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -506,11 +507,17 @@ el mismo chat con 2 agentes que solo midieron, con `_scratch/S71-PROMPT.md`). Y 
 diff de la 71 (la (az), sesión 72, en un chat nuevo con 3 agentes que solo midieron, con
 `_scratch/S72-PROMPT.md`). Y sus arreglos (la (ba), sesión 73, en el mismo chat con 3 agentes que
 solo midieron, con `_scratch/S73-PROMPT.md`). Y la revisión del diff de la 73 (la (bb), sesión 74,
-en un chat nuevo y sin agentes, con `_scratch/S74-PROMPT.md`). **Lo siguiente es el (bc).**
+en un chat nuevo y sin agentes, con `_scratch/S74-PROMPT.md`). Y sus arreglos (la (bc), sesión 75,
+en un chat nuevo con 2 agentes que solo midieron, con `_scratch/S75-PROMPT.md`). **Lo siguiente es
+el (bd).**
 
-**(bc) Sesión 75: arreglar lo de la 74** (`R9-302`, la prueba de `R9-287` con el control de que el
-store tiene el turno; y, si Victor lo pide, `R9-296`/`R9-297`). El mensaje está en
-`_scratch/S75-PROMPT.md`, que manda sobre este archivo.
+**(bd) Sesión 76: revisar el diff de la 75** (`R9-302` y `R9-303`: la prueba de `R9-287` con la
+espera del store y el caso `durante`; y las entradas nuevas `R9-304` y `R9-305`). El mensaje está en
+`_scratch/S76-PROMPT.md`, que manda sobre este archivo.
+
+**(bc) Sesión 75: arreglar lo de la 74 — ya HECHO en la sesión 75, en un chat nuevo, con 2 agentes
+en worktree que solo midieron.** Cerrados `R9-302` y `R9-303`; dos nuevos P3 (`R9-304`, `R9-305`).
+El mensaje está en `_scratch/S75-PROMPT.md`.
 
 **(bb) Sesión 74: revisar el diff de la 73 — ya HECHO en la sesión 74, en un chat nuevo, en la
 terminal y sin agentes.** Un nuevo P3 (`R9-302`), una corrección en `R9-297`, y las decisiones de
@@ -1982,14 +1989,16 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 74 (2026-10-07).**
+**Medido al cerrar la sesión 75 (2026-10-07).**
 
-- **`main` = `origin/main` = `64c4b88`** (el checkpoint de la 73; el último código en `main` es
-  `9c43e22`, la prueba de `R9-292`). **CI verificado en el log** en la 73: run `37661765310`, 3
-  jobs, Node v24.21.0, 374/4627. Las ramas de la 73 se borraron tras `git cherry`.
-- **Una rama de la 74, sin mergear a propósito y sin pushear:** `docs/review-s74-diff-s73` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno.
+- **`main` = `origin/main` = `bc845c0`** (el checkpoint de la 74, solo docs; el último código en
+  `main` es `9c43e22`, la prueba de `R9-292`). **CI verificado en el log** en la 74: run
+  `37667723424`, 3 jobs, Node v24.21.0, 374/4627. La rama de la 74 se borró tras `git cherry`.
+- **Dos ramas de la 75, sin mergear a propósito y sin pushear:** `fix/s75-r302-store-con-el-turno`
+  (`a808c29`, `125736b`; solo `__tests__/backupRestoreSignal.test.ts`) y `docs/review-s75-fix`
+  encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las
+  incluye.
+- **Los worktrees:** ninguno (los de los 2 agentes de la 75 se quitaron a mano, con sus ramas).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 71):
@@ -2479,6 +2488,13 @@ Alternativas legítimas:
   y escribió «25 vueltas»; con `tarde1` (`_scratch/S74-sonda.cjs.txt`) ya caen la prueba de `R9-273`
   y la de `R9-287`, esta con el diff exacto de `sinCola`: el margen de hoy es cero. Cuando una pieza
   que demora tumba una prueba, bajá la demora hasta donde deja de tumbarla, y escribí ese número.
+- **Una espera que ordena dos cosas se lleva la cobertura del otro orden (sesión 75, `R9-303`).** La
+  prueba de `R9-287` veía «un turno tomado con el respaldo ya empezado» por una carrera de
+  microtareas, la misma que daba su rojo engañoso (`R9-302`). Al esperar al store, el arreglo cerró
+  la carrera y con ella esa cobertura, y ninguna de las 999 la tenía (`drenaAlInicio`, del agente
+  que buscaba romperlo). Cuando un arreglo fija un orden que antes era una carrera, corré la prueba
+  vieja contra las regresiones del otro orden, y construí ese orden como su propio caso, con una
+  puerta (`durante`, con el respaldo retenido en SQLite).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
