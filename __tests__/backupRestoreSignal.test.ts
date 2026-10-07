@@ -197,7 +197,18 @@ it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
   const turno = jest.spyOn(prepAccount, 'prepMultiSet');
   let abrir!: () => void;
   const puerta = new Promise<void>(r => (abrir = r));
-  const store = prepWrite(Promise.resolve('@prep_notes'), () => puerta);
+  // Se espera a que el store este DENTRO de su turno antes de pedir el
+  // respaldo: con `prepWrite` una vuelta mas lento, el respaldo tomaba el turno
+  // primero, y el rojo era el de un `multiSet` sin turno (R9-302).
+  let dentro = false;
+  const store = prepWrite(Promise.resolve('@prep_notes'), () => {
+    dentro = true;
+    return puerta;
+  });
+  for (let i = 0; i < 40 && !dentro; i++) {
+    await new Promise(r => setImmediate(r));
+  }
+  const otraConElTurno = dentro;
   const ms = AsyncStorage.multiSet as jest.Mock;
   const antes = ms.mock.calls.length;
   let terminado = false;
@@ -227,12 +238,14 @@ it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
   // abrir: lo que el mazo escribia mientras tanto corria antes del `multiSet`,
   // y el respaldo lo borraba (lo midio la sonda TURNO, R9-287).
   expect({
+    otraConElTurno,
     turnoPedidoAntesDeAbrir,
     vistosAntesDeAbrir,
     mazoPedidoAntesDeAbrir,
     terminadoAntesDeAbrir,
     vistos,
   }).toEqual({
+    otraConElTurno: true, // CONTROL: el store ya tenia el turno
     turnoPedidoAntesDeAbrir: 1, // CONTROL: el respaldo pidio el turno
     vistosAntesDeAbrir: ['inicio: Luke/2/1'],
     mazoPedidoAntesDeAbrir: 0, // CONTROL: el multiSet esperaba el turno
