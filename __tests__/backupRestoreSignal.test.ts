@@ -58,6 +58,7 @@ import {
   __resetPrepAccountForTests,
   prepWrite,
 } from '../src/features/study/prepAccount';
+import * as prepAccount from '../src/features/study/prepAccount';
 
 const JOHN = {
   verseKey: 'John/3/16',
@@ -193,6 +194,7 @@ it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
   // Una escritura de la Mesa tiene el turno: `prepMultiSet` espera, y el
   // `multiSet` del respaldo no se pide hasta abrir la puerta.
   __resetPrepAccountForTests();
+  const turno = jest.spyOn(prepAccount, 'prepMultiSet');
   let abrir!: () => void;
   const puerta = new Promise<void>(r => (abrir = r));
   const store = prepWrite(Promise.resolve('@prep_notes'), () => puerta);
@@ -202,9 +204,14 @@ it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
   const respaldo = importBackup(respaldoConMazo()).then(
     () => (terminado = true),
   );
-  for (let i = 0; i < 20 && vistos.length === 0; i++) {
+  // Se espera a que el respaldo pida el turno, no al aviso: esperando el
+  // aviso, su falta daba el mismo rojo con el aviso dentro del turno que con
+  // un respaldo que no llego al turno en estas vueltas (R9-289).
+  for (let i = 0; i < 20 && turno.mock.calls.length === 0; i++) {
     await new Promise(r => setImmediate(r));
   }
+  const turnoPedidoAntesDeAbrir = turno.mock.calls.length;
+  turno.mockRestore();
   const vistosAntesDeAbrir = [...vistos];
   const mazoPedidoAntesDeAbrir = ms.mock.calls
     .slice(antes)
@@ -220,11 +227,13 @@ it('R9-287: con la Mesa en su turno, avisa antes de esperarlo', async () => {
   // abrir: lo que el mazo escribia mientras tanto corria antes del `multiSet`,
   // y el respaldo lo borraba (lo midio la sonda TURNO, R9-287).
   expect({
+    turnoPedidoAntesDeAbrir,
     vistosAntesDeAbrir,
     mazoPedidoAntesDeAbrir,
     terminadoAntesDeAbrir,
     vistos,
   }).toEqual({
+    turnoPedidoAntesDeAbrir: 1, // CONTROL: el respaldo pidio el turno
     vistosAntesDeAbrir: ['inicio: Luke/2/1'],
     mazoPedidoAntesDeAbrir: 0, // CONTROL: el multiSet esperaba el turno
     terminadoAntesDeAbrir: false, // CONTROL: el respaldo seguia esperando
