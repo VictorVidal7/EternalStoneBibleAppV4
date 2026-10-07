@@ -978,8 +978,9 @@
 >
 > **Sesión 71 (2026-10-07): ARREGLOS de lo de la 70**, en el mismo chat, en la terminal, con 2
 > agentes en worktree que solo midieron (a pedido de Victor). Rama `fix/s71-llegada-r290-r291`
-> (`b5164d7`, `82bdc07`; solo pruebas) y `docs/review-s71-fix` encima, sin mergear hasta el OK de
-> Victor.
+> (`b5164d7`, `82bdc07`; solo pruebas) y `docs/review-s71-fix` encima: mergeadas y pusheadas con el
+> OK de Victor (`main` = `863747d`, CI verde en el log, run `37582666564`, 374/4626; corregido en la
+> 72).
 >
 > - **Cerrados (2):** `R9-291` (un control `turnoPedido` en la prueba de `R9-273`; `lentoSinTurno`
 >   ya no pasa) y `R9-290` (un control `colgadas` en `muere`, con 20 vueltas de margen después; la
@@ -990,6 +991,26 @@
 > - **Corregido en `R9-289`:** lo que dijo la 70 de los tres controles no vale con `sinColaLento`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **292**. Detalle: `detail/S71-arreglos-r290-r291.md`.
+>
+> **Sesión 72 (2026-10-07): revisión del diff de la 71**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron (a pedido de Victor). Sin tocar código. El diff de la 71 es
+> solo la prueba (`git diff --stat 8c4fc9a 82bdc07`: `__tests__/backupPrepTurn.test.ts`, +30 −5).
+> Rama `docs/review-s72-diff-s71`, sin mergear hasta el OK de Victor.
+>
+> - **Se sostiene, como lo dice el cierre:** lo medido de `R9-291` y de `R9-290` (las tablas de la
+>   71, re-corridas pieza por pieza). El spy de `turnoPedido` no cuenta hoy otra llamada que la del
+>   respaldo.
+> - **3 nuevos, P3, de pruebas:** `R9-293` (la prueba de `R9-273` pasa con `prepMultiSet` sin turno
+>   si la escritura llega 20 vueltas o más DESPUÉS del pedido: `turnoPedido` cuenta el pedido),
+>   `R9-294` (`turnoSoloGone`, una regresión natural del turno, pasa las 998 y pierde lo restaurado
+>   si la cuenta se borra durante la restauración) y `R9-295` (lo abrió la 71: `colgadas` dice 1 con
+>   la devolución de `releasePrepAccount` colgada, no la del respaldo).
+> - **Corregidos:** `R9-292` (la sonda `suelta` de la 71 no retenía la unión: el daño real es la
+>   pérdida entera de lo restaurado), `R9-291` (cerrado solo para la demora ANTES del pedido) y
+>   `R9-290` (el margen de 20 vueltas tiene un límite, como cualquiera; la 71 lo corrió de 19 a 20).
+>   Lo de `R9-289` se sostiene; la recomendación es dejarlo sin número.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **295**. Detalle: `detail/S72-revision-del-diff-s71.md`.
 
 ---
 
@@ -6584,6 +6605,13 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     es un verde falso de su regresión (con el aviso dentro, `sinColaLentoEnTurno`, cae en los
     avisos), y la prueba de `R9-273` ve la pieza. Pero ese comentario de control afirma algo que la
     prueba no ve. Sin número: queda a criterio de Victor.
+  - **Sesión 72: la corrección se sostiene** (agente 1: `sinColaLento archivo`, 3/3;
+    `sinColaLentoEnTurno`, cae en los avisos). Pero su apoyo, «la prueba de `R9-273` ve la pieza»,
+    vale solo si el respaldo escribe antes de la vuelta 20: con 20 o más, pasan las dos (`R9-293`). Y
+    `mazoPedidoAntesDeAbrir: 0` se lee en la vuelta en que se cuenta el pedido: dice «el `multiSet` no
+    corrió en el mismo tick que el pedido», no «esperaba el turno». Recomendación de la 72: sin número
+    propio (la regresión de `R9-287`, el aviso dentro del turno, cae igual; lo que tiene consecuencia
+    es `R9-293`), y reescribir ese comentario al arreglar `R9-293`. Sigue a criterio de Victor.
 
 - **`R9-290` (S69, pruebas / respaldo / Mesa — P3) — 🐛 el caso `muere` de la prueba de `R9-275`
   espera 20 vueltas fijas a que el respaldo llegue a la devolución, y sus controles no lo dicen: con
@@ -6625,6 +6653,18 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     - **Queda dicho, sin número:** `colgadas` cuenta cualquier `multiSet` de `@prep_notes`. Con una
       escritura extra de la Mesa «sin cuenta» antes de la devolución y la nota quitada antes
       (`toqueYNota`), pasan la versión vieja y la nueva. Exige una escritura que el código no tiene.
+  - **⚠️ Sesión 72** (agente 2, re-medido con `_scratch/S72-sonda2.cjs.txt`): el cierre se sostiene
+    tal como está escrito. Tres cosas más:
+    - **El margen tiene un límite, como cualquiera.** Con la nota quitada mientras la devolución
+      cuelga, N vueltas después (`notaColgadaN`, un «se rinde» con plazo), la final cae hasta N = 20 y
+      pasa desde 21; la vieja, hasta 19. La 71 corrió el corte una vuelta: no lo abrió. Ninguna pieza
+      cae en la vieja y pasa en la final (`vigia19`, `vigia20`): la ventana nueva contiene a la vieja.
+      La versión real de un «se rinde» sería un temporizador, que ninguna prueba de vueltas ve.
+      Dicho, sin número.
+    - **Los casos de un mismo `it` no están aislados:** una cadena suelta de `durante` corre dentro
+      de `muere` (por eso `notaTarde21`, `25` y `40` caen, y `notaColgada21` en adelante pasan). No
+      esconde nada medido. Dicho, sin número.
+    - **`colgadas` miente con una escritura que el código SÍ tiene:** `R9-295`.
 
 - **`R9-291` (S70, pruebas / respaldo / Mesa — P3) — 🐛 la prueba de `R9-273` pasa con su propia
   regresión cuando el respaldo es más lento que sus 20 vueltas: su vuelta espera el daño, y su
@@ -6658,6 +6698,14 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
       pasa. El spy no toca las otras pruebas (agente 1, con el orden cambiado y el control
       `sinRestore`).
     - El agente 1 encontró además `R9-292`.
+  - **⚠️ Sesión 72, corrección: cerrado solo para la demora ANTES del pedido.** Con `prepMultiSet`
+    sin turno y la escritura 20 vueltas o más DESPUÉS del pedido (`sinColaLento20`, `25`), la prueba
+    pasa con `turnoPedido: 1`: el control cuenta el pedido, no la escritura. Es `R9-293`. El
+    comentario de la prueba («un respaldo más lento que ella no llegaba a escribir») dice más de lo
+    que ve.
+    - El spy no cuenta hoy otra llamada que la del respaldo: la unión usa el `oneAtATime` interno, y
+      `savePrepNote`, `prepWrite`. Con un store que llamara a `prepMultiSet` por el objeto del módulo
+      (`storePide`, agente 1 de la 72), el control daría 2: un rojo raro, no un verde falso.
 
 - **`R9-292` (S71, pruebas / respaldo / Mesa — P3) — 🐛 la prueba de `R9-273` ve que el respaldo
   espera el turno, no que escribe dentro de él: con `prepMultiSet` escribiendo fuera de su turno, el
@@ -6677,6 +6725,100 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - P3: hoy el código escribe dentro del turno.
   - **Arreglo (hipótesis):** agregar el caso de la sonda `suelta` a la prueba de `R9-273` y verla
     caer con `sueltaAntes5`, con `sinTurno` como hoy, y pasar sin pieza.
+  - **⚠️ Sesión 72, corrección: la sonda `suelta` no construye la pérdida** (agente 3, re-medido con
+    `_scratch/S72-turno3.cjs.txt`). Su mock retiene primero por «durante» (la puerta 1) y después por
+    `:ana` (la 2). Con `sueltaAntes5`, la escritura de la unión (P, que lleva «durante») cae en la
+    puerta 1, ya abierta, y no se retiene, aunque `retenidas` dé 2. Solo muestra el orden invertido,
+    que la prueba de `R9-273` acepta como bueno cuando la unión se pidió antes.
+    - Con el mock filtrando por clave (`_scratch/S72-suelta2.test.ts.txt`), `sueltaAntes5` pierde
+      lo restaurado entero: con la unión retenida, `Ps/23/1-6` no queda en ninguna Mesa; con un
+      store retenido, la «sin cuenta» queda con P y Q. En los dos, `restaurado: true` y los controles
+      en su valor. Controles: sin pieza pasa; `sinTurno` cae (`pedido: 0`). `sinColaLento25`
+      (`R9-293`) también cae; `turnoSoloGone` (`R9-294`) pasa.
+    - **¿Lo produce el teléfono?** Es alcanzable, en ventanas de milisegundos. Importar
+      (`DataSettings.tsx:114-115`, `:207`) y entrar con Google (`settings.tsx:141`, `:819`) están en
+      la misma pantalla y no se excluyen. La unión (`adoptNoAccountPrep`, `prepAccount.ts:235-243`)
+      sale de `signInWithGoogle` (`AuthContext.tsx:489`, `:600`) tras segundos de red. Pero con el
+      código bueno hace falta además una escritura de la Mesa en vuelo, y no se encontró ninguna
+      pendiente al importar. P3 se sostiene.
+    - **El arreglo cambia:** la hipótesis de arriba copiaría la retención que no retiene. Mejor la
+      sonda `retenido` de la 72 (ver `R9-294`), que ve esta forma y las de `R9-293` y `R9-294`.
+
+- **`R9-293` (S72, pruebas / respaldo / Mesa — P3) — 🐛 la prueba de `R9-273` pasa con su propia
+  regresión si la escritura del respaldo llega 20 vueltas o más DESPUÉS del pedido: `turnoPedido`
+  cuenta el pedido, no la escritura.** MEDIDO por el agente 1 de la 72 y re-medido en el árbol
+  principal (`_scratch/S72-turno.cjs.txt <pieza> prep [dano|vieja]`, generado por
+  `S72-gen.cjs.txt`). Lo abrió la 57 (`831c7e4`): es lo que quedó abierto de `R9-291`.
+  - Pieza `sinColaLentoN`: `prepMultiSet` sin el turno (corre su cuerpo enseguida) y N vueltas de
+    `setImmediate` antes de escribir. El pedido se cuenta en la vuelta 0.
+  - Con `sinColaLento19`, la prueba de `R9-273` cae por el daño (`antesDeAbrir: true`). Con
+    `sinColaLento20` y `25`, **pasa**, con `turnoPedido: 1` y `antesDeAbrir: false`: la vuelta da sus
+    20, abre la puerta, y el respaldo escribe después de la otra escritura. La de `R9-287` también
+    pasa.
+  - En el archivo cae solo `muere` de `R9-275`, en `colgadas: 0`: el mismo diff que `demoraDentro`
+    (el código bueno, 25 vueltas más lento dentro del turno). El suite no distingue la regresión de
+    la demora (agente 1: 1 de 998 en los dos).
+  - **¿Lo abrió la 71?** No: con la prueba de `8c4fc9a`, `sinColaLento25` también pasa (control: sin
+    pieza, 5/5). Pero el cierre de `R9-291` y el comentario de la prueba afirman de más.
+  - P3: hoy el código escribe dentro del turno, en 1 vuelta. Pero es un verde falso de la prueba
+    ante su propia regresión, como `R9-291`.
+  - **Arreglo (hipótesis):** el de `R9-294`. La sonda `retenido` cae con `sinColaLento25` en
+    `bConRespaldoRetenido: 1` (medido). Y reescribir el comentario de `turnoPedido`: cuenta el pedido.
+
+- **`R9-294` (S72, pruebas / respaldo / Mesa — P3) — 🐛 `turnoSoloGone`, una regresión natural del
+  turno, pasa las 998 pruebas y las sondas de `R9-292`, y pierde lo restaurado si la cuenta se borró
+  durante la restauración.** MEDIDO por el agente 3 de la 72 y re-medido en el árbol principal
+  (`_scratch/S72-turno3.cjs.txt <pieza> prep|suite|suelta2|devuelta|retenido`, generado por
+  `S72-gen23.cjs.txt`; y `S72-vieja3.cjs.txt`). Por lectura, de cuando `prepMultiSet` tomó la
+  devolución (`37ba5f7`, sesión 59).
+  - La pieza es el refactor «solo `givenBack` necesita el turno»: en `prepMultiSet`, el turno calcula
+    `gone` y lo devuelve, y `noteRelease` y el `multiSet` corren en un `.then`, fuera de él. Con `gone`
+    vacío es inofensivo (la escritura sale en la misma cadena de microtareas). Con `gone` no vacío (la
+    cuenta se borró), `noteRelease` mete vueltas de E/S antes de escribir, y la devolución corre fuera
+    del turno.
+  - `backupPrepTurn` y `backupRestoreSignal`, 5/5; el suite, 998/998 (125 suites); las sondas
+    `suelta` y `suelta2`, pasan. Con la prueba de `8c4fc9a`, también 5/5 (control: `sinTurno` tumba
+    3).
+  - La sonda `devuelta` (`_scratch/S72-devuelta.test.ts.txt`): Ana tiene P; el respaldo, con R,
+    resuelve la clave de Ana y espera en SQLite; se borra la cuenta; un store tiene el turno, el
+    respaldo lo pide, y después se pide Q en el mismo store, retenido 40 vueltas. Con la pieza,
+    `Ps/23/1-6` (R) no queda en ninguna Mesa y `restaurado: true`, con los controles en su valor.
+    Controles: sin pieza pasa; `sinTurno` cae (`pedido: 0`).
+  - **¿Lo abrió la 71?** No: la prueba de antes también pasa.
+  - P3: hace falta borrar la cuenta durante la restauración, y una escritura de la Mesa en una
+    ventana de milisegundos.
+  - **Arreglo (hipótesis), para `R9-292`, `R9-293` y `R9-294` juntos:** una prueba que retenga la
+    escritura del respaldo y pida DESPUÉS una escritura de la Mesa: mientras la del respaldo está
+    retenida, la otra no escribe. Es la sonda `retenido` (`_scratch/S72-retenido.test.ts.txt`): sin
+    pieza pasa; `sinTurno` (con `pedido: 0`), `sueltaAntes5`, `turnoSoloGone` y `sinColaLento25` caen
+    en `bConRespaldoRetenido: 1`, con Q (`Rom/8/28`) perdido (re-medido); el agente 3 midió además
+    `sueltaAntes`, `cuerpoSuelto` y `sinAwait`, que caen igual. Y sumar el caso `devuelta` a la
+    prueba de `R9-275`.
+
+- **`R9-295` (S72, pruebas / respaldo / Mesa — P3) — 🐛 el control `colgadas` de `muere` cuenta
+  cualquier `multiSet` colgado de `@prep_notes`: con la devolución de `releasePrepAccount` sin
+  esperar, dice 1 aunque el respaldo nunca llegó, y el rojo se lee como una pérdida.** MEDIDO por el
+  agente 2 de la 72 y re-medido en el árbol principal (`_scratch/S72-sonda2.cjs.txt
+quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abrió la 71
+  (`82bdc07`): el control.
+  - Pieza `releaseSinEsperar`: `void giveBack(uid)` en vez de `await` en `releasePrepAccount` (la
+    nota se sigue esperando). La devolución del borrado (`@prep_notes: [John/3/16-21]`, P) se cuelga
+    en el mock, y el respaldo queda detrás en el turno: nunca escribe.
+  - La prueba cae solo en `muere.sinCuenta`, sin `Ps/23/1-6`, con `colgadas: 1` sin diff: el control
+    afirma que el respaldo llegó a la devolución. Control: sin pieza, lo colgado es
+    `[John/3/16-21, Ps/23/1-6]` (la devolución del respaldo), y pasa.
+  - No es una regresión de `R9-275` (la nota cubre la muerte, y el respaldo no dijo que sí). Con la
+    prueba de `8c4fc9a` cae con el mismo diff: el rojo ya estaba, y lo que abrió la 71 es el control
+    que lo confirma.
+  - Tiene el mismo origen que `toqueYNota` y `tocaSinCuenta` (dichos sin número en `R9-290`), pero no
+    exige una escritura nueva: mueve una que el código ya tiene.
+  - P3: un rojo falso con el control a favor, como `R9-290`.
+  - **Arreglo (hipótesis):** un control `colgadaCon` con los pasajes del primer `multiSet` colgado de
+    `@prep_notes` (`null`, `null` y `[P, R]`). Medido (modo `contenido`): sin pieza pasa;
+    `releaseSinEsperar` cae en `colgadaCon` (`[P]`) y en `sinCuenta`; `toqueYNota`, que hoy pasa, cae
+    solo en `colgadaCon`. El agente 2 midió además `tocaSinCuenta` y `redirige` (caen en
+    `colgadaCon`), y `lento25`, `respaldo`, `anotaRespaldo`, `notaTarde5`, `notaSinEsperar` y
+    `lento18`, como antes. Su límite: un colgado que también lleve `[P, R]` pasaría el control.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -1,16 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 71.** La 71 hizo el (ay) en el mismo chat
-> que la 69 y la 70, en la terminal, con 2 agentes en worktree que solo midieron (a pedido de
-> Victor). Cerró `R9-291` y `R9-290` (controles de llegada en dos pruebas de `backupPrepTurn`; la
-> primera versión de `R9-290` abrió un hueco que vio el agente 2, cerrado antes del commit final).
-> Registró 1 nuevo P3: `R9-292` (la prueba de `R9-273` ve que el respaldo espera el turno, no que
-> escribe dentro de él), y corrigió lo que la 70 dijo de `R9-289`.
+> **Última actualización: 2026-10-07, fin de la sesión 72.** La 72 hizo el (az) en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron (a pedido de Victor), sin tocar
+> código. Lo medido de `R9-291` y `R9-290` se sostiene. Registró 3 nuevos P3, de pruebas: `R9-293`
+> (`turnoPedido` cuenta el pedido, no la escritura), `R9-294` (`turnoSoloGone` pasa las 998 y pierde
+> lo restaurado) y `R9-295` (lo abrió la 71: `colgadas` cuenta un colgado que no es la devolución
+> del respaldo). Corrigió `R9-289`..`R9-292`.
 >
-> La 70 ya está mergeada y pusheada (`main` = `8c4fc9a`, CI verde en el log, run `37577204278`,
-> 374/4626). Las ramas de la 71 (`fix/s71-llegada-r290-r291` y `docs/review-s71-fix`) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 292 hallazgos. **Lo
-> siguiente:** la 72 revisa el diff de la 71 (mensaje (az), en `_scratch/S72-PROMPT.md`).
+> La 71 ya está mergeada y pusheada (`main` = `863747d`, CI verde en el log, run `37582666564`,
+> 374/4626). La rama de la 72 (`docs/review-s72-diff-s71`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 295 hallazgos. **Lo siguiente:** la 73 arregla
+> `R9-292`..`R9-295` (mensaje (ba), en `_scratch/S73-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -501,12 +501,18 @@ con `_scratch/S67-PROMPT.md`). Y la revisión del diff de la 67 (la (av), sesió
 y sin agentes, con `_scratch/S68-PROMPT.md`). Y sus arreglos (la (aw), sesión 69, en un chat
 nuevo y sin agentes, con `_scratch/S69-PROMPT.md`). Y la revisión del diff de la 69 (la (ax),
 sesión 70, en el mismo chat, con `_scratch/S70-PROMPT.md`). Y sus arreglos (la (ay), sesión 71, en
-el mismo chat con 2 agentes que solo midieron, con `_scratch/S71-PROMPT.md`). **Lo siguiente es el
-(az).**
+el mismo chat con 2 agentes que solo midieron, con `_scratch/S71-PROMPT.md`). Y la revisión del
+diff de la 71 (la (az), sesión 72, en un chat nuevo con 3 agentes que solo midieron, con
+`_scratch/S72-PROMPT.md`). **Lo siguiente es el (ba).**
 
-**(az) Sesión 72: revisar el diff de la 71** (`R9-291` y `R9-290`: controles de llegada en dos
-pruebas de `backupPrepTurn.test.ts`; y la entrada de `R9-292`). El mensaje está en
-`_scratch/S72-PROMPT.md`, que manda sobre este archivo.
+**(ba) Sesión 73: arreglar `R9-292`..`R9-295`** (solo pruebas, en `backupPrepTurn.test.ts`: la
+sonda `retenido` para `R9-292`, `R9-293` y `R9-294`; el caso `devuelta` en la prueba de `R9-275`; y
+`colgadaCon` para `R9-295`). El mensaje está en `_scratch/S73-PROMPT.md`, que manda sobre este
+archivo.
+
+**(az) Sesión 72: revisar el diff de la 71 — ya HECHO en la sesión 72, en un chat nuevo, con 3
+agentes en worktree que solo midieron.** Tres nuevos P3 (`R9-293`, `R9-294`, `R9-295`) y
+correcciones en `R9-289`..`R9-292`. El mensaje está en `_scratch/S72-PROMPT.md`.
 
 **(ay) Sesión 71: arreglar lo de la 70 — ya HECHO en la sesión 71, en el mismo chat, con 2 agentes
 en worktree que solo midieron.** Cerrados `R9-291` y `R9-290`; un nuevo P3 (`R9-292`). El mensaje
@@ -1966,15 +1972,14 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 71 (2026-10-07).**
+**Medido al cerrar la sesión 72 (2026-10-07).**
 
-- **`main` = `origin/main` = `8c4fc9a`** (el checkpoint de la 70; el último código en `main` es
-  `e96e8e6`, la prueba de `R9-289`). **CI verificado en el log** en la 70: run `37577204278`,
-  374/4626. La rama de la 70 se borró.
-- **Dos ramas de la 71, sin mergear a propósito y sin pushear:** `fix/s71-llegada-r290-r291`
-  (`b5164d7`, `82bdc07`; solo pruebas) y `docs/review-s71-fix` encima (solo docs). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (los de los 2 agentes de la 71 se quitaron, con sus ramas).
+- **`main` = `origin/main` = `863747d`** (el checkpoint de la 71; el último código en `main` es
+  `82bdc07`, la prueba de `R9-290`). **CI verificado en el log** en la 71: run `37582666564`, 3
+  jobs, Node v24.21.0, 374/4626. Las ramas de la 71 se borraron tras `git cherry`.
+- **Una rama de la 72, sin mergear a propósito y sin pushear:** `docs/review-s72-diff-s71` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 72 se quitaron, con sus ramas).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 71):
@@ -2444,6 +2449,17 @@ Alternativas legítimas:
   unas vueltas después, la prueba vieja caía y la nueva pasaba. Lo vio el agente que buscaba
   romperla, no el que la escribió. Y un control que se lee al final de dos vueltas no dice en cuál
   llegó: se lee al terminar la que lo espera.
+- **Un control de llegada tiene que nombrar QUÉ llegó (sesión 72, `R9-293`, `R9-295`, `R9-292`).**
+  `turnoPedido` cuenta el pedido y no la escritura: con la demora DESPUÉS del pedido
+  (`sinColaLento25`), la prueba de `R9-273` pasa con el control en 1. `colgadas` cuenta un colgado
+  de la clave, y con `releaseSinEsperar` el colgado es la devolución del borrado, no la del
+  respaldo. Y la sonda `suelta` de la 71 contaba dos retenciones que no eran las que importaban.
+  Corré la demora también después del paso que el control cuenta, y que el control lea el
+  CONTENIDO (`colgadaCon`), no un conteo.
+- **El worktree de un agente se borra solo al terminar, con su `_scratch` (sesión 72).** El
+  `_scratch` está en `.gitignore` y no cuenta como cambio: al agente 1 se le perdieron las sondas.
+  En el prompt, pedí desde el principio que copie su `_scratch` al principal con `cp` antes de
+  terminar.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

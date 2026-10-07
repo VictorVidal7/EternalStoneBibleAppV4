@@ -817,8 +817,19 @@
 > fuera del turno).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **292**. Ramas `fix/s71-llegada-r290-r291` y
-> `docs/review-s71-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s71-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `863747d`, CI verde en
+> el log, run `37582666564`, 374/4626; corregido en la 72). Detalle:
 > `detail/S71-arreglos-r290-r291.md`.
+>
+> **Sesión 72 (2026-10-07): revisión del diff de la 71**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron, sin tocar código. Lo medido de `R9-291` y `R9-290` se
+> sostiene. 3 nuevos, P3: `R9-293` (la prueba de `R9-273` pasa sin turno si la escritura llega 20
+> vueltas después del pedido), `R9-294` (`turnoSoloGone` pasa las 998 y pierde lo restaurado si la
+> cuenta se borra durante la restauración) y `R9-295` (lo abrió la 71: `colgadas` cuenta la
+> devolución del borrado como si fuera la del respaldo). Correcciones en `R9-289`..`R9-292`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **295**. Rama `docs/review-s72-diff-s71`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S72-revision-del-diff-s71.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1618,6 +1629,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S71-arreglos-r290-r291.md`.**
   - **La lección:** antes de cambiar «N vueltas fijas» por «hasta que llegue», preguntá qué pasaba
     en las vueltas que sobraban.
+
+- **Sesión 72 — 2026-10-07. Revisión del diff de la 71.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (Victor los pidió), sin tocar código; arrancó con
+  `_scratch/S72-PROMPT.md`.
+  - **Cómo se trabajó:** un agente por punto (`R9-291` + `R9-289`, `R9-290`, `R9-292`). Sus
+    afirmaciones se re-midieron en el árbol principal con scripts regenerados
+    (`_scratch/S72-turno.cjs.txt`, `S72-sonda2.cjs.txt`, `S72-turno3.cjs.txt`). El worktree del
+    agente 1 se borró solo con su `_scratch`; su pieza se rehízo.
+  - **Resultado:** 3 nuevos, P3 (`R9-293`, `R9-294`, `R9-295`; el último lo abrió la 71), y
+    correcciones en `R9-289`..`R9-292`. No queda ningún P0 abierto.
+  - **Detalle: `detail/S72-revision-del-diff-s71.md`.**
+  - **La lección:** un control de llegada tiene que nombrar QUÉ llegó: el pedido no es la escritura,
+    y un colgado de la clave no es la devolución del respaldo.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
