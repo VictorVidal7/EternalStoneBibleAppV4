@@ -62,6 +62,7 @@ import {
   releasePrepAccount,
   setPrepAccount,
 } from '../src/features/study/prepAccount';
+import * as prepAccount from '../src/features/study/prepAccount';
 import {savePrepNote} from '../src/features/study/prepNotesStore';
 
 /** Un respaldo v2 sin nada mas que la Mesa (las notas de `notes`). */
@@ -155,6 +156,7 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
       return real(pairs);
     });
     let restaurado = false;
+    const turno = jest.spyOn(prepAccount, 'prepMultiSet');
     try {
       const primero = empezar();
       await new Promise(r => setImmediate(r));
@@ -169,18 +171,24 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
       for (let i = 0; i < 20 && !restaurado; i++) {
         await new Promise(r => setImmediate(r));
       }
+      // Con el turno, la vuelta no sale antes: un respaldo mas lento que ella
+      // no llegaba a escribir, y sin el turno pasaba igual (R9-291).
+      const turnoPedido = turno.mock.calls.length;
+      turno.mockRestore();
       const antesDeAbrir = restaurado;
       abrir();
       await primero;
       await respaldo;
       return {
         retenida, // CONTROL: la otra escritura se retuvo
+        turnoPedido, // CONTROL: el respaldo pidio el turno antes de abrir
         antesDeAbrir,
         restaurado,
         sinCuenta: await pasajes('@prep_notes'),
         ana: await pasajes('@prep_notes:ana'),
       };
     } finally {
+      turno.mockRestore();
       abrir();
       ms.mockImplementation(real);
     }
@@ -203,6 +211,7 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
   expect({union, store}).toEqual({
     union: {
       retenida: 1,
+      turnoPedido: 1,
       antesDeAbrir: false,
       restaurado: true,
       sinCuenta: [R],
@@ -210,6 +219,7 @@ it('R9-273: restaurado mientras corre una union, o la escritura de un store, el 
     },
     store: {
       retenida: 1,
+      turnoPedido: 1,
       antesDeAbrir: false,
       restaurado: true,
       sinCuenta: [R],
