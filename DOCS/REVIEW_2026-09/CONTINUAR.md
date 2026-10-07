@@ -1,14 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 67.** La 67 hizo el (au) en el mismo chat
-> que la 66, en la terminal y sin agentes: cerró `R9-287` (una prueba del turno que cae con
-> `enTurno`) y `R9-288` (dos comentarios; el JS emitido, idéntico al de `main`). Ningún nuevo.
+> **Última actualización: 2026-10-06, fin de la sesión 68.** La 68 hizo el (av) en un chat nuevo,
+> en la terminal y sin agentes: revisó el diff de la 67 sin tocar código. Confirmó que en el
+> provider es solo comentarios, que la prueba de `R9-287` construye su caso y que el mecanismo
+> alcanza. Registró 1 nuevo P3: `R9-289` (con el respaldo más lento que las 20 vueltas, la prueba
+> cae con el mismo diff que `enTurno`, y sus controles no muestran que el respaldo pidió el turno).
 >
-> La 66 ya está mergeada y pusheada (`main` = `cc4ee6d`, CI verde en el log, run `37550640197`,
-> 374/4625). Las ramas de la 67 (`fix/s67-turno-r287-r288` y `docs/review-s67-fix`, encima) van
-> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 288 hallazgos. **Lo
-> siguiente:** la 68 revisa el diff de la 67, en un chat nuevo (mensaje (av), en
-> `_scratch/S68-PROMPT.md`).
+> La 67 ya está mergeada y pusheada (`main` = `8915312`, CI verde en el log, run `37554083093`,
+> 374/4626). La rama de la 68 (`docs/review-s68-diff-s67`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 289 hallazgos. **Lo siguiente:** la 69 arregla
+> lo de la 68 (mensaje (aw), en `_scratch/S69-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -495,10 +496,15 @@ Y la revisión del diff de la 63 (la (ar), sesión 64, en un chat nuevo y sin ag
 `_scratch/S64-PROMPT.md`). Y sus arreglos (la (as), sesión 65, en el mismo chat, con
 `_scratch/S65-PROMPT.md`). Y la revisión del diff de la 65 (la (at), sesión 66, en un chat nuevo y
 sin agentes, con `_scratch/S66-PROMPT.md`). Y sus arreglos (la (au), sesión 67, en el mismo chat,
-con `_scratch/S67-PROMPT.md`). **Lo siguiente es el (av).**
+con `_scratch/S67-PROMPT.md`). Y la revisión del diff de la 67 (la (av), sesión 68, en un chat nuevo
+y sin agentes, con `_scratch/S68-PROMPT.md`). **Lo siguiente es el (aw).**
 
-**(av) Sesión 68: revisar el diff de la 67** (`cc4ee6d..c847d8c`: una prueba y dos comentarios), en
-un chat nuevo. El mensaje está en `_scratch/S68-PROMPT.md`, que manda sobre este archivo.
+**(aw) Sesión 69: arreglar lo de la 68** (`R9-289`: un tercer control en la prueba de `R9-287`, «el
+respaldo pidió el turno antes de abrir»). El mensaje está en `_scratch/S69-PROMPT.md`, que manda
+sobre este archivo.
+
+**(av) Sesión 68: revisar el diff de la 67 — ya HECHO en la sesión 68, en un chat nuevo, en la
+terminal y sin agentes.** Un nuevo P3 (`R9-289`). El mensaje está en `_scratch/S68-PROMPT.md`.
 
 **(au) Sesión 67: arreglar lo de la 66 — ya HECHO en la sesión 67, en el mismo chat que la 66, en la
 terminal y sin agentes.** Cerrados `R9-287` y `R9-288`. El mensaje está en `_scratch/S67-PROMPT.md`.
@@ -1943,18 +1949,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 67 (2026-10-06).**
+**Medido al cerrar la sesión 68 (2026-10-06).**
 
-- **`main` = `origin/main` = `cc4ee6d`** (el checkpoint de la 66; el último código en `main` es
-  `2b05f4d`, solo comentarios). **CI verificado en el log** en la 66: run `37550640197`, 374/4625.
-  La rama de la 66 se borró.
-- **Dos ramas de la 67, sin mergear a propósito y sin pushear:** `fix/s67-turno-r287-r288` (2
-  commits: `8c168fb` la prueba, `c847d8c` los comentarios) y `docs/review-s67-fix` (el checkpoint,
-  encima). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **`main` = `origin/main` = `8915312`** (el checkpoint de la 67; el último código en `main` es
+  `c847d8c`, solo comentarios, y antes `8c168fb`, la prueba de `R9-287`). **CI verificado en el
+  log** en la 67: run `37554083093`, 374/4626. Las ramas de la 67 se borraron.
+- **Una rama de la 68, sin mergear a propósito y sin pushear:** `docs/review-s68-diff-s67` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las dos de la 67):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 68):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2400,6 +2405,11 @@ Alternativas legítimas:
 - **Nada de barras invertidas ni acentos graves en un `node -e` (sesión 67).** Dentro de comillas
   dobles, bash ejecuta cada `` `…` `` como un comando: el script de anclas abortó sin escribir, pero
   pudo no hacerlo. Para un cambio de docs con código, Edit o un `.cjs.txt` escrito con Write.
+- **Si una prueba espera N vueltas a que algo pase, corré la pieza que lo DEMORA más allá de N, con
+  el código bueno (sesión 68, `R9-289`).** La prueba de `R9-287` cae con el respaldo 25 vueltas más
+  lento y el aviso en su lugar (`lento`, `_scratch/S68-turno.cjs.txt`), con el mismo diff que
+  `enTurno`. Sus dos `CONTROL` valen 0 y «no» también cuando el respaldo no llegó al turno: les
+  falta el que dice que el caso llegó.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

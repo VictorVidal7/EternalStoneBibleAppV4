@@ -917,8 +917,9 @@
 >
 > **Sesión 67 (2026-10-06): ARREGLOS de lo de la 66**, en el mismo chat que la 66 (Victor:
 > «Adelante estimado, continúa por favor»), en la terminal y sin agentes. Rama
-> `fix/s67-turno-r287-r288` (`8c168fb`, `c847d8c`) y `docs/review-s67-fix` encima, sin mergear
-> hasta el OK de Victor.
+> `fix/s67-turno-r287-r288` (`8c168fb`, `c847d8c`) y `docs/review-s67-fix` encima: mergeadas y
+> pusheadas con el OK de Victor (`main` = `8915312`, CI verde en el log, run `37554083093`,
+> 374/4626; corregido en la 68).
 >
 > - **Cerrados (2):** `R9-287` (una prueba: el aviso de inicio llega antes de esperar el turno de la
 >   Mesa; cae con `enTurno`, 1 de 998 en las relacionadas, y con `inicio`) y `R9-288` (dos
@@ -926,6 +927,22 @@
 > - Ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **288**. Detalle: `detail/S67-arreglos-r287-r288.md`.
+>
+> **Sesión 68 (2026-10-06): revisión del diff de la 67**, en un chat nuevo, en la terminal y sin
+> agentes. Sin tocar código. Rama `docs/review-s68-diff-s67`, sin mergear hasta el OK de Victor.
+>
+> - **Solo comentarios, confirmado:** el JS del provider sin comentarios es igual al de `cc4ee6d`
+>   (control: contra `01eee54`, distinto), y ninguna línea tocada es código.
+> - **Se sostienen, medido:** la prueba de `R9-287` construye el caso (el respaldo pide el turno y no
+>   avisa con `enTurno`), ve también el aviso al empezar el turno (`principio`), y sus controles ven
+>   el respaldo fuera del turno (`sinTurno`). No toca el turno de las otras. Los comentarios de
+>   `R9-288` se sostienen caso por caso. El mecanismo alcanza: la única forma de romper solo el turno
+>   (una relectura con lo editado retenido) la ve el suite (3 de 998).
+> - **1 nuevo, P3:** `R9-289` (con el respaldo más lento que las 20 vueltas y el aviso en su lugar,
+>   la prueba cae con el mismo diff que `enTurno`, y sus dos `CONTROL` se cumplen sin que el respaldo
+>   haya pedido el turno).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **289**. Detalle: `detail/S68-revision-del-diff-s67.md`.
 
 ---
 
@@ -6474,6 +6491,29 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     - **Verificado:** el JS emitido sin comentarios del provider es idéntico al de `main` (control:
       contra `01eee54`, distinto); ninguna línea tocada es código; re-corrido sobre lo commiteado,
       contra `8c168fb`, con los cinco archivos iguales.
+    - **Sesión 68:** se sostienen caso por caso. Un matiz, no registrado: si la relectura que sigue
+      a una fallida también falla, no suelta ninguna lectura, sino la salida del efecto, y lo dice
+      su comentario (`detail/S68` §3).
+
+- **`R9-289` (S68, pruebas / respaldo — P3) — 🐛 los controles de la prueba de `R9-287` no muestran
+  que el respaldo haya pedido el turno: con el respaldo más lento que las 20 vueltas y el aviso en
+  su lugar, cae con el mismo diff que `enTurno`.** MEDIDO (`_scratch/S68-turno.cjs.txt`, en modo
+  `archivo`: la prueba con un registro de las vueltas y de las llamadas a `prepMultiSet` antes de
+  abrir). Lo abrió la 67 (`8c168fb`).
+  - Pieza `lento`: 25 vueltas de `setImmediate` antes de `emitBackupRestoring()`, que sigue fuera
+    del turno. La prueba cae con `vistosAntesDeAbrir: []`, `mazoPedidoAntesDeAbrir: 0` y
+    `terminadoAntesDeAbrir: false`, lo mismo que con `enTurno`, pero `prepMultiSet` no se llamó
+    antes de abrir (0). CONTROL: con `enTurno` se llamó (1), y hoy también (1, en 1 vuelta).
+  - «CONTROL: el multiSet esperaba el turno» y «CONTROL: el respaldo seguía esperando» se cumplen
+    también cuando el respaldo no llegó al turno: no controlan la espera.
+  - No da un verde falso (cualquier aviso dentro del turno cae, medido con `enTurno` y `principio`),
+    y hoy cae por la razón que dice. Pero el rojo dice dos cosas: «el aviso se movió al turno» y «el
+    respaldo no llegó en 20 vueltas».
+  - P3: solo el diagnóstico de una prueba.
+  - **Arreglo (hipótesis):** un tercer control, «el respaldo pidió el turno antes de abrir», con
+    `jest.spyOn` sobre `prepMultiSet` (funciona: el registro de `S68-turno`), y la vuelta esperando
+    ese pedido en vez del aviso. Verla caer con `lento` en el control nuevo, y con `enTurno` en los
+    avisos con el control en 1.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

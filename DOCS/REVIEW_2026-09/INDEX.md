@@ -778,7 +778,18 @@
 > comentarios; el JS emitido, idéntico al de `main`, con control). Ningún nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **288**. Ramas `fix/s67-turno-r287-r288` y
-> `docs/review-s67-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S67-arreglos-r287-r288.md`.
+> `docs/review-s67-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `8915312`, CI verde en
+> el log, run `37554083093`, 374/4626; corregido en la 68). Detalle:
+> `detail/S67-arreglos-r287-r288.md`.
+>
+> **Sesión 68 (2026-10-06): revisión del diff de la 67**, en un chat nuevo, en la terminal y sin
+> agentes. Solo comentarios en el provider, confirmado con control. La prueba de `R9-287` construye
+> el caso y cae por la razón que dice, y el mecanismo alcanza. 1 nuevo, P3: `R9-289` (con el
+> respaldo más lento que las 20 vueltas, la prueba cae con el mismo diff que `enTurno`, y sus
+> controles no muestran que el respaldo haya pedido el turno).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **289**. Rama `docs/review-s68-diff-s67`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S68-revision-del-diff-s67.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1530,6 +1541,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Resultado:** 2 cerrados, ningún nuevo. No queda ningún P0 abierto.
   - **Detalle: `detail/S67-arreglos-r287-r288.md`.**
   - **La lección:** un comentario nombra la lectura que decide, no «la siguiente».
+
+- **Sesión 68 — 2026-10-06. Revisión del diff de la 67.** En un chat nuevo, en la terminal, sin
+  agentes y sin tocar código; arrancó con el mensaje de `_scratch/S68-PROMPT.md`.
+  - **Cómo se trabajó:**
+    - el comprobador de la 65 contra `cc4ee6d`, con su control;
+    - las corridas de la 66 re-hechas (`S66-turno.cjs.txt enTurno|inicio suite`);
+    - una sonda nueva (`_scratch/S68-turno.cjs.txt`) que registra en la prueba de `R9-287` las
+      vueltas y las llamadas a `prepMultiSet` antes de abrir, con siete piezas del aviso y una del
+      provider.
+  - **Resultado:** 1 nuevo, P3 (`R9-289`). No queda ningún P0 abierto.
+  - **Detalle: `detail/S68-revision-del-diff-s67.md`.**
+  - **La lección:** si una prueba espera N vueltas a que algo pase, corré la pieza que lo demora más
+    allá de N con el código bueno. Si cae igual que la regresión, le falta el control que dice que
+    el caso llegó.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
