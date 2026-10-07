@@ -291,9 +291,11 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
         mockSqlite.puerta = null;
         abrirSqlite!();
       }
-      for (let i = 0; i < 40 && retenida === 0; i++) {
-        await new Promise(r => setImmediate(r));
-      }
+      // Las 40 enteras, aunque la escritura llegue antes: un respaldo que
+      // suelta el turno con la suya en vuelo lo hace en estas vueltas, y
+      // saliendo en cuanto llegaba, la otra escritura se pedia antes (la
+      // regla de R9-290: lo que pasa en las vueltas que sobran).
+      for (let i = 0; i < 40; i++) await new Promise(r => setImmediate(r));
       const llego = retenida;
       const pedido = turno.mock.calls.length;
       turno.mockRestore();
