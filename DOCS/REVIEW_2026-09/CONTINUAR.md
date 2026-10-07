@@ -1,14 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 66.** La 66 hizo el (at) en un chat nuevo,
-> en la terminal y sin agentes: revisó el diff de la 65 sin tocar código. Confirmó que es solo
-> comentarios y registró 2 nuevos P3: `R9-287` (el caso del turno no lo vigila ninguna prueba) y
-> `R9-288` («the disk as it is now» no se sostiene en ese caso).
+> **Última actualización: 2026-10-06, fin de la sesión 67.** La 67 hizo el (au) en el mismo chat
+> que la 66, en la terminal y sin agentes: cerró `R9-287` (una prueba del turno que cae con
+> `enTurno`) y `R9-288` (dos comentarios; el JS emitido, idéntico al de `main`). Ningún nuevo.
 >
-> La 65 ya está mergeada y pusheada (`main` = `8755d2b`, CI verde en el log, run `37547915783`,
-> 374/4625). La rama de la 66 (`docs/review-s66-diff-s65`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 288 hallazgos. **Lo siguiente:** la 67 arregla lo
-> de la 66 (mensaje (au), en `_scratch/S67-PROMPT.md`).
+> La 66 ya está mergeada y pusheada (`main` = `cc4ee6d`, CI verde en el log, run `37550640197`,
+> 374/4625). Las ramas de la 67 (`fix/s67-turno-r287-r288` y `docs/review-s67-fix`, encima) van
+> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 288 hallazgos. **Lo
+> siguiente:** la 68 revisa el diff de la 67, en un chat nuevo (mensaje (av), en
+> `_scratch/S68-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -494,11 +494,14 @@ Y sus arreglos (la (aq), sesión 63, en un chat nuevo con 3 agentes, con `_scrat
 Y la revisión del diff de la 63 (la (ar), sesión 64, en un chat nuevo y sin agentes, con
 `_scratch/S64-PROMPT.md`). Y sus arreglos (la (as), sesión 65, en el mismo chat, con
 `_scratch/S65-PROMPT.md`). Y la revisión del diff de la 65 (la (at), sesión 66, en un chat nuevo y
-sin agentes, con `_scratch/S66-PROMPT.md`). **Lo siguiente es el (au).**
+sin agentes, con `_scratch/S66-PROMPT.md`). Y sus arreglos (la (au), sesión 67, en el mismo chat,
+con `_scratch/S67-PROMPT.md`). **Lo siguiente es el (av).**
 
-**(au) Sesión 67: arreglar lo de la 66** (`R9-287`: una prueba del turno que caiga con `enTurno`;
-`R9-288`: dos comentarios). El mensaje está en `_scratch/S67-PROMPT.md`, que manda sobre este
-archivo.
+**(av) Sesión 68: revisar el diff de la 67** (`cc4ee6d..c847d8c`: una prueba y dos comentarios), en
+un chat nuevo. El mensaje está en `_scratch/S68-PROMPT.md`, que manda sobre este archivo.
+
+**(au) Sesión 67: arreglar lo de la 66 — ya HECHO en la sesión 67, en el mismo chat que la 66, en la
+terminal y sin agentes.** Cerrados `R9-287` y `R9-288`. El mensaje está en `_scratch/S67-PROMPT.md`.
 
 **(at) Sesión 66: revisar el diff de la 65 — ya HECHO en la sesión 66, en un chat nuevo, en la
 terminal y sin agentes.** Dos nuevos P3 (`R9-287`, `R9-288`). El mensaje está en
@@ -1940,17 +1943,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 66 (2026-10-06).**
+**Medido al cerrar la sesión 67 (2026-10-06).**
 
-- **`main` = `origin/main` = `8755d2b`** (el checkpoint de la 65; el último código en `main` es
-  `2b05f4d`, solo comentarios). **CI verificado en el log** en la 65: run `37547915783`, 374/4625.
-  Las ramas de la 65 se borraron.
-- **Una rama de la 66, sin mergear a propósito y sin pushear:** `docs/review-s66-diff-s65` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **`main` = `origin/main` = `cc4ee6d`** (el checkpoint de la 66; el último código en `main` es
+  `2b05f4d`, solo comentarios). **CI verificado en el log** en la 66: run `37550640197`, 374/4625.
+  La rama de la 66 se borró.
+- **Dos ramas de la 67, sin mergear a propósito y sin pushear:** `fix/s67-turno-r287-r288` (2
+  commits: `8c168fb` la prueba, `c847d8c` los comentarios) y `docs/review-s67-fix` (el checkpoint,
+  encima). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 66):
+Las demás ramas locales, en total 11 contando `main` (sin las dos de la 67):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2389,6 +2393,13 @@ Alternativas legítimas:
   vigilan las pruebas queda igual, lo editado durante la espera se pierde, y las 125 suites
   relacionadas pasan. Y el JS emitido es ciego a los tipos: sumale las líneas tocadas que no son
   comentario.
+- **Un comentario nombra la lectura que decide, no «la siguiente» (sesión 67, `R9-288`).** Con una
+  carga vieja en vuelo cuando llega el aviso del respaldo, la siguiente en llegar no es la que suelta
+  lo editado. La hipótesis de la 66 («as the next read will find it») repetía, una lectura más allá,
+  el mismo error que corregía.
+- **Nada de barras invertidas ni acentos graves en un `node -e` (sesión 67).** Dentro de comillas
+  dobles, bash ejecuta cada `` `…` `` como un comando: el script de anclas abortó sin escribir, pero
+  pudo no hacerlo. Para un cambio de docs con código, Edit o un `.cjs.txt` escrito con Write.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

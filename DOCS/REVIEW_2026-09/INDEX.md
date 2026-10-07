@@ -769,8 +769,16 @@
 > caso del turno no lo vigila ninguna prueba: con el aviso dentro del turno, el suite pasa) y
 > `R9-288` («the disk as it is now» no se sostiene en ese caso).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **288**. Rama `docs/review-s66-diff-s65`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S66-revision-del-diff-s65.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **288**. Rama `docs/review-s66-diff-s65`: mergeada y
+> pusheada con el OK de Victor (`main` = `cc4ee6d`, CI verde en el log, run `37550640197`,
+> 374/4625; corregido en la 67). Detalle: `detail/S66-revision-del-diff-s65.md`.
+>
+> **Sesión 67 (2026-10-06): arreglos de lo de la 66**, en el mismo chat, en la terminal y sin
+> agentes. Cerrados `R9-287` (una prueba que cae con `enTurno` y con `inicio`) y `R9-288` (dos
+> comentarios; el JS emitido, idéntico al de `main`, con control). Ningún nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **288**. Ramas `fix/s67-turno-r287-r288` y
+> `docs/review-s67-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S67-arreglos-r287-r288.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1513,6 +1521,15 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S66-revision-del-diff-s65.md`.**
   - **La lección:** cuando un comentario cuenta un segundo caso, buscá la pieza que conserva el
     primero y rompe el segundo, y mirá si el suite la ve.
+
+- **Sesión 67 — 2026-10-06. Arreglos de lo de la 66** (`R9-287`, `R9-288`). En el mismo chat que
+  la 66, en la terminal y sin agentes; arrancó con `_scratch/S67-PROMPT.md`.
+  - **Cómo se trabajó:** un commit por hallazgo. La prueba nueva se vio caer con `enTurno` y con
+    `inicio` en las suites relacionadas (`_scratch/S66-turno.cjs.txt`); los comentarios, con el
+    comprobador de la 65 y su control; y `validate`.
+  - **Resultado:** 2 cerrados, ningún nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S67-arreglos-r287-r288.md`.**
+  - **La lección:** un comentario nombra la lectura que decide, no «la siguiente».
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

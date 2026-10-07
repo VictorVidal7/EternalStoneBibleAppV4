@@ -899,7 +899,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **286**. Detalle: `detail/S65-arreglos-r286.md`.
 >
 > **Sesión 66 (2026-10-06): revisión del diff de la 65**, en un chat nuevo, en la terminal y sin
-> agentes. Sin tocar código. Rama `docs/review-s66-diff-s65`, sin mergear hasta el OK de Victor.
+> agentes. Sin tocar código. Rama `docs/review-s66-diff-s65`: mergeada y pusheada con el OK de
+> Victor (`main` = `cc4ee6d`, CI verde en el log, run `37550640197`, 374/4625; corregido en la 67).
 >
 > - **Solo comentarios, confirmado:** el JS emitido sin comentarios es igual al de `bfe18a0` en los
 >   cinco archivos (control: contra `01eee54`, el provider y su prueba salen distintos), y ninguna
@@ -913,6 +914,18 @@
 >   no se pierde nada.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **288**. Detalle: `detail/S66-revision-del-diff-s65.md`.
+>
+> **Sesión 67 (2026-10-06): ARREGLOS de lo de la 66**, en el mismo chat que la 66 (Victor:
+> «Adelante estimado, continúa por favor»), en la terminal y sin agentes. Rama
+> `fix/s67-turno-r287-r288` (`8c168fb`, `c847d8c`) y `docs/review-s67-fix` encima, sin mergear
+> hasta el OK de Victor.
+>
+> - **Cerrados (2):** `R9-287` (una prueba: el aviso de inicio llega antes de esperar el turno de la
+>   Mesa; cae con `enTurno`, 1 de 998 en las relacionadas, y con `inicio`) y `R9-288` (dos
+>   comentarios; el JS del provider, idéntico al de `main`, con control). `validate` 374/4626.
+> - Ningún nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **288**. Detalle: `detail/S67-arreglos-r287-r288.md`.
 
 ---
 
@@ -6415,6 +6428,18 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     tomado (un `prepWrite` con puerta, como en `backupPrepTurn.test.ts`): el aviso de inicio llega
     antes de abrir el turno, con el `multiSet` sin pedir. Verla caer con `enTurno` y con `inicio`. O
     la consecuencia: `turnoLeido` como prueba del provider con `importBackup` real.
+  - **✅ ARREGLADO en la sesión 67** (`8c168fb`, solo una prueba). En `backupRestoreSignal.test.ts`,
+    «con la Mesa en su turno, avisa antes de esperarlo»: un `prepWrite` con puerta tiene el turno, y
+    el aviso de inicio llega antes de abrirla. CONTROL: el `multiSet` del mazo sigue sin pedir y el
+    respaldo, esperando. Se escribió con banderas, y la puerta se abre antes de afirmar nada.
+    - **Medido:** con `enTurno` cae solo esta (1 de 998 en las 125 suites relacionadas, con los
+      controles en pie); con `inicio`, las 3 del archivo; hoy pasa.
+    - **El mecanismo alcanza:** del lado del mazo, una sola guarda retiene desde el aviso en los dos
+      casos (`unsaved ??=`, la pieza `retieneRespaldo`), y no puede saber si el `multiSet` ya se
+      pidió. Lo único propio del turno es dónde emite `importBackup`, y eso es lo que vigila la
+      prueba nueva. La consecuencia la midió la sonda `TURNO` (`S66-turno.cjs.txt`).
+    - El comentario de la primera prueba ahora dice que ahí se ve el aviso, y que lo que retiene el
+      mazo está en `memoryDeckDisk`.
 
 - **`R9-288` (S66, comentarios de la 65 / memoria / respaldo — P3) — 🐛 «no load had read the disk
   as it is now», el arreglo de `R9-286` en `ifAbsent` y `addCard`, no se sostiene en el caso del
@@ -6437,6 +6462,18 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - P3: solo comentarios.
   - **Arreglo (hipótesis):** «as the next read will find it» en vez de «as it is now», y en
     `addCard`, «the disk the next read finds may have it». Medir con el comprobador de la 65.
+  - **✅ ARREGLADO en la sesión 67** (`c847d8c`, solo comentarios). No como la hipótesis: «la
+    siguiente lectura» tampoco se sostiene, porque una carga vieja en vuelo al aviso puede llegar
+    antes que la recarga, y esa no decide. Los dos comentarios nombran la lectura que suelta lo
+    editado:
+    - `ifAbsent`: la primera, la que sigue a una fallida, o la recarga del respaldo, que lee
+      después del `multiSet` aunque todavía no se haya pedido. Esa lectura PUEDE encontrar lo que
+      ninguna leyó;
+    - `addCard`: lo editado espera a una lectura (también con el respaldo a punto de escribir), y
+      el disco que esa lectura encuentre puede tener la tarjeta.
+    - **Verificado:** el JS emitido sin comentarios del provider es idéntico al de `main` (control:
+      contra `01eee54`, distinto); ninguna línea tocada es código; re-corrido sobre lo commiteado,
+      contra `8c168fb`, con los cinco archivos iguales.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
