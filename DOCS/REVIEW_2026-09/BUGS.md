@@ -946,8 +946,9 @@
 > **No queda ningún P0 abierto.** Hallazgos: **289**. Detalle: `detail/S68-revision-del-diff-s67.md`.
 >
 > **Sesión 69 (2026-10-06): ARREGLOS de lo de la 68**, en un chat nuevo, en la terminal y sin
-> agentes. Rama `fix/s69-control-r289` (`e96e8e6`, solo la prueba) y `docs/review-s69-fix` encima,
-> sin mergear hasta el OK de Victor.
+> agentes. Rama `fix/s69-control-r289` (`e96e8e6`, solo la prueba) y `docs/review-s69-fix` encima:
+> mergeadas y pusheadas con el OK de Victor (`main` = `3d29d33`, CI verde en el log, run
+> `37572992296`, 374/4626; corregido en la 70).
 >
 > - **Cerrado (1):** `R9-289` (un tercer control en la prueba de `R9-287`: el respaldo pidió el
 >   turno, con un spy sobre `prepMultiSet`, y la vuelta espera ese pedido). Con `lento` cae en el
@@ -958,6 +959,21 @@
 >   se perdiera lo restaurado).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **290**. Detalle: `detail/S69-arreglos-r289.md`.
+>
+> **Sesión 70 (2026-10-06): revisión del diff de la 69**, en el mismo chat (no es una mirada
+> fresca), en la terminal y sin agentes. Sin tocar código. Rama `docs/review-s70-diff-s69`, sin
+> mergear hasta el OK de Victor.
+>
+> - **Se sostiene:** el control nuevo de `R9-289`. Con `sinCola` (el control en 1 sin espera) caen
+>   los otros dos controles; con `ciego` (el spy sin ver la llamada) da un rojo ruidoso con el código
+>   bueno, nunca verde: aceptado.
+> - **Corregido en `R9-290`:** la regresión de `R9-275` con el caso construido deja lo restaurado
+>   bajo `ana`; con `lento`, en ninguna Mesa. Los rojos son distintos.
+> - **1 nuevo, P3:** `R9-291` (la prueba de `R9-273` pasa con su propia regresión si el respaldo es
+>   más lento que sus 20 vueltas: con `lentoSinTurno`, verde; el suite da las mismas 2 caídas que
+>   con `lento` solo).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **291**. Detalle: `detail/S70-revision-del-diff-s69.md`.
 
 ---
 
@@ -6540,6 +6556,11 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     - Con la prueba movida al principio del archivo, las otras dos pasan y `prepMultiSet` ya no es
       un mock (`S69-vueltas.cjs.txt`).
     - Con `lento` cae también otra prueba, de otro archivo: `R9-290`.
+  - **Sesión 70: se sostiene** (`_scratch/S70-turno.cjs.txt`). Con `sinCola` (`prepMultiSet` sin el
+    turno), el control nuevo queda en 1, y caen `mazoPedido…` y `terminado…`: cuenta llamadas, y la
+    espera la miran los otros dos. Con `ciego` (el respaldo llama por un alias que el spy no ve),
+    rojo ruidoso con el código bueno (`turnoPedidoAntesDeAbrir: 0`), nunca verde: aceptado, es el
+    precio de espiar el objeto del módulo.
 
 - **`R9-290` (S69, pruebas / respaldo / Mesa — P3) — 🐛 el caso `muere` de la prueba de `R9-275`
   espera 20 vueltas fijas a que el respaldo llegue a la devolución, y sus controles no lo dicen: con
@@ -6558,6 +6579,35 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
   - **Arreglo (hipótesis):** como el de `R9-289`, un control con el conteo de los `multiSet`
     colgados («el respaldo llegó a la devolución») y la vuelta esperándolo en vez de 20 fijas. Verla
     caer con `lento` en el control nuevo.
+  - **⚠️ Sesión 70, corrección:** el rojo de la regresión, que la 69 no midió, es distinto. Con el
+    caso construido, `anotaRespaldo` y `respaldo` (`_scratch/S59-rev.cjs.txt`) dejan `Ps/23/1-6`
+    bajo `ana`; con `lento`, `ana` sigue en `null` y lo restaurado no está en ninguna Mesa (el
+    respaldo sigue en vuelo). No es el mismo diff, a diferencia de `R9-289`. Sigue en P3: los
+    controles no dicen que el caso llegó, y el rojo se lee como una pérdida. La medición de la 69 se
+    sostiene, re-corrida sobre `main`.
+
+- **`R9-291` (S70, pruebas / respaldo / Mesa — P3) — 🐛 la prueba de `R9-273` pasa con su propia
+  regresión cuando el respaldo es más lento que sus 20 vueltas: su vuelta espera el daño, y su
+  control no dice que el respaldo llegó.** MEDIDO (`_scratch/S70-turno.cjs.txt <pieza> prep|suite`).
+  Lo abrió la 57 (`831c7e4`).
+  - En `backupPrepTurn.test.ts`, «R9-273: restaurado mientras corre una union…» retiene la otra
+    escritura con una puerta y da `for (let i = 0; i < 20 && !restaurado; i++)`. La vuelta sale antes
+    solo si el respaldo termina con la otra escritura retenida, que es el daño. Con el código bueno da
+    siempre las 20.
+  - `antesDeAbrir: false` («el respaldo no terminó antes de abrir») se cumple igual si el respaldo
+    espera el turno que si todavía no llegó a escribir.
+  - Con `sinTurno` (revierte `R9-273`), la prueba cae. Con `lentoSinTurno` (sin turno y 25 vueltas
+    más lento, antes del aviso), **pasa**: el respaldo escribe después de que la otra escritura
+    terminó, y el caso «durante una unión» no se construye.
+  - El suite no lo distingue: con `lentoSinTurno`, 2 de 998, `R9-287` (el control nuevo en 0 y los
+    avisos) y `R9-275` (`muere`). Son las mismas caídas, con los mismos diffs, que da `lento` con el
+    turno puesto.
+  - P3: hoy el respaldo llega en 1 vuelta, y la prueba ve `sinTurno`. Pero es un verde falso ante su
+    regresión, no solo un rojo confuso.
+  - **Arreglo (hipótesis):** un control de llegada, «el respaldo pidió el turno antes de abrir» (el
+    spy de `R9-289`: `prepMultiSet` 1), y la vuelta esperando ese pedido en vez del daño. Verla caer
+    con `lentoSinTurno` en el control nuevo, y con `sinTurno` como hoy. Conviene arreglarlo junto
+    con `R9-290`, que está en el mismo archivo.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

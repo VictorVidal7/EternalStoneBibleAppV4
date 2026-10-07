@@ -798,8 +798,16 @@
 > misma forma, y lo mostró `lento` en el suite).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **290**. Ramas `fix/s69-control-r289` y
-> `docs/review-s69-fix`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S69-arreglos-r289.md`.
+> `docs/review-s69-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `3d29d33`, CI verde en
+> el log, run `37572992296`, 374/4626; corregido en la 70). Detalle: `detail/S69-arreglos-r289.md`.
+>
+> **Sesión 70 (2026-10-06): revisión del diff de la 69**, en el mismo chat, en la terminal y sin
+> agentes, sin tocar código. El control nuevo de `R9-289` se sostiene. Corregido `R9-290` (el rojo
+> de la regresión es distinto del de `lento`). 1 nuevo, P3: `R9-291` (la prueba de `R9-273` pasa con
+> su propia regresión si el respaldo es más lento que sus 20 vueltas).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **291**. Rama `docs/review-s70-diff-s69`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S70-revision-del-diff-s69.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1576,6 +1584,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S69-arreglos-r289.md`.**
   - **La lección:** una pieza que muestra una forma se corre en el suite, no solo en la prueba que
     la motivó.
+
+- **Sesión 70 — 2026-10-06. Revisión del diff de la 69.** En el mismo chat que la 69, en la
+  terminal, sin agentes y sin tocar código; arrancó con `_scratch/S70-PROMPT.md`.
+  - **Cómo se trabajó:** una sonda nueva (`_scratch/S70-turno.cjs.txt`) con piezas que buscan romper
+    el control (`sinCola`, `ciego`) y la pieza que demora junto con la regresión (`lentoSinTurno`);
+    las piezas de `R9-275` de la 59 (`S59-rev`) para el rojo de la regresión; y `S69-muere`
+    re-corrido.
+  - **Resultado:** 1 nuevo, P3 (`R9-291`), y una corrección a `R9-290`. No queda ningún P0 abierto.
+  - **Detalle: `detail/S70-revision-del-diff-s69.md`.**
+  - **La lección:** la pieza que demora se corre también junto con la regresión. Una vuelta que
+    espera el daño no lo ve llegar si el caso tarda más que ella.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

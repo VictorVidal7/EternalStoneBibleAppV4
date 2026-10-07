@@ -1,15 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-06, fin de la sesión 69.** La 69 hizo el (aw) en un chat nuevo,
-> en la terminal y sin agentes: cerró `R9-289` con un tercer control en la prueba de `R9-287` («el
-> respaldo pidió el turno», un spy sobre `prepMultiSet`). Al correr `lento` en el suite apareció 1
-> nuevo P3, sin arreglar: `R9-290` (el caso `muere` de la prueba de `R9-275` espera 20 vueltas
-> fijas, y con el respaldo más lento cae como si se perdiera lo restaurado).
+> **Última actualización: 2026-10-06, fin de la sesión 70.** La 70 hizo el (ax) en el mismo chat
+> que la 69, en la terminal y sin agentes: revisó el diff de la 69 sin tocar código. El control
+> nuevo de `R9-289` se sostiene. Corrigió `R9-290` (el rojo de la regresión es distinto del de
+> `lento`) y registró 1 nuevo P3: `R9-291` (la prueba de `R9-273` pasa con su propia regresión si el
+> respaldo es más lento que sus 20 vueltas).
 >
-> La 68 ya está mergeada y pusheada (`main` = `e9db115`, CI verde en el log, run `37563058370`,
-> 374/4626). Las ramas de la 69 (`fix/s69-control-r289` y `docs/review-s69-fix`) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 290 hallazgos. **Lo
-> siguiente:** la 70 revisa el diff de la 69 (mensaje (ax), en `_scratch/S70-PROMPT.md`).
+> La 69 ya está mergeada y pusheada (`main` = `3d29d33`, CI verde en el log, run `37572992296`,
+> 374/4626). La rama de la 70 (`docs/review-s70-diff-s69`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 291 hallazgos. **Lo siguiente:** la 71 arregla
+> `R9-291` y `R9-290` (mensaje (ay), en `_scratch/S71-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -498,10 +498,16 @@ Y la revisión del diff de la 63 (la (ar), sesión 64, en un chat nuevo y sin ag
 sin agentes, con `_scratch/S66-PROMPT.md`). Y sus arreglos (la (au), sesión 67, en el mismo chat,
 con `_scratch/S67-PROMPT.md`). Y la revisión del diff de la 67 (la (av), sesión 68, en un chat nuevo
 y sin agentes, con `_scratch/S68-PROMPT.md`). Y sus arreglos (la (aw), sesión 69, en un chat
-nuevo y sin agentes, con `_scratch/S69-PROMPT.md`). **Lo siguiente es el (ax).**
+nuevo y sin agentes, con `_scratch/S69-PROMPT.md`). Y la revisión del diff de la 69 (la (ax),
+sesión 70, en el mismo chat, con `_scratch/S70-PROMPT.md`). **Lo siguiente es el (ay).**
 
-**(ax) Sesión 70: revisar el diff de la 69** (`R9-289`: un control en la prueba de `R9-287`; y la
-entrada de `R9-290`). El mensaje está en `_scratch/S70-PROMPT.md`, que manda sobre este archivo.
+**(ay) Sesión 71: arreglar lo de la 70** (`R9-291` y `R9-290`: controles de llegada en dos pruebas
+de `backupPrepTurn.test.ts`). El mensaje está en `_scratch/S71-PROMPT.md`, que manda sobre este
+archivo.
+
+**(ax) Sesión 70: revisar el diff de la 69 — ya HECHO en la sesión 70, en el mismo chat que la 69,
+en la terminal y sin agentes.** Un nuevo P3 (`R9-291`) y una corrección a `R9-290`. El mensaje
+está en `_scratch/S70-PROMPT.md`.
 
 **(aw) Sesión 69: arreglar lo de la 68 — ya HECHO en la sesión 69, en un chat nuevo, en la
 terminal y sin agentes.** Cerrado `R9-289`; un nuevo P3 (`R9-290`), sin arreglar. El mensaje está
@@ -1953,18 +1959,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 69 (2026-10-06).**
+**Medido al cerrar la sesión 70 (2026-10-06).**
 
-- **`main` = `origin/main` = `e9db115`** (el checkpoint de la 68; el último código en `main` es
-  `c847d8c`, solo comentarios, y antes `8c168fb`, la prueba de `R9-287`). **CI verificado en el
-  log** en la 68: run `37563058370`, 374/4626. La rama de la 68 se borró.
-- **Dos ramas de la 69, sin mergear a propósito y sin pushear:** `fix/s69-control-r289`
-  (`e96e8e6`, solo la prueba) y `docs/review-s69-fix` encima (solo docs). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **`main` = `origin/main` = `3d29d33`** (el checkpoint de la 69; el último código en `main` es
+  `e96e8e6`, la prueba de `R9-289`). **CI verificado en el log** en la 69: run `37572992296`,
+  374/4626. Las ramas de la 69 se borraron.
+- **Una rama de la 70, sin mergear a propósito y sin pushear:** `docs/review-s70-diff-s69` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 69):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 70):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2419,6 +2424,12 @@ Alternativas legítimas:
   (sesión 69, `R9-290`).** La 68 corrió `lento` en modo `archivo`. En el suite tumbó también el caso
   `muere` de `R9-275`: 20 vueltas fijas, controles que miran un paso anterior, y un rojo que se lee
   como pérdida de datos cuando el caso no se construyó.
+- **La pieza que demora se corre también JUNTO con la regresión (sesión 70, `R9-291`).** Una vuelta
+  que espera el daño (`i < 20 && !restaurado`) da siempre N vueltas con el código bueno, y con un
+  caso más lento que N la regresión no llega a mostrarse. La prueba de `R9-273` cae con `sinTurno` y
+  pasa con `lentoSinTurno` (`_scratch/S70-turno.cjs.txt`). Y para comparar el rojo de una pieza
+  que demora con el de la regresión, medí el segundo con el caso construido (`R9-290`: eran
+  distintos).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
