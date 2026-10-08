@@ -1128,7 +1128,8 @@
 >
 > **Sesión 80 (2026-10-07): revisión del diff de la 79**, en el MISMO chat que la escribió (lo pidió
 > Victor; no es una mirada fresca), en la terminal, sin agentes y sin tocar código. Rama
-> `docs/review-s80-diff-s79` (solo docs), sin mergear hasta el OK de Victor.
+> `docs/review-s80-diff-s79` (solo docs), mergeada y pusheada con el OK de Victor (`main` =
+> `a32be3b`, CI verde en el log, run `37738370167`, 374/4630; corregido en la 81).
 >
 > - **Lo de la 79 cae como dice:** `pedidaAntes` con `genTrasSqlite`/`generacion`/`genEnSqlite`, el
 >   revert, `sinCola`, `turnoAntesDeClave` (con `retenida: 0`); la de `R9-310` con
@@ -1140,6 +1141,21 @@
 >   ve ninguna prueba; no lo abrió la 79, pero corrige su «lo más tarde posible»).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **313**. Detalle: `detail/S80-revision-del-diff-s79.md`.
+>
+> **Sesión 81 (2026-10-08): arreglos de lo de la 80**, en un chat nuevo, en la terminal, con 3
+> agentes (los pidió Victor) que solo midieron, uno por hallazgo, cada uno en su worktree. El
+> orquestador integró y re-midió cada pieza en el árbol principal. Solo pruebas. Ramas
+> `fix/s81-r311-r313` y `docs/review-s81-fix`, sin mergear hasta el OK de Victor.
+>
+> - **Cerrados:** `R9-311` (`82de81f`: `otraPedidaAntes` por la identidad de la clave retenida, y
+>   `escribio` desde la retención), `R9-312` (`e23b150`: `recibida` y `leido` en la prueba de
+>   `R9-310`) y `R9-313` (`dcc7bfa`: el quinto caso, `devolucionPedidaAntes`, con una salida que
+>   cae en menos de 1 s con la traba, y el control `devuelta`).
+> - **Nuevo (1), P3 de pruebas:** `R9-314` (una lectura pedida antes del primer estado de auth, con
+>   la clave resuelta antes de la unión, lee sin la Mesa de antes, y no la ve ninguna prueba). No lo
+>   abrió la 81.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **314**. Detalle: `detail/S81-arreglos-r311-r313.md`.
 
 ---
 
@@ -7482,6 +7498,23 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     (`pide.mock.calls.filter(([k]) => k === claveRetenida).length`). Sola, 21/21. Con
     `claveCapturada` y `claveDosVeces`, el rojo dice `otraPedidaAntes: 0`; con `genTrasSqlite`, el
     rojo de siempre, con el control en 1.
+  - **✅ ARREGLADO en la sesión 81** (`82de81f`, solo la prueba). `otraPedidaAntes` cuenta solo los
+    `prepWrite` que reciben la promesa retenida, y la espera termina con el primero de esos. Además,
+    `escribio` cuenta desde que la escritura del respaldo llegó a la puerta (`retenida > 0`).
+    - **Medido** (agente 1, re-medido en el árbol principal con `_scratch/S81-sonda1.cjs.txt`, en
+      `prep`): con `claveCapturada` y `claveDosVeces` cae con `otraPedidaAntes: 0`; con la
+      prueba de `a32be3b` (`bpta32be3b+…`), con el diff de `genTrasSqlite` y el control en 1.
+      `genTrasSqlite`, `generacion`, `genEnSqlite` y `sinCola` dan el rojo de siempre;
+      `turnoAntesDeClave`, `retenida: 0` sin `escribio`.
+    - **`escribio` desde la retención:** no cambia qué regresión cae (las mismas pruebas en 13 de 14
+      piezas). Contado desde el principio, el rojo decía `escribioConElRespaldoRetenido: 1` con la
+      clave sin retener, con `retenida: 0` y con el respaldo lento (`lento50`): 8 renglones falsos en
+      5 piezas (contados por el agente 1). Y con un store que escribe dos veces (`escrituraDeMas`), daba la firma de un turno
+      roto sin que se perdiera nada (lo ve `R9-273`, con `retenida: 2`).
+    - **Un límite que ya existía:** si el store guardara `prepWrite` al cargar
+      (`escrituraCapturada`), el `spyOn` no lo vería, y el control daría 0 con el caso armado. El
+      comentario lo dice. Con la clave pedida dentro de la cola de `savePrepNote` (`claveEnCola`), el
+      `spyOn` la retiene y el caso se arma: queda medida la lectura de `detail/S80` §1.
 
 - **`R9-312` (S80, pruebas / Mesa — P3) — 🐛 el control final de la prueba de `R9-310` no dice lo
   que afirman su comentario y su commit («la escritura fue a la de `ana`, después de ella»).**
@@ -7496,6 +7529,20 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     la escritura y comprueba `recibida: '@prep_notes:ana'`: esa clave se resuelve después de
     `markKnown`, que va después de la unión. Sola, 21/21; con `claveSinEsperar`, la de `R9-310` cae
     en `recibida: '@prep_notes'`.
+  - **✅ ARREGLADO en la sesión 81** (`e23b150`, solo la prueba). La escritura guarda la clave que
+    recibe (`recibida: '@prep_notes:ana'`) y lo que lee en ella (`leido: ['John/3/16-21']`, lo que
+    puso la unión).
+    - **`recibida` sola no dice «después de la unión»** (agente 2): `setPrepAccount` fija la cuenta
+      antes de la unión, y con la clave resuelta antes de ella (`claveAntesDeUnion`: `markKnown` al
+      fijar la cuenta), `arregloOrden` pasaba igual. `leido` lo ve.
+    - **Medido** (re-medido con `_scratch/S81-sonda2.cjs.txt`): con `claveSinEsperar`, cae en
+      `recibida`; con `claveAntesDeUnion`, en `leido`. Con la prueba de `a32be3b`, la de `R9-310`
+      pasa con las dos, y `claveAntesDeUnion` pasa el suite (1002/1002). `turnoAntesDeClave` y los
+      cortes de `migraLentaK` no cambian (99 pasa; 100 y 999 caen solo en `aTiempo`; 1000, con el
+      rojo de la traba): caen en el primer `expect`, antes del control.
+    - **Lo que deja sin armar:** `claveAntesDelTurnoUnion` (la clave se resuelve tras las lecturas
+      de la unión y antes de su turno) pasa: la escritura corre igual después de la unión. Para una
+      lectura sí importa: `R9-314`.
 
 - **`R9-313` (S80, pruebas / respaldo / Mesa — P3) — 🐛 un store pedido antes del respaldo, con la
   clave resuelta durante la DEVOLUCIÓN de `R9-275` (en el turno del respaldo, después de su
@@ -7517,6 +7564,60 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     `R9-275`, que va después (la regla de la 63). El arreglo necesita una salida para ese caso
     (soltar la clave si `releasePrepAccount` no vuelve en N vueltas, o pedirla sin `await`), medida
     con `turnoAntesDeClave`.
+  - **✅ ARREGLADO en la sesión 81** (`dcc7bfa`, solo la prueba). Un quinto caso,
+    `devolucionPedidaAntes`: `pedidaAntes` con la cuenta borrada, y la clave del store (la de Ana)
+    soltada con la devolución retenida. La salida: `releasePrepAccount` se espera hasta 1000
+    vueltas, y si no volvió se suelta la clave. Control nuevo, `devuelta` (`'a tiempo'` hasta 100
+    vueltas, `'tarde'` o `'trabada'`), que vale también para el caso `devolucion`.
+    - **Medido** (agente 3, re-medido con `_scratch/S81-sonda3.cjs.txt`): con `genTrasMultiSet` cae
+      solo el quinto (`escribioConElRespaldoRetenido: 1`, `Rom/8/28` perdido; suite 1001/1002); con
+      la prueba de `82de81f`, pasa. `genTrasSqlite` y `sinCola` lo tumban también; `claveCapturada`
+      y `claveDosVeces`, con `otraPedidaAntes: 0`. Suite 1002/1002.
+    - **La salida:** con `turnoAntesDeClave`, la corrida tarda menos de 1 s, el quinto cae con
+      `devuelta: 'trabada'` y la de `R9-275` pasa. Sin la salida (`sinSalida+turnoAntesDeClave`, el
+      quinto de la 80), tarda 41 s, y `R9-292` y `R9-275` caen por timeout. El otro camino de la 80
+      (pedir la devolución sin `await` y sin tope) cae con el código bueno: el `multiSet` del
+      respaldo toma el turno antes que la devolución (medido por el agente 3, no re-medido).
+    - **El corte** (la regla de la 74; `releaseLentoK`, `releasePrepAccount` K vueltas más lenta,
+      código bueno, `-t R9-292`): hasta 100 pasa; de 101 a 1000 cae solo en `'tarde'`; desde 1001,
+      en `'trabada'`. Aun ahí se distingue de la traba, porque con la traba `devolucion` dice
+      `'a tiempo'`. Con la devolución lenta (`devolucionLentaK`), cae desde 40 con su propio rojo
+      (`retenida: 0`: las 40 vueltas fijas de antes). El tope de 100 es nuevo para `devolucion`,
+      que antes esperaba sin tope; la devolución real tarda 1 vuelta.
+    - **Lo que deja sin armar:** las marcas de `generacion` después de soltar la clave
+      (`genEnDevolucion`, `genTrasDevolucion`, `genFinTurno`) pasan `prep` (el agente 3 midió
+      también el suite: 1002/1002). Con la clave ya resuelta antes de la marca, la regresión no
+      se dispara. Con la clave soltada después del respaldo (`soltarDespues`), `genFinTurno`
+      pierde `Rom/8/28` bajo el uid borrado. Pero la pérdida viene de que la pieza de la 76 salta
+      el desvío de `R9-275`: con el desvío (`genFinTurnoD`), pasa. Lo que queda del turno después
+      del `multiSet` de la devolución (el `multiRemove` de la Mesa de Ana y la nota) no escribe la
+      «sin cuenta», adonde el desvío manda al store (por lectura). Sin número.
+
+- **`R9-314` (S81, pruebas / Mesa — P3) — 🐛 una LECTURA de la Mesa pedida antes del primer estado
+  de auth, con la Mesa de antes: si la clave se resuelve antes de la unión de `migrateLegacyPrep`,
+  lee la Mesa de la cuenta sin lo de antes, y no lo ve ninguna prueba.** MEDIDO en la 81 por el
+  agente 2 y re-medido en el árbol principal (`_scratch/S81-sonda2.cjs.txt`). No lo abrió la 81: no
+  lo veía ninguna versión. Es la regla de la 78 («una regla escrita sin su prueba no protege»)
+  sobre un comentario del código.
+  - El comentario de `setPrepAccount` (`prepAccount.ts:200-206`) dice que el primer estado mueve la
+    Mesa de antes y termina la devolución «before any key resolves». «Las claves esperan al primer
+    estado de auth» ve `claveSinEsperar`, sin Mesa de antes; la de `R9-310` (con `leido`, `R9-312`)
+    ve el orden de una escritura, que lee en su turno.
+  - Piezas `claveAntesDeUnion` (`markKnown` al fijar la cuenta, antes de la unión) y
+    `claveAntesDelTurnoUnion` (dentro de `migrateLegacyPrep`, tras sus lecturas y antes del turno
+    de la unión). Con la prueba de `a32be3b`, `claveAntesDeUnion` pasa el suite (1002/1002); con
+    la de hoy, `claveAntesDelTurnoUnion` también (1002/1002).
+  - **El daño, con la sonda `lecturaAntes`** (una prueba en «la Mesa de antes»: `sembrar()`,
+    `managePrepAccount()`, y `getAllPrepNotes()` pedido antes de `setPrepAccount('ana')`): con el
+    código bueno lee `['John/3/16-21']`; con cualquiera de las dos piezas, `[]`. El agente 2 la
+    corrió también con `migraLenta1000` y con `turnoAntesDeClave`, y pasa (no re-medido).
+  - P3: verde falso ante una regresión construida; el código de hoy resuelve la clave después de la
+    unión. Lo que sale mal es la lectura (la Mesa de antes no se ve); las escrituras leen en su
+    turno, después de la unión.
+  - Sin medir: `claveAntesDeFinish` (la clave tras la unión y antes de `finishRelease`), con una
+    devolución pendiente (`R9-274`).
+  - **Arreglo (hipótesis, medida como sonda):** `lecturaAntes` como prueba en
+    `prepAccount.test.ts`, y un caso con la devolución pendiente para `claveAntesDeFinish`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

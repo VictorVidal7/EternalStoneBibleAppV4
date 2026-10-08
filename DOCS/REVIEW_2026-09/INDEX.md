@@ -909,8 +909,20 @@
 > `R9-312` (el control final de `R9-310` no dice «después de la unión») y `R9-313` (la marca de
 > `generacion` ya en la devolución de `R9-275`: no la ve ninguna prueba).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **313**. Rama `docs/review-s80-diff-s79`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S80-revision-del-diff-s79.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **313**. Rama `docs/review-s80-diff-s79`: mergeada y
+> pusheada con el OK de Victor (`main` = `a32be3b`, CI verde en el log, run `37738370167`, 374/4630;
+> corregido en la 81). Detalle: `detail/S80-revision-del-diff-s79.md`.
+>
+> **Sesión 81 (2026-10-08): arreglos de lo de la 80**, en un chat nuevo, en la terminal, con 3
+> agentes (los pidió Victor) que solo midieron; el orquestador integró y re-midió. Cerrados `R9-311`
+> (el control por la identidad de la clave retenida, y `escribio` desde la retención), `R9-312`
+> (`recibida` y `leido` en la prueba de `R9-310`) y `R9-313` (el quinto caso, con una salida que no
+> se cuelga). Uno nuevo, `R9-314` (P3: una lectura pedida antes del primer estado de auth, con la
+> clave resuelta antes de la unión; no la ve ninguna prueba).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **314**. Ramas `fix/s81-r311-r313` y
+> `docs/review-s81-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S81-arreglos-r311-r313.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1814,6 +1826,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S80-revision-del-diff-s79.md`.**
   - **La lección:** un control que cuenta llamadas no dice que la puerta retuvo: compará la
     identidad de lo retenido. Y «lo más tarde posible» se mide contra el turno ENTERO del otro.
+
+- **Sesión 81 — 2026-10-08. Arreglos de lo de la 80.** En un chat nuevo, en la terminal, con 3
+  agentes que pidió Victor (uno por hallazgo, cada uno en su worktree, solo midieron); arrancó con
+  `_scratch/S81-PROMPT.md`. Solo pruebas.
+  - **Cómo se trabajó:** las herramientas de los agentes, con `_scratch/S81-copiar.cjs.txt`; sus
+    informes en `_scratch/S81-agente-N.md.txt`, y sus sondas en `_scratch/S81-sondas-agente-N/`. El
+    orquestador integró y re-midió cada pieza en el árbol principal (`_scratch/S81-sonda1`, `2` y `3`).
+  - **Resultado:** cerrados `R9-311` (`82de81f`), `R9-312` (`e23b150`) y `R9-313` (`dcc7bfa`). Uno
+    nuevo, `R9-314` (P3). No queda ningún P0 abierto.
+  - **Detalle: `detail/S81-arreglos-r311-r313.md`.**
+  - **La lección:** un control de orden lee algo que solo existe después del primer evento (lo que
+    la unión escribió, no la cuenta que se fijó antes). Y corré la regresión que armaste para probar
+    un control también contra los otros caminos que dependen de la misma garantía.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
