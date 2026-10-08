@@ -150,8 +150,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       await sembrar();
       managePrepAccount();
       let escrito = false;
+      let recibida = '';
+      let leido: string[] = [];
       const escritura = prepWrite(prepKey('@prep_notes'), async clave => {
+        recibida = clave;
         const raw = await AsyncStorage.getItem(clave);
+        leido = Object.keys(raw ? JSON.parse(raw) : {});
         await AsyncStorage.setItem(
           clave,
           JSON.stringify({
@@ -180,9 +184,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
         aTiempo: true,
       });
       await Promise.all([escritura, estado]);
-      // CONTROL: la union corrio (lo de antes, en la de `ana`), y la escritura
-      // fue a la de `ana`, despues de ella.
-      expect(await pasajes()).toEqual(['John/3/16-21', 'Ps/23/1-6']);
+      // CONTROL: la union corrio (lo de antes, en la de `ana`); la escritura
+      // recibio la clave de `ana` y leyo en ella lo de antes, o sea que leyo
+      // despues de que la union escribiera. R9-312: los pasajes solos no lo
+      // dicen; la union junta tambien lo escrito antes en la «sin cuenta».
+      expect({recibida, leido, pasajes: await pasajes()}).toEqual({
+        recibida: '@prep_notes:ana',
+        leido: ['John/3/16-21'],
+        pasajes: ['John/3/16-21', 'Ps/23/1-6'],
+      });
     });
   });
 
