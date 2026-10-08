@@ -941,8 +941,18 @@
 > nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **316**. Ramas `fix/s83-r314-r316` y
-> `docs/review-s83-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s83-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `637dc68`, CI verde en
+> el log, run `37819458101`, 374/4632; corregido en la 84). Detalle:
 > `detail/S83-arreglos-r314-r316.md`.
+>
+> **Sesión 84 (2026-10-08): revisión del diff de la 83**, en un chat nuevo, en la terminal y sin
+> agentes. Solo docs. Lo de la 83 cae como dice. Dos nuevos P3 de pruebas: `R9-317` (`antes: null`
+> dice «no terminó en un `setTimeout(0)`»: una clave que espera el primer estado a lo sumo 250 ms
+> pasa las 1004; no lo abrió la 83) y `R9-318` (el control por la clave pendiente cuenta una clave
+> lenta de otro lado: con `genTrasMultiSet` encima, `R9-292` pasa; lo abrió la 83).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **318**. Rama `docs/review-s84-diff-s83`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S84-revision-del-diff-s83.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1883,6 +1893,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un arreglo de un control cambia también su espera, así que hay que medir el
     corte otra vez (el de `R9-315` pasó de 20 a 41). Y una salida se escribe una vez, y suelta todo:
     así no depende de adivinar qué trabó.
+
+- **Sesión 84 — 2026-10-08. Revisión del diff de la 83.** En un chat nuevo, en la terminal y sin
+  agentes; arrancó con `_scratch/S84-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S84-sonda.cjs.txt` (la `S83-sonda`, más `clavePlazoK`,
+    `claveCapturadaLentaK`, `claveLentaK` y las hipótesis `esperaSinReloj` y `pendienteAlSoltar`).
+  - **Resultado:** lo de la 83 cae como dice. Nuevos `R9-317` y `R9-318` (P3 de pruebas). No queda
+    ningún P0 abierto.
+  - **Detalle: `detail/S84-revision-del-diff-s83.md`.**
+  - **La lección:** «esperaba» se mide contra «tardó»: con relojes falsos y una hora, no con un
+    `setTimeout(0)`. Y un control de «pendiente» se corre contra algo pendiente por su cuenta.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

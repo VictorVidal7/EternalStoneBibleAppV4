@@ -1,20 +1,21 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-08, fin de la sesión 83.** La 83 hizo el (bk) en el mismo chat
-> que la 82 (lo pidió Victor), en la terminal y sin agentes. Solo pruebas. Cerró:
+> **Última actualización: 2026-10-08, fin de la sesión 84.** La 84 hizo el (bl) en un chat nuevo,
+> en la terminal y sin agentes. Solo docs. Lo de la 83 cae como dice, y registró dos nuevos P3 de
+> pruebas:
 >
-> - `R9-314` (`505b79b`): dos lecturas pedidas antes del primer estado de auth, la Mesa de antes y
->   lo devuelto de una cuenta borrada, en `prepAccount.test.ts`;
-> - `R9-315` (`50b5442`): `otraPedidaAntes` cuenta los `prepWrite` cuya clave sigue pendiente (el
->   corte de un store lento pasa de 20 a 41);
-> - `R9-316` (`7b146a5`): `devolverConTope`, una salida que suelta todo lo retenido, en `R9-292` y en
->   la de `R9-275`.
+> - `R9-317` (no lo abrió la 83): el control `antes: null` de las lecturas de `R9-314` dice «no
+>   terminó en un `setTimeout(0)`», no «esperaba al primer estado de auth». Una clave que lo espera
+>   a lo sumo 250 ms (`clavePlazo250`) pasa las 1004;
+> - `R9-318` (lo abrió la 83, `50b5442`): `otraPedidaAntes` cuenta también una clave lenta que viene
+>   de otro lado (`claveCapturadaLenta5`). El caso no se arma, el control da 1, y con
+>   `genTrasMultiSet` encima `R9-292` pasa.
 >
-> Ninguno nuevo. La 82 ya está mergeada y pusheada (`main` = `d180732`, CI verde en el log, run
-> `37814148351`, 374/4630). Las ramas de la 83 (`fix/s83-r314-r316` y `docs/review-s83-fix`) van
-> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 316 hallazgos. **Lo
-> siguiente:** la 84 revisa el diff de la 83 (mensaje (bl), en `_scratch/S84-PROMPT.md`, mejor en
-> un chat nuevo).
+> Las dos llevan una hipótesis de arreglo medida (`esperaSinReloj`, `pendienteAlSoltar`). La 83 ya
+> está mergeada y pusheada (`main` = `637dc68`, CI verde en el log, run `37819458101`, 374/4632). La
+> rama de la 84 (`docs/review-s84-diff-s83`) va **sin mergear hasta el OK de Victor**. **No queda
+> ningún P0 abierto**, y hay 318 hallazgos. **Lo siguiente:** la 85 arregla `R9-317` y `R9-318`
+> (mensaje (bm), en `_scratch/S85-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -520,11 +521,16 @@ el mismo chat y sin agentes, con `_scratch/S80-PROMPT.md`). Y sus arreglos (la (
 un chat nuevo con 3 agentes que solo midieron, con `_scratch/S81-PROMPT.md`). Y la revisión del
 diff de la 81 (la (bj), sesión 82, en un chat nuevo y sin agentes, con `_scratch/S82-PROMPT.md`).
 Y sus arreglos (la (bk), sesión 83, en el mismo chat y sin agentes, con `_scratch/S83-PROMPT.md`).
-**Lo siguiente es el (bl).**
+Y la revisión del diff de la 83 (la (bl), sesión 84, en un chat nuevo y sin agentes, con
+`_scratch/S84-PROMPT.md`). **Lo siguiente es el (bm).**
 
-**(bl) Sesión 84: revisar el diff de la 83** (`R9-314`..`R9-316`: las dos lecturas, el control por
-la clave pendiente y `devolverConTope`). El mensaje está en `_scratch/S84-PROMPT.md`, que manda
-sobre este archivo.
+**(bm) Sesión 85: arreglar lo de la 84** (`R9-317`: el control `antes` con relojes falsos;
+`R9-318`: las claves pendientes, contadas justo antes de soltar la retenida). El mensaje está en
+`_scratch/S85-PROMPT.md`, que manda sobre este archivo.
+
+**(bl) Sesión 84: revisar el diff de la 83 — ya HECHO en la sesión 84, en un chat nuevo, en la
+terminal y sin agentes.** Dos nuevos P3 (`R9-317`, `R9-318`). El mensaje está en
+`_scratch/S84-PROMPT.md`.
 
 **(bk) Sesión 83: arreglar lo de la 82 y `R9-314` — ya HECHO en la sesión 83, en el mismo chat, en
 la terminal y sin agentes.** Cerrados `R9-314`..`R9-316`; ninguno nuevo. El mensaje está en
@@ -2032,19 +2038,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 83 (2026-10-08).**
+**Medido al cerrar la sesión 84 (2026-10-08).**
 
-- **`main` = `origin/main` = `d180732`** (el checkpoint de la 82, solo docs; el último código en
-  `main` es `dcc7bfa`, la prueba de `R9-313`). **CI verificado en el log** en la 82: run
-  `37814148351`, 3 jobs, Node v24.21.0, 374/4630. La rama de la 82 se borró tras `git cherry`.
-- **Dos ramas de la 83, sin mergear a propósito y sin pushear:** `fix/s83-r314-r316` (`505b79b`,
-  `50b5442`, `7b146a5`; solo `__tests__/prepAccount.test.ts` y `__tests__/backupPrepTurn.test.ts`) y
-  `docs/review-s83-fix` encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se
-  mergearon, `main` las incluye.
+- **`main` = `origin/main` = `637dc68`** (el checkpoint de la 83, solo docs; el último código en
+  `main` es `7b146a5`, la prueba de `R9-316`). **CI verificado en el log** en la 83: run
+  `37819458101`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 83 se borraron tras `git cherry`.
+- **Una rama de la 84, sin mergear a propósito y sin pushear:** `docs/review-s84-diff-s83` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 83):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 84):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2604,6 +2608,15 @@ Alternativas legítimas:
   a esperar una más para ver la clave: el corte de un store lento se movió de 20 a 41 vueltas. Y
   una salida se escribe una vez, y suelta TODO lo retenido (`devolverConTope`, `R9-316`): así no
   depende de adivinar qué la trabó.
+- **«Esperaba» se mide contra «tardó» (sesión 84, `R9-317`).** `antes: null` tras un
+  `setTimeout(0)` dice que la lectura no terminó en 1 ms: una clave que espera el primer estado a lo
+  sumo 250 ms pasa las 1004. Para decir que algo espera un evento, dale todo el tiempo (relojes
+  falsos, una hora) y mirá que siga esperando. Es la regla de la 73, en el tiempo real.
+- **Un control de «pendiente» se corre contra algo pendiente por su cuenta (sesión 84, `R9-318`).**
+  La 83 midió el suyo contra un cambio bueno (`claveEnvuelta`) y contra claves que resuelven
+  enseguida (`claveCapturada`). Una clave de otro lado que tarda 5 vueltas da 1 con el caso sin
+  armar, y la prueba pasa con `genTrasMultiSet`. Que el control lea el estado en el momento que
+  importa (justo antes de soltar), no tras una vuelta.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

@@ -1179,7 +1179,8 @@
 >
 > **Sesión 83 (2026-10-08): arreglos de lo de la 82 y de `R9-314`**, en el mismo chat que la 82 (lo
 > pidió Victor), en la terminal y sin agentes. Solo pruebas. Ramas `fix/s83-r314-r316` y
-> `docs/review-s83-fix`, sin mergear hasta el OK de Victor.
+> `docs/review-s83-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `637dc68`, CI verde en
+> el log, run `37819458101`, 374/4632; corregido en la 84).
 >
 > - **Cerrados:** `R9-314` (`505b79b`: dos lecturas pedidas antes del primer estado de auth, la
 >   Mesa de antes y lo devuelto de una cuenta borrada), `R9-315` (`50b5442`: `otraPedidaAntes`
@@ -1188,6 +1189,22 @@
 > - **Ninguno nuevo.**
 >
 > **No queda ningún P0 abierto.** Hallazgos: **316**. Detalle: `detail/S83-arreglos-r314-r316.md`.
+>
+> **Sesión 84 (2026-10-08): revisión del diff de la 83**, en un chat nuevo, en la terminal y sin
+> agentes. Solo docs. Rama `docs/review-s84-diff-s83`, sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 83 cae como dice:** `R9-314` (`claveAntesDeUnion`, `claveAntesDelTurnoUnion`,
+>   `claveAntesDeFinish`, `claveAlPedir`, `claveSinEsperar`, el revert), `R9-315` (`claveEnvuelta`,
+>   `claveCapturada`, `claveDosVeces`, el revert, el corte 40/41) y `R9-316` (`turnoAntesSqlite` en
+>   1.4 s, y 41.4 s con el revert; `turnoAntesDeClave`, `sinDevolucion`, el corte de
+>   `releaseLentoK`). El diff es solo pruebas.
+> - **Nuevos (2), P3 de pruebas:** `R9-317` (el control `antes: null` dice «no terminó en un
+>   `setTimeout(0)`», no «esperaba al primer estado»: una clave que lo espera a lo sumo 250 ms pasa
+>   las 1004; no lo abrió la 83) y `R9-318` (el control por la clave pendiente cuenta también una
+>   clave lenta que viene de otro lado: con `genTrasMultiSet` encima, `R9-292` pasa; lo abrió la
+>   83).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **318**. Detalle: `detail/S84-revision-del-diff-s83.md`.
 
 ---
 
@@ -7097,6 +7114,10 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     margen es de cero vueltas. Re-medido además `tarde25`: el diff de la entrada.
   - **Sesión 74: la caída de `R9-287` con `tarde25`, caracterizada:** es el diff exacto de `sinCola`,
     y ya con `tarde1`. Tiene número propio y arreglo medido: `R9-302`.
+  - **Sesión 84: también con la clave del store una vuelta más lenta** (`claveLenta1`, un cambio
+    bueno, `_scratch/S84-sonda.cjs.txt`): el caso `store` cae con `antesDeAbrir: true`, también con
+    la prueba de `a32be3b`. Es el único rojo de `prep` con `claveCapturadaLentaK`, con o sin
+    `genTrasMultiSet` encima (`R9-318`).
 
 - **`R9-298` (S73, pruebas / respaldo / Mesa — P3) — 🐛 con `gone` calculado fuera del turno
   (`goneFuera`), lo restaurado queda bajo el uid borrado, y ninguna prueba lo ve.** MEDIDO por el
@@ -7686,6 +7707,11 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       `claveSinEsperar`, las dos en `antes`. Con las pruebas de `d180732`,
       `claveAntesDelTurnoUnion` y `claveAntesDeFinish` pasan 21/21. `migraLenta1000` y
       `turnoAntesDeClave` no las tocan: las lecturas no tienen tope.
+  - **Sesión 84: cae como dice** (`_scratch/S84-sonda.cjs.txt`, `prep`: las cinco piezas y los dos
+    reverts, como en la 83). Las notas sembradas no cambian lo que hacen la unión ni la devolución:
+    mueven lo que falta en el destino, y lo sembrado no está en el origen (por lectura). No
+    encontré un cambio bueno que las tumbe. Pero el control `antes` dice menos que su comentario
+    («la lectura esperaba»): `R9-317`.
 
 - **`R9-315` (S82, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, el control
   `otraPedidaAntes` compara la identidad de la PROMESA: si el store envuelve la clave antes de
@@ -7714,6 +7740,10 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       pasa hasta 40. Con 41 da solo `otraPedidaAntes: 0`, sin pérdida (el comentario lo dice). Con
       `storeLento40` cae también la de `R9-273`, con cualquier versión (con la de `a32be3b`, ya con
       20): son sus vueltas fijas, no esta.
+  - **Sesión 84: cae como dice** (`claveEnvuelta` pasa, y con la prueba de `505b79b` da 0;
+    `claveCapturada` y `claveDosVeces` dan 0 con `Rom/8/28` perdido; `storeLento40` pasa y
+    `storeLento41` da 0). Pero una clave que sigue pendiente por su cuenta, sin ser la retenida, da 1
+    con el caso sin armar: `R9-318`.
 
 - **`R9-316` (S82, pruebas / respaldo — P3) — 🐛 la salida de `R9-313` suelta solo la clave: si la
   devolución se traba por OTRO camino, `R9-292` sigue colgándose 20 s.** MEDIDO en la 82
@@ -7745,6 +7775,75 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       1001, `'trabada'`. En `R9-275`, la traba (`antes` en `'a tiempo'`) se distingue de una
       devolución lenta (también `'trabada'`); en `R9-292` dan el mismo rojo. El tope de 100 es nuevo
       para `R9-275`, que antes esperaba sin tope.
+  - **Sesión 84: cae como dice** (`_scratch/S84-sonda.cjs.txt`, `prep`). `turnoAntesSqlite`: 1.4 s,
+    y el rojo dice solo `'trabada'`; con la prueba de `50b5442`, 41.4 s y dos timeouts.
+    `turnoAntesDeClave`: `'trabada'` y `retenida: 0`. `sinDevolucion`: el mismo diff con las dos
+    versiones. `releaseLentoK`: 100, 101, 1000 y 1001, como con el bucle de la 81. Con
+    `turnoAntesSqlite` caen también `durante` y `pedido antes` de `R9-287` (`otraConElTurno: false`,
+    como en la 82), con las dos versiones: no es de la 83.
+    - **La salida abre antes de la escritura retenida:** el caso queda sin armar, pero el rojo lo
+      dice (solo `'trabada'` con `turnoAntesSqlite`, también en `muere`). La salida corre solo con
+      `'trabada'`, y `'trabada'` nunca da verde.
+    - **El tope de `R9-275`, ante un temporizador real** (`releaseTimerK`, un cambio bueno): con 1
+      ms, `'tarde'` en los tres casos; con 20 ms, `'trabada'` en los tres. Con la prueba de
+      `50b5442` pasaba: para esta prueba, lo abrió la 83. Pero `prepAccount.test.ts` ya caía con las
+      dos versiones (`R9-275` siempre; `R9-274`, en tres de las cuatro corridas): el suite no
+      aceptaba una devolución con temporizador (`detail/S82` §2). Sin número. «Una devolución lenta
+      no da el rojo de la traba», en el comentario del ayudante, vale en vueltas: en tiempo, 20 ms
+      dan `'trabada'`. En `R9-275` se distingue igual de la traba, porque `antes` también la da.
+
+- **`R9-317` (S84, pruebas / Mesa — P3) — 🐛 el control `antes: null` de las dos pruebas de
+  `R9-314` (y de «las claves esperan al primer estado de auth») dice que la lectura no terminó en
+  un `setTimeout(0)`, no que esperaba al primer estado de auth: una clave que espera ese estado a
+  lo sumo 250 ms pasa el suite.** MEDIDO en la 84 (`_scratch/S84-sonda.cjs.txt`). No lo abrió la
+  83: con las pruebas de `d180732`, `clavePlazo2` pasa 21/21 (la prueba vieja tiene el mismo
+  control). La 83 lo copió en dos pruebas, y su comentario dice «la lectura esperaba».
+  - Pieza `clavePlazoK` (una regresión: `prepKey` espera `Promise.race([known, setTimeout(K)])`). En
+    `prep`, `clavePlazo1` cae en `antes` en las tres pruebas, y `clavePlazo2` y `clavePlazo50`
+    pasan 23/23. En el suite, `clavePlazo2` da 1003/1004: lo ve solo «la cuenta se dice…» de
+    `AuthContext.test.tsx`, cuyo `claveAhora` compite con un temporizador de 200 ms.
+    `clavePlazo250` pasa 1004/1004.
+  - El daño (por lectura, sin número): si en el teléfono el primer estado de auth tarda más que el
+    plazo, una lectura de la Mesa pedida antes lee la «sin cuenta», y una escritura va a la «sin
+    cuenta» con la sesión de la cuenta abierta. Con la migración ya hecha, la escritura se queda ahí.
+  - P3: verde falso ante una regresión construida; el código de hoy espera sin plazo.
+  - **Arreglo (hipótesis, medida como pieza `esperaSinReloj`):** relojes falsos desde antes de
+    pedir la lectura (`jest.useFakeTimers` sin tocar `nextTick`, `queueMicrotask` ni
+    `setImmediate`), una hora adelantada (`advanceTimersByTimeAsync`) en vez del `setTimeout(0)`, y
+    los relojes reales antes de `setPrepAccount`. En las tres pruebas, sola, 23/23. Con
+    `clavePlazo250`, caen las tres en `antes`. Con `claveSinEsperar`, `claveAntesDeUnion` y
+    `claveAntesDeFinish`, el mismo rojo que sin ella. Un plazo puesto a propósito (una salida larga)
+    también caería: la prueba cambiaría con esa decisión.
+
+- **`R9-318` (S84, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, `otraPedidaAntes`
+  cuenta también una clave que sigue pendiente por su cuenta: si el store toma `prepKey` de otro
+  lado y su clave tarda unas vueltas, el caso no se arma, el control da 1, y con `genTrasMultiSet`
+  la prueba pasa.** MEDIDO en la 84 (`_scratch/S84-sonda.cjs.txt`). Lo abrió la 83 (`50b5442`).
+  - Pieza `claveCapturadaLentaK`: el store guarda `prepKey` al cargar (como `claveCapturada`), y su
+    clave tarda K vueltas en resolverse. El `spyOn` no la retiene, y tras una vuelta sigue
+    pendiente.
+  - Con K = 5 (`-t R9-292`), la prueba pasa con `otraPedidaAntes: 1`. Con `genTrasMultiSet` encima
+    también pasa, y solo la veía el quinto caso (`devolucionPedidaAntes`). Con la prueba de
+    `505b79b` (el control por identidad), cae en `otraPedidaAntes: 0` las dos veces.
+  - `genTrasSqlite` sí se ve con la pieza (`escribioConElRespaldoRetenido: 1`, `Rom/8/28`
+    perdido): depende de en qué vuelta se resuelve la clave, no del control.
+  - En `prep`, el único rojo es el de `R9-273` (`antesDeAbrir: true`), que sale igual sin la
+    regresión. Es `R9-297`: cae ya con la clave del store una vuelta más lenta (`claveLenta1`, un
+    cambio bueno), con cualquier versión.
+  - El comentario dice «solo la retenida, o algo que espera por ella»: no es así si la clave viene
+    de otro lado y tarda.
+  - P3: verde falso ante una regresión construida, con un cambio del store; el código de hoy está
+    bien.
+  - **Arreglo (hipótesis, medida como pieza `pendienteAlSoltar`):** que `otraPedidaAntes` cuente
+    las claves que `prepWrite` recibió y siguen pendientes JUSTO ANTES de soltar la retenida, no
+    tras una vuelta (una clave lenta de otro lado ya volvió).
+    - Sola, 23/23; con `claveEnvuelta`, pasa.
+    - Con `claveCapturada`, `claveDosVeces`, `claveCapturadaLenta5` y
+      `claveCapturadaLenta5+genTrasMultiSet`, cae en `otraPedidaAntes: 0`.
+    - Con `genTrasMultiSet` y `genTrasSqlite`, el rojo de siempre; con `turnoAntesDeClave`,
+      `'trabada'`.
+    - La pieza quita la última llamada a `conLaRetenida()` (una vuelta), y el corte de `storeLentoK`
+      baja de 41 a 40. Con esa llamada antes de la foto, sin medir.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
