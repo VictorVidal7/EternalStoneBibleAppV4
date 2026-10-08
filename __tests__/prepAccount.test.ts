@@ -194,6 +194,34 @@ describe('R9-59 — la Mesa por cuenta', () => {
         pasajes: ['John/3/16-21', 'Ps/23/1-6'],
       });
     });
+
+    // R9-314 — el primer estado de auth mueve la Mesa de antes ANTES de que
+    // se resuelva ninguna clave (`setPrepAccount`). Una escritura lo ve igual,
+    // en su turno (R9-310); una lectura no pide turno: con la clave resuelta
+    // antes de la union, leia la de `ana` sin lo de antes, y no lo veia nadie.
+    it('R9-314: una lectura pedida antes del primer estado de auth ve lo de antes, ya en la de la cuenta', async () => {
+      await sembrar();
+      // Lo de `ana` de antes: lo leido sale distinto si se lee la de `ana`
+      // antes de la union ('Ps/23/1-6') o la «sin cuenta» despues ([]).
+      await AsyncStorage.setItem(
+        '@prep_notes:ana',
+        JSON.stringify({
+          'Ps/23/1-6': {sections: {observation: 'de Ana'}, updatedAt: 1},
+        }),
+      );
+      managePrepAccount();
+      let leido: string[] | null = null;
+      const lectura = pasajes().then(r => (leido = r));
+      await new Promise(r => setTimeout(r, 0));
+      const antes = leido;
+      await setPrepAccount('ana');
+      await lectura;
+      expect({antes, leido, despues: await pasajes()}).toEqual({
+        antes: null, // CONTROL: la lectura esperaba al primer estado
+        leido: ['John/3/16-21', 'Ps/23/1-6'],
+        despues: ['John/3/16-21', 'Ps/23/1-6'], // CONTROL: la union corrio
+      });
+    });
   });
 
   it('al iniciar sesion la Mesa «sin cuenta» se une a la de la cuenta (gana la de la cuenta, y la otra se queda); al borrar la cuenta vuelve', async () => {
@@ -372,6 +400,43 @@ describe('R9-59 — la Mesa por cuenta', () => {
       primera: devueltas,
       lasDos: devueltas,
       antigua: {sinCuenta: [P], claves: ['@prep_by_account', '@prep_notes']},
+    });
+  });
+
+  // R9-314 — el primer estado de auth termina la devolucion pendiente (R9-274)
+  // ANTES de que se resuelva ninguna clave. Una lectura no pide turno: con la
+  // clave resuelta antes de `finishRelease`, leia la «sin cuenta» sin lo de la
+  // cuenta borrada, y no lo veia nadie.
+  it('R9-314: una lectura pedida antes del primer estado de auth ve lo devuelto de una cuenta borrada', async () => {
+    // Lo de la «sin cuenta» de antes: lo leido sale distinto si se lee antes
+    // de la devolucion ('Ps/23/1-6') o despues ('Ps/23/1-6' y 'Rom/8/28').
+    await AsyncStorage.setItem(
+      '@prep_notes',
+      JSON.stringify({
+        'Ps/23/1-6': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem(
+      '@prep_notes:bob',
+      JSON.stringify({
+        'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem(
+      '@prep_release_pending',
+      JSON.stringify(['bob']),
+    );
+    managePrepAccount();
+    let leido: string[] | null = null;
+    const lectura = pasajes().then(r => (leido = r));
+    await new Promise(r => setTimeout(r, 0));
+    const antes = leido;
+    await setPrepAccount(null);
+    await lectura;
+    expect({antes, leido, despues: await pasajes()}).toEqual({
+      antes: null, // CONTROL: la lectura esperaba al primer estado
+      leido: ['Ps/23/1-6', 'Rom/8/28'],
+      despues: ['Ps/23/1-6', 'Rom/8/28'], // CONTROL: la devolucion corrio
     });
   });
 
