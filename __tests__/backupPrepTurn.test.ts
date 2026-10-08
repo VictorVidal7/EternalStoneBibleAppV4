@@ -114,6 +114,33 @@ function respaldoConMesa(notes: unknown): BackupPayload {
   } as unknown as BackupPayload;
 }
 
+/**
+ * `releasePrepAccount(uid)` con el respaldo esperando en SQLite, con tope. Si
+ * la devolucion esperara algo que la prueba suelta despues, esperarla sin tope
+ * colgaba la prueba 20 s y tumbaba la siguiente (R9-313, R9-316): pasado el
+ * tope (1000 vueltas), `salida` suelta todo lo retenido, y el rojo lo dice
+ * (`'trabada'`). Si tarda mas de 100, da `'tarde'`: una devolucion lenta no da
+ * el rojo de la traba.
+ */
+async function devolverConTope(
+  uid: string,
+  salida: () => void,
+): Promise<'a tiempo' | 'tarde' | 'trabada'> {
+  let volvio = false;
+  const devolver = releasePrepAccount(uid).then(() => {
+    volvio = true;
+  });
+  let vueltas = 0;
+  while (!volvio && vueltas < 1000) {
+    await new Promise(r => setImmediate(r));
+    vueltas += 1;
+  }
+  const devuelta = !volvio ? 'trabada' : vueltas <= 100 ? 'a tiempo' : 'tarde';
+  if (!volvio) salida();
+  await devolver;
+  return devuelta;
+}
+
 beforeEach(async () => {
   __resetPrepAccountForTests();
   await AsyncStorage.clear();
@@ -340,23 +367,17 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
         // Con `pedidaAntes`, la devolucion de `releasePrepAccount` pide el
         // turno con la otra esperando su clave. Si la otra tomara el turno
         // ANTES de su clave (R9-310), se trabarian: la devolucion espera a la
-        // otra, y la otra a su clave, que se suelta despues. Esperarla sin
-        // tope colgaba esta prueba y tumbaba la siguiente (R9-313): pasado el
-        // tope, se suelta la clave, y el rojo lo dice `devuelta: 'trabada'`.
-        // Hasta 1000 vueltas, para que una devolucion lenta no de ese rojo:
-        // si tarda mas de 100, da solo `'tarde'`.
-        let volvio = false;
-        const devolver = releasePrepAccount('ana').then(() => {
-          volvio = true;
+        // otra, y la otra a su clave, que se suelta despues (R9-313). Y si el
+        // respaldo tomara el turno antes de SQLite, la devolucion lo esperaria
+        // a el, y el a la puerta de SQLite, que se abre despues (R9-316).
+        // Pasado el tope se suelta todo: la clave, SQLite y la puerta del
+        // respaldo (soltando solo la clave, esa seguia colgada).
+        devuelta = await devolverConTope('ana', () => {
+          soltarClave();
+          mockSqlite.puerta = null;
+          abrirSqlite!();
+          abrir();
         });
-        let vueltas = 0;
-        while (!volvio && vueltas < 1000) {
-          await new Promise(r => setImmediate(r));
-          vueltas += 1;
-        }
-        devuelta = !volvio ? 'trabada' : vueltas <= 100 ? 'a tiempo' : 'tarde';
-        if (!volvio) soltarClave();
-        await devolver;
         await setPrepAccount(null);
         mockSqlite.puerta = null;
         abrirSqlite!();
@@ -529,7 +550,13 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       if (cuando === 'antes') await respaldo;
       for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
       const antesDeBorrar = restaurado;
-      await releasePrepAccount('ana');
+      // Si la devolucion esperara al respaldo (con el turno de la Mesa desde
+      // antes de SQLite), el respaldo esperaria la puerta, que se abre
+      // despues: pasado el tope se abre (R9-316).
+      const devuelta = await devolverConTope('ana', () => {
+        mockSqlite.puerta = null;
+        abrir?.();
+      });
       await setPrepAccount(null);
       mockSqlite.puerta = null;
       // Los pasajes de cada escritura colgada de la Mesa «sin cuenta».
@@ -569,6 +596,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
       return {
         retenida: mockSqlite.retenida, // CONTROL: el respaldo espero en SQLite
         antesDeBorrar, // CONTROL: y no habia terminado al borrar la cuenta
+        devuelta, // CONTROL: la devolucion volvio a tiempo, sin la salida
         colgadas, // CONTROL: en `muere`, la devolucion del respaldo (con P y R)
         restaurado,
         sinCuenta: await pasajes('@prep_notes'),
@@ -594,6 +622,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     antes: {
       retenida: 0,
       antesDeBorrar: true,
+      devuelta: 'a tiempo',
       colgadas: [],
       restaurado: true,
       sinCuenta: [R],
@@ -603,6 +632,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     durante: {
       retenida: 1,
       antesDeBorrar: null,
+      devuelta: 'a tiempo',
       colgadas: [],
       restaurado: true,
       sinCuenta: [P, R],
@@ -612,6 +642,7 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     muere: {
       retenida: 1,
       antesDeBorrar: null,
+      devuelta: 'a tiempo',
       colgadas: [[P, R]],
       restaurado: null, // el proceso termino antes
       sinCuenta: [P, R],
