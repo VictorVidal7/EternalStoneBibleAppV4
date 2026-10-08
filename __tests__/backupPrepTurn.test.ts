@@ -250,8 +250,10 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   // respaldo retenida. Un respaldo que deja correr sin turno lo pedido antes
   // de una marca suya: con la marca al empezar, en SQLite o al salir de SQLite
   // (antes de avisar que restaura), este caso cae; el caso `pedido antes` de
-  // R9-287, solo con las dos primeras (R9-309). Con la marca despues de su
-  // `multiSet`, en la devolucion, no cae ninguno (R9-313).
+  // R9-287, solo con las dos primeras (R9-309). Con los dos, la clave de la
+  // otra es la de Ana, y se suelta con la DEVOLUCION retenida: el turno del
+  // respaldo sigue despues de su `multiSet`, y una marca entre los dos no la
+  // veia ningun otro caso (R9-313).
   const caso = async (
     borrada: boolean,
     otra: () => Promise<void>,
@@ -293,9 +295,12 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     try {
       let segunda: Promise<void> | undefined;
       let otraPedidaAntes = 0;
+      let devuelta: 'a tiempo' | 'tarde' | 'trabada' | null = null;
       if (pedidaAntes) {
         const claveRetenida = new Promise<string>(
-          r => (soltarClave = () => r('@prep_notes')),
+          r =>
+            (soltarClave = () =>
+              r(borrada ? '@prep_notes:ana' : '@prep_notes')),
         );
         const clave = jest
           .spyOn(prepAccount, 'prepKey')
@@ -320,7 +325,26 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       });
       if (borrada) {
         for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
-        await releasePrepAccount('ana');
+        // Con `pedidaAntes`, la devolucion de `releasePrepAccount` pide el
+        // turno con la otra esperando su clave. Si la otra tomara el turno
+        // ANTES de su clave (R9-310), se trabarian: la devolucion espera a la
+        // otra, y la otra a su clave, que se suelta despues. Esperarla sin
+        // tope colgaba esta prueba y tumbaba la siguiente (R9-313): pasado el
+        // tope, se suelta la clave, y el rojo lo dice `devuelta: 'trabada'`.
+        // Hasta 1000 vueltas, para que una devolucion lenta no de ese rojo:
+        // si tarda mas de 100, da solo `'tarde'`.
+        let volvio = false;
+        const devolver = releasePrepAccount('ana').then(() => {
+          volvio = true;
+        });
+        let vueltas = 0;
+        while (!volvio && vueltas < 1000) {
+          await new Promise(r => setImmediate(r));
+          vueltas += 1;
+        }
+        devuelta = !volvio ? 'trabada' : vueltas <= 100 ? 'a tiempo' : 'tarde';
+        if (!volvio) soltarClave();
+        await devolver;
         await setPrepAccount(null);
         mockSqlite.puerta = null;
         abrirSqlite!();
@@ -348,6 +372,9 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
         // cualquier `prepWrite`, el rojo era el de un turno roto (R9-311). Mira
         // `prepWrite` por el modulo: guardado al cargar, da 0 con el caso armado.
         otraPedidaAntes,
+        // CONTROL: con `borrada`, la devolucion de `releasePrepAccount` volvio
+        // a tiempo, y sin soltar antes la clave de la otra.
+        devuelta,
         // CONTROL: con `borrada`, el respaldo espero en SQLite con la clave de
         // Ana (como `durante` en R9-275); si no, el rojo de un respaldo mas
         // lento se leia como una perdida de P.
@@ -379,15 +406,23 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   const conUnion = await caso(false, () => adoptNoAccountPrep('ana'), deUnion);
   const devolucion = await caso(true, store, deStore);
   const pedidaAntes = await caso(false, store, deStore, true);
+  const devolucionPedidaAntes = await caso(true, store, deStore, true);
   // R9-273 pide el turno; esta mira que lo use para TODA su escritura. Si el
   // respaldo lo suelta antes de escribir (o escribe fuera de el, o deja la
   // devolucion fuera), la otra escritura corre con la suya en vuelo, y la que
   // termina despues pisa a la otra: lo restaurado se perdia, y la
   // restauracion decia que si (R9-292, R9-293, R9-294). El conteo de
   // `prepMultiSet` no lo ve: el pedido se hace igual.
-  expect({conStore, conUnion, devolucion, pedidaAntes}).toEqual({
+  expect({
+    conStore,
+    conUnion,
+    devolucion,
+    pedidaAntes,
+    devolucionPedidaAntes,
+  }).toEqual({
     conStore: {
       otraPedidaAntes: 0,
+      devuelta: null,
       retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
@@ -398,6 +433,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     conUnion: {
       otraPedidaAntes: 0,
+      devuelta: null,
       retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
@@ -408,6 +444,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     devolucion: {
       otraPedidaAntes: 0,
+      devuelta: 'a tiempo',
       retenidaSqlite: 1,
       retenida: 1,
       pedido: 1,
@@ -418,12 +455,24 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     pedidaAntes: {
       otraPedidaAntes: 1,
+      devuelta: null,
       retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
       escribioConElRespaldoRetenido: 0,
       restaurado: true,
       sinCuenta: [R, Q],
+      ana: null,
+    },
+    devolucionPedidaAntes: {
+      otraPedidaAntes: 1,
+      devuelta: 'a tiempo',
+      retenidaSqlite: 1,
+      retenida: 1,
+      pedido: 1,
+      escribioConElRespaldoRetenido: 0,
+      restaurado: true,
+      sinCuenta: [P, R, Q],
       ana: null,
     },
   });
