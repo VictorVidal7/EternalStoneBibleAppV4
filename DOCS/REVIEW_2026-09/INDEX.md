@@ -871,8 +871,17 @@
 > turno tomado durante el cuerpo de la transacción; arreglo medido) y `R9-308` (un plazo de reloj en
 > la espera del turno).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **308**. Rama `docs/review-s76-diff-s75`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S76-revision-del-diff-s75.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **308**. Rama `docs/review-s76-diff-s75`: mergeada y
+> pusheada con el OK de Victor (`main` = `e2e8182`, CI verde en el log, run `37706611415`, 374/4628;
+> corregido en la 77). Detalle: `detail/S76-revision-del-diff-s75.md`.
+>
+> **Sesión 77 (2026-10-07): arreglos de lo de la 76**, en el mismo chat, en la terminal y sin
+> agentes. Cerrados `R9-307` (la puerta de SQLite del mock, después del cuerpo) y `R9-306` (un
+> tercer caso, `pedido antes`: el store pedido con la clave sin resolver). Ninguno nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **308**. Ramas `fix/s77-r306-r307-ordenes` y
+> `docs/review-s77-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S77-arreglos-r306-r307.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1729,6 +1738,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S76-revision-del-diff-s75.md`.**
   - **La lección:** una puerta construye un punto del orden, no el tramo: al cambiar una carrera por
     casos con puertas, listá dónde podía caer la carrera, y probá una regresión en cada punto.
+
+- **Sesión 77 — 2026-10-07. Arreglos de lo de la 76.** En el mismo chat, en la terminal y sin
+  agentes; arrancó con `_scratch/S77-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S77-sonda.cjs.txt` (armada por `S77-gen.cjs.txt`: la del agente
+    4 de la 76, más `generacion`, `reiniciaAlInicio`, `pendientesAlInicio`, `reiniciaEnSqlite` y
+    `reiniciaTrasSqlite`); el revert, con `de<sha>+pieza`.
+  - **Resultado:** cerrados `R9-307` y `R9-306` (`41c75fc`, `a7a1feb`, solo
+    `backupRestoreSignal.test.ts`); ninguno nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S77-arreglos-r306-r307.md`.**
+  - **La lección:** las regresiones de orden vienen en dos clases, y cada una necesita su extremo:
+    las que fijan demasiado pronto, el store lo más tarde posible; las que sueltan lo de antes, lo
+    más temprano. Al mover una puerta, comprobá que cada clase la siga viendo algún caso.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

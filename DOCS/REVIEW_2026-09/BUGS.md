@@ -1068,7 +1068,8 @@
 >
 > **Sesión 76 (2026-10-07): revisión del diff de la 75**, en un chat nuevo, en la terminal, con 4
 > agentes en worktree que solo midieron (los pidió Victor), sin tocar código. Rama
-> `docs/review-s76-diff-s75` (solo docs), sin mergear hasta el OK de Victor.
+> `docs/review-s76-diff-s75` (solo docs): mergeada y pusheada con el OK de Victor (`main` =
+> `e2e8182`, CI verde en el log, run `37706611415`, 374/4628; corregido en la 77).
 >
 > - **Lo de la 75 se sostiene:** la espera de `R9-302` y el caso `durante` de `R9-303` caen como
 >   dicen sus cierres; `R9-304`, `R9-305` y `sueltaK`, re-medidos. Ninguno es P2. El diff es solo
@@ -1081,6 +1082,18 @@
 >   construía); en `R9-305`, el corte (de reloj, entre 26 y 40); en `sueltaK`, «hasta 10» es 19.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **308**. Detalle: `detail/S76-revision-del-diff-s75.md`.
+>
+> **Sesión 77 (2026-10-07): arreglos de lo de la 76**, en el mismo chat, en la terminal y sin
+> agentes. Ramas `fix/s77-r306-r307-ordenes` (`41c75fc`, `a7a1feb`; solo pruebas) y
+> `docs/review-s77-fix` encima, sin mergear hasta el OK de Victor.
+>
+> - **Cerrados (2):** `R9-307` (la puerta de SQLite del mock, después del cuerpo de la transacción:
+>   el store entra en el último punto antes del aviso) y `R9-306` (un tercer caso, `pedido antes`:
+>   el store pedido con la clave sin resolver, en el turno con el respaldo ya en SQLite). Suite
+>   1001/1001; `validate` 374/4629.
+> - **Ninguno nuevo.** `R9-304` alcanza también al caso nuevo (escrito en su entrada).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **308**. Detalle: `detail/S77-arreglos-r306-r307.md`.
 
 ---
 
@@ -7180,6 +7193,9 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     mide («la función del store ya corrió»).
   - **Sesión 76: se sostiene** (agente 3: `fueraDelTurno`, `tardeDentro39`, `tardeDentro40`, y los
     controles con `debc845c0`, que dan el mismo diff sin `otraConElTurno` y 3/3).
+  - **Sesión 77: también en el caso nuevo de `R9-306`.** En `pedido antes`, con `generacion` (el
+    store corre sin turno), lo recibido dice `otraConElTurno: true`. Lo arregla lo mismo: un control
+    que lea el turno.
 
 - **`R9-305` (S75, pruebas / Mesa — P3) — 🐛 en `prepSeriesDetailScreen.test.tsx`, con `prepWrite`
   más lento (el código bueno), `removes a passage` cae por el reloj del `waitFor`, y su escritura
@@ -7226,6 +7242,24 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     retenida, pedir el respaldo y esperar `respaldoEnSqlite`, soltar la clave y esperar `dentro`,
     soltar SQLite. Tiene que caer con `generacion`, y seguir cayendo en `durante` con
     `drenaAlInicio` y `pendientesAlInicio`, y en `antes` con `reiniciaAlInicio`.
+  - **✅ ARREGLADO en la sesión 77** (`a7a1feb`, solo la prueba), sobre el arreglo de `R9-307`. Un
+    tercer caso, `pedido antes`:
+    1. el store se pide con la clave sin resolver (`prepWrite` espera la clave antes de pedir el
+       turno);
+    2. el respaldo se pide y espera en SQLite;
+    3. se suelta la clave, y se espera a que el store esté `dentro`;
+    4. se suelta SQLite.
+
+    `respaldoEnSqlite` vale 1 también en este caso.
+    - **Medido** (`_scratch/S77-sonda.cjs.txt <corrida> archivo|suite`): `generacion` cae solo en
+      `pedido antes`, con el diff de `sinCola`; con la prueba de `41c75fc` (`de41c75fc+generacion`),
+      pasa 4/4. `drenaAlInicio` y `drenaEnSqlite` caen también en `pedido antes`;
+      `pendientesAlInicio` sigue cayendo en `durante`, y los `reinicia…`, en `antes`. Contra la
+      matriz de la 75, `pedido antes` da lo mismo que `durante`, con los mismos cortes: `tarde`
+      39/40, `lento` 19/20, y `antesSqlite` y `cuerpo` 39/40, solo en `respaldoEnSqlite: 0`. Suite
+      1001/1001; con `generacion`, cae solo `pedido antes`.
+    - En el rojo de `generacion`, lo recibido dice `otraConElTurno: true`, y el store corrió sin
+      turno: `R9-304`, ahora también en este caso.
 
 - **`R9-307` (S76, pruebas / respaldo — P3) — 🐛 ninguna versión de la prueba de `R9-287` ve un
   turno de la Mesa tomado mientras corre el cuerpo de la transacción de SQLite del respaldo: la
@@ -7244,6 +7278,21 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     `await fn()` (`puertaAlFinal`). Sola, 4/4; con `drenaEnSqlite` y con `drenaAlInicio`, cae
     `durante` con el diff de un `multiSet` sin turno. Contra la matriz de la 75 da lo mismo que hoy,
     y en el suite, 1000/1000 (agente 4, no re-medido).
+  - **✅ ARREGLADO en la sesión 77** (`41c75fc`, solo la prueba), con `puertaAlFinal` (el mismo
+    texto), y el comentario de `respaldoEnSqlite`: «CONTROL: el respaldo esperaba en SQLite» (la
+    corrección de la 76 en `R9-303`).
+    - **Por qué alcanza:** entre el fin de la transacción (`BackupService.ts:1620`) y `prepMultiSet`
+      (`:1646`) no hay ningún `await`. La puerta al final del cuerpo es el último punto donde el
+      store puede entrar, y `drenaTrasSqlite` (una marca entre el fin de la transacción y el aviso)
+      equivale al código bueno.
+    - **Medido** (`_scratch/S77-sonda.cjs.txt <corrida> archivo|suite`): `drenaEnSqlite`,
+      `drenaAlInicio` y `drenaAntesSqlite` caen en `durante`; con la prueba de `e2e8182`
+      (`dee2e8182+drenaEnSqlite`), pasa 4/4. La matriz de la 75, igual que antes. Suite 1000/1000;
+      con `drenaEnSqlite`, cae solo `durante`.
+    - **Lo que movió:** `reiniciaEnSqlite` (el respaldo suelta la cadena de turnos al empezar el
+      cuerpo) caía en los dos casos y ahora cae solo en `antes`: el archivo no perdió cobertura. El
+      corte de `cuerpoK` en `durante` pasó de 19/20 (en `turnoPedidoAntesDeAbrir`) a 39/40 (en
+      `respaldoEnSqlite`); en `antes`, sigue en 19/20.
 
 - **`R9-308` (S76, pruebas / respaldo / Mesa — P3) — 🐛 un respaldo que deja de esperar el turno
   de la Mesa tras un plazo de reloj, y después escribe sin él, no lo ve ninguna prueba.** MEDIDO por

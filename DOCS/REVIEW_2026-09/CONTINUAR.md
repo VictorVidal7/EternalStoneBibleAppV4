@@ -1,20 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 76.** La 76 hizo el (bd) en un chat nuevo, en
-> la terminal, con 4 agentes en worktree que solo midieron (los pidió Victor). Lo de la 75 se
-> sostiene, salvo tres frases que se corrigieron sin número (`R9-303`, `R9-305` y `sueltaK`).
-> Registró 3 nuevos P3, de pruebas:
+> **Última actualización: 2026-10-07, fin de la sesión 77.** La 77 hizo el (be) en el mismo chat que
+> la 76, en la terminal y sin agentes. Cerró `R9-307` (la puerta de SQLite del mock, después del
+> cuerpo de la transacción: el store entra en el último punto antes del aviso) y `R9-306` (un tercer
+> caso en la prueba de `R9-287`, `pedido antes`: el store pedido con la clave sin resolver, y en el
+> turno con el respaldo ya en SQLite). Ninguno nuevo; `R9-304` alcanza también al caso nuevo.
 >
-> - `R9-306`: a la prueba de `R9-287` le falta el orden de su versión vieja (el store pedido antes
->   del respaldo y en el turno después); lo abrió la 75.
-> - `R9-307`: ninguna versión ve un turno tomado durante el cuerpo de la transacción; el arreglo
->   está medido.
-> - `R9-308`: un plazo de reloj en la espera del turno no lo ve ninguna prueba.
->
-> La 75 ya está mergeada y pusheada (`main` = `f01e149`, CI verde en el log, run `37698839488`,
-> 374/4628). La rama de la 76 (`docs/review-s76-diff-s75`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 308 hallazgos. **Lo siguiente:** la 77 arregla lo
-> de la 76 (mensaje (be), en `_scratch/S77-PROMPT.md`).
+> La 76 ya está mergeada y pusheada (`main` = `e2e8182`, CI verde en el log, run `37706611415`,
+> 374/4628). Las ramas de la 77 (`fix/s77-r306-r307-ordenes` y `docs/review-s77-fix`) van **sin
+> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 308 hallazgos. **Lo
+> siguiente:** la 78 revisa el diff de la 77 (mensaje (bf), en `_scratch/S78-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -512,11 +507,16 @@ solo midieron, con `_scratch/S73-PROMPT.md`). Y la revisión del diff de la 73 (
 en un chat nuevo y sin agentes, con `_scratch/S74-PROMPT.md`). Y sus arreglos (la (bc), sesión 75,
 en un chat nuevo con 2 agentes que solo midieron, con `_scratch/S75-PROMPT.md`). Y la revisión del
 diff de la 75 (la (bd), sesión 76, en un chat nuevo con 4 agentes que solo midieron, con
-`_scratch/S76-PROMPT.md`). **Lo siguiente es el (be).**
+`_scratch/S76-PROMPT.md`). Y sus arreglos (la (be), sesión 77, en el mismo chat y sin agentes, con
+`_scratch/S77-PROMPT.md`). **Lo siguiente es el (bf).**
 
-**(be) Sesión 77: arreglar lo de la 76** (`R9-306` y `R9-307`: los dos órdenes que la prueba de
-`R9-287` no arma; `R9-308`, solo si Victor lo pide). El mensaje está en `_scratch/S77-PROMPT.md`,
-que manda sobre este archivo.
+**(bf) Sesión 78: revisar el diff de la 77** (`R9-307` y `R9-306`: la puerta de SQLite del mock al
+final del cuerpo, y el caso `pedido antes` en la prueba de `R9-287`). El mensaje está en
+`_scratch/S78-PROMPT.md`, que manda sobre este archivo.
+
+**(be) Sesión 77: arreglar lo de la 76 — ya HECHO en la sesión 77, en el mismo chat, en la terminal
+y sin agentes.** Cerrados `R9-306` y `R9-307`; ninguno nuevo. El mensaje está en
+`_scratch/S77-PROMPT.md`.
 
 **(bd) Sesión 76: revisar el diff de la 75 — ya HECHO en la sesión 76, en un chat nuevo, con 4
 agentes en worktree que solo midieron.** Tres frases corregidas; tres nuevos P3 (`R9-306`..`R9-308`).
@@ -1996,13 +1996,15 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 76 (2026-10-07).**
+**Medido al cerrar la sesión 77 (2026-10-07).**
 
-- **`main` = `origin/main` = `f01e149`** (el checkpoint de la 75, solo docs; el último código en
-  `main` es `125736b`, la prueba de `R9-303`). **CI verificado en el log** en la 75: run
-  `37698839488`, 3 jobs, Node v24.21.0, 374/4628. Las ramas de la 75 se borraron tras `git cherry`.
-- **Una rama de la 76, sin mergear a propósito y sin pushear:** `docs/review-s76-diff-s75` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **`main` = `origin/main` = `e2e8182`** (el checkpoint de la 76, solo docs; el último código en
+  `main` es `125736b`, la prueba de `R9-303`). **CI verificado en el log** en la 76: run
+  `37706611415`, 3 jobs, Node v24.21.0, 374/4628. La rama de la 76 se borró tras `git cherry`.
+- **Dos ramas de la 77, sin mergear a propósito y sin pushear:** `fix/s77-r306-r307-ordenes`
+  (`41c75fc`, `a7a1feb`; solo `__tests__/backupRestoreSignal.test.ts`) y `docs/review-s77-fix`
+  encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las
+  incluye.
 - **Los worktrees:** ninguno. Los de los 4 agentes de la 76 se borraron solos al terminar, con sus
   ramas; cada agente había copiado antes su `_scratch` a `_scratch/S76-sondas-agente-N/`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
@@ -2510,6 +2512,12 @@ Alternativas legítimas:
   vieja y la nueva contra una regresión en cada uno (`de<sha>+pieza`). Y leé el rojo ENTERO de tu
   propia sonda: la 75 vio un control en 0 y escribió «caso no construido», con el diff de la
   regresión en la misma salida.
+- **Las regresiones de orden vienen en dos clases, y cada una necesita su extremo (sesión 77,
+  `R9-307`).** Las que fijan demasiado pronto lo que van a esperar (`drenaX`) se ven si lo otro
+  entra lo más TARDE posible; las que sueltan lo que ya tenía el turno (`reiniciaX`), si entra lo más
+  TEMPRANO. Mover la puerta de SQLite al final del cuerpo le dio a `durante` el extremo tardío, y le
+  quitó `reiniciaEnSqlite`, que sigue viendo `antes`. Al mover una puerta, corré una regresión de
+  cada clase y comprobá que algún caso la siga viendo.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
