@@ -1145,7 +1145,8 @@
 > **Sesión 81 (2026-10-08): arreglos de lo de la 80**, en un chat nuevo, en la terminal, con 3
 > agentes (los pidió Victor) que solo midieron, uno por hallazgo, cada uno en su worktree. El
 > orquestador integró y re-midió cada pieza en el árbol principal. Solo pruebas. Ramas
-> `fix/s81-r311-r313` y `docs/review-s81-fix`, sin mergear hasta el OK de Victor.
+> `fix/s81-r311-r313` y `docs/review-s81-fix`, mergeadas y pusheadas con el OK de Victor en la 82
+> (`main` = `c3123d6`, CI verde en el log, run `37810321907`, 374/4630).
 >
 > - **Cerrados:** `R9-311` (`82de81f`: `otraPedidaAntes` por la identidad de la clave retenida, y
 >   `escribio` desde la retención), `R9-312` (`e23b150`: `recibida` y `leido` en la prueba de
@@ -1156,6 +1157,24 @@
 >   abrió la 81.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **314**. Detalle: `detail/S81-arreglos-r311-r313.md`.
+>
+> **Sesión 82 (2026-10-08): revisión del diff de la 81**, en un chat nuevo, en la terminal, sin
+> agentes y sin tocar código. Primero mergeó la 81 con el OK de Victor. Rama
+> `docs/review-s82-diff-s81` (solo docs), sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 81 cae como dice:** `R9-311` (`claveCapturada`, `claveDosVeces`, el revert,
+>   `escrituraDeMas`, `lento50`), `R9-313` (`genTrasMultiSet`, el revert, la salida en 0.96 s, el
+>   corte de `releaseLentoK`) y `R9-312` (`claveSinEsperar`, `claveAntesDeUnion`, el revert). El
+>   diff es solo pruebas. Las marcas tras soltar la clave no dañan por el turno (re-medido, y la
+>   clase que decide al tomar el turno sí se ve).
+> - **Nuevos (2), P3 de pruebas:** `R9-315` (el control por la identidad de la promesa cae ante un
+>   cambio bueno que envuelve la clave; lo abrió la 81) y `R9-316` (la salida de `R9-313` suelta
+>   solo la clave: con el respaldo con el turno desde antes de SQLite, `R9-292` se cuelga 20 s; no
+>   lo abrió la 81).
+> - **`R9-314`, medido entero:** `claveAntesDeFinish` pasa el suite, y lo ve solo la sonda
+>   `lecturaDevolucion` (una lectura con una devolución pendiente).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **316**. Detalle: `detail/S82-revision-del-diff-s81.md`.
 
 ---
 
@@ -7515,6 +7534,10 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       (`escrituraCapturada`), el `spyOn` no lo vería, y el control daría 0 con el caso armado. El
       comentario lo dice. Con la clave pedida dentro de la cola de `savePrepNote` (`claveEnCola`), el
       `spyOn` la retiene y el caso se arma: queda medida la lectura de `detail/S80` §1.
+  - **Sesión 82: cae como dice** (`S81-sonda1`: `claveCapturada`, `claveDosVeces`, el revert,
+    `genTrasSqlite`, `escrituraDeMas`, `lento50`, `turnoAntesDeClave`). No encontré una regresión
+    que escriba antes de la retención y dañe sin que se vea (por construcción). Pero el control por
+    la identidad de la promesa cae ante un cambio bueno que envuelve la clave (`R9-315`).
 
 - **`R9-312` (S80, pruebas / Mesa — P3) — 🐛 el control final de la prueba de `R9-310` no dice lo
   que afirman su comentario y su commit («la escritura fue a la de `ana`, después de ella»).**
@@ -7543,6 +7566,11 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     - **Lo que deja sin armar:** `claveAntesDelTurnoUnion` (la clave se resuelve tras las lecturas
       de la unión y antes de su turno) pasa: la escritura corre igual después de la unión. Para una
       lectura sí importa: `R9-314`.
+  - **Sesión 82: cae como dice** (`S81-sonda2`: `claveSinEsperar`, `claveAntesDeUnion`, los dos con
+    `pata32be3b`, y `claveAntesDelTurnoUnion`). `leido` dice que la lectura vino después del
+    `multiSet` de la unión, que es lo que afirma el comentario; no que la unión terminó, y nada de
+    lo que queda toca la de `ana`. `claveAntesDelTurnoUnion` pasa con razón: la unión pide su turno
+    en el mismo tick que `markKnown` (por lectura).
 
 - **`R9-313` (S80, pruebas / respaldo / Mesa — P3) — 🐛 un store pedido antes del respaldo, con la
   clave resuelta durante la DEVOLUCIÓN de `R9-275` (en el turno del respaldo, después de su
@@ -7592,6 +7620,16 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       el desvío de `R9-275`: con el desvío (`genFinTurnoD`), pasa. Lo que queda del turno después
       del `multiSet` de la devolución (el `multiRemove` de la Mesa de Ana y la nota) no escribe la
       «sin cuenta», adonde el desvío manda al store (por lectura). Sin número.
+  - **Sesión 82: cae como dice** (`S81-sonda3`: `genTrasMultiSet`, el revert, `genTrasSqlite`;
+    `turnoAntesDeClave` en 0.96 s con `R9-275` en verde; `sinSalida+turnoAntesDeClave` en 41.0 s;
+    el corte de `releaseLentoK`, igual).
+    - **Las marcas tras soltar la clave: es así.** Re-medidas, y una regresión de la otra clase (que
+      decide al tomar el turno y descarta, `<marca>X`) cae en los cuatro puntos.
+    - **El tope de 100, ante un cambio bueno:** un temporizador real en `releasePrepAccount`
+      (`releaseTimer1`: `'tarde'` en un caso y `'a tiempo'` en el otro, en la misma corrida;
+      `releaseTimer20`: `'trabada'` en los dos). Con la prueba de `82de81f`, `R9-292` pasa. Pero
+      `R9-274` y `R9-275` ya caían, con y sin la 81. Sin número.
+    - **La salida cubre solo la traba por la clave: `R9-316`.**
 
 - **`R9-314` (S81, pruebas / Mesa — P3) — 🐛 una LECTURA de la Mesa pedida antes del primer estado
   de auth, con la Mesa de antes: si la clave se resuelve antes de la unión de `migrateLegacyPrep`,
@@ -7618,6 +7656,49 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     devolución pendiente (`R9-274`).
   - **Arreglo (hipótesis, medida como sonda):** `lecturaAntes` como prueba en
     `prepAccount.test.ts`, y un caso con la devolución pendiente para `claveAntesDeFinish`.
+  - **Sesión 82: `claveAntesDeFinish`, medido** (`_scratch/S82-sonda.cjs.txt`). Pasa `prep` (21/21)
+    y el suite (1002/1002), y `lecturaAntes` no lo ve. La sonda `lecturaDevolucion` (sin sesión,
+    con la devolución de `bob` pendiente, y `getAllPrepNotes()` pedido antes de
+    `setPrepAccount(null)`) lee `['Rom/8/28']` con el código bueno, y `[]` con la pieza; su control
+    `despues` (leído al terminar) da `['Rom/8/28']`. El arreglo necesita las dos sondas como
+    pruebas.
+
+- **`R9-315` (S82, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, el control
+  `otraPedidaAntes` compara la identidad de la PROMESA: si el store envuelve la clave antes de
+  pasarla a `prepWrite`, cae en `otraPedidaAntes: 0` con el caso armado.** MEDIDO en la 82
+  (`_scratch/S82-sonda.cjs.txt`). Lo abrió la 81 (`82de81f`).
+  - Pieza `claveEnvuelta` (un cambio bueno: `prepKey(PREP_NOTES_KEY).then(k => k)` en
+    `savePrepNote`; un helper `async` que devuelva la clave hace lo mismo). La escritura sigue
+    esperando la clave retenida, y el resto del objeto sale igual. Pero `R9-292` cae, solo en
+    `otraPedidaAntes: 0`, en `pedidaAntes` y en `devolucionPedidaAntes`. Suite 1001/1002.
+  - Con la prueba de `a32be3b` (`bpta32be3b+claveEnvuelta`), 21/21: el control que contaba
+    llamadas lo aceptaba.
+  - El rojo se lee como «el caso no se armó». El comentario nombra solo el otro límite (`prepWrite`
+    guardado al cargar).
+  - P3: un rojo engañoso ante un cambio bueno de la app; ningún verde falso.
+  - **Arreglo (hipótesis, medida como pieza `arregloPendiente`):** contar los `prepWrite` cuya clave
+    sigue PENDIENTE tras una vuelta. Con el primer estado de auth ya dado, solo lo está la retenida
+    o algo derivado de ella. Sola, 21/21; con `claveEnvuelta`, 21/21; con `claveCapturada` y
+    `claveDosVeces`, `otraPedidaAntes: 0`; con `genTrasSqlite` y `genTrasMultiSet`, el rojo de
+    siempre; con `turnoAntesDeClave`, como hoy.
+
+- **`R9-316` (S82, pruebas / respaldo — P3) — 🐛 la salida de `R9-313` suelta solo la clave: si la
+  devolución se traba por OTRO camino, `R9-292` sigue colgándose 20 s.** MEDIDO en la 82
+  (`_scratch/S82-sonda.cjs.txt`). No lo abrió la 81: el caso `devolucion` espera la devolución
+  antes de abrir SQLite desde la 73.
+  - Pieza `turnoAntesSqlite` (la de la 76: el respaldo toma el turno de la Mesa antes de SQLite y lo
+    retiene). Es correcta en el teléfono, donde nada retiene SQLite. En la prueba, la devolución
+    espera al respaldo, y el respaldo espera la puerta de SQLite, que se abre después de la
+    devolución.
+  - Pasado el tope, se suelta la clave, y `await devolver` sigue colgado: 41.6 s, y caen `R9-292` y
+    `R9-275` por timeout (y `durante` y `pedido antes` de `R9-287`, en `otraConElTurno: false`).
+  - Con la prueba de `82de81f`, igual (41.1 s). `R9-275` sola (`-t R9-275`) también se cuelga
+    (21.0 s): no es por arrastre.
+  - P3: un timeout sin diagnóstico ante un cambio de diseño correcto; ningún verde falso.
+  - **Arreglo (hipótesis, medida como pieza `salidaAbre`):** pasado el tope, abrir también SQLite y
+    la puerta del respaldo antes de `await devolver`. Con `turnoAntesSqlite`, 0.88 s, y `R9-292`
+    cae con `devuelta: 'trabada'` en los dos casos. Sola pasa; con `turnoAntesDeClave` (0.90 s) y con
+    `genTrasMultiSet`, el rojo de siempre. La de `R9-275` necesita lo suyo (sin medir).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

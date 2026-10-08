@@ -921,8 +921,17 @@
 > clave resuelta antes de la unión; no la ve ninguna prueba).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **314**. Ramas `fix/s81-r311-r313` y
-> `docs/review-s81-fix`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S81-arreglos-r311-r313.md`.
+> `docs/review-s81-fix`: mergeadas y pusheadas con el OK de Victor en la 82 (`main` = `c3123d6`, CI
+> verde en el log, run `37810321907`, 374/4630). Detalle: `detail/S81-arreglos-r311-r313.md`.
+>
+> **Sesión 82 (2026-10-08): revisión del diff de la 81**, en un chat nuevo, en la terminal, sin
+> agentes y sin tocar código (antes, el merge de la 81). Lo de la 81 cae como dice. Dos nuevos P3 de
+> pruebas: `R9-315` (el control por la identidad de la promesa cae ante un cambio bueno que envuelve
+> la clave; lo abrió la 81) y `R9-316` (la salida de `R9-313` suelta solo la clave: con otra traba,
+> `R9-292` se cuelga 20 s). `R9-314`, medido entero (`claveAntesDeFinish`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **316**. Rama `docs/review-s82-diff-s81`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S82-revision-del-diff-s81.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1839,6 +1848,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un control de orden lee algo que solo existe después del primer evento (lo que
     la unión escribió, no la cuenta que se fijó antes). Y corré la regresión que armaste para probar
     un control también contra los otros caminos que dependen de la misma garantía.
+
+- **Sesión 82 — 2026-10-08. Revisión del diff de la 81.** En un chat nuevo, en la terminal, sin
+  agentes y sin tocar código; arrancó con `_scratch/S82-PROMPT.md`. Antes, el merge de la 81 con el
+  OK de Victor (`c3123d6`, run `37810321907`).
+  - **Cómo se trabajó:** las sondas de la 81 (`S81-sonda1`, `2` y `3`) sobre `main`, y
+    `_scratch/S82-sonda.cjs.txt` (la `S81-sonda3`, más `claveEnvuelta`, `releaseTimer<ms>`,
+    `<marca>X`, `salidaAbre`, `claveAntesDeFinish`, `lecturaDevolucion` y `arregloPendiente`).
+  - **Resultado:** lo de la 81 cae como dice. Dos nuevos P3 de pruebas: `R9-315` (lo abrió la 81) y
+    `R9-316`. `R9-314`, medido entero. No queda ningún P0 abierto.
+  - **Detalle: `detail/S82-revision-del-diff-s81.md`.**
+  - **La lección:** un control nuevo se corre también contra un cambio BUENO de su superficie (la 81
+    midió el de identidad solo contra regresiones). Y una salida armada para una traba cubre la
+    traba que la motivó: medila con una que llegue por otro camino.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
