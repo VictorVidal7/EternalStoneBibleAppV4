@@ -1085,7 +1085,8 @@
 >
 > **Sesión 77 (2026-10-07): arreglos de lo de la 76**, en el mismo chat, en la terminal y sin
 > agentes. Ramas `fix/s77-r306-r307-ordenes` (`41c75fc`, `a7a1feb`; solo pruebas) y
-> `docs/review-s77-fix` encima, sin mergear hasta el OK de Victor.
+> `docs/review-s77-fix` encima: mergeadas y pusheadas con el OK de Victor (`main` = `8ff1130`, CI
+> verde en el log, run `37709675157`, 374/4629; corregido en la 78).
 >
 > - **Cerrados (2):** `R9-307` (la puerta de SQLite del mock, después del cuerpo de la transacción:
 >   el store entra en el último punto antes del aviso) y `R9-306` (un tercer caso, `pedido antes`:
@@ -1094,6 +1095,21 @@
 > - **Ninguno nuevo.** `R9-304` alcanza también al caso nuevo (escrito en su entrada).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **308**. Detalle: `detail/S77-arreglos-r306-r307.md`.
+>
+> **Sesión 78 (2026-10-07): revisión del diff de la 77**, en un chat nuevo, en la terminal, sin
+> agentes y sin tocar código. Rama `docs/review-s78-diff-s77` (solo docs), sin mergear hasta el OK
+> de Victor.
+>
+> - **Lo de la 77 se sostiene:** `R9-307` y `R9-306` caen como dicen sus cierres, con sus reverts;
+>   la matriz de la 75 da en `pedido antes` lo mismo que en `durante`; `drenaTrasSqlite` equivale
+>   al código bueno (sin `await` y con un aviso sincrónico entre la transacción y `prepMultiSet`);
+>   ninguna regresión `reiniciaX` quedó sin caso. El diff es solo la prueba.
+> - **Nuevos (2), P3 de pruebas, ninguno abierto por la 77:** `R9-309` (`generacion` con la marca
+>   en el aviso: un store pedido antes del respaldo y con la clave resuelta con su escritura en
+>   vuelo corre sin turno, y no lo ve ninguna prueba) y `R9-310` (un `prepWrite` que toma el turno
+>   antes de resolver la clave, la traba de la 55: no lo ve ninguna prueba).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **310**. Detalle: `detail/S78-revision-del-diff-s77.md`.
 
 ---
 
@@ -7196,6 +7212,8 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
   - **Sesión 77: también en el caso nuevo de `R9-306`.** En `pedido antes`, con `generacion` (el
     store corre sin turno), lo recibido dice `otraConElTurno: true`. Lo arregla lo mismo: un control
     que lea el turno.
+  - **Sesión 78:** con `turnoAntesDeClave`, `pedido antes` arma `antes`, con los controles en su
+    sitio (`R9-310`). El mismo control lo vería.
 
 - **`R9-305` (S75, pruebas / Mesa — P3) — 🐛 en `prepSeriesDetailScreen.test.tsx`, con `prepWrite`
   más lento (el código bueno), `removes a passage` cae por el reloj del `waitFor`, y su escritura
@@ -7261,6 +7279,14 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     - En el rojo de `generacion`, lo recibido dice `otraConElTurno: true`, y el store corrió sin
       turno: `R9-304`, ahora también en este caso.
 
+  - **Sesión 78: se sostiene** (`_scratch/S78-sonda.cjs.txt`, la de la 77 con salidas `S78-…`):
+    `generacion` cae solo en `pedido antes`; `de41c75fc+generacion`, 4/4; la matriz de la 75
+    (`tarde39`/`40`, `lento19`/`20`, `sinCola`, `enTurno`, `fueraDelTurno`, `antesSqlite39`/`40`,
+    `cuerpo39`/`40`) da en `pedido antes` lo mismo que en `durante`. Pero el caso fija la clave del
+    store en un punto, la puerta de SQLite: una `generacion` con la marca más tarde no la ve
+    (`R9-309`). Y con un `prepWrite` que toma el turno antes de la clave, el caso arma `antes` sin
+    que ningún control lo diga (`R9-310`).
+
 - **`R9-307` (S76, pruebas / respaldo — P3) — 🐛 ninguna versión de la prueba de `R9-287` ve un
   turno de la Mesa tomado mientras corre el cuerpo de la transacción de SQLite del respaldo: la
   puerta de `mockSqlite` va ANTES del cuerpo.** MEDIDO por el agente 4 de la 76 y re-medido
@@ -7293,6 +7319,16 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       cuerpo) caía en los dos casos y ahora cae solo en `antes`: el archivo no perdió cobertura. El
       corte de `cuerpoK` en `durante` pasó de 19/20 (en `turnoPedidoAntesDeAbrir`) a 39/40 (en
       `respaldoEnSqlite`); en `antes`, sigue en 19/20.
+  - **Sesión 78: se sostiene** (`_scratch/S78-sonda.cjs.txt`): `drenaEnSqlite` y
+    `drenaAntesSqlite` caen en `durante` y `pedido antes`; `dee2e8182+drenaEnSqlite`, 4/4;
+    `reiniciaEnSqlite` cae en `antes`; `cuerpo39` en `antes`, y `cuerpo40` además en los otros
+    dos, solo en `respaldoEnSqlite: 0`.
+    - **«`drenaTrasSqlite` equivale al código bueno»:** cierto. Entre `BackupService.ts:1620` y
+      `:1646` no hay `await`, y `emitBackupRestoring` llama a sus oyentes sin esperar; el único es
+      el mazo (`MemoryDeckContext.tsx:331`), que no toma turno de la Mesa. Pasa 5/5.
+    - **La regla de la 77, con piezas nuevas al final del cuerpo:** `drenaFinSqlite` cae en
+      `durante` y `pedido antes`; `reiniciaFinSqlite`, en `antes`. Ninguna `reiniciaX` quedó sin
+      caso: `antes` tiene el turno desde antes de empezar, así que ve un reinicio en cualquier punto.
 
 - **`R9-308` (S76, pruebas / respaldo / Mesa — P3) — 🐛 un respaldo que deja de esperar el turno
   de la Mesa tras un plazo de reloj, y después escribe sin él, no lo ve ninguna prueba.** MEDIDO por
@@ -7311,6 +7347,54 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
   - **Arreglo (hipótesis, sin medir):** una prueba con relojes falsos que avance el reloj más allá
     de cualquier plazo con la Mesa ocupada, y compruebe que el `multiSet` del respaldo sigue
     esperando.
+
+- **`R9-309` (S78, pruebas / respaldo / Mesa — P3) — 🐛 un store pedido antes del respaldo y con la
+  clave resuelta cuando el respaldo ya escribe en su turno: si corre sin turno, no lo ve ninguna
+  prueba.** MEDIDO en la 78 (`_scratch/S78-sonda.cjs.txt`, armada por `S78-gen.cjs.txt`). No lo
+  abrió la 77: no lo veía ninguna versión. Es lo que deja el caso `pedido antes` de `R9-306`.
+  - El caso `pedido antes` resuelve la clave del store con el respaldo en la puerta de SQLite: un
+    punto. La regresión de su clase (`generacion`: un store pedido antes de una marca del respaldo,
+    y con la clave resuelta después, corre sin turno) la ve solo si la marca va antes de ese punto:
+    con la marca al empezar el cuerpo (`genEnSqlite`) o al final (`genFinSqlite`), cae
+    `pedido antes`.
+  - Pieza `genTrasSqlite`: la marca de `generacion` justo antes de `emitBackupRestoring`, el
+    «empezó a restaurar» natural. Pasan la prueba de hoy (5/5), la de `e2e8182` (4/4), la de
+    `bc845c0` (3/3) y el suite (1001/1001).
+  - **El daño, con la sonda `copia292`** (`_scratch/S78-copia292.ts.txt`, al final de
+    `backupPrepTurn.test.ts`): la forma de `R9-292`, con el store pedido ANTES del respaldo y la
+    clave soltada con la escritura del respaldo retenida. Con el código bueno, la función del
+    store no corre hasta que el respaldo suelta el turno (`corrioConElRespaldoRetenido: 0`). Con
+    `genTrasSqlite`, `generacion` y `genEnSqlite`, corre (1): la escritura del store va a la par
+    del `multiSet` restaurado, la clase de `R9-273`.
+  - La regla de la 77, del otro lado: para esta clase, el extremo es la clave resuelta lo más TARDE
+    posible, con el respaldo ya en su turno. Ni `R9-287` ni `R9-292` lo arman: en la de `R9-292`,
+    la otra escritura se pide después de que el respaldo empezó.
+  - P3: verde falso ante una regresión construida; el código de hoy está bien.
+  - **Arreglo (hipótesis, medida como sonda):** un caso más en la prueba de `R9-292`, con la forma
+    de `copia292`. Pasa con el código bueno, y cae con `genTrasSqlite`, `generacion` y
+    `genEnSqlite`. No se corrió contra la matriz de `R9-292`.
+
+- **`R9-310` (S78, pruebas / Mesa — P3) — 🐛 un `prepWrite` que toma el turno ANTES de resolver la
+  clave (la traba que la 55 dejó escrita en §5) no lo ve ninguna prueba.** MEDIDO en la 78
+  (`_scratch/S78-sonda.cjs.txt`). No lo abrió la 77: es de la 55 (`R9-269`), y la 77 no tocó esas
+  pruebas.
+  - Pieza `turnoAntesDeClave`: `prepWrite` pide el turno y espera la clave dentro de él. La clave
+    espera al primer estado de auth, y la unión de ese estado (`migrateLegacyPrep`) pide un turno:
+    la escritura tiene el turno y espera a la unión, y la unión espera el turno. `archivo` 5/5, y
+    el suite 1001/1001.
+  - **El daño, con la sonda `copiaClave`** (`_scratch/S78-copiaClave.ts.txt`, al final de
+    `prepAccount.test.ts`): `managePrepAccount()`, un `savePrepNote` y después
+    `setPrepAccount('ana')`. Con el código bueno, terminan los dos, y la nota va a la Mesa de
+    `ana`. Con `turnoAntesDeClave`, tras 100 vueltas, `escrito: false` y `entro: false`: la
+    escritura no termina, y el primer estado de auth tampoco.
+  - **En el caso `pedido antes` de `R9-306`:** con `turnoAntesDeClave`, el store toma el turno
+    antes de que empiece el respaldo, o sea que el caso arma `antes`. Pasa, y ningún control lo
+    dice: `otraConElTurno` dice que la función corrió (`R9-304`). Un control que lea el turno (el
+    gancho decidido para `R9-296`) lo vería.
+  - P3: verde falso ante una regresión construida; el código de hoy resuelve la clave antes de
+    pedir el turno.
+  - **Arreglo (hipótesis, medida como sonda):** `copiaClave` como prueba en `prepAccount.test.ts`.
+    Pasa con el código bueno y cae con `turnoAntesDeClave`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

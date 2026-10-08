@@ -1,15 +1,20 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 77.** La 77 hizo el (be) en el mismo chat que
-> la 76, en la terminal y sin agentes. Cerró `R9-307` (la puerta de SQLite del mock, después del
-> cuerpo de la transacción: el store entra en el último punto antes del aviso) y `R9-306` (un tercer
-> caso en la prueba de `R9-287`, `pedido antes`: el store pedido con la clave sin resolver, y en el
-> turno con el respaldo ya en SQLite). Ninguno nuevo; `R9-304` alcanza también al caso nuevo.
+> **Última actualización: 2026-10-07, fin de la sesión 78.** La 78 hizo el (bf) en un chat nuevo, en
+> la terminal, sin agentes y sin tocar código. Lo de la 77 se sostiene. Registró 2 nuevos P3 de
+> pruebas, ninguno abierto por la 77:
 >
-> La 76 ya está mergeada y pusheada (`main` = `e2e8182`, CI verde en el log, run `37706611415`,
-> 374/4628). Las ramas de la 77 (`fix/s77-r306-r307-ordenes` y `docs/review-s77-fix`) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 308 hallazgos. **Lo
-> siguiente:** la 78 revisa el diff de la 77 (mensaje (bf), en `_scratch/S78-PROMPT.md`).
+> - `R9-309`: un store pedido antes del respaldo, con la clave resuelta cuando el respaldo ya
+>   escribe en su turno. Si corre sin turno (`genTrasSqlite`), no lo ve ninguna prueba.
+> - `R9-310`: un `prepWrite` que toma el turno antes de resolver la clave (la traba de la 55) no lo
+>   ve ninguna prueba.
+>
+> Los dos tienen su arreglo medido como sonda.
+>
+> La 77 ya está mergeada y pusheada (`main` = `8ff1130`, CI verde en el log, run `37709675157`,
+> 374/4629). La rama de la 78 (`docs/review-s78-diff-s77`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 310 hallazgos. **Lo siguiente:** la 79 arregla
+> lo de la 78 (mensaje (bg), en `_scratch/S79-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -508,11 +513,16 @@ en un chat nuevo y sin agentes, con `_scratch/S74-PROMPT.md`). Y sus arreglos (l
 en un chat nuevo con 2 agentes que solo midieron, con `_scratch/S75-PROMPT.md`). Y la revisión del
 diff de la 75 (la (bd), sesión 76, en un chat nuevo con 4 agentes que solo midieron, con
 `_scratch/S76-PROMPT.md`). Y sus arreglos (la (be), sesión 77, en el mismo chat y sin agentes, con
-`_scratch/S77-PROMPT.md`). **Lo siguiente es el (bf).**
+`_scratch/S77-PROMPT.md`). Y la revisión del diff de la 77 (la (bf), sesión 78, en un chat nuevo y
+sin agentes, con `_scratch/S78-PROMPT.md`). **Lo siguiente es el (bg).**
 
-**(bf) Sesión 78: revisar el diff de la 77** (`R9-307` y `R9-306`: la puerta de SQLite del mock al
-final del cuerpo, y el caso `pedido antes` en la prueba de `R9-287`). El mensaje está en
-`_scratch/S78-PROMPT.md`, que manda sobre este archivo.
+**(bg) Sesión 79: arreglar lo de la 78** (`R9-309` y `R9-310`: dos pruebas nuevas, con la forma de
+las sondas `copia292` y `copiaClave`). El mensaje está en `_scratch/S79-PROMPT.md`, que manda sobre
+este archivo.
+
+**(bf) Sesión 78: revisar el diff de la 77 — ya HECHO en la sesión 78, en un chat nuevo, en la
+terminal y sin agentes.** Lo de la 77 se sostiene; dos nuevos P3 (`R9-309`, `R9-310`). El mensaje
+está en `_scratch/S78-PROMPT.md`.
 
 **(be) Sesión 77: arreglar lo de la 76 — ya HECHO en la sesión 77, en el mismo chat, en la terminal
 y sin agentes.** Cerrados `R9-306` y `R9-307`; ninguno nuevo. El mensaje está en
@@ -1996,17 +2006,15 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 77 (2026-10-07).**
+**Medido al cerrar la sesión 78 (2026-10-07).**
 
-- **`main` = `origin/main` = `e2e8182`** (el checkpoint de la 76, solo docs; el último código en
-  `main` es `125736b`, la prueba de `R9-303`). **CI verificado en el log** en la 76: run
-  `37706611415`, 3 jobs, Node v24.21.0, 374/4628. La rama de la 76 se borró tras `git cherry`.
-- **Dos ramas de la 77, sin mergear a propósito y sin pushear:** `fix/s77-r306-r307-ordenes`
-  (`41c75fc`, `a7a1feb`; solo `__tests__/backupRestoreSignal.test.ts`) y `docs/review-s77-fix`
-  encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las
-  incluye.
-- **Los worktrees:** ninguno. Los de los 4 agentes de la 76 se borraron solos al terminar, con sus
-  ramas; cada agente había copiado antes su `_scratch` a `_scratch/S76-sondas-agente-N/`.
+- **`main` = `origin/main` = `8ff1130`** (el checkpoint de la 77, solo docs; el último código en
+  `main` es `a7a1feb`, la prueba de `R9-306`). **CI verificado en el log** en la 77: run
+  `37709675157`, 3 jobs, Node v24.21.0, 374/4629. Las ramas de la 77 se borraron tras `git cherry`.
+- **Una rama de la 78, sin mergear a propósito y sin pushear:** `docs/review-s78-diff-s77` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 78 no usó agentes. Los de los 4 agentes de la 76 se borraron solos
+  al terminar; cada agente había copiado antes su `_scratch` a `_scratch/S76-sondas-agente-N/`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 71):
@@ -2518,6 +2526,18 @@ Alternativas legítimas:
   TEMPRANO. Mover la puerta de SQLite al final del cuerpo le dio a `durante` el extremo tardío, y le
   quitó `reiniciaEnSqlite`, que sigue viendo `antes`. Al mover una puerta, corré una regresión de
   cada clase y comprobá que algún caso la siga viendo.
+- **Un caso que fija el momento de una clave fija también qué marcas puede ver (sesión 78,
+  `R9-309`).** `pedido antes` suelta la clave del store en la puerta de SQLite. Una regresión que
+  pregunte «¿empezó un respaldo desde que me pidieron?» la ve si la marca va antes de la puerta
+  (`genEnSqlite`, `genFinSqlite`), y no si va en el aviso (`genTrasSqlite`, 1001/1001), donde la
+  pondría cualquiera. Para la clase «lo pedido antes de una marca», el extremo es lo más TARDE
+  posible, con lo otro ya en su turno (`copia292`). Corré la marca en cada punto, también después
+  de la puerta.
+- **Una regla escrita sin su prueba no protege (sesión 78, `R9-310`).** La traba de la 55 («se
+  resuelve la clave antes de pedir turno») está escrita aquí, en §5. Un `prepWrite` que toma el
+  turno antes de la clave pasa las 1001 (`turnoAntesDeClave`); la sonda `copiaClave` lo traba en
+  100 vueltas. Cuando una regla de §5 dice «X se traba» o «X pierde datos», buscá la prueba que lo
+  arma.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

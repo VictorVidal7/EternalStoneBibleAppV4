@@ -880,8 +880,18 @@
 > tercer caso, `pedido antes`: el store pedido con la clave sin resolver). Ninguno nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **308**. Ramas `fix/s77-r306-r307-ordenes` y
-> `docs/review-s77-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s77-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `8ff1130`, CI verde en
+> el log, run `37709675157`, 374/4629; corregido en la 78). Detalle:
 > `detail/S77-arreglos-r306-r307.md`.
+>
+> **Sesión 78 (2026-10-07): revisión del diff de la 77**, en un chat nuevo, en la terminal, sin
+> agentes y sin tocar código. Lo de la 77 se sostiene. Dos nuevos P3 de pruebas, ninguno abierto
+> por la 77: `R9-309` (un store pedido antes del respaldo, con la clave resuelta cuando el respaldo
+> ya escribe en su turno: si corre sin turno, no lo ve ninguna prueba) y `R9-310` (un `prepWrite`
+> que toma el turno antes de resolver la clave, la traba de la 55, tampoco).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **310**. Rama `docs/review-s78-diff-s77`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S78-revision-del-diff-s77.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1750,6 +1760,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** las regresiones de orden vienen en dos clases, y cada una necesita su extremo:
     las que fijan demasiado pronto, el store lo más tarde posible; las que sueltan lo de antes, lo
     más temprano. Al mover una puerta, comprobá que cada clase la siga viendo algún caso.
+
+- **Sesión 78 — 2026-10-07. Revisión del diff de la 77.** En un chat nuevo, en la terminal, sin
+  agentes y sin tocar código; arrancó con `_scratch/S78-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S78-sonda.cjs.txt` (armada por `S78-gen.cjs.txt`: la de la 77,
+    más `genEnSqlite`, `genFinSqlite`, `genTrasSqlite`, `turnoAntesDeClave`, `drenaFinSqlite`,
+    `reiniciaFinSqlite`, y dos sondas que se pegan al final de otro archivo de pruebas, `copia292`
+    y `copiaClave`).
+  - **Resultado:** lo de la 77 se sostiene. Dos nuevos P3 de pruebas, ninguno abierto por la 77:
+    `R9-309` y `R9-310`. No queda ningún P0 abierto.
+  - **Detalle: `detail/S78-revision-del-diff-s77.md`.**
+  - **La lección:** un caso que fija el momento de una clave (o de un pedido) fija también qué
+    marcas puede ver. Para la clase «lo pedido antes de una marca», el extremo es lo más tarde
+    posible, con lo otro ya en su turno.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
