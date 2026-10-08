@@ -1,21 +1,20 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-08, fin de la sesión 82.** La 82 hizo el (bj) en un chat nuevo,
-> en la terminal y sin agentes. Primero mergeó la 81 con el OK de Victor (`main` = `origin/main` =
-> `c3123d6`, CI verde en el log, run `37810321907`, 374/4630; ramas borradas tras `git cherry`).
-> Después revisó su diff, solo docs. Lo de la 81 cae como dice, y registró dos nuevos P3 de pruebas:
+> **Última actualización: 2026-10-08, fin de la sesión 83.** La 83 hizo el (bk) en el mismo chat
+> que la 82 (lo pidió Victor), en la terminal y sin agentes. Solo pruebas. Cerró:
 >
-> - `R9-315` (lo abrió la 81, `82de81f`): `otraPedidaAntes` compara la identidad de la promesa, y
->   un cambio bueno que envuelve la clave (`claveEnvuelta`) lo hace caer con el caso armado;
-> - `R9-316` (no lo abrió la 81): la salida de `R9-313` suelta solo la clave. Con la devolución
->   trabada por otro camino (`turnoAntesSqlite`), `R9-292` se cuelga 20 s, y `R9-275` también.
+> - `R9-314` (`505b79b`): dos lecturas pedidas antes del primer estado de auth, la Mesa de antes y
+>   lo devuelto de una cuenta borrada, en `prepAccount.test.ts`;
+> - `R9-315` (`50b5442`): `otraPedidaAntes` cuenta los `prepWrite` cuya clave sigue pendiente (el
+>   corte de un store lento pasa de 20 a 41);
+> - `R9-316` (`7b146a5`): `devolverConTope`, una salida que suelta todo lo retenido, en `R9-292` y en
+>   la de `R9-275`.
 >
-> Además midió lo que `R9-314` dejaba sin medir: `claveAntesDeFinish` pasa el suite, y lo ve solo la
-> sonda `lecturaDevolucion`.
->
-> La rama de la 82 (`docs/review-s82-diff-s81`) va **sin mergear hasta el OK de Victor**. **No
-> queda ningún P0 abierto**, y hay 316 hallazgos. **Lo siguiente:** la 83 arregla `R9-314`..`R9-316`
-> (mensaje (bk), en `_scratch/S83-PROMPT.md`).
+> Ninguno nuevo. La 82 ya está mergeada y pusheada (`main` = `d180732`, CI verde en el log, run
+> `37814148351`, 374/4630). Las ramas de la 83 (`fix/s83-r314-r316` y `docs/review-s83-fix`) van
+> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 316 hallazgos. **Lo
+> siguiente:** la 84 revisa el diff de la 83 (mensaje (bl), en `_scratch/S84-PROMPT.md`, mejor en
+> un chat nuevo).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -520,11 +519,16 @@ sin agentes, con `_scratch/S79-PROMPT.md`). Y la revisión del diff de la 79 (la
 el mismo chat y sin agentes, con `_scratch/S80-PROMPT.md`). Y sus arreglos (la (bi), sesión 81, en
 un chat nuevo con 3 agentes que solo midieron, con `_scratch/S81-PROMPT.md`). Y la revisión del
 diff de la 81 (la (bj), sesión 82, en un chat nuevo y sin agentes, con `_scratch/S82-PROMPT.md`).
-**Lo siguiente es el (bk).**
+Y sus arreglos (la (bk), sesión 83, en el mismo chat y sin agentes, con `_scratch/S83-PROMPT.md`).
+**Lo siguiente es el (bl).**
 
-**(bk) Sesión 83: arreglar lo de la 82 y `R9-314`** (`R9-314`: las dos lecturas como pruebas;
-`R9-315`: el control por la clave pendiente; `R9-316`: una salida que también abre SQLite y la
-puerta). El mensaje está en `_scratch/S83-PROMPT.md`, que manda sobre este archivo.
+**(bl) Sesión 84: revisar el diff de la 83** (`R9-314`..`R9-316`: las dos lecturas, el control por
+la clave pendiente y `devolverConTope`). El mensaje está en `_scratch/S84-PROMPT.md`, que manda
+sobre este archivo.
+
+**(bk) Sesión 83: arreglar lo de la 82 y `R9-314` — ya HECHO en la sesión 83, en el mismo chat, en
+la terminal y sin agentes.** Cerrados `R9-314`..`R9-316`; ninguno nuevo. El mensaje está en
+`_scratch/S83-PROMPT.md`.
 
 **(bj) Sesión 82: revisar el diff de la 81 — ya HECHO en la sesión 82, en un chat nuevo, en la
 terminal y sin agentes.** Antes, el merge de la 81 con el OK de Victor. Dos nuevos P3 (`R9-315`,
@@ -2028,18 +2032,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 82 (2026-10-08).**
+**Medido al cerrar la sesión 83 (2026-10-08).**
 
-- **`main` = `origin/main` = `c3123d6`** (el checkpoint de la 81, solo docs; el último código en
+- **`main` = `origin/main` = `d180732`** (el checkpoint de la 82, solo docs; el último código en
   `main` es `dcc7bfa`, la prueba de `R9-313`). **CI verificado en el log** en la 82: run
-  `37810321907`, 3 jobs, Node v24.21.0, 374/4630. Las dos ramas de la 81 se borraron tras
-  `git cherry` vacío.
-- **Una rama de la 82, sin mergear a propósito y sin pushear:** `docs/review-s82-diff-s81` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+  `37814148351`, 3 jobs, Node v24.21.0, 374/4630. La rama de la 82 se borró tras `git cherry`.
+- **Dos ramas de la 83, sin mergear a propósito y sin pushear:** `fix/s83-r314-r316` (`505b79b`,
+  `50b5442`, `7b146a5`; solo `__tests__/prepAccount.test.ts` y `__tests__/backupPrepTurn.test.ts`) y
+  `docs/review-s83-fix` encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se
+  mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 82):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 83):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2594,6 +2599,11 @@ Alternativas legítimas:
   forma en que llegó. Y una salida armada para una traba cubre la que la motivó: medila con una que
   llegue por otro camino (`turnoAntesSqlite` traba la devolución por la puerta de SQLite, y la
   salida que suelta la clave no la saca).
+- **Un arreglo de un control cambia también su espera: medí el corte otra vez (sesión 83,
+  `R9-315`).** Contar las claves pendientes aceptó el cambio bueno, y cada vuelta de la espera pasó
+  a esperar una más para ver la clave: el corte de un store lento se movió de 20 a 41 vueltas. Y
+  una salida se escribe una vez, y suelta TODO lo retenido (`devolverConTope`, `R9-316`): así no
+  depende de adivinar qué la trabó.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

@@ -930,8 +930,19 @@
 > la clave; lo abrió la 81) y `R9-316` (la salida de `R9-313` suelta solo la clave: con otra traba,
 > `R9-292` se cuelga 20 s). `R9-314`, medido entero (`claveAntesDeFinish`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **316**. Rama `docs/review-s82-diff-s81`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S82-revision-del-diff-s81.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **316**. Rama `docs/review-s82-diff-s81`: mergeada y
+> pusheada con el OK de Victor (`main` = `d180732`, CI verde en el log, run `37814148351`, 374/4630;
+> corregido en la 83). Detalle: `detail/S82-revision-del-diff-s81.md`.
+>
+> **Sesión 83 (2026-10-08): arreglos de lo de la 82 y de `R9-314`**, en el mismo chat que la 82 (lo
+> pidió Victor), en la terminal y sin agentes. Solo pruebas. Cerrados `R9-314` (dos lecturas
+> pedidas antes del primer estado de auth), `R9-315` (el control por las claves pendientes) y
+> `R9-316` (`devolverConTope`, una salida que suelta todo, también en la de `R9-275`). Ninguno
+> nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **316**. Ramas `fix/s83-r314-r316` y
+> `docs/review-s83-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S83-arreglos-r314-r316.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1861,6 +1872,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un control nuevo se corre también contra un cambio BUENO de su superficie (la 81
     midió el de identidad solo contra regresiones). Y una salida armada para una traba cubre la
     traba que la motivó: medila con una que llegue por otro camino.
+
+- **Sesión 83 — 2026-10-08. Arreglos de lo de la 82 y de `R9-314`.** En el mismo chat que la 82 (lo
+  pidió Victor), en la terminal y sin agentes; arrancó con `_scratch/S83-PROMPT.md`. Solo pruebas.
+  - **Cómo se trabajó:** `_scratch/S83-sonda.cjs.txt` (la `S82-sonda`, más `claveAntesDeUnion`,
+    `claveAntesDelTurnoUnion`, `claveAlPedir`, `storeLentoK` y `sinDevolucion`).
+  - **Resultado:** cerrados `R9-314` (`505b79b`), `R9-315` (`50b5442`) y `R9-316` (`7b146a5`).
+    Ninguno nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S83-arreglos-r314-r316.md`.**
+  - **La lección:** un arreglo de un control cambia también su espera, así que hay que medir el
+    corte otra vez (el de `R9-315` pasó de 20 a 41). Y una salida se escribe una vez, y suelta todo:
+    así no depende de adivinar qué trabó.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

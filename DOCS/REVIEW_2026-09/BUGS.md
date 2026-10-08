@@ -1160,7 +1160,8 @@
 >
 > **Sesión 82 (2026-10-08): revisión del diff de la 81**, en un chat nuevo, en la terminal, sin
 > agentes y sin tocar código. Primero mergeó la 81 con el OK de Victor. Rama
-> `docs/review-s82-diff-s81` (solo docs), sin mergear hasta el OK de Victor.
+> `docs/review-s82-diff-s81` (solo docs), mergeada y pusheada con el OK de Victor (`main` =
+> `d180732`, CI verde en el log, run `37814148351`, 374/4630; corregido en la 83).
 >
 > - **Lo de la 81 cae como dice:** `R9-311` (`claveCapturada`, `claveDosVeces`, el revert,
 >   `escrituraDeMas`, `lento50`), `R9-313` (`genTrasMultiSet`, el revert, la salida en 0.96 s, el
@@ -1175,6 +1176,18 @@
 >   `lecturaDevolucion` (una lectura con una devolución pendiente).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **316**. Detalle: `detail/S82-revision-del-diff-s81.md`.
+>
+> **Sesión 83 (2026-10-08): arreglos de lo de la 82 y de `R9-314`**, en el mismo chat que la 82 (lo
+> pidió Victor), en la terminal y sin agentes. Solo pruebas. Ramas `fix/s83-r314-r316` y
+> `docs/review-s83-fix`, sin mergear hasta el OK de Victor.
+>
+> - **Cerrados:** `R9-314` (`505b79b`: dos lecturas pedidas antes del primer estado de auth, la
+>   Mesa de antes y lo devuelto de una cuenta borrada), `R9-315` (`50b5442`: `otraPedidaAntes`
+>   cuenta las claves pendientes; el corte de un store lento pasa de 20 a 41) y `R9-316`
+>   (`7b146a5`: `devolverConTope`, una salida que suelta todo, también en la de `R9-275`).
+> - **Ninguno nuevo.**
+>
+> **No queda ningún P0 abierto.** Hallazgos: **316**. Detalle: `detail/S83-arreglos-r314-r316.md`.
 
 ---
 
@@ -7662,6 +7675,17 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     `setPrepAccount(null)`) lee `['Rom/8/28']` con el código bueno, y `[]` con la pieza; su control
     `despues` (leído al terminar) da `['Rom/8/28']`. El arreglo necesita las dos sondas como
     pruebas.
+  - **✅ ARREGLADO en la sesión 83** (`505b79b`, solo la prueba). Dos pruebas en
+    `prepAccount.test.ts`: una lectura pedida antes del primer estado de auth ve lo de antes ya en
+    la de la cuenta, y otra ve lo devuelto de una cuenta borrada. Lo leído solo existe en esa clave
+    después del evento (una nota propia sembrada en la de `ana`, o en la «sin cuenta»). Controles:
+    `antes: null` (la lectura esperaba) y `despues` (la unión o la devolución corrió).
+    - **Medido** (`_scratch/S83-sonda.cjs.txt`, `prep`): `claveAntesDeUnion` y
+      `claveAntesDelTurnoUnion` tumban las dos; `claveAntesDeFinish`, la de la devolución;
+      `claveAlPedir` (la cuenta tomada al pedir la clave), la de la Mesa de antes, en `leido: []`;
+      `claveSinEsperar`, las dos en `antes`. Con las pruebas de `d180732`,
+      `claveAntesDelTurnoUnion` y `claveAntesDeFinish` pasan 21/21. `migraLenta1000` y
+      `turnoAntesDeClave` no las tocan: las lecturas no tienen tope.
 
 - **`R9-315` (S82, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, el control
   `otraPedidaAntes` compara la identidad de la PROMESA: si el store envuelve la clave antes de
@@ -7681,6 +7705,15 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     o algo derivado de ella. Sola, 21/21; con `claveEnvuelta`, 21/21; con `claveCapturada` y
     `claveDosVeces`, `otraPedidaAntes: 0`; con `genTrasSqlite` y `genTrasMultiSet`, el rojo de
     siempre; con `turnoAntesDeClave`, como hoy.
+  - **✅ ARREGLADO en la sesión 83** (`50b5442`, solo la prueba): `arregloPendiente`, con su
+    comentario.
+    - **Medido** (`_scratch/S83-sonda.cjs.txt`, `prep`): `claveEnvuelta` pasa, y con la prueba de
+      `505b79b` cae en 0. `claveCapturada` y `claveDosVeces` dan 0, con `Rom/8/28` perdido.
+      `genTrasSqlite` y `genTrasMultiSet` dan el rojo de siempre.
+    - **El corte** (`storeLentoK`, código bueno, `-t R9-292`): la de antes caía desde 20, y esta
+      pasa hasta 40. Con 41 da solo `otraPedidaAntes: 0`, sin pérdida (el comentario lo dice). Con
+      `storeLento40` cae también la de `R9-273`, con cualquier versión (con la de `a32be3b`, ya con
+      20): son sus vueltas fijas, no esta.
 
 - **`R9-316` (S82, pruebas / respaldo — P3) — 🐛 la salida de `R9-313` suelta solo la clave: si la
   devolución se traba por OTRO camino, `R9-292` sigue colgándose 20 s.** MEDIDO en la 82
@@ -7699,6 +7732,19 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     la puerta del respaldo antes de `await devolver`. Con `turnoAntesSqlite`, 0.88 s, y `R9-292`
     cae con `devuelta: 'trabada'` en los dos casos. Sola pasa; con `turnoAntesDeClave` (0.90 s) y con
     `genTrasMultiSet`, el rojo de siempre. La de `R9-275` necesita lo suyo (sin medir).
+  - **✅ ARREGLADO en la sesión 83** (`7b146a5`, solo la prueba). Un ayudante, `devolverConTope`:
+    la devolución con tope de 1000 vueltas, y pasado el tope, una salida que suelta todo lo
+    retenido. En `R9-292` suelta la clave, SQLite y la puerta del respaldo; en la de `R9-275`, que
+    esperaba sin tope antes de abrir SQLite, abre SQLite. Control `devuelta` en las dos.
+    - **Medido** (`_scratch/S83-sonda.cjs.txt`, `prep`): con `turnoAntesSqlite`, 2.1 s, y el rojo
+      dice solo `'trabada'` (en `R9-292`, y en `durante` y `muere` de `R9-275`). Con la prueba de
+      `50b5442`, 41.9 s y dos timeouts. `turnoAntesDeClave` (2.0 s), `genTrasMultiSet` y `lento50`
+      dan el rojo de siempre. `sinDevolucion` (la regresión de `R9-275`) da el mismo diff que con la
+      prueba de antes.
+    - **El corte** (`releaseLentoK`, código bueno): 100 pasa; de 101 a 1000, `'tarde'` en los dos;
+      1001, `'trabada'`. En `R9-275`, la traba (`antes` en `'a tiempo'`) se distingue de una
+      devolución lenta (también `'trabada'`); en `R9-292` dan el mismo rojo. El tope de 100 es nuevo
+      para `R9-275`, que antes esperaba sin tope.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
