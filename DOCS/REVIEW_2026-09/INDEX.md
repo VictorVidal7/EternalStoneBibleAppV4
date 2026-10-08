@@ -899,8 +899,18 @@
 > respaldo) y `R9-310` (una prueba de la traba de la 55 en `prepAccount.test.ts`). Ninguno nuevo.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **310**. Ramas `fix/s79-r309-r310` y
-> `docs/review-s79-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s79-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `d9e127c`, CI verde en
+> el log, run `37729787425`, 374/4630; corregido en la 80). Detalle:
 > `detail/S79-arreglos-r309-r310.md`.
+>
+> **Sesión 80 (2026-10-07): revisión del diff de la 79**, en el mismo chat que la escribió (lo pidió
+> Victor), en la terminal, sin agentes y sin tocar código. Lo de la 79 cae como dice. Tres nuevos P3
+> de pruebas: `R9-311` (con la clave sin retener, `pedidaAntes` da el rojo exacto de la regresión),
+> `R9-312` (el control final de `R9-310` no dice «después de la unión») y `R9-313` (la marca de
+> `generacion` ya en la devolución de `R9-275`: no la ve ninguna prueba).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **313**. Rama `docs/review-s80-diff-s79`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S80-revision-del-diff-s79.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1793,6 +1803,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S79-arreglos-r309-r310.md`.**
   - **La lección:** medí el corte de tu propia prueba antes de commitearla, y mirá qué rojo da ahí:
     la primera versión de `R9-310` daba en el corte el rojo de la traba que vigila.
+
+- **Sesión 80 — 2026-10-07. Revisión del diff de la 79.** En el mismo chat que la escribió (lo pidió
+  Victor), en la terminal, sin agentes y sin tocar código; arrancó con `_scratch/S80-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S80-sonda.cjs.txt` (armada por `S80-gen.cjs.txt`: la de la 79,
+    más `claveCapturada`, `claveDosVeces`, `claveSinEsperar`, `genTrasMultiSet`,
+    `devolucionPedidaAntes`, y los arreglos propuestos `arregloClave` y `arregloOrden`).
+  - **Resultado:** lo de la 79 cae como dice. Tres nuevos P3 de pruebas: `R9-311`, `R9-312` (los
+    abrió la 79) y `R9-313`. No queda ningún P0 abierto.
+  - **Detalle: `detail/S80-revision-del-diff-s79.md`.**
+  - **La lección:** un control que cuenta llamadas no dice que la puerta retuvo: compará la
+    identidad de lo retenido. Y «lo más tarde posible» se mide contra el turno ENTERO del otro.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

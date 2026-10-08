@@ -1114,7 +1114,8 @@
 >
 > **Sesión 79 (2026-10-07): arreglos de lo de la 78**, en el mismo chat, en la terminal y sin
 > agentes. Ramas `fix/s79-r309-r310` (`dc63e01`, `4f882ab`; solo pruebas) y `docs/review-s79-fix`
-> encima, sin mergear hasta el OK de Victor.
+> encima: mergeadas y pusheadas con el OK de Victor (`main` = `d9e127c`, CI verde en el log, run
+> `37729787425`, 374/4630; corregido en la 80).
 >
 > - **Cerrados (2):** `R9-309` (un cuarto caso en la prueba de `R9-292`, `pedidaAntes`: el store
 >   pedido antes del respaldo, con la clave soltada con la escritura del respaldo retenida) y
@@ -1124,6 +1125,21 @@
 >   vueltas más lenta) el mismo rojo que la traba; se corrigió antes de commitear (`aTiempo`).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **310**. Detalle: `detail/S79-arreglos-r309-r310.md`.
+>
+> **Sesión 80 (2026-10-07): revisión del diff de la 79**, en el MISMO chat que la escribió (lo pidió
+> Victor; no es una mirada fresca), en la terminal, sin agentes y sin tocar código. Rama
+> `docs/review-s80-diff-s79` (solo docs), sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 79 cae como dice:** `pedidaAntes` con `genTrasSqlite`/`generacion`/`genEnSqlite`, el
+>   revert, `sinCola`, `turnoAntesDeClave` (con `retenida: 0`); la de `R9-310` con
+>   `turnoAntesDeClave`, el revert, los cortes de `migraLentaK` y `conSave`. El diff es solo pruebas.
+> - **Nuevos (3), P3 de pruebas:** `R9-311` (con la clave sin retener, `pedidaAntes` da el rojo
+>   exacto de la regresión con `otraPedidaAntes: 1`; lo abrió la 79), `R9-312` (el control final de
+>   `R9-310` no dice «a la de `ana`, después de la unión», como afirman su comentario y su commit; lo
+>   abrió la 79) y `R9-313` (la marca de `generacion` tras el `multiSet`, ya en la devolución: no la
+>   ve ninguna prueba; no lo abrió la 79, pero corrige su «lo más tarde posible»).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **313**. Detalle: `detail/S80-revision-del-diff-s79.md`.
 
 ---
 
@@ -7401,6 +7417,10 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       `tarde1`, como antes, ninguno. Suite 1002/1002; con `genTrasSqlite`, cae solo esta.
     - Con `turnoAntesDeClave` (`R9-310`) también cae `pedidaAntes`, con `retenida: 0`: el store
       tenía el turno desde antes, y el caso no se construyó. El control lo dice.
+  - **Sesión 80: cae como dice** (`_scratch/S80-sonda.cjs.txt`), pero `otraPedidaAntes` no dice
+    que la clave quedó retenida (`R9-311`), y el caso suelta la clave antes de la devolución de
+    `R9-275`, que también va en el turno del respaldo (`R9-313`). La frase de `detail/S79` §1 («lo
+    más tarde posible») vale solo sin devolución.
 
 - **`R9-310` (S78, pruebas / Mesa — P3) — 🐛 un `prepWrite` que toma el turno ANTES de resolver la
   clave (la traba que la 55 dejó escrita en §5) no lo ve ninguna prueba.** MEDIDO en la 78
@@ -7440,6 +7460,63 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       lenta, código bueno): 99 pasa; de 100 a 999 cae solo en `aTiempo`; desde 1000, con el rojo de
       la traba. La primera versión (100 vueltas y sin `aTiempo`) daba ya con 100 el rojo de la
       traba: el defecto de `R9-289`, visto antes de commitear.
+  - **Sesión 80: cae como dice** (`turnoAntesDeClave`, `pat00e666c+…`, `migraLenta99`/`100`/
+    `999`/`1000`, `conSave+turnoAntesDeClave`), pero su control final no dice lo que su comentario
+    afirma (`R9-312`).
+
+- **`R9-311` (S80, pruebas / respaldo — P3) — 🐛 en el caso `pedidaAntes` de la prueba de
+  `R9-292`, si el `spyOn` de `prepKey` no retiene la clave del store, el caso no se construye y el
+  rojo es EXACTAMENTE el de la regresión, con `otraPedidaAntes: 1`.** MEDIDO en la 80
+  (`_scratch/S80-sonda.cjs.txt`, armada por `S80-gen.cjs.txt`). Lo abrió la 79 (`dc63e01`).
+  - `otraPedidaAntes` cuenta las llamadas a `prepWrite`, no que reciban la clave retenida. Y
+    `escribio` cuenta las escrituras del store desde que empieza el caso, no desde que se retiene la
+    del respaldo: en este caso, el store se pide ANTES.
+  - Piezas `claveCapturada` (`prepNotesStore` guarda `prepKey` al cargar: el `spyOn` no lo ve) y
+    `claveDosVeces` (`savePrepNote` pide una clave de más antes de la suya): el store escribe antes
+    del respaldo, y el respaldo lo reemplaza, como debe. La prueba cae con
+    `escribioConElRespaldoRetenido: 1` y `Rom/8/28` perdido, el mismo diff que `genTrasSqlite`, y
+    `otraPedidaAntes: 1`. Lleva a buscar un turno roto en el código, cuando lo roto es la prueba.
+  - P3: un rojo engañoso ante un cambio de la prueba o del store (no de la app); ningún verde falso.
+  - **Arreglo (hipótesis, medida como pieza `arregloClave`):** guardar la promesa retenida y
+    contar solo las llamadas a `prepWrite` que la reciben
+    (`pide.mock.calls.filter(([k]) => k === claveRetenida).length`). Sola, 21/21. Con
+    `claveCapturada` y `claveDosVeces`, el rojo dice `otraPedidaAntes: 0`; con `genTrasSqlite`, el
+    rojo de siempre, con el control en 1.
+
+- **`R9-312` (S80, pruebas / Mesa — P3) — 🐛 el control final de la prueba de `R9-310` no dice lo
+  que afirman su comentario y su commit («la escritura fue a la de `ana`, después de ella»).**
+  MEDIDO en la 80. Lo abrió la 79 (`4f882ab`).
+  - La unión junta la Mesa «sin cuenta» con la de la cuenta. Una escritura que va a `@prep_notes`
+    ANTES de la unión termina también en la de `ana`, y `['John/3/16-21', 'Ps/23/1-6']` sale igual.
+  - Pieza `claveSinEsperar` (`prepKey` no espera al primer estado de auth, una regresión de
+    `R9-59`): la prueba de `R9-310` pasa; la ve otra, «las claves esperan al primer estado de auth».
+  - P3: un comentario (y un mensaje de commit) que dice más de lo que mide; ningún verde falso en el
+    archivo.
+  - **Arreglo (hipótesis, medida como pieza `arregloOrden`):** la prueba guarda la clave que recibe
+    la escritura y comprueba `recibida: '@prep_notes:ana'`: esa clave se resuelve después de
+    `markKnown`, que va después de la unión. Sola, 21/21; con `claveSinEsperar`, la de `R9-310` cae
+    en `recibida: '@prep_notes'`.
+
+- **`R9-313` (S80, pruebas / respaldo / Mesa — P3) — 🐛 un store pedido antes del respaldo, con la
+  clave resuelta durante la DEVOLUCIÓN de `R9-275` (en el turno del respaldo, después de su
+  `multiSet`): si corre sin turno, no lo ve ninguna prueba.** MEDIDO en la 80. No lo abrió la 79:
+  no lo veía ninguna versión. Corrige la frase de `detail/S79` §1 («lo más tarde posible»), que vale
+  solo sin devolución.
+  - Pieza `genTrasMultiSet`: la marca de `generacion` después del `multiSet` del respaldo, dentro de
+    su turno y antes de la devolución. `prep` 21/21 y el suite 1002/1002.
+  - **El daño, con `devolucionPedidaAntes`** (un quinto caso: `pedidaAntes` con la cuenta borrada;
+    la clave del store es la de `ana`, y se suelta con la devolución retenida): con el código bueno
+    pasa, igual que `devolucion` con `otraPedidaAntes: 1`. Con `genTrasMultiSet` cae con
+    `escribioConElRespaldoRetenido: 1`, y `Rom/8/28` se pierde. Con `genTrasSqlite` también cae.
+  - La regla de la 78, completa: el extremo es la clave resuelta lo más tarde posible DENTRO del
+    turno del respaldo, y ese turno dura hasta el final de la devolución.
+  - P3: verde falso ante una regresión construida; el código de hoy está bien.
+  - **Arreglo (hipótesis, medida como pieza, con un problema):** el quinto caso. Con
+    `turnoAntesDeClave` se cuelga: `releasePrepAccount` espera un turno que tiene el store, y el
+    store espera la clave, que se suelta después. La prueba cae por timeout, y cae también la de
+    `R9-275`, que va después (la regla de la 63). El arreglo necesita una salida para ese caso
+    (soltar la clave si `releasePrepAccount` no vuelve en N vueltas, o pedirla sin `await`), medida
+    con `turnoAntesDeClave`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

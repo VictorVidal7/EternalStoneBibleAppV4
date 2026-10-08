@@ -1,15 +1,21 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 79.** La 79 hizo el (bg) en el mismo chat que
-> la 78, en la terminal y sin agentes. Cerró `R9-309` (un cuarto caso en la prueba de `R9-292`,
-> `pedidaAntes`: el store real pedido antes del respaldo, con la clave soltada con la escritura del
-> respaldo retenida) y `R9-310` (una prueba en `prepAccount.test.ts` de la traba de la 55, con
-> `prepWrite` directo y `aTiempo` para que una unión lenta no dé el rojo de la traba). Ninguno nuevo.
+> **Última actualización: 2026-10-07, fin de la sesión 80.** La 80 hizo el (bh) en el MISMO chat que
+> escribió la 79 (lo pidió Victor; no es una mirada fresca), en la terminal, sin agentes y sin tocar
+> código. Lo de la 79 cae como dice. Registró 3 nuevos P3 de pruebas:
 >
-> La 78 ya está mergeada y pusheada (`main` = `00e666c`, CI verde en el log, run `37715634559`,
-> 374/4629). Las ramas de la 79 (`fix/s79-r309-r310` y `docs/review-s79-fix`) van **sin mergear
-> hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 310 hallazgos. **Lo siguiente:**
-> la 80 revisa el diff de la 79 (mensaje (bh), en `_scratch/S80-PROMPT.md`, mejor en un chat nuevo).
+> - `R9-311`: con la clave sin retener, `pedidaAntes` da el rojo exacto de la regresión, con
+>   `otraPedidaAntes: 1`; lo abrió la 79.
+> - `R9-312`: el control final de `R9-310` no dice «a la de `ana`, después de la unión»; lo abrió la 79.
+> - `R9-313`: la marca de `generacion` ya en la devolución de `R9-275` no la ve ninguna prueba.
+>
+> Los tres tienen su arreglo medido como pieza; el de `R9-313` necesita además una salida para no
+> colgarse.
+>
+> La 79 ya está mergeada y pusheada (`main` = `d9e127c`, CI verde en el log, run `37729787425`,
+> 374/4630). La rama de la 80 (`docs/review-s80-diff-s79`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 313 hallazgos. **Lo siguiente:** la 81 arregla lo
+> de la 80 (mensaje (bi), en `_scratch/S81-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -510,11 +516,16 @@ diff de la 75 (la (bd), sesión 76, en un chat nuevo con 4 agentes que solo midi
 `_scratch/S76-PROMPT.md`). Y sus arreglos (la (be), sesión 77, en el mismo chat y sin agentes, con
 `_scratch/S77-PROMPT.md`). Y la revisión del diff de la 77 (la (bf), sesión 78, en un chat nuevo y
 sin agentes, con `_scratch/S78-PROMPT.md`). Y sus arreglos (la (bg), sesión 79, en el mismo chat y
-sin agentes, con `_scratch/S79-PROMPT.md`). **Lo siguiente es el (bh).**
+sin agentes, con `_scratch/S79-PROMPT.md`). Y la revisión del diff de la 79 (la (bh), sesión 80, en
+el mismo chat y sin agentes, con `_scratch/S80-PROMPT.md`). **Lo siguiente es el (bi).**
 
-**(bh) Sesión 80: revisar el diff de la 79** (`R9-309` y `R9-310`: el caso `pedidaAntes` en la
-prueba de `R9-292`, y la prueba de la traba en `prepAccount.test.ts`). El mensaje está en
-`_scratch/S80-PROMPT.md`, que manda sobre este archivo.
+**(bi) Sesión 81: arreglar lo de la 80** (`R9-311`, `R9-312`, `R9-313`: el control de la clave
+retenida, el control de orden de `R9-310`, y un quinto caso en `R9-292` que no se cuelgue). El
+mensaje está en `_scratch/S81-PROMPT.md`, que manda sobre este archivo.
+
+**(bh) Sesión 80: revisar el diff de la 79 — ya HECHO en la sesión 80, en el mismo chat (lo pidió
+Victor), en la terminal y sin agentes.** Tres nuevos P3 (`R9-311`..`R9-313`). El mensaje está en
+`_scratch/S80-PROMPT.md`.
 
 **(bg) Sesión 79: arreglar lo de la 78 — ya HECHO en la sesión 79, en el mismo chat, en la terminal
 y sin agentes.** Cerrados `R9-309` y `R9-310`; ninguno nuevo. El mensaje está en
@@ -2006,16 +2017,14 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 79 (2026-10-07).**
+**Medido al cerrar la sesión 80 (2026-10-07).**
 
-- **`main` = `origin/main` = `00e666c`** (el checkpoint de la 78, solo docs; el último código en
-  `main` es `a7a1feb`, la prueba de `R9-306`). **CI verificado en el log** en la 78: run
-  `37715634559`, 3 jobs, Node v24.21.0, 374/4629. La rama de la 78 se borró tras `git cherry`.
-- **Dos ramas de la 79, sin mergear a propósito y sin pushear:** `fix/s79-r309-r310` (`dc63e01`,
-  `4f882ab`; solo `__tests__/backupPrepTurn.test.ts` y `__tests__/prepAccount.test.ts`) y
-  `docs/review-s79-fix` encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya
-  se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno. La 78 y la 79 no usaron agentes. Los de los 4 agentes de la 76 se borraron solos
+- **`main` = `origin/main` = `d9e127c`** (el checkpoint de la 79, solo docs; el último código en
+  `main` es `4f882ab`, la prueba de `R9-310`). **CI verificado en el log** en la 79: run
+  `37729787425`, 3 jobs, Node v24.21.0, 374/4630. Las ramas de la 79 se borraron tras `git cherry`.
+- **Una rama de la 80, sin mergear a propósito y sin pushear:** `docs/review-s80-diff-s79` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. De la 78 a la 80 no se usaron agentes. Los de los 4 agentes de la 76 se borraron solos
   al terminar; cada agente había copiado antes su `_scratch` a `_scratch/S76-sondas-agente-N/`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
@@ -2547,6 +2556,17 @@ Alternativas legítimas:
   (`aTiempo`). Y una prueba de una traba no pasa por una cola de módulo que no se reinicia: con
   `savePrepNote`, la traba tumbaba 4 pruebas siguientes (`conSave`); con `prepWrite` directo,
   ninguna.
+- **Un control que cuenta llamadas no dice que la puerta retuvo: compará la identidad de lo
+  retenido (sesión 80, `R9-311`).** `pedidaAntes` arma su caso con un `spyOn` de `prepKey`. Con la
+  clave sin retener (`claveCapturada`), el caso no se construía y el rojo era el diff exacto de la
+  regresión, con `otraPedidaAntes: 1` (contaba `prepWrite`, no LA clave). Y un contador que se lee
+  al final cuenta también lo de antes del caso. Si un `spyOn` arma el caso, el control dice que la
+  llamada que importa recibió lo que el `spyOn` devolvió.
+- **«Lo más tarde posible» se mide contra el turno ENTERO del otro (sesión 80, `R9-313`).** La 79
+  soltó la clave con el `multiSet` del respaldo retenido y escribió «lo más tarde posible». Con una
+  cuenta borrada, el turno del respaldo sigue con la devolución de `R9-275`, y una marca ahí
+  (`genTrasMultiSet`) no la ve nadie. Y un comentario que dice «después de» necesita un control de
+  orden: un resultado final que sale igual en los dos órdenes no lo es (`R9-312`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
