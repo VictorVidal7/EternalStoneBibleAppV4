@@ -1097,8 +1097,9 @@
 > **No queda ningún P0 abierto.** Hallazgos: **308**. Detalle: `detail/S77-arreglos-r306-r307.md`.
 >
 > **Sesión 78 (2026-10-07): revisión del diff de la 77**, en un chat nuevo, en la terminal, sin
-> agentes y sin tocar código. Rama `docs/review-s78-diff-s77` (solo docs), sin mergear hasta el OK
-> de Victor.
+> agentes y sin tocar código. Rama `docs/review-s78-diff-s77` (solo docs): mergeada y pusheada con
+> el OK de Victor (`main` = `00e666c`, CI verde en el log, run `37715634559`, 374/4629; corregido en
+> la 79).
 >
 > - **Lo de la 77 se sostiene:** `R9-307` y `R9-306` caen como dicen sus cierres, con sus reverts;
 >   la matriz de la 75 da en `pedido antes` lo mismo que en `durante`; `drenaTrasSqlite` equivale
@@ -1110,6 +1111,19 @@
 >   antes de resolver la clave, la traba de la 55: no lo ve ninguna prueba).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **310**. Detalle: `detail/S78-revision-del-diff-s77.md`.
+>
+> **Sesión 79 (2026-10-07): arreglos de lo de la 78**, en el mismo chat, en la terminal y sin
+> agentes. Ramas `fix/s79-r309-r310` (`dc63e01`, `4f882ab`; solo pruebas) y `docs/review-s79-fix`
+> encima, sin mergear hasta el OK de Victor.
+>
+> - **Cerrados (2):** `R9-309` (un cuarto caso en la prueba de `R9-292`, `pedidaAntes`: el store
+>   pedido antes del respaldo, con la clave soltada con la escritura del respaldo retenida) y
+>   `R9-310` (una prueba en `prepAccount.test.ts`: una escritura pedida antes del primer estado de
+>   auth no traba la unión de ese estado). Suite 1002/1002; `validate` 374/4630.
+> - **Ninguno nuevo.** La primera versión de la prueba de `R9-310` daba en su corte (una unión 100
+>   vueltas más lenta) el mismo rojo que la traba; se corrigió antes de commitear (`aTiempo`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **310**. Detalle: `detail/S79-arreglos-r309-r310.md`.
 
 ---
 
@@ -7373,6 +7387,20 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
   - **Arreglo (hipótesis, medida como sonda):** un caso más en la prueba de `R9-292`, con la forma
     de `copia292`. Pasa con el código bueno, y cae con `genTrasSqlite`, `generacion` y
     `genEnSqlite`. No se corrió contra la matriz de `R9-292`.
+  - **✅ ARREGLADO en la sesión 79** (`dc63e01`, solo la prueba). Un cuarto caso en la prueba de
+    `R9-292`, `pedidaAntes`, con el store real: `savePrepNote` se pide antes de empezar el respaldo,
+    con su clave retenida (`prepKey`, una vez), y la clave se suelta con la escritura del respaldo
+    ya retenida en el turno. Control nuevo, `otraPedidaAntes` (la otra esperaba su clave en
+    `prepWrite` antes del respaldo: 1 aquí, 0 en los otros tres casos). El `finally` suelta la
+    clave: si no, la cola de `savePrepNote`, que no se reinicia entre pruebas, colgaba las
+    siguientes.
+    - **Medido** (`_scratch/S79-sonda.cjs.txt <corrida> prep|suite`): `genTrasSqlite`,
+      `generacion` y `genEnSqlite` hacen caer `pedidaAntes` con `escribioConElRespaldoRetenido: 1`, y
+      `Rom/8/28` (lo del store) se pierde. Con la prueba de `00e666c` (`bpt00e666c+genTrasSqlite`),
+      pasa 21/21. La matriz de `R9-292`: `sinCola` tumba los cuatro casos; `suelta19`..`21` y
+      `tarde1`, como antes, ninguno. Suite 1002/1002; con `genTrasSqlite`, cae solo esta.
+    - Con `turnoAntesDeClave` (`R9-310`) también cae `pedidaAntes`, con `retenida: 0`: el store
+      tenía el turno desde antes, y el caso no se construyó. El control lo dice.
 
 - **`R9-310` (S78, pruebas / Mesa — P3) — 🐛 un `prepWrite` que toma el turno ANTES de resolver la
   clave (la traba que la 55 dejó escrita en §5) no lo ve ninguna prueba.** MEDIDO en la 78
@@ -7395,6 +7423,23 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     pedir el turno.
   - **Arreglo (hipótesis, medida como sonda):** `copiaClave` como prueba en `prepAccount.test.ts`.
     Pasa con el código bueno y cae con `turnoAntesDeClave`.
+  - **✅ ARREGLADO en la sesión 79** (`4f882ab`, solo la prueba). Una prueba en `prepAccount.test.ts`
+    («la Mesa de antes»): con la Mesa de antes sembrada, `prepWrite(prepKey('@prep_notes'), …)`
+    se pide antes del primer estado de auth, y después `setPrepAccount('ana')`, cuya unión pide un
+    turno.
+    - Usa `prepWrite` directo, no `savePrepNote`: la cola de `savePrepNote` no se reinicia entre
+      pruebas, y trabada colgaba las siguientes. Va en medio del archivo: con la traba, las de
+      después pasan.
+    - Espera hasta 1000 vueltas, y `aTiempo` dice si llegaron en 100. Control: la unión corrió y la
+      escritura fue a la de `ana`, después (`['John/3/16-21', 'Ps/23/1-6']`).
+    - **Medido** (`_scratch/S79-sonda.cjs.txt`): `turnoAntesDeClave` cae con `escrito`, `entro` y
+      `aTiempo` en `false`. Con la prueba de `00e666c` (`pat00e666c+turnoAntesDeClave`), en
+      `prepAccount.test.ts` pasan todas. Suite 1002/1002; con `turnoAntesDeClave`, caen esta y
+      `pedidaAntes` de `R9-292` (`R9-309`, con `retenida: 0`).
+    - **El corte** (la regla de la 74, `migraLentaK`: la unión de `migrateLegacyPrep` K vueltas más
+      lenta, código bueno): 99 pasa; de 100 a 999 cae solo en `aTiempo`; desde 1000, con el rojo de
+      la traba. La primera versión (100 vueltas y sin `aTiempo`) daba ya con 100 el rojo de la
+      traba: el defecto de `R9-289`, visto antes de commitear.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -890,8 +890,17 @@
 > ya escribe en su turno: si corre sin turno, no lo ve ninguna prueba) y `R9-310` (un `prepWrite`
 > que toma el turno antes de resolver la clave, la traba de la 55, tampoco).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **310**. Rama `docs/review-s78-diff-s77`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S78-revision-del-diff-s77.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **310**. Rama `docs/review-s78-diff-s77`: mergeada y
+> pusheada con el OK de Victor (`main` = `00e666c`, CI verde en el log, run `37715634559`, 374/4629;
+> corregido en la 79). Detalle: `detail/S78-revision-del-diff-s77.md`.
+>
+> **Sesión 79 (2026-10-07): arreglos de lo de la 78**, en el mismo chat, en la terminal y sin
+> agentes. Cerrados `R9-309` (un cuarto caso en la prueba de `R9-292`: el store pedido antes del
+> respaldo) y `R9-310` (una prueba de la traba de la 55 en `prepAccount.test.ts`). Ninguno nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **310**. Ramas `fix/s79-r309-r310` y
+> `docs/review-s79-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S79-arreglos-r309-r310.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1773,6 +1782,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un caso que fija el momento de una clave (o de un pedido) fija también qué
     marcas puede ver. Para la clase «lo pedido antes de una marca», el extremo es lo más tarde
     posible, con lo otro ya en su turno.
+
+- **Sesión 79 — 2026-10-07. Arreglos de lo de la 78.** En el mismo chat, en la terminal y sin
+  agentes; arrancó con `_scratch/S79-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S79-sonda.cjs.txt` (armada por `S79-gen.cjs.txt`: la de la 78,
+    más los reverts `bpt<sha>`/`pat<sha>`, `migraLentaK` para el corte, y `conSave`, `falla292`,
+    `sinSoltar` para lo que queda colgado).
+  - **Resultado:** cerrados `R9-309` y `R9-310` (`dc63e01`, `4f882ab`, solo pruebas); ninguno nuevo.
+    No queda ningún P0 abierto.
+  - **Detalle: `detail/S79-arreglos-r309-r310.md`.**
+  - **La lección:** medí el corte de tu propia prueba antes de commitearla, y mirá qué rojo da ahí:
+    la primera versión de `R9-310` daba en el corte el rojo de la traba que vigila.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

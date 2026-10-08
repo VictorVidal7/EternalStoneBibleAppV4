@@ -1,20 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-07, fin de la sesión 78.** La 78 hizo el (bf) en un chat nuevo, en
-> la terminal, sin agentes y sin tocar código. Lo de la 77 se sostiene. Registró 2 nuevos P3 de
-> pruebas, ninguno abierto por la 77:
+> **Última actualización: 2026-10-07, fin de la sesión 79.** La 79 hizo el (bg) en el mismo chat que
+> la 78, en la terminal y sin agentes. Cerró `R9-309` (un cuarto caso en la prueba de `R9-292`,
+> `pedidaAntes`: el store real pedido antes del respaldo, con la clave soltada con la escritura del
+> respaldo retenida) y `R9-310` (una prueba en `prepAccount.test.ts` de la traba de la 55, con
+> `prepWrite` directo y `aTiempo` para que una unión lenta no dé el rojo de la traba). Ninguno nuevo.
 >
-> - `R9-309`: un store pedido antes del respaldo, con la clave resuelta cuando el respaldo ya
->   escribe en su turno. Si corre sin turno (`genTrasSqlite`), no lo ve ninguna prueba.
-> - `R9-310`: un `prepWrite` que toma el turno antes de resolver la clave (la traba de la 55) no lo
->   ve ninguna prueba.
->
-> Los dos tienen su arreglo medido como sonda.
->
-> La 77 ya está mergeada y pusheada (`main` = `8ff1130`, CI verde en el log, run `37709675157`,
-> 374/4629). La rama de la 78 (`docs/review-s78-diff-s77`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 310 hallazgos. **Lo siguiente:** la 79 arregla
-> lo de la 78 (mensaje (bg), en `_scratch/S79-PROMPT.md`).
+> La 78 ya está mergeada y pusheada (`main` = `00e666c`, CI verde en el log, run `37715634559`,
+> 374/4629). Las ramas de la 79 (`fix/s79-r309-r310` y `docs/review-s79-fix`) van **sin mergear
+> hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 310 hallazgos. **Lo siguiente:**
+> la 80 revisa el diff de la 79 (mensaje (bh), en `_scratch/S80-PROMPT.md`, mejor en un chat nuevo).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -514,11 +509,16 @@ en un chat nuevo con 2 agentes que solo midieron, con `_scratch/S75-PROMPT.md`).
 diff de la 75 (la (bd), sesión 76, en un chat nuevo con 4 agentes que solo midieron, con
 `_scratch/S76-PROMPT.md`). Y sus arreglos (la (be), sesión 77, en el mismo chat y sin agentes, con
 `_scratch/S77-PROMPT.md`). Y la revisión del diff de la 77 (la (bf), sesión 78, en un chat nuevo y
-sin agentes, con `_scratch/S78-PROMPT.md`). **Lo siguiente es el (bg).**
+sin agentes, con `_scratch/S78-PROMPT.md`). Y sus arreglos (la (bg), sesión 79, en el mismo chat y
+sin agentes, con `_scratch/S79-PROMPT.md`). **Lo siguiente es el (bh).**
 
-**(bg) Sesión 79: arreglar lo de la 78** (`R9-309` y `R9-310`: dos pruebas nuevas, con la forma de
-las sondas `copia292` y `copiaClave`). El mensaje está en `_scratch/S79-PROMPT.md`, que manda sobre
-este archivo.
+**(bh) Sesión 80: revisar el diff de la 79** (`R9-309` y `R9-310`: el caso `pedidaAntes` en la
+prueba de `R9-292`, y la prueba de la traba en `prepAccount.test.ts`). El mensaje está en
+`_scratch/S80-PROMPT.md`, que manda sobre este archivo.
+
+**(bg) Sesión 79: arreglar lo de la 78 — ya HECHO en la sesión 79, en el mismo chat, en la terminal
+y sin agentes.** Cerrados `R9-309` y `R9-310`; ninguno nuevo. El mensaje está en
+`_scratch/S79-PROMPT.md`.
 
 **(bf) Sesión 78: revisar el diff de la 77 — ya HECHO en la sesión 78, en un chat nuevo, en la
 terminal y sin agentes.** Lo de la 77 se sostiene; dos nuevos P3 (`R9-309`, `R9-310`). El mensaje
@@ -2006,14 +2006,16 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 78 (2026-10-07).**
+**Medido al cerrar la sesión 79 (2026-10-07).**
 
-- **`main` = `origin/main` = `8ff1130`** (el checkpoint de la 77, solo docs; el último código en
-  `main` es `a7a1feb`, la prueba de `R9-306`). **CI verificado en el log** en la 77: run
-  `37709675157`, 3 jobs, Node v24.21.0, 374/4629. Las ramas de la 77 se borraron tras `git cherry`.
-- **Una rama de la 78, sin mergear a propósito y sin pushear:** `docs/review-s78-diff-s77` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 78 no usó agentes. Los de los 4 agentes de la 76 se borraron solos
+- **`main` = `origin/main` = `00e666c`** (el checkpoint de la 78, solo docs; el último código en
+  `main` es `a7a1feb`, la prueba de `R9-306`). **CI verificado en el log** en la 78: run
+  `37715634559`, 3 jobs, Node v24.21.0, 374/4629. La rama de la 78 se borró tras `git cherry`.
+- **Dos ramas de la 79, sin mergear a propósito y sin pushear:** `fix/s79-r309-r310` (`dc63e01`,
+  `4f882ab`; solo `__tests__/backupPrepTurn.test.ts` y `__tests__/prepAccount.test.ts`) y
+  `docs/review-s79-fix` encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya
+  se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno. La 78 y la 79 no usaron agentes. Los de los 4 agentes de la 76 se borraron solos
   al terminar; cada agente había copiado antes su `_scratch` a `_scratch/S76-sondas-agente-N/`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
@@ -2538,6 +2540,13 @@ Alternativas legítimas:
   turno antes de la clave pasa las 1001 (`turnoAntesDeClave`); la sonda `copiaClave` lo traba en
   100 vueltas. Cuando una regla de §5 dice «X se traba» o «X pierde datos», buscá la prueba que lo
   arma.
+- **Medí el corte de tu propia prueba antes de commitearla, y mirá QUÉ rojo da ahí (sesión 79,
+  `R9-310`).** La primera versión de la prueba de la traba esperaba 100 vueltas: con la unión 100
+  vueltas más lenta (`migraLenta100`, código bueno) daba el rojo exacto de la traba, el defecto de
+  `R9-289`. Separá «llega tarde» de «no llega»: una espera más larga (1000) y un campo propio
+  (`aTiempo`). Y una prueba de una traba no pasa por una cola de módulo que no se reinicia: con
+  `savePrepNote`, la traba tumbaba 4 pruebas siguientes (`conSave`); con `prepWrite` directo,
+  ninguna.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
