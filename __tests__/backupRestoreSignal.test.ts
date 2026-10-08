@@ -9,7 +9,9 @@
  * `queueWrite` pueda lanzar.
  *
  * R9-303 — la parte de SQLite del respaldo puede esperar en una puerta
- * (`mockSqlite`): el respaldo ya empezo, y todavia no pidio el turno.
+ * (`mockSqlite`): el respaldo ya empezo, y todavia no pidio el turno. La
+ * puerta va DESPUES del cuerpo de la transaccion: antes del cuerpo, un turno
+ * tomado mientras el cuerpo corria no lo veia ninguna prueba (R9-307).
  */
 const mockSqlite: {puerta: Promise<void> | null; retenida: number} = {
   puerta: null,
@@ -20,11 +22,11 @@ jest.mock('../src/lib/database', () => {
     initialize: jest.fn().mockResolvedValue(undefined),
     getDatabase: jest.fn().mockResolvedValue({
       withTransactionAsync: async (fn: () => Promise<void>) => {
+        await fn();
         if (mockSqlite.puerta) {
           mockSqlite.retenida += 1;
           await mockSqlite.puerta;
         }
-        return fn();
       },
     }),
     executeSql: jest.fn(async () => ({rows: {_array: [], length: 0}})),
@@ -278,7 +280,7 @@ it.each(['antes', 'durante'] as const)(
       terminadoAntesDeAbrir,
       vistos,
     }).toEqual({
-      respaldoEnSqlite: caso === 'durante' ? 1 : 0, // CONTROL: ya habia empezado
+      respaldoEnSqlite: caso === 'durante' ? 1 : 0, // CONTROL: el respaldo esperaba en SQLite
       otraConElTurno: true, // CONTROL: el store ya tenia el turno
       turnoPedidoAntesDeAbrir: 1, // CONTROL: el respaldo pidio el turno
       vistosAntesDeAbrir: ['inicio: Luke/2/1'],
