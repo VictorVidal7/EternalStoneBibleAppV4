@@ -1052,8 +1052,9 @@
 >
 > **Sesión 75 (2026-10-07): arreglos de lo de la 74**, en un chat nuevo, en la terminal, con 2
 > agentes en worktree que solo midieron (los pidió Victor). Ramas `fix/s75-r302-store-con-el-turno`
-> (`a808c29`, `125736b`; solo pruebas) y `docs/review-s75-fix` encima, sin mergear hasta el OK de
-> Victor.
+> (`a808c29`, `125736b`; solo pruebas) y `docs/review-s75-fix` encima: mergeadas y pusheadas con el
+> OK de Victor (`main` = `f01e149`, CI verde en el log, run `37698839488`, 374/4628; corregido en la
+> 76).
 >
 > - **Cerrados (2):** `R9-302` (la prueba de `R9-287` espera a que el store tenga el turno, con el
 >   control `otraConElTurno`) y `R9-303` (lo que esa espera le quitó a la prueba, visto por el agente
@@ -1064,6 +1065,22 @@
 >   más lento, `removes` cae por el reloj y su escritura tumba `reorders`; de T8.4.4).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **305**. Detalle: `detail/S75-arreglos-r302.md`.
+>
+> **Sesión 76 (2026-10-07): revisión del diff de la 75**, en un chat nuevo, en la terminal, con 4
+> agentes en worktree que solo midieron (los pidió Victor), sin tocar código. Rama
+> `docs/review-s76-diff-s75` (solo docs), sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 75 se sostiene:** la espera de `R9-302` y el caso `durante` de `R9-303` caen como
+>   dicen sus cierres; `R9-304`, `R9-305` y `sueltaK`, re-medidos. Ninguno es P2. El diff es solo
+>   `__tests__/backupRestoreSignal.test.ts`.
+> - **3 nuevos, P3, de pruebas:** `R9-306` (a la prueba de `R9-287` le falta el orden de la prueba
+>   vieja, el store pedido antes del respaldo y en el turno después; lo abrió la 75), `R9-307`
+>   (ninguna versión ve un turno tomado durante el cuerpo de la transacción; arreglo medido) y
+>   `R9-308` (un respaldo que deja de esperar el turno tras un plazo de reloj: no lo ve ninguna).
+> - **Corregidos, sin número:** en `R9-303`, la frase de `antesSqlite40+drenaAlInicio` (el caso sí se
+>   construía); en `R9-305`, el corte (de reloj, entre 26 y 40); en `sueltaK`, «hasta 10» es 19.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **308**. Detalle: `detail/S76-revision-del-diff-s75.md`.
 
 ---
 
@@ -7096,6 +7113,9 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     - **Lo que abrió el arreglo, visto por los agentes:** la espera se llevó la cobertura de un turno
       tomado con el respaldo ya empezado (`R9-303`, cerrado en la misma sesión con `125736b`), y el
       control nuevo nombra «la función del store corrió», no «tiene el turno» (`R9-304`).
+  - **Sesión 76: se sostiene** (agente 1, la matriz pedida en `archivo`, `prep` y `suite`). Pero la
+    prueba de `bc845c0` armaba un orden más, el store pedido antes del respaldo y en el turno
+    después, que ni `antes` ni `durante` arman: `R9-306`.
 
 - **`R9-303` (S75, pruebas / respaldo — P3) — 🐛 con la espera de `R9-302`, la prueba de `R9-287`
   dejó de ver un respaldo que fija al EMPEZAR los turnos de la Mesa que va a esperar: un turno
@@ -7125,6 +7145,19 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     - **El corte del control nuevo:** con el respaldo más lento antes de SQLite (`antesSqliteK`,
       código bueno), `durante` pasa con 39 y cae con 40 solo en `respaldoEnSqlite: 0`; con
       `antesSqlite40+drenaAlInicio`, el control en 0 nombra el caso no construido.
+  - **Sesión 76: se sostiene** (agente 2, re-medido: `drenaAlInicio`, `dea808c29+…`, `debc845c0+…`,
+    `antesSqlite39`, `antesSqlite40`; en `prep` y en el suite, `durante` es la única que lo ve). El
+    corte de `antes` con `antesSqliteK`: 19 pasa, 20 cae en `turnoPedidoAntesDeAbrir: 0` (la ventana
+    de `R9-289`).
+    - **⚠️ Corrección (sin número):** la última frase de arriba es falsa. Con
+      `antesSqlite40+drenaAlInicio`, `durante` cae con `respaldoEnSqlite: 0` Y con el diff entero de
+      `drenaAlInicio` (`_scratch/S75-sonda1-antesSqlite40+drenaAlInicio-archivo.out.txt`, la salida
+      de la propia 75). El caso «un turno tomado con el respaldo ya empezado» sí se construye: lo
+      que no se construye es «retenido en SQLite». El comentario «CONTROL: ya habia empezado» dice
+      más de lo que mide, y en `antes` el control vale 0 siempre. Rojo que dice dos cosas, no verde
+      falso. Arreglo: el comentario, «CONTROL: el respaldo esperaba en SQLite».
+    - El caso `durante` no se llevó cobertura de otro orden, pero deja dos sin armar: el de la
+      prueba vieja (`R9-306`) y un turno tomado durante el cuerpo de la transacción (`R9-307`).
 
 - **`R9-304` (S75, pruebas / respaldo — P3) — 🐛 el control `otraConElTurno` de la prueba de
   `R9-287` dice «la función del store corrió», no «el store tiene el turno»: miente para los dos
@@ -7145,6 +7178,8 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     decidido para `R9-296` (un export solo para pruebas que cuente los pedidos que esperan el turno),
     «el pedido del respaldo espera» (`enEspera: 1`). Sin el gancho, lo honesto es nombrar lo que
     mide («la función del store ya corrió»).
+  - **Sesión 76: se sostiene** (agente 3: `fueraDelTurno`, `tardeDentro39`, `tardeDentro40`, y los
+    controles con `debc845c0`, que dan el mismo diff sin `otraConElTurno` y 3/3).
 
 - **`R9-305` (S75, pruebas / Mesa — P3) — 🐛 en `prepSeriesDetailScreen.test.tsx`, con `prepWrite`
   más lento (el código bueno), `removes a passage` cae por el reloj del `waitFor`, y su escritura
@@ -7164,6 +7199,69 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
   - P3: un rojo que nombra mal la prueba vecina; el código de hoy está bien.
   - **Arreglo (hipótesis, sin medir):** que cada prueba espere su escritura (leer lo guardado dentro
     del `waitFor`, como hace `reorders`) y drenar la cola de la Mesa en el `afterEach`.
+  - **Sesión 76: se sostiene, con el corte corregido (sin número).** «`tarde30` tumba las dos» no se
+    repite: re-medido en el árbol principal sin agentes, `tarde30` tumba solo `removes` y `tarde40`
+    las dos. El agente 3, en tres rondas: con carga, `tarde26` tumbó las dos; sin carga, `tarde26` y
+    `tarde30` pasaron, y de 40 a 100 cayeron siempre las dos. Es de reloj, entre 26 y 40. De T8.4.4
+    (`git log -S`: `da97edf`).
+
+- **`R9-306` (S76, pruebas / respaldo — P3) — 🐛 a la prueba de `R9-287` le falta el orden que
+  armaba su versión de `bc845c0`: el store pedido ANTES de empezar el respaldo y en el turno
+  DESPUÉS. Un respaldo que deja correr sin turno esa escritura no lo ve ninguna prueba.** MEDIDO por
+  el agente 1 de la 76 y re-medido (`_scratch/S76-sonda-a1.cjs.txt`, la del agente con `ROOT` en el
+  principal). Lo abrió la 75 (`a808c29`); `125736b` no lo cerró.
+  - La prueba de `bc845c0` pedía el store y enseguida el respaldo, y la función del store corría en
+    las microtareas del principio de `importBackup`. La de hoy arma dos órdenes: `antes` (el store
+    toma el turno antes de pedir el respaldo) y `durante` (el store se pide con el respaldo ya
+    empezado). El del medio ya no lo arma.
+  - Pieza `generacion` (una regresión construida): `importBackup` marca al empezar, y `prepWrite`
+    llama a su función sin el turno si la marca cambió mientras resolvía la clave. Con la prueba de
+    hoy pasa (4/4); con la de `a808c29` también (3/3); con la de `bc845c0` cae con el diff de
+    `sinCola`. En el suite, 1000/1000.
+  - Las otras dos piezas del agente 1 son cobertura que ganó la 75 (`reiniciaAlInicio`, que solo
+    ven `a808c29` y la de hoy, en `antes`; `pendientesAlInicio`, que solo ve la de hoy, en
+    `durante`), no medidas de nuevo.
+  - P3: verde falso ante una regresión construida; el código de hoy está bien.
+  - **Arreglo (hipótesis, sin medir):** un tercer caso, con puertas: pedir el store con la clave
+    retenida, pedir el respaldo y esperar `respaldoEnSqlite`, soltar la clave y esperar `dentro`,
+    soltar SQLite. Tiene que caer con `generacion`, y seguir cayendo en `durante` con
+    `drenaAlInicio` y `pendientesAlInicio`, y en `antes` con `reiniciaAlInicio`.
+
+- **`R9-307` (S76, pruebas / respaldo — P3) — 🐛 ninguna versión de la prueba de `R9-287` ve un
+  turno de la Mesa tomado mientras corre el cuerpo de la transacción de SQLite del respaldo: la
+  puerta de `mockSqlite` va ANTES del cuerpo.** MEDIDO por el agente 4 de la 76 y re-medido
+  (`_scratch/S76-sonda-a4.cjs.txt`). No lo abrió la 75: tampoco lo veía ninguna versión anterior; es
+  lo que queda del orden que `R9-303` construyó.
+  - Piezas `drenaX`: las de `drenaAlInicio`, con la marca en otro punto de `importBackup`. La prueba
+    de `bc845c0` veía solo una marca antes del primer `await`; `durante` ve cualquier marca anterior
+    a la transacción (`drenaTrasInit`, `drenaTrasAch`, `drenaAntesSqlite`).
+  - Con `drenaEnSqlite` (la marca al empezar el cuerpo de la transacción): la prueba de hoy pasa
+    (4/4), la de `bc845c0` también (3/3), y el suite, 1000/1000. El store entra siempre antes del
+    cuerpo, así que un turno tomado durante el cuerpo corre a la par del `multiSet`: la clase de
+    `R9-273`.
+  - P3: verde falso ante una regresión construida; el código de hoy está bien.
+  - **Arreglo (medido por el agente 4, re-medido en `archivo`):** en el mock, la puerta después de
+    `await fn()` (`puertaAlFinal`). Sola, 4/4; con `drenaEnSqlite` y con `drenaAlInicio`, cae
+    `durante` con el diff de un `multiSet` sin turno. Contra la matriz de la 75 da lo mismo que hoy,
+    y en el suite, 1000/1000 (agente 4, no re-medido).
+
+- **`R9-308` (S76, pruebas / respaldo / Mesa — P3) — 🐛 un respaldo que deja de esperar el turno
+  de la Mesa tras un plazo de reloj, y después escribe sin él, no lo ve ninguna prueba.** MEDIDO por
+  el agente 3 de la 76 y re-medido (`_scratch/S76-sonda-a3.cjs.txt`). No lo abrió la 75.
+  - Es lo sin número de `detail/S75` §3 (`sueltaK`, en vueltas), en la forma que tendría en el
+    código: un plazo para que la importación no cuelgue esperando la Mesa (el motor de sync ya
+    tiene `withDeadline`).
+  - En vueltas, re-medido: `suelta19` en `prep` tumba las de `R9-273` y `R9-275`; `suelta20`, solo
+    la de `R9-275`; `suelta21`, ninguna (19/19), y en el suite, 1000/1000. La 75 había escrito que
+    la de `R9-273` lo ve «hasta 10»: es hasta 19.
+  - Pieza `sueltaMs50` (50 ms de `setTimeout` y después escribe sin turno): `prep` 19/19 y el suite
+    1000/1000. Las puertas de las pruebas se abren en vueltas de `setImmediate`, que duran mucho
+    menos que un plazo realista.
+  - P3: un hueco de cobertura de la clase de `R9-273`, con una regresión construida; el código de
+    hoy espera el turno sin plazo.
+  - **Arreglo (hipótesis, sin medir):** una prueba con relojes falsos que avance el reloj más allá
+    de cualquier plazo con la Mesa ocupada, y compruebe que el `multiSet` del respaldo sigue
+    esperando.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

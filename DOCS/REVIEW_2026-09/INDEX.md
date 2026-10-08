@@ -861,7 +861,18 @@
 > empezado; ahora un caso `durante`). 2 nuevos, P3, de pruebas: `R9-304` y `R9-305`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **305**. Ramas `fix/s75-r302-store-con-el-turno` y
-> `docs/review-s75-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S75-arreglos-r302.md`.
+> `docs/review-s75-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `f01e149`, CI verde en
+> el log, run `37698839488`, 374/4628; corregido en la 76). Detalle: `detail/S75-arreglos-r302.md`.
+>
+> **Sesión 76 (2026-10-07): revisión del diff de la 75**, en un chat nuevo, en la terminal, con 4
+> agentes en worktree que solo midieron, sin tocar código. Lo de la 75 se sostiene, salvo tres
+> frases corregidas sin número (`R9-303`, `R9-305`, `sueltaK`). 3 nuevos, P3, de pruebas: `R9-306`
+> (el orden de la prueba vieja, que no arma ni `antes` ni `durante`; lo abrió la 75), `R9-307` (un
+> turno tomado durante el cuerpo de la transacción; arreglo medido) y `R9-308` (un plazo de reloj en
+> la espera del turno).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **308**. Rama `docs/review-s76-diff-s75`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S76-revision-del-diff-s75.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1708,6 +1719,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S75-arreglos-r302.md`.**
   - **La lección:** una espera que ordena dos cosas se lleva la cobertura del otro orden: construilo
     como su propio caso, con una puerta.
+
+- **Sesión 76 — 2026-10-07. Revisión del diff de la 75.** En un chat nuevo, en la terminal, con 4
+  agentes en worktree que solo midieron; arrancó con `_scratch/S76-PROMPT.md`.
+  - **Cómo se trabajó:** herramientas a los agentes con `_scratch/S76-copiar.cjs.txt`; sus sondas,
+    regeneradas con `ROOT` en el principal por `S76-gen.cjs.txt` (`S76-sonda-a1`, `-a3`, `-a4`).
+  - **Resultado:** lo de la 75 se sostiene; tres frases corregidas sin número; 3 nuevos P3
+    (`R9-306`..`R9-308`). Ninguno es P2. No queda ningún P0 abierto.
+  - **Detalle: `detail/S76-revision-del-diff-s75.md`.**
+  - **La lección:** una puerta construye un punto del orden, no el tramo: al cambiar una carrera por
+    casos con puertas, listá dónde podía caer la carrera, y probá una regresión en cada punto.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
