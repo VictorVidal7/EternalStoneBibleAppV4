@@ -9,6 +9,8 @@ import {
   __resetPrepAccountForTests,
   adoptNoAccountPrep,
   managePrepAccount,
+  prepKey,
+  prepWrite,
   releasePrepAccount,
   setPrepAccount,
 } from '../src/features/study/prepAccount';
@@ -137,6 +139,50 @@ describe('R9-59 — la Mesa por cuenta', () => {
       managePrepAccount();
       await setPrepAccount(null);
       expect(await pasajes()).toEqual(['Ps/23/1-6']);
+    });
+
+    // R9-310 — la escritura espera su clave FUERA del turno: la clave espera
+    // al primer estado de auth, y la union de ese estado pide un turno. Con la
+    // clave esperada dentro, ninguna de las dos terminaba (la traba de R9-269).
+    // Con `prepWrite` directo: la cola de `savePrepNote` no se reinicia entre
+    // pruebas, y trabada colgaba las siguientes.
+    it('R9-310: una escritura pedida antes del primer estado de auth no traba la union de ese estado', async () => {
+      await sembrar();
+      managePrepAccount();
+      let escrito = false;
+      const escritura = prepWrite(prepKey('@prep_notes'), async clave => {
+        const raw = await AsyncStorage.getItem(clave);
+        await AsyncStorage.setItem(
+          clave,
+          JSON.stringify({
+            ...(raw ? JSON.parse(raw) : {}),
+            'Ps/23/1-6': {
+              sections: {observation: 'antes de auth'},
+              updatedAt: 2,
+            },
+          }),
+        );
+      }).then(() => (escrito = true));
+      let entro = false;
+      const estado = setPrepAccount('ana').then(() => (entro = true));
+      // Hasta que lleguen las dos, con un tope: trabadas no llegan nunca, y
+      // esperarlas colgaba la prueba. Con solo 100 vueltas, una union 100
+      // vueltas mas lenta daba el mismo rojo que la traba; ahora llegan, y el
+      // rojo es solo `aTiempo`.
+      let vueltas = 0;
+      while (!(escrito && entro) && vueltas < 1000) {
+        await new Promise(r => setImmediate(r));
+        vueltas += 1;
+      }
+      expect({escrito, entro, aTiempo: vueltas <= 100}).toEqual({
+        escrito: true,
+        entro: true,
+        aTiempo: true,
+      });
+      await Promise.all([escritura, estado]);
+      // CONTROL: la union corrio (lo de antes, en la de `ana`), y la escritura
+      // fue a la de `ana`, despues de ella.
+      expect(await pasajes()).toEqual(['John/3/16-21', 'Ps/23/1-6']);
     });
   });
 
