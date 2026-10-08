@@ -245,10 +245,15 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   // su contenido, no el orden) espera en una puerta, y DESPUES se pide otra
   // escritura de la Mesa. Con `borrada`, Ana tiene P y su cuenta se borra con
   // el respaldo en SQLite: la escritura retenida es la devolucion (R9-275).
+  // Con `pedidaAntes`, la otra se pide ANTES de empezar el respaldo, con su
+  // clave sin resolver, y la clave se suelta con la del respaldo retenida: un
+  // respaldo que deja correr sin turno lo pedido antes de una marca suya la
+  // veia solo si la marca iba antes de soltar la clave (R9-309).
   const caso = async (
     borrada: boolean,
     otra: () => Promise<void>,
     esOtra: (pairs: Array<[string, string]>) => boolean,
+    pedidaAntes = false,
   ) => {
     __resetPrepAccountForTests();
     await AsyncStorage.clear();
@@ -277,7 +282,25 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     });
     let restaurado = false;
     const turno = jest.spyOn(prepAccount, 'prepMultiSet');
+    let soltarClave = () => {};
     try {
+      let segunda: Promise<void> | undefined;
+      let otraPedidaAntes = 0;
+      if (pedidaAntes) {
+        const clave = jest
+          .spyOn(prepAccount, 'prepKey')
+          .mockReturnValueOnce(
+            new Promise<string>(r => (soltarClave = () => r('@prep_notes'))),
+          );
+        const pide = jest.spyOn(prepAccount, 'prepWrite');
+        segunda = otra();
+        for (let i = 0; i < 20 && pide.mock.calls.length === 0; i++) {
+          await new Promise(r => setImmediate(r));
+        }
+        otraPedidaAntes = pide.mock.calls.length;
+        clave.mockRestore();
+        pide.mockRestore();
+      }
       const respaldo = importBackup(
         respaldoConMesa({
           [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
@@ -300,13 +323,17 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       const llego = retenida;
       const pedido = turno.mock.calls.length;
       turno.mockRestore();
-      const segunda = otra();
+      if (segunda) soltarClave();
+      else segunda = otra();
       for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
       const escribioConElRespaldoRetenido = escribio;
       abrir();
       await respaldo;
       await segunda;
       return {
+        // CONTROL: con `pedidaAntes`, la otra esperaba su clave en
+        // `prepWrite` antes de que empezara el respaldo.
+        otraPedidaAntes,
         // CONTROL: con `borrada`, el respaldo espero en SQLite con la clave de
         // Ana (como `durante` en R9-275); si no, el rojo de un respaldo mas
         // lento se leia como una perdida de P.
@@ -321,6 +348,9 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     } finally {
       turno.mockRestore();
       abrir();
+      // Sin soltarla, la cola de `savePrepNote` quedaba colgada para las
+      // pruebas siguientes.
+      soltarClave();
       mockSqlite.puerta = null;
       abrirSqlite?.();
       ms.mockImplementation(real);
@@ -334,14 +364,16 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   const conStore = await caso(false, store, deStore);
   const conUnion = await caso(false, () => adoptNoAccountPrep('ana'), deUnion);
   const devolucion = await caso(true, store, deStore);
+  const pedidaAntes = await caso(false, store, deStore, true);
   // R9-273 pide el turno; esta mira que lo use para TODA su escritura. Si el
   // respaldo lo suelta antes de escribir (o escribe fuera de el, o deja la
   // devolucion fuera), la otra escritura corre con la suya en vuelo, y la que
   // termina despues pisa a la otra: lo restaurado se perdia, y la
   // restauracion decia que si (R9-292, R9-293, R9-294). El conteo de
   // `prepMultiSet` no lo ve: el pedido se hace igual.
-  expect({conStore, conUnion, devolucion}).toEqual({
+  expect({conStore, conUnion, devolucion, pedidaAntes}).toEqual({
     conStore: {
+      otraPedidaAntes: 0,
       retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
@@ -351,6 +383,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       ana: null,
     },
     conUnion: {
+      otraPedidaAntes: 0,
       retenidaSqlite: 0,
       retenida: 1,
       pedido: 1,
@@ -360,12 +393,23 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       ana: [R],
     },
     devolucion: {
+      otraPedidaAntes: 0,
       retenidaSqlite: 1,
       retenida: 1,
       pedido: 1,
       escribioConElRespaldoRetenido: 0,
       restaurado: true,
       sinCuenta: [P, R, Q],
+      ana: null,
+    },
+    pedidaAntes: {
+      otraPedidaAntes: 1,
+      retenidaSqlite: 0,
+      retenida: 1,
+      pedido: 1,
+      escribioConElRespaldoRetenido: 0,
+      restaurado: true,
+      sinCuenta: [R, Q],
       ana: null,
     },
   });
