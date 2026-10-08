@@ -306,13 +306,25 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
           .spyOn(prepAccount, 'prepKey')
           .mockReturnValueOnce(claveRetenida);
         const pide = jest.spyOn(prepAccount, 'prepWrite');
-        const conLaRetenida = () =>
-          pide.mock.calls.filter(([k]) => k === claveRetenida).length;
+        // Las claves que `prepWrite` recibio y siguen pendientes tras una
+        // vuelta: con el primer estado de auth ya dado, solo la retenida, o
+        // algo que espera por ella. Comparar la promesa daba 0 con el caso
+        // armado si el store la envolvia (`.then`, un helper `async`: R9-315).
+        // Espera hasta 40 vueltas: un store mas lento da solo `0`, sin perder
+        // nada (con la clave de otro lado, la otra se pierde tambien).
+        const resueltas = new Set<Promise<string>>();
+        const conLaRetenida = async () => {
+          for (const [k] of pide.mock.calls) {
+            void k.then(() => resueltas.add(k));
+          }
+          await new Promise(r => setImmediate(r));
+          return pide.mock.calls.filter(([k]) => !resueltas.has(k)).length;
+        };
         segunda = otra();
-        for (let i = 0; i < 20 && conLaRetenida() === 0; i++) {
+        for (let i = 0; i < 20 && (await conLaRetenida()) === 0; i++) {
           await new Promise(r => setImmediate(r));
         }
-        otraPedidaAntes = conLaRetenida();
+        otraPedidaAntes = await conLaRetenida();
         clave.mockRestore();
         pide.mockRestore();
       }
@@ -365,12 +377,13 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       await respaldo;
       await segunda;
       return {
-        // CONTROL: con `pedidaAntes`, `prepWrite` recibio LA clave retenida
-        // antes de que empezara el respaldo. Con la clave de otro lado (el
-        // store con `prepKey` guardado, o una clave de mas pedida antes), la
-        // otra escribe antes del respaldo, y el respaldo la reemplaza: contando
-        // cualquier `prepWrite`, el rojo era el de un turno roto (R9-311). Mira
-        // `prepWrite` por el modulo: guardado al cargar, da 0 con el caso armado.
+        // CONTROL: con `pedidaAntes`, `prepWrite` recibio una clave que seguia
+        // pendiente (la retenida) antes de que empezara el respaldo. Con la
+        // clave de otro lado (el store con `prepKey` guardado, o una clave de
+        // mas pedida antes), la otra escribe antes del respaldo, y el respaldo
+        // la reemplaza: contando cualquier `prepWrite`, el rojo era el de un
+        // turno roto (R9-311). Mira `prepWrite` por el modulo: guardado al
+        // cargar, da 0 con el caso armado.
         otraPedidaAntes,
         // CONTROL: con `borrada`, la devolucion de `releasePrepAccount` volvio
         // a tiempo, y sin soltar antes la clave de la otra.
