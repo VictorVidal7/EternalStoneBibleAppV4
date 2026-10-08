@@ -246,9 +246,12 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   // escritura de la Mesa. Con `borrada`, Ana tiene P y su cuenta se borra con
   // el respaldo en SQLite: la escritura retenida es la devolucion (R9-275).
   // Con `pedidaAntes`, la otra se pide ANTES de empezar el respaldo, con su
-  // clave sin resolver, y la clave se suelta con la del respaldo retenida: un
-  // respaldo que deja correr sin turno lo pedido antes de una marca suya la
-  // veia solo si la marca iba antes de soltar la clave (R9-309).
+  // clave retenida (un `spyOn` de `prepKey`), y la clave se suelta con la del
+  // respaldo retenida. Un respaldo que deja correr sin turno lo pedido antes
+  // de una marca suya: con la marca al empezar, en SQLite o al salir de SQLite
+  // (antes de avisar que restaura), este caso cae; el caso `pedido antes` de
+  // R9-287, solo con las dos primeras (R9-309). Con la marca despues de su
+  // `multiSet`, en la devolucion, no cae ninguno (R9-313).
   const caso = async (
     borrada: boolean,
     otra: () => Promise<void>,
@@ -275,7 +278,11 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       ) {
         retenida += 1;
         await puerta;
-      } else if (esOtra(pairs)) {
+      } else if (esOtra(pairs) && retenida > 0) {
+        // Desde que la del respaldo llego a la puerta: lo de la otra que va
+        // antes, el respaldo lo reemplaza (se ve en `sinCuenta`), y contado
+        // desde el principio el rojo decia `escribioConElRespaldoRetenido: 1`
+        // con la clave sin retener o con `retenida: 0` (R9-311).
         escribio += 1;
       }
       return real(pairs);
@@ -287,17 +294,20 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       let segunda: Promise<void> | undefined;
       let otraPedidaAntes = 0;
       if (pedidaAntes) {
+        const claveRetenida = new Promise<string>(
+          r => (soltarClave = () => r('@prep_notes')),
+        );
         const clave = jest
           .spyOn(prepAccount, 'prepKey')
-          .mockReturnValueOnce(
-            new Promise<string>(r => (soltarClave = () => r('@prep_notes'))),
-          );
+          .mockReturnValueOnce(claveRetenida);
         const pide = jest.spyOn(prepAccount, 'prepWrite');
+        const conLaRetenida = () =>
+          pide.mock.calls.filter(([k]) => k === claveRetenida).length;
         segunda = otra();
-        for (let i = 0; i < 20 && pide.mock.calls.length === 0; i++) {
+        for (let i = 0; i < 20 && conLaRetenida() === 0; i++) {
           await new Promise(r => setImmediate(r));
         }
-        otraPedidaAntes = pide.mock.calls.length;
+        otraPedidaAntes = conLaRetenida();
         clave.mockRestore();
         pide.mockRestore();
       }
@@ -331,8 +341,12 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       await respaldo;
       await segunda;
       return {
-        // CONTROL: con `pedidaAntes`, la otra esperaba su clave en
-        // `prepWrite` antes de que empezara el respaldo.
+        // CONTROL: con `pedidaAntes`, `prepWrite` recibio LA clave retenida
+        // antes de que empezara el respaldo. Con la clave de otro lado (el
+        // store con `prepKey` guardado, o una clave de mas pedida antes), la
+        // otra escribe antes del respaldo, y el respaldo la reemplaza: contando
+        // cualquier `prepWrite`, el rojo era el de un turno roto (R9-311). Mira
+        // `prepWrite` por el modulo: guardado al cargar, da 0 con el caso armado.
         otraPedidaAntes,
         // CONTROL: con `borrada`, el respaldo espero en SQLite con la clave de
         // Ana (como `durante` en R9-275); si no, el rojo de un respaldo mas
