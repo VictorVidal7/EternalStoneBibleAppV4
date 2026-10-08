@@ -211,7 +211,11 @@ it('R9-278: si algo lanza despues de escribir, el aviso de fin llega igual', asy
 // lo toma con el respaldo ya empezado, esperando en SQLite, y el `multiSet`
 // tiene que esperarlo igual. Con la espera de R9-302, `antes` solo ya no lo
 // veia: el store entraba siempre antes de empezar el respaldo (R9-303).
-it.each(['antes', 'durante'] as const)(
+// `pedido antes`: el store se pide antes de que empiece el respaldo (con la
+// clave sin resolver) y toma el turno con el respaldo ya empezado: el orden
+// de la carrera de antes de R9-302, que `antes` y `durante` no armaban
+// (R9-306).
+it.each(['antes', 'durante', 'pedido antes'] as const)(
   'R9-287: con la Mesa en su turno, avisa antes de esperarlo (store %s)',
   async caso => {
     // Una escritura de la Mesa tiene el turno: `prepMultiSet` espera, y el
@@ -221,28 +225,37 @@ it.each(['antes', 'durante'] as const)(
     let abrir!: () => void;
     const puerta = new Promise<void>(r => (abrir = r));
     let soltarSqlite = () => {};
-    if (caso === 'durante') {
+    if (caso !== 'antes') {
       mockSqlite.puerta = new Promise<void>(r => (soltarSqlite = r));
     }
+    let soltarClave = () => {};
+    const clave =
+      caso === 'pedido antes'
+        ? new Promise<string>(r => (soltarClave = () => r('@prep_notes')))
+        : Promise.resolve('@prep_notes');
     const ms = AsyncStorage.multiSet as jest.Mock;
     const antes = ms.mock.calls.length;
     let terminado = false;
     const pedirRespaldo = () =>
       importBackup(respaldoConMazo()).then(() => (terminado = true));
-    let respaldo = caso === 'durante' ? pedirRespaldo() : null;
+    let dentro = false;
+    const pedirStore = () =>
+      prepWrite(clave, () => {
+        dentro = true;
+        return puerta;
+      });
+    let store = caso === 'pedido antes' ? pedirStore() : null;
+    let respaldo = caso === 'antes' ? null : pedirRespaldo();
     for (let i = 0; i < 40 && respaldo && mockSqlite.retenida === 0; i++) {
       await new Promise(r => setImmediate(r));
     }
     const respaldoEnSqlite = mockSqlite.retenida;
+    if (store) soltarClave();
+    else store = pedirStore();
     // Se espera a que el store este DENTRO de su turno antes de pedir (o
     // soltar) el respaldo: con `prepWrite` una vuelta mas lento, el respaldo
     // tomaba el turno primero, y el rojo era el de un `multiSet` sin turno
     // (R9-302).
-    let dentro = false;
-    const store = prepWrite(Promise.resolve('@prep_notes'), () => {
-      dentro = true;
-      return puerta;
-    });
     for (let i = 0; i < 40 && !dentro; i++) {
       await new Promise(r => setImmediate(r));
     }
@@ -280,7 +293,7 @@ it.each(['antes', 'durante'] as const)(
       terminadoAntesDeAbrir,
       vistos,
     }).toEqual({
-      respaldoEnSqlite: caso === 'durante' ? 1 : 0, // CONTROL: el respaldo esperaba en SQLite
+      respaldoEnSqlite: caso === 'antes' ? 0 : 1, // CONTROL: el respaldo esperaba en SQLite
       otraConElTurno: true, // CONTROL: el store ya tenia el turno
       turnoPedidoAntesDeAbrir: 1, // CONTROL: el respaldo pidio el turno
       vistosAntesDeAbrir: ['inicio: Luke/2/1'],
