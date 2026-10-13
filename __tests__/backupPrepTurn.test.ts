@@ -322,6 +322,15 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     try {
       let segunda: Promise<void> | undefined;
       let otraPedidaAntes = 0;
+      // Con `pedidaAntes`: las claves que recibio `prepWrite` antes del
+      // respaldo (`foto`), y las que van volviendo (`resueltas`).
+      const resueltas = new Set<Promise<string>>();
+      const sinResolver = async (claves: Array<Promise<string>>) => {
+        for (const k of claves) void k.then(() => resueltas.add(k));
+        await new Promise(r => setImmediate(r));
+        return claves.filter(k => !resueltas.has(k));
+      };
+      let foto: Array<Promise<string>> = [];
       let devuelta: 'a tiempo' | 'tarde' | 'trabada' | null = null;
       if (pedidaAntes) {
         const claveRetenida = new Promise<string>(
@@ -333,25 +342,32 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
           .spyOn(prepAccount, 'prepKey')
           .mockReturnValueOnce(claveRetenida);
         const pide = jest.spyOn(prepAccount, 'prepWrite');
-        // Las claves que `prepWrite` recibio y siguen pendientes tras una
-        // vuelta: con el primer estado de auth ya dado, solo la retenida, o
-        // algo que espera por ella. Comparar la promesa daba 0 con el caso
-        // armado si el store la envolvia (`.then`, un helper `async`: R9-315).
-        // Espera hasta 40 vueltas: un store mas lento da solo `0`, sin perder
-        // nada (con la clave de otro lado, la otra se pierde tambien).
-        const resueltas = new Set<Promise<string>>();
-        const conLaRetenida = async () => {
-          for (const [k] of pide.mock.calls) {
-            void k.then(() => resueltas.add(k));
-          }
-          await new Promise(r => setImmediate(r));
-          return pide.mock.calls.filter(([k]) => !resueltas.has(k)).length;
-        };
+        // `otraPedidaAntes` cuenta las claves que `prepWrite` recibio antes del
+        // respaldo, siguieron pendientes hasta que se solto la retenida, y
+        // volvieron antes de abrir la puerta del respaldo: la otra llego al
+        // turno con su escritura retenida. Comparar la promesa daba 0 con el
+        // caso armado si el store la envolvia (`.then`, un helper `async`:
+        // R9-315). Una clave de otro lado que tardaba por su cuenta daba 1 con
+        // el caso sin armar: con 5 vueltas, leida tras una vuelta; con 100,
+        // leida solo antes de soltar (R9-318). La espera termina con la primera
+        // pendiente, hasta 40 vueltas: un store mas lento da solo `0`, sin
+        // perder nada (con la clave de otro lado, la otra se pierde tambien).
+        // Una clave que vuelve 20 vueltas o mas despues de la retenida tambien
+        // da solo `0`: la otra llega al turno con la puerta ya abierta, y el
+        // caso no se armo (contandola, la prueba pasaba con el turno roto).
+        const recibidas = () => pide.mock.calls.map(([k]) => k);
         segunda = otra();
-        for (let i = 0; i < 20 && (await conLaRetenida()) === 0; i++) {
+        for (
+          let i = 0;
+          i < 20 && (await sinResolver(recibidas())).length === 0;
+          i++
+        ) {
           await new Promise(r => setImmediate(r));
         }
-        otraPedidaAntes = await conLaRetenida();
+        // Una vuelta mas antes de la foto, como antes de la 85: sin ella, el
+        // corte de un store lento bajaba de 41 a 40 vueltas.
+        await sinResolver(recibidas());
+        foto = recibidas();
         clave.mockRestore();
         pide.mockRestore();
       }
@@ -390,21 +406,26 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       const llego = retenida;
       const pedido = turno.mock.calls.length;
       turno.mockRestore();
-      if (segunda) soltarClave();
-      else segunda = otra();
+      let alSoltar: Array<Promise<string>> = [];
+      if (segunda) {
+        alSoltar = await sinResolver(foto);
+        soltarClave();
+      } else segunda = otra();
       for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+      otraPedidaAntes = alSoltar.filter(k => resueltas.has(k)).length;
       const escribioConElRespaldoRetenido = escribio;
       abrir();
       await respaldo;
       await segunda;
       return {
-        // CONTROL: con `pedidaAntes`, `prepWrite` recibio una clave que seguia
-        // pendiente (la retenida) antes de que empezara el respaldo. Con la
-        // clave de otro lado (el store con `prepKey` guardado, o una clave de
-        // mas pedida antes), la otra escribe antes del respaldo, y el respaldo
-        // la reemplaza: contando cualquier `prepWrite`, el rojo era el de un
-        // turno roto (R9-311). Mira `prepWrite` por el modulo: guardado al
-        // cargar, da 0 con el caso armado.
+        // CONTROL: con `pedidaAntes`, `prepWrite` recibio antes de que
+        // empezara el respaldo una clave que siguio pendiente hasta que se
+        // solto la retenida, y volvio con la escritura del respaldo todavia
+        // retenida. Con la clave de otro lado (el store con `prepKey`
+        // guardado, o una clave de mas pedida antes), la otra escribe antes del
+        // respaldo, y el respaldo la reemplaza: contando cualquier `prepWrite`,
+        // el rojo era el de un turno roto (R9-311). Mira `prepWrite` por el
+        // modulo: guardado al cargar, da 0 con el caso armado.
         otraPedidaAntes,
         // CONTROL: con `borrada`, la devolucion de `releasePrepAccount` volvio
         // a tiempo, y sin soltar antes la clave de la otra.
