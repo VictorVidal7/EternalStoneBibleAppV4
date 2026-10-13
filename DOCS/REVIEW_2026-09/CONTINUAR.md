@@ -1,20 +1,22 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-12, fin de la sesión 85.** La 85 hizo el (bm) en un chat nuevo,
-> en la terminal y sin agentes. Solo pruebas. Cerró:
+> **Última actualización: 2026-10-12, fin de la sesión 86.** La 86 hizo el (bn) en un chat nuevo,
+> en la terminal y sin agentes. Solo docs. Lo de la 85 cae como dice:
 >
-> - `R9-317` (`7b4a79c`): el control `antes` de las lecturas de `R9-314` y de «las claves esperan…»
->   se lee tras una hora de relojes falsos y 1000 vueltas reales. La hora sola (la hipótesis de la 84) casi no daba vueltas: con la lectura una vuelta más lenta, no se veía la regresión;
-> - `R9-318` (`b1519ae`): `otraPedidaAntes` cuenta las claves que siguen pendientes justo antes de
->   soltar la retenida Y vuelven antes de abrir la puerta del respaldo. Contando solo las pendientes
->   (la hipótesis de la 84), una clave de otro lado 100 vueltas más lenta pasaba con
->   `genTrasMultiSetD`.
+> - `R9-317`: en la hora falsa no queda ningún temporizador pendiente ni se lee la fecha, y el
+>   `afterEach` no se ve, tampoco con la última prueba;
+> - `R9-318`: en la ventana de 60 a 90, el control da 1 en un solo caso a la vez, y donde lo da, el
+>   caso se arma.
 >
-> Ninguno nuevo. La 84 ya está mergeada y pusheada (`main` = `c7962e0`, CI verde en el log, run
-> `37842535178`, 374/4632). Las ramas de la 85 (`fix/s85-r317-r318` y `docs/review-s85-fix`) van
-> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 318 hallazgos. **Lo
-> siguiente:** la 86 revisa el diff de la 85 (mensaje (bn), en `_scratch/S86-PROMPT.md`, mejor en
-> un chat nuevo).
+> Un nuevo P3, `R9-319`: `otraPedidaAntes` lee la clave, no el turno. Con `prepWrite` 20 vueltas o
+> más entre su clave y el turno (un cambio bueno), `genTrasMultiSetD` pasa con el control en 1. El
+> verde ya estaba; la frase que lo descarta la escribió la 85. El arreglo medido es el gancho de
+> `R9-296`.
+>
+> La 85 ya está mergeada y pusheada (`main` = `7ea20ce`, CI verde en el log, run `38328665462`,
+> 374/4632). La rama de la 86 (`docs/review-s86-diff-s85`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 319 hallazgos. **Lo siguiente:** la 87 arregla
+> `R9-319` (mensaje (bo), en `_scratch/S87-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -522,11 +524,15 @@ diff de la 81 (la (bj), sesión 82, en un chat nuevo y sin agentes, con `_scratc
 Y sus arreglos (la (bk), sesión 83, en el mismo chat y sin agentes, con `_scratch/S83-PROMPT.md`).
 Y la revisión del diff de la 83 (la (bl), sesión 84, en un chat nuevo y sin agentes, con
 `_scratch/S84-PROMPT.md`). Y sus arreglos (la (bm), sesión 85, en un chat nuevo y sin agentes, con
-`_scratch/S85-PROMPT.md`). **Lo siguiente es el (bn).**
+`_scratch/S85-PROMPT.md`). Y la revisión del diff de la 85 (la (bn), sesión 86, en un chat nuevo y
+sin agentes, con `_scratch/S86-PROMPT.md`). **Lo siguiente es el (bo).**
 
-**(bn) Sesión 86: revisar el diff de la 85** (`R9-317`: `relojesFalsos`, `unaHora` y el
-`afterEach`; `R9-318`: la foto de las claves, pendientes al soltar y de vuelta antes de abrir). El
-mensaje está en `_scratch/S86-PROMPT.md`, que manda sobre este archivo.
+**(bo) Sesión 87: arreglar `R9-319`** (el control de `pedidaAntes` lee la clave, no el turno; el
+arreglo medido es el gancho de `R9-296`, como campo propio). El mensaje está en
+`_scratch/S87-PROMPT.md`, que manda sobre este archivo.
+
+**(bn) Sesión 86: revisar el diff de la 85 — ya HECHO en la sesión 86, en un chat nuevo, en la
+terminal y sin agentes.** Un nuevo P3 (`R9-319`). El mensaje está en `_scratch/S86-PROMPT.md`.
 
 **(bm) Sesión 85: arreglar lo de la 84 — ya HECHO en la sesión 85, en un chat nuevo, en la terminal
 y sin agentes.** Cerrados `R9-317` y `R9-318`; ninguno nuevo. El mensaje está en
@@ -2042,19 +2048,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 85 (2026-10-12).**
+**Medido al cerrar la sesión 86 (2026-10-12).**
 
-- **`main` = `origin/main` = `c7962e0`** (el checkpoint de la 84, solo docs; el último código en
-  `main` es `7b146a5`, la prueba de `R9-316`). **CI verificado en el log** en la 84: run
-  `37842535178`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 84 se borró tras `git cherry`.
-- **Dos ramas de la 85, sin mergear a propósito y sin pushear:** `fix/s85-r317-r318` (`7b4a79c`,
-  `b1519ae`; solo `__tests__/prepAccount.test.ts` y `__tests__/backupPrepTurn.test.ts`) y
-  `docs/review-s85-fix` encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se
-  mergearon, `main` las incluye.
+- **`main` = `origin/main` = `7ea20ce`** (el checkpoint de la 85, solo docs; el último código en
+  `main` es `b1519ae`, la prueba de `R9-318`). **CI verificado en el log** en la 85: run
+  `38328665462`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 85 se borraron tras `git cherry`.
+- **Una rama de la 86, sin mergear a propósito y sin pushear:** `docs/review-s86-diff-s85` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 85):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 86):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2633,6 +2637,12 @@ Alternativas legítimas:
   pasaba). Lo que dice «el caso se armó» es que VOLVIÓ después, con lo otro todavía retenido. Y una
   hipótesis medida en una revisión se vuelve a medir, al integrarla, contra algo lento por su cuenta:
   las dos de la 84 tenían un hueco.
+- **«Volvió la clave» no es «llegó al turno» (sesión 86, `R9-319`).** La 85 leyó su control en el
+  momento justo, pero sobre la clave, un paso antes de lo que afirma. Con `prepWrite` 20 vueltas
+  entre la clave y el turno (`tardeClaveK`, un cambio bueno), el control da 1 con el caso sin armar,
+  y `genTrasMultiSetD` pasa. Que el control lea el último paso antes de lo que afirma (aquí, que la
+  otra espera el turno: el gancho de `R9-296`). Y cuando un control tiene una ventana, medila caso
+  por caso, imprimiendo los controles (`muestra`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

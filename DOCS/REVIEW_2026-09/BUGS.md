@@ -1208,8 +1208,9 @@
 > **No queda ningún P0 abierto.** Hallazgos: **318**. Detalle: `detail/S84-revision-del-diff-s83.md`.
 >
 > **Sesión 85 (2026-10-12): arreglos de lo de la 84**, en un chat nuevo, en la terminal y sin
-> agentes. Solo pruebas. Ramas `fix/s85-r317-r318` y `docs/review-s85-fix`, sin mergear hasta el OK
-> de Victor.
+> agentes. Solo pruebas. Ramas `fix/s85-r317-r318` y `docs/review-s85-fix`: mergeadas y pusheadas
+> con el OK de Victor (`main` = `7ea20ce`, CI verde en el log, run `38328665462`, 374/4632;
+> corregido en la 86).
 >
 > - **Cerrados:** `R9-317` (`7b4a79c`: el control `antes` se lee tras una hora de relojes falsos y
 >   1000 vueltas reales; la hora sola casi no daba vueltas, y con la lectura una vuelta más lenta no
@@ -1220,6 +1221,21 @@
 > - **Ninguno nuevo.**
 >
 > **No queda ningún P0 abierto.** Hallazgos: **318**. Detalle: `detail/S85-arreglos-r317-r318.md`.
+>
+> **Sesión 86 (2026-10-12): revisión del diff de la 85**, en un chat nuevo, en la terminal y sin
+> agentes. Solo docs. Rama `docs/review-s86-diff-s85`, sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 85 cae como dice:** `R9-317` (`clavePlazo250`, el revert, los otros rojos, el corte
+>   995/1005; en la hora no queda ningún temporizador falso ni se lee la fecha; el `afterEach` no se
+>   ve, tampoco con la última prueba) y `R9-318` (las piezas, el revert, los cortes). En la ventana
+>   de 60 a 90, el control da 1 en un solo caso a la vez, y donde lo da, el caso se arma. El diff es
+>   solo pruebas.
+> - **Nuevo (1), P3 de pruebas:** `R9-319` (`otraPedidaAntes` lee la clave, no el turno: con
+>   `prepWrite` 20 vueltas o más entre su clave y el turno, `genTrasMultiSetD` pasa con el control en
+>   1; el verde ya estaba, y la frase que lo descarta la escribió la 85). El arreglo medido es el
+>   gancho de `R9-296`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **319**. Detalle: `detail/S86-revision-del-diff-s85.md`.
 
 ---
 
@@ -7106,6 +7122,9 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
     `sueltaAntes5TardeDentro25G` y `turnoSoloGoneTardeDentro25G` caen en «la otra no espera el turno:
     0»; `tarde25G`, también (más `R9-273` y `R9-287`). El gancho no cubre un «se rinde» por tiempo
     (`seRinde60`: la otra está esperando cuando se mira).
+  - **Sesión 86: también en los casos `pedidaAntes`** (que llegaron después, en la 79 y la 81). Con
+    `prepWrite` 20 vueltas o más entre su clave y el turno, `genTrasMultiSetD` pasa, con el control
+    de la 85 en 1: `R9-319`. El gancho, medido como pieza `enEspera`, lo convierte en un rojo.
 
 - **`R9-297` (S73, pruebas / respaldo / Mesa — P3) — 🐛 en la prueba de `R9-273`, `retenida` se lee
   al final, después de abrir: con la otra escritura más lenta y el código bueno, cae con el síntoma
@@ -7843,6 +7862,13 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       el comentario lo dice. Arreglado en la misma rama, antes de cerrar.
     - El `afterEach` no se ve hoy: con una prueba que cae con los relojes falsos puestos
       (`caeConFalsos`), las siguientes pasan con y sin él.
+  - **Sesión 86: cae como dice** (`_scratch/S86-sonda.cjs.txt`, `prep`): `clavePlazo250` (en el
+    suite, 1001/1004), el revert, `claveSinEsperar`, `claveAntesDeUnion`, `claveAntesDeFinish` y el
+    corte de `lecturaLentaK` (995 se ve, 1005 no). Al final de la hora no queda ningún temporizador
+    falso pendiente, y nadie leyó `Date.now` (pieza `cuentaRelojes`; sus controles dan 1 y 1). Un
+    plazo de más de una hora queda pendiente y se descarta: es el corte de «una hora». Con la ÚLTIMA
+    prueba de relojes falsos cayendo con ellos puestos (`caeConFalsosUltima`), cae solo esa, con y
+    sin el `afterEach`. No encontré un cambio bueno que las tumbe, aparte del plazo a propósito.
 
 - **`R9-318` (S84, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, `otraPedidaAntes`
   cuenta también una clave que sigue pendiente por su cuenta: si el store toma `prepKey` de otro
@@ -7895,6 +7921,61 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       vuelve 20 vueltas o más después de la retenida (`claveLenta20`, un cambio bueno) da solo `0`,
       sin pérdida; 19 pasa. Con la prueba de la 84, `claveLenta1000` pasaba también con
       `genTrasMultiSetD`: la otra llegaba con la puerta abierta y nadie lo decía.
+  - **Sesión 86: cae como dice** (`_scratch/S86-sonda.cjs.txt`). `claveEnvuelta` pasa;
+    `claveCapturada`, `claveDosVeces`, `claveCapturadaLenta5` (sola y con `genTrasMultiSet`) y
+    `claveCapturadaLenta100` (sola, y 100 y 1000 con `genTrasMultiSetD`) dan 0; el revert pasa;
+    `genTrasMultiSet`, `genTrasMultiSetD` y `genTrasSqlite` dan `escribio: 1`. Los cortes, como
+    dice: `storeLento` 40/41, `sinVueltaFoto`, `claveLenta` 19/20.
+    - **La ventana de 60 a 90** (`muestra`, que imprime los controles de cada caso): con
+      `claveCapturadaLentaK` el control da 1 en un solo caso a la vez (`pedidaAntes` de 45 a 60,
+      `devolucionPedidaAntes` de 70 a 85), así que la prueba nunca pasa con la pieza sola. Donde
+      `devolucionPedidaAntes` da 1, `genTrasMultiSetD` sale en `escribio: 1`: el caso se arma de
+      verdad. Lo que el store hace tras su clave son microtareas, y Node las vacía entre dos
+      `setImmediate`.
+    - **`'trabada'` con `otraPedidaAntes: 0` no engaña:** `devuelta: 'trabada'` va antes en el diff,
+      con `retenida: 0`, y en `prep` cae también `R9-310` (`aTiempo: false`).
+    - **Pero el control lee la clave, no el turno:** con `prepWrite` 20 vueltas o más entre su clave
+      y el turno, da 1 con el caso sin armar, y `genTrasMultiSetD` pasa: `R9-319`.
+
+- **`R9-319` (S86, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, `otraPedidaAntes` dice
+  que la clave de la otra volvió con la escritura del respaldo retenida, no que la otra llegó al
+  turno: si `prepWrite` da 20 vueltas o más entre su clave y el turno (un cambio bueno), el control
+  da 1 con el caso sin armar, y con `genTrasMultiSetD` la prueba pasa.** MEDIDO en la 86
+  (`_scratch/S86-sonda.cjs.txt`). El verde no lo abrió la 85: pasa igual con la prueba de
+  `7b146a5` (la de la 84) y con la de `dcc7bfa` (la del quinto caso, `R9-313`). La frase, sí: la 85
+  escribió que el control dice «la otra llegó al turno con su escritura retenida».
+  - Pieza `tardeClaveK` (un cambio bueno): `prepWrite` da K vueltas entre `await key` y
+    `oneAtATime`. Sola, `R9-292` pasa con K = 19, 20, 21 y 25. En `prep` cae solo `R9-273`
+    (`antesDeAbrir: true`), ya con K = 1: es `R9-297`.
+  - Con `genTrasMultiSetD` y K = 25, `R9-292` pasa. Los controles (pieza `muestra`) dan
+    `otraPedidaAntes: 1` en `pedidaAntes` y en `devolucionPedidaAntes`, y `escribio: 0`. En `prep` y
+    en el suite (1001/1004), el rojo es el mismo que con `tardeClave25` sola: la regresión no suma
+    nada.
+  - El corte: con `genTrasMultiSetD`, K = 19 se ve (`escribioConElRespaldoRetenido: 1`) y K = 20
+    pasa. Con `genTrasMultiSet` (sin el desvío de `R9-275`), de 20 en adelante se ve solo por `ana`
+    (lo escribe bajo el uid borrado); con `genTrasSqlite` y K = 25, igual.
+  - El mecanismo: la clave vuelve al soltarla, y la otra pide el turno 25 vueltas después, con la
+    puerta ya abierta. La escritura del respaldo ya terminó, y la otra lee lo restaurado, con turno o
+    sin él. Es `R9-296` (la otra escritura «tarda en empezar») en los casos `pedidaAntes`, que
+    llegaron después (79 y 81). Y es la regla de la 72: un control de llegada tiene que nombrar QUÉ
+    llegó.
+  - P3: verde falso ante una regresión construida, con un cambio bueno que ya tumba `R9-273`
+    (`R9-297`). El código de hoy está bien.
+  - **Arreglo (hipótesis, medida como pieza `enEspera`): el gancho de `R9-296`**, el export solo
+    para pruebas que Victor aprobó el 2026-10-07. `prepAccount` cuenta los pedidos que esperan el
+    turno, y en los dos casos `pedidaAntes` el control pide que la otra esté esperando al leerlo (20
+    vueltas tras soltar, antes de abrir). Medido plegado en `otraPedidaAntes` (`-t R9-292`):
+    - sola, 23/23 (`prep`). Con `claveEnvuelta` y con `tardeClave19`, pasa (el gancho da 1);
+    - con `tardeClave25`, sola o con `genTrasMultiSetD`, `otraPedidaAntes: 0` en los dos casos. El
+      verde falso pasa a un rojo que dice «el caso no se armó», como el de un store lento;
+    - no cambian los cortes (`storeLento` 40/41, `claveLenta` 19/20). `claveCapturada` y
+      `claveCapturadaLenta100+genTrasMultiSetD` siguen en 0; `turnoAntesDeClave`, `'trabada'`;
+    - con `genTrasSqlite`, el gancho da 0 (la otra no pide el turno). Plegado, el rojo suma
+      `otraPedidaAntes: 0` al `escribio: 1` y se lee como «no se armó». Mejor como campo propio
+      (`otraEnEspera`), como proponía `R9-296`: `otraPedidaAntes` sigue en 1 con la regresión (lo
+      dice `muestra`), con `otraEnEspera: 0` al lado. Sin correr como campo propio.
+  - El mismo gancho cierra `R9-296` en el caso `durante` (lo midió su prototipo en la 73 y la 74). Y
+    el comentario de `otraPedidaAntes` tiene que decir «volvió la clave», no «llegó al turno».
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
