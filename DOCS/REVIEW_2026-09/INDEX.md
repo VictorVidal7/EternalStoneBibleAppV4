@@ -1059,8 +1059,19 @@
 > `R9-331` (código: una edición detrás de la adopción queda partida; un segundo estado de auth
 > suelta las claves antes de la devolución). `R9-323` se amplía (seis regresiones; prueba escrita).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **331**. Rama `docs/review-s94-diff-s93`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S94-revision-del-diff-s93.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **331**. Rama `docs/review-s94-diff-s93`: mergeada y
+> pusheada con el OK de Victor (`main` = `cdb1d94`, CI verde en el log, run `38440174970`, 374/4632;
+> corregido en la 95). Detalle: `detail/S94-revision-del-diff-s93.md`.
+>
+> **Sesión 95 (2026-10-13): arreglo de lo de la 94**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron, sobre los arreglos ya commiteados. Cerró 10: las pruebas
+> que faltaban (`R9-323`, `R9-325`..`R9-329`, `R9-298`), los comentarios (`R9-324`, y `R9-332`, una
+> sexta frase vieja que la 94 no vio) y `R9-331` (código). Los agentes vieron tres defectos en los
+> arreglos, corregidos antes del OK. Un nuevo P3, `R9-333` (un rojo engañoso en la prueba de
+> `R9-274`). `R9-330`, sin arreglar: hay un diseño medido, parcial, a decidir.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **333**. Ramas `fix/s95-arreglos-s94` y
+> `docs/review-s95-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S95-arreglo-de-s94.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2045,6 +2056,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 95 — 2026-10-13. Arreglo de lo de la 94.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S95-PROMPT.md`.
+  - **Cómo se trabajó:** los arreglos, commiteados primero (`3084a4c` las pruebas, `3b47ff8` los
+    comentarios, `77418b4` `R9-331`); sobre ellos, A1 midió las pruebas nuevas, A2 los comentarios y
+    `R9-331`, y A3 `R9-330` y la matriz entera. Lo que vieron, corregido en `f02c798`. Todo
+    re-medido en el árbol principal con `_scratch/S95-sonda.cjs.txt` (de `S95-gen.cjs.txt`;
+    `S95-lote1..10.out.txt`).
+  - **Resultado:** cerrados 10 (`R9-298`, `R9-323`..`R9-329`, `R9-331`, `R9-332`); nuevo `R9-333`
+    (P3); `R9-330`, a decidir. No queda ningún P0 abierto.
+  - **Detalle: `detail/S95-arreglo-de-s94.md`.**
+  - **Las lecciones:** un arreglo que cambia CUÁNDO se toma un valor re-mide las frases que dicen
+    cuándo; la prueba de un arreglo que espera un trabajo se arma para cada parte de ese trabajo; un
+    control por clave no ve las colas que hay delante del turno.
 
 - **Sesión 94 — 2026-10-13. Revisión del diff de la 93.** En un chat nuevo, en la terminal, con 10
   agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S94-PROMPT.md`. Solo docs.

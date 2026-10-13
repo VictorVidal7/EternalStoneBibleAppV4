@@ -1,16 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-13, fin de la sesión 94.** La 94 hizo el (bv) en un chat nuevo,
-> en la terminal, con 10 agentes en worktree que solo midieron (los pidió Victor; los diez
-> completaron). Lo de la 93 se sostiene como código (solo comentarios, y el comentario de `prepKey`
-> dice lo que hace el código), pero buena parte de su sentido no lo vigila ninguna prueba, y la
-> frase que corrigió sigue en la cabecera y en los cuatro stores. 8 nuevos, todos P3, ninguno
-> abierto por la 93: `R9-324`..`R9-331` (uno de comentario, cinco de pruebas, dos de código).
+> **Última actualización: 2026-10-13, fin de la sesión 95.** La 95 hizo el (bw) en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor) sobre los arreglos
+> ya commiteados. Cerró 10: las pruebas que faltaban (`R9-323`, `R9-325`..`R9-329`, `R9-298`), los
+> comentarios (`R9-324` y `R9-332`) y `R9-331` (código). Los agentes vieron tres defectos en los
+> arreglos, corregidos antes del OK (`f02c798`). Nuevo `R9-333` (P3, pruebas). `R9-330`, sin
+> arreglar: hay un diseño medido y parcial, a decidir por Victor.
 >
-> La 93 ya está mergeada y pusheada (`main` = `2ebad5f`, CI verde en el log, run `38434416369`,
-> 374/4632). La rama de la 94 (`docs/review-s94-diff-s93`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 331 hallazgos. **Lo siguiente:** la 95 arregla lo
-> de la 94 (mensaje (bw), en `_scratch/S95-PROMPT.md`).
+> La 94 ya está mergeada y pusheada (`main` = `cdb1d94`, CI verde en el log, run `38440174970`,
+> 374/4632). Las ramas de la 95 (`fix/s95-arreglos-s94` y `docs/review-s95-fix`) van **sin mergear
+> hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 333 hallazgos. **Lo siguiente:** la
+> 96 revisa el diff de la 95 (mensaje (bx), en `_scratch/S96-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -528,12 +528,17 @@ sesión 91, en el mismo chat y sin agentes, con `_scratch/S91-PROMPT.md`). Y la 
 (la (bt), sesión 92, en un chat nuevo con 3 agentes que solo midieron, con
 `_scratch/S92-PROMPT.md`). Y su arreglo (la (bu), sesión 93, en un chat nuevo con 3 agentes que
 solo midieron, con `_scratch/S93-PROMPT.md`). Y la revisión de su diff (la (bv), sesión 94, en un
-chat nuevo con 10 agentes que solo midieron, con `_scratch/S94-PROMPT.md`). **Lo siguiente es el
-(bw).**
+chat nuevo con 10 agentes que solo midieron, con `_scratch/S94-PROMPT.md`). Y su arreglo (la (bw),
+sesión 95, en un chat nuevo con 3 agentes que solo midieron, con `_scratch/S95-PROMPT.md`). **Lo
+siguiente es el (bx).**
 
-**(bw) Sesión 95: arreglar lo de la 94** (`R9-324`, un comentario; `R9-323` y `R9-325`..`R9-329`,
-pruebas que faltan, todas ya escritas como casos en `_scratch/S94-sonda.cjs.txt`; `R9-330` y
-`R9-331`, código). El mensaje está en `_scratch/S95-PROMPT.md`, que manda sobre este archivo.
+**(bx) Sesión 96: revisar el diff de la 95** (`cdb1d94..f02c798`: las pruebas que faltaban, el
+gancho con nombre, los comentarios de `R9-324`/`R9-332` y el código de `R9-331`). El mensaje está
+en `_scratch/S96-PROMPT.md`, que manda sobre este archivo.
+
+**(bw) Sesión 95: arreglar lo de la 94 — ya HECHO en la sesión 95, en un chat nuevo, en la
+terminal, con 3 agentes en worktree que solo midieron.** Cerrados 10; nuevo `R9-333`; `R9-330`, a
+decidir. El mensaje está en `_scratch/S95-PROMPT.md`.
 
 **(bv) Sesión 94: revisar el diff de la 93 — ya HECHO en la sesión 94, en un chat nuevo, en la
 terminal, con 10 agentes en worktree que solo midieron.** Lo de la 93 se sostiene como código; 8
@@ -2079,18 +2084,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 94 (2026-10-13).**
+**Medido al cerrar la sesión 95 (2026-10-13).**
 
-- **La 93, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `2ebad5f` (el
-  último código es `8dd8c92`, solo comentarios). CI verificado en el log: run `38434416369`, 3
-  jobs, Node v24.21.0, 374/4632. Sus ramas se borraron tras `git cherry`.
-- **Una rama de la 94, sin mergear a propósito y sin pushear:** `docs/review-s94-diff-s93` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno (los de los 10 agentes de la 94 se quitaron tras comparar su
+- **La 94, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `cdb1d94` (solo
+  docs; el último código era `8dd8c92`). CI verificado en el log: run `38440174970`, 3 jobs, Node
+  v24.21.0, 374/4632. Su rama se borró tras `git cherry`.
+- **Dos ramas de la 95, sin mergear a propósito y sin pushear:** `fix/s95-arreglos-s94` (`3084a4c`,
+  `3b47ff8`, `77418b4`, `f02c798`) y `docs/review-s95-fix` encima (solo docs). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 95 se quitaron tras comparar su
   `_scratch` con la copia).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 94):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 95):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2735,6 +2741,20 @@ Alternativas legítimas:
   benigna a `devolucionGiveBack` porque su rojo en `devuelta` (una sonda hecha para otra pieza) era
   falso. Con un store en la cola entre la escritura del respaldo y su devolución
   (`tiendaTrasRespaldo`), pierde la sección restaurada. Lo benigno era el rojo, no la pieza.
+- **Un arreglo que cambia CUÁNDO se toma un valor re-mide las frases que dicen cuándo (sesión 95,
+  `R9-331`).** Con el trabajo del primer estado esperado por todos, lo pedido antes toma la cuenta
+  de un estado posterior. La frase de `prepKey` («else at the first auth state»), cierta antes,
+  pasó a admitir «la cuenta del primer estado» (`claveDelPrimerEstado`), que pasa las 1015 y parte
+  una entrada. Lo vio el agente que buscaba romper el arreglo.
+- **La prueba de un arreglo que espera un trabajo se arma para cada parte de ese trabajo (sesión
+  95, `R9-331`).** El trabajo del primer estado es la migración Y la devolución; la prueba retenía
+  la devolución, y una regresión que esperara solo esa parte pasaba (`soloDevolucion`).
+- **Un control por clave no ve las colas que hay delante del turno (sesión 95, `R9-327`).** La
+  edición iba por el store, cuya cola la ponía detrás de otra escritura de notas: el gancho contaba
+  esa, la edición pedía su turno tarde, y la prueba pasaba con la regresión (`ajenoR327`). Armá el
+  caso con el paso más corto al turno (`prepWrite` directo), y corré el ajeno contra él.
+- **En la sonda, un `-t` con `|` lo parte `cmd.exe` (sesión 95).** Jest corre con `shell: true`,
+  como el `^` de la 92: usá clases (`R9-3[23]`) o una corrida por patrón.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
