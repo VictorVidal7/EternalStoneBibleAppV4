@@ -1268,7 +1268,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **320**. Detalle: `detail/S88-revision-del-diff-s87.md`.
 >
 > **Sesión 89 (2026-10-12): arreglo de lo de la 88**, en un chat nuevo, en la terminal y sin
-> agentes. Ramas `fix/s89-r320` y `docs/review-s89-fix`, sin mergear hasta el OK de Victor.
+> agentes. Ramas `fix/s89-r320` y `docs/review-s89-fix`: mergeadas y pusheadas con el OK de Victor
+> (`main` = `cd7993c`, CI verde en el log, run `38349182452`, 374/4632; corregido en la 90).
 >
 > - **Cerrado:** `R9-320` (`538b1bc`: el gancho dice qué espera. `oneAtATime` recibe una etiqueta,
 >   `prepWrite` le pasa la clave que resolvió, y `__prepTurnWaitingForTests(clave)` cuenta los que
@@ -1279,6 +1280,24 @@
 > - **Ninguno nuevo.**
 >
 > **No queda ningún P0 abierto.** Hallazgos: **320**. Detalle: `detail/S89-arreglo-r320.md`.
+>
+> **Sesión 90 (2026-10-12): revisión del diff de la 89**, en el mismo chat que la 89 (lo pidió
+> Victor), en la terminal y sin agentes. Solo docs. Rama `docs/review-s90-diff-s89`, sin mergear
+> hasta el OK de Victor.
+>
+> - **Lo de la 89 cae como dice**, re-medido sobre `cd7993c` (la 89 midió sobre `1b608b0`, antes de
+>   un amend que solo cambió comentarios de la prueba): las piezas, el revert, el residuo de la misma
+>   clave y el orden de las microtareas. Lo que su §0 decía sin sonda, medido: sin pasar la etiqueta
+>   en las `gen…D`, el control daba 0 por la pieza; sin re-escribir `turnoAntesDeClave`, todo
+>   `prepWrite` lanzaba `ReferenceError`.
+> - **Nuevo (1), P3:** `R9-321` (el comentario del `Set` en `prepAccount.ts` dice que cada pedido
+>   lleva «what it writes», y la etiqueta es la clave que resolvió: con la cuenta devuelta, la otra
+>   pide con la de Ana y escribe en la «sin cuenta». Un gancho que siga el comentario hace caer la
+>   prueba con el código bueno).
+> - **Corregido en el detalle de la 89:** sobre qué árbol midió, y que la 88 no dio el residuo «por
+>   cerrado» (lo puso en «lo que queda»).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **321**. Detalle: `detail/S90-revision-del-diff-s89.md`.
 
 ---
 
@@ -8123,6 +8142,35 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       stores llaman a `prepWrite`, cada uno encadena los suyos (`writeQueue`), y sus claves son
       distintas. Lo dice el comentario de `otraEnEspera`. Sin número: haría falta un cambio de la app
       que pida dos escrituras de la misma clave a la vez.
+  - **Sesión 90: cae como dice**, re-medido sobre `cd7993c` (`_scratch/S90-sonda.cjs.txt`): la 89
+    midió sobre `1b608b0`, y el amend a `538b1bc` solo cambió comentarios de la prueba. Lo que el §0
+    de su detalle decía sin sonda, medido. Ninguno de los stores reinicia su `writeQueue`, y un fallo
+    no corta la cadena (`.catch`), por lectura. Pero el comentario del `Set` dice «what it writes», y
+    la etiqueta es la clave que resolvió: `R9-321`.
+
+- **`R9-321` (S90, pruebas / comentario — P3) — 🐛 el comentario del `Set` de `oneAtATime` dice que
+  cada pedido lleva «what it writes», y la etiqueta es la clave que resolvió `prepWrite`: con la
+  cuenta devuelta, la otra de `devolucionPedidaAntes` pide con `@prep_notes:ana` y escribe en
+  `@prep_notes`. Un gancho que siga el comentario hace caer la prueba de `R9-292` con el código
+  bueno.** MEDIDO en la 90 (`_scratch/S90-sonda.cjs.txt`, `-t R9-292` con `muestra`). Lo abrió la 89
+  (`538b1bc`).
+  - Con `muestra`, en `devolucionPedidaAntes` la otra espera con la etiqueta `@prep_notes:ana`
+    (`ana: 1`, `notas: 0`), y lo que escribe termina en la «sin cuenta» (`sinCuenta: [P, R, Q]`,
+    `ana: null`, lo que espera la prueba): el desvío de `R9-275` se aplica dentro del turno. En
+    `pedidaAntes` (el control, sin cuenta devuelta) las dos coinciden: etiqueta y escritura,
+    `@prep_notes`.
+  - Pieza `etiquetaDesviada` (no cambia nada de lo que hace la app): la etiqueta es la clave donde
+    escribiría si el turno llegara al pedir, con el desvío de `R9-275`. En `devolucionPedidaAntes`
+    da `notas: 1`, `ana: 0` y `otraEnEspera: 0`, y la prueba cae. En `pedidaAntes`, 1. O sea, Ana
+    ya estaba devuelta cuando la otra pidió el turno.
+  - El export (`__prepTurnWaitingForTests`) y el comentario de `otraEnEspera` dicen «the key each
+    one resolved» y «por la clave que resolvió cada uno»: coinciden con la prueba. El del `Set`, no.
+  - P3: un comentario de la app que describe el gancho de otro modo que la prueba que lo lee. El
+    código de hoy está bien.
+  - **Arreglo (hipótesis, sin medir: es un comentario):** que el del `Set` diga que cada pedido
+    lleva la clave que pidió (`prepWrite`, la que resolvió, que `R9-275` puede mandar a la «sin
+    cuenta» dentro del turno), y nada el resto. La prueba ya fija ese sentido: con `etiquetaDesviada`
+    cae.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

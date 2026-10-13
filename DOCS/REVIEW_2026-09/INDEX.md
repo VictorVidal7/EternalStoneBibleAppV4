@@ -1005,8 +1005,19 @@
 > regresión. Los cortes y el orden de las microtareas no se movieron. Queda, medido, un ajeno de la
 > misma clave, que en la app no hay. Ninguno nuevo.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **320**. Ramas `fix/s89-r320` y `docs/review-s89-fix`,
-> sin mergear hasta el OK de Victor. Detalle: `detail/S89-arreglo-r320.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **320**. Ramas `fix/s89-r320` y `docs/review-s89-fix`:
+> mergeadas y pusheadas con el OK de Victor (`main` = `cd7993c`, CI verde en el log, run
+> `38349182452`, 374/4632; corregido en la 90). Detalle: `detail/S89-arreglo-r320.md`.
+>
+> **Sesión 90 (2026-10-12): revisión del diff de la 89**, en el mismo chat que la 89, en la terminal
+> y sin agentes. Solo docs. Lo de la 89 cae como dice, re-medido sobre `cd7993c`, y lo que su detalle
+> decía sin sonda resultó cierto. Un nuevo P3, `R9-321`: el comentario del `Set` dice que cada pedido
+> lleva «what it writes», y la etiqueta es la clave que resolvió (con la cuenta devuelta, la otra
+> pide con la de Ana y escribe en la «sin cuenta»). Un gancho que siga el comentario hace caer la
+> prueba con el código bueno.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **321**. Rama `docs/review-s90-diff-s89`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S90-revision-del-diff-s89.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1991,6 +2002,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 90 — 2026-10-12. Revisión del diff de la 89.** En el mismo chat que la 89 (lo pidió
+  Victor), en la terminal y sin agentes; con `_scratch/S90-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S90-sonda.cjs.txt` (la `S89-sonda`, más `<gen>V`,
+    `turnoAntesDeClaveVieja` y `etiquetaDesviada`).
+  - **Resultado:** lo de la 89 cae como dice. Nuevo `R9-321` (P3, un comentario). No queda ningún
+    P0 abierto.
+  - **Detalle: `detail/S90-revision-del-diff-s89.md`.**
+  - **La lección:** un comentario que describe un dato es una definición: medí un cambio que la
+    siga al pie de la letra. Y una deducción sobre el orden se mide antes de decirla.
 
 - **Sesión 89 — 2026-10-12. Arreglo de lo de la 88.** En un chat nuevo, en la terminal y sin
   agentes; arrancó con `_scratch/S89-PROMPT.md`.

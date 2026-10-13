@@ -33,6 +33,12 @@ de cada una. `_scratch/S89-orden.cjs.txt` es la `S88-orden` con una cuarta versi
 R9-292`) y `S89-m2.out.txt` (`prep`), y la de orden, en `S89-orden.out.txt`. `git status` quedó
 limpio tras las 34 corridas, y nunca corrieron dos sondas a la vez.
 
+**Corrección de la 90:** todo esto se midió sobre `1b608b0`, el primer commit del arreglo. El amend
+que dio `538b1bc` solo cambió el comentario de `otraEnEspera` en la prueba (`git diff 1b608b0
+538b1bc`). La 90 re-midió lo central sobre `cd7993c`, con el mismo resultado, y midió las dos
+afirmaciones de arriba que iban sin sonda (las `gen…D` sin etiqueta y `turnoAntesDeClave` sin
+re-escribir): `detail/S90-revision-del-diff-s89.md` §1.
+
 ## 1. El arreglo (`538b1bc`)
 
 - **El gancho, en `src/features/study/prepAccount.ts`.** `oneAtATime(fn, what?)`: cada pedido
@@ -141,3 +147,6 @@ estaba en las validaciones de la 80 a la 88.
   escribió como cerrado de hecho. Armado en cada caso, con la clave de cada uno
   (`ajenoAmbasTarde5`), la regresión pasa. Un residuo se mide en cada caso que lo lee, con la pieza
   hecha para ese caso.
+  - **Corrección de la 90:** «lo escribió como cerrado de hecho» dice de más. La 88 lo puso en «lo
+    que queda», con «aunque la prueba cae igual por el otro caso». Lo que la frase sugería, que no
+    daba un verde, es lo que no se sostiene.
