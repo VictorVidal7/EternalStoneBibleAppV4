@@ -580,6 +580,110 @@ describe('R9-59 — la Mesa por cuenta', () => {
     }
   });
 
+  // R9-331 — lo mismo con la Mesa de antes: el primer
+  // estado (nulo) la mueve a su dueno anotado, y el segundo es esa cuenta (la
+  // sesion que se restaura pasando por nulo). Lo pedido antes toma la clave de
+  // la cuenta de cuando termina ese trabajo, la del segundo estado: con la del
+  // primero, leia la «sin cuenta» ya vacia, o partia la entrada.
+  it('R9-331: con la Mesa de antes, un segundo estado (la cuenta) que llega mientras el primero la mueve no suelta las claves antes, y lo pedido va a esa cuenta', async () => {
+    const P = 'John/3/16-21';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const sembrar = async () => {
+      await AsyncStorage.setItem(
+        '@prep_notes',
+        JSON.stringify({
+          [P]: {sections: {observation: 'de antes'}, updatedAt: 1},
+        }),
+      );
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+    };
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const realMs = ms.getMockImplementation()!;
+    const gi = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGi = gi.getMockImplementation()!;
+    let abrir!: () => void;
+    try {
+      // Una lectura: la union de la migracion (a la Mesa de Ana) espera en
+      // una puerta.
+      await sembrar();
+      let puerta = new Promise<void>(r => (abrir = r));
+      let unionRetenida: string[] | null = null;
+      ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+        const deAna = pairs.find(([k]) => k === '@prep_notes:ana');
+        if (deAna && unionRetenida === null) {
+          unionRetenida = Object.keys(JSON.parse(deAna[1]));
+          await puerta;
+        }
+        return realMs(pairs);
+      });
+      managePrepAccount();
+      let leido: string[] | null = null;
+      const lectura = pasajes().then(r => (leido = r));
+      let primero = setPrepAccount(null);
+      for (let i = 0; i < 1000 && unionRetenida === null; i++) await vuelta();
+      let segundo = setPrepAccount('ana');
+      for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
+      const leidoAntesDeAbrir = leido;
+      abrir();
+      await Promise.all([primero, segundo, lectura]);
+      ms.mockImplementation(realMs);
+
+      // Una escritura: la migracion espera en su primera lectura, antes de que
+      // su union pida turno.
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      await sembrar();
+      puerta = new Promise<void>(r => (abrir = r));
+      let migracionRetenida: string | null = null;
+      gi.mockImplementation(async (k: string, cb?: unknown) => {
+        if (k === '@prep_by_account' && migracionRetenida === null) {
+          migracionRetenida = k;
+          await puerta;
+        }
+        return realGi(k, cb);
+      });
+      managePrepAccount();
+      let escrita = false;
+      const edita = savePrepNote(P, 'application', 'antes del estado', 2).then(
+        () => (escrita = true),
+      );
+      primero = setPrepAccount(null);
+      for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
+        await vuelta();
+      }
+      segundo = setPrepAccount('ana');
+      for (let i = 0; i < 1000 && !escrita; i++) await vuelta();
+      const escritaAntesDeAbrir = escrita;
+      abrir();
+      await Promise.all([primero, segundo, edita]);
+      gi.mockImplementation(realGi);
+      const deAna = JSON.parse(
+        (await AsyncStorage.getItem('@prep_notes:ana')) ?? 'null',
+      );
+      expect({
+        unionRetenida, // CONTROL: la union de la migracion esperaba, con P
+        leidoAntesDeAbrir,
+        leido,
+        migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+        escritaAntesDeAbrir,
+        p: deAna?.[P]?.sections ?? null,
+        sinCuenta: await AsyncStorage.getItem('@prep_notes'),
+      }).toEqual({
+        unionRetenida: [P],
+        leidoAntesDeAbrir: null,
+        leido: [P],
+        migracionRetenida: '@prep_by_account',
+        escritaAntesDeAbrir: false,
+        p: {observation: 'de antes', application: 'antes del estado'},
+        sinCuenta: null,
+      });
+    } finally {
+      abrir?.();
+      ms.mockImplementation(realMs);
+      gi.mockImplementation(realGi);
+    }
+  });
+
   it('R9-275: una escritura de la Mesa pedida para la cuenta que se esta devolviendo va a la «sin cuenta», no bajo el uid borrado', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';

@@ -97,7 +97,9 @@ export function prepKeyFor(base: string, uid: string | null): string {
 
 /**
  * The key of `base` for the account signed in now: taken at the call once the
- * auth state is known, else at the first auth state. A write goes to the
+ * auth state is known, else once the first auth state's work is done (R9-331),
+ * with the account signed in then (a state that came meanwhile counts, not
+ * the first one). A write goes to the
  * account of that key even if it waits behind others, except R9-275: if that
  * account's Mesa was given back by the time the write's turn comes, a store's
  * write goes to the Mesa «sin cuenta» instead (`prepWrite`), and the

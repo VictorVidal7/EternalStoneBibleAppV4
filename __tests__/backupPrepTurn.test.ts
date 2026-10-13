@@ -65,6 +65,11 @@ import {
 } from '../src/features/study/prepAccount';
 import * as prepAccount from '../src/features/study/prepAccount';
 import {savePrepNote} from '../src/features/study/prepNotesStore';
+import {
+  parsePrepNotesMap,
+  serializePrepNotesMap,
+  setMapSectionNote,
+} from '../src/features/study/prepNotes';
 
 /** Un respaldo v2 sin nada mas que la Mesa (las notas de `notes`). */
 function respaldoConMesa(notes: unknown): BackupPayload {
@@ -716,11 +721,12 @@ it('R9-327: una escritura de un store que espera detras del respaldo de una cuen
   let abrir!: () => void;
   let soltar: (() => void) | null = null;
   let retenida: string[] | null = null;
+  let abierta = false;
   mockSqlite.retenida = 0;
   mockSqlite.puerta = new Promise<void>(r => (abrir = r));
   ms.mockImplementation(async (pairs: Array<[string, string]>) => {
     const deAna = pairs.find(([k]) => k === '@prep_notes:ana');
-    if (retenida === null && deAna?.[1].includes('del respaldo')) {
+    if (!abierta && retenida === null && deAna?.[1].includes('del respaldo')) {
       retenida = Object.keys(JSON.parse(deAna[1]));
       await new Promise<void>(r => (soltar = r));
     }
@@ -738,7 +744,28 @@ it('R9-327: una escritura de un store que espera detras del respaldo de una cuen
     mockSqlite.puerta = null;
     abrir();
     for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
-    const edita = savePrepNote(R, 'application', 'despues', T + 1000);
+    // Si no llego en la espera, la puerta ya no retiene: el rojo lo dice
+    // (`retenida: null`). Reteniendolo despues, nadie lo soltaba, y la prueba
+    // se colgaba hasta el plazo de jest.
+    abierta = true;
+    // La edicion de R, como la hace el store de notas, con `prepWrite`
+    // directo: en la cola del store podia quedar detras de otra escritura de
+    // notas, que `enEspera` contaba por ella, y pedir su turno cuando el del
+    // respaldo ya habia terminado (un verde falso).
+    const edita = prepAccount.prepWrite(
+      prepAccount.prepKey('@prep_notes'),
+      async k => {
+        const raw = await AsyncStorage.getItem(k);
+        const next = setMapSectionNote(
+          parsePrepNotesMap(raw),
+          R,
+          'application',
+          'despues',
+          T + 1000,
+        );
+        await AsyncStorage.setItem(k, serializePrepNotesMap(next));
+      },
+    );
     for (
       let i = 0;
       i < 1000 && __prepTurnWaitingForTests('@prep_notes:ana') === 0;
