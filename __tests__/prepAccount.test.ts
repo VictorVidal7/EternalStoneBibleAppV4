@@ -32,6 +32,31 @@ beforeEach(async () => {
   await AsyncStorage.clear();
 });
 
+// R9-317 — «la lectura esperaba al primer estado de auth» se mide dandole todo
+// el tiempo: relojes falsos desde antes de pedirla (solo los temporizadores:
+// las microtareas y `setImmediate` siguen reales), una hora adelantada, y
+// despues 1000 vueltas reales. Tras un `setTimeout(0)`, el control `antes`
+// decia solo que no habia terminado en 1 ms, y una clave que esperara ese
+// estado a lo sumo 250 ms pasaba el suite. Y la hora sola casi no da vueltas:
+// con la lectura una vuelta mas lenta, `antes` no veia esa clave, ni una que no
+// esperara. Con las 1000, se ve con la lectura 995 vueltas mas lenta, y con
+// 1005 ya no. Un plazo puesto a proposito (una salida si auth no responde)
+// haria caer estas pruebas en `antes`: habria que cambiarlas con esa decision.
+const relojesFalsos = () =>
+  jest.useFakeTimers({
+    doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate'],
+  });
+const unaHora = async () => {
+  await jest.advanceTimersByTimeAsync(60 * 60 * 1000);
+  jest.useRealTimers();
+  for (let i = 0; i < 1000; i++) await new Promise(r => setImmediate(r));
+};
+
+// Los relojes reales vuelven tambien si una prueba cae con los falsos puestos.
+afterEach(() => {
+  jest.useRealTimers();
+});
+
 describe('R9-59 — la Mesa por cuenta', () => {
   it('en un telefono compartido, la cuenta que entra no ve la Mesa de la anterior, y cerrar sesion no borra nada', async () => {
     managePrepAccount();
@@ -70,13 +95,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
   });
 
   it('las claves esperan al primer estado de auth', async () => {
+    relojesFalsos();
     managePrepAccount();
     let leido: string[] | null = null;
     const p = pasajes().then(r => (leido = r));
-    await new Promise(r => setTimeout(r, 0));
+    await unaHora();
     const antes = leido;
     await setPrepAccount('ana');
     await p;
+    // `antes`: tras una hora, la lectura sigue esperando (R9-317).
     expect({antes, despues: leido}).toEqual({antes: null, despues: []});
   });
 
@@ -209,15 +236,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
           'Ps/23/1-6': {sections: {observation: 'de Ana'}, updatedAt: 1},
         }),
       );
+      relojesFalsos();
       managePrepAccount();
       let leido: string[] | null = null;
       const lectura = pasajes().then(r => (leido = r));
-      await new Promise(r => setTimeout(r, 0));
+      await unaHora();
       const antes = leido;
       await setPrepAccount('ana');
       await lectura;
       expect({antes, leido, despues: await pasajes()}).toEqual({
-        antes: null, // CONTROL: la lectura esperaba al primer estado
+        antes: null, // CONTROL: una hora despues, sigue esperando (R9-317)
         leido: ['John/3/16-21', 'Ps/23/1-6'],
         despues: ['John/3/16-21', 'Ps/23/1-6'], // CONTROL: la union corrio
       });
@@ -426,15 +454,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
       '@prep_release_pending',
       JSON.stringify(['bob']),
     );
+    relojesFalsos();
     managePrepAccount();
     let leido: string[] | null = null;
     const lectura = pasajes().then(r => (leido = r));
-    await new Promise(r => setTimeout(r, 0));
+    await unaHora();
     const antes = leido;
     await setPrepAccount(null);
     await lectura;
     expect({antes, leido, despues: await pasajes()}).toEqual({
-      antes: null, // CONTROL: la lectura esperaba al primer estado
+      antes: null, // CONTROL: una hora despues, sigue esperando (R9-317)
       leido: ['Ps/23/1-6', 'Rom/8/28'],
       despues: ['Ps/23/1-6', 'Rom/8/28'], // CONTROL: la devolucion corrio
     });
