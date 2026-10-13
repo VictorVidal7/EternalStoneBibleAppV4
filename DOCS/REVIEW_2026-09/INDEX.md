@@ -951,8 +951,19 @@
 > pasa las 1004; no lo abrió la 83) y `R9-318` (el control por la clave pendiente cuenta una clave
 > lenta de otro lado: con `genTrasMultiSet` encima, `R9-292` pasa; lo abrió la 83).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **318**. Rama `docs/review-s84-diff-s83`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S84-revision-del-diff-s83.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **318**. Rama `docs/review-s84-diff-s83`: mergeada y
+> pusheada con el OK de Victor (`main` = `c7962e0`, CI verde en el log, run `37842535178`,
+> 374/4632; corregido en la 85). Detalle: `detail/S84-revision-del-diff-s83.md`.
+>
+> **Sesión 85 (2026-10-12): arreglos de lo de la 84**, en un chat nuevo, en la terminal y sin
+> agentes. Solo pruebas. Cerrados `R9-317` (`7b4a79c`: el control `antes`, tras una hora de relojes
+> falsos y 1000 vueltas reales) y `R9-318` (`b1519ae`: las claves pendientes justo antes de soltar
+> la retenida que vuelven antes de abrir). Las dos hipótesis de la 84 tenían un hueco ante algo
+> lento por su cuenta, y los arreglos lo cierran. Ninguno nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **318**. Ramas `fix/s85-r317-r318` y
+> `docs/review-s85-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S85-arreglos-r317-r318.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1903,6 +1914,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S84-revision-del-diff-s83.md`.**
   - **La lección:** «esperaba» se mide contra «tardó»: con relojes falsos y una hora, no con un
     `setTimeout(0)`. Y un control de «pendiente» se corre contra algo pendiente por su cuenta.
+
+- **Sesión 85 — 2026-10-12. Arreglos de lo de la 84.** En un chat nuevo, en la terminal y sin
+  agentes; arrancó con `_scratch/S85-PROMPT.md`. Solo pruebas.
+  - **Cómo se trabajó:** `_scratch/S85-sonda.cjs.txt` (la `S84-sonda`, más `lecturaLentaK`,
+    `caeConFalsos`, `sinAfterEach`, `sinVueltaFoto` y la hipótesis intermedia `resueltaAlSoltar`).
+  - **Resultado:** cerrados `R9-317` (`7b4a79c`) y `R9-318` (`b1519ae`). Ninguno nuevo. No queda
+    ningún P0 abierto.
+  - **Detalle: `detail/S85-arreglos-r317-r318.md`.**
+  - **La lección:** un reloj falso da tiempo, no vueltas (con la lectura una vuelta más lenta, la
+    hora sola no veía la regresión). «Pendiente hasta que se suelta» se lee a los dos lados del
+    momento: pendiente antes, y de vuelta después, con lo otro retenido. Y una hipótesis medida en
+    una revisión se vuelve a medir al integrarla.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.

@@ -1191,7 +1191,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **316**. Detalle: `detail/S83-arreglos-r314-r316.md`.
 >
 > **Sesión 84 (2026-10-08): revisión del diff de la 83**, en un chat nuevo, en la terminal y sin
-> agentes. Solo docs. Rama `docs/review-s84-diff-s83`, sin mergear hasta el OK de Victor.
+> agentes. Solo docs. Rama `docs/review-s84-diff-s83`: mergeada y pusheada con el OK de Victor
+> (`main` = `c7962e0`, CI verde en el log, run `37842535178`, 374/4632; corregido en la 85).
 >
 > - **Lo de la 83 cae como dice:** `R9-314` (`claveAntesDeUnion`, `claveAntesDelTurnoUnion`,
 >   `claveAntesDeFinish`, `claveAlPedir`, `claveSinEsperar`, el revert), `R9-315` (`claveEnvuelta`,
@@ -1205,6 +1206,20 @@
 >   83).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **318**. Detalle: `detail/S84-revision-del-diff-s83.md`.
+>
+> **Sesión 85 (2026-10-12): arreglos de lo de la 84**, en un chat nuevo, en la terminal y sin
+> agentes. Solo pruebas. Ramas `fix/s85-r317-r318` y `docs/review-s85-fix`, sin mergear hasta el OK
+> de Victor.
+>
+> - **Cerrados:** `R9-317` (`7b4a79c`: el control `antes` se lee tras una hora de relojes falsos y
+>   1000 vueltas reales; la hora sola casi no daba vueltas, y con la lectura una vuelta más lenta no
+>   se veía la regresión) y `R9-318` (`b1519ae`: `otraPedidaAntes` cuenta las claves que siguen
+>   pendientes justo antes de soltar la retenida y vuelven antes de abrir la puerta del respaldo;
+>   contando solo las pendientes, una clave de otro lado 100 vueltas más lenta pasaba con
+>   `genTrasMultiSetD`).
+> - **Ninguno nuevo.**
+>
+> **No queda ningún P0 abierto.** Hallazgos: **318**. Detalle: `detail/S85-arreglos-r317-r318.md`.
 
 ---
 
@@ -7814,6 +7829,20 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     `clavePlazo250`, caen las tres en `antes`. Con `claveSinEsperar`, `claveAntesDeUnion` y
     `claveAntesDeFinish`, el mismo rojo que sin ella. Un plazo puesto a propósito (una salida larga)
     también caería: la prueba cambiaría con esa decisión.
+  - **✅ ARREGLADO en la sesión 85** (`7b4a79c`, solo la prueba). En las tres pruebas, relojes falsos
+    desde antes de pedir la lectura (`relojesFalsos`), y `unaHora`: una hora adelantada, los relojes
+    reales de vuelta y 1000 vueltas. Un `afterEach` devuelve los reales también si una prueba cae. El
+    comentario dice que un plazo puesto a propósito las haría caer, y da el corte.
+    - **Medido** (`_scratch/S85-sonda.cjs.txt`, `prep`): `clavePlazo250` tumba las tres en `antes`
+      (en el suite, 1001/1004); con la prueba de `7b146a5`, 23/23. `claveSinEsperar`,
+      `claveAntesDeUnion` y `claveAntesDeFinish` dan el mismo rojo que con la prueba de antes.
+    - **La hipótesis de la 84 sola abría algo:** la hora sin las vueltas casi no cede al bucle real.
+      Con la lectura una vuelta más lenta (`lecturaLenta1`, un cambio bueno), `antes` no veía
+      `claveSinEsperar` en ninguna de las tres, ni `clavePlazo250` en dos (la prueba de antes veía
+      `claveSinEsperar+lecturaLenta5`). Con las 1000 vueltas, `lecturaLenta995` se ve y `1005` no:
+      el comentario lo dice. Arreglado en la misma rama, antes de cerrar.
+    - El `afterEach` no se ve hoy: con una prueba que cae con los relojes falsos puestos
+      (`caeConFalsos`), las siguientes pasan con y sin él.
 
 - **`R9-318` (S84, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, `otraPedidaAntes`
   cuenta también una clave que sigue pendiente por su cuenta: si el store toma `prepKey` de otro
@@ -7844,6 +7873,28 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       `'trabada'`.
     - La pieza quita la última llamada a `conLaRetenida()` (una vuelta), y el corte de `storeLentoK`
       baja de 41 a 40. Con esa llamada antes de la foto, sin medir.
+  - **✅ ARREGLADO en la sesión 85** (`b1519ae`, solo la prueba). Una foto de las claves que
+    `prepWrite` recibió antes del respaldo, tras la misma última vuelta de antes. `otraPedidaAntes`
+    cuenta las de la foto que siguen pendientes justo antes de soltar la retenida Y vuelven en las 20
+    vueltas que la prueba da antes de abrir la puerta del respaldo: la otra llegó al turno con la
+    escritura retenida. Los comentarios dicen «pendiente hasta que se soltó la retenida».
+    - **Por qué un paso más que `pendienteAlSoltar`:** con la pieza de la 84 (la primera versión de
+      la rama, con todo lo que pedía el mensaje), `claveCapturadaLenta100` pasaba `R9-292` con el
+      caso sin armar, y con `genTrasMultiSetD` encima (la regresión que conserva el desvío de
+      `R9-275`), `claveCapturadaLenta100` y `1000` pasaban. También con la prueba de la 84: no lo
+      abría la 85, solo subía el corte de 1-5 a unas 90 vueltas.
+    - **Medido** (`_scratch/S85-sonda.cjs.txt`): `claveEnvuelta` pasa; `claveCapturada`,
+      `claveDosVeces`, `claveCapturadaLenta5`, `claveCapturadaLenta5+genTrasMultiSet` y
+      `claveCapturadaLenta100` (sola, y con `genTrasMultiSetD` también 1000) dan
+      `otraPedidaAntes: 0`; el revert (`bpt3a4d11a+claveCapturadaLenta5+genTrasMultiSet`) pasa.
+      `genTrasMultiSet` y `genTrasSqlite`, el mismo diff que con la prueba de la 84;
+      `turnoAntesDeClave`, `'trabada'` (y ahora también `otraPedidaAntes: 0`: la salida ya soltó la
+      clave).
+    - **Los cortes:** `storeLento40` pasa y `41` da solo `0`, como antes; sin la última vuelta antes
+      de la foto (`sinVueltaFoto`), 40 ya cae (lo que dice el comentario). Una clave derivada que
+      vuelve 20 vueltas o más después de la retenida (`claveLenta20`, un cambio bueno) da solo `0`,
+      sin pérdida; 19 pasa. Con la prueba de la 84, `claveLenta1000` pasaba también con
+      `genTrasMultiSetD`: la otra llegaba con la puerta abierta y nadie lo decía.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
