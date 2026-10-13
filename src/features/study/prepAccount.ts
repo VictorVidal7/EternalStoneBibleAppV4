@@ -121,9 +121,10 @@ const givenBack = new Set<string>();
 /** R9-269 — the Mesa's writes and its joins, one at a time. */
 let turn: Promise<void> = Promise.resolve();
 /**
- * R9-319 — the asks still waiting for their turn, each with what it writes
- * (R9-320: `prepWrite` gives the key it resolved, the rest nothing). Only tests
- * read it.
+ * R9-319 — the asks still waiting for their turn, each with the key it asked
+ * for (R9-320: `prepWrite` gives the key it resolved, the rest nothing). R9-321
+ * — not always the key it writes: when the turn comes, R9-275 may send the
+ * write to the Mesa «sin cuenta». Only tests read it.
  */
 const waiting = new Set<{what?: string}>();
 function oneAtATime<T>(fn: () => Promise<T>, what?: string): Promise<T> {
@@ -428,11 +429,12 @@ export function __resetPrepAccountForTests(): void {
 }
 
 /**
- * R9-319 (the hook of R9-296) — how many `prepWrite`s of `key` (the key each
- * one resolved, whoever asked) wait for their turn now. A test that holds a
- * turn tells by it that a write of that key is waiting behind it, not slow to
- * ask: no number of rounds tells the two apart. R9-320 — counting every ask,
- * another write of the Mesa (another key, a join, a restore) passed for it.
+ * R9-319 (the hook of R9-296) — how many `prepWrite`s asked for `key` (the key
+ * each one resolved, whoever asked, wherever it ends up writing) wait for their
+ * turn now. A test that holds a turn tells by it that a write asked for that
+ * key is waiting behind it, not slow to ask: no number of rounds tells the two
+ * apart. R9-320 — counting every ask, another write of the Mesa (another key,
+ * a join, a restore) passed for it.
  */
 export function __prepTurnWaitingForTests(key: string): number {
   return [...waiting].filter(ask => ask.what === key).length;
