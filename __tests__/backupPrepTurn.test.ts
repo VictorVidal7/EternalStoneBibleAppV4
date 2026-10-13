@@ -56,6 +56,7 @@ import {
   type BackupPayload,
 } from '../src/services/BackupService';
 import {
+  __prepTurnWaitingForTests,
   __resetPrepAccountForTests,
   adoptNoAccountPrep,
   managePrepAccount,
@@ -322,6 +323,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     try {
       let segunda: Promise<void> | undefined;
       let otraPedidaAntes = 0;
+      let otraEnEspera: number | null = null;
       // Con `pedidaAntes`: las claves que recibio `prepWrite` antes del
       // respaldo (`foto`), y las que van volviendo (`resueltas`).
       const resueltas = new Set<Promise<string>>();
@@ -344,8 +346,9 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
         const pide = jest.spyOn(prepAccount, 'prepWrite');
         // `otraPedidaAntes` cuenta las claves que `prepWrite` recibio antes del
         // respaldo, siguieron pendientes hasta que se solto la retenida, y
-        // volvieron antes de abrir la puerta del respaldo: la otra llego al
-        // turno con su escritura retenida. Comparar la promesa daba 0 con el
+        // volvieron antes de abrir la puerta del respaldo: volvio la clave con
+        // la escritura del respaldo retenida. Que la otra llego al turno no lo
+        // dice (lo dice `otraEnEspera`). Comparar la promesa daba 0 con el
         // caso armado si el store la envolvia (`.then`, un helper `async`:
         // R9-315). Una clave de otro lado que tardaba por su cuenta daba 1 con
         // el caso sin armar: con 5 vueltas, leida tras una vuelta; con 100,
@@ -413,6 +416,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       } else segunda = otra();
       for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
       otraPedidaAntes = alSoltar.filter(k => resueltas.has(k)).length;
+      if (pedidaAntes) otraEnEspera = __prepTurnWaitingForTests();
       const escribioConElRespaldoRetenido = escribio;
       abrir();
       await respaldo;
@@ -427,6 +431,13 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
         // el rojo era el de un turno roto (R9-311). Mira `prepWrite` por el
         // modulo: guardado al cargar, da 0 con el caso armado.
         otraPedidaAntes,
+        // CONTROL: con `pedidaAntes`, leido con `otraPedidaAntes`, la otra
+        // espera el turno (`prepAccount` cuenta los pedidos que lo esperan).
+        // Que volviera su clave no lo decia: con `prepWrite` 20 vueltas o mas
+        // entre su clave y el turno, la otra lo pedia con la puerta ya
+        // abierta, y la prueba pasaba con el turno roto (R9-319). Una otra que
+        // escribe sin pedirlo da 0, junto a la escritura que corrio.
+        otraEnEspera,
         // CONTROL: con `borrada`, la devolucion de `releasePrepAccount` volvio
         // a tiempo, y sin soltar antes la clave de la otra.
         devuelta,
@@ -477,6 +488,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
   }).toEqual({
     conStore: {
       otraPedidaAntes: 0,
+      otraEnEspera: null,
       devuelta: null,
       retenidaSqlite: 0,
       retenida: 1,
@@ -488,6 +500,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     conUnion: {
       otraPedidaAntes: 0,
+      otraEnEspera: null,
       devuelta: null,
       retenidaSqlite: 0,
       retenida: 1,
@@ -499,6 +512,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     devolucion: {
       otraPedidaAntes: 0,
+      otraEnEspera: null,
       devuelta: 'a tiempo',
       retenidaSqlite: 1,
       retenida: 1,
@@ -510,6 +524,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     pedidaAntes: {
       otraPedidaAntes: 1,
+      otraEnEspera: 1,
       devuelta: null,
       retenidaSqlite: 0,
       retenida: 1,
@@ -521,6 +536,7 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
     },
     devolucionPedidaAntes: {
       otraPedidaAntes: 1,
+      otraEnEspera: 1,
       devuelta: 'a tiempo',
       retenidaSqlite: 1,
       retenida: 1,

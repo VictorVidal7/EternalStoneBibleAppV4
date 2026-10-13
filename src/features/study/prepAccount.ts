@@ -120,8 +120,15 @@ const givenBack = new Set<string>();
 
 /** R9-269 — the Mesa's writes and its joins, one at a time. */
 let turn: Promise<void> = Promise.resolve();
+/** R9-319 — the asks still waiting for their turn (only tests read it). */
+const waiting = new Set<object>();
 function oneAtATime<T>(fn: () => Promise<T>): Promise<T> {
-  const run = turn.then(fn);
+  const ask = {};
+  waiting.add(ask);
+  const run = turn.then(() => {
+    waiting.delete(ask);
+    return fn();
+  });
   turn = run.then(
     () => undefined,
     () => undefined,
@@ -411,6 +418,16 @@ export function __resetPrepAccountForTests(): void {
   markKnown = null;
   firstState = true;
   turn = Promise.resolve();
+  waiting.clear();
   noteTurn = Promise.resolve();
   givenBack.clear();
+}
+
+/**
+ * R9-319 (the hook of R9-296) — how many asks wait for their turn now. A test
+ * that holds a turn tells by it that another write is waiting behind it, not
+ * slow to ask: no number of rounds tells the two apart.
+ */
+export function __prepTurnWaitingForTests(): number {
+  return waiting.size;
 }
