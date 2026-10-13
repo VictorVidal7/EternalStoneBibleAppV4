@@ -416,7 +416,10 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
       } else segunda = otra();
       for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
       otraPedidaAntes = alSoltar.filter(k => resueltas.has(k)).length;
-      if (pedidaAntes) otraEnEspera = __prepTurnWaitingForTests();
+      if (pedidaAntes)
+        otraEnEspera = __prepTurnWaitingForTests(
+          borrada ? '@prep_notes:ana' : '@prep_notes',
+        );
       const escribioConElRespaldoRetenido = escribio;
       abrir();
       await respaldo;
@@ -431,12 +434,17 @@ it('R9-292: con la escritura del respaldo retenida, ninguna otra escritura de la
         // el rojo era el de un turno roto (R9-311). Mira `prepWrite` por el
         // modulo: guardado al cargar, da 0 con el caso armado.
         otraPedidaAntes,
-        // CONTROL: con `pedidaAntes`, leido con `otraPedidaAntes`, la otra
-        // espera el turno (`prepAccount` cuenta los pedidos que lo esperan).
-        // Que volviera su clave no lo decia: con `prepWrite` 20 vueltas o mas
+        // CONTROL: con `pedidaAntes`, leido con `otraPedidaAntes`, un
+        // `prepWrite` de la clave que se solto espera el turno (`prepAccount`
+        // cuenta los que lo esperan, por la clave que resolvio cada uno). Que
+        // volviera su clave no lo decia: con `prepWrite` 20 vueltas o mas
         // entre su clave y el turno, la otra lo pedia con la puerta ya
-        // abierta, y la prueba pasaba con el turno roto (R9-319). Una otra que
-        // escribe sin pedirlo da 0, junto a la escritura que corrio.
+        // abierta, y la prueba pasaba con el turno roto (R9-319). Contando
+        // todos los pedidos, otra escritura de la Mesa esperando ahi (de otra
+        // clave, una union, el respaldo) pasaba por la otra (R9-320). Otro
+        // `prepWrite` de la misma clave contaria igual: en la app no lo hay,
+        // cada store encadena los suyos. Una otra que escribe sin pedirlo da
+        // 0, junto a la escritura que corrio.
         otraEnEspera,
         // CONTROL: con `borrada`, la devolucion de `releasePrepAccount` volvio
         // a tiempo, y sin soltar antes la clave de la otra.
