@@ -125,10 +125,11 @@ const givenBack = new Set<string>();
 /** R9-269 — the Mesa's writes and its joins, one at a time. */
 let turn: Promise<void> = Promise.resolve();
 /**
- * R9-319 — the asks still waiting for their turn, each with the key it asked
- * for (R9-320: `prepWrite` gives the key it resolved, the rest nothing). R9-321
- * — not always the key it writes: when the turn comes, R9-275 may send the
- * write to the Mesa «sin cuenta». Only tests read it.
+ * R9-319 — the asks still waiting for their turn, each with what it is for
+ * (R9-320: `prepWrite` gives the key it resolved; R9-323: `giveBack`, the
+ * account it gives back; the rest, nothing). R9-321 — a write's key is not
+ * always the key it writes: when the turn comes, R9-275 may send the write to
+ * the Mesa «sin cuenta». Only tests read it.
  */
 const waiting = new Set<{what?: string}>();
 function oneAtATime<T>(fn: () => Promise<T>, what?: string): Promise<T> {
@@ -298,13 +299,16 @@ async function finishRelease(): Promise<void> {
   for (const uid of uids) await giveBack(uid);
 }
 
+/** R9-323 — what a give-back's ask says it is for (see `waiting`). */
+const giveBackAsk = (uid: string) => `give back ${uid}`;
+
 async function giveBack(uid: string): Promise<void> {
   try {
     await oneAtATime(async () => {
       await joinPrep(uid, null, true);
       // R9-275 — in the same turn: a write behind it already sees it.
       givenBack.add(uid);
-    });
+    }, giveBackAsk(uid));
     await noteReleases(uids => uids.filter(u => u !== uid));
   } catch (error) {
     logger.warn('Failed to give the Mesa back', {error: String(error)});
@@ -442,4 +446,13 @@ export function __resetPrepAccountForTests(): void {
  */
 export function __prepTurnWaitingForTests(key: string): number {
   return [...waiting].filter(ask => ask.what === key).length;
+}
+
+/**
+ * R9-323 — how many give-backs of `uid`'s Mesa (`releasePrepAccount`, or the
+ * next start's) wait for their turn now. Counted among the asks with nothing
+ * said, as before, the joins and the restore passed for one.
+ */
+export function __prepGiveBackWaitingForTests(uid: string): number {
+  return [...waiting].filter(ask => ask.what === giveBackAsk(uid)).length;
 }

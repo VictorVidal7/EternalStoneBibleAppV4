@@ -6,10 +6,13 @@
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  __prepGiveBackWaitingForTests,
+  __prepTurnWaitingForTests,
   __resetPrepAccountForTests,
   adoptNoAccountPrep,
   managePrepAccount,
   prepKey,
+  prepMultiSet,
   prepWrite,
   releasePrepAccount,
   setPrepAccount,
@@ -22,6 +25,15 @@ import {
   createPrepSeries,
   getAllPrepSeries,
 } from '../src/features/study/prepSeriesStore';
+import {
+  createPrepIllustration,
+  getAllPrepIllustrations,
+} from '../src/features/study/prepIllustrationsStore';
+import {
+  getAllPrepSelfReview,
+  setPrepSelfReviewQuestion,
+} from '../src/features/study/prepSelfReviewStore';
+import {PREP_SELF_REVIEW_QUESTION_IDS} from '../src/features/study/prepSelfReview';
 
 const claves = async () =>
   (await AsyncStorage.getAllKeys()).filter(k => k.startsWith('@prep')).sort();
@@ -532,6 +544,443 @@ describe('R9-59 — la Mesa por cuenta', () => {
       abierta = true;
       abrir();
       ms.mockImplementation(real);
+    }
+  });
+
+  // R9-323 — la Mesa cuenta como devuelta (`givenBack`) cuando la union de
+  // la devolucion TERMINO, en su turno. Marcada antes (al anotarla, al pedir
+  // el turno, aunque la union falle), una edicion va a la «sin cuenta» sobre
+  // una entrada que ahi no esta, con el reloj mas nuevo, y la union
+  // (`sourceGoes`: gana la mas nueva) pierde lo que la cuenta tenia de ella.
+  it('R9-323: tras una devolucion que fallo, una edicion va a la clave de la cuenta, y el arranque siguiente devuelve las dos secciones', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    const leer = async (k: string) =>
+      JSON.parse((await AsyncStorage.getItem(k)) ?? 'null');
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    // La escritura de la union en la Mesa «sin cuenta» falla.
+    const fallidas: string[][] = [];
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      const sinCuenta = pairs.find(([k]) => k === '@prep_notes');
+      if (sinCuenta) {
+        fallidas.push(Object.keys(JSON.parse(sinCuenta[1])));
+        throw new Error('disco');
+      }
+      return real(pairs);
+    });
+    try {
+      await releasePrepAccount('ana');
+    } finally {
+      ms.mockImplementation(real);
+    }
+    const trasFallar = {
+      fallidas, // CONTROL: fallo la union, con P
+      nota: await leer('@prep_release_pending'), // CONTROL: y quedo anotada
+      ana: (await leer('@prep_notes:ana'))?.[P]?.sections ?? null,
+    };
+    await savePrepNote(P, 'application', 'despues', T + 1000);
+    const trasEditar = {
+      ana: (await leer('@prep_notes:ana'))?.[P]?.sections ?? null,
+      sinCuenta: await leer('@prep_notes'),
+    };
+    // El proceso siguiente, sin sesion.
+    __resetPrepAccountForTests();
+    managePrepAccount();
+    await setPrepAccount(null);
+    expect({
+      trasFallar,
+      trasEditar,
+      final: (await getAllPrepNotes())[P]?.sections ?? null,
+      claves: await claves(),
+    }).toEqual({
+      trasFallar: {
+        fallidas: [[P]],
+        nota: ['ana'],
+        ana: {observation: 'de Ana'},
+      },
+      trasEditar: {
+        ana: {observation: 'de Ana', application: 'despues'},
+        sinCuenta: null,
+      },
+      final: {observation: 'de Ana', application: 'despues'},
+      claves: ['@prep_by_account', '@prep_notes'],
+    });
+  });
+
+  it('R9-323: una edicion en cola delante de la devolucion, cuyo turno llega despues de anotarla, va a la clave de la cuenta, y la union se la lleva entera', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    const vuelta = () => new Promise(r => setImmediate(r));
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    // Otra escritura de la Mesa (de otro store) toma el turno y espera en una
+    // puerta; detras pide el suyo la edicion de P, y despues la devolucion se
+    // anota y pide el suyo.
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    let tomada: string | null = null;
+    let donde: string | null = null;
+    let cuentaSinUnir: boolean | null = null;
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      const edicion = pairs.find(([, v]) => v.includes('en cola'));
+      if (edicion && donde === null) {
+        donde = edicion[0];
+        const deAna = await AsyncStorage.getItem('@prep_notes:ana');
+        cuentaSinUnir = deAna?.includes('de Ana') ?? false;
+      }
+      return real(pairs);
+    });
+    try {
+      const otra = prepWrite(prepKey('@prep_series'), async k => {
+        tomada = k;
+        await puerta;
+      });
+      for (let i = 0; i < 1000 && tomada === null; i++) await vuelta();
+      const enCola = savePrepNote(P, 'application', 'en cola', T + 1000);
+      for (
+        let i = 0;
+        i < 1000 && __prepTurnWaitingForTests('@prep_notes:ana') === 0;
+        i++
+      ) {
+        await vuelta();
+      }
+      const devolucion = releasePrepAccount('ana');
+      for (
+        let i = 0;
+        i < 1000 && __prepGiveBackWaitingForTests('ana') === 0;
+        i++
+      ) {
+        await vuelta();
+      }
+      const antesDeAbrir = {
+        tomada, // CONTROL: la otra tiene el turno
+        nota: await AsyncStorage.getItem('@prep_release_pending'), // CONTROL: la devolucion ya se anoto
+        devolucion: __prepGiveBackWaitingForTests('ana'), // CONTROL: y espera su turno
+        enCola: __prepTurnWaitingForTests('@prep_notes:ana'), // CONTROL: la edicion, el suyo, delante
+        donde, // CONTROL: sin escribir todavia
+      };
+      abrir();
+      await Promise.all([otra, enCola, devolucion]);
+      await setPrepAccount(null);
+      // Con la devolucion marcada al anotarla, la edicion iba a la «sin
+      // cuenta», donde P no estaba, y la union se quedaba con ella (mas
+      // nueva): se perdia `observation`.
+      expect({
+        antesDeAbrir,
+        cuentaSinUnir, // CONTROL: la edicion escribio antes de la union
+        donde,
+        p: (await getAllPrepNotes())[P]?.sections ?? null,
+        claves: await claves(),
+      }).toEqual({
+        antesDeAbrir: {
+          tomada: '@prep_series:ana',
+          nota: '["ana"]',
+          devolucion: 1,
+          enCola: 1,
+          donde: null,
+        },
+        cuentaSinUnir: true,
+        donde: '@prep_notes:ana',
+        p: {observation: 'de Ana', application: 'en cola'},
+        claves: ['@prep_by_account', '@prep_notes'],
+      });
+    } finally {
+      abrir();
+      ms.mockImplementation(real);
+    }
+  });
+
+  // R9-325 — el desvio de R9-275 en los cuatro stores: cada uno lee y escribe
+  // la clave que le da `prepWrite`, ya desviada. Solo las notas tenian prueba.
+  it('R9-325: tras la devolucion, una escritura de cada store pedida con la clave de la cuenta va a la «sin cuenta», con lo devuelto', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const R = 'Ps/23/1-6';
+    const q = PREP_SELF_REVIEW_QUESTION_IDS[0];
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    const s1 = await createPrepSeries('de Ana');
+    const i1 = await createPrepIllustration();
+    await setPrepSelfReviewQuestion(P, q, true, T);
+    await releasePrepAccount('ana');
+    // Con la sesion de Ana todavia (el estado nulo no llego): la clave pedida
+    // es la de Ana, y la devolucion ya termino.
+    const pedida = await prepKey('@prep_series');
+    await savePrepNote(R, 'observation', 'tarde', T + 1000);
+    const s2 = await createPrepSeries('tarde');
+    const i2 = await createPrepIllustration();
+    await setPrepSelfReviewQuestion(R, q, true, T + 1000);
+    const trasEscribir = await claves();
+    await setPrepAccount(null);
+    // Un store sin el desvio dejaba su entrada bajo el uid borrado; uno que
+    // leyera la clave de la cuenta y escribiera en la «sin cuenta», la
+    // reemplazaba por un mapa con la entrada nueva sola.
+    expect({
+      pedida, // CONTROL: pedida con la clave de Ana
+      trasEscribir,
+      notas: Object.keys(await getAllPrepNotes()).sort(),
+      series: Object.keys(await getAllPrepSeries()).sort(),
+      ilustraciones: Object.keys(await getAllPrepIllustrations()).sort(),
+      autoevaluacion: Object.keys(await getAllPrepSelfReview()).sort(),
+    }).toEqual({
+      pedida: '@prep_series:ana',
+      trasEscribir: [
+        '@prep_by_account',
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
+      notas: [P, R],
+      series: [s1!.id, s2!.id].sort(),
+      ilustraciones: [i1!.id, i2!.id].sort(),
+      autoevaluacion: [P, R],
+    });
+  });
+
+  // R9-326 — el desvio mira la cuenta DE LA CLAVE («that account's»), no si se
+  // devolvio alguna Mesa en el proceso.
+  it('R9-326: tras devolver la Mesa de una cuenta, otra que entra en el mismo proceso escribe en la suya', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const Q = 'Rom/8/28';
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    await releasePrepAccount('ana');
+    await setPrepAccount(null);
+    const sinCuenta = await pasajes();
+    await setPrepAccount('beto');
+    await savePrepNote(Q, 'observation', 'de Beto', T + 1000);
+    // Con «alguna devuelta», Q iba a la «sin cuenta»: Beto no veia lo que
+    // acababa de escribir, y aparecia al salir, para cualquiera.
+    expect({
+      sinCuenta,
+      deBeto: await pasajes(),
+      claves: await claves(),
+    }).toEqual({
+      sinCuenta: [P], // CONTROL: la Mesa de Ana se devolvio
+      deBeto: [Q],
+      claves: ['@prep_by_account', '@prep_notes', '@prep_notes:beto'],
+    });
+  });
+
+  // R9-328 — el respaldo escrito para una cuenta ya devuelta se anota ANTES de
+  // escribirlo, y la nota se queda si su union falla: el arranque siguiente la
+  // termina. Lo restaurado no queda bajo el uid borrado en ningun punto.
+  it('R9-328: si el proceso termina tras escribir el respaldo de una cuenta devuelta, el arranque siguiente lo devuelve', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const R = 'Ps/23/1-6';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    await releasePrepAccount('ana');
+    // La escritura del respaldo (con la clave de Ana, resuelta antes) llega al
+    // disco, y el proceso termina ahi: no vuelve nunca.
+    let escrito: string | null = null;
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      const deAna = pairs.find(([k]) => k === '@prep_notes:ana');
+      if (!deAna) return real(pairs);
+      await real(pairs);
+      escrito = deAna[1];
+      return new Promise(() => {});
+    });
+    try {
+      void prepMultiSet([
+        [
+          '@prep_notes:ana',
+          JSON.stringify({
+            [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+          }),
+        ],
+      ]);
+      for (let i = 0; i < 1000 && escrito === null; i++) {
+        await new Promise(r => setImmediate(r));
+      }
+    } finally {
+      ms.mockImplementation(real);
+    }
+    const trasMorir = await claves();
+    // El proceso siguiente, sin sesion.
+    __resetPrepAccountForTests();
+    managePrepAccount();
+    await setPrepAccount(null);
+    // Con la nota despues de escribir, no habia nota: R se quedaba bajo el uid
+    // borrado.
+    expect({
+      escrito: Object.keys(JSON.parse(escrito ?? '{}')), // CONTROL: el respaldo llego al disco
+      trasMorir,
+      sinCuenta: await pasajes(),
+      claves: await claves(),
+    }).toEqual({
+      escrito: [R],
+      trasMorir: [
+        '@prep_by_account',
+        '@prep_notes',
+        '@prep_notes:ana',
+        '@prep_release_pending',
+      ],
+      sinCuenta: [P, R],
+      claves: ['@prep_by_account', '@prep_notes'],
+    });
+  });
+
+  it('R9-328: si falla la union del respaldo de una cuenta devuelta, la nota se queda y el arranque siguiente lo devuelve', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const R = 'Ps/23/1-6';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    await releasePrepAccount('ana');
+    // La union que devuelve lo restaurado (a la Mesa «sin cuenta») falla.
+    const fallidas: string[][] = [];
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      const sinCuenta = pairs.find(([k]) => k === '@prep_notes');
+      if (!sinCuenta) return real(pairs);
+      fallidas.push(Object.keys(JSON.parse(sinCuenta[1])).sort());
+      throw new Error('disco');
+    });
+    try {
+      await prepMultiSet([
+        [
+          '@prep_notes:ana',
+          JSON.stringify({
+            [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+          }),
+        ],
+      ]);
+    } finally {
+      ms.mockImplementation(real);
+    }
+    const trasFallar = await claves();
+    // El proceso siguiente, sin sesion.
+    __resetPrepAccountForTests();
+    managePrepAccount();
+    await setPrepAccount(null);
+    // Con la nota quitada aunque la union fallara, R se quedaba bajo el uid
+    // borrado.
+    expect({
+      fallidas, // CONTROL: fallo la union, con P y R
+      trasFallar,
+      sinCuenta: await pasajes(),
+      claves: await claves(),
+    }).toEqual({
+      fallidas: [[P, R]],
+      trasFallar: [
+        '@prep_by_account',
+        '@prep_notes',
+        '@prep_notes:ana',
+        '@prep_release_pending',
+      ],
+      sinCuenta: [P, R],
+      claves: ['@prep_by_account', '@prep_notes'],
+    });
+  });
+
+  // R9-329 — si la nota de la devolucion falla, la union se intenta igual:
+  // sin nota, solo se pierde su reintento.
+  it('R9-329: si falla la nota de la devolucion, la Mesa se devuelve igual', async () => {
+    const P = 'John/3/16-21';
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana');
+    const fallidas: string[][] = [];
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      if (!pairs.some(([k]) => k === '@prep_release_pending')) {
+        return real(pairs);
+      }
+      fallidas.push(pairs.map(([k, v]) => `${k}=${v}`));
+      throw new Error('disco');
+    });
+    let lanzo = false;
+    try {
+      await releasePrepAccount('ana');
+    } catch {
+      lanzo = true;
+    } finally {
+      ms.mockImplementation(real);
+    }
+    // Con el error de la nota hacia arriba, la devolucion no corria y P se
+    // quedaba bajo el uid borrado, sin nota que la terminara.
+    expect({fallidas, lanzo, claves: await claves()}).toEqual({
+      fallidas: [['@prep_release_pending=["ana"]']], // CONTROL: fallo la nota
+      lanzo: false,
+      claves: ['@prep_by_account', '@prep_notes'],
+    });
+  });
+
+  // R9-298 — el respaldo mira las cuentas devueltas cuando le llega el turno,
+  // no al pedirlo: una devolucion pedida antes que el respaldo corre antes.
+  it('R9-298: un respaldo que pide su turno detras de la devolucion de su cuenta va con ella a la «sin cuenta»', async () => {
+    const T = Date.now() - 60 * 60 * 1000;
+    const P = 'John/3/16-21';
+    const R = 'Ps/23/1-6';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    managePrepAccount();
+    await setPrepAccount('ana');
+    await savePrepNote(P, 'observation', 'de Ana', T);
+    // Otra escritura de la Mesa toma el turno y espera en una puerta; detras,
+    // la devolucion de Ana; y detras, el respaldo, con la clave de Ana.
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    let tomada: string | null = null;
+    try {
+      const otra = prepWrite(prepKey('@prep_series'), async k => {
+        tomada = k;
+        await puerta;
+      });
+      for (let i = 0; i < 1000 && tomada === null; i++) await vuelta();
+      const devolucion = releasePrepAccount('ana');
+      for (
+        let i = 0;
+        i < 1000 && __prepGiveBackWaitingForTests('ana') === 0;
+        i++
+      ) {
+        await vuelta();
+      }
+      const enCola = __prepGiveBackWaitingForTests('ana');
+      const respaldo = prepMultiSet([
+        [
+          '@prep_notes:ana',
+          JSON.stringify({
+            [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+          }),
+        ],
+      ]);
+      abrir();
+      await Promise.all([otra, devolucion, respaldo]);
+      await setPrepAccount(null);
+      // Mirando al pedir el turno, Ana todavia no estaba devuelta: R se
+      // escribia bajo el uid borrado y no se devolvia.
+      expect({
+        tomada, // CONTROL: la otra tenia el turno
+        enCola, // CONTROL: la devolucion lo esperaba cuando el respaldo pidio el suyo
+        sinCuenta: await pasajes(),
+        claves: await claves(),
+      }).toEqual({
+        tomada: '@prep_series:ana',
+        enCola: 1,
+        sinCuenta: [P, R],
+        claves: ['@prep_by_account', '@prep_notes'],
+      });
+    } finally {
+      abrir();
     }
   });
 

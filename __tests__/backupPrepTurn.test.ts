@@ -696,3 +696,92 @@ it('R9-275: restaurado mientras se borra la cuenta, lo restaurado va con su Mesa
     },
   });
 });
+
+// R9-327 — el respaldo escrito para una cuenta ya devuelta se devuelve en SU
+// turno: una escritura de un store que espera detras lo encuentra ya en la
+// «sin cuenta». La 73 llamo benigna a la devolucion en otro turno.
+it('R9-327: una escritura de un store que espera detras del respaldo de una cuenta devuelta edita lo restaurado, ya en la «sin cuenta»', async () => {
+  const T = Date.now() - 60 * 60 * 1000;
+  const P = 'John/3/16-21';
+  const R = 'Ps/23/1-6';
+  const vuelta = () => new Promise(r => setImmediate(r));
+  const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+  const real = ms.getMockImplementation()!;
+  managePrepAccount();
+  await setPrepAccount('ana');
+  await savePrepNote(P, 'observation', 'de Ana', T);
+  // El respaldo (con R) resuelve la clave de Ana y espera en SQLite; mientras,
+  // se devuelve la Mesa de Ana. Despues, su escritura de la Mesa espera en una
+  // puerta, y con la sesion de Ana todavia se edita R: su turno va detras.
+  let abrir!: () => void;
+  let soltar: (() => void) | null = null;
+  let retenida: string[] | null = null;
+  mockSqlite.retenida = 0;
+  mockSqlite.puerta = new Promise<void>(r => (abrir = r));
+  ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+    const deAna = pairs.find(([k]) => k === '@prep_notes:ana');
+    if (retenida === null && deAna?.[1].includes('del respaldo')) {
+      retenida = Object.keys(JSON.parse(deAna[1]));
+      await new Promise<void>(r => (soltar = r));
+    }
+    return real(pairs);
+  });
+  try {
+    const respaldo = importBackup(
+      respaldoConMesa({
+        [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+      }),
+    );
+    for (let i = 0; i < 1000 && mockSqlite.retenida === 0; i++) await vuelta();
+    const sqlite = mockSqlite.retenida;
+    await releasePrepAccount('ana');
+    mockSqlite.puerta = null;
+    abrir();
+    for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
+    const edita = savePrepNote(R, 'application', 'despues', T + 1000);
+    for (
+      let i = 0;
+      i < 1000 && __prepTurnWaitingForTests('@prep_notes:ana') === 0;
+      i++
+    ) {
+      await vuelta();
+    }
+    const enEspera = __prepTurnWaitingForTests('@prep_notes:ana');
+    (soltar as (() => void) | null)?.();
+    await respaldo;
+    await edita;
+    await setPrepAccount(null);
+    // El proceso siguiente, sin sesion: termina lo que hubiera quedado anotado.
+    __resetPrepAccountForTests();
+    managePrepAccount();
+    await setPrepAccount(null);
+    const sinCuenta = JSON.parse(
+      (await AsyncStorage.getItem('@prep_notes')) ?? '{}',
+    );
+    // Devuelto en otro turno, la edicion corria entre la escritura y la
+    // devolucion: iba a la «sin cuenta», donde R no estaba, con el reloj mas
+    // nuevo, y la union se quedaba con ella. Se perdia `observation`.
+    expect({
+      sqlite, // CONTROL: el respaldo espero en SQLite al devolver la Mesa
+      retenida, // CONTROL: su escritura (con R) espero en la puerta
+      enEspera, // CONTROL: y la edicion, detras
+      pasajes: Object.keys(sinCuenta).sort(),
+      r: sinCuenta[R]?.sections ?? null,
+      claves: (await AsyncStorage.getAllKeys())
+        .filter(k => k.startsWith('@prep'))
+        .sort(),
+    }).toEqual({
+      sqlite: 1,
+      retenida: [R],
+      enEspera: 1,
+      pasajes: [P, R],
+      r: {observation: 'del respaldo', application: 'despues'},
+      claves: ['@prep_by_account', '@prep_notes'],
+    });
+  } finally {
+    mockSqlite.puerta = null;
+    abrir?.();
+    (soltar as (() => void) | null)?.();
+    ms.mockImplementation(real);
+  }
+});
