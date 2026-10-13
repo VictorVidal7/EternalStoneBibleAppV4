@@ -1223,7 +1223,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **318**. Detalle: `detail/S85-arreglos-r317-r318.md`.
 >
 > **Sesión 86 (2026-10-12): revisión del diff de la 85**, en un chat nuevo, en la terminal y sin
-> agentes. Solo docs. Rama `docs/review-s86-diff-s85`, sin mergear hasta el OK de Victor.
+> agentes. Solo docs. Rama `docs/review-s86-diff-s85`: mergeada y pusheada con el OK de Victor
+> (`main` = `028a156`, CI verde en el log, run `38333527542`, 374/4632; corregido en la 87).
 >
 > - **Lo de la 85 cae como dice:** `R9-317` (`clavePlazo250`, el revert, los otros rojos, el corte
 >   995/1005; en la hora no queda ningún temporizador falso ni se lee la fecha; el `afterEach` no se
@@ -1236,6 +1237,18 @@
 >   gancho de `R9-296`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **319**. Detalle: `detail/S86-revision-del-diff-s85.md`.
+>
+> **Sesión 87 (2026-10-12): arreglo de lo de la 86**, en un chat nuevo, en la terminal y sin
+> agentes. Ramas `fix/s87-r319` y `docs/review-s87-fix`, sin mergear hasta el OK de Victor.
+>
+> - **Cerrado:** `R9-319` (`9d3f489`: el gancho de `R9-296`, un export solo para pruebas en
+>   `prepAccount.ts` que cuenta los pedidos que esperan el turno, y en la prueba de `R9-292` un
+>   campo propio, `otraEnEspera`, leído con `otraPedidaAntes`. Con `prepWrite` 20 vueltas o más
+>   entre su clave y el turno, la prueba ya no pasa con `genTrasMultiSetD`: da `otraEnEspera: 0`).
+>   Los cortes no se movieron. El caso `durante` de `R9-296` sigue abierto.
+> - **Ninguno nuevo.**
+>
+> **No queda ningún P0 abierto.** Hallazgos: **319**. Detalle: `detail/S87-arreglo-r319.md`.
 
 ---
 
@@ -7125,6 +7138,11 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
   - **Sesión 86: también en los casos `pedidaAntes`** (que llegaron después, en la 79 y la 81). Con
     `prepWrite` 20 vueltas o más entre su clave y el turno, `genTrasMultiSetD` pasa, con el control
     de la 85 en 1: `R9-319`. El gancho, medido como pieza `enEspera`, lo convierte en un rojo.
+  - **Sesión 87: el gancho ya existe** (`9d3f489`, `__prepTurnWaitingForTests()` en
+    `src/features/study/prepAccount.ts`; un `Set` de los pedidos que esperan, que limpia
+    `__resetPrepAccountForTests()`). Lo lee solo el campo `otraEnEspera`, en los dos casos
+    `pedidaAntes` (`R9-319`, cerrado). En los otros tres casos vale `null`: **el caso `durante` sigue
+    ABIERTO**, y su arreglo es leerlo también ahí.
 
 - **`R9-297` (S73, pruebas / respaldo / Mesa — P3) — 🐛 en la prueba de `R9-273`, `retenida` se lee
   al final, después de abrir: con la otra escritura más lenta y el código bueno, cae con el síntoma
@@ -7976,6 +7994,25 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       dice `muestra`), con `otraEnEspera: 0` al lado. Sin correr como campo propio.
   - El mismo gancho cierra `R9-296` en el caso `durante` (lo midió su prototipo en la 73 y la 74). Y
     el comentario de `otraPedidaAntes` tiene que decir «volvió la clave», no «llegó al turno».
+  - **✅ ARREGLADO en la sesión 87** (`9d3f489`, prueba y gancho). El gancho de `R9-296`:
+    `oneAtATime` anota cada pedido en un `Set` al pedir el turno y lo quita al empezar, y
+    `__prepTurnWaitingForTests()` dice cuántos esperan (un export solo para pruebas, como
+    `__resetPrepAccountForTests`, que limpia el `Set`). En la prueba, un campo propio, `otraEnEspera`,
+    leído en el mismo momento que `otraPedidaAntes` en los dos casos `pedidaAntes` (`1`), y `null` en
+    los otros tres. El comentario de `otraPedidaAntes` dice «volvió la clave con la escritura del
+    respaldo retenida».
+    - **Medido** (`_scratch/S87-sonda.cjs.txt`): `tardeClave25`, sola y con `genTrasMultiSetD`, da
+      `otraEnEspera: 0` en los dos casos. El revert (`bpt028a156+genTrasMultiSetD+tardeClave25`)
+      pasa. `tardeClave19` y `claveEnvuelta` pasan. `genTrasSqlite` da el rojo de siempre
+      (`escribio: 1`), con `otraPedidaAntes: 1` y `otraEnEspera: 0` al lado.
+    - **Los cortes no se movieron:** `storeLento` 40/41 (con 41, solo `otraPedidaAntes: 0`, y
+      `otraEnEspera: 1`), `claveLenta` 19/20 (con 20, los dos en 0), `tardeClave` 19/20 (con 20, solo
+      `otraEnEspera: 0`; antes pasaba). Ninguno pierde nada.
+    - El gancho roto (`ganchoSinBorrar`, cuenta los pedidos) da 5 y 3. Sin la limpieza en el reset
+      (`sinLimpiar`) no cae nada: ninguna prueba deja un pedido esperando en una cadena vieja.
+    - Sin el control de la clave (`soloEnEspera`), no pasa ninguna de diez corridas con una clave de
+      otro lado, un store lento o una clave de más (`detail/S87` §2): no está medido que haga falta.
+      Se quedan los dos, como pedía el mensaje.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

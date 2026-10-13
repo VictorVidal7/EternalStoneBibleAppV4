@@ -1,22 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-12, fin de la sesión 86.** La 86 hizo el (bn) en un chat nuevo,
-> en la terminal y sin agentes. Solo docs. Lo de la 85 cae como dice:
+> **Última actualización: 2026-10-12, fin de la sesión 87.** La 87 hizo el (bo) en un chat nuevo,
+> en la terminal y sin agentes. Cerró `R9-319` (`9d3f489`) con el gancho de `R9-296`: un export
+> solo para pruebas en `prepAccount.ts` que cuenta los pedidos que esperan el turno. La prueba de
+> `R9-292` lo lee en un campo propio, `otraEnEspera`, en los dos casos `pedidaAntes`. Con
+> `prepWrite` 20 vueltas o más entre su clave y el turno, la prueba ya no pasa con el turno roto, y
+> los cortes no se movieron. Ninguno nuevo.
 >
-> - `R9-317`: en la hora falsa no queda ningún temporizador pendiente ni se lee la fecha, y el
->   `afterEach` no se ve, tampoco con la última prueba;
-> - `R9-318`: en la ventana de 60 a 90, el control da 1 en un solo caso a la vez, y donde lo da, el
->   caso se arma.
->
-> Un nuevo P3, `R9-319`: `otraPedidaAntes` lee la clave, no el turno. Con `prepWrite` 20 vueltas o
-> más entre su clave y el turno (un cambio bueno), `genTrasMultiSetD` pasa con el control en 1. El
-> verde ya estaba; la frase que lo descarta la escribió la 85. El arreglo medido es el gancho de
-> `R9-296`.
->
-> La 85 ya está mergeada y pusheada (`main` = `7ea20ce`, CI verde en el log, run `38328665462`,
-> 374/4632). La rama de la 86 (`docs/review-s86-diff-s85`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 319 hallazgos. **Lo siguiente:** la 87 arregla
-> `R9-319` (mensaje (bo), en `_scratch/S87-PROMPT.md`).
+> La 86 ya está mergeada y pusheada (`main` = `028a156`, CI verde en el log, run `38333527542`,
+> 374/4632). Las ramas de la 87 (`fix/s87-r319` y `docs/review-s87-fix`) van **sin mergear hasta el
+> OK de Victor**. **No queda ningún P0 abierto**, y hay 319 hallazgos. **Lo siguiente:** la 88
+> revisa el diff de la 87 (mensaje (bp), en `_scratch/S88-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -525,11 +519,15 @@ Y sus arreglos (la (bk), sesión 83, en el mismo chat y sin agentes, con `_scrat
 Y la revisión del diff de la 83 (la (bl), sesión 84, en un chat nuevo y sin agentes, con
 `_scratch/S84-PROMPT.md`). Y sus arreglos (la (bm), sesión 85, en un chat nuevo y sin agentes, con
 `_scratch/S85-PROMPT.md`). Y la revisión del diff de la 85 (la (bn), sesión 86, en un chat nuevo y
-sin agentes, con `_scratch/S86-PROMPT.md`). **Lo siguiente es el (bo).**
+sin agentes, con `_scratch/S86-PROMPT.md`). Y su arreglo (la (bo), sesión 87, en un chat nuevo y
+sin agentes, con `_scratch/S87-PROMPT.md`). **Lo siguiente es el (bp).**
 
-**(bo) Sesión 87: arreglar `R9-319`** (el control de `pedidaAntes` lee la clave, no el turno; el
-arreglo medido es el gancho de `R9-296`, como campo propio). El mensaje está en
-`_scratch/S87-PROMPT.md`, que manda sobre este archivo.
+**(bp) Sesión 88: revisar el diff de la 87** (`028a156..9d3f489`: el gancho en `prepAccount.ts` y
+`otraEnEspera` en la prueba de `R9-292`). El mensaje está en `_scratch/S88-PROMPT.md`, que manda
+sobre este archivo.
+
+**(bo) Sesión 87: arreglar `R9-319` — ya HECHO en la sesión 87, en un chat nuevo, en la terminal y
+sin agentes.** Cerrado `R9-319`; ninguno nuevo. El mensaje está en `_scratch/S87-PROMPT.md`.
 
 **(bn) Sesión 86: revisar el diff de la 85 — ya HECHO en la sesión 86, en un chat nuevo, en la
 terminal y sin agentes.** Un nuevo P3 (`R9-319`). El mensaje está en `_scratch/S86-PROMPT.md`.
@@ -2048,17 +2046,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 86 (2026-10-12).**
+**Medido al cerrar la sesión 87 (2026-10-12).**
 
-- **`main` = `origin/main` = `7ea20ce`** (el checkpoint de la 85, solo docs; el último código en
-  `main` es `b1519ae`, la prueba de `R9-318`). **CI verificado en el log** en la 85: run
-  `38328665462`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 85 se borraron tras `git cherry`.
-- **Una rama de la 86, sin mergear a propósito y sin pushear:** `docs/review-s86-diff-s85` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **`main` = `origin/main` = `028a156`** (el checkpoint de la 86, solo docs; el último código en
+  `main` es `b1519ae`, la prueba de `R9-318`). **CI verificado en el log** en la 86: run
+  `38333527542`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 86 se borró tras `git cherry`.
+- **Dos ramas de la 87, sin mergear a propósito y sin pushear:** `fix/s87-r319` (`9d3f489`, la
+  prueba y el gancho) y `docs/review-s87-fix` encima (solo docs). Se mergean en fast-forward con el
+  OK de Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 86):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 87):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2643,6 +2642,12 @@ Alternativas legítimas:
   y `genTrasMultiSetD` pasa. Que el control lea el último paso antes de lo que afirma (aquí, que la
   otra espera el turno: el gancho de `R9-296`). Y cuando un control tiene una ventana, medila caso
   por caso, imprimiendo los controles (`muestra`).
+- **Una lección también se mide antes de escribirla (sesión 87, `R9-319`).** El primer borrador del
+  detalle decía «un control del último paso no reemplaza a los anteriores; plegados, dejaban un paso
+  sin leer». Lo segundo era falso por construcción: plegado, el control es un Y de los dos pasos, y
+  solo calla cuál falló. Lo primero no lo mostró ninguna de diez corridas sin el control de la clave
+  (`soloEnEspera`). La frase que va a §5 y a la memoria es una afirmación como cualquier otra: con su
+  sonda, o sin número.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -2894,6 +2899,9 @@ Alternativas legítimas:
     `src/features/study/prepAccount.ts`** (el gancho que cuenta los pedidos que esperan el turno,
     como `__resetPrepAccountForTests`). Sin él, ninguna ventana de vueltas distingue «espera el
     turno» de «es lenta».
+  - **IMPLEMENTADO en la sesión 87** (`9d3f489`): `__prepTurnWaitingForTests()`. Lo lee la prueba
+    de `R9-292` en los dos casos `pedidaAntes` (`R9-319`); el caso `durante` de `R9-296` sigue
+    abierto.
 
 - **Las 2 preguntas que dejó abierta la sesión 3 están RESPONDIDAS** (ofrenda = premium para
   siempre; `R9-13` no está en producción). No las vuelvas a plantear.

@@ -973,8 +973,18 @@
 > vueltas o más entre las dos, `genTrasMultiSetD` pasa con el control en 1. El verde ya estaba; la
 > frase que lo descarta la escribió la 85. El arreglo medido es el gancho de `R9-296`.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **319**. Rama `docs/review-s86-diff-s85`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S86-revision-del-diff-s85.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **319**. Rama `docs/review-s86-diff-s85`: mergeada y
+> pusheada con el OK de Victor (`main` = `028a156`, CI verde en el log, run `38333527542`, 374/4632;
+> corregido en la 87). Detalle: `detail/S86-revision-del-diff-s85.md`.
+>
+> **Sesión 87 (2026-10-12): arreglo de lo de la 86**, en un chat nuevo, en la terminal y sin
+> agentes. Prueba y gancho. Cerrado `R9-319` (`9d3f489`): el gancho de `R9-296` (un export solo para
+> pruebas en `prepAccount.ts`, que cuenta los pedidos que esperan el turno) y un campo propio,
+> `otraEnEspera`, en los dos casos `pedidaAntes`. Con `prepWrite` 20 vueltas o más entre su clave y
+> el turno, la prueba ya no pasa con el turno roto, y los cortes no se movieron. Ninguno nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **319**. Ramas `fix/s87-r319` y `docs/review-s87-fix`,
+> sin mergear hasta el OK de Victor. Detalle: `detail/S87-arreglo-r319.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1949,6 +1959,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** «volvió la clave» no es «llegó al turno». El control de la 85 se lee en el
     momento justo, pero sobre un paso anterior a lo que afirma, y entre los dos cabe una demora. Que
     el control lea el último paso antes de lo que afirma.
+
+- **Sesión 87 — 2026-10-12. Arreglo de lo de la 86.** En un chat nuevo, en la terminal y sin
+  agentes; arrancó con `_scratch/S87-PROMPT.md`. Prueba y gancho (un export solo para pruebas).
+  - **Cómo se trabajó:** `_scratch/S87-sonda.cjs.txt` (la `S86-sonda`, con `muestra` sobre el campo
+    nuevo, más `ganchoSinBorrar`, `sinLimpiar` y `soloEnEspera`).
+  - **Resultado:** cerrado `R9-319` (`9d3f489`). Ninguno nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S87-arreglo-r319.md`.**
+  - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
+    leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
+    corridas.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
