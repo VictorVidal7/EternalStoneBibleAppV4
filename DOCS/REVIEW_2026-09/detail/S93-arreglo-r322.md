@@ -4,6 +4,13 @@ En un chat nuevo, en la terminal, con 3 agentes en worktree que solo midieron (V
 recordó la 37 y eligió 3), con el mensaje de `_scratch/S93-PROMPT.md`. Cierra `R9-322` con un
 comentario en `src/features/study/prepAccount.ts`.
 
+> **Corregido en la 94** (`detail/S94-revision-del-diff-s93.md`): la 93 se mergeó (`2ebad5f`). En
+> §1, «the account of that key» para lo pedido antes del primer estado no lo fija
+> `prepAccount.test.ts:97` (una lectura sin nada sembrado), sino las de `R9-310` (`:176`) y `R9-314`
+> (`:229`). En §6, una unión que falla dentro de `prepMultiSet` no la arma `muere` (que la cuelga):
+> no la arma ninguna prueba (`R9-328`). Y «a store's write … lo fijan las de `R9-275` y `R9-292`»
+> (§3) vale solo para notas (`R9-325`); el «cuándo» del respaldo es `R9-298`.
+
 - **Estado al empezar:** `main` = `origin/main` = `b54ebea` (la 92, mergeada y pusheada con el OK
   de Victor; CI verde en el log, run `38359587793`, 3 jobs, Node v24.21.0, 374/4632; rama borrada
   tras `git cherry`). Los docs decían «sin mergear» para la 92: corregido aquí. `main` no era más

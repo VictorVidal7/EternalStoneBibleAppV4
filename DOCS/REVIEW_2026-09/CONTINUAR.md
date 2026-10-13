@@ -1,17 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-13, fin de la sesión 93.** La 93 hizo el (bu) en un chat nuevo,
-> en la terminal, con 3 agentes en worktree que solo midieron (Victor pidió 6; se le recordó la 37 y
-> eligió 3). Cerró `R9-322` (`8dd8c92`, solo comentarios en `prepAccount.ts`): el de `prepKey` dice
-> la excepción de `R9-275`, distinta para un store (va a la «sin cuenta») y para el respaldo (se
-> escribe en la cuenta y se devuelve después). Un nuevo P3, `R9-323`, que no abrió la 93: que el
-> desvío espere la devolución TERMINADA no lo fija ninguna prueba, y una regresión así pierde una
-> sección.
+> **Última actualización: 2026-10-13, fin de la sesión 94.** La 94 hizo el (bv) en un chat nuevo,
+> en la terminal, con 10 agentes en worktree que solo midieron (los pidió Victor; los diez
+> completaron). Lo de la 93 se sostiene como código (solo comentarios, y el comentario de `prepKey`
+> dice lo que hace el código), pero buena parte de su sentido no lo vigila ninguna prueba, y la
+> frase que corrigió sigue en la cabecera y en los cuatro stores. 8 nuevos, todos P3, ninguno
+> abierto por la 93: `R9-324`..`R9-331` (uno de comentario, cinco de pruebas, dos de código).
 >
-> La 92 ya está mergeada y pusheada (`main` = `b54ebea`, CI verde en el log, run `38359587793`,
-> 374/4632). Las ramas de la 93 (`fix/s93-r322` y `docs/review-s93-fix`) van **sin mergear hasta el
-> OK de Victor**. **No queda ningún P0 abierto**, y hay 323 hallazgos. **Lo siguiente:** la 94
-> revisa el diff de la 93 (mensaje (bv), en `_scratch/S94-PROMPT.md`).
+> La 93 ya está mergeada y pusheada (`main` = `2ebad5f`, CI verde en el log, run `38434416369`,
+> 374/4632). La rama de la 94 (`docs/review-s94-diff-s93`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 331 hallazgos. **Lo siguiente:** la 95 arregla lo
+> de la 94 (mensaje (bw), en `_scratch/S95-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -528,10 +527,17 @@ sesión 90, en el mismo chat y sin agentes, con `_scratch/S90-PROMPT.md`). Y su 
 sesión 91, en el mismo chat y sin agentes, con `_scratch/S91-PROMPT.md`). Y la revisión de su diff
 (la (bt), sesión 92, en un chat nuevo con 3 agentes que solo midieron, con
 `_scratch/S92-PROMPT.md`). Y su arreglo (la (bu), sesión 93, en un chat nuevo con 3 agentes que
-solo midieron, con `_scratch/S93-PROMPT.md`). **Lo siguiente es el (bv).**
+solo midieron, con `_scratch/S93-PROMPT.md`). Y la revisión de su diff (la (bv), sesión 94, en un
+chat nuevo con 10 agentes que solo midieron, con `_scratch/S94-PROMPT.md`). **Lo siguiente es el
+(bw).**
 
-**(bv) Sesión 94: revisar el diff de la 93** (`b54ebea..8dd8c92`: solo el comentario de `prepKey`
-en `prepAccount.ts`). El mensaje está en `_scratch/S94-PROMPT.md`, que manda sobre este archivo.
+**(bw) Sesión 95: arreglar lo de la 94** (`R9-324`, un comentario; `R9-323` y `R9-325`..`R9-329`,
+pruebas que faltan, todas ya escritas como casos en `_scratch/S94-sonda.cjs.txt`; `R9-330` y
+`R9-331`, código). El mensaje está en `_scratch/S95-PROMPT.md`, que manda sobre este archivo.
+
+**(bv) Sesión 94: revisar el diff de la 93 — ya HECHO en la sesión 94, en un chat nuevo, en la
+terminal, con 10 agentes en worktree que solo midieron.** Lo de la 93 se sostiene como código; 8
+nuevos P3 (`R9-324`..`R9-331`). El mensaje está en `_scratch/S94-PROMPT.md`.
 
 **(bu) Sesión 93: arreglar `R9-322` — ya HECHO en la sesión 93, en un chat nuevo, en la terminal,
 con 3 agentes en worktree que solo midieron.** Cerrado `R9-322`; un nuevo P3 (`R9-323`). El mensaje
@@ -2073,19 +2079,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 93 (2026-10-13).**
+**Medido al cerrar la sesión 94 (2026-10-13).**
 
-- **`main` = `origin/main` = `b54ebea`** (el checkpoint de la 92, solo docs; el último código en
-  `main` es `3bccafd`, los comentarios de `R9-321`). **CI verificado en el log** en la 92: run
-  `38359587793`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 92 se borró tras `git cherry`.
-- **Dos ramas de la 93, sin mergear a propósito y sin pushear:** `fix/s93-r322` (`8dd8c92`, el
-  comentario) y `docs/review-s93-fix` encima (solo docs). Se mergean en fast-forward con el OK de
-  Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno (los de los 3 agentes de la 93 no se borraron solos: se quitaron a
-  mano, con sus ramas, tras comparar su `_scratch` con la copia).
+- **La 93, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `2ebad5f` (el
+  último código es `8dd8c92`, solo comentarios). CI verificado en el log: run `38434416369`, 3
+  jobs, Node v24.21.0, 374/4632. Sus ramas se borraron tras `git cherry`.
+- **Una rama de la 94, sin mergear a propósito y sin pushear:** `docs/review-s94-diff-s93` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno (los de los 10 agentes de la 94 se quitaron tras comparar su
+  `_scratch` con la copia).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 93):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 94):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2714,8 +2719,22 @@ Alternativas legítimas:
 - **Una excepción se escribe para cada camino que pasa por la frase (sesión 93, `R9-322`).** «Va a
   la sin cuenta», leído para el respaldo, es el arreglo que `R9-275` descartó, y tumba dos pruebas
   (`respaldoDesviado`). Y sacar una frase del paréntesis que la acotaba («once the auth state is
-  known») la vuelve falsa para otro camino (lo pedido antes del primer estado). Antes de escribir,
-  listá los llamadores (`grep` del nombre), y medí la frase en cada uno.
+  known») la vuelve falsa para otro camino (lo pedido antes del primer estado; medido en la 94:
+  `pedidaSinEstado` tumba la de `R9-310`). Antes de escribir, listá los llamadores (`grep` del
+  nombre), y medí la frase en cada uno.
+- **Un «por lectura» del detalle es un riesgo sin sonda, y se mide primero (sesión 94, `R9-328`,
+  `R9-329`).** Es la regla de la 88 para las afirmaciones, no solo para los riesgos. De lo que la 93
+  dejó por lectura en su detalle, cuatro afirmaciones tenían una negación que pasa las 1004 y pierde
+  datos («noted first», «keeps its note», el error que `noteRelease` se traga, la frase de los
+  stores), y dos citas de prueba no fijaban lo que decían (`:97` es una lectura sin nada sembrado;
+  `muere` cuelga la unión, no la hace fallar).
+- **Una regla que la sesión escribe se mide primero contra lo que esa sesión escribió (sesión 94,
+  `R9-325`).** La 93 escribió «medí la frase en cada llamador», y su «a store's write» se midió solo
+  con notas: hecha pieza en cada store (`sinDesvio<X>`), tres de cuatro pasan las 1004.
+- **Un «benigno» se re-mide con un caso hecho para la pieza (sesión 94, `R9-327`).** La 73 llamó
+  benigna a `devolucionGiveBack` porque su rojo en `devuelta` (una sonda hecha para otra pieza) era
+  falso. Con un store en la cola entre la escritura del respaldo y su devolución
+  (`tiendaTrasRespaldo`), pierde la sección restaurada. Lo benigno era el rojo, no la pieza.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

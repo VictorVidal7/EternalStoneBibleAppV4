@@ -1332,7 +1332,8 @@
 >
 > **Sesión 93 (2026-10-13): arreglo de lo de la 92**, en un chat nuevo, en la terminal, con 3
 > agentes en worktree que solo midieron (Victor pidió 6; se le recordó la 37 y eligió 3). Ramas
-> `fix/s93-r322` y `docs/review-s93-fix`, sin mergear hasta el OK de Victor.
+> `fix/s93-r322` y `docs/review-s93-fix`: mergeadas y pusheadas con el OK de Victor (`main` =
+> `2ebad5f`, CI verde en el log, run `38434416369`, 374/4632; corregido en la 94).
 >
 > - **Cerrado:** `R9-322` (`8dd8c92`, solo comentarios: el de `prepKey` dice la excepción de
 >   `R9-275`, distinta para un store, que va a la «sin cuenta», y para el respaldo, que se escribe en
@@ -1343,6 +1344,26 @@
 >   relacionadas, y una edición tras una devolución fallida pierde una sección).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **323**. Detalle: `detail/S93-arreglo-r322.md`.
+>
+> **Sesión 94 (2026-10-13): revisión del diff de la 93**, en un chat nuevo, en la terminal, con 10
+> agentes en worktree que solo midieron. Rama `docs/review-s94-diff-s93`, sin mergear hasta el OK de
+> Victor.
+>
+> - **Lo de la 93 se sostiene como código:** solo comentarios (el JS emitido es igual, y tres
+>   controles dan distinto), su tabla se reproduce, y el comentario dice lo que hace el código en
+>   todas las lecturas medidas. Pero el ledger decía que su sentido lo fijaban las pruebas, y dos
+>   citas del detalle no fijaban lo que decían (`:97`, `muere`): corregido con una nota.
+> - **Nuevos (8), P3, ninguno abierto por la 93:** `R9-324` (la frase vieja «of when it was asked
+>   for» sigue en la cabecera y en los cuatro stores), `R9-325` (el desvío, sin prueba en tres
+>   stores), `R9-326` («that account's», sin prueba), `R9-327` (la devolución del respaldo en otro
+>   turno pierde una sección; corrige a `R9-301`), `R9-328` (la nota del respaldo, sin prueba),
+>   `R9-329` (`noteRelease` que se traga su error, sin prueba), `R9-330` (una edición detrás de la
+>   adopción queda partida; código) y `R9-331` (un segundo estado de auth suelta las claves antes de
+>   la devolución; código).
+> - **Ampliado:** `R9-323` (seis regresiones, no dos, y su prueba ya escrita en `_scratch`);
+>   `R9-298` (el comentario de la 93 lo afirma ahora para el respaldo).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **331**. Detalle: `detail/S94-revision-del-diff-s93.md`.
 
 ---
 
@@ -7294,6 +7315,12 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     más fácil: la cabecera de `prepMultiSet` dice «Its keys are resolved before asking», y `gone` sale
     de las claves. El arreglo puede sumar a esa cabecera que `givenBack` se lee DENTRO del turno, como
     dice la de `prepWrite` («by the time the turn comes»).
+  - **Sesión 94: se sostiene, y el comentario de `prepKey` (93) ahora lo afirma también para el
+    respaldo** («by the time the write's turn comes»). Tres agentes llegaron a la misma pieza
+    (`goneAlPedir` del 3 y del 10, `respaldoAlPedir` del 5): 23/23 y 1004/1004 (re-medido). Casos
+    más cortos que `cola`, los tres en `_scratch/S94-sonda.cjs.txt`: `respaldoDuranteDevolucion` (la
+    unión de la devolución retenida), `respaldoDetrasDeDevolucion` y `goneEnCola` (un store retenido
+    delante de la devolución). Con la pieza, R bajo `@prep_notes:ana`.
 
 - **`R9-299` (S73, pruebas / respaldo / Mesa — P3) — 🐛 con el turno de `prepMultiSet` partido en
   dos y la nota en medio (`notaFuera`), lo restaurado queda bajo el uid borrado, y ninguna prueba lo
@@ -7330,6 +7357,7 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     `releasePrepAccount` (`giveBack`, `giveBackSinSourceGoes` en `_scratch/S74-sonda.cjs.txt`), cae
     la prueba de R9-59 de `prepAccount.test.ts` («…al borrar la cuenta vuelve»). Lo que nadie ve es
     solo la devolución del respaldo.
+  - **Sesión 94: se sostiene** (`devuelveSinSourceGoes`, agente 5, la misma pieza: 1004/1004).
 
 - **`R9-301` (S73, pruebas / respaldo / Mesa — P3) — 🐛 `devolucionDosTurnos` solo la ve la sonda
   `devuelta`, y `devuelta` tal cual da falsos rojos con devoluciones benignas.** MEDIDO por el agente
@@ -7350,6 +7378,9 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
   - **¿Lo abrió la 73?** No: es lo que dejó sin sumar de la hipótesis de `R9-294`. P3, poco
     plausible.
   - **Arreglo (hipótesis):** sumar `devuelta2` a la prueba de `R9-292` o a la de `R9-275`.
+  - **Sesión 94: `devolucionGiveBack` no es benigna** (`R9-327`): con un store en la cola entre la
+    escritura del respaldo y su devolución, pierde la sección restaurada. Lo benigno era el rojo de
+    `devuelta`, no la pieza.
 
 - **`R9-302` (S74, pruebas / respaldo — P3) — 🐛 la prueba de `R9-287` no tiene un control de que
   el store tenga el turno: con el store UNA vuelta más lento (el código bueno), cae con el mismo diff
@@ -8284,6 +8315,11 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
       contrario para el mismo caso (agente 2).
     - Es un comentario: no hay prueba que lo vea fallar sin él. Su sentido lo fijan las pruebas de
       `R9-275` y `R9-292`, salvo «was given back»: `R9-323`.
+    - **Sesión 94: el comentario dice lo que hace el código, pero «su sentido lo fijan las pruebas»
+      era de más.** Sin vigilar quedan el desvío en tres de los cuatro stores (`R9-325`), «that
+      account's» (`R9-326`), el «cuándo» del respaldo (`R9-298`, ya abierto) y su devolución en el
+      mismo turno (`R9-327`). Y la frase que corrigió sigue en la cabecera y en los stores
+      (`R9-324`). Detalle: `detail/S94-revision-del-diff-s93.md`.
 
 - **`R9-323` (S93, pruebas / Mesa — P3) — 🐛 que la escritura de un store se desvíe solo cuando la
   devolución TERMINÓ no lo fija ninguna prueba: con `givenBack` marcado antes de la unión, o aunque
@@ -8311,6 +8347,170 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     (la devolución falla, se edita la misma entrada y el arranque siguiente devuelve las dos
     secciones). Tiene que caer con `devueltaAunqueFalle` y con `devueltaAlAnotar`; esta última
     también con una escritura en cola delante de la devolución, cuyo turno llega después de la nota.
+  - **Sesión 94: se sostiene, y la clase es más ancha** (agente 6; re-medido con
+    `_scratch/S94-sonda.cjs.txt`). `devueltaTrasAnotar`, `devueltaAlEmpezar`, `devueltaEnCatch` y
+    `devueltaEnFinally` también pasan las 1004. Las que marcan antes del turno de la devolución
+    (`devueltaAlAnotar`, `devueltaTrasAnotar`, `devueltaAlEmpezar`) pierden datos sin ninguna falla:
+    basta una escritura en cola delante de la devolución, cuyo turno llegue después de la marca.
+    - **La prueba de la hipótesis, escrita:** `_scratch/S94-sondas-agente-6/S94-a6-prueba-r323.test.ts.txt`
+      (pieza `pruebaR323`). Caso A, la forma de `editaTrasFalla`; caso B, una escritura de
+      `@prep_series` retiene el turno, la edición de P espera detrás y la devolución anota y pide el
+      suyo. Pasa con `nada`; A cae con las seis piezas y B con las tres que marcan antes del turno;
+      `devueltaEnFinish` pasa las dos (sin daño, por lectura). Cortes: con `notaLenta50` y
+      `turnoLento50` pasa; con `turnoLento1005`, B cae solo en su control (`devolucion: 0`).
+      Detalle: `detail/S94-revision-del-diff-s93.md` §5.
+
+- **`R9-324` (S94, comentario — P3) — 🐛 la frase que la 93 corrigió en `prepKey` («of when it was
+  asked for») sigue en la cabecera de `prepAccount.ts` y en los cuatro stores, y es falsa para lo
+  pedido antes del primer estado de auth.** MEDIDO en la 94 (agentes 8 y 9, por separado; re-medido
+  con `_scratch/S94-sonda.cjs.txt`). Lo vio la 93 en su detalle (§5, «no es exacta … no chocan») y
+  lo dejó por lectura.
+  - `prepAccount.ts:44` («R9-275 — a write goes to the account of when it was asked for») y los
+    cuatro stores (`prepNotesStore.ts:68`, `prepSeriesStore.ts:60`, `prepIllustrationsStore.ts:62`,
+    `prepSelfReviewStore.ts:72`: «R9-59 — the account of when the write was asked for»). Lo pedido
+    antes del primer estado toma la cuenta de ESE estado, no la de cuando se pidió (nula).
+  - **La cabecera al pie de la letra** (`claveAlPedir`, la pieza de la 83): caen 2 de 23 con el
+    código bueno, las de `R9-310` (`recibida: "@prep_notes"`) y `R9-314`. Solo en `prepWrite`
+    (`pedidaSinEstado`, agente 8), cae la de `R9-310`.
+  - **La de los stores** (`storesAlPedir`, la frase solo en sus escrituras): cae solo la de `R9-292`
+    (1003/1004 en `suite`), y con los controles en 0 (`otraPedidaAntes`, `otraEnEspera`): su caso
+    retiene la clave con un `spyOn` de `prepKey`, que la pieza ya no llama. No se arma; nada se
+    pierde. **El daño** (`storeAntesDeAuth`, agente 9): una escritura de notas pedida antes del
+    primer estado (`ana`). Hoy, `deAna: ["John/3/16-21"]`; con la pieza, `deAna: []` y la entrada en
+    la «sin cuenta».
+  - **¿Lo abrió la 93?** No: los stores son de la 53 (`a85df96`), la cabecera de la 59 (`37ba5f7`).
+    Pero la 93 sacó la misma frase de `prepKey` por esta razón, y no la buscó en los demás lugares.
+  - P3: un comentario; el código está bien, y las pruebas de `R9-310`/`R9-314` vigilan la clave.
+  - **Arreglo (hipótesis):** las cinco frases, como la de `prepKey` («the account of the key
+    `prepKey` gives»). La medida: `claveAlPedir` sigue cayendo; para los stores, una prueba con la
+    forma de `storeAntesDeAuth` que caiga con `storesAlPedir`.
+
+- **`R9-325` (S94, pruebas / Mesa — P3) — 🐛 el desvío de `R9-275` solo lo vigila una prueba en el
+  store de notas: en series, ilustraciones y autoevaluación, un store que no lo sigue pasa las 1004
+  relacionadas.** MEDIDO en la 94 (agente 4; re-medido).
+  - Los cuatro `run` (`prepNotesStore.ts:69-80`, `prepSeriesStore.ts:61-66`,
+    `prepIllustrationsStore.ts:63-68`, `prepSelfReviewStore.ts:73-84`) leen y escriben la clave que
+    les pasa `prepWrite`, ya desviada. Las pruebas con una devolución escriben solo notas.
+  - Piezas, por store: `sinDesvio<X>` (el store lee y escribe la clave pedida) y `leeCuenta<X>` (lee
+    la pedida y escribe en la desviada). Con notas, caen 2 de 23 (`R9-275` y `R9-292`). Con series,
+    ilustraciones o autoevaluación, 23/23 y 1004/1004.
+  - **El daño** (`cuatroStores`, una prueba en `prepAccount.test.ts`): Ana escribe en los cuatro, su
+    devolución termina, y con su clave todavía (antes de `setPrepAccount(null)`, la forma de
+    `noEnCola`) escribe una entrada más en cada uno. Hoy, dos entradas por store en la «sin cuenta»
+    (control: `pedida: "@prep_series:ana"`). Con `sinDesvio<X>`, aparece `@prep_<x>:ana` y la entrada
+    nueva queda bajo el uid borrado; con `leeCuenta<X>`, la «sin cuenta» de ese store se reemplaza
+    por un mapa de una entrada.
+  - **¿Lo abrió la 93?** No (los `run` reciben la clave desde la 55, `4d0cae7`; el desvío es de la
+    59). Pero corrige su ledger: «a store's write … lo fijan las de `R9-275` y `R9-292`» vale solo
+    para notas.
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis):** una prueba con la forma de `cuatroStores`. Tiene que caer con cada
+    `sinDesvio<X>` y cada `leeCuenta<X>`.
+
+- **`R9-326` (S94, pruebas / Mesa — P3) — 🐛 que el desvío mire la cuenta DE LA CLAVE («that
+  account's») no lo fija ninguna prueba: con «basta que se haya devuelto alguna Mesa», pasan las 1004.** MEDIDO en la 94 (agente 3; re-medido).
+  - Pieza `cualquierDevuelta` (`givenBack.size > 0` en vez de `givenBack.has(uid)`): 23/23 y
+    1004/1004. Ninguna prueba escribe con otra cuenta después de una devolución en el mismo proceso.
+  - **El daño** (`otraCuentaTrasDevolver`): Ana escribe, se borra su cuenta, llega el estado nulo,
+    entra Beto y escribe Q. Hoy, `deBeto: ["Rom/8/28"]` en `@prep_notes:beto`; con la pieza,
+    `deBeto: []` y Q en la «sin cuenta»: Beto no ve lo que acaba de escribir, y aparece al salir, en
+    la Mesa de cualquiera en ese teléfono.
+  - **¿Lo abrió la 93?** No: `givenBack.has(uid)` es de la 59.
+  - P3 bajo: una lectura floja (el comentario dice «that account's») y un refactor poco probable.
+  - **Arreglo (hipótesis):** sumar el caso `otraCuentaTrasDevolver` a `prepAccount.test.ts`.
+
+- **`R9-327` (S94, pruebas / respaldo — P3) — 🐛 la devolución del respaldo en OTRO turno, que la 73
+  juzgó benigna (`devolucionGiveBack`, en `R9-301`), pierde la sección restaurada si un store corre
+  entre la escritura y la devolución, y pasa las 1004.** MEDIDO en la 94 (agente 5; re-medido).
+  - Pieza `devuelveFueraDelTurno` (la de la 73 con otro nombre): `prepMultiSet` escribe en su turno y
+    devuelve después con `giveBack`, que pide el suyo. 23/23 y 1004/1004.
+  - **El daño** (`tiendaTrasRespaldo`, en `backupPrepTurn.test.ts`): Ana tiene P; el respaldo (R con
+    `observation`) retenido en SQLite; la devolución de Ana termina; se abre SQLite y se retiene el
+    `multiSet` del respaldo; con la sesión en Ana, `savePrepNote(R, 'application')` pide con la clave
+    de Ana y espera detrás. Hoy, R entera en la «sin cuenta». Con la pieza, el store corre entre la
+    escritura y la devolución, va a la «sin cuenta» (donde R no está todavía) con una entrada de una
+    sección y el reloj más nuevo, y la unión (`sourceGoes`) se queda con ella: se pierde
+    `observation: "del respaldo"`. Controles: `sqlite: 1`, `llego: 1`, `enEspera: 1`.
+  - **Corrige a `R9-301`:** la 73 llamó benigna a `devolucionGiveBack` porque daba un falso rojo en
+    `devuelta` (`retB: 2`, sin pérdida), una sonda hecha para otra pieza. Con un caso hecho para ella,
+    pierde datos. Ningún comentario dice «en el mismo turno»: la cabecera de `R9-275` (`:47-48`)
+    dice «then given back by the same join as that Mesa», y la de `prepMultiSet`, «given back after».
+  - **¿Lo abrió la 93?** No: el código es de la 59 (`37ba5f7`), y el juicio, de la 73.
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis):** una prueba con la forma de `tiendaTrasRespaldo`, y que la cabecera de
+    `prepMultiSet` diga que la devolución va en el mismo turno, y por qué.
+
+- **`R9-328` (S94, pruebas / respaldo — P3) — 🐛 «noted first» y «a give-back that fails here keeps
+  its note» (`prepMultiSet`) no los fija ninguna prueba: con la nota después de escribir, o quitada
+  si la unión falla, pasan las 1004, y lo restaurado queda bajo el uid borrado.** MEDIDO en la 94
+  (agente 10; re-medido). No es `R9-299` (la nota fuera del turno, partido en dos).
+  - Pieza `notaTrasEscribir` (la nota después del `multiSet`): 23/23 y 1004/1004. **El daño**
+    (`muereTrasEscribir`): el `multiSet` del respaldo llega al disco y el proceso muere antes de
+    seguir. Hoy queda la nota, y el arranque siguiente lleva R a la «sin cuenta»; con la pieza, no
+    hay nota y R queda bajo `@prep_notes:ana`. Control: `escrito: 1`. `muere` no lo ve: cuelga la
+    unión, que va después de la nota en los dos órdenes.
+  - Pieza `respaldoFallaSinNota` (la nota se quita si la unión falla): 23/23 y 1004/1004. **El daño**
+    (`respaldoFalla`): dentro de `prepMultiSet`, el `multiSet` a `@prep_notes` lanza. Hoy queda la
+    nota y el arranque deja `[P, R]`; con la pieza, R queda bajo `@prep_notes:ana`.
+  - Corrige el detalle de la 93 (§6: «lo arma el caso `muere`»): ninguna prueba arma una unión que
+    falla.
+  - **¿Lo abrió la 93?** No: es de la 59.
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis):** sumar `muereTrasEscribir` y `respaldoFalla` a `backupPrepTurn.test.ts`.
+
+- **`R9-329` (S94, pruebas / Mesa — P3) — 🐛 que `noteRelease` se trague su error («The join is
+  tried all the same») no lo fija ninguna prueba: si lanza, la devolución no corre, y pasan las 1004.** MEDIDO en la 94 (agente 10; re-medido).
+  - `prepAccount.ts:274-283`. Pieza `notaLanza` (el `catch` vuelve a lanzar): 23/23 y 1004/1004.
+  - **El daño** (`notaFalla`): la nota de `releasePrepAccount('ana')` falla. Hoy no lanza, y P se
+    devuelve (`claves: ["@prep_by_account", "@prep_notes"]`); con la pieza lanza, y P queda bajo
+    `@prep_notes:ana` sin nota que la termine.
+  - **¿Lo abrió la 93?** No: es de la 57-59.
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis):** sumar `notaFalla` a `prepAccount.test.ts`.
+
+- **`R9-330` (S94, Mesa / `R9-269` — P3) — 🐛 una edición pedida sin cuenta que espera detrás de la
+  unión de `adoptNoAccountPrep` escribe en la «sin cuenta» ya vaciada: la entrada queda partida
+  entre las dos Mesas, y ninguna la tiene entera.** MEDIDO en la 94 (agente 2; re-medido). Es el
+  código de hoy.
+  - `adoptNoAccountPrep` (`prepAccount.ts:251-259`) une la «sin cuenta» a la de la cuenta en un
+    turno (`R9-269`). Una edición pedida con la clave «sin cuenta» antes de `setPrepAccount(uid)`
+    corre después de la unión, sobre la clave ya borrada. Es la clase de `R9-275`, que se arregló
+    solo para la devolución.
+  - **Medido** (`editaTrasAdoptar`, cae hoy): sin sesión, P con `observation`; se pide la adopción
+    por Ana; detrás, con la cuenta todavía nula, una edición de P (`application`); después
+    `setPrepAccount('ana')`. Escribe en `@prep_notes` y en `@prep_notes:ana`: Ana con P
+    `{observation}`, la «sin cuenta» con P `{application}`, y tras salir y volver a entrar Ana sigue
+    sin `application`. No se borra nada. Control: con `sigueAdopcion` (la edición sigue la
+    adopción) queda junta, pero esa pieza tumba la de `R9-269`: el arreglo tendría que ser por
+    entrada.
+  - **¿Lo produce el teléfono?** Por lectura: en una ventana de milisegundos, entre el pedido de la
+    unión (`signInWithGoogle`, `AuthContext.tsx`) y el `setPrepAccount(uid)` del efecto de `:303`.
+  - **¿Lo abrió la 93?** No: es del turno de `R9-269` (sesión 55) y del desvío de la 59.
+  - P3: una ventana estrecha al entrar con Google; la entrada se parte, no se pierde.
+  - **Arreglo (hipótesis), sin medir:** que lo escrito para la «sin cuenta» detrás de una adopción
+    siga a la cuenta adoptada solo para las entradas que la unión movió.
+
+- **`R9-331` (S94, Mesa / `R9-314` — P3) — 🐛 un segundo `setPrepAccount` que llega mientras el
+  primero espera la migración o la devolución suelta las claves en el acto, antes de que terminen:
+  una lectura pedida antes del primer estado no ve lo devuelto.** MEDIDO en la 94 (agente 2;
+  re-medido). Es el código de hoy.
+  - `setPrepAccount` (`prepAccount.ts:223-231`): con `firstState` ya en `false`, el segundo llamado
+    hace `markKnown()` sin esperar el `migrateLegacyPrep`/`finishRelease` del primero. Contradice su
+    comentario («before any key resolves») por otro camino que el de `R9-314`.
+  - **Medido** (`segundoEstado`, el caso de `R9-314` más un segundo estado; cae hoy): con el segundo
+    estado nulo, la lectura da `["Ps/23/1-6"]`, sin el `Rom/8/28` devuelto; con `carla`, la clave
+    sale `@prep_notes:carla` y la lectura `[]`. La hipótesis `marcaTrasPrimero` (el estado que llega
+    durante el primero espera a que termine) arregla el caso nulo (`["Ps/23/1-6", "Rom/8/28"]`); con
+    `carla`, la clave sigue siendo la de `carla` («at the first auth state» vale como momento, no
+    como la cuenta de ese estado).
+  - **¿Lo produce el teléfono?** Por lectura: tras una devolución sin terminar, el arranque sin
+    sesión dispara el inicio de sesión anónimo (`AuthContext.tsx:377`), y su estado es un segundo
+    `setPrepAccount(null)` (`:303`). Si llega antes de que termine la unión, la primera carga de la
+    Mesa no ve lo devuelto hasta recargar.
+  - **¿Lo abrió la 93?** No: el `markKnown` del segundo llamado es de `R9-310`/`R9-314`.
+  - P3: una devolución pendiente de un proceso anterior y un inicio anónimo más rápido que la unión;
+    se ve al recargar.
+  - **Arreglo (hipótesis):** `marcaTrasPrimero`, y la prueba `segundoEstado` con el caso nulo.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

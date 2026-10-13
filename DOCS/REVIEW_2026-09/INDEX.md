@@ -1046,8 +1046,21 @@
 > respaldo (se escribe en la cuenta y se devuelve después). Un nuevo P3, `R9-323`: que el desvío
 > espere la devolución TERMINADA no lo fija ninguna prueba, y una regresión así pierde una sección.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **323**. Ramas `fix/s93-r322` y `docs/review-s93-fix`,
-> sin mergear hasta el OK de Victor. Detalle: `detail/S93-arreglo-r322.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **323**. Ramas `fix/s93-r322` y `docs/review-s93-fix`:
+> mergeadas y pusheadas con el OK de Victor (`main` = `2ebad5f`, CI verde en el log, run
+> `38434416369`, 374/4632; corregido en la 94). Detalle: `detail/S93-arreglo-r322.md`.
+>
+> **Sesión 94 (2026-10-13): revisión del diff de la 93**, en un chat nuevo, en la terminal, con 10
+> agentes en worktree que solo midieron (los diez completaron). Lo de la 93 se sostiene como código:
+> solo comentarios, y el comentario dice lo que hace el código. Pero buena parte de su sentido no lo
+> vigila ninguna prueba, y la frase que corrigió sigue en otros cinco lugares. 8 nuevos, P3, ninguno
+> abierto por la 93: `R9-324` (comentario), `R9-325`..`R9-329` (pruebas: el desvío en tres stores,
+> «that account's», la devolución del respaldo en otro turno, su nota, `noteRelease`) y `R9-330`,
+> `R9-331` (código: una edición detrás de la adopción queda partida; un segundo estado de auth
+> suelta las claves antes de la devolución). `R9-323` se amplía (seis regresiones; prueba escrita).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **331**. Rama `docs/review-s94-diff-s93`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S94-revision-del-diff-s93.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2032,6 +2045,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 94 — 2026-10-13. Revisión del diff de la 93.** En un chat nuevo, en la terminal, con 10
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S94-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** A1 solo comentarios; A2-A5 cada frase nueva hecha pieza; A6 `R9-323` y su
+    prueba; A7 el detalle de la 93; A8 sus lecciones; A9 la regla de la 92 desde cero; A10 lo que la
+    93 dejó por lectura. Todo re-medido en el árbol principal con `_scratch/S94-sonda.cjs.txt` (de
+    `S94-gen.cjs.txt`; cinco lotes, `S94-lote1..5.out.txt`).
+  - **Resultado:** lo de la 93 se sostiene como código. 8 nuevos, P3 (`R9-324`..`R9-331`), ninguno
+    abierto por la 93; `R9-323` y `R9-298` ampliados; dos citas del detalle de la 93, corregidas. No
+    queda ningún P0 abierto.
+  - **Detalle: `detail/S94-revision-del-diff-s93.md`.**
+  - **Las lecciones:** un «por lectura» del detalle es un riesgo sin sonda; una regla que la sesión
+    escribe se mide primero contra lo que esa sesión escribió; un «benigno» se re-mide con un caso
+    hecho para la pieza.
 
 - **Sesión 93 — 2026-10-13. Arreglo de lo de la 92.** En un chat nuevo, en la terminal, con 3
   agentes en worktree que solo midieron (Victor pidió 6; se le recordó la 37 y eligió 3); con
