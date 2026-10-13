@@ -1025,8 +1025,19 @@
 > pidió, que no siempre es la que se escribe, y el export dice «asked for». Ninguna línea de código
 > cambia; `etiquetaDesviada` sigue cayendo. Ninguno nuevo.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **321**. Ramas `fix/s91-r321` y `docs/review-s91-fix`,
-> sin mergear hasta el OK de Victor. Detalle: `detail/S91-arreglo-r321.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **321**. Ramas `fix/s91-r321` y `docs/review-s91-fix`:
+> mergeadas y pusheadas con el OK de Victor (`main` = `c983c7a`, CI verde en el log, run
+> `38354373015`, 374/4632; corregido en la 92). Detalle: `detail/S91-arreglo-r321.md`.
+>
+> **Sesión 92 (2026-10-13): revisión del diff de la 91**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron. Solo docs. Lo de la 91 se sostiene: solo comentarios (el JS
+> emitido es igual, con su control), y ninguna lectura al pie de la letra de las frases nuevas tumba
+> la prueba sin contradecir otra frase del mismo comentario. Un nuevo P3, `R9-322`: el comentario de
+> `prepKey` dice que una escritura en cola va a la cuenta de cuando se pidió, y desde `R9-275` va a
+> la «sin cuenta» si la cuenta ya se devolvió. Seguido al pie de la letra, caen dos pruebas.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **322**. Rama `docs/review-s92-diff-s91`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S92-revision-del-diff-s91.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2011,6 +2022,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 92 — 2026-10-13. Revisión del diff de la 91.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S92-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** A1 midió como ganchos las lecturas literales de las frases nuevas; A2 buscó
+    otro caso de clave pedida distinta de la escrita, y las otras frases que definen lo mismo; A3
+    revisó el diff y el detalle de la 91. Todo re-medido en el árbol principal con
+    `_scratch/S92-sonda.cjs.txt` (de `S92-gen.cjs.txt`).
+  - **Resultado:** lo de la 91 se sostiene. Nuevo `R9-322` (P3, el comentario de `prepKey`). No
+    queda ningún P0 abierto.
+  - **Detalle: `detail/S92-revision-del-diff-s91.md`.**
+  - **La lección:** una frase que corrige una definición busca las otras que definen lo mismo. La 91
+    corrigió «the key it writes» y dejó, 26 líneas más arriba, la de `prepKey`, que dice lo
+    contrario para el mismo caso.
 
 - **Sesión 91 — 2026-10-12. Arreglo de lo de la 90.** En el mismo chat (lo pidió Victor), en la
   terminal y sin agentes; con `_scratch/S91-PROMPT.md`.

@@ -31,6 +31,12 @@ Solo comentarios, en `prepAccount.ts`:
 Sobre `3bccafd`, el commit que se mergea, con `_scratch/S91-sonda.cjs.txt` (la `S90-sonda`, con la
 salida en `S91-sonda-*`). `-t R9-292` con `muestra`, salvo donde dice `prep`.
 
+> **Corregido en la 92:** las tres corridas fueron en `prep` (en `archivo`, `-t R9-292` no
+> encuentra la prueba), con `-t R9-292` las dos primeras, y la segunda fue
+> `etiquetaDesviada+muestra`. Lo de §3 sobre «the rest nothing» lo medía la `muestra` solo a
+> medias (no imprime los pedidos sin etiqueta); medido entero en la 92 con `muestraSin`
+> (`detail/S92-revision-del-diff-s91.md` §2 y §4).
+
 | corrida            | resultado                                                                               |
 | ------------------ | --------------------------------------------------------------------------------------- |
 | `muestra`          | pasa: en `devolucionPedidaAntes`, etiqueta `@prep_notes:ana` (`ana: 1`, `notas: 0`)     |

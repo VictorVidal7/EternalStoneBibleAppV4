@@ -1,15 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-12, fin de la sesión 91.** La 91 hizo el (bs) en el mismo chat
-> que la 89 y la 90 (lo pidió Victor), en la terminal y sin agentes. Cerró `R9-321` (`3bccafd`,
-> solo comentarios en `prepAccount.ts`): el `Set` de `oneAtATime` lleva la clave que se pidió, que
-> no siempre es la que se escribe, y el export dice «asked for». Ninguna línea de código cambia, y
-> `etiquetaDesviada` sigue cayendo. Ninguno nuevo.
+> **Última actualización: 2026-10-13, fin de la sesión 92.** La 92 hizo el (bt) en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor). Lo de la 91 se
+> sostiene: solo comentarios (el JS emitido es igual, con su control), y ninguna lectura al pie de
+> la letra de las frases nuevas tumba la prueba sin contradecir otra frase del mismo comentario. Un
+> nuevo P3, `R9-322`: el comentario de `prepKey` dice que una escritura en cola va a la cuenta de
+> cuando se pidió, y desde `R9-275` va a la «sin cuenta» si esa cuenta ya se devolvió.
 >
-> La 90 ya está mergeada y pusheada (`main` = `e4d7e3a`, CI verde en el log, run `38351138599`,
-> 374/4632). Las ramas de la 91 (`fix/s91-r321` y `docs/review-s91-fix`) van **sin mergear hasta
-> el OK de Victor**. **No queda ningún P0 abierto**, y hay 321 hallazgos. **Lo siguiente:** la 92
-> revisa el diff de la 91 (mensaje (bt), en `_scratch/S92-PROMPT.md`).
+> La 91 ya está mergeada y pusheada (`main` = `c983c7a`, CI verde en el log, run `38354373015`,
+> 374/4632). La rama de la 92 (`docs/review-s92-diff-s91`) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 322 hallazgos. **Lo siguiente:** la 93 arregla
+> `R9-322` (mensaje (bu), en `_scratch/S93-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -523,11 +524,16 @@ sin agentes, con `_scratch/S87-PROMPT.md`). Y la revisión del diff de la 87 (la
 en un chat nuevo y sin agentes, con `_scratch/S88-PROMPT.md`). Y su arreglo (la (bq), sesión 89,
 en un chat nuevo y sin agentes, con `_scratch/S89-PROMPT.md`). Y la revisión de su diff (la (br),
 sesión 90, en el mismo chat y sin agentes, con `_scratch/S90-PROMPT.md`). Y su arreglo (la (bs),
-sesión 91, en el mismo chat y sin agentes, con `_scratch/S91-PROMPT.md`). **Lo siguiente es el
-(bt).**
+sesión 91, en el mismo chat y sin agentes, con `_scratch/S91-PROMPT.md`). Y la revisión de su diff
+(la (bt), sesión 92, en un chat nuevo con 3 agentes que solo midieron, con
+`_scratch/S92-PROMPT.md`). **Lo siguiente es el (bu).**
 
-**(bt) Sesión 92: revisar el diff de la 91** (`e4d7e3a..3bccafd`: solo los dos comentarios de
-`prepAccount.ts`). El mensaje está en `_scratch/S92-PROMPT.md`, que manda sobre este archivo.
+**(bu) Sesión 93: arreglar `R9-322`** (el comentario de `prepKey` en `prepAccount.ts`; solo
+comentarios). El mensaje está en `_scratch/S93-PROMPT.md`, que manda sobre este archivo.
+
+**(bt) Sesión 92: revisar el diff de la 91 — ya HECHO en la sesión 92, en un chat nuevo, en la
+terminal, con 3 agentes en worktree que solo midieron.** Lo de la 91 se sostiene; un nuevo P3
+(`R9-322`). El mensaje está en `_scratch/S92-PROMPT.md`.
 
 **(bs) Sesión 91: arreglar `R9-321` — ya HECHO en la sesión 91, en el mismo chat, en la terminal y
 sin agentes.** Cerrado `R9-321`; ninguno nuevo. El mensaje está en `_scratch/S91-PROMPT.md`.
@@ -2061,18 +2067,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 91 (2026-10-12).**
+**Medido al cerrar la sesión 92 (2026-10-13).**
 
-- **`main` = `origin/main` = `e4d7e3a`** (el checkpoint de la 90, solo docs; el último código en
-  `main` es `538b1bc`, la prueba y el gancho de `R9-320`). **CI verificado en el log** en la 90: run
-  `38351138599`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 90 se borró tras `git cherry`.
-- **Dos ramas de la 91, sin mergear a propósito y sin pushear:** `fix/s91-r321` (`3bccafd`, el
-  comentario) y `docs/review-s91-fix` encima (solo docs). Se mergean en fast-forward con el OK de
-  Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno.
+- **`main` = `origin/main` = `c983c7a`** (el checkpoint de la 91, solo docs; el último código en
+  `main` es `3bccafd`, los comentarios de `R9-321`). **CI verificado en el log** en la 91: run
+  `38354373015`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 91 se borraron tras `git cherry`.
+- **Una rama de la 92, sin mergear a propósito y sin pushear:** `docs/review-s92-diff-s91` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 92 se borraron solos, con sus ramas).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 91):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 92):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2683,6 +2688,16 @@ Alternativas legítimas:
   escribe en la «sin cuenta», y la prueba lee la clave que resolvió. Y una deducción sobre el orden
   se mide antes de decirla: la 90 dedujo de `giveBack` que Ana no estaba devuelta al pedir, y
   `etiquetaDesviada` mostró lo contrario.
+- **Una frase que corrige una definición busca las otras que definen lo mismo (sesión 92,
+  `R9-322`).** La 91 corrigió «not always the key it writes» y dejó, 26 líneas más arriba, la de
+  `prepKey` («a write queued behind others still goes to the account of when it was asked for»),
+  que dice lo contrario para el mismo caso. Seguida al pie de la letra (`segunPrepKey`), caen dos
+  pruebas con el código bueno. Es la regla de la 56 aplicada a las frases: `grep` de lo que la
+  frase afirma, no solo del nombre del dato.
+- **En Windows, `execSync` se come el `^` (sesión 92).** Pasa por `cmd.exe`: `git rev-parse
+538b1bc^` da `538b1bc` (`_scratch/S92-caret.cjs.txt`), así que un control `<sha>^` compara contra
+  el propio `<sha>` y dice «igual». Usá `~1` o el hash. Y `S65-igual` sale con 0 también cuando hay
+  diferencias: leé su última línea.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

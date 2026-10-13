@@ -1301,8 +1301,9 @@
 > **No queda ningún P0 abierto.** Hallazgos: **321**. Detalle: `detail/S90-revision-del-diff-s89.md`.
 >
 > **Sesión 91 (2026-10-12): arreglo de lo de la 90**, en el mismo chat (lo pidió Victor), en la
-> terminal y sin agentes. Ramas `fix/s91-r321` y `docs/review-s91-fix`, sin mergear hasta el OK de
-> Victor.
+> terminal y sin agentes. Ramas `fix/s91-r321` y `docs/review-s91-fix`: mergeadas y pusheadas con
+> el OK de Victor (`main` = `c983c7a`, CI verde en el log, run `38354373015`, 374/4632; corregido en
+> la 92).
 >
 > - **Cerrado:** `R9-321` (`3bccafd`, solo comentarios: el `Set` de `oneAtATime` lleva la clave que
 >   se pidió, que no siempre es la que se escribe; el export dice «asked for»). Ninguna línea de
@@ -1310,6 +1311,23 @@
 > - **Ninguno nuevo.**
 >
 > **No queda ningún P0 abierto.** Hallazgos: **321**. Detalle: `detail/S91-arreglo-r321.md`.
+>
+> **Sesión 92 (2026-10-13): revisión del diff de la 91**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron (los pidió Victor). Solo docs. Rama
+> `docs/review-s92-diff-s91`, sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 91 se sostiene:** solo comentarios (el JS emitido es igual, y el control da
+>   distinto), y su tabla da lo mismo. Ninguna lectura al pie de la letra de las frases nuevas tumba
+>   la prueba sin contradecir otra frase del mismo comentario. Y no hay otro caso, aparte de `R9-275`,
+>   en que la clave pedida y la escrita difieran.
+> - **Nuevo (1), P3:** `R9-322` (el comentario de `prepKey` dice que una escritura en cola «still
+>   goes to the account of when it was asked for», y desde `R9-275` va a la «sin cuenta» si esa
+>   cuenta ya se devolvió. Seguido al pie de la letra, caen dos pruebas con el código bueno). La 91
+>   corrigió la frase vecina sobre el mismo caso y no la vio.
+> - **Corregido en el detalle de la 91:** el modo de sus corridas (todas en `prep`) y la cita de
+>   «the rest nothing», que `muestra` no medía.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **322**. Detalle: `detail/S92-revision-del-diff-s91.md`.
 
 ---
 
@@ -8195,6 +8213,43 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
       `devolucionPedidaAntes`). `nada`, en `prep`, 23/23.
     - Es un comentario: no hay prueba que lo vea fallar sin él. Lo que fija su sentido es la prueba
       de `R9-292`.
+  - **Sesión 92: se sostiene**, re-medido sobre `c983c7a` (`_scratch/S92-sonda.cjs.txt`, `prep -t
+R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control contra `1f02511`
+    da distinto. Las otras lecturas literales de las frases nuevas, como ganchos (agente 1): `alPedir`
+    (contar desde la llamada a `prepWrite`) deja pasar `genTrasMultiSetD+tardeClave25`, pero la
+    excluye «not slow to ask», de la 87, en el mismo comentario. `conClaves` (uniones y respaldo con
+    sus claves) choca con «the rest nothing», y `soloDetras` con «how many». `alTerminar` no cambia
+    nada. «The rest nothing», medido con `muestraSin`: la unión espera sin etiqueta (`sin: 1`), y
+    con `sinEtiqueta`, `sin: 1` en los cinco casos. Ningún otro caso de clave pedida distinta de la
+    escrita en los cuatro stores (agente 2). Pero la frase de `prepKey` sobre el mismo caso dice lo
+    contrario: `R9-322`.
+
+- **`R9-322` (S92, comentario — P3) — 🐛 el comentario de `prepKey` dice que una escritura en cola
+  «still goes to the account of when it was asked for», y desde `R9-275` va a la Mesa «sin cuenta»
+  si esa cuenta ya se devolvió cuando le llega el turno.** MEDIDO en la 92
+  (`_scratch/S92-sonda.cjs.txt`, pieza `segunPrepKey`, del agente 2). Lo escribió la 53 (`a85df96`,
+  `R9-59`), y es falso desde la 59 (`37ba5f7`, `R9-275`), que escribió la cabecera y el comentario
+  de `prepWrite` y no tocó este.
+  - `prepAccount.ts:96-100`: «The key of `base` for the account signed in now: taken at the call
+    once the auth state is known (a write queued behind others still goes to the account of when it
+    was asked for), else at the first auth state».
+  - Pieza `segunPrepKey` (la frase al pie de la letra: `prepWrite` llama a `fn(resolved)`, sin el
+    desvío; la etiqueta no cambia). Con el código bueno caen dos de las 23 de `prep`: la de `R9-275`
+    en `prepAccount.test.ts` (aparece `@prep_notes:ana` y falta lo escrito en la «sin cuenta») y la
+    de `R9-292` (`"ana": ["Rom/8/28"]` donde la prueba espera `null`). Control: `muestra` pasa, con lo
+    escrito en la «sin cuenta» en `devolucionPedidaAntes`.
+  - Las demás frases que definen la clave pedida o la escrita coinciden con el código: la cabecera
+    de `R9-275`, el comentario de `prepWrite`, el de los cuatro stores («the account of when the
+    write was asked for», la clave pedida) y el de `otraEnEspera` en la prueba.
+  - **¿Lo abrió la 91?** No. Pero la 91 corrigió, 26 líneas más abajo, la frase que define el mismo
+    caso («not always the key it writes»), y no buscó las otras. Tampoco la vio la 90, que abrió
+    `R9-321`.
+  - P3: un comentario de la app que afirma algo falso del mundo; dos pruebas vigilan el código. El
+    código de hoy está bien.
+  - **Arreglo (hipótesis, sin medir: es un comentario):** que el paréntesis diga también la
+    excepción, por ejemplo «(a write queued behind others still goes to the account of when it was
+    asked for, or, R9-275, to the Mesa «sin cuenta» if that account's Mesa was given back by the
+    time its turn comes)». La medida es `segunPrepKey`: tiene que seguir cayendo.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
