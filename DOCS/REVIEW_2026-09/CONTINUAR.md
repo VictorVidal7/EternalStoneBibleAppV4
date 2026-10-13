@@ -1,17 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-12, fin de la sesión 88.** La 88 hizo el (bp) en un chat nuevo,
-> en la terminal y sin agentes: revisó el diff de la 87. Lo de la 87 cae como dice, y el envoltorio
-> de `oneAtATime` no cambia el orden de las microtareas. Un nuevo P3, `R9-320`: el gancho cuenta
-> todos los pedidos del turno, y la prueba de `R9-292` lo lee como «la otra espera». Con un pedido
-> ajeno de la Mesa en la ventana, la prueba pasa con la regresión si la otra llega tarde, y cae con
-> el código bueno si la otra pide a tiempo. El arreglo medido: que el gancho diga qué espera
-> (`porClave`).
+> **Última actualización: 2026-10-12, fin de la sesión 89.** La 89 hizo el (bq) en un chat nuevo,
+> en la terminal y sin agentes. Cerró `R9-320` (`538b1bc`): el gancho dice qué espera.
+> `oneAtATime` recibe una etiqueta (`prepWrite` le pasa la clave que resolvió), y la prueba de
+> `R9-292` cuenta los pedidos con la clave de la otra. Con un pedido de otra clave en la ventana,
+> pasa con el código bueno y cae con la regresión. Los cortes y el orden de las microtareas no se
+> movieron. Queda, medido, un ajeno de la misma clave, que en la app no hay. Ninguno nuevo.
 >
-> La 87 ya está mergeada y pusheada (`main` = `fb5bcf6`, CI verde en el log, run `38336788556`,
-> 374/4632). La rama de la 88 (`docs/review-s88-diff-s87`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 320 hallazgos. **Lo siguiente:** la 89 arregla
-> `R9-320` (mensaje (bq), en `_scratch/S89-PROMPT.md`).
+> La 88 ya está mergeada y pusheada (`main` = `1f02511`, CI verde en el log, run `38339991537`,
+> 374/4632). Las ramas de la 89 (`fix/s89-r320` y `docs/review-s89-fix`) van **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 320 hallazgos. **Lo siguiente:** la 90
+> revisa el diff de la 89 (mensaje (br), en `_scratch/S90-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -522,11 +521,15 @@ Y la revisión del diff de la 83 (la (bl), sesión 84, en un chat nuevo y sin ag
 `_scratch/S85-PROMPT.md`). Y la revisión del diff de la 85 (la (bn), sesión 86, en un chat nuevo y
 sin agentes, con `_scratch/S86-PROMPT.md`). Y su arreglo (la (bo), sesión 87, en un chat nuevo y
 sin agentes, con `_scratch/S87-PROMPT.md`). Y la revisión del diff de la 87 (la (bp), sesión 88,
-en un chat nuevo y sin agentes, con `_scratch/S88-PROMPT.md`). **Lo siguiente es el (bq).**
+en un chat nuevo y sin agentes, con `_scratch/S88-PROMPT.md`). Y su arreglo (la (bq), sesión 89,
+en un chat nuevo y sin agentes, con `_scratch/S89-PROMPT.md`). **Lo siguiente es el (br).**
 
-**(bq) Sesión 89: arreglar `R9-320`** (el gancho de `R9-296` cuenta pedidos de cualquiera; la
-hipótesis medida es `porClave`, en `_scratch/S88-sonda.cjs.txt`). El mensaje está en
-`_scratch/S89-PROMPT.md`, que manda sobre este archivo.
+**(br) Sesión 90: revisar el diff de la 89** (`1f02511..538b1bc`: la etiqueta de `oneAtATime` y
+el export por clave en `prepAccount.ts`, y `otraEnEspera` en la prueba de `R9-292`). El mensaje
+está en `_scratch/S90-PROMPT.md`, que manda sobre este archivo.
+
+**(bq) Sesión 89: arreglar `R9-320` — ya HECHO en la sesión 89, en un chat nuevo, en la terminal y
+sin agentes.** Cerrado `R9-320`; ninguno nuevo. El mensaje está en `_scratch/S89-PROMPT.md`.
 
 **(bp) Sesión 88: revisar el diff de la 87 — ya HECHO en la sesión 88, en un chat nuevo, en la
 terminal y sin agentes.** Un nuevo P3 (`R9-320`). El mensaje está en `_scratch/S88-PROMPT.md`.
@@ -2051,17 +2054,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 88 (2026-10-12).**
+**Medido al cerrar la sesión 89 (2026-10-12).**
 
-- **`main` = `origin/main` = `fb5bcf6`** (el checkpoint de la 87, solo docs; el último código en
-  `main` es `9d3f489`, la prueba y el gancho de `R9-319`). **CI verificado en el log** en la 87: run
-  `38336788556`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 87 se borraron tras `git cherry`.
-- **Una rama de la 88, sin mergear a propósito y sin pushear:** `docs/review-s88-diff-s87` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **`main` = `origin/main` = `1f02511`** (el checkpoint de la 88, solo docs; el último código en
+  `main` es `9d3f489`, la prueba y el gancho de `R9-319`). **CI verificado en el log** en la 88: run
+  `38339991537`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 88 se borró tras `git cherry`.
+- **Dos ramas de la 89, sin mergear a propósito y sin pushear:** `fix/s89-r320` (`538b1bc`, la
+  prueba y el gancho) y `docs/review-s89-fix` encima (solo docs). Se mergean en fast-forward con el
+  OK de Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 88):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 89):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2660,6 +2664,11 @@ Alternativas legítimas:
   (`porClave`), y se corre con algo ajeno en la ventana, también con algo que llega dentro de ella:
   la resta (`delta`) pasaba con `ajenoTarde20`. Y un riesgo que el detalle nombra «sin sonda» es lo
   primero que se mide: la 87 nombró este.
+- **Que una prueba caiga por OTRO caso no cierra el hueco del primero (sesión 89, `R9-320`).** La 88
+  midió el residuo de `porClave` con un ajeno de `@prep_notes` (`ajenoClaveTarde5`), vio caer la
+  prueba por `devolucionPedidaAntes` y escribió «cae igual por el otro caso». Con un ajeno de la
+  clave de cada caso (`ajenoAmbasTarde5`), `genTrasMultiSetD+tardeClave25` pasa. Un residuo se mide
+  en cada caso que lo lee, con la pieza hecha para ese caso.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -2916,6 +2925,10 @@ Alternativas legítimas:
     abierto. La 88 encontró que cuenta pedidos de cualquiera (`R9-320`). El arreglo medido
     (`porClave`) le pasa a `oneAtATime` qué espera: es el mismo export, con un argumento, pero hay
     que decírselo a Victor al arreglarlo.
+  - **Con un argumento desde la sesión 89** (`538b1bc`, `R9-320`), como lo pidió Victor en el
+    mensaje de la 89: `oneAtATime` recibe una etiqueta (`prepWrite`, su clave), y
+    `__prepTurnWaitingForTests(clave)` cuenta los que esperan con esa clave. No tocó nada más de la
+    app. Para el caso `durante` con la unión haría falta etiquetar también las uniones.
 
 - **Las 2 preguntas que dejó abierta la sesión 3 están RESPONDIDAS** (ofrenda = premium para
   siempre; `R9-13` no está en producción). No las vuelvas a plantear.

@@ -994,8 +994,19 @@
 > sin pedir (y `genTrasMultiSetD+tardeClave25` pasa) o 2 con la otra pidiendo (y la prueba cae con
 > el código bueno). El arreglo medido: que el gancho diga qué espera (`porClave`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **320**. Rama `docs/review-s88-diff-s87`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S88-revision-del-diff-s87.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **320**. Rama `docs/review-s88-diff-s87`: mergeada y
+> pusheada con el OK de Victor (`main` = `1f02511`, CI verde en el log, run `38339991537`, 374/4632;
+> corregido en la 89). Detalle: `detail/S88-revision-del-diff-s87.md`.
+>
+> **Sesión 89 (2026-10-12): arreglo de lo de la 88**, en un chat nuevo, en la terminal y sin
+> agentes. Cerró `R9-320` (`538b1bc`): el gancho dice qué espera. `oneAtATime` recibe una etiqueta
+> (`prepWrite` le pasa la clave que resolvió), y la prueba de `R9-292` cuenta los pedidos con la
+> clave de la otra. Con un pedido de otra clave en la ventana, pasa con el código bueno y cae con la
+> regresión. Los cortes y el orden de las microtareas no se movieron. Queda, medido, un ajeno de la
+> misma clave, que en la app no hay. Ninguno nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **320**. Ramas `fix/s89-r320` y `docs/review-s89-fix`,
+> sin mergear hasta el OK de Victor. Detalle: `detail/S89-arreglo-r320.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1980,6 +1991,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 89 — 2026-10-12. Arreglo de lo de la 88.** En un chat nuevo, en la terminal y sin
+  agentes; arrancó con `_scratch/S89-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S89-sonda.cjs.txt` (la `S88-sonda` con las anclas re-escritas
+    sobre el árbol nuevo, más `pa<sha>`, `sinEtiqueta`, `ajenoAmbasTardeK` y el modo `anclas`), y
+    `_scratch/S89-orden.cjs.txt` (el orden de las microtareas, con el `oneAtATime` de hoy).
+  - **Resultado:** cerrado `R9-320` (`538b1bc`). Ninguno nuevo. No queda ningún P0 abierto.
+  - **Detalle: `detail/S89-arreglo-r320.md`.**
+  - **La lección:** que una prueba caiga por OTRO caso no cierra el hueco del primero. Un residuo se
+    mide en cada caso que lo lee, con la pieza hecha para ese caso.
 
 - **Sesión 88 — 2026-10-12. Revisión del diff de la 87.** En un chat nuevo, en la terminal y sin
   agentes; arrancó con `_scratch/S88-PROMPT.md`. Solo docs.
