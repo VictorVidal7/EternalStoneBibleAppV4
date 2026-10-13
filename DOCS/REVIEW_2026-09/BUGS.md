@@ -1239,7 +1239,8 @@
 > **No queda ningún P0 abierto.** Hallazgos: **319**. Detalle: `detail/S86-revision-del-diff-s85.md`.
 >
 > **Sesión 87 (2026-10-12): arreglo de lo de la 86**, en un chat nuevo, en la terminal y sin
-> agentes. Ramas `fix/s87-r319` y `docs/review-s87-fix`, sin mergear hasta el OK de Victor.
+> agentes. Ramas `fix/s87-r319` y `docs/review-s87-fix`: mergeadas y pusheadas con el OK de Victor
+> (`main` = `fb5bcf6`, CI verde en el log, run `38336788556`, 374/4632; corregido en la 88).
 >
 > - **Cerrado:** `R9-319` (`9d3f489`: el gancho de `R9-296`, un export solo para pruebas en
 >   `prepAccount.ts` que cuenta los pedidos que esperan el turno, y en la prueba de `R9-292` un
@@ -1249,6 +1250,21 @@
 > - **Ninguno nuevo.**
 >
 > **No queda ningún P0 abierto.** Hallazgos: **319**. Detalle: `detail/S87-arreglo-r319.md`.
+>
+> **Sesión 88 (2026-10-12): revisión del diff de la 87**, en un chat nuevo, en la terminal y sin
+> agentes. Solo docs. Rama `docs/review-s88-diff-s87`, sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 87 cae como dice:** `tardeClave25` (sola y con `genTrasMultiSetD`), el revert,
+>   `tardeClave19`, `claveEnvuelta`, `genTrasSqlite`, `genTrasMultiSet(D)`, los cortes,
+>   `ganchoSinBorrar`, `sinLimpiar` y `soloEnEspera`. El envoltorio de `oneAtATime` no cambia el
+>   orden de las microtareas (medido fuera de jest, con un control que sí lo cambia), y ningún reset
+>   del suite encuentra un pedido esperando. El diff es solo la prueba y el gancho.
+> - **Nuevo (1), P3 de pruebas:** `R9-320` (el gancho cuenta todos los pedidos del turno, y la
+>   prueba lo lee como «la otra espera»: con un pedido ajeno de la Mesa en la ventana, da 1 con la
+>   otra sin pedir y `genTrasMultiSetD+tardeClave25` pasa, o 2 con la otra pidiendo y la prueba cae
+>   con el código bueno. El verde no lo abrió la 87; el rojo y las frases, sí).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **320**. Detalle: `detail/S88-revision-del-diff-s87.md`.
 
 ---
 
@@ -7143,6 +7159,8 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
     `__resetPrepAccountForTests()`). Lo lee solo el campo `otraEnEspera`, en los dos casos
     `pedidaAntes` (`R9-319`, cerrado). En los otros tres casos vale `null`: **el caso `durante` sigue
     ABIERTO**, y su arreglo es leerlo también ahí.
+  - **Sesión 88: el gancho cuenta pedidos de cualquiera** (`R9-320`). Para el caso `durante`, mejor
+    con lo que mida el arreglo de `R9-320` (la hipótesis `porClave`: el gancho dice qué espera).
 
 - **`R9-297` (S73, pruebas / respaldo / Mesa — P3) — 🐛 en la prueba de `R9-273`, `retenida` se lee
   al final, después de abrir: con la otra escritura más lenta y el código bueno, cae con el síntoma
@@ -8013,6 +8031,51 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     - Sin el control de la clave (`soloEnEspera`), no pasa ninguna de diez corridas con una clave de
       otro lado, un store lento o una clave de más (`detail/S87` §2): no está medido que haga falta.
       Se quedan los dos, como pedía el mensaje.
+  - **Sesión 88: cae como dice** (`_scratch/S88-sonda.cjs.txt`): las piezas, el revert y los cortes.
+    El orden de las microtareas no cambia (`_scratch/S88-orden.cjs.txt`), y en el suite ningún reset
+    encuentra un pedido esperando (`cuentaAlReset`). Pero el gancho cuenta pedidos de cualquiera, y
+    con uno ajeno en la ventana el verde vuelve: `R9-320`.
+
+- **`R9-320` (S88, pruebas / respaldo — P3) — 🐛 en la prueba de `R9-292`, `otraEnEspera` cuenta
+  todos los pedidos del turno, no el de la otra: con un pedido ajeno de la Mesa esperando detrás
+  del respaldo, da 1 con la otra sin pedir el turno (y con `genTrasMultiSetD+tardeClave25` la prueba
+  pasa), o 2 con la otra pidiéndolo (y la prueba cae con el código bueno).** MEDIDO en la 88
+  (`_scratch/S88-sonda.cjs.txt`, `detail/S88` §2). La 87 lo nombró en su §3, sin sonda.
+  - Pieza `ajeno` (un cambio bueno): el respaldo pide, a la par de su `multiSet`, otra escritura de
+    la Mesa en el turno (un `prepWrite` vacío de `@prep_series`). Sola, `otraEnEspera: 2` en los dos
+    `pedidaAntes`: la prueba cae con el código bueno. Con la prueba de `028a156`, pasa: este rojo lo
+    abrió la 87.
+  - Pieza `ajenoTardeK` (uno lento por su cuenta): lo mismo, pedido K vueltas después del `multiSet`.
+    Con `genTrasMultiSetD+tardeClave25+ajenoTarde5` (y `10`), la prueba **pasa**: en los dos casos,
+    `otraPedidaAntes: 1`, `otraEnEspera: 1`, `escribio: 0`. El 1 es el ajeno (con `tardeClave25`
+    sola, el gancho da 0). Con la prueba de `028a156` también pasa: es el verde de `R9-319`, que la 87
+    no cierra si algo ajeno espera.
+  - Con el ajeno pedido a la par (`ajeno`), la regresión lo saca también del turno en
+    `devolucionPedidaAntes` (lo pidió antes de la marca, que ahí va antes de la devolución retenida),
+    y la prueba cae.
+  - Las frases son de la 87: «la otra espera el turno», «una otra que escribe sin pedirlo da 0» (con
+    `genTrasSqlite+ajeno` da 1, y cae solo por `escribio: 1`), y en `prepAccount.ts` «tells by it
+    that another write is waiting behind it» (el gancho cuenta también uniones y respaldos).
+  - En la prueba de hoy no pasa: la escritura de antes y la unión de `setPrepAccount` terminan antes
+    del caso, y nada más pide el turno. Hace falta un cambio de la app que pida un turno de la Mesa
+    con el respaldo retenido. En la app pueden pedirlo los cuatro stores y las uniones.
+  - P3: verde falso ante una regresión construida, con dos cambios buenos encima; y un rojo falso con
+    un cambio bueno. El código de hoy está bien.
+  - **Arreglo (hipótesis, dos medidas, `-t R9-292`):**
+    - `delta` (solo la prueba: lo que espera al leer, menos lo que esperaba justo antes de soltar la
+      clave): pasa sola y con `ajeno`; con la regresión y `ajenoTarde5` o `15`, `otraEnEspera: 0`.
+      Pero con `ajenoTarde20` y `25`, **pasa**: el ajeno llega dentro de las 20 vueltas tras soltar.
+      El mismo hueco, una ventana más adentro.
+    - `porClave` (el gancho dice qué espera: `prepWrite` le pasa su clave resuelta, y la prueba cuenta
+      los pedidos con la clave de la otra): pasa sola (también en `prep`, 23/23), con `ajeno` y con
+      `claveEnvuelta`. Con la regresión y `ajenoTarde5` o `20`, `otraEnEspera: 0`; con
+      `tardeClave25`, 0; con `genTrasSqlite` y `genTrasMultiSetD`, el rojo de siempre con 0 al lado.
+      Los cortes no se mueven (`storeLento` 40/41, `tardeClave` 19/20). Queda un ajeno con la misma
+      clave (`ajenoClaveTarde5`): da 1 en `pedidaAntes`, y la prueba cae igual por el otro caso; con
+      el código bueno, 2 en ese caso.
+    - `porClave` toca la app un poco más: `oneAtATime` recibe qué espera. Entra en lo que Victor
+      decidió el 2026-10-07 (el mismo export solo para pruebas), pero hay que decirlo al arreglar.
+      Sirve también para el caso `durante` de `R9-296`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

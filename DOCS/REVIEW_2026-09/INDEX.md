@@ -983,8 +983,19 @@
 > `otraEnEspera`, en los dos casos `pedidaAntes`. Con `prepWrite` 20 vueltas o más entre su clave y
 > el turno, la prueba ya no pasa con el turno roto, y los cortes no se movieron. Ninguno nuevo.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **319**. Ramas `fix/s87-r319` y `docs/review-s87-fix`,
-> sin mergear hasta el OK de Victor. Detalle: `detail/S87-arreglo-r319.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **319**. Ramas `fix/s87-r319` y `docs/review-s87-fix`:
+> mergeadas y pusheadas con el OK de Victor (`main` = `fb5bcf6`, CI verde en el log, run
+> `38336788556`, 374/4632; corregido en la 88). Detalle: `detail/S87-arreglo-r319.md`.
+>
+> **Sesión 88 (2026-10-12): revisión del diff de la 87**, en un chat nuevo, en la terminal y sin
+> agentes. Solo docs. Lo de la 87 cae como dice, y el envoltorio de `oneAtATime` no cambia el orden
+> de las microtareas. Un nuevo P3, `R9-320`: el gancho cuenta todos los pedidos del turno, y la
+> prueba lo lee como «la otra espera». Con un pedido ajeno de la Mesa en la ventana, da 1 con la otra
+> sin pedir (y `genTrasMultiSetD+tardeClave25` pasa) o 2 con la otra pidiendo (y la prueba cae con
+> el código bueno). El arreglo medido: que el gancho diga qué espera (`porClave`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **320**. Rama `docs/review-s88-diff-s87`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S88-revision-del-diff-s87.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1969,6 +1980,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 88 — 2026-10-12. Revisión del diff de la 87.** En un chat nuevo, en la terminal y sin
+  agentes; arrancó con `_scratch/S88-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S88-sonda.cjs.txt` (la `S87-sonda`, más `ajeno`, `ajenoTardeK`,
+    `ajenoClaveTardeK`, `cuentaAlReset` y las hipótesis `delta` y `porClave`), y
+    `_scratch/S88-orden.cjs.txt` (el orden de las microtareas, fuera de jest, con su control).
+  - **Resultado:** lo de la 87 cae como dice. Nuevo `R9-320` (P3 de pruebas). No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S88-revision-del-diff-s87.md`.**
+  - **La lección:** un contador compartido no dice de quién es lo que cuenta. Un control que lee un
+    registro compartido dice de quién es lo que cuenta, y se corre con algo ajeno en la ventana. Y
+    un riesgo que el detalle nombra «sin sonda» es lo primero que se mide.
 
 - **Sesión 43 — 2026-10-02. Revisión del diff de la 42.** Solo en la terminal, sin agentes y sin
   tocar código; arrancó con `_scratch/S43-PROMPT.md`.
