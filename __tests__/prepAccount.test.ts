@@ -97,13 +97,51 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
   });
 
-  it('una escritura va a la cuenta de cuando se pidio, aunque se cambie de cuenta antes de que corra', async () => {
+  it('con el estado de auth conocido, una escritura va a la cuenta de cuando se pidio, aunque se cambie de cuenta antes de que corra', async () => {
     managePrepAccount();
     await setPrepAccount('ana');
     const s = savePrepNote('Rom/8/28', 'observation', 'de Ana');
     void setPrepAccount('beto');
     await s;
     expect(await claves()).toEqual(['@prep_by_account', '@prep_notes:ana']);
+  });
+
+  // R9-324 — antes del primer estado de auth, la clave es la de la cuenta de
+  // ese estado, no la de cuando se pidio (ninguna): asi lo dice `prepKey`, y
+  // asi lo dicen los cuatro stores.
+  it('R9-324: lo que los cuatro stores escriben antes del primer estado de auth va a la cuenta de ese estado', async () => {
+    const P = 'John/3/16-21';
+    const q = PREP_SELF_REVIEW_QUESTION_IDS[0];
+    await AsyncStorage.setItem('@prep_by_account', '1');
+    managePrepAccount();
+    const escritas = Promise.all([
+      savePrepNote(P, 'observation', 'antes del estado'),
+      createPrepSeries('antes del estado'),
+      createPrepIllustration(),
+      setPrepSelfReviewQuestion(P, q, true),
+    ]);
+    await setPrepAccount('ana');
+    const [, serie, ilustracion] = await escritas;
+    // Con la cuenta de cuando se pidio, iban a la Mesa «sin cuenta».
+    expect({
+      claves: await claves(),
+      notas: await pasajes(),
+      series: Object.keys(await getAllPrepSeries()),
+      ilustraciones: Object.keys(await getAllPrepIllustrations()),
+      autoevaluacion: Object.keys(await getAllPrepSelfReview()),
+    }).toEqual({
+      claves: [
+        '@prep_by_account',
+        '@prep_illustrations:ana',
+        '@prep_notes:ana',
+        '@prep_self_review:ana',
+        '@prep_series:ana',
+      ],
+      notas: [P],
+      series: [serie!.id],
+      ilustraciones: [ilustracion!.id],
+      autoevaluacion: [P],
+    });
   });
 
   it('las claves esperan al primer estado de auth', async () => {

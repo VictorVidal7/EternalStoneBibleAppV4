@@ -59,7 +59,8 @@ let writeQueue: Promise<void> = Promise.resolve();
 function mutate(
   fn: (map: PrepIllustrationsMap) => PrepIllustrationsMap,
 ): Promise<void> {
-  // R9-59 — the account of when the write was asked for.
+  // R9-59 — the account of the key `prepKey` gives (see there). R9-275 —
+  // `prepWrite` may send the write to the Mesa «sin cuenta».
   const key = prepKey(PREP_ILLUSTRATIONS_KEY);
   const run = async (resolved: string) => {
     const raw = await AsyncStorage.getItem(resolved);

@@ -57,7 +57,8 @@ let writeQueue: Promise<void> = Promise.resolve();
 
 /** Read-modify-write the whole map through the shared queue. */
 function mutate(fn: (map: PrepSeriesMap) => PrepSeriesMap): Promise<void> {
-  // R9-59 — the account of when the write was asked for.
+  // R9-59 — the account of the key `prepKey` gives (see there). R9-275 —
+  // `prepWrite` may send the write to the Mesa «sin cuenta».
   const key = prepKey(PREP_SERIES_KEY);
   const run = async (resolved: string) => {
     const raw = await AsyncStorage.getItem(resolved);

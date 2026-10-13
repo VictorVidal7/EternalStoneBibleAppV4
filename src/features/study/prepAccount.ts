@@ -41,12 +41,12 @@
  * went with the key. R9-273 — the restore of a backup writes the Mesa too,
  * and takes the same turn (`prepMultiSet`).
  *
- * R9-275 — a write goes to the account of when it was asked for, and that
- * account may be deleted while it waits (the restore resolves its key before
- * writing SQLite). Once its Mesa was given back, a store's write goes where
- * that Mesa went (the Mesa «sin cuenta»), and the restore's is written and
- * then given back by the same join as that Mesa. Before, both landed under
- * the deleted uid, which nothing reads again.
+ * R9-275 — a write goes to the account of the key `prepKey` gave it (see
+ * there), and that account may be deleted while it waits (the restore
+ * resolves its key before writing SQLite). Once its Mesa was given back, a
+ * store's write goes where that Mesa went (the Mesa «sin cuenta»), and the
+ * restore's is written and then given back by the same join as that Mesa.
+ * Before, both landed under the deleted uid, which nothing reads again.
  *
  * The backup exports and restores the Mesa of the account signed in, so a
  * backup made by one account does not carry another's (R9-59).
@@ -147,8 +147,8 @@ function oneAtATime<T>(fn: () => Promise<T>, what?: string): Promise<T> {
 }
 
 /**
- * R9-269 — a store's read-modify-write of its key (from `prepKey`, taken when
- * the write was asked for), one at a time with the joins. The key is awaited
+ * R9-269 — a store's read-modify-write of its key (from `prepKey`: see there
+ * when it is taken), one at a time with the joins. The key is awaited
  * first: it waits for the first auth state, whose join takes a turn. R9-275 —
  * if that account's Mesa was given back by the time the turn comes, the write
  * goes to the Mesa «sin cuenta», where its entries went: it edits them there.
