@@ -87,6 +87,8 @@ let managed = false;
 let known: Promise<void> = Promise.resolve();
 let markKnown: (() => void) | null = null;
 let firstState = true;
+/** R9-331 — what the first auth state does before any key resolves. */
+let firstWork: Promise<void> = Promise.resolve();
 
 /** The key of `base` for `uid` (null: the Mesa «sin cuenta»). */
 export function prepKeyFor(base: string, uid: string | null): string {
@@ -225,9 +227,15 @@ export async function setPrepAccount(uid: string | null): Promise<void> {
   account = uid;
   if (firstState) {
     firstState = false;
-    await migrateLegacyPrep(uid);
-    await finishRelease();
+    firstWork = (async () => {
+      await migrateLegacyPrep(uid);
+      await finishRelease();
+    })();
   }
+  // R9-331 — a state that comes while the first one's work runs waits for it
+  // too. It let the keys go at once, and a read asked before the first state
+  // missed what that work moves or gives back.
+  await firstWork;
   markKnown?.();
   markKnown = null;
 }
@@ -430,6 +438,7 @@ export function __resetPrepAccountForTests(): void {
   known = Promise.resolve();
   markKnown = null;
   firstState = true;
+  firstWork = Promise.resolve();
   turn = Promise.resolve();
   waiting.clear();
   noteTurn = Promise.resolve();

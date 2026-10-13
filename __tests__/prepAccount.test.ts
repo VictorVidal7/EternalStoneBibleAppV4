@@ -519,6 +519,67 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
   });
 
+  // R9-331 — un estado de auth que llega mientras el primero todavia devuelve
+  // (o mueve) una Mesa espera a que termine antes de soltar las claves.
+  it('R9-331: un segundo estado de auth que llega mientras el primero devuelve una Mesa no suelta las claves antes de que termine', async () => {
+    await AsyncStorage.setItem(
+      '@prep_notes',
+      JSON.stringify({
+        'Ps/23/1-6': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem(
+      '@prep_notes:bob',
+      JSON.stringify({
+        'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem(
+      '@prep_release_pending',
+      JSON.stringify(['bob']),
+    );
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const real = ms.getMockImplementation()!;
+    // La union de la devolucion (en la Mesa «sin cuenta») espera en una puerta.
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    let retenida: string[] | null = null;
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      const sinCuenta = pairs.find(([k]) => k === '@prep_notes');
+      if (sinCuenta && retenida === null) {
+        retenida = Object.keys(JSON.parse(sinCuenta[1])).sort();
+        await puerta;
+      }
+      return real(pairs);
+    });
+    try {
+      managePrepAccount();
+      let leido: string[] | null = null;
+      const lectura = pasajes().then(r => (leido = r));
+      const primero = setPrepAccount(null);
+      for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
+      const segundo = setPrepAccount(null);
+      // Mil vueltas con la union retenida: la lectura sigue esperando (con el
+      // segundo estado soltando las claves, leia la «sin cuenta» sin Rom/8/28).
+      for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
+      const antesDeAbrir = leido;
+      abrir();
+      await Promise.all([primero, segundo, lectura]);
+      expect({retenida, antesDeAbrir, leido, despues: await pasajes()}).toEqual(
+        {
+          retenida: ['Ps/23/1-6', 'Rom/8/28'], // CONTROL: la union de la devolucion esperaba
+          antesDeAbrir: null,
+          leido: ['Ps/23/1-6', 'Rom/8/28'],
+          despues: ['Ps/23/1-6', 'Rom/8/28'], // CONTROL: la devolucion termino
+        },
+      );
+    } finally {
+      abrir();
+      ms.mockImplementation(real);
+    }
+  });
+
   it('R9-275: una escritura de la Mesa pedida para la cuenta que se esta devolviendo va a la «sin cuenta», no bajo el uid borrado', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';
