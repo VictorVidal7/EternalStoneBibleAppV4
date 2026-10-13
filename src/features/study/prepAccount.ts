@@ -95,8 +95,12 @@ export function prepKeyFor(base: string, uid: string | null): string {
 
 /**
  * The key of `base` for the account signed in now: taken at the call once the
- * auth state is known (a write queued behind others still goes to the account
- * of when it was asked for), else at the first auth state.
+ * auth state is known, else at the first auth state. A write goes to the
+ * account of that key even if it waits behind others, except R9-275: if that
+ * account's Mesa was given back by the time the write's turn comes, a store's
+ * write goes to the Mesa «sin cuenta» instead (`prepWrite`), and the
+ * restore's is written to the account all the same and then given back
+ * (`prepMultiSet`).
  */
 export function prepKey(base: string): Promise<string> {
   if (!markKnown) return Promise.resolve(prepKeyFor(base, account));
