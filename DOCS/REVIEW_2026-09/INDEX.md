@@ -1071,7 +1071,19 @@
 > `R9-274`). `R9-330`, sin arreglar: hay un diseño medido, parcial, a decidir.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **333**. Ramas `fix/s95-arreglos-s94` y
-> `docs/review-s95-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S95-arreglo-de-s94.md`.
+> `docs/review-s95-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `589c3bc`, CI verde en
+> el log, run `38447264334`, 374/4644; corregido en la 96). Detalle: `detail/S95-arreglo-de-s94.md`.
+>
+> **Sesión 96 (2026-10-13): revisión del diff de la 95**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron. Solo docs. Lo de la 95 se sostiene como código: los
+> comentarios son solo comentarios, y en la matriz (191 corridas, re-medida en el principal)
+> ninguna regresión que caía deja de caer. Siete nuevos P3 (`R9-334`..`R9-340`), seis abiertos por
+> la 95: dos verdes falsos en sus pruebas (`R9-298` y `R9-331`), una garantía nueva sin prueba (un
+> `firstWork` que rechaza), una frase ambigua de `prepKey` y dos comentarios de prueba falsos; el
+> séptimo, un riesgo latente de las pruebas. `R9-330` queda pendiente con el OK de Victor.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **340**. Rama `docs/review-s96-diff-s95`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S96-revision-del-diff-s95.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2056,6 +2068,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 96 — 2026-10-13. Revisión del diff de la 95.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S96-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** A1 midió las 12 pruebas nuevas, A2 el gancho con nombre y los comentarios,
+    y A3 `R9-331` y la matriz entera. Todo re-medido en el árbol principal con
+    `_scratch/S96-sonda.cjs.txt` (de `S96-gen.cjs.txt`); la matriz, con `S96-matriz.cjs.txt`.
+  - **Resultado:** lo de la 95 se sostiene como código. Siete nuevos P3 (`R9-334`..`R9-340`), seis
+    abiertos por la 95. Una afirmación del agente 3 no se sostuvo en el principal (`notaLenta50` y
+    `R9-274`). `R9-330`, pendiente con el OK de Victor. No queda ningún P0 abierto.
+  - **Detalle: `detail/S96-revision-del-diff-s95.md`.**
+  - **Las lecciones:** las reglas de controles y esperas de §5 se pasan como lista a cada prueba
+    nueva; una promesa que esperan todos hace de una garantía local una de todos; una frase en
+    singular sobre algo que puede pasar varias veces se mide con varias; el `grep` de la regla de la
+    92 entra en `__tests__/`; la salida de la sonda se nombra por corrida y modo, no por los
+    argumentos de jest.
 
 - **Sesión 95 — 2026-10-13. Arreglo de lo de la 94.** En un chat nuevo, en la terminal, con 3
   agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S95-PROMPT.md`.

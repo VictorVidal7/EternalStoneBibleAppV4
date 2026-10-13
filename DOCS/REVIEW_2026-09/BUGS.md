@@ -1368,8 +1368,9 @@
 >
 > **Sesión 95 (2026-10-13): arreglo de lo de la 94**, en un chat nuevo, en la terminal, con 3
 > agentes en worktree que solo midieron (buscaban romper los arreglos, ya commiteados). Ramas
-> `fix/s95-arreglos-s94` (`3084a4c`, `3b47ff8`, `77418b4`, `f02c798`) y `docs/review-s95-fix`,
-> sin mergear hasta el OK de Victor.
+> `fix/s95-arreglos-s94` (`3084a4c`, `3b47ff8`, `77418b4`, `f02c798`) y `docs/review-s95-fix`:
+> mergeadas y pusheadas con el OK de Victor (`main` = `589c3bc`, CI verde en el log, run
+> `38447264334`, 374/4644; corregido en la 96).
 >
 > - **Cerrados (10):** `R9-323`, `R9-325`, `R9-326`, `R9-327`, `R9-328`, `R9-329` y `R9-298` (las
 >   pruebas que faltaban, cada una vista caer con su pieza), `R9-324` y `R9-332` (comentarios), y
@@ -1386,6 +1387,26 @@
 >   3), pero cubre solo notas y autoevaluación, y deja una ventana sin cubrir.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **333**. Detalle: `detail/S95-arreglo-de-s94.md`.
+>
+> **Sesión 96 (2026-10-13): revisión del diff de la 95** (`cdb1d94..f02c798`), en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron. Solo docs, en
+> `docs/review-s96-diff-s95`.
+>
+> - **Lo de la 95 se sostiene como código:** `3b47ff8` y el `src/` de `f02c798` son solo
+>   comentarios; `giveBackAsk` cuenta lo que dice; el restaurar con un segundo estado no pierde
+>   nada; y en la matriz (191 corridas, re-medida en el principal) ninguna regresión que caía deja
+>   de caer.
+> - **Nuevos (7), P3, seis abiertos por la 95:** `R9-334` (la prueba de `R9-298` pasa con su
+>   regresión si el respaldo pide una vuelta más tarde), `R9-335` (las de `R9-331` esperan sin
+>   reloj: un tope de 250 ms pasa), `R9-336` (un `firstWork` que rechaza deja todo estado
+>   lanzando y las claves sin soltar; hoy sin camino), `R9-337` (la frase de `prepKey` con dos
+>   estados durante el trabajo: su lectura pasa todo y mezcla cuentas), `R9-338` y `R9-339`
+>   (comentarios de prueba falsos) y `R9-340` (un trabajo viejo colgado suelta las claves de la
+>   prueba siguiente; no lo abrió la 95).
+> - **`R9-330`:** queda pendiente, con el OK de Victor a la recomendación de la 95 (§7 de
+>   `CONTINUAR.md`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **340**. Detalle: `detail/S96-revision-del-diff-s95.md`.
 
 ---
 
@@ -7349,6 +7370,8 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     gancho con nombre de la devolución, `__prepGiveBackWaitingForTests`, nuevo en ese commit). Cae
     con `goneAlPedir`, `goneAlPedirA10` y `respaldoAlPedir` (R bajo `@prep_notes:ana`); el corte,
     con `giveBackTarde990` pasa y con 1005 cae en `enCola` (agente 1).
+  - **Sesión 96: esa prueba tiene un verde falso** (`R9-334`): con el pedido del respaldo una vuelta
+    más tarde, `goneAlPedir` pasa las 1016.
 
 - **`R9-299` (S73, pruebas / respaldo / Mesa — P3) — 🐛 con el turno de `prepMultiSet` partido en
   dos y la nota en medio (`notaFuera`), lo restaurado queda bajo el uid borrado, y ninguna prueba lo
@@ -8431,6 +8454,8 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
       `3084a4c~1` y de `b54ebea` (controles). Ninguna línea tocada que no sea comentario. El agente 2
       lo midió aparte, y la regla de la 92 sobre cada frase nueva: `claveEnTurno` (la clave tomada
       al escribir) tumba la de `:88`; las demás solo remiten.
+  - **Sesión 96:** el comentario y el título de esa prueba dicen todavía «la cuenta de ese estado …
+    así lo dice `prepKey`», falso desde `77418b4` (`R9-338`).
 
 - **`R9-325` (S94, pruebas / Mesa — P3) — 🐛 el desvío de `R9-275` solo lo vigila una prueba en el
   store de notas: en series, ilustraciones y autoevaluación, un store que no lo sigue pasa las 1004
@@ -8501,6 +8526,13 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     espera: `ajenoR327b` cae con el código bueno (`enEspera: 2`), y `multiSetTarde1005`, aislada, en
     `retenida: null`, en 3-5 s (re-medido). **El comentario de `prepMultiSet` no se tocó** (la
     segunda mitad de la hipótesis): queda abierto, sin prioridad, porque la prueba ya lo fija.
+  - **Sesión 96: la rehecha no pierde nada que no vigilen otras** (agente 1; re-medido).
+    `r327viaStore` (la edición por el store, con la puerta de `f02c798`) pasa `prep`. Las
+    regresiones del store que la vieja veía las ven otras pruebas: `notasSinTurno` tumba 6 de 35 y
+    `notasLeeAlPedir`, 3. Con `notaLenta50` (un cambio bueno) cae en el `prep` entero por
+    contaminación (la regla de la 63), en su control (`enEspera: 1 → 0`), aunque el rojo lleve
+    también `- "observation": "del respaldo"`; aislada, pasa (agente 3; re-medido). Es la clase de
+    `R9-333`, pero con el control en el rojo.
 
 - **`R9-328` (S94, pruebas / respaldo — P3) — 🐛 «noted first» y «a give-back that fails here keeps
   its note» (`prepMultiSet`) no los fija ninguna prueba: con la nota después de escribir, o quitada
@@ -8525,6 +8557,8 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     de `muereTrasEscribir` espera hasta que el `multiSet` llega (no 50 vueltas fijas): con
     `respaldoTurnoTarde990` pasa, y pasado el corte cae en `escrito: []` (agente 1). Pasado el corte,
     su `prepMultiSet` sigue después del reinicio y ensucia la prueba siguiente: menor, sin arreglar.
+  - **Sesión 96:** la cabecera de esas pruebas dice «Lo restaurado no queda bajo el uid borrado en
+    ningún punto», y al pie de la letra tumba 6 con el código bueno (`R9-339`).
 
 - **`R9-329` (S94, pruebas / Mesa — P3) — 🐛 que `noteRelease` se trague su error («The join is
   tried all the same») no lo fija ninguna prueba: si lanza, la devolución no corre, y pasan las 1004.** MEDIDO en la 94 (agente 10; re-medido).
@@ -8571,6 +8605,9 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
       (harían falta un id por llamada, unos 11 llamadores); y una escritura pedida DESPUÉS de la
       adopción y antes de `setPrepAccount(uid)` resuelve la «sin cuenta» ya vaciada y no se
       redirige (por lectura, sin sonda).
+  - **Decidido (2026-10-13, tras la 95): queda PENDIENTE.** Victor dio el OK a la recomendación de
+    la 95 («sigamos tu recomendación»). No se revisa ni se propone salvo que lo pida (§7 de
+    `CONTINUAR.md`). Escrito en la 96.
 
 - **`R9-331` (S94, Mesa / `R9-314` — P3) — 🐛 un segundo `setPrepAccount` que llega mientras el
   primero espera la migración o la devolución suelta las claves en el acto, antes de que terminen:
@@ -8615,6 +8652,13 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     - **Lo que el arreglo quita (sin camino en la app):** con `turnoAntesDeClave` (la traba de la
       55), un segundo estado ya no la destraba (`trabaSegundo`, agente 2). La vigila la prueba de
       `R9-310`, que sigue cayendo con esa pieza.
+  - **Sesión 96:** sus dos pruebas esperan sin reloj (`R9-335`); un `firstWork` que rechaza deja
+    todo estado lanzando y las claves sin soltar (`R9-336`); la frase de `prepKey` no dice qué
+    estado cuenta si llegan dos durante el trabajo (`R9-337`). Sin hallazgo, medido por el agente 3
+    y re-medido: el restaurar con un segundo estado (`restaurarA3`, `importBackup` real) no pierde
+    nada, y con `sinR331` el respaldo caía antes de la migración y la Mesa de antes se le unía
+    (`ana: ["Ps/119/105", "Ps/23/1-6"]`); con el trabajo del primero colgado, el cuelgue es el de
+    antes, sin el rescate que daba un segundo estado.
 
 - **`R9-332` (S95, comentario — P3) — 🐛 la frase vieja de `R9-324` estaba también en el comentario
   de `prepWrite` («from `prepKey`, taken when the write was asked for»), y la 94 no la vio.** MEDIDO
@@ -8640,6 +8684,163 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
   - **Arreglo (hipótesis), sin medir:** un control de que la unión llegó (lo que el `multiSet`
     colgado traía, como `colgadas` en `muere` de `R9-275`), y esperar hasta que llegue en vez de
     10 vueltas fijas, con su margen (la regla de la 71).
+  - **Sesión 96:** en el principal, `notaLenta50` en el `prep` entero la sigue tumbando con ese rojo
+    (3 de 3 corridas sobre `f02c798`). El agente 3 escribió que ya no cae, pero su salida de esa
+    corrida es la de un `-t R9-327` (34 omitidas), que pisó la del `prep` entero: la sonda nombra
+    la salida por corrida y modo, no por los argumentos de jest.
+
+- **`R9-334` (S96, pruebas / respaldo — P3) — 🐛 la prueba de `R9-298` abre la puerta en la misma
+  vuelta en que llama al respaldo: con el pedido del respaldo una vuelta más tarde, su regresión
+  (`gone` calculado al pedir) pasa las 1016, y el control `enCola` sigue en 1.** MEDIDO por el
+  agente 1 de la 96 y re-medido (`_scratch/S96-sonda.cjs.txt`, de `S96-gen.cjs.txt`).
+  - `prepAccount.test.ts`, la de `R9-298` (`3084a4c`): una escritura de series retiene el turno, la
+    devolución de Ana espera detrás (`enCola`, el gancho con nombre), se llama a `prepMultiSet` y en
+    la misma vuelta se abre la puerta. `enCola` dice que la devolución esperaba; nada dice que el
+    respaldo ya había pedido el suyo.
+  - **Piezas:** `goneAlPedirTarde<K>` (la regresión, con el pedido K vueltas después de la llamada)
+    y `respaldoPideTarde<K>` (solo la demora: un cambio bueno). `goneAlPedirTarde0` cae como
+    `goneAlPedir` (`+ "@prep_notes:ana"`, `- "Ps/23/1-6"`). `goneAlPedirTarde1`: `prep` 35/35 y
+    suite 1016/1016. Con 1 vuelta, la devolución ya terminó cuando el respaldo pide: el caso no se
+    arma. El margen es 0 (la regla de la 74).
+  - **El daño, con su control:** con la puerta 50 vueltas más tarde (`abrirTarde298_50`, código
+    bueno) pasa; `goneAlPedirTarde1+abrirTarde298_50` cae con R bajo `@prep_notes:ana`;
+    `respaldoPideTarde1+abrirTarde298_50` pasa.
+  - Es la regla de la 72 y la de la 86: un caso de orden entre dos pedidos tiene un control de uno
+    solo.
+  - **Residuo, menor, sin número:** con una devolución ajena de Ana en la ventana y la del caso
+    3000 vueltas tarde (`ajenoDev298`), `goneAlPedir` también pasa: `enCola` dice la cuenta, no
+    cuál devolución. No hay daño posible con esa forma (la segunda devolución repara).
+  - **¿Lo abrió la 95?** Sí (`3084a4c`).
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** una etiqueta para el pedido de `prepMultiSet` (como
+    `giveBackAsk`), y que la prueba espere a verla en `waiting`, con la devolución todavía contada,
+    antes de abrir. Tiene que caer con `goneAlPedirTarde1` y `goneAlPedirTarde20`.
+
+- **`R9-335` (S96, pruebas / Mesa — P3) — 🐛 las dos pruebas de `R9-331` esperan 1000 vueltas sin
+  reloj falso: con un tope de 250 ms al segundo estado, pasan las 1016.** MEDIDO por el agente 1 de
+  la 96 y re-medido.
+  - `prepAccount.test.ts`, las de `77418b4` y `f02c798`. La lección de `R9-317` (`relojesFalsos` +
+    `unaHora`, reglas de la 84 y la 85) se aplicó a las del primer estado, no a estas.
+  - **Pieza `segundoTope<MS>`:** un estado que no es el primero espera `firstWork` a lo sumo MS ms
+    (`Promise.race` con `setTimeout`): lo que alguien escribiría para un primer trabajo colgado.
+    `segundoTope250`: `prep` 35/35 y suite 1016/1016. En vueltas (`segundoTopeV<K>`), con 995 caen
+    las dos y con 1005 pasan.
+  - **El daño, con su control:** con la unión retenida 400 ms de reloj real (`esperaReal331_400`,
+    código bueno) pasa; `segundoTope250+esperaReal331_400` cae con el rojo de `R9-331`
+    (`antesDeAbrir: ["Ps/23/1-6"]`, sin `Rom/8/28`), el mismo que `sinR331+esperaReal331_400`. En el
+    teléfono: un primer trabajo más lento que el tope y el estado del inicio anónimo
+    (`AuthContext.tsx:377`).
+  - **¿Lo abrió la 95?** Sí (`77418b4`, `f02c798`).
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** `relojesFalsos()` + `unaHora()` en las dos, con la unión o
+    la migración retenida. Tiene que caer con `segundoTope250`; el corte, con `segundoTope<MS>` y
+    `lecturaLenta<K>`.
+
+- **`R9-336` (S96, Mesa / `R9-331` — P3) — 🐛 desde `R9-331` todo estado espera el mismo
+  `firstWork`: si rechazara, todo `setPrepAccount` posterior lanzaría y las claves no se soltarían
+  nunca. Hoy no hay camino que rechace, y nada lo fija.** MEDIDO por el agente 3 de la 96 y
+  re-medido.
+  - `setPrepAccount` (`prepAccount.ts:228-243`): `await firstWork` en todo estado. `migrateLegacyPrep`
+    está entera en un `try`, `finishRelease` lee la nota en un `try` y `giveBack` se traga sus
+    errores: por lectura, solo lanzaría un `logger.warn` que lance.
+  - **Pieza `lecturaNotaSinTry`** (`finishRelease` lee la nota fuera del `try`, un refactor de una
+    guarda): `prep` 35/35 y suite 1016/1016. Ninguna prueba hace fallar esa lectura.
+  - **El daño** (prueba-sonda `notaFallaA3`: la lectura de `@prep_release_pending` falla una vez en
+    el primer estado, nulo; después un segundo estado nulo, un tercero `ana` y una escritura de
+    notas; una lectura pedida antes del primero):
+    - Hoy: `{"fallo":1,"leidoTrasPrimero":["Ps/23/1-6"],"leidoTrasSegundo":["Ps/23/1-6"],"lanzo":[],"escrito":true}`.
+    - Con la pieza: `{"leidoTrasPrimero":null,"leidoTrasSegundo":null,"lanzo":["primero","segundo","tercero"],"escrito":false}`.
+      La lectura no vuelve y la escritura no se escribe hasta cerrar la app; el respaldo, al
+      exportar y al restaurar, espera `prepKey`; y cada cambio de cuenta deja un rechazo sin
+      manejar (`void setPrepAccount`, `AuthContext.tsx:303`).
+    - Con la pieza y `sinR331`: `"leidoTrasSegundo":["Ps/23/1-6"]`, `"lanzo":["primero"]`,
+      `"escrito":true`. Antes de la 95, el segundo estado soltaba las claves.
+    - En el `prep` entero, esa corrida cuelga las escrituras de notas de las pruebas siguientes
+      (282 s, agente 3): por eso se re-midió con `-t S96a3`.
+  - **¿Lo abrió la 95?** Sí (`77418b4`).
+  - P3: hoy no hay camino que rechace. Es una garantía nueva («el trabajo del primer estado no
+    rechaza») que ningún comentario dice y ninguna prueba fija.
+  - **Arreglo (hipótesis), sin medir:** que el `await firstWork` no herede un rechazo (el trabajo
+    envuelto en un `catch` que lo registre), o una prueba con la forma de `notaFallaA3`. La medida:
+    `lecturaNotaSinTry` tiene que caer, o dejar de hacer daño.
+
+- **`R9-337` (S96, comentario / pruebas / Mesa — P3) — 🐛 la frase de `prepKey` de `f02c798` no dice
+  qué estado cuenta si llegan dos durante el trabajo del primero: leída como «el primero que llegó
+  mientras tanto», pasa las 1016, y lo escrito sin cuenta va a la Mesa de una cuenta que ya
+  salió.** MEDIDO por el agente 2 de la 96 y re-medido.
+  - `prepAccount.ts:99-102`: «once the first auth state's work is done (R9-331), with the account
+    signed in then (a state that came meanwhile counts, not the first one)». El código toma
+    `account` cuando corre el `known.then` de la clave, justo después del trabajo: la cuenta del
+    ÚLTIMO estado llegado. «A state that came meanwhile counts» admite también el primero de
+    ellos.
+  - **Pieza `claveDelSegundoEstado`** (la clave toma la cuenta del primer estado llegado durante el
+    trabajo): `prep` 35/35 y suite 1016/1016. Las pruebas de `R9-331` tienen un solo estado durante
+    el trabajo.
+  - **El daño** (caso `S96a2-tres`, en `casosS96a2`): la migración del primer estado (nulo)
+    retenida en su lectura de `@prep_by_account`; antes de todo estado, `savePrepNote(P)`; durante el
+    trabajo, `setPrepAccount('ana')` y después `setPrepAccount(null)`. Hoy, `deAna: null`,
+    `sinCuenta: [P]`, `leido: [P]`. Con la pieza, P en `@prep_notes:ana`, `sinCuenta: []`,
+    `leido: []`: quien usa el teléfono no ve lo que escribió, y Ana lo verá al volver a entrar (la
+    mezcla entre cuentas que `R9-59` prohíbe). Controles: `migracionRetenida: '@prep_by_account'`,
+    `escritaAntesDeAbrir: false`. Con `claveDelPrimerEstado`, `tres` pasa (el primero y el último
+    son nulos) y cae la de `R9-331` de `f02c798`.
+  - **¿Lo produce el teléfono?** Por lectura, casi nunca: entrar y salir con Google en los
+    milisegundos del trabajo del primer estado.
+  - **¿Lo abrió la 95?** Sí: la frase es de `f02c798`, y el caso existe por `77418b4`.
+  - P3: un comentario, y un caso sin prueba.
+  - **Arreglo (hipótesis), sin medir:** «with the account signed in when that work is done (the last
+    state to come meanwhile)», y `S96a2-tres` como prueba: tiene que caer con
+    `claveDelSegundoEstado`.
+
+- **`R9-338` (S96, comentario de prueba — P3) — 🐛 el comentario y el título de la prueba de
+  `R9-324` dicen todavía lo que `f02c798` corrigió en `prepKey`.** MEDIDO por el agente 2 de la 96
+  y re-medido.
+  - `prepAccount.test.ts:109-112` (`3b47ff8`): «antes del primer estado de auth, la clave es la de la
+    cuenta de ese estado … así lo dice `prepKey`», y el título, «… va a la cuenta de ese estado».
+    Cierto en `3b47ff8`; falso desde `77418b4` (lo pedido antes toma la cuenta de cuando termina
+    el trabajo), y `prepKey` ya no lo dice desde `f02c798`.
+  - Al pie de la letra es `claveDelPrimerEstado`, que tumba 1 de 35: la de `R9-331` de `f02c798`
+    (`leido: []`, la edición en `sinCuenta`). No hay daño: engaña a quien lea la prueba, y la regla
+    de la 92 tenía que haberla encontrado (el `grep` de la frase, también en `__tests__/`).
+  - **¿Lo abrió la 95?** Sí.
+  - **Arreglo (hipótesis), sin medir:** «la de la cuenta de cuando termina el trabajo del primer
+    estado (ver `prepKey`)», y el título sin «de ese estado» (su caso tiene un solo estado).
+
+- **`R9-339` (S96, comentario de prueba — P3 bajo) — 🐛 la cabecera de las pruebas de `R9-328` dice
+  «Lo restaurado no queda bajo el uid borrado en ningún punto», y al pie de la letra es el arreglo
+  que `R9-275` descartó.** MEDIDO por el agente 2 de la 96 y re-medido.
+  - `prepAccount.test.ts:979-981` (`3084a4c`). El código escribe el respaldo bajo `@prep_notes:ana`
+    y lo devuelve en el mismo turno, y la misma prueba (`muereTrasEscribir`) arma el caso en que se
+    queda ahí hasta el arranque siguiente.
+  - `respaldoDesviado` (el respaldo escrito directo en la «sin cuenta», pieza de la 93) tumba 6 de
+    35 con el código bueno: las dos de `R9-328`, `R9-298`, `R9-292`, `R9-275` y `R9-327` (p. ej.
+    `escrito: []`). Es la regla de la 90.
+  - **¿Lo abrió la 95?** Sí (`3084a4c`).
+  - **Arreglo (hipótesis), sin medir:** «… no se queda bajo el uid borrado: se escribe ahí y se
+    devuelve en el mismo turno, o en el arranque siguiente».
+
+- **`R9-340` (S96, pruebas / Mesa — P3) — 🐛 `__resetPrepAccountForTests` no corta las
+  continuaciones de un trabajo del primer estado que sigue colgado: un `setPrepAccount` viejo suelta
+  las claves de la prueba siguiente. Hoy ninguna prueba lo arma.** MEDIDO por el agente 3 de la 96
+  y re-medido. Es lo que el detalle de la 95 dejó «por lectura».
+  - El reinicio pone `firstWork = Promise.resolve()` y `markKnown = null`, pero un `setPrepAccount`
+    que esperaba el trabajo viejo sigue al soltarse, y llama al `markKnown` de la prueba nueva (es
+    de módulo). La migración vieja escribe además `@prep_by_account` en el almacén de la nueva,
+    después de su `clear()` (agente 3, por lectura).
+  - **Prueba-sonda `viejoReanudaA3`** (justo antes de «las claves esperan al primer estado de
+    auth»): la migración retenida, un segundo estado `zoe`, y la puerta que se abre sola 20 vueltas
+    después, ya en la siguiente. La siguiente cae (`antes: null → []`); con `muestraViejo`:
+    «reinicio con 1 trabajo(s) pendiente(s)», «trabajo viejo termina en …», «estado viejo sigue en
+    … (SUELTA las claves de esta)». Con `sinR331`, la siguiente cae igual.
+  - **Exposición hoy:** `muestraViejo` da 35/35 en `prep` y 1016/1016 en el suite, sin ninguna
+    línea: ninguna prueba deja pendiente ese trabajo al reiniciar.
+  - **¿Lo abrió la 95?** No: el estado que reanuda y suelta es el primero, cuyo `await` ya estaba;
+    la 95 suma la continuación del segundo, que llega con `markKnown` nulo.
+  - P3 (pruebas): latente. Una prueba que cuelgue el primer trabajo y lo suelte tarde tumbaría la
+    siguiente con un rojo que dice «la clave no esperaba». Es la clase de lo que la 95 anotó de
+    `muereTrasEscribir` (pasado su corte, ensucia la siguiente), por otro camino.
+  - **Arreglo (hipótesis), sin medir:** una generación que el reinicio incremente y que
+    `setPrepAccount` mire tras su `await`, como hace `muestraViejo`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
