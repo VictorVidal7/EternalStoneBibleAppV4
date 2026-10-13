@@ -1036,8 +1036,18 @@
 > `prepKey` dice que una escritura en cola va a la cuenta de cuando se pidió, y desde `R9-275` va a
 > la «sin cuenta» si la cuenta ya se devolvió. Seguido al pie de la letra, caen dos pruebas.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **322**. Rama `docs/review-s92-diff-s91`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S92-revision-del-diff-s91.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **322**. Rama `docs/review-s92-diff-s91`: mergeada y
+> pusheada con el OK de Victor (`main` = `b54ebea`, CI verde en el log, run `38359587793`, 374/4632;
+> corregido en la 93). Detalle: `detail/S92-revision-del-diff-s91.md`.
+>
+> **Sesión 93 (2026-10-13): arreglo de lo de la 92**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron. Cerró `R9-322` (`8dd8c92`, solo comentarios): el de
+> `prepKey` dice la excepción de `R9-275`, distinta para un store (va a la «sin cuenta») y para el
+> respaldo (se escribe en la cuenta y se devuelve después). Un nuevo P3, `R9-323`: que el desvío
+> espere la devolución TERMINADA no lo fija ninguna prueba, y una regresión así pierde una sección.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **323**. Ramas `fix/s93-r322` y `docs/review-s93-fix`,
+> sin mergear hasta el OK de Victor. Detalle: `detail/S93-arreglo-r322.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2022,6 +2032,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 93 — 2026-10-13. Arreglo de lo de la 92.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (Victor pidió 6; se le recordó la 37 y eligió 3); con
+  `_scratch/S93-PROMPT.md`.
+  - **Cómo se trabajó:** el comentario, commiteado primero (`8dd8c92`); sobre él, A1 midió como
+    código cada lectura literal de las frases nuevas, A2 que fuera solo comentarios y el `grep` de la
+    regla de la 92, y A3 «¿abre algo?» camino por camino. Todo re-medido en el árbol principal con
+    `_scratch/S93-sonda.cjs.txt` (de `S93-gen.cjs.txt`, más `S93-edita.cjs.txt`).
+  - **Resultado:** cerrado `R9-322`. Nuevo `R9-323` (P3, una prueba que falta; no lo abrió la 93).
+    No queda ningún P0 abierto.
+  - **Detalle: `detail/S93-arreglo-r322.md`.**
+  - **La lección:** una lectura al pie de la letra que pasa todas las pruebas no es inocua por eso:
+    medí su daño con un caso hecho para ella.
 
 - **Sesión 92 — 2026-10-13. Revisión del diff de la 91.** En un chat nuevo, en la terminal, con 3
   agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S92-PROMPT.md`. Solo docs.

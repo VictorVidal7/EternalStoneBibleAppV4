@@ -1,16 +1,17 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-13, fin de la sesión 92.** La 92 hizo el (bt) en un chat nuevo,
-> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor). Lo de la 91 se
-> sostiene: solo comentarios (el JS emitido es igual, con su control), y ninguna lectura al pie de
-> la letra de las frases nuevas tumba la prueba sin contradecir otra frase del mismo comentario. Un
-> nuevo P3, `R9-322`: el comentario de `prepKey` dice que una escritura en cola va a la cuenta de
-> cuando se pidió, y desde `R9-275` va a la «sin cuenta» si esa cuenta ya se devolvió.
+> **Última actualización: 2026-10-13, fin de la sesión 93.** La 93 hizo el (bu) en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron (Victor pidió 6; se le recordó la 37 y
+> eligió 3). Cerró `R9-322` (`8dd8c92`, solo comentarios en `prepAccount.ts`): el de `prepKey` dice
+> la excepción de `R9-275`, distinta para un store (va a la «sin cuenta») y para el respaldo (se
+> escribe en la cuenta y se devuelve después). Un nuevo P3, `R9-323`, que no abrió la 93: que el
+> desvío espere la devolución TERMINADA no lo fija ninguna prueba, y una regresión así pierde una
+> sección.
 >
-> La 91 ya está mergeada y pusheada (`main` = `c983c7a`, CI verde en el log, run `38354373015`,
-> 374/4632). La rama de la 92 (`docs/review-s92-diff-s91`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 322 hallazgos. **Lo siguiente:** la 93 arregla
-> `R9-322` (mensaje (bu), en `_scratch/S93-PROMPT.md`).
+> La 92 ya está mergeada y pusheada (`main` = `b54ebea`, CI verde en el log, run `38359587793`,
+> 374/4632). Las ramas de la 93 (`fix/s93-r322` y `docs/review-s93-fix`) van **sin mergear hasta el
+> OK de Victor**. **No queda ningún P0 abierto**, y hay 323 hallazgos. **Lo siguiente:** la 94
+> revisa el diff de la 93 (mensaje (bv), en `_scratch/S94-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -526,10 +527,15 @@ en un chat nuevo y sin agentes, con `_scratch/S89-PROMPT.md`). Y la revisión de
 sesión 90, en el mismo chat y sin agentes, con `_scratch/S90-PROMPT.md`). Y su arreglo (la (bs),
 sesión 91, en el mismo chat y sin agentes, con `_scratch/S91-PROMPT.md`). Y la revisión de su diff
 (la (bt), sesión 92, en un chat nuevo con 3 agentes que solo midieron, con
-`_scratch/S92-PROMPT.md`). **Lo siguiente es el (bu).**
+`_scratch/S92-PROMPT.md`). Y su arreglo (la (bu), sesión 93, en un chat nuevo con 3 agentes que
+solo midieron, con `_scratch/S93-PROMPT.md`). **Lo siguiente es el (bv).**
 
-**(bu) Sesión 93: arreglar `R9-322`** (el comentario de `prepKey` en `prepAccount.ts`; solo
-comentarios). El mensaje está en `_scratch/S93-PROMPT.md`, que manda sobre este archivo.
+**(bv) Sesión 94: revisar el diff de la 93** (`b54ebea..8dd8c92`: solo el comentario de `prepKey`
+en `prepAccount.ts`). El mensaje está en `_scratch/S94-PROMPT.md`, que manda sobre este archivo.
+
+**(bu) Sesión 93: arreglar `R9-322` — ya HECHO en la sesión 93, en un chat nuevo, en la terminal,
+con 3 agentes en worktree que solo midieron.** Cerrado `R9-322`; un nuevo P3 (`R9-323`). El mensaje
+está en `_scratch/S93-PROMPT.md`.
 
 **(bt) Sesión 92: revisar el diff de la 91 — ya HECHO en la sesión 92, en un chat nuevo, en la
 terminal, con 3 agentes en worktree que solo midieron.** Lo de la 91 se sostiene; un nuevo P3
@@ -2067,17 +2073,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 92 (2026-10-13).**
+**Medido al cerrar la sesión 93 (2026-10-13).**
 
-- **`main` = `origin/main` = `c983c7a`** (el checkpoint de la 91, solo docs; el último código en
-  `main` es `3bccafd`, los comentarios de `R9-321`). **CI verificado en el log** en la 91: run
-  `38354373015`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 91 se borraron tras `git cherry`.
-- **Una rama de la 92, sin mergear a propósito y sin pushear:** `docs/review-s92-diff-s91` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno (los de los 3 agentes de la 92 se borraron solos, con sus ramas).
+- **`main` = `origin/main` = `b54ebea`** (el checkpoint de la 92, solo docs; el último código en
+  `main` es `3bccafd`, los comentarios de `R9-321`). **CI verificado en el log** en la 92: run
+  `38359587793`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 92 se borró tras `git cherry`.
+- **Dos ramas de la 93, sin mergear a propósito y sin pushear:** `fix/s93-r322` (`8dd8c92`, el
+  comentario) y `docs/review-s93-fix` encima (solo docs). Se mergean en fast-forward con el OK de
+  Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno (los de los 3 agentes de la 93 no se borraron solos: se quitaron a
+  mano, con sus ramas, tras comparar su `_scratch` con la copia).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 92):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 93):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2698,6 +2706,16 @@ Alternativas legítimas:
 538b1bc^` da `538b1bc` (`_scratch/S92-caret.cjs.txt`), así que un control `<sha>^` compara contra
   el propio `<sha>` y dice «igual». Usá `~1` o el hash. Y `S65-igual` sale con 0 también cuando hay
   diferencias: leé su última línea.
+- **Una lectura al pie de la letra que pasa todas las pruebas no es inocua por eso: medí su daño
+  (sesión 93, `R9-323`).** La regla de la 90 busca la lectura que tumba una prueba con el código
+  bueno. La 93 encontró la contraria: «was given back» leído como «se marcó» (`devueltaAunqueFalle`,
+  `devueltaAlAnotar`) pasa las 1004 relacionadas, y con una devolución fallida pierde una sección
+  (`editaTrasFalla`). Cuando una lectura pasa, armá el caso que la distingue y mirá qué rompe.
+- **Una excepción se escribe para cada camino que pasa por la frase (sesión 93, `R9-322`).** «Va a
+  la sin cuenta», leído para el respaldo, es el arreglo que `R9-275` descartó, y tumba dos pruebas
+  (`respaldoDesviado`). Y sacar una frase del paréntesis que la acotaba («once the auth state is
+  known») la vuelve falsa para otro camino (lo pedido antes del primer estado). Antes de escribir,
+  listá los llamadores (`grep` del nombre), y medí la frase en cada uno.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

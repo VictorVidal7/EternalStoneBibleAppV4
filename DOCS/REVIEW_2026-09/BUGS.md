@@ -1314,7 +1314,8 @@
 >
 > **Sesión 92 (2026-10-13): revisión del diff de la 91**, en un chat nuevo, en la terminal, con 3
 > agentes en worktree que solo midieron (los pidió Victor). Solo docs. Rama
-> `docs/review-s92-diff-s91`, sin mergear hasta el OK de Victor.
+> `docs/review-s92-diff-s91`: mergeada y pusheada con el OK de Victor (`main` = `b54ebea`, CI verde
+> en el log, run `38359587793`, 374/4632; corregido en la 93).
 >
 > - **Lo de la 91 se sostiene:** solo comentarios (el JS emitido es igual, y el control da
 >   distinto), y su tabla da lo mismo. Ninguna lectura al pie de la letra de las frases nuevas tumba
@@ -1328,6 +1329,20 @@
 >   «the rest nothing», que `muestra` no medía.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **322**. Detalle: `detail/S92-revision-del-diff-s91.md`.
+>
+> **Sesión 93 (2026-10-13): arreglo de lo de la 92**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron (Victor pidió 6; se le recordó la 37 y eligió 3). Ramas
+> `fix/s93-r322` y `docs/review-s93-fix`, sin mergear hasta el OK de Victor.
+>
+> - **Cerrado:** `R9-322` (`8dd8c92`, solo comentarios: el de `prepKey` dice la excepción de
+>   `R9-275`, distinta para un store, que va a la «sin cuenta», y para el respaldo, que se escribe en
+>   la cuenta y se devuelve después). El JS emitido es igual al de `main`, y `segunPrepKey` sigue
+>   tumbando dos pruebas.
+> - **Nuevo (1), P3, no lo abrió la 93:** `R9-323` («was given back», la devolución TERMINADA, no lo
+>   fija ninguna prueba: con `givenBack` marcado antes de la unión, o aunque falle, pasan las 1004
+>   relacionadas, y una edición tras una devolución fallida pierde una sección).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **323**. Detalle: `detail/S93-arreglo-r322.md`.
 
 ---
 
@@ -8250,6 +8265,52 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     excepción, por ejemplo «(a write queued behind others still goes to the account of when it was
     asked for, or, R9-275, to the Mesa «sin cuenta» if that account's Mesa was given back by the
     time its turn comes)». La medida es `segunPrepKey`: tiene que seguir cayendo.
+  - **✅ ARREGLADO en la sesión 93** (`8dd8c92`, solo comentarios en `prepAccount.ts:96-104`). Dice
+    ahora: «A write goes to the account of that key even if it waits behind others, except R9-275:
+    if that account's Mesa was given back by the time the write's turn comes, a store's write goes
+    to the Mesa «sin cuenta» instead (`prepWrite`), and the restore's is written to the account all
+    the same and then given back (`prepMultiSet`)».
+    - **No es la frase de la hipótesis:** leída para el respaldo, «va a la sin cuenta» es
+      `respaldoDesviado`, el arreglo que `R9-275` descartó, y tumba las pruebas de `R9-292` y la de
+      `R9-275` en `backupPrepTurn.test.ts`. Y vale para toda escritura, no solo para las que esperan
+      en cola: sin cola, tras la devolución, también se desvía (`noEnCola`, del agente 3). «Of when
+      it was asked for» se cambió por «of that key», porque lo pedido antes del primer estado de auth
+      toma la clave de ese estado.
+    - **Medido sobre `8dd8c92`** (`_scratch/S93-sonda.cjs.txt`, `prep`): `segunPrepKey` tumba 2 de 23
+      (las de `R9-275` y `R9-292`, igual que en la 92); `nada`, 23/23. `git diff -U0`: 8 líneas, todas
+      de comentario. El JS emitido sin comentarios es igual al de `main` (8590 caracteres), y el
+      control contra `1f02511` da distinto (8526). Cada frase nueva, hecha código, y las pruebas que
+      la fijan: `detail/S93-arreglo-r322.md` §3. Ninguna frase de `src` ni de `__tests__` dice lo
+      contrario para el mismo caso (agente 2).
+    - Es un comentario: no hay prueba que lo vea fallar sin él. Su sentido lo fijan las pruebas de
+      `R9-275` y `R9-292`, salvo «was given back»: `R9-323`.
+
+- **`R9-323` (S93, pruebas / Mesa — P3) — 🐛 que la escritura de un store se desvíe solo cuando la
+  devolución TERMINÓ no lo fija ninguna prueba: con `givenBack` marcado antes de la unión, o aunque
+  la unión falle, pasan las 1004 relacionadas, y una edición tras una devolución fallida pierde una
+  sección.** MEDIDO en la 93 (`_scratch/S93-sonda.cjs.txt`; piezas `devueltaAlAnotar` y
+  `devueltaAunqueFalle`, del agente 1; el daño, con `editaTrasFalla`, `_scratch/S93-edita.cjs.txt`).
+  - `giveBack` (`prepAccount.ts:301-312`) agrega el uid a `givenBack` después de `joinPrep`, en el
+    mismo turno: si la unión falla, no lo agrega, y lo escrito después va a la clave de la cuenta,
+    que el arranque siguiente devuelve entera. Lo dicen el comentario de `prepWrite` y el de
+    `prepKey` («was given back»).
+  - **`devueltaAlAnotar`** (el `add` al anotar, antes de la unión) y **`devueltaAunqueFalle`** (el
+    `add` antes de la unión, dentro del turno): 23/23 en `prep` y 1004/1004 en `suite` (control
+    `nada`, 1004). Con `muestraDevuelta`, los 3 desvíos de las 23 caen con la unión ya terminada:
+    ninguna prueba arma un desvío entre la nota y el fin de la unión, ni tras una unión fallida.
+  - **El daño** (`editaTrasFalla`, `prep -t S93`): Ana escribe P (`observation`), su devolución
+    falla (el `multiSet` a `@prep_notes` lanza), Ana edita P (`application`) y el arranque siguiente
+    termina la devolución. Hoy, P queda con las dos secciones. Con cualquiera de las dos piezas, la
+    edición va a la «sin cuenta» sobre una P que ahí no existe, con un reloj más nuevo, y la unión del
+    arranque (`sourceGoes`) se queda con ella: se pierde `observation: "de Ana"`. La pieza
+    `noEnColaFalla` del agente 3 también cae con las dos.
+  - **¿Lo abrió la 93?** No: el `add` después de la unión es de la 59 (`37ba5f7`).
+  - P3: el código de hoy está bien. Hace falta una regresión, y para el daño, una devolución que
+    falle y una edición de la misma entrada antes del arranque siguiente.
+  - **Arreglo (hipótesis):** una prueba en `prepAccount.test.ts` con la forma de `editaTrasFalla`
+    (la devolución falla, se edita la misma entrada y el arranque siguiente devuelve las dos
+    secciones). Tiene que caer con `devueltaAunqueFalle` y con `devueltaAlAnotar`; esta última
+    también con una escritura en cola delante de la devolución, cuyo turno llega después de la nota.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
