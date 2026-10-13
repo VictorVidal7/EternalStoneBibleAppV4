@@ -1,16 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-12, fin de la sesión 90.** La 90 hizo el (br) en el mismo chat
-> que la 89 (lo pidió Victor), en la terminal y sin agentes: revisó el diff de la 89. Lo de la 89
-> cae como dice, re-medido sobre `cd7993c`. Un nuevo P3, `R9-321`: el comentario del `Set` de
-> `oneAtATime` dice que cada pedido lleva «what it writes», y la etiqueta es la clave que resolvió.
-> Con la cuenta devuelta, la otra pide con la de Ana y escribe en la «sin cuenta», y un gancho que
-> siga el comentario hace caer la prueba con el código bueno.
+> **Última actualización: 2026-10-12, fin de la sesión 91.** La 91 hizo el (bs) en el mismo chat
+> que la 89 y la 90 (lo pidió Victor), en la terminal y sin agentes. Cerró `R9-321` (`3bccafd`,
+> solo comentarios en `prepAccount.ts`): el `Set` de `oneAtATime` lleva la clave que se pidió, que
+> no siempre es la que se escribe, y el export dice «asked for». Ninguna línea de código cambia, y
+> `etiquetaDesviada` sigue cayendo. Ninguno nuevo.
 >
-> La 89 ya está mergeada y pusheada (`main` = `cd7993c`, CI verde en el log, run `38349182452`,
-> 374/4632). La rama de la 90 (`docs/review-s90-diff-s89`) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 321 hallazgos. **Lo siguiente:** la 91 arregla
-> `R9-321` (mensaje (bs), en `_scratch/S91-PROMPT.md`).
+> La 90 ya está mergeada y pusheada (`main` = `e4d7e3a`, CI verde en el log, run `38351138599`,
+> 374/4632). Las ramas de la 91 (`fix/s91-r321` y `docs/review-s91-fix`) van **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 321 hallazgos. **Lo siguiente:** la 92
+> revisa el diff de la 91 (mensaje (bt), en `_scratch/S92-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -523,12 +522,15 @@ sin agentes, con `_scratch/S86-PROMPT.md`). Y su arreglo (la (bo), sesión 87, e
 sin agentes, con `_scratch/S87-PROMPT.md`). Y la revisión del diff de la 87 (la (bp), sesión 88,
 en un chat nuevo y sin agentes, con `_scratch/S88-PROMPT.md`). Y su arreglo (la (bq), sesión 89,
 en un chat nuevo y sin agentes, con `_scratch/S89-PROMPT.md`). Y la revisión de su diff (la (br),
-sesión 90, en el mismo chat y sin agentes, con `_scratch/S90-PROMPT.md`). **Lo siguiente es el
-(bs).**
+sesión 90, en el mismo chat y sin agentes, con `_scratch/S90-PROMPT.md`). Y su arreglo (la (bs),
+sesión 91, en el mismo chat y sin agentes, con `_scratch/S91-PROMPT.md`). **Lo siguiente es el
+(bt).**
 
-**(bs) Sesión 91: arreglar `R9-321`** (el comentario del `Set` en `prepAccount.ts`; la pieza que lo
-mide es `etiquetaDesviada`, en `_scratch/S90-sonda.cjs.txt`). El mensaje está en
-`_scratch/S91-PROMPT.md`, que manda sobre este archivo.
+**(bt) Sesión 92: revisar el diff de la 91** (`e4d7e3a..3bccafd`: solo los dos comentarios de
+`prepAccount.ts`). El mensaje está en `_scratch/S92-PROMPT.md`, que manda sobre este archivo.
+
+**(bs) Sesión 91: arreglar `R9-321` — ya HECHO en la sesión 91, en el mismo chat, en la terminal y
+sin agentes.** Cerrado `R9-321`; ninguno nuevo. El mensaje está en `_scratch/S91-PROMPT.md`.
 
 **(br) Sesión 90: revisar el diff de la 89 — ya HECHO en la sesión 90, en el mismo chat que la 89,
 en la terminal y sin agentes.** Un nuevo P3 (`R9-321`). El mensaje está en `_scratch/S90-PROMPT.md`.
@@ -2059,17 +2061,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 90 (2026-10-12).**
+**Medido al cerrar la sesión 91 (2026-10-12).**
 
-- **`main` = `origin/main` = `cd7993c`** (el checkpoint de la 89, solo docs; el último código en
-  `main` es `538b1bc`, la prueba y el gancho de `R9-320`). **CI verificado en el log** en la 89: run
-  `38349182452`, 3 jobs, Node v24.21.0, 374/4632. Las ramas de la 89 se borraron tras `git cherry`.
-- **Una rama de la 90, sin mergear a propósito y sin pushear:** `docs/review-s90-diff-s89` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **`main` = `origin/main` = `e4d7e3a`** (el checkpoint de la 90, solo docs; el último código en
+  `main` es `538b1bc`, la prueba y el gancho de `R9-320`). **CI verificado en el log** en la 90: run
+  `38351138599`, 3 jobs, Node v24.21.0, 374/4632. La rama de la 90 se borró tras `git cherry`.
+- **Dos ramas de la 91, sin mergear a propósito y sin pushear:** `fix/s91-r321` (`3bccafd`, el
+  comentario) y `docs/review-s91-fix` encima (solo docs). Se mergean en fast-forward con el OK de
+  Victor. Si ya se mergearon, `main` las incluye.
 - **Los worktrees:** ninguno.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 90):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 91):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,

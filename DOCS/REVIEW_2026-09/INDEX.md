@@ -1016,8 +1016,17 @@
 > pide con la de Ana y escribe en la «sin cuenta»). Un gancho que siga el comentario hace caer la
 > prueba con el código bueno.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **321**. Rama `docs/review-s90-diff-s89`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S90-revision-del-diff-s89.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **321**. Rama `docs/review-s90-diff-s89`: mergeada y
+> pusheada con el OK de Victor (`main` = `e4d7e3a`, CI verde en el log, run `38351138599`, 374/4632;
+> corregido en la 91). Detalle: `detail/S90-revision-del-diff-s89.md`.
+>
+> **Sesión 91 (2026-10-12): arreglo de lo de la 90**, en el mismo chat, en la terminal y sin agentes.
+> Cerró `R9-321` (`3bccafd`, solo comentarios): el `Set` de `oneAtATime` lleva la clave que se
+> pidió, que no siempre es la que se escribe, y el export dice «asked for». Ninguna línea de código
+> cambia; `etiquetaDesviada` sigue cayendo. Ninguno nuevo.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **321**. Ramas `fix/s91-r321` y `docs/review-s91-fix`,
+> sin mergear hasta el OK de Victor. Detalle: `detail/S91-arreglo-r321.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2002,6 +2011,15 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 91 — 2026-10-12. Arreglo de lo de la 90.** En el mismo chat (lo pidió Victor), en la
+  terminal y sin agentes; con `_scratch/S91-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S91-sonda.cjs.txt` (la `S90-sonda`), sobre el commit que se
+    mergea.
+  - **Resultado:** cerrado `R9-321` (`3bccafd`, solo comentarios). Ninguno nuevo. No queda ningún
+    P0 abierto.
+  - **Detalle: `detail/S91-arreglo-r321.md`.**
+  - **La lección:** ninguna nueva (la de la 90, aplicada).
 
 - **Sesión 90 — 2026-10-12. Revisión del diff de la 89.** En el mismo chat que la 89 (lo pidió
   Victor), en la terminal y sin agentes; con `_scratch/S90-PROMPT.md`. Solo docs.

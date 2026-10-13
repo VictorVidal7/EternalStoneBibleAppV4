@@ -1282,8 +1282,9 @@
 > **No queda ningún P0 abierto.** Hallazgos: **320**. Detalle: `detail/S89-arreglo-r320.md`.
 >
 > **Sesión 90 (2026-10-12): revisión del diff de la 89**, en el mismo chat que la 89 (lo pidió
-> Victor), en la terminal y sin agentes. Solo docs. Rama `docs/review-s90-diff-s89`, sin mergear
-> hasta el OK de Victor.
+> Victor), en la terminal y sin agentes. Solo docs. Rama `docs/review-s90-diff-s89`: mergeada y
+> pusheada con el OK de Victor (`main` = `e4d7e3a`, CI verde en el log, run `38351138599`,
+> 374/4632; corregido en la 91).
 >
 > - **Lo de la 89 cae como dice**, re-medido sobre `cd7993c` (la 89 midió sobre `1b608b0`, antes de
 >   un amend que solo cambió comentarios de la prueba): las piezas, el revert, el residuo de la misma
@@ -1298,6 +1299,17 @@
 >   cerrado» (lo puso en «lo que queda»).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **321**. Detalle: `detail/S90-revision-del-diff-s89.md`.
+>
+> **Sesión 91 (2026-10-12): arreglo de lo de la 90**, en el mismo chat (lo pidió Victor), en la
+> terminal y sin agentes. Ramas `fix/s91-r321` y `docs/review-s91-fix`, sin mergear hasta el OK de
+> Victor.
+>
+> - **Cerrado:** `R9-321` (`3bccafd`, solo comentarios: el `Set` de `oneAtATime` lleva la clave que
+>   se pidió, que no siempre es la que se escribe; el export dice «asked for»). Ninguna línea de
+>   código cambia. `etiquetaDesviada` sigue cayendo, y `muestra` pasa.
+> - **Ninguno nuevo.**
+>
+> **No queda ningún P0 abierto.** Hallazgos: **321**. Detalle: `detail/S91-arreglo-r321.md`.
 
 ---
 
@@ -8171,6 +8183,18 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     lleva la clave que pidió (`prepWrite`, la que resolvió, que `R9-275` puede mandar a la «sin
     cuenta» dentro del turno), y nada el resto. La prueba ya fija ese sentido: con `etiquetaDesviada`
     cae.
+  - **✅ ARREGLADO en la sesión 91** (`3bccafd`, solo comentarios en `prepAccount.ts`). El del `Set`
+    dice ahora que cada pedido lleva la clave que pidió (`prepWrite`, la que resolvió; nada el
+    resto), y que no siempre es la que escribe: cuando llega el turno, `R9-275` puede mandar la
+    escritura a la «sin cuenta». El del export dice «`prepWrite`s asked for `key`… wherever it ends
+    up writing» y «a write asked for that key».
+    - **Medido sobre `3bccafd`** (`_scratch/S91-sonda.cjs.txt`): `git diff -U0` sin una línea de
+      código. `muestra` pasa: en `devolucionPedidaAntes`, etiqueta `@prep_notes:ana` (`ana: 1`) y
+      lo escrito en la «sin cuenta» (lo que la prueba espera). Leído al pie de la letra, el
+      comentario nuevo es el código de hoy. `etiquetaDesviada` sigue cayendo (`otraEnEspera: 0` en
+      `devolucionPedidaAntes`). `nada`, en `prep`, 23/23.
+    - Es un comentario: no hay prueba que lo vea fallar sin él. Lo que fija su sentido es la prueba
+      de `R9-292`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
