@@ -136,8 +136,8 @@ let turn: Promise<void> = Promise.resolve();
 /**
  * R9-319 — the asks still waiting for their turn, each with what it is for
  * (R9-320: `prepWrite` gives the key it resolved; R9-323: `giveBack`, the
- * account it gives back; R9-334: `prepMultiSet`, `restoreAsk`; the joins,
- * nothing). R9-321 — a write's key is not
+ * account it gives back; R9-334: `prepMultiSet`, the keys it writes; the
+ * joins, nothing). R9-321 — a write's key is not
  * always the key it writes: when the turn comes, R9-275 may send the write to
  * the Mesa «sin cuenta». Only tests read it.
  */
@@ -178,8 +178,9 @@ export async function prepWrite(
   }, resolved);
 }
 
-/** R9-334 — what a restore's ask says it is for (see `waiting`). */
-const restoreAsk = 'restore';
+/** R9-334 — what a restore's ask says it is for: the keys it writes. */
+const restoreAsk = (pairs: Array<[string, string]>) =>
+  `restore ${pairs.map(([key]) => key).join(' ')}`;
 
 /**
  * R9-273 — a `multiSet` with Mesa keys from outside the stores (the restore
@@ -216,7 +217,7 @@ export function prepMultiSet(pairs: Array<[string, string]>): Promise<void> {
         });
       }
     }
-  }, restoreAsk);
+  }, restoreAsk(pairs));
 }
 
 /** `AuthProvider`, as it mounts: keys wait for the first auth state. */
@@ -470,14 +471,20 @@ export function __prepTurnWaitingForTests(key: string): number {
 
 /**
  * R9-323 — how many give-backs of `uid`'s Mesa (`releasePrepAccount`, or the
- * next start's) wait for their turn now. Counted among the asks with nothing
- * said, as before, the joins and the restore passed for one.
+ * next start's) wait for their turn now. Before, they were counted among the
+ * asks with nothing said, where the joins and the restore (R9-334: it says
+ * its keys now) passed for one.
  */
 export function __prepGiveBackWaitingForTests(uid: string): number {
   return [...waiting].filter(ask => ask.what === giveBackAsk(uid)).length;
 }
 
-/** R9-334 — how many restores (`prepMultiSet`) wait for their turn now. */
-export function __prepRestoreWaitingForTests(): number {
-  return [...waiting].filter(ask => ask.what === restoreAsk).length;
+/**
+ * R9-334 — how many restores (`prepMultiSet`) that write `key` wait for their
+ * turn now. Another restore's ask, of other keys, does not count.
+ */
+export function __prepRestoreWaitingForTests(key: string): number {
+  return [...waiting].filter(
+    ({what}) => what?.startsWith('restore ') && what.split(' ').includes(key),
+  ).length;
 }

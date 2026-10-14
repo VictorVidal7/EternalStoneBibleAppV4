@@ -748,10 +748,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
   });
 
   // R9-336 — todo estado espera el trabajo del primero (R9-331), asi que ese
-  // trabajo no puede rechazar: cada paso se traga su falla. Aqui, la lectura
-  // de la nota de devoluciones (`finishRelease`): si su falla saliera, los dos
-  // estados lanzarian y la lectura no volveria nunca.
-  it('R9-336: si falla la lectura de la nota de devoluciones en el primer estado de auth, ningun estado lanza y las claves se sueltan', async () => {
+  // trabajo no puede rechazar: cada paso se traga su falla. Un caso por paso
+  // (la migracion, la lectura de la nota, la devolucion pendiente): si su falla
+  // saliera, los dos estados lanzarian y la lectura no volveria nunca.
+  const primerEstadoConFalla = async (
+    metodo: 'getItem' | 'multiSet',
+    clave: string,
+  ) => {
     await AsyncStorage.setItem(
       '@prep_notes',
       JSON.stringify({
@@ -759,15 +762,20 @@ describe('R9-59 — la Mesa por cuenta', () => {
       }),
     );
     const vuelta = () => new Promise(r => setImmediate(r));
-    const gi = AsyncStorage.getItem as unknown as jest.Mock;
-    const realGi = gi.getMockImplementation()!;
+    const mock = AsyncStorage[metodo] as unknown as jest.Mock;
+    const real = mock.getMockImplementation()!;
     let fallo = 0;
-    gi.mockImplementation(async (k: string, cb?: unknown) => {
-      if (k === '@prep_release_pending' && fallo === 0) {
+    // La primera llamada que toca `clave` lanza.
+    mock.mockImplementation(async (arg: unknown, cb?: unknown) => {
+      const toca =
+        metodo === 'getItem'
+          ? arg === clave
+          : (arg as Array<[string, string]>).some(([k]) => k === clave);
+      if (toca && fallo === 0) {
         fallo += 1;
         throw new Error('disco');
       }
-      return realGi(k, cb);
+      return real(arg, cb);
     });
     try {
       managePrepAccount();
@@ -781,14 +789,50 @@ describe('R9-59 — la Mesa por cuenta', () => {
         setPrepAccount(null).catch(() => lanzo.push('segundo')),
       ]);
       for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
-      expect({fallo, lanzo, leido}).toEqual({
-        fallo: 1, // CONTROL: fallo la lectura de la nota
-        lanzo: [],
-        leido: ['Ps/23/1-6'],
-      });
+      return {fallo, lanzo, leido};
     } finally {
-      gi.mockImplementation(realGi);
+      mock.mockImplementation(real);
     }
+  };
+
+  it('R9-336: si falla la migracion en el primer estado de auth, ningun estado lanza y las claves se sueltan', async () => {
+    expect(await primerEstadoConFalla('getItem', '@prep_by_account')).toEqual({
+      fallo: 1, // CONTROL: fallo la primera lectura de la migracion
+      lanzo: [],
+      leido: ['Ps/23/1-6'],
+    });
+  });
+
+  it('R9-336: si falla la lectura de la nota de devoluciones en el primer estado de auth, ningun estado lanza y las claves se sueltan', async () => {
+    expect(
+      await primerEstadoConFalla('getItem', '@prep_release_pending'),
+    ).toEqual({
+      fallo: 1, // CONTROL: fallo la lectura de la nota
+      lanzo: [],
+      leido: ['Ps/23/1-6'],
+    });
+  });
+
+  it('R9-336: si falla la devolucion pendiente en el primer estado de auth, ningun estado lanza, las claves se sueltan y la nota se queda', async () => {
+    await AsyncStorage.setItem(
+      '@prep_notes:bob',
+      JSON.stringify({
+        'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem(
+      '@prep_release_pending',
+      JSON.stringify(['bob']),
+    );
+    expect({
+      ...(await primerEstadoConFalla('multiSet', '@prep_notes')),
+      nota: await AsyncStorage.getItem('@prep_release_pending'),
+    }).toEqual({
+      fallo: 1, // CONTROL: fallo la union de la devolucion
+      lanzo: [],
+      leido: ['Ps/23/1-6'],
+      nota: '["bob"]', // CONTROL: y la termina el arranque siguiente
+    });
   });
 
   it('R9-275: una escritura de la Mesa pedida para la cuenta que se esta devolviendo va a la «sin cuenta», no bajo el uid borrado', async () => {
@@ -1087,7 +1131,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // escribirlo, y la nota se queda si su union falla: el arranque siguiente la
   // termina. R9-339 — lo restaurado se escribe bajo el uid borrado y se
   // devuelve en el mismo turno; si no llega a devolverse, lo devuelve el
-  // arranque siguiente: no se queda ahi.
+  // arranque siguiente, salvo que haya fallado tambien la nota (R9-329: solo
+  // se pierde el reintento).
   it('R9-328: si el proceso termina tras escribir el respaldo de una cuenta devuelta, el arranque siguiente lo devuelve', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';
@@ -1274,13 +1319,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
           }),
         ],
       ]);
-      // R9-334 — la puerta se abre con el respaldo YA en la cola: abierta en la
-      // vuelta en que se lo llama, con su pedido una vuelta mas tarde la
-      // devolucion ya habia terminado, y el caso no se armaba.
-      for (let i = 0; i < 1000 && __prepRestoreWaitingForTests() === 0; i++) {
-        await vuelta();
-      }
-      const pidio = __prepRestoreWaitingForTests();
+      // R9-334 — la puerta se abre con ESTE respaldo ya en la cola (el gancho
+      // mira sus claves: otro respaldo no cuenta): abierta en la vuelta en que
+      // se lo llama, con su pedido una vuelta mas tarde la devolucion ya habia
+      // terminado, y el caso no se armaba.
+      const pidioElDeAna = () =>
+        __prepRestoreWaitingForTests('@prep_notes:ana');
+      for (let i = 0; i < 1000 && pidioElDeAna() === 0; i++) await vuelta();
+      const pidio = pidioElDeAna();
       const enCola = __prepGiveBackWaitingForTests('ana');
       abrir();
       await Promise.all([otra, devolucion, respaldo]);
