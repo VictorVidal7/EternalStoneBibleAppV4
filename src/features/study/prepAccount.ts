@@ -51,9 +51,10 @@
  * The backup exports and restores the Mesa of the account signed in, so a
  * backup made by one account does not carry another's (R9-59).
  *
- * Until the auth state is known, keys wait for it: `AuthProvider` says so as
- * it mounts (`managePrepAccount`). Without it (tests that mount no
- * `AuthProvider`), the Mesa «sin cuenta» is used at once.
+ * Until the first auth state's work is done, keys wait for it (see
+ * `prepKey`): `AuthProvider` says so as it mounts (`managePrepAccount`).
+ * Without it (tests that mount no `AuthProvider`), the Mesa «sin cuenta» is
+ * used at once.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -101,11 +102,15 @@ export function prepKeyFor(base: string, uid: string | null): string {
 }
 
 /**
- * The key of `base` for the account signed in now: taken at the call once the
- * auth state is known, else once the first auth state's work is done (R9-331),
- * with the account signed in when it is done: that of the last auth state to
- * come by then, not the first one's (R9-337). A write goes to the
- * account of that key even if it waits behind others, except R9-275: if that
+ * The key of `base` for the account signed in now. Asked once the first auth
+ * state's work is done, it is taken at the call. Asked before that (before any
+ * auth state, or while that work runs, with that state already come: R9-345),
+ * it is taken once that work is done to its last step (R9-331, R9-344: the
+ * migration, the read of the give-backs pending, and each of them up to taking
+ * it off the note), with the account signed in when it is done: that of the
+ * last auth state to come by then, not the first one's (R9-337). Without
+ * `managePrepAccount` (no `AuthProvider`), always at the call. A write goes to
+ * the account of that key even if it waits behind others, except R9-275: if that
  * account's Mesa was given back by the time the write's turn comes, a store's
  * write goes to the Mesa «sin cuenta» instead (`prepWrite`), and the
  * restore's is written to the account all the same and then given back
@@ -136,8 +141,8 @@ let turn: Promise<void> = Promise.resolve();
 /**
  * R9-319 — the asks still waiting for their turn, each with what it is for
  * (R9-320: `prepWrite` gives the key it resolved; R9-323: `giveBack`, the
- * account it gives back; R9-334: `prepMultiSet`, the keys it writes; the
- * joins, nothing). R9-321 — a write's key is not
+ * account it gives back; R9-334: `prepMultiSet`, the keys it writes, and
+ * R9-342 which restore it is; the joins, nothing). R9-321 — a write's key is not
  * always the key it writes: when the turn comes, R9-275 may send the write to
  * the Mesa «sin cuenta». Only tests read it.
  */
@@ -159,7 +164,8 @@ function oneAtATime<T>(fn: () => Promise<T>, what?: string): Promise<T> {
 /**
  * R9-269 — a store's read-modify-write of its key (from `prepKey`: see there
  * when it is taken), one at a time with the joins. The key is awaited
- * first: it waits for the first auth state, whose join takes a turn. R9-275 —
+ * first: it may wait for the first auth state's work (see `prepKey`), whose
+ * join takes a turn. R9-275 —
  * if that account's Mesa was given back by the time the turn comes, the write
  * goes to the Mesa «sin cuenta», where its entries went: it edits them there.
  */
@@ -178,9 +184,20 @@ export async function prepWrite(
   }, resolved);
 }
 
-/** R9-334 — what a restore's ask says it is for: the keys it writes. */
-const restoreAsk = (pairs: Array<[string, string]>) =>
-  `restore ${pairs.map(([key]) => key).join(' ')}`;
+/**
+ * R9-334 — what a restore's ask says it is for: the keys it writes. R9-342 —
+ * and which restore it is: a number of its own for the very `pairs` it was
+ * called with. Another restore of the same keys, even with the same entries,
+ * has another. Not reset between tests: a restore still waiting from an
+ * earlier one keeps a number nobody else gets.
+ */
+const restoreNumbers = new WeakMap<Array<[string, string]>, number>();
+let restores = 0;
+const restoreAsk = (pairs: Array<[string, string]>) => {
+  let n = restoreNumbers.get(pairs);
+  if (n === undefined) restoreNumbers.set(pairs, (n = ++restores));
+  return `restore ${n} ${pairs.map(([key]) => key).join(' ')}`;
+};
 
 /**
  * R9-273 — a `multiSet` with Mesa keys from outside the stores (the restore
@@ -220,7 +237,10 @@ export function prepMultiSet(pairs: Array<[string, string]>): Promise<void> {
   }, restoreAsk(pairs));
 }
 
-/** `AuthProvider`, as it mounts: keys wait for the first auth state. */
+/**
+ * `AuthProvider`, as it mounts: keys wait for the first auth state's work
+ * (see `prepKey`).
+ */
 export function managePrepAccount(): void {
   if (managed) return;
   managed = true;
@@ -480,11 +500,15 @@ export function __prepGiveBackWaitingForTests(uid: string): number {
 }
 
 /**
- * R9-334 — how many restores (`prepMultiSet`) that write `key` wait for their
- * turn now. Another restore's ask, of other keys, does not count.
+ * R9-342 — whether the restore (`prepMultiSet`) called with this very `pairs`
+ * waits for its turn now. R9-334 counted the restores that write a key, and
+ * another restore of that key passed for the one a test waits for.
  */
-export function __prepRestoreWaitingForTests(key: string): number {
-  return [...waiting].filter(
-    ({what}) => what?.startsWith('restore ') && what.split(' ').includes(key),
-  ).length;
+export function __prepThisRestoreWaitingForTests(
+  pairs: Array<[string, string]>,
+): boolean {
+  return (
+    restoreNumbers.has(pairs) &&
+    [...waiting].some(({what}) => what === restoreAsk(pairs))
+  );
 }

@@ -812,3 +812,80 @@ it('R9-327: una escritura de un store que espera detras del respaldo de una cuen
     ms.mockImplementation(real);
   }
 });
+
+// R9-345 — un respaldo restaurado DURANTE el trabajo del primer estado de auth
+// tambien espera a que termine para tomar su clave (ver `prepKey`). Tomada al
+// pedirla en cuanto llega el estado, el respaldo reemplazaba la «sin cuenta» de
+// antes (P) por la suya (R) antes de la migracion, y la migracion se llevaba R
+// a la Mesa de Ana: P se perdia.
+it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo no reemplaza la Mesa de antes que la migracion mueve', async () => {
+  const T = Date.now() - 60 * 60 * 1000;
+  const P = 'John/3/16-21';
+  const R = 'Ps/23/1-6';
+  const vuelta = () => new Promise(r => setImmediate(r));
+  const mapa = async (k: string) =>
+    Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
+  await AsyncStorage.setItem(
+    '@prep_notes',
+    JSON.stringify({[P]: {sections: {observation: 'de antes'}, updatedAt: 1}}),
+  );
+  await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+  const gi = AsyncStorage.getItem as unknown as jest.Mock;
+  const realGi = gi.getMockImplementation()!;
+  let abrir!: () => void;
+  const puerta = new Promise<void>(r => (abrir = r));
+  // La migracion del primer estado (nulo) espera en su primera lectura.
+  let migracionRetenida: string | null = null;
+  gi.mockImplementation(async (k: string, cb?: unknown) => {
+    if (k === '@prep_by_account' && migracionRetenida === null) {
+      migracionRetenida = k;
+      await puerta;
+    }
+    return realGi(k, cb);
+  });
+  try {
+    // Una hora de reloj falso y mil vueltas, como en las de `prepKey`
+    // (R9-317): «espera» se mide dandole todo el tiempo.
+    jest.useFakeTimers({
+      doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate'],
+    });
+    managePrepAccount();
+    const primero = setPrepAccount(null);
+    for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
+      await vuelta();
+    }
+    let hecho = false;
+    const respaldo = importBackup(
+      respaldoConMesa({
+        [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+      }),
+    ).then(r => {
+      hecho = true;
+      return r;
+    });
+    await jest.advanceTimersByTimeAsync(60 * 60 * 1000);
+    jest.useRealTimers();
+    for (let i = 0; i < 1000; i++) await vuelta();
+    const hechoAntesDeAbrir = hecho;
+    abrir();
+    const [, resultado] = await Promise.all([primero, respaldo]);
+    gi.mockImplementation(realGi);
+    expect({
+      migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+      hechoAntesDeAbrir,
+      fallo: resultado.asyncStorageWriteFailed, // CONTROL: el respaldo escribio
+      deAna: await mapa('@prep_notes:ana'),
+      sinCuenta: await mapa('@prep_notes'),
+    }).toEqual({
+      migracionRetenida: '@prep_by_account',
+      hechoAntesDeAbrir: false,
+      fallo: false,
+      deAna: [P],
+      sinCuenta: [R],
+    });
+  } finally {
+    abrir();
+    gi.mockImplementation(realGi);
+    jest.useRealTimers();
+  }
+});

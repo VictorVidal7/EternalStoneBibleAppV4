@@ -292,7 +292,8 @@ export function AuthProvider({children}: AuthProviderProps) {
   // user (which it will on a fresh install). Re-armed on signOut.
   const triggeredAnonymousRef = useRef(false);
   // R9-59 — the Mesa is kept per account (see `prepAccount`): its keys wait
-  // for the first auth state, said here before any screen below can ask.
+  // for the first auth state's work (see `prepKey`), said here before any
+  // screen below can ask.
   const prepManaged = useRef(false);
   if (!prepManaged.current) {
     prepManaged.current = true;

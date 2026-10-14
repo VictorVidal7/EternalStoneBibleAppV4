@@ -4,43 +4,83 @@
  * `setPrepAccount`, como hace `AuthProvider`.
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  __prepGiveBackWaitingForTests,
-  __prepRestoreWaitingForTests,
-  __prepTurnWaitingForTests,
-  __resetPrepAccountForTests,
-  adoptNoAccountPrep,
-  managePrepAccount,
-  prepKey,
-  prepMultiSet,
-  prepWrite,
-  releasePrepAccount,
-  setPrepAccount,
-} from '../src/features/study/prepAccount';
-import {
-  getAllPrepNotes,
-  savePrepNote,
-} from '../src/features/study/prepNotesStore';
-import {
-  createPrepSeries,
-  getAllPrepSeries,
-} from '../src/features/study/prepSeriesStore';
-import {
-  createPrepIllustration,
-  getAllPrepIllustrations,
-} from '../src/features/study/prepIllustrationsStore';
-import {
-  getAllPrepSelfReview,
-  setPrepSelfReviewQuestion,
-} from '../src/features/study/prepSelfReviewStore';
 import {PREP_SELF_REVIEW_QUESTION_IDS} from '../src/features/study/prepSelfReview';
+
+type PA = typeof import('../src/features/study/prepAccount');
+type AS = typeof import('@react-native-async-storage/async-storage').default;
+type Notas = typeof import('../src/features/study/prepNotesStore');
+type Series = typeof import('../src/features/study/prepSeriesStore');
+type Ilus = typeof import('../src/features/study/prepIllustrationsStore');
+type Auto = typeof import('../src/features/study/prepSelfReviewStore');
+type Logger = typeof import('../src/lib/utils/logger');
+let AsyncStorage: AS;
+let logger: Logger['logger'];
+let __prepGiveBackWaitingForTests: PA['__prepGiveBackWaitingForTests'];
+let __prepThisRestoreWaitingForTests: PA['__prepThisRestoreWaitingForTests'];
+let __prepTurnWaitingForTests: PA['__prepTurnWaitingForTests'];
+let __resetPrepAccountForTests: PA['__resetPrepAccountForTests'];
+let adoptNoAccountPrep: PA['adoptNoAccountPrep'];
+let managePrepAccount: PA['managePrepAccount'];
+let prepKey: PA['prepKey'];
+let prepMultiSet: PA['prepMultiSet'];
+let prepWrite: PA['prepWrite'];
+let releasePrepAccount: PA['releasePrepAccount'];
+let setPrepAccount: PA['setPrepAccount'];
+let getAllPrepNotes: Notas['getAllPrepNotes'];
+let savePrepNote: Notas['savePrepNote'];
+let createPrepSeries: Series['createPrepSeries'];
+let getAllPrepSeries: Series['getAllPrepSeries'];
+let createPrepIllustration: Ilus['createPrepIllustration'];
+let getAllPrepIllustrations: Ilus['getAllPrepIllustrations'];
+let getAllPrepSelfReview: Auto['getAllPrepSelfReview'];
+let setPrepSelfReviewQuestion: Auto['setPrepSelfReviewQuestion'];
 
 const claves = async () =>
   (await AsyncStorage.getAllKeys()).filter(k => k.startsWith('@prep')).sort();
 const pasajes = async () => Object.keys(await getAllPrepNotes()).sort();
 
+// R9-340 — cada prueba con su propia instancia de los modulos de la Mesa (y
+// del logger que usan) y su propio almacen: un trabajo del primer estado que
+// una prueba deja colgado sigue en la instancia vieja, y no toca los de la
+// siguiente. Con `__resetPrepAccountForTests` solo, soltaba las claves de la
+// siguiente y escribia en su almacen despues del `clear()`. El mock de
+// AsyncStorage de `jest.setup.js` es uno solo: aqui se pide uno nuevo.
 beforeEach(async () => {
+  jest.resetModules();
+  jest.doMock('@react-native-async-storage/async-storage', () =>
+    jest.requireActual(
+      '@react-native-async-storage/async-storage/jest/async-storage-mock',
+    ),
+  );
+  AsyncStorage = jest.requireMock<AS>(
+    '@react-native-async-storage/async-storage',
+  );
+  ({logger} = jest.requireActual<Logger>('../src/lib/utils/logger'));
+  ({
+    __prepGiveBackWaitingForTests,
+    __prepThisRestoreWaitingForTests,
+    __prepTurnWaitingForTests,
+    __resetPrepAccountForTests,
+    adoptNoAccountPrep,
+    managePrepAccount,
+    prepKey,
+    prepMultiSet,
+    prepWrite,
+    releasePrepAccount,
+    setPrepAccount,
+  } = jest.requireActual<PA>('../src/features/study/prepAccount'));
+  ({getAllPrepNotes, savePrepNote} = jest.requireActual<Notas>(
+    '../src/features/study/prepNotesStore',
+  ));
+  ({createPrepSeries, getAllPrepSeries} = jest.requireActual<Series>(
+    '../src/features/study/prepSeriesStore',
+  ));
+  ({createPrepIllustration, getAllPrepIllustrations} = jest.requireActual<Ilus>(
+    '../src/features/study/prepIllustrationsStore',
+  ));
+  ({getAllPrepSelfReview, setPrepSelfReviewQuestion} = jest.requireActual<Auto>(
+    '../src/features/study/prepSelfReviewStore',
+  ));
   __resetPrepAccountForTests();
   await AsyncStorage.clear();
 });
@@ -157,6 +197,66 @@ describe('R9-59 — la Mesa por cuenta', () => {
     await p;
     // `antes`: tras una hora, la lectura sigue esperando (R9-317).
     expect({antes, despues: leido}).toEqual({antes: null, despues: []});
+  });
+
+  // R9-340 — el aislamiento del `beforeEach`, vigilado: la primera deja colgado
+  // el trabajo del primer estado (la migracion espera su primera lectura, con
+  // un segundo estado esperandolo) y lo suelta ya en la siguiente. Sin el
+  // aislamiento, ese trabajo soltaba las claves de la siguiente y escribia la
+  // marca de la migracion en su almacen. Van juntas: la segunda sola cae en su
+  // control.
+  describe('R9-340: un trabajo que una prueba deja colgado', () => {
+    let viejo = {termino: false};
+    it('deja colgado el trabajo del primer estado, y lo suelta en la siguiente', async () => {
+      const vuelta = () => new Promise(r => setImmediate(r));
+      const gi = AsyncStorage.getItem as unknown as jest.Mock;
+      const realGi = gi.getMockImplementation()!;
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let retenida = false;
+      gi.mockImplementation(async (k: string, cb?: unknown) => {
+        if (k === '@prep_by_account' && !retenida) {
+          retenida = true;
+          await puerta;
+        }
+        return realGi(k, cb);
+      });
+      managePrepAccount();
+      void setPrepAccount(null);
+      for (let i = 0; i < 1000 && !retenida; i++) await vuelta();
+      const estado = {termino: false};
+      viejo = estado;
+      void setPrepAccount('zoe').then(() => (estado.termino = true));
+      gi.mockImplementation(realGi);
+      void (async () => {
+        for (let i = 0; i < 20; i++) await vuelta();
+        abrir();
+      })();
+      expect({retenida, termino: estado.termino}).toEqual({
+        retenida: true,
+        termino: false,
+      });
+    });
+
+    it('la siguiente no ve nada de ese trabajo: sus claves esperan su propio estado, y su almacen sigue vacio', async () => {
+      relojesFalsos();
+      managePrepAccount();
+      let leido: string[] | null = null;
+      const p = pasajes().then(r => (leido = r));
+      await unaHora();
+      const antes = {
+        leido,
+        claves: await AsyncStorage.getAllKeys(),
+        viejoTermino: viejo.termino,
+      };
+      await setPrepAccount('ana');
+      await p;
+      expect(antes).toEqual({
+        leido: null,
+        claves: [],
+        viejoTermino: true, // CONTROL: el trabajo viejo termino durante esta
+      });
+    });
   });
 
   describe('la Mesa de antes (sin cuenta en la clave)', () => {
@@ -747,13 +847,359 @@ describe('R9-59 — la Mesa por cuenta', () => {
     }
   });
 
+  // R9-344 — «cuando termina» es el trabajo ENTERO del primer estado, hasta su
+  // ultima parte: la migracion (aqui con su union, a `zoe`), la lectura de las
+  // devoluciones pendientes y cada devolucion, hasta quitarla de la nota. El
+  // otro estado llega durante esa ultima parte: con dos devoluciones, al
+  // quitar la nota tras la segunda; sin ninguna, al leer la nota. Una clave que
+  // tomara la cuenta antes (al terminar la migracion o su union, la union de
+  // una devolucion, o la primera devolucion) se ve, en los dos sentidos: lo
+  // pedido va con la cuenta que entra, y no con la que sale. Con estados solo
+  // durante la migracion, todas esas pasaban.
+  it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
+    const P = 'John/3/16-21';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const mr = AsyncStorage.multiRemove as unknown as jest.Mock;
+    const realMr = mr.getMockImplementation()!;
+    const gi = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGi = gi.getMockImplementation()!;
+    const mapa = async (k: string) =>
+      Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
+    const mesa = (pasaje: string) =>
+      JSON.stringify({
+        [pasaje]: {sections: {observation: 'de antes'}, updatedAt: 1},
+      });
+    let abrir: () => void = () => undefined;
+    const caso = async (
+      primero: string | null,
+      durante: string | null,
+      devoluciones: boolean,
+    ) => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      // La Mesa de antes, de `zoe`: la migracion la une.
+      await AsyncStorage.setItem('@prep_notes', mesa('Ps/23/1-6'));
+      await AsyncStorage.setItem('@local_store_owner_uid', 'zoe');
+      if (devoluciones) {
+        await AsyncStorage.setItem('@prep_notes:bob', mesa('Rom/8/28'));
+        await AsyncStorage.setItem('@prep_notes:carl', mesa('Eph/2/8'));
+        await AsyncStorage.setItem(
+          '@prep_release_pending',
+          JSON.stringify(['bob', 'carl']),
+        );
+      }
+      const puerta = new Promise<void>(r => (abrir = r));
+      // La ultima parte del trabajo espera en una puerta: quitar la nota (en
+      // el mock, `removeItem` pasa por `multiRemove`) o, sin devoluciones,
+      // leerla. `retenida` dice lo que ya estaba hecho.
+      let retenida: {
+        parte: string;
+        deZoe: string[];
+        sinCuenta: string[];
+      } | null = null;
+      const retener = async (parte: string) => {
+        retenida = {
+          parte,
+          deZoe: await mapa('@prep_notes:zoe'),
+          sinCuenta: await mapa('@prep_notes'),
+        };
+        await puerta;
+      };
+      mr.mockImplementation(async (keys: string[], cb?: unknown) => {
+        if (
+          devoluciones &&
+          retenida === null &&
+          keys.includes('@prep_release_pending')
+        ) {
+          await retener('quita la nota');
+        }
+        return realMr(keys, cb);
+      });
+      gi.mockImplementation(async (k: string, cb?: unknown) => {
+        if (
+          !devoluciones &&
+          retenida === null &&
+          k === '@prep_release_pending'
+        ) {
+          await retener('lee la nota');
+        }
+        return realGi(k, cb);
+      });
+      try {
+        relojesFalsos();
+        managePrepAccount();
+        let escrita = false;
+        const edita = savePrepNote(P, 'observation', 'antes', 2).then(
+          () => (escrita = true),
+        );
+        const estado1 = setPrepAccount(primero);
+        for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
+        // Leida cuando llega el otro estado, no al final: con la devolucion
+        // mas lenta que la espera, el estado llegaba antes de la union, la
+        // retencion se armaba despues, y leida al final decia lo mismo.
+        const alLlegar = retenida;
+        const estado2 = setPrepAccount(durante);
+        await unaHora();
+        const escritaAntesDeAbrir = escrita;
+        abrir();
+        await Promise.all([estado1, estado2, edita]);
+        return {
+          // CONTROL: al llegar el otro estado, el trabajo estaba en su ultima
+          // parte, con la union de la migracion y las devoluciones ya hechas
+          retenida: alLlegar,
+          escritaAntesDeAbrir,
+          deAna: await mapa('@prep_notes:ana'),
+          sinCuenta: await mapa('@prep_notes'),
+        };
+      } finally {
+        abrir();
+        mr.mockImplementation(realMr);
+        gi.mockImplementation(realGi);
+      }
+    };
+    const conDevoluciones = {
+      parte: 'quita la nota',
+      deZoe: ['Ps/23/1-6'],
+      sinCuenta: ['Eph/2/8', 'Rom/8/28'],
+    };
+    const sinDevoluciones = {
+      parte: 'lee la nota',
+      deZoe: ['Ps/23/1-6'],
+      sinCuenta: [],
+    };
+    expect({
+      entra: await caso(null, 'ana', true),
+      sale: await caso('ana', null, true),
+      entraSinDevoluciones: await caso(null, 'ana', false),
+      saleSinDevoluciones: await caso('ana', null, false),
+    }).toEqual({
+      entra: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [P],
+        sinCuenta: ['Eph/2/8', 'Rom/8/28'],
+      },
+      sale: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        sinCuenta: ['Eph/2/8', P, 'Rom/8/28'],
+      },
+      entraSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [P],
+        sinCuenta: [],
+      },
+      saleSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        sinCuenta: [P],
+      },
+    });
+  });
+
+  // R9-345 — lo pedido DURANTE el trabajo del primer estado de auth tambien
+  // espera a que termine: que el estado haya llegado no hace conocida la
+  // cuenta. Con la clave tomada al pedirla en cuanto llega un estado, lo
+  // escrito sin cuenta mientras la migracion espera caia en la «sin cuenta»
+  // de antes, y la migracion se lo llevaba a la Mesa de Ana.
+  it('R9-345: lo escrito sin cuenta durante el trabajo del primer estado de auth se queda en la «sin cuenta», no se va con la Mesa de antes', async () => {
+    const P = 'John/3/16-21';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const mapa = async (k: string) =>
+      Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
+    await AsyncStorage.setItem(
+      '@prep_notes',
+      JSON.stringify({
+        'Ps/23/1-6': {sections: {observation: 'de antes'}, updatedAt: 1},
+      }),
+    );
+    await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+    const gi = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGi = gi.getMockImplementation()!;
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    // La migracion del primer estado (nulo) espera en su primera lectura.
+    let migracionRetenida: string | null = null;
+    gi.mockImplementation(async (k: string, cb?: unknown) => {
+      if (k === '@prep_by_account' && migracionRetenida === null) {
+        migracionRetenida = k;
+        await puerta;
+      }
+      return realGi(k, cb);
+    });
+    try {
+      relojesFalsos();
+      managePrepAccount();
+      const primero = setPrepAccount(null);
+      for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
+        await vuelta();
+      }
+      let escrita = false;
+      // Los cuatro stores: cada uno pide su clave, y uno que la tomara por su
+      // cuenta en cuanto llega el estado no lo veria la escritura de notas.
+      const edita = Promise.all([
+        savePrepNote(P, 'observation', 'durante', 2),
+        createPrepSeries('durante'),
+        createPrepIllustration(),
+        setPrepSelfReviewQuestion(P, PREP_SELF_REVIEW_QUESTION_IDS[0], true),
+      ]).then(() => (escrita = true));
+      // La clave misma, pedida tambien durante el trabajo: `escrita` sola no
+      // lo decia; con el store mil vueltas mas lento entre su clave y su turno,
+      // la escritura con la clave ya tomada llegaba detras de la union, y la
+      // regresion pasaba.
+      let clave: string | null = null;
+      void prepKey('@prep_notes').then(k => (clave = k));
+      await unaHora();
+      const antesDeAbrir = {clave, escrita};
+      abrir();
+      await Promise.all([primero, edita]);
+      gi.mockImplementation(realGi);
+      expect({
+        migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+        antesDeAbrir,
+        clave,
+        deAna: await mapa('@prep_notes:ana'), // CONTROL: la migracion movio lo de antes
+        sinCuenta: await mapa('@prep_notes'),
+        claves: await claves(),
+      }).toEqual({
+        migracionRetenida: '@prep_by_account',
+        antesDeAbrir: {clave: null, escrita: false},
+        clave: '@prep_notes',
+        deAna: ['Ps/23/1-6'],
+        sinCuenta: [P],
+        // Los otros tres, tambien en la «sin cuenta».
+        claves: [
+          '@prep_by_account',
+          '@prep_illustrations',
+          '@prep_notes',
+          '@prep_notes:ana',
+          '@prep_self_review',
+          '@prep_series',
+        ],
+      });
+    } finally {
+      abrir();
+      gi.mockImplementation(realGi);
+    }
+  });
+
+  // R9-345 — lo mismo para una lectura, en las dos partes del trabajo: pedida
+  // mientras la migracion espera, con la clave tomada al pedirla leia la Mesa
+  // de Ana antes de que la union le llevara lo de antes; pedida mientras se
+  // termina una devolucion pendiente, leia la «sin cuenta» sin lo devuelto.
+  // Con estados solo durante la migracion, tomar la clave en cuanto esta
+  // termina pasaba. Y la clave pedida directo (`clave`): con la lectura mil
+  // vueltas mas lenta entre su clave y su `getItem`, la regresion leia detras
+  // de la union, y pasaba.
+  it('R9-345: una lectura pedida durante el trabajo del primer estado de auth ve lo que mueve: la migracion, o una devolucion pendiente', async () => {
+    const P = 'John/3/16-21';
+    const R = 'Ps/23/1-6';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const realMs = ms.getMockImplementation()!;
+    let abrir: () => void = () => undefined;
+    // La union del trabajo que escribe en `retener` espera en una puerta, y
+    // la lectura (y la clave) se piden mientras tanto.
+    const caso = async (primerEstado: string | null, retener: string) => {
+      __resetPrepAccountForTests();
+      const puerta = new Promise<void>(r => (abrir = r));
+      let retenida: string[] | null = null;
+      ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+        const union = pairs.find(([k]) => k === retener);
+        if (union && retenida === null) {
+          retenida = Object.keys(JSON.parse(union[1])).sort();
+          await puerta;
+        }
+        return realMs(pairs);
+      });
+      relojesFalsos();
+      managePrepAccount();
+      const primero = setPrepAccount(primerEstado);
+      for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
+      let leido: string[] | null = null;
+      const lectura = pasajes().then(r => (leido = r));
+      let clave: string | null = null;
+      void prepKey('@prep_notes').then(k => (clave = k));
+      await unaHora();
+      const antesDeAbrir = {clave, leido};
+      abrir();
+      await Promise.all([primero, lectura]);
+      ms.mockImplementation(realMs);
+      return {retenida, antesDeAbrir, clave, leido};
+    };
+    try {
+      // La migracion: lo de antes (P) va a Ana, la cuenta del primer estado.
+      await AsyncStorage.setItem(
+        '@prep_notes',
+        JSON.stringify({
+          [P]: {sections: {observation: 'de antes'}, updatedAt: 1},
+        }),
+      );
+      await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+      const migracion = await caso('ana', '@prep_notes:ana');
+      // Una devolucion pendiente (la Mesa de Bob, borrado), con la migracion
+      // ya hecha y el primer estado nulo.
+      await AsyncStorage.clear();
+      await AsyncStorage.multiSet([
+        ['@prep_by_account', '1'],
+        [
+          '@prep_notes',
+          JSON.stringify({
+            [R]: {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+          }),
+        ],
+        [
+          '@prep_notes:bob',
+          JSON.stringify({
+            'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
+          }),
+        ],
+        ['@prep_release_pending', JSON.stringify(['bob'])],
+      ]);
+      const devolucion = await caso(null, '@prep_notes');
+      expect({migracion, devolucion}).toEqual({
+        migracion: {
+          retenida: [P], // CONTROL: la union de la migracion esperaba, con P
+          antesDeAbrir: {clave: null, leido: null},
+          clave: '@prep_notes:ana',
+          leido: [P],
+        },
+        devolucion: {
+          retenida: [R, 'Rom/8/28'], // CONTROL: la union de la devolucion esperaba, con lo de Bob
+          antesDeAbrir: {clave: null, leido: null},
+          clave: '@prep_notes',
+          leido: [R, 'Rom/8/28'],
+        },
+      });
+    } finally {
+      abrir();
+      ms.mockImplementation(realMs);
+    }
+  });
+
   // R9-336 — todo estado espera el trabajo del primero (R9-331), asi que ese
-  // trabajo no puede rechazar: cada paso se traga su falla. Un caso por paso
-  // (la migracion, la lectura de la nota, la devolucion pendiente): si su falla
-  // saliera, los dos estados lanzarian y la lectura no volveria nunca.
+  // trabajo no puede rechazar: cada paso se traga su falla. R9-343 — un caso
+  // por cada PARTE del trabajo que puede fallar, no por paso: la migracion (sus
+  // dos lecturas, las lecturas de su union, su escritura y su quita, y la
+  // marca), la lectura de la nota, y cada devolucion (las lecturas de su union,
+  // su escritura y su quita, y la nota: releerla, re-escribirla si queda otra
+  // cuenta, o quitarla). Si la falla de una parte saliera de su `try`, los dos
+  // estados lanzarian y la lectura no volveria nunca; con un caso por paso, 8
+  // de esas partes podian sacarla sin que cayera nada.
+  //
+  // El control dice QUE fallo, por contenido: lo que escribia o quitaba la
+  // llamada (`escribia`), el aviso del paso que se trago la falla (`aviso`), y
+  // cuantas llamadas tocan la clave en todo el trabajo (`llamadas`). Contar las
+  // que fallaron no lo decia: con otra llamada de la clave delante (aun del
+  // mismo paso, con el mismo aviso), la falla caia en esa, y el caso pasaba
+  // con la parte fuera del `try`.
   const primerEstadoConFalla = async (
-    metodo: 'getItem' | 'multiSet',
+    metodo: 'getItem' | 'multiSet' | 'multiRemove',
     clave: string,
+    n: number,
   ) => {
     await AsyncStorage.setItem(
       '@prep_notes',
@@ -764,24 +1210,52 @@ describe('R9-59 — la Mesa por cuenta', () => {
     const vuelta = () => new Promise(r => setImmediate(r));
     const mock = AsyncStorage[metodo] as unknown as jest.Mock;
     const real = mock.getMockImplementation()!;
-    let fallo = 0;
-    // La primera llamada que toca `clave` lanza.
+    let llamadas = 0;
+    let fallo: {escribia: unknown; aviso: string[]} | null = null;
+    const avisos: string[] = [];
+    const warn = jest
+      .spyOn(logger, 'warn')
+      .mockImplementation((mensaje, contexto) => {
+        if (String(contexto?.error).includes('disco')) avisos.push(mensaje);
+      });
+    // Lo que escribia la llamada en `clave` (las claves de un mapa, una lista
+    // tal cual, o el valor crudo), o lo que quitaba; una lectura, nada.
+    const contenido = (arg: unknown): unknown => {
+      if (metodo === 'getItem') return null;
+      if (metodo === 'multiRemove') return [...(arg as string[])].sort();
+      const valor = (arg as Array<[string, string]>).find(
+        ([k]) => k === clave,
+      )![1];
+      let v: unknown;
+      try {
+        v = JSON.parse(valor);
+      } catch {
+        v = valor;
+      }
+      if (Array.isArray(v)) return v;
+      if (v && typeof v === 'object') return Object.keys(v).sort();
+      return valor;
+    };
+    // La `n`-esima llamada que toca `clave` lanza.
     mock.mockImplementation(async (arg: unknown, cb?: unknown) => {
       const toca =
         metodo === 'getItem'
           ? arg === clave
-          : (arg as Array<[string, string]>).some(([k]) => k === clave);
-      if (toca && fallo === 0) {
-        fallo += 1;
+          : metodo === 'multiSet'
+            ? (arg as Array<[string, string]>).some(([k]) => k === clave)
+            : (arg as string[]).includes(clave);
+      if (toca) llamadas += 1;
+      if (toca && llamadas === n) {
+        fallo = {escribia: contenido(arg), aviso: avisos};
         throw new Error('disco');
       }
       return real(arg, cb);
     });
+    let leido: string[] | null = null;
+    const lanzo: string[] = [];
     try {
       managePrepAccount();
-      let leido: string[] | null = null;
       void pasajes().then(r => (leido = r));
-      const lanzo: string[] = [];
       // Los dos terminan tambien si lanzan; la lectura, no: se la espera a lo
       // sumo cien mil vueltas (con mil, una lectura mil vueltas mas lenta daba
       // `leido: null` sin que nadie lanzara, el rojo del dano).
@@ -790,51 +1264,217 @@ describe('R9-59 — la Mesa por cuenta', () => {
         setPrepAccount(null).catch(() => lanzo.push('segundo')),
       ]);
       for (let i = 0; i < 100000 && leido === null; i++) await vuelta();
-      return {fallo, lanzo, leido};
     } finally {
       mock.mockImplementation(real);
+      warn.mockRestore();
     }
+    return {
+      llamadas,
+      fallo,
+      lanzo,
+      leido,
+      // La nota de las devoluciones: la que fallo se queda, y la termina el
+      // arranque siguiente.
+      nota: await AsyncStorage.getItem('@prep_release_pending'),
+    };
   };
 
-  it('R9-336: si falla la migracion en el primer estado de auth, ningun estado lanza y las claves se sueltan', async () => {
-    expect(await primerEstadoConFalla('getItem', '@prep_by_account')).toEqual({
-      fallo: 1, // CONTROL: fallo la primera lectura de la migracion
-      lanzo: [],
-      leido: ['Ps/23/1-6'],
-    });
-  });
+  const MIGRA = 'Failed to move the Mesa to its account';
+  const NOTA = 'Failed to read the Mesa to give back';
+  const DEV = 'Failed to give the Mesa back';
+  const mesaDe = (pasaje: string) =>
+    JSON.stringify({[pasaje]: {sections: {observation: 'de'}, updatedAt: 1}});
+  // Lo que cada caso siembra ademas de la «sin cuenta» (Ps/23/1-6).
+  const conDueno = () => AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+  const conDevoluciones = async (...uids: string[]) => {
+    const pasaje: Record<string, string> = {bob: 'Rom/8/28', carl: 'Eph/2/8'};
+    for (const uid of uids) {
+      await AsyncStorage.setItem(`@prep_notes:${uid}`, mesaDe(pasaje[uid]));
+    }
+    await AsyncStorage.setItem('@prep_release_pending', JSON.stringify(uids));
+  };
+  type Parte = {
+    titulo: string;
+    sembrar?: () => Promise<void>;
+    metodo: 'getItem' | 'multiSet' | 'multiRemove';
+    clave: string;
+    n?: number;
+    llamadas: number;
+    escribia: unknown;
+    aviso: string;
+    leido: string[];
+    nota: string | null;
+  };
+  const Ps = 'Ps/23/1-6';
+  const partes: Parte[] = [
+    {
+      titulo: 'R9-336: la primera lectura de la migracion',
+      metodo: 'getItem',
+      clave: '@prep_by_account',
+      llamadas: 1,
+      escribia: null,
+      aviso: MIGRA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-343: la lectura del dueno, en la migracion',
+      metodo: 'getItem',
+      clave: '@local_store_owner_uid',
+      llamadas: 1,
+      escribia: null,
+      aviso: MIGRA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-343: una lectura de la union de la migracion',
+      sembrar: conDueno,
+      metodo: 'getItem',
+      clave: '@prep_notes:ana',
+      llamadas: 1,
+      escribia: null,
+      aviso: MIGRA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-343: la escritura de la union de la migracion',
+      sembrar: conDueno,
+      metodo: 'multiSet',
+      clave: '@prep_notes:ana',
+      llamadas: 1,
+      escribia: [Ps],
+      aviso: MIGRA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-343: la quita de la union de la migracion',
+      sembrar: conDueno,
+      metodo: 'multiRemove',
+      clave: '@prep_notes',
+      llamadas: 1,
+      escribia: ['@prep_notes'],
+      aviso: MIGRA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-343: la marca de la migracion',
+      metodo: 'multiSet',
+      clave: '@prep_by_account',
+      llamadas: 1,
+      escribia: '1',
+      aviso: MIGRA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-336: la lectura de la nota de devoluciones',
+      metodo: 'getItem',
+      clave: '@prep_release_pending',
+      llamadas: 1,
+      escribia: null,
+      aviso: NOTA,
+      leido: [Ps],
+      nota: null,
+    },
+    {
+      titulo: 'R9-343: una lectura de la union de una devolucion pendiente',
+      sembrar: () => conDevoluciones('bob'),
+      metodo: 'getItem',
+      clave: '@prep_notes:bob',
+      llamadas: 1,
+      escribia: null,
+      aviso: DEV,
+      leido: [Ps],
+      nota: '["bob"]',
+    },
+    {
+      titulo: 'R9-336: la escritura de la union de una devolucion pendiente',
+      sembrar: () => conDevoluciones('bob'),
+      metodo: 'multiSet',
+      clave: '@prep_notes',
+      llamadas: 1,
+      escribia: [Ps, 'Rom/8/28'],
+      aviso: DEV,
+      leido: [Ps],
+      nota: '["bob"]',
+    },
+    {
+      titulo: 'R9-343: la quita de la union de una devolucion pendiente',
+      sembrar: () => conDevoluciones('bob'),
+      metodo: 'multiRemove',
+      clave: '@prep_notes:bob',
+      llamadas: 1,
+      escribia: ['@prep_notes:bob'],
+      aviso: DEV,
+      leido: [Ps, 'Rom/8/28'],
+      nota: '["bob"]',
+    },
+    {
+      // La primera lectura de la nota es la de `finishRelease`.
+      titulo: 'R9-343: la relectura de la nota al terminar una devolucion',
+      sembrar: () => conDevoluciones('bob'),
+      metodo: 'getItem',
+      clave: '@prep_release_pending',
+      n: 2,
+      llamadas: 2,
+      escribia: null,
+      aviso: DEV,
+      leido: [Ps, 'Rom/8/28'],
+      nota: '["bob"]',
+    },
+    {
+      // La de Bob falla; la de Carl re-escribe la nota despues, sin Carl.
+      titulo:
+        'R9-343: la re-escritura de la nota al terminar una devolucion, con otra pendiente',
+      sembrar: () => conDevoluciones('bob', 'carl'),
+      metodo: 'multiSet',
+      clave: '@prep_release_pending',
+      llamadas: 2,
+      escribia: ['carl'],
+      aviso: DEV,
+      leido: ['Eph/2/8', Ps, 'Rom/8/28'],
+      nota: '["bob"]',
+    },
+    {
+      titulo: 'R9-343: la quita de la nota al terminar la ultima devolucion',
+      sembrar: () => conDevoluciones('bob'),
+      metodo: 'multiRemove',
+      clave: '@prep_release_pending',
+      llamadas: 1,
+      escribia: ['@prep_release_pending'],
+      aviso: DEV,
+      leido: [Ps, 'Rom/8/28'],
+      nota: '["bob"]',
+    },
+  ];
 
-  it('R9-336: si falla la lectura de la nota de devoluciones en el primer estado de auth, ningun estado lanza y las claves se sueltan', async () => {
-    expect(
-      await primerEstadoConFalla('getItem', '@prep_release_pending'),
-    ).toEqual({
-      fallo: 1, // CONTROL: fallo la lectura de la nota
-      lanzo: [],
-      leido: ['Ps/23/1-6'],
-    });
-  });
-
-  it('R9-336: si falla la devolucion pendiente en el primer estado de auth, ningun estado lanza, las claves se sueltan y la nota se queda', async () => {
-    await AsyncStorage.setItem(
-      '@prep_notes:bob',
-      JSON.stringify({
-        'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
-      }),
-    );
-    await AsyncStorage.setItem(
-      '@prep_release_pending',
-      JSON.stringify(['bob']),
-    );
-    expect({
-      ...(await primerEstadoConFalla('multiSet', '@prep_notes')),
-      nota: await AsyncStorage.getItem('@prep_release_pending'),
-    }).toEqual({
-      fallo: 1, // CONTROL: fallo la union de la devolucion
-      lanzo: [],
-      leido: ['Ps/23/1-6'],
-      nota: '["bob"]', // CONTROL: y la termina el arranque siguiente
-    });
-  });
+  it.each(partes)(
+    '$titulo: si falla en el primer estado de auth, ningun estado lanza y las claves se sueltan',
+    async ({
+      sembrar,
+      metodo,
+      clave,
+      n,
+      llamadas,
+      escribia,
+      aviso,
+      leido,
+      nota,
+    }) => {
+      await sembrar?.();
+      expect(await primerEstadoConFalla(metodo, clave, n ?? 1)).toEqual({
+        llamadas, // CONTROL: ninguna otra llamada toca la clave
+        fallo: {escribia, aviso: [aviso]}, // CONTROL: fallo esa parte, y se la trago su paso
+        lanzo: [],
+        leido,
+        nota,
+      });
+    },
+  );
 
   it('R9-275: una escritura de la Mesa pedida para la cuenta que se esta devolviendo va a la «sin cuenta», no bajo el uid borrado', async () => {
     const T = Date.now() - 60 * 60 * 1000;
@@ -1050,6 +1690,102 @@ describe('R9-59 — la Mesa por cuenta', () => {
       abrir();
       ms.mockImplementation(real);
     }
+  });
+
+  // R9-320 — el gancho de las escrituras (`__prepTurnWaitingForTests`) cuenta
+  // las escrituras pedidas para la clave, no las uniones que la tocan: las
+  // uniones piden su turno sin decir nada (ver `waiting`). Contada, una union de
+  // la cuenta en la cola hacia salir la espera de una prueba antes de que SU
+  // escritura pidiera el turno (la regla de la 88). Un caso por union que pide
+  // turno sola: la de la migracion y la de la adopcion.
+  it('R9-320: una union de la cuenta que espera turno no cuenta como una escritura de su clave', async () => {
+    const P = 'John/3/16-21';
+    const Q = 'Rom/8/28';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const mapa = (pasaje: string, de: string) =>
+      JSON.stringify({[pasaje]: {sections: {observation: de}, updatedAt: 1}});
+    const caso = async (union: 'migracion' | 'adopcion') => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      // Q, en la «sin cuenta»: la union la lleva a la Mesa de Ana.
+      await AsyncStorage.setItem('@prep_notes', mapa(Q, 'sin cuenta'));
+      if (union === 'migracion') {
+        await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+      } else {
+        await AsyncStorage.setItem('@prep_by_account', '1');
+        await AsyncStorage.setItem('@prep_notes:ana', mapa(P, 'de Ana'));
+      }
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let soltarClave!: (k: string) => void;
+      const clave = new Promise<string>(r => (soltarClave = r));
+      try {
+        relojesFalsos();
+        managePrepAccount();
+        if (union === 'adopcion') await setPrepAccount('ana');
+        // Otra escritura toma el turno y espera en una puerta; detras pide el
+        // suyo la union; y la edicion de las notas de Ana lo pide cuando se
+        // suelta su clave.
+        let tomada: string | null = null;
+        const otra = prepWrite(Promise.resolve('@prep_series:ana'), async k => {
+          tomada = k;
+          await puerta;
+        });
+        for (let i = 0; i < 1000 && tomada === null; i++) await vuelta();
+        const unida =
+          union === 'migracion'
+            ? setPrepAccount(null)
+            : adoptNoAccountPrep('ana');
+        let leido: string[] | null = null;
+        const edita = prepWrite(clave, async k => {
+          const raw = await AsyncStorage.getItem(k);
+          leido = Object.keys(raw ? JSON.parse(raw) : {}).sort();
+        });
+        // Lo ultimo antes de que la edicion pida, con la union ya en la cola:
+        // una hora y mil vueltas (R9-317), y `leido` dice despues que la union
+        // iba delante de la edicion.
+        await unaHora();
+        const sinPedir = __prepTurnWaitingForTests('@prep_notes:ana');
+        soltarClave('@prep_notes:ana');
+        for (
+          let i = 0;
+          i < 1000 && __prepTurnWaitingForTests('@prep_notes:ana') === 0;
+          i++
+        ) {
+          await vuelta();
+        }
+        // Y otra hora con las dos en la cola: contando la union, la espera de
+        // arriba salia con ella (la que llegaba tarde a la primera hora), y
+        // aqui contaba dos.
+        relojesFalsos();
+        await unaHora();
+        const pedida = __prepTurnWaitingForTests('@prep_notes:ana');
+        abrir();
+        await Promise.all([otra, unida, edita]);
+        return {tomada, sinPedir, pedida, leido};
+      } finally {
+        abrir();
+        soltarClave('@prep_notes:ana');
+      }
+    };
+    // Con las uniones diciendo sus claves, `sinPedir` contaba la union.
+    expect({
+      migracion: await caso('migracion'),
+      adopcion: await caso('adopcion'),
+    }).toEqual({
+      migracion: {
+        tomada: '@prep_series:ana', // CONTROL: la otra tenia el turno
+        sinPedir: 0,
+        pedida: 1, // con la edicion pedida, solo ella
+        leido: [Q], // CONTROL: la union iba delante: la edicion ya ve Q
+      },
+      adopcion: {
+        tomada: '@prep_series:ana',
+        sinPedir: 0,
+        pedida: 1,
+        leido: [P, Q],
+      },
+    });
   });
 
   // R9-325 — el desvio de R9-275 en los cuatro stores: cada uno lee y escribe
@@ -1312,22 +2048,24 @@ describe('R9-59 — la Mesa por cuenta', () => {
       ) {
         await vuelta();
       }
-      const respaldo = prepMultiSet([
+      const pares: Array<[string, string]> = [
         [
           '@prep_notes:ana',
           JSON.stringify({
             [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
           }),
         ],
-      ]);
-      // R9-334 — la puerta se abre con ESTE respaldo ya en la cola (el gancho
-      // mira sus claves: otro respaldo no cuenta): abierta en la vuelta en que
-      // se lo llama, con su pedido una vuelta mas tarde la devolucion ya habia
-      // terminado, y el caso no se armaba.
-      const pidioElDeAna = () =>
-        __prepRestoreWaitingForTests('@prep_notes:ana');
-      for (let i = 0; i < 1000 && pidioElDeAna() === 0; i++) await vuelta();
-      const pidio = pidioElDeAna();
+      ];
+      const respaldo = prepMultiSet(pares);
+      // R9-334 — la puerta se abre con ESTE respaldo ya en la cola: abierta en
+      // la vuelta en que se lo llama, con su pedido una vuelta mas tarde la
+      // devolucion ya habia terminado, y el caso no se armaba. R9-342 — el
+      // gancho mira el pedido de esta llamada (sus `pares`), no los respaldos
+      // de su clave: con otro respaldo de Ana ya en la cola, aun con los mismos
+      // pares, la espera salia con el otro.
+      const pidioEste = () => __prepThisRestoreWaitingForTests(pares);
+      for (let i = 0; i < 1000 && !pidioEste(); i++) await vuelta();
+      const pidio = pidioEste();
       const enCola = __prepGiveBackWaitingForTests('ana');
       abrir();
       await Promise.all([otra, devolucion, respaldo]);
@@ -1342,7 +2080,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         claves: await claves(),
       }).toEqual({
         tomada: '@prep_series:ana',
-        pidio: 1,
+        pidio: true,
         enCola: 1,
         sinCuenta: [P, R],
         claves: ['@prep_by_account', '@prep_notes'],
