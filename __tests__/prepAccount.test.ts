@@ -783,12 +783,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
       void pasajes().then(r => (leido = r));
       const lanzo: string[] = [];
       // Los dos terminan tambien si lanzan; la lectura, no: se la espera a lo
-      // sumo mil vueltas.
+      // sumo cien mil vueltas (con mil, una lectura mil vueltas mas lenta daba
+      // `leido: null` sin que nadie lanzara, el rojo del dano).
       await Promise.all([
         setPrepAccount(null).catch(() => lanzo.push('primero')),
         setPrepAccount(null).catch(() => lanzo.push('segundo')),
       ]);
-      for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
+      for (let i = 0; i < 100000 && leido === null; i++) await vuelta();
       return {fallo, lanzo, leido};
     } finally {
       mock.mockImplementation(real);
