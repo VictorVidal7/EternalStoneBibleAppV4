@@ -1105,8 +1105,21 @@
 > tocó sin cerrar (estados solo durante la migración en la de `R9-337`; la primera mitad de la frase
 > de `prepKey`). `R9-340`, medido: hay un diseño que lo corta, sin prueba que lo vigile.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **345**. Rama `docs/review-s98-diff-s97`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S98-revision-del-diff-s97.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **345**. Rama `docs/review-s98-diff-s97`: mergeada y
+> pusheada con el OK de Victor (`main` = `08da00b`, CI verde en el log, run `38529167216`, 374/4648;
+> corregido en la 99). Detalle: `detail/S98-revision-del-diff-s97.md`.
+>
+> **Sesión 99 (2026-10-14): arreglo de lo de la 98**, en un chat nuevo, en la terminal, con 12
+> agentes en worktree que solo midieron (los pidió Victor), lanzados sobre los DISEÑOS, antes de
+> escribir los arreglos. Cerrados `R9-340` (aislamiento de módulos por prueba, sin producción),
+> `R9-342`, `R9-343`, `R9-344` y `R9-345`; dos nuevos, medidos y arreglados en la misma sesión:
+> `R9-346` (8 de 12 partes del trabajo del primer estado sin caso) y `R9-347` (ningún llamador de
+> `prepKey` tenía caso; quedan la lectura de tres stores y exportar). «The joins, nothing» tiene
+> prueba. Los agentes vieron cinco verdes falsos en los diseños del orquestador, corregidos antes de
+> commitear.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **347**. Ramas `fix/s99-arreglos-s98` y
+> `docs/review-s99-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S99-arreglo-de-s98.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2091,6 +2104,22 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
+  agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con
+  `_scratch/S99-PROMPT.md` y el alcance ampliado a los pendientes de la 98.
+  - **Cómo se trabajó:** los 12 se lanzaron sobre `08da00b` antes de escribir los arreglos: cada uno
+    armó y midió (o atacó) el diseño que le dio el orquestador, que escribió la rama con lo medido
+    (`54bb2f3`, `5aa5c96`). Todo re-medido en el árbol principal con `_scratch/S99-sonda.cjs.txt`
+    (de `S99-gen.cjs.txt`); la matriz, con `S99-matriz.cjs.txt`. El límite de sesión cortó al agente
+    8 (y al chat) hasta el reset; se lo retomó con `SendMessage`.
+  - **Resultado:** cerrados `R9-340`, `R9-342`..`R9-345`, y `R9-346` y `R9-347` (nuevos; el
+    segundo, en parte). No queda ningún P0 abierto.
+  - **Detalle: `detail/S99-arreglo-de-s98.md`.**
+  - **Las lecciones:** medir los diseños antes de escribirlos rindió cinco verdes falsos; las
+    llamadas de una clave se cuentan en una corrida limpia; un argumento nuevo en una llamada larga
+    re-sangra todo su cuerpo y rompe las anclas; para «cuándo se toma», se retiene la última parte
+    del trabajo; un hueco de las pruebas se cierra en las pruebas.
 
 - **Sesión 98 — 2026-10-13. Revisión del diff de la 97.** En un chat nuevo, en la terminal, con 3
   agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S98-PROMPT.md`. Solo docs.

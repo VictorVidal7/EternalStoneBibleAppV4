@@ -1,18 +1,18 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-13, fin de la sesión 98.** La 98 hizo el (bz) en un chat nuevo,
-> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor). Lo de la 97 se
-> sostiene como código. Cuatro nuevos P3 (`R9-342`..`R9-345`): dos verdes falsos que abrió la 97 en
-> sus pruebas y dos huecos de antes que la 97 tocó sin cerrar. `R9-340`, medido y sin arreglar.
+> **Última actualización: 2026-10-14, fin de la sesión 99.** La 99 hizo el (ca) en un chat nuevo,
+> en la terminal, con 12 agentes en worktree que solo midieron (los pidió Victor), lanzados sobre los
+> diseños antes de escribir los arreglos. Cerrados `R9-340`, `R9-342`..`R9-345`, y dos nuevos
+> (`R9-346`, y `R9-347` en parte); «the joins, nothing» tiene prueba.
 >
-> La 97 ya está mergeada y pusheada (`main` = `c166fff`, CI verde en el log, run `38512623060`,
-> 374/4648). La rama de la 98 (`docs/review-s98-diff-s97`, solo docs) va **sin mergear hasta el OK
-> de Victor**. **No queda ningún P0 abierto**, y hay 345 hallazgos. **Lo siguiente:** la 99 arregla
-> lo de la 98 (mensaje (ca), en `_scratch/S99-PROMPT.md`).
+> La 98 ya está mergeada y pusheada (`main` = `08da00b`, CI verde en el log, run `38529167216`,
+> 374/4648). Las ramas de la 99 (`fix/s99-arreglos-s98` y `docs/review-s99-fix`) van **sin mergear
+> hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 347 hallazgos. **Lo siguiente:** la
+> 100 revisa el diff de la 99 (mensaje (cb), en `_scratch/S100-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
-> sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
-> y 3 como máximo. Cada chat gasta su cuota semanal: sé económico.
+> sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
+> si no dice cuántos, 3. Cada chat gasta su cuota semanal: sé económico.
 > Actualiza este archivo al cerrar cada sesión (es parte del checkpoint, igual que
 > `INDEX.md`).
 >
@@ -531,12 +531,18 @@ sesión 95, en un chat nuevo con 3 agentes que solo midieron, con `_scratch/S95-
 revisión de su diff (la (bx), sesión 96, en un chat nuevo con 3 agentes que solo midieron, con
 `_scratch/S96-PROMPT.md`). Y su arreglo (la (by), sesión 97, en el mismo chat con 3 agentes que
 solo midieron, con `_scratch/S97-PROMPT.md`). Y la revisión de su diff (la (bz), sesión 98, en un
-chat nuevo con 3 agentes que solo midieron, con `_scratch/S98-PROMPT.md`). **Lo siguiente es el
-(ca).**
+chat nuevo con 3 agentes que solo midieron, con `_scratch/S98-PROMPT.md`). Y su arreglo (la (ca),
+sesión 99, en un chat nuevo con 12 agentes que solo midieron, con `_scratch/S99-PROMPT.md`). **Lo
+siguiente es el (cb).**
 
-**(ca) Sesión 99: arreglar lo de la 98** (`R9-342`..`R9-345`: dos pruebas que pasan en falso, dos
-casos sin prueba y la primera mitad de la frase de `prepKey`). El mensaje está en
-`_scratch/S99-PROMPT.md`, que manda sobre este archivo.
+**(cb) Sesión 100: revisar el diff de la 99** (`08da00b..5aa5c96`: el gancho por respaldo, las 13
+partes del primer trabajo, la última parte de `R9-344`, las de `R9-345` en sus llamadores, el
+aislamiento de módulos de `R9-340` y la prueba de «the joins, nothing»). El mensaje está en
+`_scratch/S100-PROMPT.md`, que manda sobre este archivo.
+
+**(ca) Sesión 99: arreglar lo de la 98 — ya HECHO en la sesión 99, en un chat nuevo, en la
+terminal, con 12 agentes en worktree que solo midieron.** Cerrados 5 y dos nuevos (`R9-346`,
+`R9-347` en parte). El mensaje está en `_scratch/S99-PROMPT.md`.
 
 **(bz) Sesión 98: revisar el diff de la 97 — ya HECHO en la sesión 98, en un chat nuevo, en la
 terminal, con 3 agentes en worktree que solo midieron.** Lo de la 97 se sostiene como código; cuatro
@@ -2098,18 +2104,21 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 98 (2026-10-13).**
+**Medido al cerrar la sesión 99 (2026-10-14).**
 
-- **La 97, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `c166fff` (el último
-  código es `5ee4460`). CI verificado en el log: run `38512623060`, 3 jobs, Node v24.21.0, 374/4648.
-  Sus ramas se borraron tras `git cherry`.
-- **La rama de la 98, sin mergear a propósito y sin pushear:** `docs/review-s98-diff-s97` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. Los de los 3 agentes de la 98 se borraron solos, con sus ramas; sus
-  copias están en `_scratch/S98-sondas-agente-N/`.
+- **La 98, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `08da00b` (solo
+  docs; el último código era `5ee4460`). CI verificado en el log: run `38529167216`, 3 jobs, Node
+  v24.21.0, 374/4648. Su rama se borró tras `git cherry`.
+- **Las ramas de la 99, sin mergear a propósito y sin pushear:** `fix/s99-arreglos-s98` (`54bb2f3`,
+  `5aa5c96`) y `docs/review-s99-fix` encima (el checkpoint). Se mergean en fast-forward con el OK de
+  Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno de agentes (los de A11 y A12 se borraron solos; los otros 10, a mano
+  tras `diff -rq` contra su copia); sus copias están en `_scratch/S99-sondas-agente-N/`. El
+  checkpoint se escribió en un worktree aparte (`../essb-docs-s99`, fuera del repo), quitado al
+  terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 98):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 99):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2830,6 +2839,32 @@ Alternativas legítimas:
   `--maxWorkers=3` en `prep` y 4 en el suite (argumento extra, después del modo), también en el
   prompt de cada agente. Y para cortar una matriz, esperá la línea «tanda N»: matar el padre mata la
   sonda hija sin restaurar.
+- **Medir los diseños antes de escribir los arreglos rindió (sesión 99).** Victor pidió los agentes
+  antes de que hubiera commit; cada uno armó en su worktree el diseño que le dio el orquestador y lo
+  midió o lo atacó. En cinco de los diseños hubo un verde falso o un hueco, medido, antes de escribir
+  la rama: el `of` que re-sangraba `prepMultiSet`, el ajeno del mismo paso de `R9-343`, el control
+  leído al final de `R9-344`, las pruebas de `R9-345` que retenían solo la migración, y «the
+  give-backs» en `prepKey`. Es la regla de la 60 antes del commit, no después.
+- **Las llamadas de una clave se cuentan en una corrida limpia (sesión 99, `R9-343`).** Contadas en
+  la corrida que falla, una llamada ajena que al fallar corta el paso (`return`) esconde la parte: con
+  `migraMismoPaso343`, la prueba pasaba con la parte fuera del `try`. Con una corrida sin falla antes,
+  cae. Es la regla de la 80 para un control de fallas.
+- **Un argumento nuevo en una llamada con una función larga re-sangra todo su cuerpo (sesión 99,
+  `R9-342`).** Con tres argumentos, prettier deja de abrazar la función y re-sangra `prepMultiSet`
+  entero: las anclas de todas las piezas que lo tocan dejaban de aplicar. El dato fue a un argumento
+  que ya estaba (la etiqueta). Es la regla de la 63: medí después de formatear (modo `anclas`).
+- **Para «cuándo se toma un valor», retené la ÚLTIMA parte del trabajo (sesión 99, `R9-344`).** Una
+  retención en el medio ve solo las regresiones que lo toman antes de ese punto: reteniendo la unión
+  de la devolución, `claveTrasUnionDev` pasaba; con la quita de la nota (o, sin devoluciones, su
+  lectura), caen todas las de antes. Es la regla de la 77, aplicada al trabajo mismo.
+- **La regla de la 93 vale para todo llamador, no solo los stores (sesión 99, `R9-347`).** Ninguno de
+  los 10 caminos que llaman a `prepKey` tenía un caso de `R9-345`, y el único con pérdida de datos
+  era uno que la prueba no tocaba: restaurar un respaldo. `grep` del nombre, y un caso por camino.
+- **Un hueco de las pruebas se cierra en las pruebas (sesión 99, `R9-340`).** Módulos y almacén
+  propios por prueba (`jest.resetModules()` + un mock nuevo de AsyncStorage) cortan lo mismo que 21
+  líneas de producción, sin dejar en `src/` lo que solo sirve bajo jest (la regla de la 26). El mock
+  de `jest.setup.js` es uno solo: `resetModules` sin el mock nuevo deja el almacén compartido
+  (`soloModulos340`). Y todo `spyOn` va sobre la instancia de la prueba.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
