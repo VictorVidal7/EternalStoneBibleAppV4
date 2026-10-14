@@ -1191,25 +1191,23 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // de esas partes podian sacarla sin que cayera nada.
   //
   // El control dice QUE fallo, por contenido: lo que escribia o quitaba la
-  // llamada (`escribia`), el aviso del paso que se trago la falla (`aviso`), y
-  // cuantas llamadas tocan la clave en todo el trabajo (`llamadas`). Contar las
+  // llamada (`escribia`) y el aviso del paso que se trago la falla (`aviso`).
+  // Y `llamadas`: cuantas llamadas tocan la clave en el trabajo SIN falla (una
+  // corrida limpia, antes), asi la `n`-esima es la de esa parte. Contar las
   // que fallaron no lo decia: con otra llamada de la clave delante (aun del
-  // mismo paso, con el mismo aviso), la falla caia en esa, y el caso pasaba
-  // con la parte fuera del `try`.
+  // mismo paso, con el mismo aviso), la falla caia en esa, y el caso pasaba con
+  // la parte fuera del `try`; y contarlas en la corrida que falla no veia una
+  // llamada delante que, al fallar, corta el paso antes de llegar a la parte.
   const primerEstadoConFalla = async (
     metodo: 'getItem' | 'multiSet' | 'multiRemove',
     clave: string,
     n: number,
+    sembrar?: () => Promise<void>,
   ) => {
-    await AsyncStorage.setItem(
-      '@prep_notes',
-      JSON.stringify({
-        'Ps/23/1-6': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
-      }),
-    );
     const vuelta = () => new Promise(r => setImmediate(r));
     const mock = AsyncStorage[metodo] as unknown as jest.Mock;
     const real = mock.getMockImplementation()!;
+    let fallar = false;
     let llamadas = 0;
     let fallo: {escribia: unknown; aviso: string[]} | null = null;
     const avisos: string[] = [];
@@ -1236,7 +1234,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       if (v && typeof v === 'object') return Object.keys(v).sort();
       return valor;
     };
-    // La `n`-esima llamada que toca `clave` lanza.
+    // Con `fallar`, la `n`-esima llamada que toca `clave` lanza.
     mock.mockImplementation(async (arg: unknown, cb?: unknown) => {
       const toca =
         metodo === 'getItem'
@@ -1245,15 +1243,27 @@ describe('R9-59 — la Mesa por cuenta', () => {
             ? (arg as Array<[string, string]>).some(([k]) => k === clave)
             : (arg as string[]).includes(clave);
       if (toca) llamadas += 1;
-      if (toca && llamadas === n) {
+      if (fallar && toca && llamadas === n) {
         fallo = {escribia: contenido(arg), aviso: avisos};
         throw new Error('disco');
       }
       return real(arg, cb);
     });
-    let leido: string[] | null = null;
-    const lanzo: string[] = [];
-    try {
+    // El primer estado (y un segundo) con lo sembrado, y una lectura pedida
+    // antes.
+    const correr = async () => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      await sembrar?.();
+      await AsyncStorage.setItem(
+        '@prep_notes',
+        JSON.stringify({
+          'Ps/23/1-6': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+        }),
+      );
+      llamadas = 0;
+      let leido: string[] | null = null;
+      const lanzo: string[] = [];
       managePrepAccount();
       void pasajes().then(r => (leido = r));
       // Los dos terminan tambien si lanzan; la lectura, no: se la espera a lo
@@ -1264,19 +1274,26 @@ describe('R9-59 — la Mesa por cuenta', () => {
         setPrepAccount(null).catch(() => lanzo.push('segundo')),
       ]);
       for (let i = 0; i < 100000 && leido === null; i++) await vuelta();
+      return {lanzo, leido};
+    };
+    try {
+      await correr();
+      const limpias = llamadas;
+      fallar = true;
+      const {lanzo, leido} = await correr();
+      return {
+        llamadas: limpias,
+        fallo,
+        lanzo,
+        leido,
+        // La nota de las devoluciones: la que fallo se queda, y la termina el
+        // arranque siguiente.
+        nota: await AsyncStorage.getItem('@prep_release_pending'),
+      };
     } finally {
       mock.mockImplementation(real);
       warn.mockRestore();
     }
-    return {
-      llamadas,
-      fallo,
-      lanzo,
-      leido,
-      // La nota de las devoluciones: la que fallo se queda, y la termina el
-      // arranque siguiente.
-      nota: await AsyncStorage.getItem('@prep_release_pending'),
-    };
   };
 
   const MIGRA = 'Failed to move the Mesa to its account';
@@ -1433,7 +1450,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       sembrar: () => conDevoluciones('bob', 'carl'),
       metodo: 'multiSet',
       clave: '@prep_release_pending',
-      llamadas: 2,
+      llamadas: 1,
       escribia: ['carl'],
       aviso: DEV,
       leido: ['Eph/2/8', Ps, 'Rom/8/28'],
@@ -1465,9 +1482,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       leido,
       nota,
     }) => {
-      await sembrar?.();
-      expect(await primerEstadoConFalla(metodo, clave, n ?? 1)).toEqual({
-        llamadas, // CONTROL: ninguna otra llamada toca la clave
+      expect(
+        await primerEstadoConFalla(metodo, clave, n ?? 1, sembrar),
+      ).toEqual({
+        llamadas, // CONTROL: sin falla, ninguna otra llamada toca la clave
         fallo: {escribia, aviso: [aviso]}, // CONTROL: fallo esa parte, y se la trago su paso
         lanzo: [],
         leido,
