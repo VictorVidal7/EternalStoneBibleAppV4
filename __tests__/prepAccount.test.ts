@@ -7,6 +7,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   __prepGiveBackWaitingForTests,
+  __prepRestoreWaitingForTests,
   __prepTurnWaitingForTests,
   __resetPrepAccountForTests,
   adoptNoAccountPrep,
@@ -554,15 +555,18 @@ describe('R9-59 — la Mesa por cuenta', () => {
       return real(pairs);
     });
     try {
+      relojesFalsos();
       managePrepAccount();
       let leido: string[] | null = null;
       const lectura = pasajes().then(r => (leido = r));
       const primero = setPrepAccount(null);
       for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
       const segundo = setPrepAccount(null);
-      // Mil vueltas con la union retenida: la lectura sigue esperando (con el
-      // segundo estado soltando las claves, leia la «sin cuenta» sin Rom/8/28).
-      for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
+      // Una hora y mil vueltas con la union retenida: la lectura sigue
+      // esperando (con el segundo estado soltando las claves, leia la «sin
+      // cuenta» sin Rom/8/28). R9-335 — con mil vueltas sin reloj, como
+      // R9-317, un segundo estado que esperara a lo sumo 250 ms pasaba.
+      await unaHora();
       const antesDeAbrir = leido;
       abrir();
       await Promise.all([primero, segundo, lectura]);
@@ -616,13 +620,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
         }
         return realMs(pairs);
       });
+      relojesFalsos();
       managePrepAccount();
       let leido: string[] | null = null;
       const lectura = pasajes().then(r => (leido = r));
       let primero = setPrepAccount(null);
       for (let i = 0; i < 1000 && unionRetenida === null; i++) await vuelta();
       let segundo = setPrepAccount('ana');
-      for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
+      // R9-335 — una hora y mil vueltas, como en la de arriba.
+      await unaHora();
       const leidoAntesDeAbrir = leido;
       abrir();
       await Promise.all([primero, segundo, lectura]);
@@ -642,6 +648,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         }
         return realGi(k, cb);
       });
+      relojesFalsos();
       managePrepAccount();
       let escrita = false;
       const edita = savePrepNote(P, 'application', 'antes del estado', 2).then(
@@ -652,7 +659,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         await vuelta();
       }
       segundo = setPrepAccount('ana');
-      for (let i = 0; i < 1000 && !escrita; i++) await vuelta();
+      await unaHora();
       const escritaAntesDeAbrir = escrita;
       abrir();
       await Promise.all([primero, segundo, edita]);
@@ -680,6 +687,105 @@ describe('R9-59 — la Mesa por cuenta', () => {
     } finally {
       abrir?.();
       ms.mockImplementation(realMs);
+      gi.mockImplementation(realGi);
+    }
+  });
+
+  // R9-337 — con DOS estados durante el trabajo del primero (se entra y se
+  // sale), lo pedido antes va a la cuenta de cuando termina, la del ultimo:
+  // con la del primero que llego mientras tanto, iba a la Mesa de una cuenta
+  // que ya habia salido.
+  it('R9-337: con nulo, una cuenta y nulo durante el trabajo del primer estado, lo pedido antes va a la cuenta del ultimo', async () => {
+    const P = 'John/3/16-21';
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const gi = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGi = gi.getMockImplementation()!;
+    let abrir!: () => void;
+    const puerta = new Promise<void>(r => (abrir = r));
+    // La migracion del primer estado espera en su primera lectura.
+    let migracionRetenida: string | null = null;
+    gi.mockImplementation(async (k: string, cb?: unknown) => {
+      if (k === '@prep_by_account' && migracionRetenida === null) {
+        migracionRetenida = k;
+        await puerta;
+      }
+      return realGi(k, cb);
+    });
+    try {
+      relojesFalsos();
+      managePrepAccount();
+      let escrita = false;
+      const edita = savePrepNote(P, 'observation', 'antes del estado', 2).then(
+        () => (escrita = true),
+      );
+      const primero = setPrepAccount(null);
+      for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
+        await vuelta();
+      }
+      const segundo = setPrepAccount('ana');
+      const tercero = setPrepAccount(null);
+      await unaHora();
+      const escritaAntesDeAbrir = escrita;
+      abrir();
+      await Promise.all([primero, segundo, tercero, edita]);
+      gi.mockImplementation(realGi);
+      expect({
+        migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+        escritaAntesDeAbrir, // CONTROL: y la escritura, a que terminara
+        deAna: await AsyncStorage.getItem('@prep_notes:ana'),
+        sinCuenta: await pasajes(),
+      }).toEqual({
+        migracionRetenida: '@prep_by_account',
+        escritaAntesDeAbrir: false,
+        deAna: null,
+        sinCuenta: [P],
+      });
+    } finally {
+      abrir();
+      gi.mockImplementation(realGi);
+    }
+  });
+
+  // R9-336 — todo estado espera el trabajo del primero (R9-331), asi que ese
+  // trabajo no puede rechazar: cada paso se traga su falla. Aqui, la lectura
+  // de la nota de devoluciones (`finishRelease`): si su falla saliera, los dos
+  // estados lanzarian y la lectura no volveria nunca.
+  it('R9-336: si falla la lectura de la nota de devoluciones en el primer estado de auth, ningun estado lanza y las claves se sueltan', async () => {
+    await AsyncStorage.setItem(
+      '@prep_notes',
+      JSON.stringify({
+        'Ps/23/1-6': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+      }),
+    );
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const gi = AsyncStorage.getItem as unknown as jest.Mock;
+    const realGi = gi.getMockImplementation()!;
+    let fallo = 0;
+    gi.mockImplementation(async (k: string, cb?: unknown) => {
+      if (k === '@prep_release_pending' && fallo === 0) {
+        fallo += 1;
+        throw new Error('disco');
+      }
+      return realGi(k, cb);
+    });
+    try {
+      managePrepAccount();
+      let leido: string[] | null = null;
+      void pasajes().then(r => (leido = r));
+      const lanzo: string[] = [];
+      // Los dos terminan tambien si lanzan; la lectura, no: se la espera a lo
+      // sumo mil vueltas.
+      await Promise.all([
+        setPrepAccount(null).catch(() => lanzo.push('primero')),
+        setPrepAccount(null).catch(() => lanzo.push('segundo')),
+      ]);
+      for (let i = 0; i < 1000 && leido === null; i++) await vuelta();
+      expect({fallo, lanzo, leido}).toEqual({
+        fallo: 1, // CONTROL: fallo la lectura de la nota
+        lanzo: [],
+        leido: ['Ps/23/1-6'],
+      });
+    } finally {
       gi.mockImplementation(realGi);
     }
   });
@@ -1157,7 +1263,6 @@ describe('R9-59 — la Mesa por cuenta', () => {
       ) {
         await vuelta();
       }
-      const enCola = __prepGiveBackWaitingForTests('ana');
       const respaldo = prepMultiSet([
         [
           '@prep_notes:ana',
@@ -1166,6 +1271,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
           }),
         ],
       ]);
+      // R9-334 — la puerta se abre con el respaldo YA en la cola: abierta en la
+      // vuelta en que se lo llama, con su pedido una vuelta mas tarde la
+      // devolucion ya habia terminado, y el caso no se armaba.
+      for (let i = 0; i < 1000 && __prepRestoreWaitingForTests() === 0; i++) {
+        await vuelta();
+      }
+      const pidio = __prepRestoreWaitingForTests();
+      const enCola = __prepGiveBackWaitingForTests('ana');
       abrir();
       await Promise.all([otra, devolucion, respaldo]);
       await setPrepAccount(null);
@@ -1173,11 +1286,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
       // escribia bajo el uid borrado y no se devolvia.
       expect({
         tomada, // CONTROL: la otra tenia el turno
-        enCola, // CONTROL: la devolucion lo esperaba cuando el respaldo pidio el suyo
+        pidio, // CONTROL: el respaldo esperaba el suyo
+        enCola, // CONTROL: y la devolucion, delante, todavia el suyo
         sinCuenta: await pasajes(),
         claves: await claves(),
       }).toEqual({
         tomada: '@prep_series:ana',
+        pidio: 1,
         enCola: 1,
         sinCuenta: [P, R],
         claves: ['@prep_by_account', '@prep_notes'],

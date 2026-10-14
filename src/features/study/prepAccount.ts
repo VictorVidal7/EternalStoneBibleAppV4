@@ -131,7 +131,8 @@ let turn: Promise<void> = Promise.resolve();
 /**
  * R9-319 — the asks still waiting for their turn, each with what it is for
  * (R9-320: `prepWrite` gives the key it resolved; R9-323: `giveBack`, the
- * account it gives back; the rest, nothing). R9-321 — a write's key is not
+ * account it gives back; R9-334: `prepMultiSet`, `restoreAsk`; the joins,
+ * nothing). R9-321 — a write's key is not
  * always the key it writes: when the turn comes, R9-275 may send the write to
  * the Mesa «sin cuenta». Only tests read it.
  */
@@ -172,6 +173,9 @@ export async function prepWrite(
   }, resolved);
 }
 
+/** R9-334 — what a restore's ask says it is for (see `waiting`). */
+const restoreAsk = 'restore';
+
 /**
  * R9-273 — a `multiSet` with Mesa keys from outside the stores (the restore
  * of a backup), one at a time with the stores' writes and the joins. Its keys
@@ -207,7 +211,7 @@ export function prepMultiSet(pairs: Array<[string, string]>): Promise<void> {
         });
       }
     }
-  });
+  }, restoreAsk);
 }
 
 /** `AuthProvider`, as it mounts: keys wait for the first auth state. */
@@ -466,4 +470,9 @@ export function __prepTurnWaitingForTests(key: string): number {
  */
 export function __prepGiveBackWaitingForTests(uid: string): number {
   return [...waiting].filter(ask => ask.what === giveBackAsk(uid)).length;
+}
+
+/** R9-334 — how many restores (`prepMultiSet`) wait for their turn now. */
+export function __prepRestoreWaitingForTests(): number {
+  return [...waiting].filter(ask => ask.what === restoreAsk).length;
 }
