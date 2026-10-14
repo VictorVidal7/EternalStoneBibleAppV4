@@ -1094,7 +1094,19 @@
 > solo una parte.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **341**. Ramas `fix/s97-arreglos-s96` y
-> `docs/review-s97-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S97-arreglo-de-s96.md`.
+> `docs/review-s97-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `c166fff`, CI verde en
+> el log, run `38512623060`, 374/4648; corregido en la 98). Detalle: `detail/S97-arreglo-de-s96.md`.
+>
+> **Sesión 98 (2026-10-13): revisión del diff de la 97**, en un chat nuevo, en la terminal, con 3
+> agentes en worktree que solo midieron. Lo de la 97 se sostiene como código (solo comentarios donde
+> lo dice, la etiqueta sin costo, la matriz sin cambios). Cuatro nuevos P3 (`R9-342`..`R9-345`): dos
+> verdes falsos que abrió la 97 en sus pruebas (un respaldo ajeno de la misma clave en la de
+> `R9-298`; una parte de la migración de cuatro en las de `R9-336`) y dos huecos de antes que la 97
+> tocó sin cerrar (estados solo durante la migración en la de `R9-337`; la primera mitad de la frase
+> de `prepKey`). `R9-340`, medido: hay un diseño que lo corta, sin prueba que lo vigile.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **345**. Rama `docs/review-s98-diff-s97`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S98-revision-del-diff-s97.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2079,6 +2091,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 98 — 2026-10-13. Revisión del diff de la 97.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S98-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** A1 midió las pruebas de la 97, A2 el código y los comentarios, y A3 la
+    matriz, las piezas re-ancladas y `R9-340`. Todo re-medido en el árbol principal con
+    `_scratch/S98-sonda.cjs.txt` (de `S98-gen.cjs.txt`); la comparación de la matriz, con
+    `S98-matriz.cjs.txt`. A mitad de la sesión, `--maxWorkers=3` por la memoria.
+  - **Resultado:** cuatro nuevos P3 (`R9-342`..`R9-345`); `R9-340`, medido y sin arreglar. No queda
+    ningún P0 abierto.
+  - **Detalle: `detail/S98-revision-del-diff-s97.md`.**
+  - **Las lecciones:** un «por lectura» que dice «cambia los datos» se mide con los datos que no los
+    cambian; la regla de la 95 baja a las partes de cada paso y vale para cada prueba que espera el
+    trabajo; al reescribir media oración, se mide la oración entera; una pieza re-anclada conserva lo
+    que el arreglo agregó en su ancla; jest levanta 31 workers por corrida.
 
 - **Sesión 97 — 2026-10-13. Arreglo de lo de la 96.** En el mismo chat que la 96, en la terminal,
   con 3 agentes en worktree que solo midieron (los pidió Victor); con el plan de

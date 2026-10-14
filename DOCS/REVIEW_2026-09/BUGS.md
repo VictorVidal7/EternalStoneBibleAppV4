@@ -1411,8 +1411,9 @@
 >
 > **Sesión 97 (2026-10-13): arreglo de lo de la 96**, en el mismo chat que la 96, en la terminal,
 > con 3 agentes en worktree que solo midieron (buscaban romper los arreglos, ya commiteados). Ramas
-> `fix/s97-arreglos-s96` (`dd1a7b6`, `307b654`, `12cc4b4`, `5ee4460`) y `docs/review-s97-fix`, sin
-> mergear hasta el OK de Victor.
+> `fix/s97-arreglos-s96` (`dd1a7b6`, `307b654`, `12cc4b4`, `5ee4460`) y `docs/review-s97-fix`:
+> mergeadas y pusheadas con el OK de Victor (`main` = `c166fff`, CI verde en el log, run
+> `38512623060`, 374/4648; corregido en la 98).
 >
 > - **Cerrados (7):** `R9-334`, `R9-335`, `R9-336` y `R9-337` (las pruebas que faltaban o pasaban
 >   en falso, cada una vista caer con su pieza; `R9-337` y `R9-336`, también con su comentario),
@@ -1426,6 +1427,27 @@
 > - **Sin arreglar:** `R9-340`. El diseño que se puede medir corta solo una parte (ver la entrada).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **341**. Detalle: `detail/S97-arreglo-de-s96.md`.
+>
+> **Sesión 98 (2026-10-13): revisión del diff de la 97** (`67e8141..5ee4460`), en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron. Solo docs, en
+> `docs/review-s98-diff-s97`, sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 97 se sostiene como código:** `307b654` es solo comentarios; en `dd1a7b6` y `12cc4b4`
+>   lo único que no es comentario en `src/` es la etiqueta y el gancho; la etiqueta cuesta 18-24 ms
+>   con cien mil claves, y ninguna clave sale del archivo de respaldo. En la matriz (226 corridas),
+>   ninguna regresión que caía deja de caer.
+> - **Nuevos (4), P3:** `R9-342` (la prueba de `R9-298` pasa con su regresión si hay otro respaldo
+>   de la MISMA clave en la cola; lo abrió la 97), `R9-343` (las de `R9-336` fijan un paso de la
+>   migración de cuatro; lo abrió la 97), `R9-344` (la de `R9-337` tiene estados solo durante la
+>   migración: tomar la cuenta al terminar la migración pasa todo; no lo abrió la 97) y `R9-345` (la
+>   primera mitad de la frase de `prepKey`, «once the auth state is known», admite una lectura que
+>   pasa todo y mezcla cuentas; no lo abrió la 97).
+> - **`R9-340`:** medido lo que la 96 dejó por lectura (el trabajo viejo escribe en el almacén de la
+>   prueba siguiente). Hay un diseño que lo corta (`genCorta`), pero ninguna prueba lo vigila: sigue
+>   sin arreglar.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **345**. Detalle:
+> `detail/S98-revision-del-diff-s97.md`.
 
 ---
 
@@ -8753,6 +8775,9 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
       en `pidio: 0`, un artefacto (agente 3).
     - Sin número: `respaldoPideTarde20` tumba la vieja de `R9-275` (`backupPrepTurn`) en su control
       (`colgadas`), también en `main`; con 10 y 15 pasa (agente 1).
+  - **Sesión 98:** «un ajeno de la MISMA clave cambia los datos del caso: no es neutro» era por
+    lectura. Con los mismos pares es neutro, y con él antes de la devolución la regresión pasa:
+    `R9-342`.
 
 - **`R9-335` (S96, pruebas / Mesa — P3) — 🐛 las dos pruebas de `R9-331` esperan 1000 vueltas sin
   reloj falso: con un tope de 250 ms al segundo estado, pasan las 1016.** MEDIDO por el agente 1 de
@@ -8829,6 +8854,12 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
       `lecturaLenta1010` y `3000` pasan.
     - `devolucionLanza` y `giveBackLanza` (el `catch` de `giveBack` vuelve a lanzar) los veían ya
       `R9-274`, `R9-276` y la A de `R9-323`; ahora también el tercer caso.
+  - **Sesión 98:** el caso de la migración hace fallar una de sus cuatro partes; con la falla de la
+    unión o de la marca fuera del `try`, los tres pasan (`R9-343`). El tope de 100 000 vueltas, medido
+    (agente 1, re-medido): el corte está entre 99 000 y 101 000; si la lectura no vuelve por otra
+    razón (`lecturaNoVuelve336`), los tres caen en `leido: null` con `lanzo: []`, distinto del daño
+    (`lanzo: ["primero", "segundo"]`), en unos 0,2 s cada uno; si un paso se cuelga en vez de
+    rechazar (`migraCuelga336`), el primero cae a los 20 s por el timeout de jest, sin diff.
 
 - **`R9-337` (S96, comentario / pruebas / Mesa — P3) — 🐛 la frase de `prepKey` de `f02c798` no dice
   qué estado cuenta si llegan dos durante el trabajo del primero: leída como «el primero que llegó
@@ -8866,6 +8897,10 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     (agente 2): `claveAlTerminar` (un estado que llega justo entre el fin del trabajo y la
     continuación) pasa `prep` y el suite sin daño posible, porque los estados llegan en otra tarea; sin ningún
     estado durante el trabajo, la frase da el del primero.
+  - **Sesión 98:** la prueba tiene estados solo durante la migración, y «when it is done» leída como
+    «al terminar la migración» pasa todo (`R9-344`). Y la primera mitad de la misma oración («taken
+    at the call once the auth state is known») admite una lectura que pasa todo y mezcla cuentas
+    (`R9-345`).
 
 - **`R9-338` (S96, comentario de prueba — P3) — 🐛 el comentario y el título de la prueba de
   `R9-324` dicen todavía lo que `f02c798` corrigió en `prepKey`.** MEDIDO por el agente 2 de la 96
@@ -8935,6 +8970,22 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
     devolución, `givenBack`), y cortarlo pediría mirar la generación en cada paso. Hoy ninguna prueba
     lo arma (`muestraViejo`, 0 líneas). Es latente y de pruebas: se deja con
     `muereTrasEscribir`, de la misma clase.
+  - **Sesión 98: medido lo que la 96 dejó por lectura, y un diseño que lo corta, sin nada que lo
+    vigile** (agente 3, re-medido con `_scratch/S98-sonda.cjs.txt`).
+    - `escribeViejo` (imprime cada paso del trabajo viejo, sin cambiar la app): con `viejoReanudaA3`,
+      el trabajo viejo escribe `@prep_by_account` y corre `finishRelease` dentro de la prueba
+      siguiente, después de su `clear()`, y suelta sus claves dos veces (`null` y `zoe`).
+    - `genSoloMark` (la hipótesis de la 96: la generación mirada solo en `markKnown`) cura el rojo
+      (40/40) y deja esas dos escrituras.
+    - `genCorta` (la generación mirada en 10 sitios: `markKnown`, el paso a `finishRelease`, la unión
+      y la marca de la migración, cada devolución, `givenBack`, la nota, `noteReleases`, el turno y
+      la escritura de `joinPrep`) las corta: `viejoReanudaA3+genCorta` 40/40 sin ninguna escritura
+      vieja, y `genCorta` sola 39/39.
+    - Son unas 19 líneas de producción que solo sirven bajo jest, y ninguna prueba las vigila (la
+      regla de la 26): sin `viejoReanudaA3` como prueba, el código de hoy pasa las 39, y 7 de los 10
+      sitios no los alcanza ningún caso (la regla de la 95). Sin medir: `jest.isolateModules` por
+      prueba, sin tocar `src/`.
+    - Sigue sin arreglar.
 
 - **`R9-341` (S97, comentario — P3 bajo) — 🐛 el comentario de `__prepGiveBackWaitingForTests`
   («Counted among the asks with nothing said, as before, the joins and the restore passed for
@@ -8949,6 +9000,123 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
   - **✅ ARREGLADO en la sesión 97** (`12cc4b4`, solo el comentario): «Before, they were counted
     among the asks with nothing said, where the joins and the restore (R9-334: it says its keys
     now) passed for one».
+
+- **`R9-342` (S98, pruebas / respaldo — P3 bajo) — 🐛 la prueba de `R9-298` pasa con su regresión si
+  hay otro respaldo de la MISMA clave en la cola antes de la devolución: el gancho por clave dice la
+  clave, no cuál pedido. La 97 lo había dejado por lectura («no es neutro»).** MEDIDO por el agente 1
+  de la 98 y re-medido (`_scratch/S98-sonda.cjs.txt`, de `S98-gen.cjs.txt`).
+  - `prepAccount.test.ts`, la de `R9-298` (`12cc4b4`): espera a que
+    `__prepRestoreWaitingForTests('@prep_notes:ana')` cuente uno, y lee `pidio` y `enCola` en ese
+    momento. Con otro respaldo de Ana ya en la cola, la espera sale con el ajeno.
+  - **Piezas:** `ajenoMismaClave298` (un respaldo ajeno de `@prep_notes:ana` con solo R, pedido antes
+    de la devolución), `ajenoMismaClaveNeutro298` (con P de Ana y R: deja el almacén final igual) y
+    `ajenoMismaClaveTras298` (pedido después de la devolución, justo antes del respaldo del caso).
+  - **El verde falso:** `goneAlPedirTarde1+ajenoMismaClaveNeutro298`, `prep` 39/39 y suite 1020/1020;
+    `goneAlPedirTarde1+ajenoMismaClave298`, `prep` 39/39. En los dos, `pidio=1 enCola=1`: la puerta
+    se abre antes de que el caso pida, la devolución termina primero y el caso no se arma.
+  - **Los controles:** `goneAlPedirTarde1` sola cae con el daño (`+ "@prep_notes:ana"`,
+    `- "Ps/23/1-6"`); `ajenoMismaClaveNeutro298` con el código bueno cae en su control
+    (`pidio: 1 → 2`); `respaldoPideTarde1+ajenoMismaClaveNeutro298` (un cambio bueno) pasa. Con el
+    ajeno, la prueba cae con el código bueno y pasa con la regresión: decide la vuelta en que pide el
+    caso, no el código.
+  - Con el ajeno detrás de la devolución (`ajenoMismaClaveTras298`), la regresión cae con `pidio: 2`
+    y el daño: en esa posición no hay verde falso.
+  - **El comentario de la prueba** («el gancho mira sus claves: otro respaldo no cuenta») es falso
+    para otro respaldo de la misma clave (agente 2); el del gancho («Another restore's ask, of other
+    keys, does not count») es exacto.
+  - Es la regla de la 88 y la 89 (el ajeno, en cada caso), en el arreglo de la 97; y la de la 94:
+    «no es neutro» era un «por lectura» de la entrada de `R9-334`.
+  - **¿Lo abrió la 97?** Sí (`12cc4b4`).
+  - P3 bajo: verde falso ante una regresión construida, con un ajeno que ninguna prueba arma; el
+    código está bien.
+  - **Arreglo (hipótesis), sin medir:** que el control lea la identidad del pedido del caso, no un
+    conteo de su clave (la resta, «la cuenta de antes más uno», ya falló en la 88 con un ajeno que
+    llega dentro de la ventana). Tiene que caer con `goneAlPedirTarde1+ajenoMismaClaveNeutro298` y
+    pasar con `respaldoPideTarde1+ajenoMismaClaveNeutro298`.
+
+- **`R9-343` (S98, pruebas / Mesa — P3) — 🐛 las pruebas de `R9-336` hacen fallar una parte de la
+  migración de cuatro: con la falla de su unión o de su marca fuera del `try`, pasan `prep` y el
+  suite, y todo estado lanza.** MEDIDO por el agente 2 de la 98 y re-medido.
+  - `migrateLegacyPrep` (`prepAccount.ts:255-268`) tiene cuatro partes en un `try`: la lectura de
+    `@prep_by_account`, la del dueño, la unión (`oneAtATime(() => joinPrep(null, owner))`) y la marca
+    (`setItem(MIGRATED_KEY, '1')`). El caso de la migración hace fallar la primera lectura, y en los
+    tres casos el dueño es nulo: ninguno llega a la unión.
+  - **Piezas** (refactors que sacan del `try` la falla de una parte): `migraUnionSale` y
+    `migraMarcaSale`, cada una `prep` 39/39 y suite 1020/1020.
+  - **El daño** (pruebas-sonda `S98a2-union` y `S98a2-marca`, en `casosS98a2`, con el ayudante
+    `primerEstadoConFalla` de la 97): con el dueño `ana` sembrado y el `multiSet` de `@prep_notes:ana`
+    fallando una vez, o el de `@prep_by_account`, hoy pasan (`fallo: 1`, `lanzo: []`,
+    `leido: ["Ps/23/1-6"]`); con su pieza, `lanzo: ["primero", "segundo"]` y `leido: null`: el daño
+    de `R9-336`.
+  - Es la regla de la 95 («cada parte del trabajo») un nivel más abajo: la 97 armó un caso por paso
+    de `firstWork`, no por cada parte de la migración.
+  - **Residuo, sin número** (agente 1, re-medido): el control `fallo: 1` cuenta cualquier llamada que
+    toque la clave, no la del paso. Con la migración leyendo `@prep_release_pending` dentro de su
+    `try` (`ajenoNota336`), la falla cae en esa lectura, que se traga, y `sinR336+ajenoNota336` pasa
+    `prep` 39/39 y el suite 1020/1020. Medido en el caso de la nota; en los otros dos, la misma
+    forma por lectura. Hoy nadie más lee la nota en ese tramo. Es la regla de la 80.
+  - **¿Lo abrió la 97?** Sí (`12cc4b4`).
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** dos casos más con el mismo ayudante (el dueño sembrado y su
+    unión fallando; la marca fallando). Tienen que caer con `migraUnionSale` y `migraMarcaSale`.
+
+- **`R9-344` (S98, pruebas / Mesa — P3) — 🐛 «when it is done», en `prepKey`, está fijada solo con
+  estados que llegan durante la MIGRACIÓN: si lo pedido antes toma la cuenta de cuando termina la
+  migración, y no el trabajo entero, pasan `prep` y el suite, y va a la «sin cuenta» con Ana ya
+  adentro.** MEDIDO por el agente 1 de la 98 y re-medido.
+  - El trabajo del primer estado es la migración y `finishRelease`. La prueba de `R9-337` retiene la
+    migración; las de `R9-331` retienen la devolución con nulo y nulo, y la migración con nulo y
+    `ana`. Ninguna tiene un estado de OTRA cuenta que llegue durante `finishRelease`.
+  - **Pieza `claveTrasMigrar`** (lo pedido antes toma la cuenta de cuando termina la migración):
+    `prep` 39/39 y suite 1020/1020.
+  - **El daño** (prueba-sonda `S98a1 trasMigrar`, pieza `casoTrasMigrar`): una devolución pendiente
+    de Bob con su unión retenida, `savePrepNote(P)` antes de todo estado, primer estado nulo, y `ana`
+    durante la devolución.
+    - Hoy: `deAna: [P]`, `sinCuenta: ["Rom/8/28"]`.
+    - Con la pieza: `deAna: null`, `sinCuenta: [P, "Rom/8/28"]`. Ana ya está adentro cuando termina
+      el trabajo, y no ve lo que escribió.
+    - Los controles dan lo mismo en las dos (`retenida: true`, `escritaAntesDeAbrir: false`). La
+      sonda imprime, no afirma.
+    - La dirección inversa (`ana` y después nulo: a una cuenta que ya salió), por lectura.
+  - Es la regla de la 95 en la prueba de `R9-337`: la frase dice «el trabajo», y las pruebas tienen
+    estados en una sola de sus partes.
+  - **¿Lo abrió la 97?** No: el hueco viene de las pruebas de la 95 (`77418b4`, `f02c798`). La 97
+    escribió la frase y una prueba que no lo cubre.
+  - P3.
+  - **Arreglo (hipótesis), sin medir:** la forma de `S98a1 trasMigrar` como prueba, con reloj falso y
+    una hora. Tiene que caer con `claveTrasMigrar`.
+
+- **`R9-345` (S98, comentario / pruebas / Mesa — P3) — 🐛 la primera mitad de la frase de `prepKey`
+  («taken at the call once the auth state is known») no dice que, con el primer estado llegado y su
+  trabajo corriendo, el estado todavía no cuenta como conocido. Leída así, pasa el suite, y lo
+  escrito sin cuenta durante el trabajo va a la Mesa de Ana.** MEDIDO por el agente 2 de la 98 y
+  re-medido.
+  - `prepAccount.ts:104-107`. El código toma la clave al pedirla solo con `markKnown` nulo, y eso
+    pasa cuando termina el trabajo del primer estado. La frase de `managePrepAccount` («keys wait for
+    the first auth state») tiene la misma ambigüedad; la de `setPrepAccount` («before any key
+    resolves») lo dice.
+  - **Pieza `claveConocidaAlLlegar`** (`if (!markKnown || !firstState)`: en cuanto llegó un estado,
+    la clave se toma al pedirla): `prep` 39/39 y suite 1020/1020.
+  - **El daño:**
+    - `S98a2-escribeDurante` (`casosS98a2b`): la Mesa de antes de Ana (`@local_store_owner_uid:
+ana`), primer estado nulo, la migración retenida en su lectura, y `savePrepNote(P)` pedido
+      durante el trabajo. Hoy, `escritaAntesDeAbrir: false`, `deAna: null`, `sinCuenta: [P]`. Con la
+      pieza, `escritaAntesDeAbrir: true`, P en `@prep_notes:ana` y `sinCuenta: []`: la migración lo
+      mueve detrás. Quien usa el teléfono no lo ve, y Ana sí al entrar (la mezcla que `R9-59`
+      prohíbe).
+    - `S98a2-leeDurante` (`casosS98a2`): primer estado `ana`, la unión de la migración retenida y una
+      lectura pedida durante el trabajo. Hoy, `leidoAntesDeAbrir: null` y `leido: [P]`; con la pieza,
+      `[]` y `[]`: el daño de `R9-331`, para lo pedido después del primer estado.
+  - Ninguna prueba pide nada durante el trabajo del primer estado: las de `R9-331` y `R9-337` piden
+    antes y mandan otros estados durante.
+  - Es la regla de la 92 (la otra mitad de la misma oración) y la de la 93 (pasa todo y hace daño).
+  - **¿Lo abrió la 97?** No. La frase es de `a85df96` (`R9-59`), y ya entonces el primer estado
+    esperaba su migración antes de soltar las claves (por lectura de `a85df96`). La 95 y la 97
+    reescribieron la segunda mitad de la oración sin medir la primera.
+  - P3: un comentario, y un caso sin prueba.
+  - **Arreglo (hipótesis), sin medir:** «taken at the call once the first auth state's work is done
+    (R9-331); asked before that, …», la de `managePrepAccount` igual, y `S98a2-escribeDurante` como
+    prueba. Tiene que caer con `claveConocidaAlLlegar`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
