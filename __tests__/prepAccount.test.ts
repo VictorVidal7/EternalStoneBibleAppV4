@@ -108,9 +108,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
   });
 
   // R9-324 — antes del primer estado de auth, la clave es la de la cuenta de
-  // ese estado, no la de cuando se pidio (ninguna): asi lo dice `prepKey`, y
-  // asi lo dicen los cuatro stores.
-  it('R9-324: lo que los cuatro stores escriben antes del primer estado de auth va a la cuenta de ese estado', async () => {
+  // cuando termina el trabajo de ese estado (ver `prepKey`), no la de cuando
+  // se pidio (ninguna); lo dicen tambien los cuatro stores. R9-338 — aqui no
+  // llega otro estado, asi que es la cuenta de ese.
+  it('R9-324: lo que los cuatro stores escriben antes del primer estado de auth va a la cuenta de cuando termina su trabajo, no a la de cuando se pidio', async () => {
     const P = 'John/3/16-21';
     const q = PREP_SELF_REVIEW_QUESTION_IDS[0];
     await AsyncStorage.setItem('@prep_by_account', '1');
@@ -1084,7 +1085,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
 
   // R9-328 — el respaldo escrito para una cuenta ya devuelta se anota ANTES de
   // escribirlo, y la nota se queda si su union falla: el arranque siguiente la
-  // termina. Lo restaurado no queda bajo el uid borrado en ningun punto.
+  // termina. R9-339 — lo restaurado se escribe bajo el uid borrado y se
+  // devuelve en el mismo turno; si no llega a devolverse, lo devuelve el
+  // arranque siguiente: no se queda ahi.
   it('R9-328: si el proceso termina tras escribir el respaldo de una cuenta devuelta, el arranque siguiente lo devuelve', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';

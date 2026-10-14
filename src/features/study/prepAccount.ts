@@ -87,7 +87,12 @@ let managed = false;
 let known: Promise<void> = Promise.resolve();
 let markKnown: (() => void) | null = null;
 let firstState = true;
-/** R9-331 — what the first auth state does before any key resolves. */
+/**
+ * R9-331 — what the first auth state does before any key resolves. R9-336 —
+ * every state awaits it, so it must not reject: each of its steps takes its
+ * own failure (`migrateLegacyPrep`, `finishRelease`, `giveBack`). If it
+ * rejected, every state would throw and no key would ever resolve.
+ */
 let firstWork: Promise<void> = Promise.resolve();
 
 /** The key of `base` for `uid` (null: the Mesa «sin cuenta»). */
@@ -98,8 +103,8 @@ export function prepKeyFor(base: string, uid: string | null): string {
 /**
  * The key of `base` for the account signed in now: taken at the call once the
  * auth state is known, else once the first auth state's work is done (R9-331),
- * with the account signed in then (a state that came meanwhile counts, not
- * the first one). A write goes to the
+ * with the account signed in when it is done: that of the last auth state to
+ * come by then, not the first one's (R9-337). A write goes to the
  * account of that key even if it waits behind others, except R9-275: if that
  * account's Mesa was given back by the time the write's turn comes, a store's
  * write goes to the Mesa «sin cuenta» instead (`prepWrite`), and the
