@@ -1,16 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-13, fin de la sesión 96.** La 96 hizo el (bx) en un chat nuevo,
-> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor): la revisión del
-> diff de la 95. Lo de la 95 se sostiene como código. Hay siete nuevos P3 (`R9-334`..`R9-340`), seis
-> de ellos abiertos por la 95: dos verdes falsos en sus pruebas, una garantía nueva sin prueba, una
-> frase ambigua de `prepKey` y dos comentarios de prueba falsos. El séptimo es un riesgo latente de
-> las pruebas. `R9-330` queda pendiente con el OK de Victor (§7).
+> **Última actualización: 2026-10-13, fin de la sesión 97.** La 97 hizo el (by) en el mismo chat
+> que la 96, en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor) sobre
+> los arreglos ya commiteados. Cerró 7: las pruebas que faltaban o pasaban en falso
+> (`R9-334`..`R9-337`), dos comentarios de prueba (`R9-338`, `R9-339`) y `R9-341` (nuevo, una frase
+> vieja). Los agentes vieron cuatro defectos en los arreglos, corregidos antes del OK (`12cc4b4`,
+> `5ee4460`). `R9-340`, sin arreglar: el diseño medible corta solo una parte.
 >
-> La 95 ya está mergeada y pusheada (`main` = `589c3bc`, CI verde en el log, run `38447264334`,
-> 374/4644). La rama de la 96 (`docs/review-s96-diff-s95`, solo docs) va **sin mergear hasta el
-> OK de Victor**. **No queda ningún P0 abierto**, y hay 340 hallazgos. **Lo siguiente:** la 97
-> arregla lo de la 96 (mensaje (by), en `_scratch/S97-PROMPT.md`).
+> La 96 ya está mergeada y pusheada (`main` = `67e8141`, CI verde en el log, run `38492329797`,
+> 374/4644). Las ramas de la 97 (`fix/s97-arreglos-s96` y `docs/review-s97-fix`) van **sin mergear
+> hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 341 hallazgos. **Lo siguiente:** la
+> 98 revisa el diff de la 97 (mensaje (bz), en `_scratch/S98-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide
@@ -531,11 +531,16 @@ solo midieron, con `_scratch/S93-PROMPT.md`). Y la revisión de su diff (la (bv)
 chat nuevo con 10 agentes que solo midieron, con `_scratch/S94-PROMPT.md`). Y su arreglo (la (bw),
 sesión 95, en un chat nuevo con 3 agentes que solo midieron, con `_scratch/S95-PROMPT.md`). Y la
 revisión de su diff (la (bx), sesión 96, en un chat nuevo con 3 agentes que solo midieron, con
-`_scratch/S96-PROMPT.md`). **Lo siguiente es el (by).**
+`_scratch/S96-PROMPT.md`). Y su arreglo (la (by), sesión 97, en el mismo chat con 3 agentes que
+solo midieron, con `_scratch/S97-PROMPT.md`). **Lo siguiente es el (bz).**
 
-**(by) Sesión 97: arreglar lo de la 96** (`R9-334`..`R9-340`: tres pruebas que faltan o fallan en
-falso, tres comentarios, y si entran, la garantía de `firstWork` y el reinicio de pruebas). El
-mensaje está en `_scratch/S97-PROMPT.md`, que manda sobre este archivo.
+**(bz) Sesión 98: revisar el diff de la 97** (`67e8141..5ee4460`: la etiqueta del respaldo con sus
+claves, el reloj falso en las de `R9-331`, las pruebas de `R9-336` y `R9-337`, y los comentarios).
+El mensaje está en `_scratch/S98-PROMPT.md`, que manda sobre este archivo.
+
+**(by) Sesión 97: arreglar lo de la 96 — ya HECHO en la sesión 97, en el mismo chat que la 96, en la
+terminal, con 3 agentes en worktree que solo midieron.** Cerrados 7 (con `R9-341`, nuevo); `R9-340`
+sin arreglar. El mensaje está en `_scratch/S97-PROMPT.md`.
 
 **(bx) Sesión 96: revisar el diff de la 95 — ya HECHO en la sesión 96, en un chat nuevo, en la
 terminal, con 3 agentes en worktree que solo midieron.** Lo de la 95 se sostiene como código; siete
@@ -2089,18 +2094,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 96 (2026-10-13).**
+**Medido al cerrar la sesión 97 (2026-10-13).**
 
-- **La 95, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `589c3bc` (solo
-  docs; el último código es `f02c798`). CI verificado en el log: run `38447264334`, 3 jobs, Node
-  v24.21.0, 374/4644. Sus ramas se borraron tras `git cherry`.
-- **Una rama de la 96, sin mergear a propósito y sin pushear:** `docs/review-s96-diff-s95` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. Los de los 3 agentes de la 96 se borraron solos (sin cambios en git),
-  después de que cada uno copiara su `_scratch`.
+- **La 96, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `67e8141` (solo
+  docs; el último código era `f02c798`). CI verificado en el log: run `38492329797`, 3 jobs, Node
+  v24.21.0, 374/4644. Su rama se borró tras `git cherry`.
+- **Dos ramas de la 97, sin mergear a propósito y sin pushear:** `fix/s97-arreglos-s96` (`dd1a7b6`,
+  `307b654`, `12cc4b4`, `5ee4460`) y `docs/review-s97-fix` encima (solo docs). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno. Los de los 3 agentes de la 97 no se borraron solos (el `reset` movió
+  sus ramas); se quitaron tras comparar su `_scratch` con la copia.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 96):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 97):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2782,6 +2788,21 @@ Alternativas legítimas:
   tres comparaciones leyeron una salida aislada, y una afirmación (`notaLenta50` ya no tumba la de
   `R9-274`) no se sostuvo en el principal, donde cae 3 de 3 veces. Una matriz que compara salidas
   guardadas comprueba de qué corrida es cada una.
+- **Un gancho con nombre dice la CLASE del pedido; si la prueba espera uno en concreto, el nombre
+  dice cuál (sesión 97, `R9-334`).** `'restore'` decía «un respaldo»: con otro respaldo en la
+  ventana, la espera salía con el ajeno y la regresión pasaba (`ajenoRespaldo298`). Con las claves
+  en la etiqueta, cae; el gancho viejo (`etiquetaSinClaves`) devuelve el verde falso. Son las reglas
+  de la 88 y la 89, en un gancho escrito por la sesión que ya las tenía.
+- **La 97 repitió en sus pruebas nuevas tres reglas de §5 que tenía (sesión 97, `R9-336`,
+  `R9-334`).** La de la 95 («cada parte del trabajo»): la prueba de `R9-336` fijaba uno de los tres
+  pasos (`migraLanza` y `arranqueLanzaSiQueda` pasaban). La de la 79 («llega tarde» no es «no
+  llega»): esperaba 1000 vueltas algo que tiene que llegar, y una lectura 1010 vueltas más lenta
+  daba el rojo del daño. Y las de la 88 y la 89 (el ajeno del gancho). La regla de la 96 («pasá §5
+  como lista») estaba escrita: las tres las vieron los agentes, no quien escribió las pruebas.
+- **Una pieza con un plazo real más largo que la corrida cuelga jest (sesión 97).**
+  `segundoTope1800000` crea un `setTimeout` real en las pruebas sin reloj falso, y jest no termina
+  hasta que vence. Un tope largo se mide con el reloj falso; si se cuelga, se mata solo el proceso de
+  jest (`Win32_Process` con `jest.js` en la línea de comandos), y la sonda restaura y sigue.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

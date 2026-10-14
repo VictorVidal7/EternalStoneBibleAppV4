@@ -1082,8 +1082,19 @@
 > `firstWork` que rechaza), una frase ambigua de `prepKey` y dos comentarios de prueba falsos; el
 > séptimo, un riesgo latente de las pruebas. `R9-330` queda pendiente con el OK de Victor.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **340**. Rama `docs/review-s96-diff-s95`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S96-revision-del-diff-s95.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **340**. Rama `docs/review-s96-diff-s95`: mergeada y
+> pusheada con el OK de Victor (`main` = `67e8141`, CI verde en el log, run `38492329797`,
+> 374/4644; corregido en la 97). Detalle: `detail/S96-revision-del-diff-s95.md`.
+>
+> **Sesión 97 (2026-10-13): arreglo de lo de la 96**, en el mismo chat, en la terminal, con 3
+> agentes en worktree que solo midieron, sobre los arreglos ya commiteados. Cerró 7: las pruebas que
+> faltaban o pasaban en falso (`R9-334`..`R9-337`), los comentarios de prueba (`R9-338`, `R9-339`)
+> y `R9-341` (nuevo: una frase vieja del gancho de las devoluciones). Los agentes vieron cuatro
+> defectos en los arreglos, corregidos antes del OK. `R9-340`, sin arreglar: el diseño medible corta
+> solo una parte.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **341**. Ramas `fix/s97-arreglos-s96` y
+> `docs/review-s97-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S97-arreglo-de-s96.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2068,6 +2079,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 97 — 2026-10-13. Arreglo de lo de la 96.** En el mismo chat que la 96, en la terminal,
+  con 3 agentes en worktree que solo midieron (los pidió Victor); con el plan de
+  `_scratch/S97-PROMPT.md`.
+  - **Cómo se trabajó:** los arreglos, commiteados primero (`dd1a7b6` código y pruebas, `307b654`
+    comentarios); sobre ellos, A1 midió las pruebas, A2 los comentarios y la garantía de
+    `R9-336`, y A3 la matriz. Lo que vieron, corregido en `12cc4b4` y `5ee4460`. Todo re-medido en
+    el árbol principal con `_scratch/S97-sonda.cjs.txt` (de `S97-gen.cjs.txt`); la matriz, con
+    `S97-matriz.cjs.txt`.
+  - **Resultado:** cerrados 7 (`R9-334`..`R9-339`, y `R9-341`, nuevo); `R9-340`, sin arreglar. No
+    queda ningún P0 abierto.
+  - **Detalle: `detail/S97-arreglo-de-s96.md`.**
+  - **Las lecciones:** un gancho con nombre dice la clase del pedido, y si la prueba espera uno
+    concreto, el nombre dice cuál; la 97 repitió en sus pruebas nuevas tres reglas de §5 que tenía;
+    una pieza con un plazo real más largo que la corrida cuelga jest.
 
 - **Sesión 96 — 2026-10-13. Revisión del diff de la 95.** En un chat nuevo, en la terminal, con 3
   agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S96-PROMPT.md`. Solo docs.
