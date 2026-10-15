@@ -115,7 +115,8 @@ afterEach(() => {
 // R9-349 — las claves que piden los llamadores (los stores, la lectura) a
 // `prepKey`, espiado en la instancia de la prueba: de cada una, su base y si
 // sigue pendiente. Las que pide la prueba misma (con el `prepKey` de arriba)
-// no pasan por aqui.
+// no pasan por aqui. Se leen al abrir y al final: un llamador que llega tarde
+// a pedirla aparece solo al final; uno que no se la pide a `prepKey`, nunca.
 const vigilarClaves = () => {
   const real = pa.prepKey;
   const pedidas: Array<{base: string; pendiente: boolean}> = [];
@@ -1135,11 +1136,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
       const antesDeAbrir = {clave, escrita, pedidas: vigiladas.pedidas()};
       abrir();
       await Promise.all([primero, edita]);
+      const pedidasAlFinal = vigiladas.pedidas();
       vigiladas.soltar();
       gi.mockImplementation(realGi);
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
         antesDeAbrir,
+        pedidasAlFinal,
         clave,
         deAna: await mapa('@prep_notes:ana'), // CONTROL: la migracion movio lo de antes
         sinCuenta: await mapa('@prep_notes'),
@@ -1156,6 +1159,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
             '@prep_series: pendiente',
           ],
         },
+        pedidasAlFinal: [
+          '@prep_illustrations: resuelta',
+          '@prep_notes: resuelta',
+          '@prep_self_review: resuelta',
+          '@prep_series: resuelta',
+        ],
         clave: '@prep_notes',
         deAna: ['Ps/23/1-6'],
         sinCuenta: [P],
@@ -1219,9 +1228,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       const antesDeAbrir = {clave, leido, pedidas: vigiladas.pedidas()};
       abrir();
       await Promise.all([primero, lectura]);
+      const pedidasAlFinal = vigiladas.pedidas();
       vigiladas.soltar();
       ms.mockImplementation(realMs);
-      return {retenida, antesDeAbrir, clave, leido};
+      return {retenida, antesDeAbrir, pedidasAlFinal, clave, leido};
     };
     try {
       // La migracion: lo de antes (P) va a Ana, la cuenta del primer estado.
@@ -1261,6 +1271,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
             leido: null,
             pedidas: ['@prep_notes: pendiente'],
           },
+          pedidasAlFinal: ['@prep_notes: resuelta'],
           clave: '@prep_notes:ana',
           leido: [P],
         },
@@ -1271,6 +1282,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
             leido: null,
             pedidas: ['@prep_notes: pendiente'],
           },
+          pedidasAlFinal: ['@prep_notes: resuelta'],
           clave: '@prep_notes',
           leido: [R, 'Rom/8/28'],
         },

@@ -902,7 +902,8 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
       migracionRetenida: '@prep_by_account',
       hechoAntesDeAbrir: false,
       pedidasAlAbrir: ['@prep_notes: pendiente'],
-      pedidasAlFinal: ['@prep_notes: resuelta'],
+      // La de las series la pide despues de tener la de las notas.
+      pedidasAlFinal: ['@prep_notes: resuelta', '@prep_series: resuelta'],
       fallo: false,
       deAna: [P],
       sinCuenta: [R],
