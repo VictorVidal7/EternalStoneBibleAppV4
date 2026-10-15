@@ -817,10 +817,13 @@ it('R9-327: una escritura de un store que espera detras del respaldo de una cuen
 // tambien espera a que termine para tomar su clave (ver `prepKey`). Tomada al
 // pedirla en cuanto llega el estado, el respaldo reemplazaba la «sin cuenta» de
 // antes (P) por la suya (R) antes de la migracion, y la migracion se llevaba R
-// a la Mesa de Ana: P se perdia. R9-349 — `pedidas`: el respaldo pidio su
-// clave a `prepKey` (espiado), y la seguia esperando al abrir. Con el respaldo
-// mas lento que la espera entre su clave y su escritura, uno que la tomara por
-// su cuenta escribia detras de la migracion, y pasaba.
+// a la Mesa de Ana: P se perdia. R9-349 — `pedidasAlAbrir`: el respaldo pidio
+// su clave a `prepKey` (espiado), y la seguia esperando al abrir. Con el
+// respaldo mas lento que la espera entre su clave y su escritura, uno que la
+// tomara por su cuenta escribia detras de la migracion, y pasaba. Y
+// `pedidasAlFinal` separa ese rojo del de un respaldo que llega tarde a
+// pedirla (1005 vueltas antes de pedirla; con 990, pasa): ese la pide despues
+// de abrir, y aparece al final; uno que no la pide a `prepKey`, nunca.
 it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo no reemplaza la Mesa de antes que la migracion mueve', async () => {
   const T = Date.now() - 60 * 60 * 1000;
   const P = 'John/3/16-21';
@@ -847,14 +850,18 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
     return realGi(k, cb);
   });
   const realPrepKey = prepAccount.prepKey;
-  const pedidas: Array<{base: string; pendiente: boolean}> = [];
+  const claves: Array<{base: string; pendiente: boolean}> = [];
   const espia = jest.spyOn(prepAccount, 'prepKey').mockImplementation(base => {
     const pedida = {base, pendiente: true};
-    pedidas.push(pedida);
+    claves.push(pedida);
     const clave = realPrepKey(base);
     void clave.then(() => (pedida.pendiente = false));
     return clave;
   });
+  const pedidas = () =>
+    claves.map(
+      ({base, pendiente}) => `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
+    );
   try {
     // Una hora de reloj falso y mil vueltas, como en las de `prepKey`
     // (R9-317): «espera» se mide dandole todo el tiempo.
@@ -879,9 +886,7 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
     jest.useRealTimers();
     for (let i = 0; i < 1000; i++) await vuelta();
     const hechoAntesDeAbrir = hecho;
-    const pedidasAlAbrir = pedidas.map(
-      ({base, pendiente}) => `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
-    );
+    const pedidasAlAbrir = pedidas();
     abrir();
     const [, resultado] = await Promise.all([primero, respaldo]);
     gi.mockImplementation(realGi);
@@ -889,6 +894,7 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
       hechoAntesDeAbrir,
       pedidasAlAbrir,
+      pedidasAlFinal: pedidas(),
       fallo: resultado.asyncStorageWriteFailed, // CONTROL: el respaldo escribio
       deAna: await mapa('@prep_notes:ana'),
       sinCuenta: await mapa('@prep_notes'),
@@ -896,6 +902,7 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
       migracionRetenida: '@prep_by_account',
       hechoAntesDeAbrir: false,
       pedidasAlAbrir: ['@prep_notes: pendiente'],
+      pedidasAlFinal: ['@prep_notes: resuelta'],
       fallo: false,
       deAna: [P],
       sinCuenta: [R],
