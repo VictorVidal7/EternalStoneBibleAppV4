@@ -53,8 +53,7 @@
  *
  * Until the first auth state's work is done, keys wait for it (see
  * `prepKey`): `AuthProvider` says so as it mounts (`managePrepAccount`).
- * Without it (tests that mount no `AuthProvider`), the Mesa «sin cuenta» is
- * used at once.
+ * Without it (no `AuthProvider`), a key is taken at the call.
  *
  * Para la gloria de Dios Todopoderoso ✨
  */
@@ -188,8 +187,7 @@ export async function prepWrite(
  * R9-334 — what a restore's ask says it is for: the keys it writes. R9-342 —
  * and which restore it is: a number of its own for the very `pairs` it was
  * called with. Another restore of the same keys, even with the same entries,
- * has another. Not reset between tests: a restore still waiting from an
- * earlier one keeps a number nobody else gets.
+ * has another.
  */
 const restoreNumbers = new WeakMap<Array<[string, string]>, number>();
 let restores = 0;

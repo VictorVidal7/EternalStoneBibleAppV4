@@ -15,6 +15,7 @@ type Auto = typeof import('../src/features/study/prepSelfReviewStore');
 type Logger = typeof import('../src/lib/utils/logger');
 let AsyncStorage: AS;
 let logger: Logger['logger'];
+let pa: PA;
 let __prepGiveBackWaitingForTests: PA['__prepGiveBackWaitingForTests'];
 let __prepThisRestoreWaitingForTests: PA['__prepThisRestoreWaitingForTests'];
 let __prepTurnWaitingForTests: PA['__prepTurnWaitingForTests'];
@@ -56,6 +57,7 @@ beforeEach(async () => {
     '@react-native-async-storage/async-storage',
   );
   ({logger} = jest.requireActual<Logger>('../src/lib/utils/logger'));
+  pa = jest.requireActual<PA>('../src/features/study/prepAccount');
   ({
     __prepGiveBackWaitingForTests,
     __prepThisRestoreWaitingForTests,
@@ -68,7 +70,7 @@ beforeEach(async () => {
     prepWrite,
     releasePrepAccount,
     setPrepAccount,
-  } = jest.requireActual<PA>('../src/features/study/prepAccount'));
+  } = pa);
   ({getAllPrepNotes, savePrepNote} = jest.requireActual<Notas>(
     '../src/features/study/prepNotesStore',
   ));
@@ -109,6 +111,32 @@ const unaHora = async () => {
 afterEach(() => {
   jest.useRealTimers();
 });
+
+// R9-349 — las claves que piden los llamadores (los stores, la lectura) a
+// `prepKey`, espiado en la instancia de la prueba: de cada una, su base y si
+// sigue pendiente. Las que pide la prueba misma (con el `prepKey` de arriba)
+// no pasan por aqui.
+const vigilarClaves = () => {
+  const real = pa.prepKey;
+  const pedidas: Array<{base: string; pendiente: boolean}> = [];
+  const espia = jest.spyOn(pa, 'prepKey').mockImplementation(base => {
+    const pedida = {base, pendiente: true};
+    pedidas.push(pedida);
+    const clave = real(base);
+    void clave.then(() => (pedida.pendiente = false));
+    return clave;
+  });
+  return {
+    pedidas: () =>
+      pedidas
+        .map(
+          ({base, pendiente}) =>
+            `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
+        )
+        .sort(),
+    soltar: () => espia.mockRestore(),
+  };
+};
 
 describe('R9-59 — la Mesa por cuenta', () => {
   it('en un telefono compartido, la cuenta que entra no ve la Mesa de la anterior, y cerrar sesion no borra nada', async () => {
@@ -239,6 +267,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
 
     it('la siguiente no ve nada de ese trabajo: sus claves esperan su propio estado, y su almacen sigue vacio', async () => {
+      // R9-350 — leido tambien al empezar: `viejoTermino` solo decia que
+      // termino, y si terminaba antes de esta (la puerta tras una vuelta, o
+      // un `afterEach` que drena), la pareja no vigilaba nada.
+      const viejoAlEmpezar = viejo.termino;
       relojesFalsos();
       managePrepAccount();
       let leido: string[] | null = null;
@@ -251,10 +283,11 @@ describe('R9-59 — la Mesa por cuenta', () => {
       };
       await setPrepAccount('ana');
       await p;
-      expect(antes).toEqual({
+      expect({viejoAlEmpezar, ...antes}).toEqual({
+        viejoAlEmpezar: false, // CONTROL: el trabajo viejo no habia terminado al empezar esta
         leido: null,
         claves: [],
-        viejoTermino: true, // CONTROL: el trabajo viejo termino durante esta
+        viejoTermino: true, // CONTROL: y termino durante esta
       });
     });
   });
@@ -855,7 +888,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // tomara la cuenta antes (al terminar la migracion o su union, la union de
   // una devolucion, o la primera devolucion) se ve, en los dos sentidos: lo
   // pedido va con la cuenta que entra, y no con la que sale. Con estados solo
-  // durante la migracion, todas esas pasaban.
+  // durante la migracion, todas esas pasaban. R9-351 — y con dos estados
+  // durante esa ultima parte, distintos entre si y del primero: lo pedido va a
+  // la cuenta del ultimo. Con uno solo, tomar la del primero que llega ahi
+  // pasaba.
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
     const vuelta = () => new Promise(r => setImmediate(r));
@@ -872,7 +908,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     let abrir: () => void = () => undefined;
     const caso = async (
       primero: string | null,
-      durante: string | null,
+      durante: Array<string | null>,
       devoluciones: boolean,
     ) => {
       __resetPrepAccountForTests();
@@ -938,17 +974,19 @@ describe('R9-59 — la Mesa por cuenta', () => {
         // mas lenta que la espera, el estado llegaba antes de la union, la
         // retencion se armaba despues, y leida al final decia lo mismo.
         const alLlegar = retenida;
-        const estado2 = setPrepAccount(durante);
+        const otros = durante.map(uid => setPrepAccount(uid));
         await unaHora();
         const escritaAntesDeAbrir = escrita;
         abrir();
-        await Promise.all([estado1, estado2, edita]);
+        await Promise.all([estado1, ...otros, edita]);
         return {
-          // CONTROL: al llegar el otro estado, el trabajo estaba en su ultima
-          // parte, con la union de la migracion y las devoluciones ya hechas
+          // CONTROL: al llegar los otros estados, el trabajo estaba en su
+          // ultima parte, con la union de la migracion y las devoluciones ya
+          // hechas
           retenida: alLlegar,
           escritaAntesDeAbrir,
           deAna: await mapa('@prep_notes:ana'),
+          deBeto: await mapa('@prep_notes:beto'),
           sinCuenta: await mapa('@prep_notes'),
         };
       } finally {
@@ -968,33 +1006,69 @@ describe('R9-59 — la Mesa por cuenta', () => {
       sinCuenta: [],
     };
     expect({
-      entra: await caso(null, 'ana', true),
-      sale: await caso('ana', null, true),
-      entraSinDevoluciones: await caso(null, 'ana', false),
-      saleSinDevoluciones: await caso('ana', null, false),
+      entra: await caso(null, ['ana'], true),
+      sale: await caso('ana', [null], true),
+      entraSinDevoluciones: await caso(null, ['ana'], false),
+      saleSinDevoluciones: await caso('ana', [null], false),
+      nuloAnaBeto: await caso(null, ['ana', 'beto'], true),
+      anaBetoNulo: await caso('ana', ['beto', null], true),
+      nuloAnaBetoSinDevoluciones: await caso(null, ['ana', 'beto'], false),
+      anaBetoNuloSinDevoluciones: await caso('ana', ['beto', null], false),
     }).toEqual({
       entra: {
         retenida: conDevoluciones,
         escritaAntesDeAbrir: false,
         deAna: [P],
+        deBeto: [],
         sinCuenta: ['Eph/2/8', 'Rom/8/28'],
       },
       sale: {
         retenida: conDevoluciones,
         escritaAntesDeAbrir: false,
         deAna: [],
+        deBeto: [],
         sinCuenta: ['Eph/2/8', P, 'Rom/8/28'],
       },
       entraSinDevoluciones: {
         retenida: sinDevoluciones,
         escritaAntesDeAbrir: false,
         deAna: [P],
+        deBeto: [],
         sinCuenta: [],
       },
       saleSinDevoluciones: {
         retenida: sinDevoluciones,
         escritaAntesDeAbrir: false,
         deAna: [],
+        deBeto: [],
+        sinCuenta: [P],
+      },
+      nuloAnaBeto: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [P],
+        sinCuenta: ['Eph/2/8', 'Rom/8/28'],
+      },
+      anaBetoNulo: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', P, 'Rom/8/28'],
+      },
+      nuloAnaBetoSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [P],
+        sinCuenta: [],
+      },
+      anaBetoNuloSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
         sinCuenta: [P],
       },
     });
@@ -1040,6 +1114,11 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let escrita = false;
       // Los cuatro stores: cada uno pide su clave, y uno que la tomara por su
       // cuenta en cuanto llega el estado no lo veria la escritura de notas.
+      // R9-349 — `pedidas`: cada store pidio la suya a `prepKey`, y la seguia
+      // esperando al abrir. Con el store mas lento que la espera entre su
+      // clave y su turno, uno que la tomara por su cuenta escribia detras de
+      // la union, y pasaba: la clave pedida directo vigila solo a `prepKey`.
+      const vigiladas = vigilarClaves();
       const edita = Promise.all([
         savePrepNote(P, 'observation', 'durante', 2),
         createPrepSeries('durante'),
@@ -1053,9 +1132,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let clave: string | null = null;
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
-      const antesDeAbrir = {clave, escrita};
+      const antesDeAbrir = {clave, escrita, pedidas: vigiladas.pedidas()};
       abrir();
       await Promise.all([primero, edita]);
+      vigiladas.soltar();
       gi.mockImplementation(realGi);
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
@@ -1066,7 +1146,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
         claves: await claves(),
       }).toEqual({
         migracionRetenida: '@prep_by_account',
-        antesDeAbrir: {clave: null, escrita: false},
+        antesDeAbrir: {
+          clave: null,
+          escrita: false,
+          pedidas: [
+            '@prep_illustrations: pendiente',
+            '@prep_notes: pendiente',
+            '@prep_self_review: pendiente',
+            '@prep_series: pendiente',
+          ],
+        },
         clave: '@prep_notes',
         deAna: ['Ps/23/1-6'],
         sinCuenta: [P],
@@ -1093,7 +1182,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // Con estados solo durante la migracion, tomar la clave en cuanto esta
   // termina pasaba. Y la clave pedida directo (`clave`): con la lectura mil
   // vueltas mas lenta entre su clave y su `getItem`, la regresion leia detras
-  // de la union, y pasaba.
+  // de la union, y pasaba. R9-349 — eso vale para `prepKey`; para la lectura,
+  // `pedidas`: la pidio a `prepKey`, y la seguia esperando al abrir. Una que
+  // la tomara por su cuenta, mas lenta, pasaba igual.
   it('R9-345: una lectura pedida durante el trabajo del primer estado de auth ve lo que mueve: la migracion, o una devolucion pendiente', async () => {
     const P = 'John/3/16-21';
     const R = 'Ps/23/1-6';
@@ -1119,14 +1210,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
       managePrepAccount();
       const primero = setPrepAccount(primerEstado);
       for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
+      const vigiladas = vigilarClaves();
       let leido: string[] | null = null;
       const lectura = pasajes().then(r => (leido = r));
       let clave: string | null = null;
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
-      const antesDeAbrir = {clave, leido};
+      const antesDeAbrir = {clave, leido, pedidas: vigiladas.pedidas()};
       abrir();
       await Promise.all([primero, lectura]);
+      vigiladas.soltar();
       ms.mockImplementation(realMs);
       return {retenida, antesDeAbrir, clave, leido};
     };
@@ -1163,13 +1256,21 @@ describe('R9-59 — la Mesa por cuenta', () => {
       expect({migracion, devolucion}).toEqual({
         migracion: {
           retenida: [P], // CONTROL: la union de la migracion esperaba, con P
-          antesDeAbrir: {clave: null, leido: null},
+          antesDeAbrir: {
+            clave: null,
+            leido: null,
+            pedidas: ['@prep_notes: pendiente'],
+          },
           clave: '@prep_notes:ana',
           leido: [P],
         },
         devolucion: {
           retenida: [R, 'Rom/8/28'], // CONTROL: la union de la devolucion esperaba, con lo de Bob
-          antesDeAbrir: {clave: null, leido: null},
+          antesDeAbrir: {
+            clave: null,
+            leido: null,
+            pedidas: ['@prep_notes: pendiente'],
+          },
           clave: '@prep_notes',
           leido: [R, 'Rom/8/28'],
         },
@@ -1191,7 +1292,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // de esas partes podian sacarla sin que cayera nada.
   //
   // El control dice QUE fallo, por contenido: lo que escribia o quitaba la
-  // llamada (`escribia`) y el aviso del paso que se trago la falla (`aviso`).
+  // primera llamada que fallo (`escribia`) y los avisos de los pasos que se
+  // tragaron las fallas (`aviso`).
   // Y `llamadas`: cuantas llamadas tocan la clave en el trabajo SIN falla (una
   // corrida limpia, antes), asi la `n`-esima es la de esa parte. Contar las
   // que fallaron no lo decia: con otra llamada de la clave delante (aun del
@@ -1234,7 +1336,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       if (v && typeof v === 'object') return Object.keys(v).sort();
       return valor;
     };
-    // Con `fallar`, la `n`-esima llamada que toca `clave` lanza.
+    // R9-348 — con `fallar`, la `n`-esima llamada que toca `clave` lanza, y
+    // las siguientes tambien: una falla de disco puede repetirse (R9-212).
+    // Fallando una sola vez, un reintento de la parte fuera de su `try` pasaba.
+    // `fallo`: la primera que lanzo.
     mock.mockImplementation(async (arg: unknown, cb?: unknown) => {
       const toca =
         metodo === 'getItem'
@@ -1243,15 +1348,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
             ? (arg as Array<[string, string]>).some(([k]) => k === clave)
             : (arg as string[]).includes(clave);
       if (toca) llamadas += 1;
-      if (fallar && toca && llamadas === n) {
-        fallo = {escribia: contenido(arg), aviso: avisos};
+      if (fallar && toca && llamadas >= n) {
+        fallo ??= {escribia: contenido(arg), aviso: avisos};
         throw new Error('disco');
       }
       return real(arg, cb);
     });
     // El primer estado (y un segundo) con lo sembrado, y una lectura pedida
-    // antes.
-    const correr = async () => {
+    // antes. La falla, solo en el trabajo: la siembra y la lectura final de la
+    // nota pasan por el mismo mock.
+    const correr = async (conFalla: boolean) => {
       __resetPrepAccountForTests();
       await AsyncStorage.clear();
       await sembrar?.();
@@ -1262,6 +1368,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         }),
       );
       llamadas = 0;
+      fallar = conFalla;
       let leido: string[] | null = null;
       const lanzo: string[] = [];
       managePrepAccount();
@@ -1274,13 +1381,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
         setPrepAccount(null).catch(() => lanzo.push('segundo')),
       ]);
       for (let i = 0; i < 100000 && leido === null; i++) await vuelta();
+      fallar = false;
       return {lanzo, leido};
     };
     try {
-      await correr();
+      await correr(false);
       const limpias = llamadas;
-      fallar = true;
-      const {lanzo, leido} = await correr();
+      const {lanzo, leido} = await correr(true);
       return {
         llamadas: limpias,
         fallo,
@@ -1318,7 +1425,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     n?: number;
     llamadas: number;
     escribia: unknown;
-    aviso: string;
+    aviso: string | string[];
     leido: string[];
     nota: string | null;
   };
@@ -1444,7 +1551,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
       nota: '["bob"]',
     },
     {
-      // La de Bob falla; la de Carl re-escribe la nota despues, sin Carl.
+      // La de Bob falla; la de Carl, que la re-escribe despues sin Carl,
+      // tambien: la nota se queda con las dos.
       titulo:
         'R9-343: la re-escritura de la nota al terminar una devolucion, con otra pendiente',
       sembrar: () => conDevoluciones('bob', 'carl'),
@@ -1452,9 +1560,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
       clave: '@prep_release_pending',
       llamadas: 1,
       escribia: ['carl'],
-      aviso: DEV,
+      aviso: [DEV, DEV],
       leido: ['Eph/2/8', Ps, 'Rom/8/28'],
-      nota: '["bob"]',
+      nota: '["bob","carl"]',
     },
     {
       titulo: 'R9-343: la quita de la nota al terminar la ultima devolucion',
@@ -1486,7 +1594,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         await primerEstadoConFalla(metodo, clave, n ?? 1, sembrar),
       ).toEqual({
         llamadas, // CONTROL: sin falla, ninguna otra llamada toca la clave
-        fallo: {escribia, aviso: [aviso]}, // CONTROL: fallo esa parte, y se la trago su paso
+        fallo: {escribia, aviso: [aviso].flat()}, // CONTROL: fallo esa parte, y se la trago su paso
         lanzo: [],
         leido,
         nota,
