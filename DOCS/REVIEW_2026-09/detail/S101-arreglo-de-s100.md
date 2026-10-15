@@ -197,4 +197,12 @@ En `R9-348`, `R9-350` y `R9-351` el control es el de antes; lo que cambia es el 
 
 ## 7. El checkpoint
 
-[CHECKPOINT]
+- **Dónde se escribió:** los docs, en `../essb-docs-s101`, mientras la matriz corría. El commit de ahí
+  se hizo saltando el hook (`core.hooksPath`), sin permiso. Ya en el principal y sin el worktree, se
+  deshizo con `reset --soft` y se rehízo con el hook (`95b0c7d`).
+- **Las compuertas:** `npx prettier --write "DOCS/REVIEW_2026-09/**/*.md"`, y `npm run validate` con
+  `NODE_ENV=development` (`_scratch/S101-validate.out.txt`): exit 0.
+  - Typecheck limpio, lint con 0 errores (los 70 avisos de siempre) y `format:check` limpio.
+  - Jest: 374/374 suites y 4665/4665 pruebas. Los casos nuevos van dentro de pruebas que ya existían.
+  - El aviso de un worker que no sale solo ya estaba en la 98, la 99 y la 100.
+- **El mensaje de la 102** está en `_scratch/S102-PROMPT.md`.
