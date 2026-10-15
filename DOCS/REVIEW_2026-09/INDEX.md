@@ -1119,7 +1119,18 @@
 > commitear.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **347**. Ramas `fix/s99-arreglos-s98` y
-> `docs/review-s99-fix`, sin mergear hasta el OK de Victor. Detalle: `detail/S99-arreglo-de-s98.md`.
+> `docs/review-s99-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `9543a9b`, CI verde en
+> el log, run `38651949786`, 374/4665; corregido en la 100). Detalle: `detail/S99-arreglo-de-s98.md`.
+>
+> **Sesión 100 (2026-10-14): revisión del diff de la 99** (`08da00b..5aa5c96`), en un chat nuevo, en
+> la terminal y sin agentes. Lo de la 99 se sostiene como código, y en la matriz (279 corridas)
+> ninguna salida cambia. Cinco nuevos: `R9-348` (la tabla de las partes hace fallar cada una una vez),
+> `R9-349` (los casos por llamador de `R9-347` ven su regresión solo dentro de la espera: el sexto
+> verde falso de los diseños de la 99), `R9-350` (el control de `R9-340` dice «terminó», no «durante
+> esta»), `R9-351` (varios estados solo durante la migración) y `R9-352` (dos frases sin medir).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **352**. Rama `docs/review-s100-diff-s99`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S100-revision-del-diff-s99.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2104,6 +2115,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** una lección también se mide antes de escribirla. «Plegados, dejaban un paso sin
     leer» era falso por construcción, y «el del turno solo no alcanza» no lo mostró ninguna de diez
     corridas.
+
+- **Sesión 100 — 2026-10-14. Revisión del diff de la 99.** En un chat nuevo, en la terminal y sin
+  agentes; con `_scratch/S100-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** la matriz de la 99 y sus 39 piezas aparte (279 corridas) re-medida con
+    `_scratch/S100-matriz.cjs.txt`, y piezas propias hechas para romper lo de la 99 (fallas que se
+    repiten, llamadores lentos, el hueco entre pruebas, varios estados), con `S100-sonda.cjs.txt` (de
+    `S100-gen.cjs.txt` y `S100-propias.txt`).
+  - **Resultado:** lo de la 99 se sostiene como código (`S99-igual`, con su control); la matriz no
+    cambia. Nuevos `R9-348`..`R9-352` (P3 y P3 bajo). No queda ningún P0 abierto.
+  - **Detalle: `detail/S100-revision-del-diff-s99.md`.**
+  - **Las lecciones:** la pieza que demora se corre con cada regresión que la prueba dice ver; una
+    falla inyectada una vez no ve un reintento; un control de «terminó» no dice «durante esta»; al
+    llevar un caso a otra parte del trabajo, se lleva también su cantidad.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

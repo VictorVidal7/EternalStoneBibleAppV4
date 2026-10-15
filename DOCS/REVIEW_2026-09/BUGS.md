@@ -1453,7 +1453,8 @@
 > **Sesión 99 (2026-10-14): arreglo de lo de la 98**, en un chat nuevo, en la terminal, con 12
 > agentes en worktree que solo midieron (los pidió Victor; se lanzaron antes de escribir los
 > arreglos, para medir los diseños). Arreglos en `fix/s99-arreglos-s98` (`54bb2f3`, `5aa5c96`), docs
-> en `docs/review-s99-fix`, sin mergear hasta el OK de Victor.
+> en `docs/review-s99-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `9543a9b`, CI verde
+> en el log, run `38651949786`, 374/4665; corregido en la 100).
 >
 > - **Cerrados (5):** `R9-342` (el gancho lee ESE respaldo: un número por arreglo `pairs` en la
 >   etiqueta), `R9-343` (un caso por parte, con su residuo: el control lee contenido y cuenta las
@@ -1469,6 +1470,22 @@
 >   commitear (ver el detalle).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **347**. Detalle: `detail/S99-arreglo-de-s98.md`.
+>
+> **Sesión 100 (2026-10-14): revisión del diff de la 99** (`08da00b..5aa5c96`), en un chat nuevo,
+> en la terminal y sin agentes. Solo docs, en `docs/review-s100-diff-s99`, sin mergear hasta el OK
+> de Victor.
+>
+> - **Lo de la 99 se sostiene como código:** `AuthContext.tsx` es solo comentarios, y en
+>   `prepAccount.ts` lo único que no es comentario es el número del respaldo y su gancho. En la
+>   matriz (279 corridas: las 240 de la 99 y las 39 que re-midió aparte), ninguna salida cambia.
+> - **Nuevos (5):** `R9-348` (la tabla de las partes hace fallar cada una una vez: un reintento fuera
+>   del `try` pasa; no lo abrió la 99), `R9-349` (los casos por llamador de `R9-347` ven su regresión
+>   solo dentro de la espera de 1000 vueltas; lo abrió la 99), `R9-350` (el control de `R9-340` dice
+>   «terminó», no «durante esta»; lo abrió la 99), `R9-351` (varios estados solo durante la
+>   migración: tomar el primero de la última parte pasa; no lo abrió la 99) y `R9-352` (dos frases que
+>   ninguna prueba mide).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **352**. Detalle: `detail/S100-revision-del-diff-s99.md`.
 
 ---
 
@@ -9292,6 +9309,120 @@ ana`), primer estado nulo, la migración retenida en su lectura, y `savePrepNote
     **Siguen sin caso:** la lectura de series, ilustraciones y autoevaluación (`llegarLeeSeries`
     pasa; por lectura, las otras dos igual) y exportar (`llegarExporta` pasa; sin pérdida en el
     teléfono).
+  - **Sesión 100: lo arreglado ve `llegar<X>` solo dentro de la espera de 1000 vueltas.** Ver
+    `R9-349`.
+
+- **`R9-348` (S100, pruebas / Mesa / `R9-336` — P3) — 🐛 la tabla de las 13 partes hace fallar cada
+  parte UNA vez: si `finishRelease`, al fallar la lectura de la nota, la releyera en su `catch` (fuera
+  del `try`), pasan `prep` y el suite, y con una falla que se repite todo estado lanza.** MEDIDO en la
+  sesión 100 (`_scratch/S100-sonda.cjs.txt`, de `S100-gen.cjs.txt`; piezas en `S100-propias.txt`).
+  - `primerEstadoConFalla` (`prepAccount.test.ts`, de `54bb2f3`/`5aa5c96`) hace fallar solo la
+    `n`-ésima llamada de la clave. Una falla de disco puede repetirse (la regla de la 49, `R9-212`:
+    una lectura que falla siempre), y un reintento la ve una sola vez.
+  - **Pieza `reintentaNotaFuera`** (en el `catch` de `finishRelease`, tras el aviso, `uids = await
+readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso de esa parte
+    («R9-336: la lectura de la nota de devoluciones») no siembra ninguna devolución, así que una
+    relectura que sale bien no cambia nada de lo que lee (`leido`, `nota`, `aviso`).
+  - **El daño** (pieza de prueba `fallaSiempre343b`: falla esa llamada y todas las siguientes de la
+    clave en la corrida que falla, sin tocar la siembra ni la lectura final): con el código bueno, ese
+    caso pasa; con `reintentaNotaFuera`, `lanzo: ["primero", "segundo"]` y `leido: null`: el daño de
+    `R9-336`. Con `fallaSiempre343b` caen además dos casos con el código bueno, por la pieza: en la
+    corrida que falla, la siembra del ayudante pasa por el `multiSet` del mock y lanza ella misma.
+    (La primera versión, `fallaSiempre343`, hacía fallar también la lectura final de la nota.)
+  - **¿Lo abrió la 99?** No: la falla de una vez viene del ayudante de la 97 (`fallo: 1`), y el caso
+    de la nota es de `R9-336`. La 99 lo llevó a 13 partes con la misma falla de una vez.
+  - P3: verde falso ante una regresión construida; el código está bien. Medido solo en la lectura de
+    la nota: es el único caso sin nada que mover.
+  - **Arreglo (hipótesis), sin medir:** que la corrida que falla haga fallar la parte desde la
+    `n`-ésima llamada en adelante, con la siembra y la lectura final fuera de la falla. Tiene que caer
+    con `reintentaNotaFuera`, y los 13 casos pasar con el código bueno.
+
+- **`R9-349` (S100, pruebas / Mesa / respaldo / `R9-347` — P3) — 🐛 los casos de `R9-347` por
+  llamador ven su regresión solo si el llamador escribe o lee dentro de la espera de 1000 vueltas: con
+  el llamador más lento entre su clave y su escritura (un cambio bueno), `llegarEscribeNotas`,
+  `llegarEscribeSeries`, `llegarLeeNotas` y `llegarRestaura` pasan. La clave pedida directo vigila
+  solo la regresión de `prepKey`.** MEDIDO en la sesión 100.
+  - En la 99 el agente 6 vio que, con el store o la lectura mil vueltas más lentos, la regresión de
+    `prepKey` (`claveConocidaAlLlegar`) pasaba, y el arreglo pidió además la clave directo. Eso vigila
+    a `prepKey`, no a cada llamador: con `llegar<X>`, el llamador toma su clave al pedirla, y el daño
+    (escribir en la «sin cuenta» antes de que la migración la mueva) solo se ve si escribe antes de
+    que se abra la puerta.
+  - **Piezas, contra el mismo cambio bueno solo (las pruebas que caen, iguales):**
+    - `tardeClave2000+llegarEscribeNotas` = `tardeClave2000` (`prep` 9/56, suite 11/1037, las mismas);
+      `+llegarEscribeSeries`, igual en `prep`.
+    - `llegarLeeNotasLenta2000` (`llegarLeeNotas` con la lectura 2000 vueltas más lenta entre su
+      clave y su `getItem`) = `lecturaLenta2000`: los dos, 56/56.
+    - `lento2000+llegarRestaura` = `lento2000` (7/56, las mismas).
+  - **El control:** con `claveConocidaAlLlegar` (la de `prepKey`), `tardeClave2000` y
+    `lecturaLenta2000` caen además en las tres de `R9-345`.
+  - **El corte:** `tardeClave990+llegarEscribeNotas` y `lento990+llegarRestaura` caen en su caso; con
+    `1005`, pasan. Pasado el corte, la prueba pasa también con el código bueno: ningún control dice
+    que el llamador pidió su clave durante el trabajo y que sigue esperándola (la regla de la 73).
+  - Es la regla de la 70 (la pieza que demora, junto con la regresión) en cada caso de la regla de la
+    93, y la de la 89: el hueco que vio el agente 6 se cerró para un caso.
+  - **¿Lo abrió la 99?** Sí (`54bb2f3`): los casos por llamador son suyos.
+  - P3: verde falso ante regresiones construidas; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** un control que lea, para cada llamador, que su clave sigue
+    pendiente al abrir (la regla de la 82: lo que importa es que la escritura espera la clave; por
+    ejemplo, el `prepWrite` de cada store y el `prepKey` de la lectura y del respaldo, espiados en la
+    instancia de la prueba). Tiene que caer con las tres combinaciones de arriba y pasar con los tres
+    cambios buenos solos.
+
+- **`R9-350` (S100, pruebas / `R9-340` — P3 bajo) — 🐛 el control de la segunda prueba de `R9-340`
+  dice que el trabajo viejo terminó, no que terminó DURANTE ella: si termina antes de que empiece,
+  `sinAislar340` pasa con los controles en verde.** MEDIDO en la sesión 100.
+  - La primera prueba abre la puerta 20 vueltas después de terminar, y la segunda lee
+    `viejoTermino: true` tras su hora (comentado «el trabajo viejo termino durante esta»). Jest da 2
+    vueltas entre las dos pruebas (`hueco340`): el margen es de unas 17.
+  - **Piezas:** `abre340_0` y `abre340_1` (la puerta, sin esperar o tras una vuelta) y `drena340` (un
+    `afterEach` que espera 30 vueltas, un cambio de las pruebas): en las tres, al empezar la segunda el
+    trabajo viejo ya terminó (`viejo.termino=true`), y con `sinAislar340` pasan `prep` 56/56. Con
+    `abre340_3`, `sinAislar340` cae. Con el aislamiento, `abre340_0` y `drena340` pasan.
+  - Es la regla de la 81 (un control de orden lee algo que solo existe DESPUÉS del primer evento) y
+    la de la 30 (el comentario dice una consecuencia que el control no ve).
+  - **¿Lo abrió la 99?** Sí (`54bb2f3`).
+  - P3 bajo: hoy vigila (`sinAislar340` cae); deja de vigilar en silencio si algo agrega vueltas entre
+    pruebas.
+  - **Arreglo (hipótesis), sin medir:** que la segunda lea también `viejo.termino` al empezar, antes de
+    su `managePrepAccount`, y espere `false`. Tiene que caer en ese control con `abre340_1` y con
+    `drena340`.
+
+- **`R9-351` (S100, pruebas / Mesa / `R9-337`, `R9-344` — P3) — 🐛 «the last auth state to come by
+  then», en `prepKey`, está fijada con varios estados solo durante la migración: tomar la cuenta del
+  PRIMER estado que llega durante la última parte del trabajo pasa `prep` y el suite, y con dos
+  estados ahí lo pedido va a la cuenta que no es.** MEDIDO en la sesión 100.
+  - La prueba de `R9-337` manda varios estados durante la migración; la de `R9-344`, uno solo durante
+    la última parte.
+  - **Pieza `claveDelPrimeroEnDev`** (lo pedido antes toma la cuenta del primer estado que llega
+    mientras corre `finishRelease`, si llegó alguno): `prep` 56/56 y suite 1037/1037.
+  - **El daño** (pieza de prueba `dosEstados344`: los cuatro casos de `R9-344` con un segundo estado
+    durante la última parte, el primero otra vez; imprime): con el código bueno, `entra` (nulo, `ana`,
+    nulo) deja lo escrito en la «sin cuenta» y `sale` (`ana`, nulo, `ana`) en la Mesa de Ana; con la
+    pieza, al revés: lo escrito sin cuenta va a la Mesa de Ana, que ya salió, y Ana, que volvió, no lo
+    ve. Igual sin devoluciones.
+  - Es la regla de la 96 (varios, no uno) en cada parte del trabajo (la de la 98).
+  - **¿Lo abrió la 99?** No: el hueco viene de la prueba de `R9-337` (la 97). La 99 agregó un estado en
+    la última parte, no varios.
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** dos estados durante la última parte en los casos de `R9-344`
+    (como `dosEstados344`), con su resultado. Tiene que caer con `claveDelPrimeroEnDev`.
+
+- **`R9-352` (S100, comentario / Mesa — P3 bajo) — 🐛 dos frases de `prepAccount.ts` que ninguna
+  prueba mide: su negación pasa `prep` y el suite.** MEDIDO en la sesión 100.
+  - **«Not reset between tests: a restore still waiting from an earlier one keeps a number nobody
+    else gets»** (`restoreAsk`, de `54bb2f3`). `numeroSeReinicia` (el reinicio pone el contador en 0)
+    pasa 56/56 y 1037/1037. Por construcción: el reinicio vacía `waiting`, así que un pedido de una
+    prueba anterior no está donde mira el gancho, y en `prepAccount.test.ts` cada prueba tiene su
+    propio módulo desde `R9-340`. La razón no protege nada. **¿Lo abrió la 99?** Sí.
+  - **«Without it (tests that mount no `AuthProvider`), the Mesa «sin cuenta» is used at once»** (la
+    cabecera; la oración es de antes, y la 99 reescribió la anterior). `prepKey` dice ahora «Without
+    `managePrepAccount` (no `AuthProvider`), always at the call», con la cuenta de `setPrepAccount`.
+    `sinManejoSinCuenta` (sin `managePrepAccount`, siempre la «sin cuenta») pasa 56/56 y 1037/1037:
+    ninguna prueba llama a `setPrepAccount` sin él. En la app no hay camino (`AuthProvider` siempre lo
+    llama). **¿Lo abrió la 99?** No.
+  - P3 bajo: comentarios; ningún daño medido.
+  - **Arreglo (hipótesis):** quitar la razón de la primera, y que la cabecera diga lo de `prepKey`
+    (al llamarla, con la cuenta que dijo `setPrepAccount`, o ninguna).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
