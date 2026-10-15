@@ -1129,8 +1129,20 @@
 > verde falso de los diseños de la 99), `R9-350` (el control de `R9-340` dice «terminó», no «durante
 > esta»), `R9-351` (varios estados solo durante la migración) y `R9-352` (dos frases sin medir).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **352**. Rama `docs/review-s100-diff-s99`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S100-revision-del-diff-s99.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **352**. Rama `docs/review-s100-diff-s99`: mergeada y
+> pusheada con el OK de Victor (`main` = `29087b8`, CI verde en el log, run `38658003458`, 374/4665;
+> corregido en la 101). Detalle: `detail/S100-revision-del-diff-s99.md`.
+>
+> **Sesión 101 (2026-10-15): arreglo de lo de la 100**, en un chat nuevo, en la terminal y sin
+> agentes. Cerrados `R9-348`..`R9-352`: el control por llamador de `R9-349` (`prepKey` espiado, leído
+> al abrir y al final), la falla que se repite, dos estados en la última parte, `viejoAlEmpezar` y
+> las dos frases. Dos nuevos, residuos de los arreglos, sin arreglar: `R9-353` (lo pedido durante el
+> trabajo, sin un estado después del pedido) y `R9-354` (el control lee el pedido, no la clave que
+> usa la escritura).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **354**. Ramas `fix/s101-arreglos-s100` y
+> `docs/review-s101-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S101-arreglo-de-s100.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2128,6 +2140,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** la pieza que demora se corre con cada regresión que la prueba dice ver; una
     falla inyectada una vez no ve un reintento; un control de «terminó» no dice «durante esta»; al
     llevar un caso a otra parte del trabajo, se lleva también su cantidad.
+
+- **Sesión 101 — 2026-10-15. Arreglo de lo de la 100.** En un chat nuevo, en la terminal y sin
+  agentes; con `_scratch/S101-PROMPT.md`. Pruebas, y dos frases de `prepAccount.ts`.
+  - **Cómo se trabajó:** `_scratch/S101-sonda.cjs.txt` (de `S101-gen.cjs.txt` y `S101-propias.txt`),
+    la matriz de la 100 y sus 37 piezas aparte con `S101-matriz.cjs.txt`, y `S101-igual.cjs.txt`
+    (lee los dos lados de git).
+  - **Resultado:** cerrados `R9-348`..`R9-352` (`ac1a7a5`, `9336ddc`, `44927a5`). Nuevos `R9-353` y
+    `R9-354` (P3 y P3 bajo), sin arreglar. No queda ningún P0 abierto.
+  - **Detalle: `detail/S101-arreglo-de-s100.md`.**
+  - **Las lecciones:** con un control nuevo, la pieza que demora va también antes del paso que lee;
+    una regla de la revisión anterior se corre en todas las pruebas del mismo diseño; un control de
+    «pidió y espera» lee el pedido, no lo que usa la escritura.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

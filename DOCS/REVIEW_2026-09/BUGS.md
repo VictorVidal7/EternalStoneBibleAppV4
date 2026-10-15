@@ -1472,8 +1472,9 @@
 > **No queda ningún P0 abierto.** Hallazgos: **347**. Detalle: `detail/S99-arreglo-de-s98.md`.
 >
 > **Sesión 100 (2026-10-14): revisión del diff de la 99** (`08da00b..5aa5c96`), en un chat nuevo,
-> en la terminal y sin agentes. Solo docs, en `docs/review-s100-diff-s99`, sin mergear hasta el OK
-> de Victor.
+> en la terminal y sin agentes. Solo docs, en `docs/review-s100-diff-s99`: mergeada y pusheada con el
+> OK de Victor (`main` = `29087b8`, CI verde en el log, run `38658003458`, 374/4665; corregido en la
+> 101).
 >
 > - **Lo de la 99 se sostiene como código:** `AuthContext.tsx` es solo comentarios, y en
 >   `prepAccount.ts` lo único que no es comentario es el número del respaldo y su gancho. En la
@@ -1486,6 +1487,21 @@
 >   ninguna prueba mide).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **352**. Detalle: `detail/S100-revision-del-diff-s99.md`.
+>
+> **Sesión 101 (2026-10-15): arreglo de lo de la 100**, en un chat nuevo, en la terminal y sin
+> agentes. Arreglos en `fix/s101-arreglos-s100` (`ac1a7a5`, `9336ddc`, `44927a5`; pruebas, y dos
+> frases de `prepAccount.ts`), docs en `docs/review-s101-fix`, sin mergear hasta el OK de Victor.
+>
+> - **Cerrados (5):** `R9-349` (`prepKey` espiado: cada llamador pidió su clave y la esperaba al
+>   abrir, y la tiene al final), `R9-348` (la falla desde la `n`-ésima llamada, solo en el trabajo),
+>   `R9-351` (dos estados distintos en la última parte), `R9-350` (`viejoAlEmpezar`) y `R9-352` (las
+>   dos frases; «at the call», medido).
+> - **Nuevos (2), residuos de los arreglos, sin arreglar:** `R9-353` (lo pedido durante el trabajo no
+>   tiene caso con un estado después del pedido: tomar la cuenta al pedirla pasa, y lo escrito queda
+>   en la cuenta que no es; lo abrió la 99) y `R9-354` (el control de `R9-349` lee el pedido, no la
+>   clave que usa la escritura; lo abrió la 101).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **354**. Detalle: `detail/S101-arreglo-de-s100.md`.
 
 ---
 
@@ -9311,6 +9327,7 @@ ana`), primer estado nulo, la migración retenida en su lectura, y `savePrepNote
     teléfono).
   - **Sesión 100: lo arreglado ve `llegar<X>` solo dentro de la espera de 1000 vueltas.** Ver
     `R9-349`.
+  - **Sesión 101:** con el control de `R9-349`, también con el llamador más lento que la espera.
 
 - **`R9-348` (S100, pruebas / Mesa / `R9-336` — P3) — 🐛 la tabla de las 13 partes hace fallar cada
   parte UNA vez: si `finishRelease`, al fallar la lectura de la nota, la releyera en su `catch` (fuera
@@ -9336,6 +9353,11 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - **Arreglo (hipótesis), sin medir:** que la corrida que falla haga fallar la parte desde la
     `n`-ésima llamada en adelante, con la siembra y la lectura final fuera de la falla. Tiene que caer
     con `reintentaNotaFuera`, y los 13 casos pasar con el código bueno.
+  - **✅ ARREGLADO en la sesión 101** (`ac1a7a5`): la falla va desde la `n`-ésima llamada en
+    adelante, armada solo durante el trabajo (`correr(conFalla)`), y `fallo` es la primera que lanzó.
+    Con `reintentaNotaFuera` cae el caso de la nota (`lanzo: ["primero", "segundo"]`, `leido: null`);
+    los 13 pasan con el código bueno. Uno cambió su esperado, medido: en la re-escritura de la nota
+    con otra pendiente, la de Carl falla también (dos avisos, y la nota se queda con las dos).
 
 - **`R9-349` (S100, pruebas / Mesa / respaldo / `R9-347` — P3) — 🐛 los casos de `R9-347` por
   llamador ven su regresión solo si el llamador escribe o lee dentro de la espera de 1000 vueltas: con
@@ -9367,6 +9389,17 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
     ejemplo, el `prepWrite` de cada store y el `prepKey` de la lectura y del respaldo, espiados en la
     instancia de la prueba). Tiene que caer con las tres combinaciones de arriba y pasar con los tres
     cambios buenos solos.
+  - **✅ ARREGLADO en la sesión 101** (`ac1a7a5`, `9336ddc`, `44927a5`): `prepKey`, espiado en la
+    instancia de la prueba, anota lo que pide cada llamador (los cuatro stores, la lectura, el
+    respaldo), y el caso lo lee al abrir (pendiente) y al final (resuelto).
+    - Caen las tres combinaciones (y `+llegarEscribeSeries`), también a 990 y 1005: el control no
+      depende de la espera. Las de `R9-345` pasan con `tardeClave2000`, `lecturaLenta2000` y
+      `lento2000` solos, y con `claveEnvuelta` (un cambio bueno de la superficie, la regla de la 82).
+    - **El corte**, ahora antes del paso que lee el control: el respaldo que pide su clave 990 vueltas
+      más tarde (`respaldoClaveTarde990`, un cambio bueno) pasa; con 1005 cae solo en
+      `pedidasAlAbrir`, y `pedidasAlFinal` la trae. La regresión no aparece en ninguna de las dos.
+    - **Residuos:** `R9-353` (la de `prepKey` que fija el valor al pedirlo, pendiente por su cuenta:
+      la regla de la 84) y `R9-354` (un pedido que no es el que usa la escritura: la de la 86).
 
 - **`R9-350` (S100, pruebas / `R9-340` — P3 bajo) — 🐛 el control de la segunda prueba de `R9-340`
   dice que el trabajo viejo terminó, no que terminó DURANTE ella: si termina antes de que empiece,
@@ -9386,6 +9419,9 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - **Arreglo (hipótesis), sin medir:** que la segunda lea también `viejo.termino` al empezar, antes de
     su `managePrepAccount`, y espere `false`. Tiene que caer en ese control con `abre340_1` y con
     `drena340`.
+  - **✅ ARREGLADO en la sesión 101** (`ac1a7a5`): `viejoAlEmpezar: false`. Caen en ese control
+    `abre340_0`, `abre340_1` y `drena340`; `abre340_3` pasa; `sinAislar340` sigue cayendo, solo o con
+    ellas.
 
 - **`R9-351` (S100, pruebas / Mesa / `R9-337`, `R9-344` — P3) — 🐛 «the last auth state to come by
   then», en `prepKey`, está fijada con varios estados solo durante la migración: tomar la cuenta del
@@ -9406,6 +9442,10 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - P3: verde falso ante una regresión construida; el código está bien.
   - **Arreglo (hipótesis), sin medir:** dos estados durante la última parte en los casos de `R9-344`
     (como `dosEstados344`), con su resultado. Tiene que caer con `claveDelPrimeroEnDev`.
+  - **✅ ARREGLADO en la sesión 101** (`ac1a7a5`): cuatro casos más, con dos estados durante la última
+    parte, distintos entre sí y del primero (nulo→ana→beto, ana→beto→nulo; con y sin devoluciones): lo
+    pedido va a la cuenta del último. Con `claveDelPrimeroEnDev` cae. Los cuatro de un estado se
+    quedan.
 
 - **`R9-352` (S100, comentario / Mesa — P3 bajo) — 🐛 dos frases de `prepAccount.ts` que ninguna
   prueba mide: su negación pasa `prep` y el suite.** MEDIDO en la sesión 100.
@@ -9423,6 +9463,53 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - P3 bajo: comentarios; ningún daño medido.
   - **Arreglo (hipótesis):** quitar la razón de la primera, y que la cabecera diga lo de `prepKey`
     (al llamarla, con la cuenta que dijo `setPrepAccount`, o ninguna).
+  - **✅ ARREGLADO en la sesión 101** (`ac1a7a5`): la primera frase, quitada entera (sin la razón no
+    decía nada que importara); la cabecera dice «Without it (no `AuthProvider`), a key is taken at the
+    call», sin nombrar la cuenta. Solo comentarios (`S101-igual`, con su control). «At the call», medido:
+    con la clave esperando un estado sin `managePrepAccount` (`sinManejoEspera`) caen 6 (una pantalla
+    de la Mesa y 5 del respaldo que no montan `AuthProvider`).
+
+- **`R9-353` (S101, pruebas / Mesa / `R9-345` — P3) — 🐛 lo pedido DURANTE el trabajo del primer
+  estado no tiene caso con otro estado después del pedido: tomar la cuenta al pedirla (y entregarla
+  al terminar el trabajo) pasa `prep` y el suite, y con la sesión restaurada tras un primer estado
+  nulo, lo que Ana escribe durante el trabajo se queda en la «sin cuenta».** MEDIDO en la sesión 101
+  (`_scratch/S101-sonda.cjs.txt`, de `S101-gen.cjs.txt`; piezas en `S101-propias.txt`).
+  - `prepKey` dice que lo pedido durante ese trabajo se toma «with the account signed in when it is
+    done: that of the last auth state to come by then». Los casos de `R9-345` (la escritura, la
+    lectura, el respaldo) piden después del único estado: la cuenta del pedido y la del final son la
+    misma.
+  - **Pieza `valorAlPedirDurante`** (pedida con un estado ya llegado, la clave toma la cuenta de ese
+    momento y la entrega cuando termina el trabajo): `prep` 56/56 y suite 1037/1037. Espera igual que
+    la buena, así que escribe detrás de la migración, y el control de `R9-349` la ve pendiente al
+    abrir (la regla de la 84: pendiente por su cuenta).
+  - **El daño** (piezas de prueba `estadoTrasPedir345` y `estadoTrasPedir345sale`: la de la escritura
+    de `R9-345` con un estado más tras los pedidos; imprimen): con el código bueno, nulo→beto deja lo
+    escrito en la Mesa de Beto, y ana→nulo en la «sin cuenta»; con la pieza, al revés: en la «sin
+    cuenta» con Beto ya dentro, y en la Mesa de Ana con Ana ya fuera. Al restaurar la sesión, el
+    primer estado puede ser nulo (§5, sesión 57): Ana escribe durante el trabajo, llega su sesión, y
+    no ve lo escrito.
+  - Es la regla de la 100 (al llevar un caso a otra parte, su cantidad: `R9-351`) en los casos de
+    `R9-345`, donde la 100 no la corrió.
+  - **¿Lo abrió la 99?** Sí: los casos de `R9-345` son suyos, con un solo estado.
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** en los casos de `R9-345`, un estado más tras los pedidos (como
+    `estadoTrasPedir345`), con su resultado. Tiene que caer con `valorAlPedirDurante`.
+
+- **`R9-354` (S101, pruebas / Mesa / `R9-349` — P3 bajo) — 🐛 el control de `R9-349` lee lo que cada
+  llamador PIDIÓ a `prepKey`, no la clave con la que escribe: un store que pide su clave y escribe con
+  otra, tomada en cuanto llega el estado, pasa la de `R9-345` si es más lento que la espera.** MEDIDO
+  en la sesión 101.
+  - **Pieza `pideYDescarta`** (el store de notas pide a `prepKey`, lo descarta, y escribe con la clave
+    de `llegar`): sola, cae la de `R9-345` (escribe antes de abrir). Con `tardeClave2000` (un cambio
+    bueno), `prep` da las 9 de `tardeClave2000` solo, y el suite las mismas 11: la de `R9-345` pasa.
+  - Es la regla de la 86 (el control lee el último paso antes de lo que afirma: la clave que usa la
+    escritura, no la que pidió) y la de la 88 (un pedido de la misma base que no es el que cuenta).
+  - **¿Lo abrió la 101?** Sí (`ac1a7a5`).
+  - P3 bajo: la regresión pide una clave y no la usa; sin daño en el caso (la clave tomada antes es
+    la misma que la del final).
+  - **Arreglo (hipótesis), sin medir:** leer también la clave que recibe `prepWrite` de cada store
+    (espiado), pendiente al abrir si ya se llamó. Con el store lento ANTES de llamar a `prepWrite`
+    (`storeLento<K>`), al abrir todavía no se llamó: medir las dos demoras.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -1,14 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-14, fin de la sesión 100.** La 100 hizo el (cb) en un chat nuevo,
-> en la terminal y sin agentes. Lo de la 99 se sostiene como código, y su matriz no cambia. Cinco
-> nuevos, P3 y P3 bajo (`R9-348`..`R9-352`): cuatro huecos de las pruebas (uno, el sexto verde falso
-> de los diseños de la 99) y dos frases sin medir.
+> **Última actualización: 2026-10-15, fin de la sesión 101.** La 101 hizo el (cc) en un chat nuevo,
+> en la terminal y sin agentes: cerrados `R9-348`..`R9-352` (pruebas, y dos frases de
+> `prepAccount.ts`), y dos nuevos, residuos de sus propios arreglos, sin arreglar (`R9-353`, `R9-354`).
 >
-> La 99 ya está mergeada y pusheada (`main` = `9543a9b`, CI verde en el log, run `38651949786`,
-> 374/4665). La rama de la 100 (`docs/review-s100-diff-s99`, solo docs) va **sin mergear hasta el OK
-> de Victor**. **No queda ningún P0 abierto**, y hay 352 hallazgos. **Lo siguiente:** la 101 arregla
-> lo de la 100 (mensaje (cc), en `_scratch/S101-PROMPT.md`).
+> La 100 ya está mergeada y pusheada (`main` = `29087b8`, CI verde en el log, run `38658003458`,
+> 374/4665). Las ramas de la 101 (`fix/s101-arreglos-s100` y `docs/review-s101-fix` encima) van **sin
+> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 354 hallazgos. **Lo
+> siguiente:** la 102 revisa el diff de la 101 (mensaje (cd), en `_scratch/S102-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -534,11 +533,16 @@ solo midieron, con `_scratch/S97-PROMPT.md`). Y la revisión de su diff (la (bz)
 chat nuevo con 3 agentes que solo midieron, con `_scratch/S98-PROMPT.md`). Y su arreglo (la (ca),
 sesión 99, en un chat nuevo con 12 agentes que solo midieron, con `_scratch/S99-PROMPT.md`). Y la
 revisión de su diff (la (cb), sesión 100, en un chat nuevo y sin agentes, con
-`_scratch/S100-PROMPT.md`). **Lo siguiente es el (cc).**
+`_scratch/S100-PROMPT.md`). Y su arreglo (la (cc), sesión 101, en un chat nuevo y sin agentes, con
+`_scratch/S101-PROMPT.md`). **Lo siguiente es el (cd).**
 
-**(cc) Sesión 101: arreglar lo de la 100** (`R9-348`..`R9-352`: la falla de una vez de la tabla de
-las partes, los casos por llamador lentos, el control de `R9-340`, varios estados en la última parte
-y dos frases). El mensaje está en `_scratch/S101-PROMPT.md`, que manda sobre este archivo.
+**(cd) Sesión 102: revisar el diff de la 101** (`29087b8..44927a5`: el control por llamador de
+`R9-349`, la falla que se repite, dos estados en la última parte, `viejoAlEmpezar` y dos frases). El
+mensaje está en `_scratch/S102-PROMPT.md`, que manda sobre este archivo.
+
+**(cc) Sesión 101: arreglar lo de la 100 — ya HECHO en la sesión 101, en un chat nuevo, en la
+terminal y sin agentes.** Cerrados `R9-348`..`R9-352`; dos nuevos (`R9-353`, `R9-354`), sin arreglar.
+El mensaje está en `_scratch/S101-PROMPT.md`.
 
 **(cb) Sesión 100: revisar el diff de la 99 — ya HECHO en la sesión 100, en un chat nuevo, en la
 terminal y sin agentes.** Lo de la 99 se sostiene como código; cinco nuevos (`R9-348`..`R9-352`). El
@@ -2108,18 +2112,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 100 (2026-10-14).**
+**Medido al cerrar la sesión 101 (2026-10-15).**
 
-- **La 99, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `9543a9b` (solo
-  docs; el último código es `5aa5c96`). CI verificado en el log: run `38651949786`, 3 jobs, Node
-  v24.21.0, 374/4665. Sus ramas se borraron tras `git cherry`.
-- **La rama de la 100, sin mergear a propósito y sin pushear:** `docs/review-s100-diff-s99` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. El checkpoint se escribió en un worktree aparte (`../essb-docs-s100`,
+- **La 100, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `29087b8` (solo
+  docs; el último código es `5aa5c96`). CI verificado en el log: run `38658003458`, 3 jobs, Node
+  v24.21.0, 374/4665. Su rama se borró tras `git cherry`.
+- **Las ramas de la 101, sin mergear a propósito y sin pushear:** `fix/s101-arreglos-s100`
+  (`ac1a7a5`, `9336ddc`, `44927a5`) y `docs/review-s101-fix` encima (solo docs). Se mergean en
+  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno. El checkpoint se escribió en un worktree aparte (`../essb-docs-s101`,
   fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 100):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 101):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2884,6 +2889,19 @@ Alternativas legítimas:
   La 99 puso un estado en la última parte; los varios estados de `R9-337` quedaron en la migración, y
   tomar el primero de la última parte pasa las 1037 (`claveDelPrimeroEnDev`). Las reglas de la 96 y
   la 98, juntas.
+- **Con un control nuevo, la pieza que demora va también ANTES del paso que lee (sesión 101,
+  `R9-349`).** Después de ese paso, el control de «pendiente al abrir» no tiene corte (`llegar` cae a
+  990, 1005 y 2000). Antes, sí: el respaldo que pide su clave 1005 vueltas tarde (`respaldoClaveTarde1005`,
+  un cambio bueno) cae, y daba el mismo rojo que la regresión hasta que el control se leyó también al
+  final (`pedidasAlFinal`). Las reglas de la 70, la 79 y la 85, juntas.
+- **Una regla de la revisión anterior se corre en todas las pruebas del mismo diseño (sesión 101,
+  `R9-353`).** La 100 llevó la cantidad a la última parte en la de `R9-344` (`R9-351`); los casos de
+  `R9-345`, con la misma forma (un estado), quedaron sin correrla, y tomar la cuenta al pedir pasa las
+  1037 (`valorAlPedirDurante`).
+- **Un control de «pidió y espera» lee el pedido, no lo que usa la escritura (sesión 101, `R9-354`).**
+  Con `prepKey` espiado, un store que pide su clave y escribe con otra pasa si es más lento que la
+  espera (`tardeClave2000+pideYDescarta`). Es la regla de la 86, en un control escrito con §5 como
+  lista.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
