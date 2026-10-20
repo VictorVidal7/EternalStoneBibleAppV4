@@ -1399,7 +1399,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
     try {
       await correr(false);
       const limpias = llamadas;
+      // R9-357 — la nota se lee una hora (de reloj falso) y mil vueltas
+      // despues: una quita que el paso deja corriendo sin esperarla llegaba
+      // despues de leerla (20 vueltas mas tarde, o con un temporizador).
+      relojesFalsos();
       const {lanzo, leido} = await correr(true);
+      await unaHora();
       return {
         llamadas: limpias,
         fallo,
@@ -1507,14 +1512,19 @@ describe('R9-59 — la Mesa por cuenta', () => {
       nota: null,
     },
     {
+      // R9-357 — con una devolucion anotada: la lectura que falla deja la nota
+      // (y la Mesa de Bob) para el arranque siguiente. Sin nada anotado, una
+      // nota quitada al fallar salia igual (`null`). Sin falla, la nota se lee
+      // dos veces: en `finishRelease` y al terminar la devolucion.
       titulo: 'R9-336: la lectura de la nota de devoluciones',
+      sembrar: () => conDevoluciones('bob'),
       metodo: 'getItem',
       clave: '@prep_release_pending',
-      llamadas: 1,
+      llamadas: 2,
       escribia: null,
       aviso: NOTA,
       leido: [Ps],
-      nota: null,
+      nota: '["bob"]',
     },
     {
       titulo: 'R9-343: una lectura de la union de una devolucion pendiente',
@@ -1613,6 +1623,83 @@ describe('R9-59 — la Mesa por cuenta', () => {
       });
     },
   );
+
+  // R9-357 — la tabla hace fallar un par (metodo, clave), y una falla de disco
+  // no se queda en uno: un camino de error que toca otro par fuera de su `try`
+  // (quitar la marca de la migracion, o la nota, al fallar) pasaba la tabla.
+  // Aqui falla todo metodo del almacen, en toda clave, durante el trabajo del
+  // primer estado y la lectura pedida antes; el disco vuelve despues, para
+  // leer lo que quedo.
+  it('R9-357: con todo el disco fallando en el primer estado de auth, ningun estado lanza, las claves se sueltan y la devolucion anotada se queda', async () => {
+    const metodos = [
+      'getItem',
+      'multiGet',
+      'setItem',
+      'multiSet',
+      'removeItem',
+      'multiRemove',
+      'mergeItem',
+      'multiMerge',
+      'getAllKeys',
+      'clear',
+    ] as const;
+    const mocks = metodos.map(m => AsyncStorage[m] as unknown as jest.Mock);
+    const reales = mocks.map(m => m.getMockImplementation()!);
+    let fallar = false;
+    mocks.forEach((mock, i) =>
+      mock.mockImplementation(async (...args: unknown[]) => {
+        if (fallar) throw new Error('disco');
+        return reales[i](...args);
+      }),
+    );
+    const avisos: string[] = [];
+    const warn = jest
+      .spyOn(logger, 'warn')
+      .mockImplementation((mensaje, contexto) => {
+        if (String(contexto?.error).includes('disco')) avisos.push(mensaje);
+      });
+    try {
+      await conDevoluciones('bob');
+      await AsyncStorage.setItem('@prep_notes', mesaDe(Ps));
+      relojesFalsos();
+      fallar = true;
+      let leido: string[] | null = null;
+      const lanzo: string[] = [];
+      managePrepAccount();
+      void pasajes().then(r => (leido = r));
+      await Promise.all([
+        setPrepAccount(null).catch(() => lanzo.push('primero')),
+        setPrepAccount(null).catch(() => lanzo.push('segundo')),
+      ]);
+      // La lectura vuelve tambien con el disco fallando (vacia); se la espera
+      // como en la tabla.
+      for (let i = 0; i < 100000 && leido === null; i++) {
+        await new Promise(r => setImmediate(r));
+      }
+      fallar = false;
+      // Como en la tabla: lo que quedo, una hora y mil vueltas despues de que
+      // el disco vuelve.
+      await unaHora();
+      expect({
+        avisos,
+        lanzo,
+        leido,
+        nota: await AsyncStorage.getItem('@prep_release_pending'),
+        claves: await claves(),
+      }).toEqual({
+        avisos: [MIGRA, NOTA, 'Failed to read prep notes'], // CONTROL: fallo el disco, y cada paso se trago su falla
+        lanzo: [],
+        leido: [], // las claves se soltaron
+        nota: '["bob"]',
+        // La Mesa de Bob y su nota se quedan para el arranque siguiente, y la
+        // migracion no se marco.
+        claves: ['@prep_notes', '@prep_notes:bob', '@prep_release_pending'],
+      });
+    } finally {
+      mocks.forEach((mock, i) => mock.mockImplementation(reales[i]));
+      warn.mockRestore();
+    }
+  });
 
   it('R9-275: una escritura de la Mesa pedida para la cuenta que se esta devolviendo va a la «sin cuenta», no bajo el uid borrado', async () => {
     const T = Date.now() - 60 * 60 * 1000;
