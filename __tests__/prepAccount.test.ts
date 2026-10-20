@@ -39,6 +39,12 @@ let setPrepSelfReviewQuestion: Auto['setPrepSelfReviewQuestion'];
 const claves = async () =>
   (await AsyncStorage.getAllKeys()).filter(k => k.startsWith('@prep')).sort();
 const pasajes = async () => Object.keys(await getAllPrepNotes()).sort();
+// R9-359 — las retenciones y las fallas de una LECTURA se arman en `multiGet`:
+// en el mock, `getItem(k)` pasa por `multiGet([k])`, asi que vigilan la
+// lectura de la clave sea cual sea el metodo. Armadas en `getItem`, leer la
+// marca y el dueno con un solo `multiGet` (un cambio bueno) las dejaba sin
+// armar, y caian 14 pruebas.
+const lecturas = () => AsyncStorage.multiGet as unknown as jest.Mock;
 
 // R9-340 — cada prueba con su propia instancia de los modulos de la Mesa (y
 // del logger que usan) y su propio almacen: un trabajo del primer estado que
@@ -106,6 +112,29 @@ const unaHora = async () => {
   jest.useRealTimers();
   for (let i = 0; i < 1000; i++) await new Promise(r => setImmediate(r));
 };
+// R9-360 — un temporizador de dos horas puesto durante el trabajo: la espera
+// que dice correr todo temporizador lo tiene que correr. Con el reloj falso
+// puesto despues del trabajo, nace real; y con solo `unaHora()`, no vence.
+const centinelaLargo = () => {
+  const c = {corrio: false};
+  const t = setTimeout(() => (c.corrio = true), 2 * 60 * 60 * 1000);
+  (t as unknown as {unref?: () => void}).unref?.();
+  return c;
+};
+// R9-360, R9-361 — mil vueltas con los relojes falsos puestos, y en cada una
+// los temporizadores pendientes, de cualquier plazo: lo que el trabajo
+// programa vence aqui, aunque lo programe unas vueltas despues o en cadena.
+// Con `unaHora()` sola, uno de mas de una hora pasaba; con una vuelta entre
+// dos estados, uno de 10 ms vencia ya con el ultimo. `runAllTimersAsync`
+// terminaba en cuanto no quedaba ninguno (no veia uno puesto unas vueltas
+// despues), y un intervalo que no se apaga nunca la hacia lanzar («Aborting
+// after running 100000 timers»: un rojo ante un cambio bueno).
+const tiempoYVueltas = async () => {
+  for (let i = 0; i < 1000; i++) {
+    if (jest.getTimerCount() > 0) await jest.runOnlyPendingTimersAsync();
+    await new Promise(r => setImmediate(r));
+  }
+};
 
 // Los relojes reales vuelven tambien si una prueba cae con los falsos puestos.
 afterEach(() => {
@@ -130,18 +159,27 @@ const vigilarClaves = () => {
     void clave.then(() => (pedida.pendiente = false));
     return clave;
   });
+  // R9-363 — y de quien es cada llamada: el store que la hace (por la pila).
+  // Una de otro lado no cuenta: un `prepWrite` ajeno de la misma base ocupaba
+  // el lugar del store que no lo llama.
   const realWrite = pa.prepWrite;
-  const recibidas: Array<{clave: string | null}> = [];
+  const recibidas: Array<{quien: string | null; clave: string | null}> = [];
   const espiaWrite = jest
     .spyOn(pa, 'prepWrite')
     .mockImplementation((key, fn) => {
-      const recibida = {clave: null as string | null};
+      const pila = new Error().stack ?? '';
+      const quien = /[\\/](prep\w+Store)\.ts/.exec(pila)?.[1] ?? null;
+      const recibida = {quien, clave: null as string | null};
       recibidas.push(recibida);
       void key.then(k => (recibida.clave = k));
       return realWrite(key, fn);
     });
   return {
-    escrituras: () => recibidas.map(({clave}) => clave ?? 'pendiente').sort(),
+    escrituras: () =>
+      recibidas
+        .filter(({quien}) => quien !== null)
+        .map(({quien, clave}) => `${quien}: ${clave ?? 'pendiente'}`)
+        .sort(),
     pedidas: () =>
       pedidas
         .map(
@@ -255,17 +293,17 @@ describe('R9-59 — la Mesa por cuenta', () => {
     let viejo = {termino: false};
     it('deja colgado el trabajo del primer estado, y lo suelta en la siguiente', async () => {
       const vuelta = () => new Promise(r => setImmediate(r));
-      const gi = AsyncStorage.getItem as unknown as jest.Mock;
-      const realGi = gi.getMockImplementation()!;
+      const mg = lecturas();
+      const realMg = mg.getMockImplementation()!;
       let abrir!: () => void;
       const puerta = new Promise<void>(r => (abrir = r));
       let retenida = false;
-      gi.mockImplementation(async (k: string, cb?: unknown) => {
-        if (k === '@prep_by_account' && !retenida) {
+      mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+        if (ks.includes('@prep_by_account') && !retenida) {
           retenida = true;
           await puerta;
         }
-        return realGi(k, cb);
+        return realMg(ks, cb);
       });
       managePrepAccount();
       void setPrepAccount(null);
@@ -273,7 +311,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       const estado = {termino: false};
       viejo = estado;
       void setPrepAccount('zoe').then(() => (estado.termino = true));
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
       void (async () => {
         for (let i = 0; i < 20; i++) await vuelta();
         abrir();
@@ -514,8 +552,11 @@ describe('R9-59 — la Mesa por cuenta', () => {
       await setPrepAccount(null);
       // La escritura de la union en la Mesa «sin cuenta»: falla, o no vuelve
       // nunca (el proceso termina ahi).
+      let union: string[] | null = null;
       ms.mockImplementation(async (pairs: Array<[string, string]>) => {
-        if (pairs.some(([k]) => k === '@prep_notes')) {
+        const sinCuenta = pairs.find(([k]) => k === '@prep_notes');
+        if (sinCuenta) {
+          union = Object.keys(JSON.parse(sinCuenta[1])).sort();
           if (como === 'falla') throw new Error('disco');
           return new Promise(() => {});
         }
@@ -524,7 +565,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
       try {
         if (como === 'falla') await releasePrepAccount('ana');
         if (como === 'termina') void releasePrepAccount('ana');
-        for (let i = 0; i < 10; i++) await new Promise(r => setImmediate(r));
+        // R9-333 — hasta que la union llegue al disco, no 10 vueltas fijas: con
+        // la nota 50 vueltas mas lenta (un cambio bueno), el proceso «terminaba»
+        // antes de anotarla, y el rojo era el de una regresion de R9-274.
+        // `union` dice que llego, y con que.
+        for (let i = 0; i < 1000 && union === null; i++) {
+          await new Promise(r => setImmediate(r));
+        }
       } finally {
         ms.mockImplementation(real);
       }
@@ -532,9 +579,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       __resetPrepAccountForTests();
       managePrepAccount();
       await setPrepAccount(null);
-      return {sinCuenta: await pasajes(), claves: await claves()};
+      return {union, sinCuenta: await pasajes(), claves: await claves()};
     };
     const devuelta = {
+      union: [P], // CONTROL: la union llego al disco, con la Mesa de Ana
       sinCuenta: [P],
       claves: ['@prep_by_account', '@prep_notes'],
     };
@@ -548,6 +596,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       falla: devuelta,
       termina: devuelta,
       cierraSesion: {
+        union: null,
         sinCuenta: [],
         claves: ['@prep_by_account', '@prep_notes:ana'],
       },
@@ -755,8 +804,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
     };
     const ms = AsyncStorage.multiSet as unknown as jest.Mock;
     const realMs = ms.getMockImplementation()!;
-    const gi = AsyncStorage.getItem as unknown as jest.Mock;
-    const realGi = gi.getMockImplementation()!;
+    const mg = lecturas();
+    const realMg = mg.getMockImplementation()!;
     let abrir!: () => void;
     try {
       // Una lectura: la union de la migracion (a la Mesa de Ana) espera en
@@ -793,12 +842,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       await sembrar();
       puerta = new Promise<void>(r => (abrir = r));
       let migracionRetenida: string | null = null;
-      gi.mockImplementation(async (k: string, cb?: unknown) => {
-        if (k === '@prep_by_account' && migracionRetenida === null) {
-          migracionRetenida = k;
+      mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+        if (ks.includes('@prep_by_account') && migracionRetenida === null) {
+          migracionRetenida = '@prep_by_account';
           await puerta;
         }
-        return realGi(k, cb);
+        return realMg(ks, cb);
       });
       relojesFalsos();
       managePrepAccount();
@@ -815,7 +864,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       const escritaAntesDeAbrir = escrita;
       abrir();
       await Promise.all([primero, segundo, edita]);
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
       const deAna = JSON.parse(
         (await AsyncStorage.getItem('@prep_notes:ana')) ?? 'null',
       );
@@ -839,32 +888,32 @@ describe('R9-59 — la Mesa por cuenta', () => {
     } finally {
       abrir?.();
       ms.mockImplementation(realMs);
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
     }
   });
 
   // R9-337 — con DOS estados durante el trabajo del primero (se entra y se
   // sale), lo pedido antes va a la cuenta de cuando termina, la del ultimo:
   // con la del primero que llego mientras tanto, iba a la Mesa de una cuenta
-  // que ya habia salido. R9-356 — los dos estados llegan de a uno, con una
-  // vuelta entre ellos: llamados seguidos, en la misma tarea, una microtarea
-  // despues la cuenta ya era la del ultimo, y fijar la del primero que llega
-  // una microtarea tarde pasaba.
+  // que ya habia salido. R9-356 — los dos estados llegan de a uno, con
+  // `tiempoYVueltas` entre ellos (R9-361: en vueltas y en tiempo): llamados
+  // seguidos, en la misma tarea, una microtarea despues la cuenta ya era la
+  // del ultimo, y fijar la del primero que llega una microtarea tarde pasaba.
   it('R9-337: con nulo, una cuenta y nulo durante el trabajo del primer estado, lo pedido antes va a la cuenta del ultimo', async () => {
     const P = 'John/3/16-21';
     const vuelta = () => new Promise(r => setImmediate(r));
-    const gi = AsyncStorage.getItem as unknown as jest.Mock;
-    const realGi = gi.getMockImplementation()!;
+    const mg = lecturas();
+    const realMg = mg.getMockImplementation()!;
     let abrir!: () => void;
     const puerta = new Promise<void>(r => (abrir = r));
     // La migracion del primer estado espera en su primera lectura.
     let migracionRetenida: string | null = null;
-    gi.mockImplementation(async (k: string, cb?: unknown) => {
-      if (k === '@prep_by_account' && migracionRetenida === null) {
-        migracionRetenida = k;
+    mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+      if (ks.includes('@prep_by_account') && migracionRetenida === null) {
+        migracionRetenida = '@prep_by_account';
         await puerta;
       }
-      return realGi(k, cb);
+      return realMg(ks, cb);
     });
     try {
       relojesFalsos();
@@ -878,14 +927,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
         await vuelta();
       }
       const segundo = setPrepAccount('ana');
-      await vuelta();
+      await tiempoYVueltas();
       const tercero = setPrepAccount(null);
-      await vuelta();
+      await tiempoYVueltas();
       await unaHora();
       const escritaAntesDeAbrir = escrita;
       abrir();
       await Promise.all([primero, segundo, tercero, edita]);
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
         escritaAntesDeAbrir, // CONTROL: y la escritura, a que terminara
@@ -899,7 +948,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       });
     } finally {
       abrir();
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
     }
   });
 
@@ -918,16 +967,17 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // nulo→ana→nulo) y con tres (nulo→ana→beto→nulo): con dos distintos, «el
   // ultimo» era tambien «el segundo» y «el ultimo distinto del primero», y
   // tomar uno de esos, o ignorar un estado igual al primero, pasaba. R9-356 —
-  // los estados llegan de a uno, con una vuelta entre ellos: llamados seguidos,
-  // en la misma tarea, una microtarea despues la cuenta ya era la del ultimo, y
-  // fijar la del primero que llega una microtarea tarde pasaba.
+  // los estados llegan de a uno, con `tiempoYVueltas` entre ellos (R9-361: en
+  // vueltas y en tiempo): llamados seguidos, en la misma tarea, una microtarea
+  // despues la cuenta ya era la del ultimo, y fijar la del primero que llega
+  // una microtarea tarde pasaba.
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
     const vuelta = () => new Promise(r => setImmediate(r));
     const mr = AsyncStorage.multiRemove as unknown as jest.Mock;
     const realMr = mr.getMockImplementation()!;
-    const gi = AsyncStorage.getItem as unknown as jest.Mock;
-    const realGi = gi.getMockImplementation()!;
+    const mg = lecturas();
+    const realMg = mg.getMockImplementation()!;
     const mapa = async (k: string) =>
       Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
     const mesa = (pasaje: string) =>
@@ -980,15 +1030,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
         }
         return realMr(keys, cb);
       });
-      gi.mockImplementation(async (k: string, cb?: unknown) => {
+      mg.mockImplementation(async (ks: string[], cb?: unknown) => {
         if (
           !devoluciones &&
           retenida === null &&
-          k === '@prep_release_pending'
+          ks.includes('@prep_release_pending')
         ) {
           await retener('lee la nota');
         }
-        return realGi(k, cb);
+        return realMg(ks, cb);
       });
       try {
         relojesFalsos();
@@ -1006,7 +1056,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         const otros: Array<Promise<void>> = [];
         for (const uid of durante) {
           otros.push(setPrepAccount(uid));
-          await vuelta();
+          await tiempoYVueltas();
         }
         await unaHora();
         const escritaAntesDeAbrir = escrita;
@@ -1025,7 +1075,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       } finally {
         abrir();
         mr.mockImplementation(realMr);
-        gi.mockImplementation(realGi);
+        mg.mockImplementation(realMg);
       }
     };
     const conDevoluciones = {
@@ -1175,12 +1225,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
     deAna: ['Ps/23/1-6'],
     deBeto: [],
     sinCuenta: [P345],
-    // Las cuatro que recibe `prepWrite`, de la «sin cuenta».
+    // Las cuatro que recibe `prepWrite`, de la «sin cuenta», una por store.
     recibidasAlFinal: [
-      '@prep_illustrations',
-      '@prep_notes',
-      '@prep_self_review',
-      '@prep_series',
+      'prepIllustrationsStore: @prep_illustrations',
+      'prepNotesStore: @prep_notes',
+      'prepSelfReviewStore: @prep_self_review',
+      'prepSeriesStore: @prep_series',
     ],
     // Los otros tres, tambien en la «sin cuenta».
     claves: [
@@ -1198,10 +1248,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
     deBeto: [P345],
     sinCuenta: [],
     recibidasAlFinal: [
-      '@prep_illustrations:beto',
-      '@prep_notes:beto',
-      '@prep_self_review:beto',
-      '@prep_series:beto',
+      'prepIllustrationsStore: @prep_illustrations:beto',
+      'prepNotesStore: @prep_notes:beto',
+      'prepSelfReviewStore: @prep_self_review:beto',
+      'prepSeriesStore: @prep_series:beto',
     ],
     claves: [
       '@prep_by_account',
@@ -1228,18 +1278,18 @@ describe('R9-59 — la Mesa por cuenta', () => {
       }),
     );
     await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
-    const gi = AsyncStorage.getItem as unknown as jest.Mock;
-    const realGi = gi.getMockImplementation()!;
+    const mg = lecturas();
+    const realMg = mg.getMockImplementation()!;
     let abrir!: () => void;
     const puerta = new Promise<void>(r => (abrir = r));
     // La migracion del primer estado (nulo) espera en su primera lectura.
     let migracionRetenida: string | null = null;
-    gi.mockImplementation(async (k: string, cb?: unknown) => {
-      if (k === '@prep_by_account' && migracionRetenida === null) {
-        migracionRetenida = k;
+    mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+      if (ks.includes('@prep_by_account') && migracionRetenida === null) {
+        migracionRetenida = '@prep_by_account';
         await puerta;
       }
-      return realGi(k, cb);
+      return realMg(ks, cb);
     });
     try {
       relojesFalsos();
@@ -1269,26 +1319,38 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let clave: string | null = null;
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
-      const antesDeAbrir = {clave, escrita, pedidas: vigiladas.pedidas()};
-      // R9-354 — ninguna clave que recibio `prepWrite` estaba resuelta al
-      // abrir. Un store que todavia no lo llamo no aparece: con el store mil
-      // vueltas mas lento antes de llamarlo, aparece solo al final.
-      const recibidasResueltasAlAbrir = vigiladas
-        .escrituras()
-        .filter(k => k !== 'pendiente');
       // Los otros estados, con la migracion todavia retenida y los pedidos
-      // hechos hace una hora.
+      // hechos hace una hora. Con el reloj falso ya puesto: lo que un estado
+      // deja en un temporizador vence en la hora de abajo.
+      relojesFalsos();
       const otros: Array<Promise<void>> = [];
       for (const uid of despues) {
         await vuelta();
         otros.push(setPrepAccount(uid));
+        // R9-361 — y tras cada uno, tiempo y vueltas: con una vuelta sola,
+        // fijar la cuenta del primero tras el pedido con un temporizador de
+        // 10 ms pasaba (vencia ya con el ultimo).
+        await tiempoYVueltas();
       }
+      // Los controles «al abrir» se leen aqui, una hora (de reloj falso) y mil
+      // vueltas tras el ultimo estado, y justo antes de abrir (R9-366): leidos
+      // antes de los otros estados, o en la misma tarea que el ultimo, una
+      // clave tomada con uno de ellos no se veia.
+      await unaHora();
+      const antesDeAbrir = {clave, escrita, pedidas: vigiladas.pedidas()};
+      // R9-354 — ninguna clave que recibio `prepWrite` estaba resuelta al
+      // abrir. Un store que todavia no lo llamo no aparece: mas lento antes de
+      // llamarlo que todas las esperas (dos horas, unas dos mil vueltas y mil
+      // mas por cada estado de `despues`), aparece solo al final.
+      const recibidasResueltasAlAbrir = vigiladas
+        .escrituras()
+        .filter(k => !k.endsWith(': pendiente'));
       abrir();
       await Promise.all([primero, edita, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
       const recibidasAlFinal = vigiladas.escrituras();
       vigiladas.soltar();
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
         antesDeAbrir,
@@ -1323,7 +1385,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       });
     } finally {
       abrir();
-      gi.mockImplementation(realGi);
+      mg.mockImplementation(realMg);
     }
   };
   it.each([
@@ -1388,12 +1450,18 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let clave: string | null = null;
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
-      const antesDeAbrir = {clave, leido, pedidas: vigiladas.pedidas()};
+      // Los otros estados, como en la escritura: de a uno, con tiempo y
+      // vueltas tras cada uno (R9-361), y el control «al abrir» leido despues
+      // de todos, justo antes de abrir (R9-366).
+      relojesFalsos();
       const otros: Array<Promise<void>> = [];
       for (const uid of despues) {
         await vuelta();
         otros.push(setPrepAccount(uid));
+        await tiempoYVueltas();
       }
+      await unaHora();
+      const antesDeAbrir = {clave, leido, pedidas: vigiladas.pedidas()};
       abrir();
       await Promise.all([primero, lectura, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
@@ -1574,10 +1642,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
     sembrar?: () => Promise<void>,
   ) => {
     const vuelta = () => new Promise(r => setImmediate(r));
-    const mock = AsyncStorage[metodo] as unknown as jest.Mock;
+    // R9-359 — una lectura (`getItem`) falla en `multiGet`, por donde pasa en el
+    // mock: la `n`-esima lectura de `clave`, con el metodo que sea.
+    const mock = (metodo === 'getItem'
+      ? lecturas()
+      : AsyncStorage[metodo]) as unknown as jest.Mock;
     const real = mock.getMockImplementation()!;
     let fallar = false;
     let llamadas = 0;
+    let centinela = {corrio: false};
     let fallo: {escribia: unknown; aviso: string[]} | null = null;
     const avisos: string[] = [];
     const warn = jest
@@ -1609,11 +1682,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
     // `fallo`: la primera que lanzo.
     mock.mockImplementation(async (arg: unknown, cb?: unknown) => {
       const toca =
-        metodo === 'getItem'
-          ? arg === clave
-          : metodo === 'multiSet'
-            ? (arg as Array<[string, string]>).some(([k]) => k === clave)
-            : (arg as string[]).includes(clave);
+        metodo === 'multiSet'
+          ? (arg as Array<[string, string]>).some(([k]) => k === clave)
+          : (arg as string[]).includes(clave);
       if (toca) llamadas += 1;
       if (fallar && toca && llamadas >= n) {
         fallo ??= {escribia: contenido(arg), aviso: avisos};
@@ -1639,6 +1710,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let leido: string[] | null = null;
       const lanzo: string[] = [];
       managePrepAccount();
+      if (conFalla) centinela = centinelaLargo();
       void pasajes().then(r => (leido = r));
       // Los dos terminan tambien si lanzan; la lectura, no: se la espera a lo
       // sumo cien mil vueltas (con mil, una lectura mil vueltas mas lenta daba
@@ -1654,15 +1726,20 @@ describe('R9-59 — la Mesa por cuenta', () => {
     try {
       await correr(false);
       const limpias = llamadas;
-      // R9-357 — la nota se lee una hora (de reloj falso) y mil vueltas
-      // despues: una quita que el paso deja corriendo sin esperarla llegaba
+      // R9-357, R9-360 — el reloj falso se pone ANTES del trabajo (un
+      // temporizador que nace real no lo adelanta el falso), y la nota se lee
+      // despues de correr todo temporizador pendiente, de cualquier plazo (con
+      // solo la hora, uno de mas de una hora pasaba), y de una hora y mil
+      // vueltas: una quita que el paso deja corriendo sin esperarla llegaba
       // despues de leerla (20 vueltas mas tarde, o con un temporizador).
       relojesFalsos();
       const {lanzo, leido} = await correr(true);
+      await tiempoYVueltas();
       await unaHora();
       return {
         llamadas: limpias,
         fallo,
+        esperaCompleta: centinela.corrio,
         lanzo,
         leido,
         // La nota de las devoluciones: la que fallo se queda, y la termina el
@@ -1872,6 +1949,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       ).toEqual({
         llamadas, // CONTROL: sin falla, ninguna otra llamada toca la clave
         fallo: {escribia, aviso: [aviso].flat()}, // CONTROL: fallo esa parte, y se la trago su paso
+        esperaCompleta: true, // CONTROL: la espera corrio un temporizador de dos horas puesto en el trabajo
         lanzo: [],
         leido,
         nota,
@@ -1921,6 +1999,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let leido: string[] | null = null;
       const lanzo: string[] = [];
       managePrepAccount();
+      const centinela = centinelaLargo();
       void pasajes().then(r => (leido = r));
       await Promise.all([
         setPrepAccount(null).catch(() => lanzo.push('primero')),
@@ -1932,17 +2011,21 @@ describe('R9-59 — la Mesa por cuenta', () => {
         await new Promise(r => setImmediate(r));
       }
       fallar = false;
-      // Como en la tabla: lo que quedo, una hora y mil vueltas despues de que
-      // el disco vuelve.
+      // Como en la tabla (con el reloj falso puesto antes del trabajo): lo que
+      // quedo, tras correr todo temporizador pendiente y una hora y mil
+      // vueltas despues de que el disco vuelve.
+      await tiempoYVueltas();
       await unaHora();
       expect({
         avisos,
+        esperaCompleta: centinela.corrio,
         lanzo,
         leido,
         nota: await AsyncStorage.getItem('@prep_release_pending'),
         claves: await claves(),
       }).toEqual({
         avisos: [MIGRA, NOTA, 'Failed to read prep notes'], // CONTROL: fallo el disco, y cada paso se trago su falla
+        esperaCompleta: true, // CONTROL: la espera corrio un temporizador de dos horas puesto en el trabajo
         lanzo: [],
         leido: [], // las claves se soltaron
         nota: '["bob"]',
