@@ -908,8 +908,13 @@ const respaldoDurante345 = async (
     expect({
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
       hechoAntesDeAbrir,
-      pedidasAlAbrir,
-      pedidasAlFinal: pedidas(),
+      // R9-358 — al abrir, la de las notas esta pedida y nada de lo pedido
+      // resolvio; si la de las series ya se pidio, o en que orden, no se fija.
+      alAbrir: {
+        notas: pedidasAlAbrir.some(p => p.startsWith('@prep_notes: ')),
+        resueltas: pedidasAlAbrir.filter(p => !p.endsWith(': pendiente')),
+      },
+      pedidasAlFinal: pedidas().sort(),
       fallo: resultado.asyncStorageWriteFailed, // CONTROL: el respaldo escribio
       deAna: await mapa('@prep_notes:ana'),
       deBeto: await mapa('@prep_notes:beto'),
@@ -918,8 +923,7 @@ const respaldoDurante345 = async (
       ...esperado,
       migracionRetenida: '@prep_by_account',
       hechoAntesDeAbrir: false,
-      pedidasAlAbrir: ['@prep_notes: pendiente'],
-      // La de las series la pide despues de tener la de las notas.
+      alAbrir: {notas: true, resueltas: []},
       pedidasAlFinal: ['@prep_notes: resuelta', '@prep_series: resuelta'],
       fallo: false,
       deAna: [P],

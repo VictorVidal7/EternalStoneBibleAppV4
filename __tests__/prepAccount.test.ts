@@ -117,6 +117,9 @@ afterEach(() => {
 // sigue pendiente. Las que pide la prueba misma (con el `prepKey` de arriba)
 // no pasan por aqui. Se leen al abrir y al final: un llamador que llega tarde
 // a pedirla aparece solo al final; uno que no se la pide a `prepKey`, nunca.
+// R9-354 — y las que recibe `prepWrite` (espiado igual): de cada llamada, la
+// clave cuando resuelve, o «pendiente». Un store que pide la suya a `prepKey`
+// y escribe con otra ya tomada la tiene resuelta al abrir.
 const vigilarClaves = () => {
   const real = pa.prepKey;
   const pedidas: Array<{base: string; pendiente: boolean}> = [];
@@ -127,7 +130,18 @@ const vigilarClaves = () => {
     void clave.then(() => (pedida.pendiente = false));
     return clave;
   });
+  const realWrite = pa.prepWrite;
+  const recibidas: Array<{clave: string | null}> = [];
+  const espiaWrite = jest
+    .spyOn(pa, 'prepWrite')
+    .mockImplementation((key, fn) => {
+      const recibida = {clave: null as string | null};
+      recibidas.push(recibida);
+      void key.then(k => (recibida.clave = k));
+      return realWrite(key, fn);
+    });
   return {
+    escrituras: () => recibidas.map(({clave}) => clave ?? 'pendiente').sort(),
     pedidas: () =>
       pedidas
         .map(
@@ -135,7 +149,10 @@ const vigilarClaves = () => {
             `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
         )
         .sort(),
-    soltar: () => espia.mockRestore(),
+    soltar: () => {
+      espia.mockRestore();
+      espiaWrite.mockRestore();
+    },
   };
 };
 
@@ -1158,6 +1175,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
     deAna: ['Ps/23/1-6'],
     deBeto: [],
     sinCuenta: [P345],
+    // Las cuatro que recibe `prepWrite`, de la «sin cuenta».
+    recibidasAlFinal: [
+      '@prep_illustrations',
+      '@prep_notes',
+      '@prep_self_review',
+      '@prep_series',
+    ],
     // Los otros tres, tambien en la «sin cuenta».
     claves: [
       '@prep_by_account',
@@ -1173,6 +1197,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
     deAna: ['Ps/23/1-6'],
     deBeto: [P345],
     sinCuenta: [],
+    recibidasAlFinal: [
+      '@prep_illustrations:beto',
+      '@prep_notes:beto',
+      '@prep_self_review:beto',
+      '@prep_series:beto',
+    ],
     claves: [
       '@prep_by_account',
       '@prep_illustrations:beto',
@@ -1240,6 +1270,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
       const antesDeAbrir = {clave, escrita, pedidas: vigiladas.pedidas()};
+      // R9-354 — ninguna clave que recibio `prepWrite` estaba resuelta al
+      // abrir. Un store que todavia no lo llamo no aparece: con el store mil
+      // vueltas mas lento antes de llamarlo, aparece solo al final.
+      const recibidasResueltasAlAbrir = vigiladas
+        .escrituras()
+        .filter(k => k !== 'pendiente');
       // Los otros estados, con la migracion todavia retenida y los pedidos
       // hechos hace una hora.
       const otros: Array<Promise<void>> = [];
@@ -1250,12 +1286,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
       abrir();
       await Promise.all([primero, edita, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
+      const recibidasAlFinal = vigiladas.escrituras();
       vigiladas.soltar();
       gi.mockImplementation(realGi);
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
         antesDeAbrir,
         pedidasAlFinal,
+        recibidasResueltasAlAbrir,
+        recibidasAlFinal,
         clave,
         deAna: await mapa('@prep_notes:ana'), // CONTROL: la migracion movio lo de antes
         deBeto: await mapa('@prep_notes:beto'),
@@ -1280,6 +1319,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
           '@prep_self_review: resuelta',
           '@prep_series: resuelta',
         ],
+        recibidasResueltasAlAbrir: [],
       });
     } finally {
       abrir();
