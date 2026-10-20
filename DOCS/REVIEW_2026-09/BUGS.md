@@ -1525,7 +1525,7 @@
 > **Sesión 103 (2026-10-19): arreglo de lo de la 101 y la 102**, en un chat nuevo, en la terminal, con
 > 5 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Arreglos en
 > `fix/s103-arreglos-s102` (`c53c5e8`, `8e80f5b`, `e552e3b`, `1121ec9`, `28fa337`; solo pruebas), docs
-> en `docs/review-s103-fix`, sin mergear hasta el OK de Victor.
+> en `docs/review-s103-fix`.
 >
 > - **Cerrados (6):** `R9-357` (el disco entero, todo método; la nota se lee tras una hora de reloj
 >   falso), `R9-355` (el primero repetido y tres estados), `R9-356` (los estados de a uno), `R9-353`
@@ -1537,6 +1537,26 @@
 >   los casos nuevos, y `respaldoClavesJuntas`, que ya no cae.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **359**. Detalle: `detail/S103-arreglo-de-s101-s102.md`.
+> Mergeadas y pusheadas con el OK de Victor (`main` = `25a8c05`, CI verde en el log, run
+> `39356602251`, 374/4672; corregido en la 104).
+>
+> **Sesión 104 (2026-10-19): revisión del diff de la 103** (`ee88726..28fa337`, solo pruebas), en un
+> chat nuevo, en la terminal, con 6 agentes en worktree que solo midieron (los pidió Victor): la
+> segunda vuelta de la 103, cada uno atacando lo integrado de otro. Solo docs, en
+> `docs/review-s104-diff-s103`, sin mergear hasta el OK de Victor.
+>
+> - **Nuevos (7), todos en las pruebas y abiertos por la 103:** `R9-360` (la espera de `R9-357`: un
+>   corte de una hora sin escribir, y una frase que no dice dónde va el reloj), `R9-361` (los estados de
+>   `R9-356`, separados en vueltas y no en tiempo), `R9-362` (el respaldo de `R9-353` restaura series
+>   vacías), `R9-363` (un pedido ajeno de `@prep_notes` ocupa el lugar del que falta, en los controles
+>   de `R9-354` y `R9-358`), `R9-364` (el `R9-354` del respaldo, con la clave tomada tarde), `R9-365` (el
+>   control de `R9-358` fija aún el orden y la cantidad) y `R9-366` (el control de `R9-354` se lee antes
+>   de los estados nuevos).
+> - **La matriz** (466 corridas sobre `28fa337`, contra la de la 103): ninguna distinta en su lista;
+>   una de sus tandas cae hoy por los casos de `R9-353` (cobertura nueva); las 80 de los agentes,
+>   re-medidas en el principal, como en sus informes (71 iguales a la salida de su worktree).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **366**. Detalle: `detail/S104-revision-del-diff-s103.md`.
 
 ---
 
@@ -9536,6 +9556,8 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
     último. Con `valorAlPedirDurante` caen 5 (63 en `prep`), y con las pruebas de `e552e3b`, pasa 57/57.
     Sus mitades por dirección (`…SiCuenta`, `…SiNulo`) caen en 3 cada una, y `claveDelPrimeroTrasPedir`
     (el primero tras el pedido) en los 3 casos de varios.
+  - **Revisado en la 104:** el respaldo de esos casos restaura series vacías, y adónde van las series
+    no lo lee nadie (`R9-362`).
 
 - **`R9-354` (S101, pruebas / Mesa / `R9-349` — P3 bajo) — 🐛 el control de `R9-349` lee lo que cada
   llamador PIDIÓ a `prepKey`, no la clave con la que escribe: un store que pide su clave y escribe con
@@ -9564,6 +9586,10 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
     por `prepWrite`: uno que pide sus claves a `prepKey` y escribe con otras (`respaldoPideYDescarta`)
     con `lento2000` caía solo por el rojo de `R9-358`, y con ese arreglado, pasaba (en `R9-358`). Sobre
     `28fa337` cae en los 2 casos de dirección del respaldo (`R9-353`): sin número.
+  - **Corregido en la 104:** «cae en los 2 casos de dirección» vale para tomar la clave temprano; tomada
+    2000 vueltas después, pasa los 4 (`R9-364`). Un `prepWrite` ajeno de `@prep_notes` ocupa el lugar
+    del store que no lo llama (`R9-363`), y el control se lee antes de los estados nuevos de `R9-353`,
+    con «mil vueltas» del lado equivocado del corte (`R9-366`).
 
 - **`R9-355` (S102, pruebas / Mesa / `R9-351` — P3) — 🐛 los dos estados de la última parte que
   agregó `R9-351` son siempre distintos entre sí y del primero, y nunca más de dos: una regresión que
@@ -9644,6 +9670,8 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
     control que proponía el agente (`retenidaTrasEstados`, la migración seguía esperando tras el último)
     no se llevó: la puerta la abre solo la prueba, y abierta antes la ve `escritaAntesDeAbrir`
     (`abreAntesDelUltimo`, del agente).
+  - **Revisado en la 104:** la vuelta separa los estados en vueltas, no en tiempo: fijar el primero con
+    un temporizador de 10 ms pasa (`R9-361`).
 
 - **`R9-357` (S102, pruebas / Mesa / `R9-348` — P3) — 🐛 la tabla de las partes hace fallar un solo
   par (método, clave): un camino de error que, fuera de su `try`, toca un par que ninguna parte hace
@@ -9686,6 +9714,10 @@ AsyncStorage.removeItem(RELEASE_KEY)` antes del `return`.
     (del agente). Caen
     `migraQuitaMarcaEnCatch`, `notaQuitaEnCatch`, `reNotaEnCatchDev`, `reintentaNotaFuera`,
     `notaQuitaTimeout10`, `…1000`, `notaQuitaTarde20` y `…990`; `notaQuitaTarde1010` pasa (el corte).
+  - **Revisado en la 104:** la espera tiene también un corte en el tiempo (una hora: un temporizador de
+    3600001 ms pasa), y su frase no dice que el reloj va antes del trabajo (`R9-360`). En el mock no
+    queda ningún método de almacén sin fallar: `useAsyncStorage` delega en los mismos, y
+    `migraQuitaMarcaUseAsync` cae en la de disco entero (agente 1, re-medido).
 
 - **`R9-358` (S102, pruebas / respaldo / `R9-349` — P3 bajo) — 🐛 `pedidasAlAbrir` del respaldo
   fija el orden en que pide sus claves: pedir las dos a la vez, sin cambiar lo escrito, la hace
@@ -9712,6 +9744,9 @@ resueltas: []}`, y `pedidasAlFinal` ordenada. `respaldoClavesJuntas` pasa (63/63
     solo este arreglo (`bptee88726+soloR358`), pasa. Sobre `28fa337` lo ven los datos de los casos de
     dirección de `R9-353` (lo restaurado va a la «sin cuenta» y no a la Mesa de Beto, o reemplaza la de
     Ana).
+  - **Revisado en la 104:** el control aflojado le quitó también la regresión que toma las claves tarde
+    (`R9-364`), y la que cubre un pedido ajeno de `@prep_notes` (`R9-363`); y todavía fija el orden y la
+    cantidad de los pedidos (`R9-365`).
 
 - **`R9-359` (S103, pruebas / Mesa / `R9-331`, `R9-348` — P3 bajo) — 🐛 las pruebas fijan el MÉTODO
   con que la migración lee: leer la marca y el dueño con un solo `multiGet`, sin cambiar lo que hace,
@@ -9736,6 +9771,194 @@ LOCAL_STORE_OWNER_KEY])` en lugar de dos `getItem`; lee el dueño también cuand
     sea cual sea el método (`getItem` o `multiGet`). Tiene que pasar con `migraConMultiGet`, y las
     piezas de cada prueba tienen que seguir cayendo. Antes, mirar en el mock de `jest.setup.js` si
     `getItem` pasa por `multiGet` (lo dijo el agente 5, por lectura).
+  - **Por lectura también en la 104** (agente 1): en el mock, `getItem`, `setItem`, `removeItem` y
+    `mergeItem` pasan por `multiGet`, `multiSet`, `multiRemove` y `multiMerge`. Sin sonda.
+
+- **`R9-360` (S104, pruebas / Mesa / `R9-357` — P3 bajo) — 🐛 la espera de `R9-357` tiene un corte de
+  una hora que nadie escribió, y su frase no dice que el reloj falso va antes del trabajo: una quita de
+  la nota con un temporizador de más de una hora pasa `prep` y el suite, y con el reloj puesto después
+  del trabajo (la frase, al pie de la letra) pasa también uno de 10 ms.** MEDIDO en la sesión 104
+  (agentes 1 y 6; re-medido en el principal con `_scratch/S104-sonda.cjs.txt`, de `S104-gen.cjs.txt`;
+  piezas en `S104-sondas-agente-N/S104-a<N>-propias.txt`).
+  - La 103 cambió la espera del diseño (mil vueltas) por `relojesFalsos()` antes del trabajo y
+    `unaHora()` antes de leer la nota, en la tabla de las partes y en la de disco entero
+    (`prepAccount.test.ts`). `unaHora()` adelanta una hora y vuelve a los relojes reales: un
+    temporizador falso que no venció en esa hora no corre nunca.
+  - **El corte** (agente 1; pieza `notaQuitaTimeoutLargo<MS>`: en el `catch` de `finishRelease`, la
+    nota se quita con un `setTimeout` de MS ms con `unref`, sin esperarlo): `…3600000` cae (61/63: la
+    lectura de la nota de la tabla y la de disco entero); `…3600001` pasa (`prep` 63/63, suite
+    1044/1044), y `…7200000` también (63/63). Un intervalo que se apaga al quitar la nota
+    (`notaQuitaIntervalo<MS>`) da lo mismo: `…1000` cae, `…3600001` pasa `prep` y el suite.
+  - **El daño:** con la espera corriendo todo temporizador (`todosLosTimers357`: `await
+jest.runAllTimersAsync()` antes de `unaHora()`; con el código bueno, 63/63), `…7200000` cae en las
+    dos, con `nota: null`: la Mesa de bob se queda bajo su uid sin la nota que la devolvería (el daño
+    de `R9-274`).
+  - **La frase** (la de la tabla: «la nota se lee una hora (de reloj falso) y mil vueltas despues: una
+    quita que el paso deja corriendo sin esperarla llegaba despues de leerla (20 vueltas mas tarde, o
+    con un temporizador)»; la de disco entero: «una hora y mil vueltas despues de que el disco
+    vuelve»): no dice dónde va `relojesFalsos()`. Puesto después del trabajo (`relojesTrasCorrer357`,
+    agente 6), pasa 63/63, y con él `notaQuitaTimeout1000` y `…10` pasan (63/63; sin él, `…1000` cae
+    61/63): el temporizador nace real, y la hora falsa no lo adelanta.
+  - Es la regla de la 74 (medí el corte, y escribilo) en el tiempo, y la de la 93 (una lectura al pie
+    de la letra que pasa: su daño).
+  - **¿Lo abrió la 103?** Sí (`c53c5e8`: es el cambio del orquestador sobre el diseño).
+  - P3 bajo: verde falso ante regresiones construidas (un temporizador de más de una hora; la frase,
+    al pie de la letra); el código está bien.
+  - **Arreglo (hipótesis):** `runAllTimersAsync()` antes de `unaHora()` en las dos esperas (medido solo
+    como pieza: `todosLosTimers357` pasa 63/63, y con `…7200000` o `notaQuitaIntervalo7200000` caen las
+    dos), y que la frase diga que el reloj falso se pone antes del trabajo. Un intervalo que no se apaga
+    nunca haría lanzar a `runAllTimersAsync` por su tope: un rojo, sin medir.
+
+- **`R9-361` (S104, pruebas / Mesa / `R9-356` — P3) — 🐛 los estados de `R9-337` y `R9-344` se separan
+  en vueltas, no en tiempo: una regresión que fije la cuenta del primero con un temporizador de 10 ms
+  pasa `prep` y el suite, y con los estados separados en el reloj lo pedido va a la cuenta que no
+  es.** MEDIDO en la sesión 104 (agente 2; re-medido en el principal).
+  - `e552e3b` manda los estados de a uno, con una vuelta después de cada uno, y con el reloj falso ya
+    puesto: el reloj no avanza hasta `unaHora()`, después del último estado. Un temporizador que fije
+    la cuenta del primero vence ahí, y toma la del último.
+  - **Piezas** (en `prepAccount.ts`): `claveDelPrimeroEnDevTimeout10` (como `claveDelPrimeroEnDevMicro`,
+    pero con un `setTimeout` de 10 ms): `prep` 63/63 y suite 1044/1044; `claveDelPrimeroEnTrabajoTimeout10`
+    y `…1000` (en todo el trabajo): `prep` 63/63 (con `…10`, el agente vio caer en el suite la lectura de
+    `R9-345`, que corre en parte con reloj real: no es una cobertura estable).
+  - **El daño** (prueba-sonda `estadosEspaciados`: tras cada estado, 10 vueltas y un segundo de reloj
+    falso; con el código bueno, 63/63): con `…DevTimeout10` cae la de `R9-344`, y en 10 de sus 14 casos
+    lo pedido cambia de cuenta (`muestraCasos344`, igual que en el worktree del agente): nulo→ana→beto,
+    a la Mesa de Ana y no a la de Beto; ana→beto→nulo y ana→beto→ana, a la de Beto; nulo→ana→nulo y
+    nulo→ana→beto→nulo, a la de Ana. `…TrabajoTimeout10` y `…1000` caen en `R9-337` y `R9-344`.
+  - **Con vueltas, sin hallazgo:** fijar el primero K vueltas tarde (`claveDelPrimeroEn{Dev,Trabajo}Vuelta<K>`)
+    deja de verse en `R9-337` con K = 2 y en `R9-344` con K = 3, pero la lectura de `R9-345` (de la 103)
+    la ve con K = 3 (re-medido; el agente, hasta 100), y `…TrabajoVuelta3` también el respaldo «ana, y
+    nulo».
+  - Es la regla de la 103 («un plazo medido en vueltas no ve un temporizador»), entre los estados, y la
+    de la 102 (`R9-356`: distintos en valor, no en tiempo) un paso más allá.
+  - **¿Lo abrió la 103?** Sí (`e552e3b`: la microtarea se cerró con una vuelta, sin reloj).
+  - P3: verde falso ante una regresión construida, con mezcla de cuentas; el código está bien.
+  - **Arreglo (hipótesis), medido solo como pieza:** tras cada estado, tiempo de reloj además de las
+    vueltas (`estadosEspaciados`). Con él, las piezas de `R9-355` y `R9-356` siguen cayendo
+    (`ignoraPrimeroEnDev`, `claveDelSegundoEnDev`, `claveDelPrimeroEnTrabajoMicro`). Falta el suite, y
+    los casos de `R9-353` con sus estados espaciados igual.
+
+- **`R9-362` (S104, pruebas / respaldo / `R9-353` — P3) — 🐛 los casos de `R9-353` del respaldo
+  restauran un mapa de series vacío, y ningún esperado lee las series: un respaldo que escribe las
+  series con la cuenta de cuando empezó a restaurar pasa `prep` y el suite, y lo restaurado queda
+  partido entre dos cuentas.** MEDIDO en la sesión 104 (agente 3; re-medido en el principal).
+  - `respaldoConMesa` (`backupPrepTurn.test.ts`) trae `prep: {notes, series: null}`, y el respaldo
+    restaura `{}` en la clave de las series. `deAna`, `deBeto` y `sinCuenta` leen `@prep_notes*`;
+    `pedidasAlFinal` dice que la clave de las series se pidió y se resolvió, no adónde fue lo escrito.
+  - **Pieza `respaldoSeriesAlPedir`** (en `BackupService.ts`: pide la de las series a `prepKey`, la
+    descarta, y escribe las series con la clave de la cuenta de cuando empieza a restaurar): `prep`
+    63/63 y suite 1044/1044. Con una serie en el respaldo y los mismos esperados
+    (`respaldoConSerie353`), también 63/63.
+  - **El daño** (`muestraSeries353`, con la serie): con el código bueno, las notas y las series van
+    juntas en los 4 casos; con la pieza, en nulo→beto las notas van a la Mesa de Beto y las series a la
+    «sin cuenta», y en ana→nulo las notas a la «sin cuenta» y las series a la Mesa de Ana, que ya salió.
+  - Es la regla de la 93 y la de la 99 (cada llamador, y cada clave que escribe), y la de la 103: con un
+    dato vacío, el valor del pedido y el del final no se distinguen.
+  - **¿Lo abrió la 103?** El respaldo sin series es de la 99 (`R9-345`); con un solo estado no había
+    dirección que errar: el hueco con daño es de los casos de dirección de `1121ec9`.
+  - P3: verde falso ante una regresión construida, con mezcla de cuentas; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** una serie en el respaldo de esos casos, y los esperados también
+    de `@prep_series*`. Tiene que caer con `respaldoSeriesAlPedir`.
+
+- **`R9-363` (S104, pruebas / Mesa y respaldo / `R9-354`, `R9-358` — P3) — 🐛 los controles de
+  `R9-354` y `R9-358` leen registros por base: un pedido ajeno de `@prep_notes` en la ventana ocupa el
+  lugar del que falta, y la regresión pasa los 4 casos de `R9-345`; en el respaldo, sin series, se
+  pierde la Mesa de antes.** MEDIDO en la sesión 104 (agentes 4 y 5; re-medido en el principal).
+  - **La escritura** (`prepAccount.test.ts`): `recibidasAlFinal` lista las claves que recibió
+    `prepWrite`, no de quién. `notasSinPrepWrite` (de la 103: el store de notas escribe sin pasar por
+    `prepWrite`) cae en los 4 casos por `- "@prep_notes"`. Con un `prepWrite` ajeno de `@prep_notes`
+    (`ajenoEscritura354`, `ajenoTrasControl354`, `ajenoTrasAbrir354`: temprano, tras el control, tras
+    abrir), la de `R9-345` pasa en los 4 (57/63; caen las otras 6 que ven la regresión: `R9-273`,
+    `R9-292`, `R9-275`, `R9-323`, `R9-325` y `R9-269`). Sin daño en el caso: escribe con la clave buena
+    después del trabajo. La 103 escribió «el ajeno no ocupa el lugar del que falta» con
+    `ajenoEscritura354b`, que adaptaba el esperado a dos `@prep_notes`; con el de hoy, lo ocupa.
+  - **El respaldo** (`backupPrepTurn.test.ts`): `alAbrir.notas` busca cualquier pedido de
+    `@prep_notes`, y `pedidasAlFinal` los lista todos. `respaldoNotasTrasSeries` (pide y espera la de
+    las series, y la de las notas la toma por su cuenta después) cae en los 4 por `notas: false`. Con
+    una lectura ajena de notas en la ventana (`ajenoNotas358`, justo tras llamar al respaldo;
+    `ajenoNotasTarde358`, antes de leer), pasa `prep` 63/63 y el suite 1044/1044. Con el código bueno,
+    el ajeno da un rojo (`+ "@prep_notes: resuelta"`).
+  - **El daño, en el respaldo:** con series, la regresión espera el trabajo por la de las series y
+    escribe bien. Sin series (`sinSeries358`, un respaldo sin esa sección; `muestra358`), toma la de las
+    notas al llamar: lo restaurado se escribe antes de la migración (`hecho: true` al abrir), y la Mesa
+    de antes se pierde (`deAna: [R]`; en ana→nulo, `[P, R]` y `sinCuenta: []`), también con el ajeno.
+  - Es la regla de la 88 (un registro compartido no dice de quién es lo que cuenta) en dos controles
+    escritos por la 103, y la de la 89 (en cada caso).
+  - **¿Lo abrió la 103?** Sí: en la escritura, `28fa337`; en el respaldo, el control aflojado de
+    `R9-358` (sobre `ee88726`, `ajenoNotas358+respaldoNotasTrasSeries` cae por la lista exacta, `+
+"@prep_series: pendiente"`).
+  - P3: verde falso ante una regresión construida; en el respaldo, con pérdida de datos.
+  - **Arreglo (hipótesis), sin medir:** que cada registro diga de quién es cada pedido (el llamador que
+    importa, espiado aparte), con el ajeno corrido contra el esperado de hoy. Tiene que caer con los
+    dos pares.
+
+- **`R9-364` (S104, pruebas / respaldo / `R9-354` — P3) — 🐛 el `R9-354` del respaldo, con la clave
+  tomada tarde: un respaldo que pide sus claves a `prepKey`, las descarta, y las toma por su cuenta
+  2000 vueltas después pasa los 4 casos de `R9-345`; si el trabajo dura más, lo restaurado se escribe
+  antes de la migración y la Mesa de antes se pierde.** MEDIDO en la sesión 104 (agente 5; re-medido en
+  el principal).
+  - El respaldo no pasa por `prepWrite`: su control (`alAbrir`) lee los pedidos a `prepKey`, no la
+    clave con que escribe. La 103 escribió que su `R9-354` (`respaldoPideYDescarta`, que toma la clave
+    en cuanto llega el primer estado) lo ven los datos de los casos de dirección: vale para tomarla
+    temprano, no tarde.
+  - **Pieza `respaldoPideYTomaTras<K>`** (pide sus dos claves, las descarta, da K vueltas y las toma
+    con la cuenta de ese momento): con 500 y 990, la de `R9-345` cae en los 4 casos; con 1010 y 2000,
+    pasa. El corte es la ventana de la prueba (mil vueltas con la migración retenida). Con 2000, `prep`
+    56/63 y suite 1037/1044: lo que cae es de la demora, lo mismo que el cambio bueno
+    `respaldoClaveTarde2000` (que pide su clave 2000 vueltas tarde: 11 en `prep`, suite 1033/1044) menos
+    los 4 casos de `R9-345`.
+  - **El daño** (con la ventana de la prueba en 3000 vueltas, `ventana3000`; con el código bueno,
+    63/63): `hecho: true` antes de abrir, y la Mesa de antes se pierde (`deAna: [R]`; en ana→nulo,
+    `[P, R]`).
+  - **¿Lo abrió la 103?** Sí: sobre `ee88726` caía solo por la lista exacta (`+ "@prep_series:
+pendiente"`), y el control aflojado de `R9-358` se la quitó. Corrige la nota de `R9-354`.
+  - Es la regla de la 86 (el control lee el último paso: la clave con que escribe) y la de la 70 (la
+    demora, más allá de la ventana, con la regresión).
+  - P3: verde falso ante una regresión construida, con pérdida de datos si el trabajo dura más que la
+    demora; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** un control de la clave con que escribe el respaldo (como el
+    espía de `prepWrite` en la escritura), pendiente al abrir.
+
+- **`R9-365` (S104, pruebas / respaldo / `R9-358` — P3 bajo) — 🐛 el control de `R9-358` fija todavía
+  el orden y la cantidad de los pedidos del respaldo, aunque su frase diga que no: pedir y esperar la de
+  las series antes de pedir la de las notas, o pedir dos veces la de las notas, sin cambiar lo escrito,
+  lo hace caer.** MEDIDO en la sesión 104 (agente 5; re-medido en el principal).
+  - La frase: «al abrir, la de las notas esta pedida y nada de lo pedido resolvio; si la de las series
+    ya se pidio, o en que orden, no se fija».
+  - `respaldoSeriesPrimero` (pide y espera la de las series, y después pide la de las notas): caen los
+    4 casos de `R9-345`, solo por `notas: false`. `respaldoNotasDosVeces` (pide la de las notas una vez
+    antes, y la espera, y otra al encolarla): caen los 4, solo por `pedidasAlFinal` (`+ "@prep_notes:
+resuelta"`).
+  - Es la regla de la 82, la clase de `R9-358` y de `R9-359`: el control fija que la de las notas se
+    pida antes de esperar nada, y cuántas veces se pide cada una.
+  - **¿Lo abrió la 103?** Sí (`28fa337`: la frase, y `pedidasAlFinal` ordenada pero entera).
+  - P3 bajo: un rojo ante un cambio bueno; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** que la frase diga lo que fija, o que `pedidasAlFinal` se lea
+    como conjunto. Con `R9-363`, en el mismo control.
+
+- **`R9-366` (S104, pruebas / Mesa / `R9-354` — P3 bajo) — 🐛 el control de `R9-354` se lee antes de
+  los estados que agregó `R9-353`, y su frase pone el corte del lado equivocado: con «mil vueltas» el
+  store todavía llama antes de abrir, y con 1002 y la clave tardía la regresión pasa el caso
+  nulo→beto→nulo.** MEDIDO en la sesión 104 (agentes 6 y 4; re-medido en el principal).
+  - `recibidasResueltasAlAbrir` se calcula antes del bucle de `despues` (`await vuelta();
+setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos vueltas antes. Es lo
+    que el orquestador de la 103 portó a mano sobre las funciones del agente 3.
+  - **La frase** («con el store mil vueltas mas lento antes de llamarlo, aparece solo al final»): con
+    1000 (`notasLentoAntesPrepWrite1000+pideYDescarta`) caen los 4 casos de `R9-345` (56/63), porque el
+    store llamó antes de abrir. Con 1002, «un estado» pasa y caen los otros 3 (57/63). El corte cambia
+    de caso a caso (una o dos vueltas del bucle).
+  - **El control:** con `notasLentoAntesPrepWrite1002+tardeClave2000+pideYDescarta` (52/63), de
+    `R9-345` caen solo los dos casos de dirección, por los datos; «un estado» y nulo→beto→nulo pasan.
+    En nulo→beto→nulo el store llamó a `prepWrite` antes de abrir, pero después del control. Sin daño:
+    la clave del primer estado y la del último son la misma. Con 1005, ya lo había medido la 103.
+  - Lo mismo con una regresión que toma la clave con el estado siguiente al pedido y escribe sin
+    esperar el trabajo (`notasAlSiguienteDurante`, agente 4): «nulo, y beto» pasa, porque ningún control
+    se lee después de los estados nuevos. Sin daño: lo escribe donde lo pone el código bueno.
+  - Son las reglas de la 81 y la 85 (a los dos lados del momento) y la de la 74 (el corte, por caso).
+  - **¿Lo abrió la 103?** Sí (`28fa337`).
+  - P3 bajo: sin daño medido.
+  - **Arreglo (hipótesis), sin medir:** leer el control después del bucle, justo antes de `abrir()`, y
+    escribir el corte por caso. `pedidasAlAbrir` del respaldo tiene la misma forma: sin medir.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

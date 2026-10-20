@@ -1164,8 +1164,21 @@
 > el método con que la migración lee; P3 bajo).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **359**. Ramas `fix/s103-arreglos-s102` y
-> `docs/review-s103-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s103-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `25a8c05`, CI verde en
+> el log, run `39356602251`, 374/4672; corregido en la 104). Detalle:
 > `detail/S103-arreglo-de-s101-s102.md`.
+>
+> **Sesión 104 (2026-10-19): revisión del diff de la 103** (`ee88726..28fa337`), en un chat nuevo, en
+> la terminal, con 6 agentes en worktree que solo midieron (los pidió Victor): la segunda vuelta de la
+> 103, cada uno atacando lo integrado de otro. Siete nuevos, todos en las pruebas y abiertos por la
+> 103: `R9-360` (la espera de `R9-357`), `R9-361` (los estados de `R9-356`, en vueltas y no en
+> tiempo), `R9-362` (el respaldo de `R9-353` restaura series vacías), `R9-363` (un ajeno de
+> `@prep_notes` ocupa el lugar del que falta), `R9-364` (el `R9-354` del respaldo, con la clave tarde),
+> `R9-365` (el control de `R9-358` fija aún orden y cantidad) y `R9-366` (el control de `R9-354` se lee
+> antes de los estados nuevos).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **366**. Rama `docs/review-s104-diff-s103`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S104-revision-del-diff-s103.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2203,6 +2216,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     regresión que veía por ese rojo; un caso donde el valor del pedido y el del final difieren da daño
     a una regresión que no lo tenía; un plazo medido en vueltas no ve un temporizador; «todo el disco»
     es todo método del almacén.
+
+- **Sesión 104 — 2026-10-19. Revisión del diff de la 103.** En un chat nuevo, en la terminal, con 6
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S104-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S104-sonda.cjs.txt` (de `S104-gen.cjs.txt`, que arma también la
+    sonda de cada agente); cada agente atacó lo integrado de otro; todo lo suyo re-medido en el
+    principal, y la matriz de la 103 con sus tandas y las piezas de los agentes (`S104-matriz.cjs.txt`).
+  - **Resultado:** nuevos `R9-360`..`R9-366` (P3 y P3 bajo), todos en las pruebas y abiertos por la 103. No queda ningún P0 abierto.
+  - **Detalle: `detail/S104-revision-del-diff-s103.md`.**
+  - **Las lecciones:** al portar un control sobre el diseño de otro, su lectura va después de todo lo
+    que ese diseño agrega; un ajeno se corre contra el esperado de hoy; un dato vacío no dice adónde
+    fue; una hora de reloj falso también es un corte, y una vuelta no separa en el tiempo; lo que veía
+    un control exacto es una clase, no una pieza.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

@@ -1,13 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-19, fin de la sesión 103.** La 103 hizo el (ce) en un chat nuevo,
-> en la terminal, con 5 agentes en worktree que midieron los diseños antes de escribirlos (los pidió
-> Victor): cerrados `R9-353`..`R9-358`, solo en las pruebas, y uno nuevo (`R9-359`, P3 bajo).
+> **Última actualización: 2026-10-19, fin de la sesión 104.** La 104 hizo el (cf) en un chat nuevo,
+> en la terminal, con 6 agentes en worktree que solo midieron (los pidió Victor): la segunda vuelta de
+> la 103. Siete nuevos (`R9-360`..`R9-366`, P3 y P3 bajo), todos en las pruebas y abiertos por la 103.
 >
-> La 102 ya está mergeada y pusheada (`main` = `ee88726`, CI verde en el log, run `39347457688`,
-> 374/4665). Las ramas de la 103 (`fix/s103-arreglos-s102` y `docs/review-s103-fix` encima) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 359 hallazgos. **Lo
-> siguiente:** la 104 revisa el diff de la 103 (mensaje (cf), en `_scratch/S104-PROMPT.md`).
+> La 103 ya está mergeada y pusheada (`main` = `25a8c05`, CI verde en el log, run `39356602251`,
+> 374/4672). La rama de la 104 (`docs/review-s104-diff-s103`, solo docs) va **sin mergear hasta el OK
+> de Victor**. **No queda ningún P0 abierto**, y hay 366 hallazgos. **Lo siguiente:** la 105 arregla
+> `R9-359`..`R9-366` (mensaje (cg), en `_scratch/S105-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -537,10 +537,15 @@ revisión de su diff (la (cb), sesión 100, en un chat nuevo y sin agentes, con
 `_scratch/S101-PROMPT.md`). Y la revisión de su diff (la (cd), sesión 102, en un chat nuevo con 3
 agentes que solo midieron, con `_scratch/S102-PROMPT.md`). Y su arreglo (la (ce), sesión 103, en un
 chat nuevo con 5 agentes que midieron los diseños antes de escribirlos, con `_scratch/S103-PROMPT.md`).
-**Lo siguiente es el (cf).**
+Y la revisión de su diff (la (cf), sesión 104, en un chat nuevo con 6 agentes que solo midieron, con
+`_scratch/S104-PROMPT.md`). **Lo siguiente es el (cg).**
 
-**(cf) Sesión 104: revisar el diff de la 103** (`ee88726..28fa337`: pruebas). El mensaje está en
-`_scratch/S104-PROMPT.md`, que manda sobre este archivo.
+**(cg) Sesión 105: arreglar lo de la 103 y la 104** (`R9-359`..`R9-366`, todo en las pruebas). El
+mensaje está en `_scratch/S105-PROMPT.md`, que manda sobre este archivo.
+
+**(cf) Sesión 104: revisar el diff de la 103 — ya HECHO en la sesión 104, en un chat nuevo, en la
+terminal, con 6 agentes en worktree que solo midieron.** Siete nuevos (`R9-360`..`R9-366`), todos
+abiertos por la 103. El mensaje está en `_scratch/S104-PROMPT.md`.
 
 **(ce) Sesión 103: arreglar lo de la 101 y la 102 — ya HECHO en la sesión 103, en un chat nuevo, en
 la terminal, con 5 agentes en worktree que midieron los diseños.** Cerrados `R9-353`..`R9-358`; uno
@@ -2122,21 +2127,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 103 (2026-10-19).**
+**Medido al cerrar la sesión 104 (2026-10-19).**
 
-- **La 102, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `ee88726` (solo
-  docs; el último código es `44927a5`). CI verificado en el log: run `39347457688`, 3 jobs, Node
-  v24.21.0, 374/4665. Su rama se borró tras `git cherry`.
-- **Las ramas de la 103, sin mergear a propósito y sin pushear:** `fix/s103-arreglos-s102` (5 commits
-  de pruebas sobre `ee88726`, hasta `28fa337`) y `docs/review-s103-fix` encima (solo docs). Se mergean
-  en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno. Los de los 5 agentes no se borraron solos (tenían su diseño sin
-  commitear): se quitaron a mano, con sus ramas, tras comparar cada `_scratch` con su copia. El
-  checkpoint se escribió en un worktree aparte (`../essb-docs-s103`, fuera del repo), quitado al
-  terminar.
+- **La 103, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `25a8c05` (solo
+  docs; el último código es `28fa337`, solo `__tests__/`). CI verificado en el log: run
+  `39356602251`, 3 jobs, Node v24.21.0, 374/4672. Sus ramas se borraron tras `git cherry`.
+- **La rama de la 104, sin mergear a propósito y sin pushear:** `docs/review-s104-diff-s103` (solo
+  docs, sobre `25a8c05`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
+  incluye.
+- **Los worktrees:** ninguno. Los de los 6 agentes se borraron solos, con sus ramas (ninguno dejó
+  cambios); sus copias están en `_scratch/S104-sondas-agente-N/`. El checkpoint se escribió en un
+  worktree aparte (`../essb-docs-s104`, fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 103):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 104):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2948,6 +2952,26 @@ Alternativas legítimas:
 - **«Todo el disco» es todo método del almacén (sesión 103, `R9-357`).** Con los tres métodos de
   `discoEntero348`, un `multiGet` en un `catch` pasaba (`discoTres357+migraLeeEnCatchMultiGet`). Es la
   regla de la 102 («la falla se extiende») hasta los métodos.
+- **Al portar un control sobre el diseño de otro, su lectura va después de todo lo que ese diseño
+  agrega antes del momento que nombra (sesión 104, `R9-366`).** La 103 portó el control de A4 sobre
+  las funciones de A3, y quedó antes del bucle de los estados nuevos: «al abrir» se lee dos vueltas
+  antes de abrir, y `notasLentoAntesPrepWrite1002+tardeClave2000+pideYDescarta` pasa nulo→beto→nulo.
+  Las reglas de la 81 y la 85, en la integración.
+- **Un ajeno se corre contra el esperado de hoy, no contra uno adaptado (sesión 104, `R9-363`).** La
+  103 midió `ajenoEscritura354b` con el esperado ajustado a dos `@prep_notes` y escribió «no ocupa el
+  lugar del que falta». Con el esperado de la prueba, lo ocupa: `ajenoEscritura354+notasSinPrepWrite`
+  pasa los 4 casos de `R9-345`. Las reglas de la 88 y la 89.
+- **Un dato vacío no dice adónde fue (sesión 104, `R9-362`).** La lección de la 103 («el valor del
+  pedido y el del final difieren») necesita datos en cada clave que el llamador escribe: con las series
+  vacías, `respaldoSeriesAlPedir` pasa `prep` y el suite y parte lo restaurado entre dos cuentas.
+- **Una hora de reloj falso también es un corte, y una vuelta no separa en el tiempo (sesión 104,
+  `R9-360`, `R9-361`).** La regla de la 103 se corre también contra la hora misma
+  (`notaQuitaTimeoutLargo3600001` pasa) y entre los estados (`claveDelPrimeroEnDevTimeout10` pasa). Con
+  `runAllTimersAsync`, o con tiempo de reloj tras cada estado, caen.
+- **Lo que veía un control exacto es una clase, no una pieza (sesión 104, `R9-363`, `R9-364`).** La
+  103 aflojó `R9-358` tras correr la regresión que caía por la lista exacta. Otras dos de la misma clase
+  (tomar las claves tarde, cubrirse con un ajeno) también caían por ella sobre `ee88726`, y con el
+  control aflojado pasan. Antes de aflojar, armá más de una regresión de lo que el control veía.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
