@@ -824,7 +824,16 @@ it('R9-327: una escritura de un store que espera detras del respaldo de una cuen
 // `pedidasAlFinal` separa ese rojo del de un respaldo que llega tarde a
 // pedirla (1005 vueltas antes de pedirla; con 990, pasa): ese la pide despues
 // de abrir, y aparece al final; uno que no la pide a `prepKey`, nunca.
-it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo no reemplaza la Mesa de antes que la migracion mueve', async () => {
+// R9-353 — y lo restaurado va a la cuenta del ULTIMO estado que llega antes
+// de que termine el trabajo, no a la de cuando se pidio: con otros estados
+// tras el pedido (de a uno, con una vuelta entre ellos), en las dos
+// direcciones. Con un estado solo, las dos son la misma, y tomar la cuenta al
+// pedirla pasaba.
+const respaldoDurante345 = async (
+  primerEstado: string | null,
+  despues: Array<string | null>,
+  esperado: object,
+) => {
   const T = Date.now() - 60 * 60 * 1000;
   const P = 'John/3/16-21';
   const R = 'Ps/23/1-6';
@@ -869,7 +878,7 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
       doNotFake: ['nextTick', 'queueMicrotask', 'setImmediate'],
     });
     managePrepAccount();
-    const primero = setPrepAccount(null);
+    const primero = setPrepAccount(primerEstado);
     for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
       await vuelta();
     }
@@ -887,8 +896,14 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
     for (let i = 0; i < 1000; i++) await vuelta();
     const hechoAntesDeAbrir = hecho;
     const pedidasAlAbrir = pedidas();
+    // Los otros estados, con la migracion todavia retenida.
+    const otros: Array<Promise<void>> = [];
+    for (const uid of despues) {
+      await vuelta();
+      otros.push(setPrepAccount(uid));
+    }
     abrir();
-    const [, resultado] = await Promise.all([primero, respaldo]);
+    const [, resultado] = await Promise.all([primero, respaldo, ...otros]);
     gi.mockImplementation(realGi);
     expect({
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
@@ -897,8 +912,10 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
       pedidasAlFinal: pedidas(),
       fallo: resultado.asyncStorageWriteFailed, // CONTROL: el respaldo escribio
       deAna: await mapa('@prep_notes:ana'),
+      deBeto: await mapa('@prep_notes:beto'),
       sinCuenta: await mapa('@prep_notes'),
     }).toEqual({
+      ...esperado,
       migracionRetenida: '@prep_by_account',
       hechoAntesDeAbrir: false,
       pedidasAlAbrir: ['@prep_notes: pendiente'],
@@ -906,7 +923,6 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
       pedidasAlFinal: ['@prep_notes: resuelta', '@prep_series: resuelta'],
       fallo: false,
       deAna: [P],
-      sinCuenta: [R],
     });
   } finally {
     abrir();
@@ -914,4 +930,20 @@ it('R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo
     espia.mockRestore();
     jest.useRealTimers();
   }
-});
+};
+const sinCuenta345 = {deBeto: [], sinCuenta: ['Ps/23/1-6']};
+it.each([
+  ['un estado', null, [], sinCuenta345],
+  [
+    'nulo, y beto tras el pedido',
+    null,
+    ['beto'],
+    {deBeto: ['Ps/23/1-6'], sinCuenta: []},
+  ],
+  ['ana, y nulo tras el pedido', 'ana', [null], sinCuenta345],
+  ['nulo, y beto y nulo tras el pedido', null, ['beto', null], sinCuenta345],
+] as Array<[string, string | null, Array<string | null>, object]>)(
+  'R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo no reemplaza la Mesa de antes que la migracion mueve (%s)',
+  (_nombre, primerEstado, despues, esperado) =>
+    respaldoDurante345(primerEstado, despues, esperado),
+);

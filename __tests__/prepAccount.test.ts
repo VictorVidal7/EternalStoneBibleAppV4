@@ -1147,8 +1147,47 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // cuenta. Con la clave tomada al pedirla en cuanto llega un estado, lo
   // escrito sin cuenta mientras la migracion espera caia en la «sin cuenta»
   // de antes, y la migracion se lo llevaba a la Mesa de Ana.
-  it('R9-345: lo escrito sin cuenta durante el trabajo del primer estado de auth se queda en la «sin cuenta», no se va con la Mesa de antes', async () => {
-    const P = 'John/3/16-21';
+  // R9-353 — y lo pedido va a la cuenta del ULTIMO estado que llega antes de
+  // que termine el trabajo, no a la de cuando se pidio: con otros estados tras
+  // los pedidos (de a uno, con una vuelta entre ellos), en las dos
+  // direcciones. Con un estado solo, las dos son la misma, y tomar la cuenta
+  // al pedirla pasaba.
+  const P345 = 'John/3/16-21';
+  const sinCuenta345 = {
+    clave: '@prep_notes',
+    deAna: ['Ps/23/1-6'],
+    deBeto: [],
+    sinCuenta: [P345],
+    // Los otros tres, tambien en la «sin cuenta».
+    claves: [
+      '@prep_by_account',
+      '@prep_illustrations',
+      '@prep_notes',
+      '@prep_notes:ana',
+      '@prep_self_review',
+      '@prep_series',
+    ],
+  };
+  const deBeto345 = {
+    clave: '@prep_notes:beto',
+    deAna: ['Ps/23/1-6'],
+    deBeto: [P345],
+    sinCuenta: [],
+    claves: [
+      '@prep_by_account',
+      '@prep_illustrations:beto',
+      '@prep_notes:ana',
+      '@prep_notes:beto',
+      '@prep_self_review:beto',
+      '@prep_series:beto',
+    ],
+  };
+  const escrituraDurante345 = async (
+    primerEstado: string | null,
+    despues: Array<string | null>,
+    esperado: object,
+  ) => {
+    const P = P345;
     const vuelta = () => new Promise(r => setImmediate(r));
     const mapa = async (k: string) =>
       Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
@@ -1175,7 +1214,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     try {
       relojesFalsos();
       managePrepAccount();
-      const primero = setPrepAccount(null);
+      const primero = setPrepAccount(primerEstado);
       for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
         await vuelta();
       }
@@ -1201,8 +1240,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
       const antesDeAbrir = {clave, escrita, pedidas: vigiladas.pedidas()};
+      // Los otros estados, con la migracion todavia retenida y los pedidos
+      // hechos hace una hora.
+      const otros: Array<Promise<void>> = [];
+      for (const uid of despues) {
+        await vuelta();
+        otros.push(setPrepAccount(uid));
+      }
       abrir();
-      await Promise.all([primero, edita]);
+      await Promise.all([primero, edita, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
       vigiladas.soltar();
       gi.mockImplementation(realGi);
@@ -1212,9 +1258,11 @@ describe('R9-59 — la Mesa por cuenta', () => {
         pedidasAlFinal,
         clave,
         deAna: await mapa('@prep_notes:ana'), // CONTROL: la migracion movio lo de antes
+        deBeto: await mapa('@prep_notes:beto'),
         sinCuenta: await mapa('@prep_notes'),
         claves: await claves(),
       }).toEqual({
+        ...esperado,
         migracionRetenida: '@prep_by_account',
         antesDeAbrir: {
           clave: null,
@@ -1232,24 +1280,27 @@ describe('R9-59 — la Mesa por cuenta', () => {
           '@prep_self_review: resuelta',
           '@prep_series: resuelta',
         ],
-        clave: '@prep_notes',
-        deAna: ['Ps/23/1-6'],
-        sinCuenta: [P],
-        // Los otros tres, tambien en la «sin cuenta».
-        claves: [
-          '@prep_by_account',
-          '@prep_illustrations',
-          '@prep_notes',
-          '@prep_notes:ana',
-          '@prep_self_review',
-          '@prep_series',
-        ],
       });
     } finally {
       abrir();
       gi.mockImplementation(realGi);
     }
-  });
+  };
+  it.each([
+    ['un estado', null, [], sinCuenta345],
+    ['nulo, y beto tras los pedidos', null, ['beto'], deBeto345],
+    ['ana, y nulo tras los pedidos', 'ana', [null], sinCuenta345],
+    [
+      'nulo, y beto y nulo tras los pedidos',
+      null,
+      ['beto', null],
+      sinCuenta345,
+    ],
+  ] as Array<[string, string | null, Array<string | null>, object]>)(
+    'R9-345: lo escrito durante el trabajo del primer estado de auth no se va con la Mesa de antes (%s)',
+    (_nombre, primerEstado, despues, esperado) =>
+      escrituraDurante345(primerEstado, despues, esperado),
+  );
 
   // R9-345 — lo mismo para una lectura, en las dos partes del trabajo: pedida
   // mientras la migracion espera, con la clave tomada al pedirla leia la Mesa
@@ -1269,8 +1320,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
     const realMs = ms.getMockImplementation()!;
     let abrir: () => void = () => undefined;
     // La union del trabajo que escribe en `retener` espera en una puerta, y
-    // la lectura (y la clave) se piden mientras tanto.
-    const caso = async (primerEstado: string | null, retener: string) => {
+    // la lectura (y la clave) se piden mientras tanto. R9-353 — y `despues`:
+    // otros estados tras los pedidos, de a uno, con la union todavia retenida.
+    const caso = async (
+      primerEstado: string | null,
+      retener: string,
+      despues: Array<string | null> = [],
+    ) => {
       __resetPrepAccountForTests();
       const puerta = new Promise<void>(r => (abrir = r));
       let retenida: string[] | null = null;
@@ -1293,15 +1349,21 @@ describe('R9-59 — la Mesa por cuenta', () => {
       void prepKey('@prep_notes').then(k => (clave = k));
       await unaHora();
       const antesDeAbrir = {clave, leido, pedidas: vigiladas.pedidas()};
+      const otros: Array<Promise<void>> = [];
+      for (const uid of despues) {
+        await vuelta();
+        otros.push(setPrepAccount(uid));
+      }
       abrir();
-      await Promise.all([primero, lectura]);
+      await Promise.all([primero, lectura, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
       vigiladas.soltar();
       ms.mockImplementation(realMs);
       return {retenida, antesDeAbrir, pedidasAlFinal, clave, leido};
     };
-    try {
-      // La migracion: lo de antes (P) va a Ana, la cuenta del primer estado.
+    // La migracion: lo de antes (P) va a Ana, la duena de la «sin cuenta».
+    const sembrarMigracion = async () => {
+      await AsyncStorage.clear();
       await AsyncStorage.setItem(
         '@prep_notes',
         JSON.stringify({
@@ -1309,9 +1371,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
         }),
       );
       await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
-      const migracion = await caso('ana', '@prep_notes:ana');
-      // Una devolucion pendiente (la Mesa de Bob, borrado), con la migracion
-      // ya hecha y el primer estado nulo.
+    };
+    // Una devolucion pendiente (la Mesa de Bob, borrado), con la migracion
+    // ya hecha.
+    const sembrarDevolucion = async () => {
       await AsyncStorage.clear();
       await AsyncStorage.multiSet([
         ['@prep_by_account', '1'],
@@ -1329,7 +1392,92 @@ describe('R9-59 — la Mesa por cuenta', () => {
         ],
         ['@prep_release_pending', JSON.stringify(['bob'])],
       ]);
+    };
+    try {
+      await sembrarMigracion();
+      const migracion = await caso('ana', '@prep_notes:ana');
+      await sembrarDevolucion();
       const devolucion = await caso(null, '@prep_notes');
+      // R9-353 — en cada parte, las dos direcciones, y varios estados.
+      const durante: Record<string, unknown> = {};
+      for (const [nombre, sembrar, primerEstado, retener, despues] of [
+        [
+          'migracionNuloAna',
+          sembrarMigracion,
+          null,
+          '@prep_notes:ana',
+          ['ana'],
+        ],
+        [
+          'migracionAnaNulo',
+          sembrarMigracion,
+          'ana',
+          '@prep_notes:ana',
+          [null],
+        ],
+        [
+          'migracionAnaNuloAna',
+          sembrarMigracion,
+          'ana',
+          '@prep_notes:ana',
+          [null, 'ana'],
+        ],
+        ['devolucionNuloAna', sembrarDevolucion, null, '@prep_notes', ['ana']],
+        ['devolucionAnaNulo', sembrarDevolucion, 'ana', '@prep_notes', [null]],
+        [
+          'devolucionNuloAnaNulo',
+          sembrarDevolucion,
+          null,
+          '@prep_notes',
+          ['ana', null],
+        ],
+      ] as Array<
+        [
+          string,
+          () => Promise<void>,
+          string | null,
+          string,
+          Array<string | null>,
+        ]
+      >) {
+        await sembrar();
+        const r = await caso(primerEstado, retener, despues);
+        durante[nombre] = {
+          retenida: r.retenida,
+          clave: r.clave,
+          leido: r.leido,
+        };
+      }
+      expect({durante}).toEqual({
+        durante: {
+          migracionNuloAna: {
+            retenida: [P],
+            clave: '@prep_notes:ana',
+            leido: [P],
+          },
+          migracionAnaNulo: {retenida: [P], clave: '@prep_notes', leido: []},
+          migracionAnaNuloAna: {
+            retenida: [P],
+            clave: '@prep_notes:ana',
+            leido: [P],
+          },
+          devolucionNuloAna: {
+            retenida: [R, 'Rom/8/28'],
+            clave: '@prep_notes:ana',
+            leido: [],
+          },
+          devolucionAnaNulo: {
+            retenida: [R, 'Rom/8/28'],
+            clave: '@prep_notes',
+            leido: [R, 'Rom/8/28'],
+          },
+          devolucionNuloAnaNulo: {
+            retenida: [R, 'Rom/8/28'],
+            clave: '@prep_notes',
+            leido: [R, 'Rom/8/28'],
+          },
+        },
+      });
       expect({migracion, devolucion}).toEqual({
         migracion: {
           retenida: [P], // CONTROL: la union de la migracion esperaba, con P
