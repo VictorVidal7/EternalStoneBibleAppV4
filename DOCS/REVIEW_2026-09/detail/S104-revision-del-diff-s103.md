@@ -165,5 +165,7 @@ con `unaHora()`, y el diseño de A4 portado a mano sobre las funciones de A3). R
   matriz aplican (salvo `soloR358` sola, que va sobre la prueba de `ee88726`), y las 6 de
   `muestraCasos344` corrieron sobre ese commit.
 - **Las compuertas:** `npx prettier --write "DOCS/REVIEW_2026-09/**/*.md"`, y `npm run validate` con
-  `NODE_ENV=development`, sin worktrees de agentes (`_scratch/S104-validate.out.txt`).
+  `NODE_ENV=development` sobre `1937719`, sin worktrees (`_scratch/S104-validate.out.txt`): exit 0.
+  Typecheck limpio, lint con 0 errores (los 70 avisos de siempre), `format:check` limpio, y jest
+  374/374 suites y 4672/4672 pruebas (las mismas que la 103: esta sesión no tocó código).
 - **El mensaje de la 105** está en `_scratch/S105-PROMPT.md`.
