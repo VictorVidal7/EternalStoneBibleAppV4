@@ -48,23 +48,7 @@ jest.mock('../src/lib/achievements/AchievementService', () => {
   };
 });
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {setAchievementServiceInstance} from '../src/lib/achievements/instance';
-import {
-  importBackup,
-  BACKUP_FORMAT_VERSION,
-  type BackupPayload,
-} from '../src/services/BackupService';
-import {
-  __prepTurnWaitingForTests,
-  __resetPrepAccountForTests,
-  adoptNoAccountPrep,
-  managePrepAccount,
-  releasePrepAccount,
-  setPrepAccount,
-} from '../src/features/study/prepAccount';
-import * as prepAccount from '../src/features/study/prepAccount';
-import {savePrepNote} from '../src/features/study/prepNotesStore';
+import type {BackupPayload} from '../src/services/BackupService';
 import {
   parsePrepNotesMap,
   serializePrepNotesMap,
@@ -147,7 +131,52 @@ async function devolverConTope(
   return devuelta;
 }
 
+// Como en `prepAccount.test.ts` (R9-340): cada prueba con su propia instancia
+// de los modulos de la Mesa y del respaldo, y su propio almacen. Un trabajo que
+// una prueba deja colgado sigue en la instancia vieja, y no toca los de la
+// siguiente.
+type PA = typeof import('../src/features/study/prepAccount');
+type AS = typeof import('@react-native-async-storage/async-storage').default;
+type BS = typeof import('../src/services/BackupService');
+let AsyncStorage: AS;
+let prepAccount: PA;
+let importBackup: BS['importBackup'];
+let BACKUP_FORMAT_VERSION: BS['BACKUP_FORMAT_VERSION'];
+let setAchievementServiceInstance: typeof import('../src/lib/achievements/instance').setAchievementServiceInstance;
+let __prepTurnWaitingForTests: PA['__prepTurnWaitingForTests'];
+let __resetPrepAccountForTests: PA['__resetPrepAccountForTests'];
+let adoptNoAccountPrep: PA['adoptNoAccountPrep'];
+let managePrepAccount: PA['managePrepAccount'];
+let releasePrepAccount: PA['releasePrepAccount'];
+let setPrepAccount: PA['setPrepAccount'];
+let savePrepNote: typeof import('../src/features/study/prepNotesStore').savePrepNote;
+
 beforeEach(async () => {
+  jest.resetModules();
+  jest.doMock('@react-native-async-storage/async-storage', () =>
+    jest.requireActual(
+      '@react-native-async-storage/async-storage/jest/async-storage-mock',
+    ),
+  );
+  AsyncStorage = jest.requireMock<AS>(
+    '@react-native-async-storage/async-storage',
+  );
+  prepAccount = jest.requireActual<PA>('../src/features/study/prepAccount');
+  ({
+    __prepTurnWaitingForTests,
+    __resetPrepAccountForTests,
+    adoptNoAccountPrep,
+    managePrepAccount,
+    releasePrepAccount,
+    setPrepAccount,
+  } = prepAccount);
+  ({importBackup, BACKUP_FORMAT_VERSION} = jest.requireActual<BS>(
+    '../src/services/BackupService',
+  ));
+  ({setAchievementServiceInstance} = jest.requireActual(
+    '../src/lib/achievements/instance',
+  ));
+  ({savePrepNote} = jest.requireActual('../src/features/study/prepNotesStore'));
   __resetPrepAccountForTests();
   await AsyncStorage.clear();
   setAchievementServiceInstance(null);
@@ -822,13 +851,26 @@ it('R9-327: una escritura de un store que espera detras del respaldo de una cuen
 // respaldo mas lento que la espera entre su clave y su escritura, uno que la
 // tomara por su cuenta escribia detras de la migracion, y pasaba. Y
 // `pedidasAlFinal` separa ese rojo del de un respaldo que llega tarde a
-// pedirla (1005 vueltas antes de pedirla; con 990, pasa): ese la pide despues
-// de abrir, y aparece al final; uno que no la pide a `prepKey`, nunca.
-// R9-353 — y lo restaurado va a la cuenta del ULTIMO estado que llega antes
-// de que termine el trabajo, no a la de cuando se pidio: con otros estados
-// tras el pedido (de a uno, con una vuelta entre ellos), en las dos
+// pedirla (con un estado, 1005 vueltas antes de pedirla; con 990, pasa): ese
+// la pide despues de abrir, y aparece al final; uno que no la pide a
+// `prepKey`, nunca. R9-353 — y lo restaurado va a la cuenta del ULTIMO estado
+// que llega antes de que termine el trabajo, no a la de cuando se pidio: con
+// otros estados tras el pedido (de a uno, con tiempo y vueltas tras cada uno:
+// R9-361), en las dos
 // direcciones. Con un estado solo, las dos son la misma, y tomar la cuenta al
-// pedirla pasaba.
+// pedirla pasaba. R9-362 — con datos en cada clave que el respaldo escribe:
+// una serie de antes en la «sin cuenta», que la migracion mueve con P, y una
+// en el respaldo, que va con R. Con las series vacias, un respaldo que
+// escribiera las series con la cuenta de cuando empezo a restaurar pasaba, y
+// partia lo restaurado entre dos cuentas.
+// R9-360, R9-361 — como en `prepAccount.test.ts`: mil vueltas con los relojes
+// falsos puestos, y en cada una los temporizadores pendientes.
+const tiempoYVueltas = async () => {
+  for (let i = 0; i < 1000; i++) {
+    if (jest.getTimerCount() > 0) await jest.runOnlyPendingTimersAsync();
+    await new Promise(r => setImmediate(r));
+  }
+};
 const respaldoDurante345 = async (
   primerEstado: string | null,
   despues: Array<string | null>,
@@ -844,25 +886,36 @@ const respaldoDurante345 = async (
     '@prep_notes',
     JSON.stringify({[P]: {sections: {observation: 'de antes'}, updatedAt: 1}}),
   );
+  const serie = (id: string, passage: string, updatedAt: number) => ({
+    [id]: {id, name: id, passageKeys: [passage], createdAt: 1, updatedAt},
+  });
+  await AsyncStorage.setItem(
+    '@prep_series',
+    JSON.stringify(serie('serie-de-antes', P, 1)),
+  );
   await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
-  const gi = AsyncStorage.getItem as unknown as jest.Mock;
-  const realGi = gi.getMockImplementation()!;
+  // R9-359 — la retencion, en `multiGet`: en el mock, `getItem` pasa por el, y
+  // asi vale para la lectura de la marca con el metodo que sea.
+  const mg = AsyncStorage.multiGet as unknown as jest.Mock;
+  const realMg = mg.getMockImplementation()!;
   let abrir!: () => void;
   const puerta = new Promise<void>(r => (abrir = r));
   // La migracion del primer estado (nulo) espera en su primera lectura.
   let migracionRetenida: string | null = null;
-  gi.mockImplementation(async (k: string, cb?: unknown) => {
-    if (k === '@prep_by_account' && migracionRetenida === null) {
-      migracionRetenida = k;
+  mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+    if (ks.includes('@prep_by_account') && migracionRetenida === null) {
+      migracionRetenida = '@prep_by_account';
       await puerta;
     }
-    return realGi(k, cb);
+    return realMg(ks, cb);
   });
   const realPrepKey = prepAccount.prepKey;
+  // R9-363 — cada pedido dice de quien es: un pedido ajeno de la misma base
+  // (una lectura de notas en la ventana) no ocupa el lugar del respaldo.
   const claves: Array<{base: string; pendiente: boolean}> = [];
   const espia = jest.spyOn(prepAccount, 'prepKey').mockImplementation(base => {
     const pedida = {base, pendiente: true};
-    claves.push(pedida);
+    if (/BackupService/.test(new Error().stack ?? '')) claves.push(pedida);
     const clave = realPrepKey(base);
     void clave.then(() => (pedida.pendiente = false));
     return clave;
@@ -870,6 +923,16 @@ const respaldoDurante345 = async (
   const pedidas = () =>
     claves.map(
       ({base, pendiente}) => `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
+    );
+  // R9-364 — y las claves de la Mesa con que el respaldo ESCRIBE (`prepMultiSet`,
+  // espiado): un respaldo que pide las suyas y escribe con otras no pasa por
+  // `prepWrite`. Sin implementacion propia (llama a la real), y limpio: si una
+  // prueba anterior colgada dejo el suyo, `spyOn` devuelve el mismo.
+  const espiaEscribe = jest.spyOn(prepAccount, 'prepMultiSet');
+  espiaEscribe.mockClear();
+  const escritas = () =>
+    espiaEscribe.mock.calls.flatMap(([pairs]) =>
+      pairs.map(([k]) => k).filter(k => k.startsWith('@prep_')),
     );
   try {
     // Una hora de reloj falso y mil vueltas, como en las de `prepKey`
@@ -883,66 +946,110 @@ const respaldoDurante345 = async (
       await vuelta();
     }
     let hecho = false;
-    const respaldo = importBackup(
-      respaldoConMesa({
-        [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
-      }),
-    ).then(r => {
+    const conMesa = respaldoConMesa({
+      [R]: {sections: {observation: 'del respaldo'}, updatedAt: T},
+    });
+    const respaldo = importBackup({
+      ...conMesa,
+      prep: {...conMesa.prep, series: serie('serie-del-respaldo', R, T)},
+    }).then(r => {
       hecho = true;
       return r;
     });
     await jest.advanceTimersByTimeAsync(60 * 60 * 1000);
-    jest.useRealTimers();
-    for (let i = 0; i < 1000; i++) await vuelta();
-    const hechoAntesDeAbrir = hecho;
-    const pedidasAlAbrir = pedidas();
-    // Los otros estados, con la migracion todavia retenida.
+    // Los otros estados, con la migracion todavia retenida y el reloj falso
+    // todavia puesto: de a uno, y tras cada uno, tiempo y vueltas (R9-361).
     const otros: Array<Promise<void>> = [];
     for (const uid of despues) {
       await vuelta();
       otros.push(setPrepAccount(uid));
+      await tiempoYVueltas();
     }
+    await jest.advanceTimersByTimeAsync(60 * 60 * 1000);
+    jest.useRealTimers();
+    for (let i = 0; i < 1000; i++) await vuelta();
+    // Lo «al abrir» se lee aqui, tras los otros estados y justo antes de abrir
+    // (R9-366).
+    const hechoAntesDeAbrir = hecho;
+    const pedidasAlAbrir = pedidas();
+    const escritasAlAbrir = escritas();
     abrir();
+    // R9-364 — en cuanto lo que pidio el respaldo resolvio, llega otro estado:
+    // la clave se toma al resolver, y uno que la tomara por su cuenta despues
+    // escribiria en la Mesa de Cata.
+    for (
+      let i = 0;
+      i < 1000 && pedidas().some(p => p.endsWith(': pendiente'));
+      i++
+    ) {
+      await vuelta();
+    }
+    otros.push(setPrepAccount('cata'));
     const [, resultado] = await Promise.all([primero, respaldo, ...otros]);
-    gi.mockImplementation(realGi);
+    mg.mockImplementation(realMg);
+    const ultimo = [primerEstado, ...despues].pop();
+    const de = (base: string) => (ultimo ? `${base}:${ultimo}` : base);
     expect({
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
       hechoAntesDeAbrir,
-      // R9-358 — al abrir, la de las notas esta pedida y nada de lo pedido
-      // resolvio; si la de las series ya se pidio, o en que orden, no se fija.
+      // R9-358, R9-365 — al abrir, el respaldo pidio alguna clave, nada de lo
+      // que pidio resolvio, y no escribio en la Mesa; que pidio primero, o
+      // cuantas veces, no se fija.
       alAbrir: {
-        notas: pedidasAlAbrir.some(p => p.startsWith('@prep_notes: ')),
+        pidio: pedidasAlAbrir.length > 0,
         resueltas: pedidasAlAbrir.filter(p => !p.endsWith(': pendiente')),
+        escritas: escritasAlAbrir,
       },
-      pedidasAlFinal: pedidas().sort(),
+      // Al final: las dos pedidas (sin contar cuantas veces) y resueltas, y
+      // escritas con la cuenta del ultimo estado del trabajo, no con la de Cata.
+      pedidasAlFinal: [...new Set(pedidas())].sort(),
+      escritas: [...new Set(escritas())].sort(),
       fallo: resultado.asyncStorageWriteFailed, // CONTROL: el respaldo escribio
       deAna: await mapa('@prep_notes:ana'),
       deBeto: await mapa('@prep_notes:beto'),
       sinCuenta: await mapa('@prep_notes'),
+      seriesDeAna: await mapa('@prep_series:ana'),
+      seriesDeBeto: await mapa('@prep_series:beto'),
+      seriesSinCuenta: await mapa('@prep_series'),
     }).toEqual({
       ...esperado,
       migracionRetenida: '@prep_by_account',
       hechoAntesDeAbrir: false,
-      alAbrir: {notas: true, resueltas: []},
+      alAbrir: {pidio: true, resueltas: [], escritas: []},
       pedidasAlFinal: ['@prep_notes: resuelta', '@prep_series: resuelta'],
+      escritas: [de('@prep_notes'), de('@prep_series')],
       fallo: false,
       deAna: [P],
+      seriesDeAna: ['serie-de-antes'],
     });
   } finally {
     abrir();
-    gi.mockImplementation(realGi);
+    mg.mockImplementation(realMg);
     espia.mockRestore();
+    espiaEscribe.mockRestore();
     jest.useRealTimers();
   }
 };
-const sinCuenta345 = {deBeto: [], sinCuenta: ['Ps/23/1-6']};
+// Las notas y las series del respaldo van juntas, a la cuenta del ultimo
+// estado.
+const sinCuenta345 = {
+  deBeto: [],
+  sinCuenta: ['Ps/23/1-6'],
+  seriesDeBeto: [],
+  seriesSinCuenta: ['serie-del-respaldo'],
+};
 it.each([
   ['un estado', null, [], sinCuenta345],
   [
     'nulo, y beto tras el pedido',
     null,
     ['beto'],
-    {deBeto: ['Ps/23/1-6'], sinCuenta: []},
+    {
+      deBeto: ['Ps/23/1-6'],
+      sinCuenta: [],
+      seriesDeBeto: ['serie-del-respaldo'],
+      seriesSinCuenta: [],
+    },
   ],
   ['ana, y nulo tras el pedido', 'ana', [null], sinCuenta345],
   ['nulo, y beto y nulo tras el pedido', null, ['beto', null], sinCuenta345],
