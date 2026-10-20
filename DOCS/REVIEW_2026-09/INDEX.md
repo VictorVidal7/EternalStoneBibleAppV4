@@ -1153,8 +1153,19 @@
 > partes hace fallar un solo par método-clave) y `R9-358` (`pedidasAlAbrir` del respaldo fija el
 > orden de sus claves).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **358**. Rama `docs/review-s102-diff-s101`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S102-revision-del-diff-s101.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **358**. Rama `docs/review-s102-diff-s101`: mergeada y
+> pusheada con el OK de Victor (`main` = `ee88726`, CI verde en el log, run `39347457688`, 374/4665;
+> corregido en la 103). Detalle: `detail/S102-revision-del-diff-s101.md`.
+>
+> **Sesión 103 (2026-10-19): arreglo de lo de la 101 y la 102**, en un chat nuevo, en la terminal, con
+> 5 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Cerrados
+> `R9-353`..`R9-358`, solo en las pruebas (`c53c5e8`, `8e80f5b`, `e552e3b`, `1121ec9`, `28fa337`). En
+> la matriz (360 corridas) no se pierde cobertura. Un nuevo, sin arreglar: `R9-359` (las pruebas fijan
+> el método con que la migración lee; P3 bajo).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **359**. Ramas `fix/s103-arreglos-s102` y
+> `docs/review-s103-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S103-arreglo-de-s101-s102.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2177,6 +2188,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     estados en la misma tarea son distintos en valor, no en tiempo; una falla inyectada por par
     (método, clave) no ve un camino de error que toca otro par; las pruebas-sonda de una sesión se
     anclan en su último commit.
+
+- **Sesión 103 — 2026-10-19. Arreglo de lo de la 101 y la 102.** En un chat nuevo, en la terminal, con
+  5 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor); con
+  `_scratch/S103-PROMPT.md`. Solo pruebas.
+  - **Cómo se trabajó:** `_scratch/S103-sonda.cjs.txt` (de `S103-gen.cjs.txt`, que arma también la
+    sonda de cada agente, y `S103-propias.txt`); un commit por diseño, cada uno re-medido en el
+    principal; la matriz de la 102 y sus 37 piezas aparte, más las de los agentes (360 corridas), con
+    `S103-matriz.cjs.txt`.
+  - **Resultado:** cerrados `R9-353`..`R9-358`. Nuevo `R9-359` (P3 bajo), sin arreglar. No queda
+    ningún P0 abierto.
+  - **Detalle: `detail/S103-arreglo-de-s101-s102.md`.**
+  - **Las lecciones:** aflojar un control que daba un rojo ante un cambio bueno puede quitarle una
+    regresión que veía por ese rojo; un caso donde el valor del pedido y el del final difieren da daño
+    a una regresión que no lo tenía; un plazo medido en vueltas no ve un temporizador; «todo el disco»
+    es todo método del almacén.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

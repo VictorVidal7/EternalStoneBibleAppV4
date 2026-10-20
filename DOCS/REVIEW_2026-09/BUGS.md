@@ -1519,6 +1519,24 @@
 >   sus claves; lo abrió la 101).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **358**. Detalle: `detail/S102-revision-del-diff-s101.md`.
+> Mergeada y pusheada con el OK de Victor (`main` = `ee88726`, CI verde en el log, run `39347457688`,
+> 374/4665; corregido en la 103).
+>
+> **Sesión 103 (2026-10-19): arreglo de lo de la 101 y la 102**, en un chat nuevo, en la terminal, con
+> 5 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Arreglos en
+> `fix/s103-arreglos-s102` (`c53c5e8`, `8e80f5b`, `e552e3b`, `1121ec9`, `28fa337`; solo pruebas), docs
+> en `docs/review-s103-fix`, sin mergear hasta el OK de Victor.
+>
+> - **Cerrados (6):** `R9-357` (el disco entero, todo método; la nota se lee tras una hora de reloj
+>   falso), `R9-355` (el primero repetido y tres estados), `R9-356` (los estados de a uno), `R9-353`
+>   (otros estados tras los pedidos, en las dos direcciones), `R9-354` (el control lee también la clave
+>   de `prepWrite`) y `R9-358` (el respaldo, sin fijar el orden de sus pedidos).
+> - **Nuevo (1), sin arreglar:** `R9-359` (las pruebas fijan el método con que la migración lee: un
+>   `multiGet` tumba 14; P3 bajo).
+> - **La matriz** (360 corridas sobre `28fa337`): ninguna cobertura perdida; las 46 que cambian, por
+>   los casos nuevos, y `respaldoClavesJuntas`, que ya no cae.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **359**. Detalle: `detail/S103-arreglo-de-s101-s102.md`.
 
 ---
 
@@ -9511,6 +9529,13 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - P3: verde falso ante una regresión construida; el código está bien.
   - **Arreglo (hipótesis), sin medir:** en los casos de `R9-345`, un estado más tras los pedidos (como
     `estadoTrasPedir345`), con su resultado. Tiene que caer con `valorAlPedirDurante`.
+  - **✅ ARREGLADO en la sesión 103** (`1121ec9`, diseño del agente 3): en la escritura y el respaldo, un
+    `it.each` de 4 casos (un estado; nulo y beto tras los pedidos; ana y nulo; nulo, beto y nulo), y en la
+    lectura, 6 casos más (las dos direcciones y uno de varios, en cada parte). Los estados nuevos llegan
+    de a uno, con el trabajo retenido, después del control de los pedidos, y lo pedido va a la cuenta del
+    último. Con `valorAlPedirDurante` caen 5 (63 en `prep`), y con las pruebas de `e552e3b`, pasa 57/57.
+    Sus mitades por dirección (`…SiCuenta`, `…SiNulo`) caen en 3 cada una, y `claveDelPrimeroTrasPedir`
+    (el primero tras el pedido) en los 3 casos de varios.
 
 - **`R9-354` (S101, pruebas / Mesa / `R9-349` — P3 bajo) — 🐛 el control de `R9-349` lee lo que cada
   llamador PIDIÓ a `prepKey`, no la clave con la que escribe: un store que pide su clave y escribe con
@@ -9527,6 +9552,18 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - **Arreglo (hipótesis), sin medir:** leer también la clave que recibe `prepWrite` de cada store
     (espiado), pendiente al abrir si ya se llamó. Con el store lento ANTES de llamar a `prepWrite`
     (`storeLento<K>`), al abrir todavía no se llamó: medir las dos demoras.
+  - **✅ ARREGLADO en la sesión 103** (`28fa337`, diseño del agente 4): `vigilarClaves` espía también
+    `prepWrite` en la instancia de la prueba, y la de la escritura de `R9-345` lee que ninguna clave
+    recibida estaba resuelta al abrir (`recibidasResueltasAlAbrir: []`) y cuáles recibió al final (las
+    de la cuenta del último estado). Con `tardeClave2000+pideYDescarta` cae en los 4 casos; con las
+    pruebas de `1121ec9`, solo en los 2 de dirección, por los datos. Con el store de notas 990 vueltas
+    más lento antes de llamar a `prepWrite` cae; con 1005, `pideYDescarta` lo llama después de abrir y
+    cae solo por los casos de dirección de `R9-353`.
+  - **Medido también en `ee88726`** (tanda 7): `notasLentoAntesPrepWrite1005+pideYDescarta` da las
+    mismas 3 caídas que el cambio bueno solo (la de `R9-345` pasa). Y **en el respaldo**, que no pasa
+    por `prepWrite`: uno que pide sus claves a `prepKey` y escribe con otras (`respaldoPideYDescarta`)
+    con `lento2000` caía solo por el rojo de `R9-358`, y con ese arreglado, pasaba (en `R9-358`). Sobre
+    `28fa337` cae en los 2 casos de dirección del respaldo (`R9-353`): sin número.
 
 - **`R9-355` (S102, pruebas / Mesa / `R9-351` — P3) — 🐛 los dos estados de la última parte que
   agregó `R9-351` son siempre distintos entre sí y del primero, y nunca más de dos: una regresión que
@@ -9564,6 +9601,10 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - **Arreglo (hipótesis), sin medir:** sumar a la de `R9-344` ana→beto→ana y nulo→ana→nulo (con y
     sin devoluciones) y nulo→ana→beto→nulo, con lo pedido en la cuenta del último. Tiene que caer con
     las tres piezas. Con `R9-356`: los estados, de a uno.
+  - **✅ ARREGLADO en la sesión 103** (`8e80f5b`, diseño del agente 1): seis casos más en la de `R9-344`:
+    ana→beto→ana y nulo→ana→nulo, y nulo→ana→beto→nulo, cada uno con y sin devoluciones (el último sin
+    devoluciones no lo pedía la entrada: sin él, `claveDelSegundoEnDev` caía en una sola de las dos
+    últimas partes). Caen las tres piezas (`prep` 56/57), también con los estados de a uno (`e552e3b`).
 
 - **`R9-356` (S102, pruebas / Mesa / `R9-337`, `R9-351` — P3) — 🐛 los varios estados de las pruebas
   de `R9-337` y `R9-344` llegan en la MISMA tarea: una regresión que fije la cuenta del primero que
@@ -9597,6 +9638,12 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - **Arreglo (hipótesis), sin medir:** en las dos pruebas, los estados de a uno, con una vuelta entre
     ellos, y los mismos esperados. Tiene que caer con las dos piezas (cada una en la suya), y vale
     también para los casos nuevos de `R9-355`.
+  - **✅ ARREGLADO en la sesión 103** (`e552e3b`, diseño del agente 2): en las dos pruebas, los estados
+    llegan de a uno, con una vuelta después de cada uno. `claveDelPrimeroEnTrabajoMicro` cae en las dos y
+    `claveDelPrimeroEnDevMicro` en la de `R9-344`; con la prueba de `8e80f5b`, las dos pasan 57/57. El
+    control que proponía el agente (`retenidaTrasEstados`, la migración seguía esperando tras el último)
+    no se llevó: la puerta la abre solo la prueba, y abierta antes la ve `escritaAntesDeAbrir`
+    (`abreAntesDelUltimo`, del agente).
 
 - **`R9-357` (S102, pruebas / Mesa / `R9-348` — P3) — 🐛 la tabla de las partes hace fallar un solo
   par (método, clave): un camino de error que, fuera de su `try`, toca un par que ninguna parte hace
@@ -9630,6 +9677,15 @@ AsyncStorage.removeItem(RELEASE_KEY)` antes del `return`.
   - **Arreglo (hipótesis), sin medir:** un caso de disco entero (como `discoEntero348`) y una
     devolución sembrada en el caso de la lectura de la nota (como `notaSembrada348`). Tiene que caer
     con las dos piezas.
+  - **✅ ARREGLADO en la sesión 103** (`c53c5e8`, diseño del agente 5): una prueba nueva con todo método
+    del mock fallando en toda clave durante el trabajo (no solo los tres de `discoEntero348`: con esos,
+    un `multiGet` en el `catch` de la migración, `migraLeeEnCatchMultiGet`, pasaba), y el caso de la
+    lectura de la nota con una devolución de bob sembrada. La nota se lee tras una hora de reloj falso y
+    mil vueltas: con mil vueltas solas, una quita con un temporizador de 10 ms (`notaQuitaTimeout10`)
+    pasaba (`vueltasSinReloj357+notaQuitaTimeout10`, 63/63), y sin espera, una quita 20 vueltas tarde
+    (del agente). Caen
+    `migraQuitaMarcaEnCatch`, `notaQuitaEnCatch`, `reNotaEnCatchDev`, `reintentaNotaFuera`,
+    `notaQuitaTimeout10`, `…1000`, `notaQuitaTarde20` y `…990`; `notaQuitaTarde1010` pasa (el corte).
 
 - **`R9-358` (S102, pruebas / respaldo / `R9-349` — P3 bajo) — 🐛 `pedidasAlAbrir` del respaldo
   fija el orden en que pide sus claves: pedir las dos a la vez, sin cambiar lo escrito, la hace
@@ -9647,6 +9703,39 @@ pendiente']` («La de las series la pide después de tener la de las notas»): l
   - **Arreglo (hipótesis), sin medir:** que el control lea «lo pedido al abrir está pendiente, y la de
     las notas está pedida», no la lista exacta. Tiene que pasar con `respaldoClavesJuntas` y caer con
     `lento2000+llegarRestaura`.
+  - **✅ ARREGLADO en la sesión 103** (`28fa337`, diseño del agente 4): al abrir, `alAbrir: {notas: true,
+resueltas: []}`, y `pedidasAlFinal` ordenada. `respaldoClavesJuntas` pasa (63/63; con las pruebas de
+    `1121ec9` caía en los 4 casos del respaldo), y `lento2000+llegarRestaura` cae en los 4.
+  - **Aflojar el control le quitaba una regresión** (medido en el principal, tanda 9): sobre la prueba
+    del respaldo de `ee88726`, el respaldo que pide sus dos claves y escribe con otras
+    (`lento2000+respaldoPideYDescarta`) caía solo por este rojo (`+ "@prep_series: pendiente"`). Con
+    solo este arreglo (`bptee88726+soloR358`), pasa. Sobre `28fa337` lo ven los datos de los casos de
+    dirección de `R9-353` (lo restaurado va a la «sin cuenta» y no a la Mesa de Beto, o reemplaza la de
+    Ana).
+
+- **`R9-359` (S103, pruebas / Mesa / `R9-331`, `R9-348` — P3 bajo) — 🐛 las pruebas fijan el MÉTODO
+  con que la migración lee: leer la marca y el dueño con un solo `multiGet`, sin cambiar lo que hace,
+  tumba 14 pruebas.** MEDIDO en la sesión 103 (agente 5; re-medido en el principal con
+  `_scratch/S103-sonda.cjs.txt`, de `S103-gen.cjs.txt`: tanda 8 y la matriz).
+  - **Pieza `migraConMultiGet`** (en `migrateLegacyPrep`, `multiGet([MIGRATED_KEY,
+LOCAL_STORE_OWNER_KEY])` en lugar de dos `getItem`; lee el dueño también cuando ya migró, sin
+    usarlo): `prep` 49/63 y el suite 1030/1044.
+  - **Qué cae:**
+    - los dos casos de la tabla de las partes de la migración («la primera lectura», «la lectura del
+      dueño»: `fallo: null`, `llamadas: 0`), que hacen fallar `getItem` sobre la clave;
+    - las que retienen la migración en `getItem('@prep_by_account')`, que no se arma
+      (`migracionRetenida: null`): `R9-331`, `R9-337`, la pareja de `R9-340` y los 8 casos de `R9-345`
+      (la escritura y el respaldo).
+  - La de disco entero de `R9-357` pasa: lee lo que quedó, no por qué método.
+  - Es la regla de la 82 (un control se corre contra un cambio bueno de su superficie), la clase de
+    `R9-358`, y la otra cara de `R9-357`: la falla por par (método, clave) tampoco deja cambiar el
+    método.
+  - **¿Lo abrió la 103?** No: las retenciones son de la 95 a la 101, y la tabla, de la 97 y la 99.
+  - P3 bajo: un rojo ante un cambio que no cambia lo que hace la app; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** armar las retenciones y la tabla sobre la lectura de la CLAVE,
+    sea cual sea el método (`getItem` o `multiGet`). Tiene que pasar con `migraConMultiGet`, y las
+    piezas de cada prueba tienen que seguir cayendo. Antes, mirar en el mock de `jest.setup.js` si
+    `getItem` pasa por `multiGet` (lo dijo el agente 5, por lectura).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
