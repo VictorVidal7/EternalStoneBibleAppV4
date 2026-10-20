@@ -892,7 +892,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // durante la migracion, todas esas pasaban. R9-351 — y con dos estados
   // durante esa ultima parte, distintos entre si y del primero: lo pedido va a
   // la cuenta del ultimo. Con uno solo, tomar la del primero que llega ahi
-  // pasaba.
+  // pasaba. R9-355 — y con el primero repetido al final (ana→beto→ana,
+  // nulo→ana→nulo) y con tres (nulo→ana→beto→nulo): con dos distintos, «el
+  // ultimo» era tambien «el segundo» y «el ultimo distinto del primero», y
+  // tomar uno de esos, o ignorar un estado igual al primero, pasaba.
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
     const vuelta = () => new Promise(r => setImmediate(r));
@@ -1015,6 +1018,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
       anaBetoNulo: await caso('ana', ['beto', null], true),
       nuloAnaBetoSinDevoluciones: await caso(null, ['ana', 'beto'], false),
       anaBetoNuloSinDevoluciones: await caso('ana', ['beto', null], false),
+      anaBetoAna: await caso('ana', ['beto', 'ana'], true),
+      nuloAnaNulo: await caso(null, ['ana', null], true),
+      anaBetoAnaSinDevoluciones: await caso('ana', ['beto', 'ana'], false),
+      nuloAnaNuloSinDevoluciones: await caso(null, ['ana', null], false),
+      nuloAnaBetoNulo: await caso(null, ['ana', 'beto', null], true),
+      nuloAnaBetoNuloSinDevoluciones: await caso(
+        null,
+        ['ana', 'beto', null],
+        false,
+      ),
     }).toEqual({
       entra: {
         retenida: conDevoluciones,
@@ -1066,6 +1079,48 @@ describe('R9-59 — la Mesa por cuenta', () => {
         sinCuenta: [],
       },
       anaBetoNuloSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: [P],
+      },
+      anaBetoAna: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [P],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', 'Rom/8/28'],
+      },
+      nuloAnaNulo: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', P, 'Rom/8/28'],
+      },
+      anaBetoAnaSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [P],
+        deBeto: [],
+        sinCuenta: [],
+      },
+      nuloAnaNuloSinDevoluciones: {
+        retenida: sinDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: [P],
+      },
+      nuloAnaBetoNulo: {
+        retenida: conDevoluciones,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', P, 'Rom/8/28'],
+      },
+      nuloAnaBetoNuloSinDevoluciones: {
         retenida: sinDevoluciones,
         escritaAntesDeAbrir: false,
         deAna: [],
