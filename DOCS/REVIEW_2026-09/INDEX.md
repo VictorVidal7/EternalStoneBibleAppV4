@@ -1177,8 +1177,22 @@
 > `R9-365` (el control de `R9-358` fija aún orden y cantidad) y `R9-366` (el control de `R9-354` se lee
 > antes de los estados nuevos).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **366**. Rama `docs/review-s104-diff-s103`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S104-revision-del-diff-s103.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **366**. Rama `docs/review-s104-diff-s103`: mergeada y
+> pusheada con el OK de Victor (`main` = `ad6ba69`, CI verde en el log, run `39364590245`, 374/4672;
+> corregido en la 105). Detalle: `detail/S104-revision-del-diff-s103.md`.
+>
+> **Sesión 105 (2026-10-20): arreglo de lo de la 103 y la 104**, en un chat nuevo, en la terminal, con
+> 10 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor: 6 para las
+> entradas y 4 para el Pendiente). Cerrados `R9-359`..`R9-366`, y del Pendiente `R9-333` y `R9-372`
+> (`backupPrepTurn.test.ts` sin aislamiento), solo en las pruebas (`1b299a9`, `fce7950`, `53bdbe6`). Cinco nuevos,
+> sin arreglar: `R9-367` (la tabla de las partes no lee las claves), `R9-368` (`avisos` como lista
+> exacta), `R9-369` (el valor al pedir en un solo llamador, sin migración que mueva), `R9-370` (el dueño
+> de la migración sin registro; de `src/`, decide Victor) y `R9-371` (el «de quién» de `R9-363`, en la
+> pila).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **372**. Ramas `fix/s105-arreglos-s104` y
+> `docs/review-s105-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S105-arreglo-de-s103-s104.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2228,6 +2242,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     que ese diseño agrega; un ajeno se corre contra el esperado de hoy; un dato vacío no dice adónde
     fue; una hora de reloj falso también es un corte, y una vuelta no separa en el tiempo; lo que veía
     un control exacto es una clase, no una pieza.
+
+- **Sesión 105 — 2026-10-20. Arreglo de lo de la 103 y la 104.** En un chat nuevo, en la terminal, con
+  10 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor: 6 para las
+  entradas, 4 para el Pendiente); con `_scratch/S105-PROMPT.md`. Solo pruebas.
+  - **Cómo se trabajó:** `_scratch/S105-sonda.cjs.txt` (de `S105-gen.cjs.txt`, que arma también la
+    sonda de cada agente); los diseños, portados al principal en dos commits (uno por archivo), con cada
+    prueba nueva re-medida cayendo con sus piezas; la matriz de la 104 más las piezas de la 105
+    (`S105-matriz.cjs.txt`). El límite de uso cortó a A4 y A5; se retomaron tras el reset.
+  - **Resultado:** cerrados `R9-359`..`R9-366`, `R9-333` y `R9-372`. Nuevos `R9-367`..`R9-371`, sin
+    arreglar. No queda ningún P0 abierto.
+  - **Detalle: `detail/S105-arreglo-de-s103-s104.md`.**
+  - **Las lecciones:** una hipótesis del ledger que nombra una herramienta se mide con un cambio bueno
+    de esa herramienta; un control que lee «de quién» en la pila tiene su propio cambio bueno; dos
+    pendientes pueden tener una causa.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

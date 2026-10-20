@@ -1,13 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-19, fin de la sesión 104.** La 104 hizo el (cf) en un chat nuevo,
-> en la terminal, con 6 agentes en worktree que solo midieron (los pidió Victor): la segunda vuelta de
-> la 103. Siete nuevos (`R9-360`..`R9-366`, P3 y P3 bajo), todos en las pruebas y abiertos por la 103.
+> **Última actualización: 2026-10-20, fin de la sesión 105.** La 105 hizo el (cg) en un chat nuevo,
+> en la terminal, con 10 agentes en worktree que midieron los diseños antes de escribirlos (los pidió
+> Victor: 6 para las entradas y 4 para el Pendiente). Cerrados `R9-359`..`R9-366`, `R9-333` y `R9-372`;
+> cinco nuevos (`R9-367`..`R9-371`), sin arreglar.
 >
-> La 103 ya está mergeada y pusheada (`main` = `25a8c05`, CI verde en el log, run `39356602251`,
-> 374/4672). La rama de la 104 (`docs/review-s104-diff-s103`, solo docs) va **sin mergear hasta el OK
-> de Victor**. **No queda ningún P0 abierto**, y hay 366 hallazgos. **Lo siguiente:** la 105 arregla
-> `R9-359`..`R9-366` (mensaje (cg), en `_scratch/S105-PROMPT.md`).
+> La 104 ya está mergeada y pusheada (`main` = `ad6ba69`, CI verde en el log, run `39364590245`,
+> 374/4672). Las ramas de la 105 (`fix/s105-arreglos-s104`, solo `__tests__/`, y
+> `docs/review-s105-fix`) van **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y
+> hay 372 hallazgos. **Lo siguiente:** la 106 revisa el diff de la 105 (mensaje (ch), en
+> `_scratch/S106-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -538,10 +540,17 @@ revisión de su diff (la (cb), sesión 100, en un chat nuevo y sin agentes, con
 agentes que solo midieron, con `_scratch/S102-PROMPT.md`). Y su arreglo (la (ce), sesión 103, en un
 chat nuevo con 5 agentes que midieron los diseños antes de escribirlos, con `_scratch/S103-PROMPT.md`).
 Y la revisión de su diff (la (cf), sesión 104, en un chat nuevo con 6 agentes que solo midieron, con
-`_scratch/S104-PROMPT.md`). **Lo siguiente es el (cg).**
+`_scratch/S104-PROMPT.md`). Y su arreglo (la (cg), sesión 105, en un chat nuevo con 10 agentes que
+midieron los diseños antes de escribirlos, con `_scratch/S105-PROMPT.md`). **Lo siguiente es el (ch).**
 
-**(cg) Sesión 105: arreglar lo de la 103 y la 104** (`R9-359`..`R9-366`, todo en las pruebas). El
-mensaje está en `_scratch/S105-PROMPT.md`, que manda sobre este archivo.
+**(ch) Sesión 106: revisar el diff de la 105** (`ad6ba69..53bdbe6`, solo pruebas), empezando por lo
+que el orquestador cambió sobre los diseños (`tiempoYVueltas`, la unión de A1 y A2, y los hunks de A5
+portados a mano). El mensaje está en `_scratch/S106-PROMPT.md`, que manda sobre este archivo.
+
+**(cg) Sesión 105: arreglar lo de la 103 y la 104 — ya HECHO en la sesión 105, en un chat nuevo, en
+la terminal, con 10 agentes en worktree que midieron los diseños.** Cerrados `R9-359`..`R9-366`,
+`R9-333` y `R9-372`; cinco nuevos (`R9-367`..`R9-371`), sin arreglar. El mensaje está en
+`_scratch/S105-PROMPT.md`.
 
 **(cf) Sesión 104: revisar el diff de la 103 — ya HECHO en la sesión 104, en un chat nuevo, en la
 terminal, con 6 agentes en worktree que solo midieron.** Siete nuevos (`R9-360`..`R9-366`), todos
@@ -2127,17 +2136,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 104 (2026-10-19).**
+**Medido al cerrar la sesión 105 (2026-10-20).**
 
-- **La 103, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `25a8c05` (solo
-  docs; el último código es `28fa337`, solo `__tests__/`). CI verificado en el log: run
-  `39356602251`, 3 jobs, Node v24.21.0, 374/4672. Sus ramas se borraron tras `git cherry`.
-- **La rama de la 104, sin mergear a propósito y sin pushear:** `docs/review-s104-diff-s103` (solo
-  docs, sobre `25a8c05`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
-  incluye.
-- **Los worktrees:** ninguno. Los de los 6 agentes se borraron solos, con sus ramas (ninguno dejó
-  cambios); sus copias están en `_scratch/S104-sondas-agente-N/`. El checkpoint se escribió en un
-  worktree aparte (`../essb-docs-s104`, fuera del repo), quitado al terminar.
+- **La 104, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `ad6ba69` (solo
+  docs; el último código era `28fa337`, solo `__tests__/`). CI verificado en el log: run
+  `39364590245`, 3 jobs, Node v24.21.0, 374/4672. Su rama se borró tras `git cherry`.
+- **Las ramas de la 105, sin mergear a propósito y sin pushear:** `fix/s105-arreglos-s104`
+  (`1b299a9`, `fce7950`, `53bdbe6`, solo `__tests__/`, sobre `ad6ba69`) y `docs/review-s105-fix` (solo docs,
+  encima). Se mergean en fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno. El de A7 se borró solo; los otros nueve (con su diseño sin commitear)
+  se quitaron a mano tras comparar su `_scratch` con su copia (`_scratch/S105-sondas-agente-N/`). El
+  checkpoint se escribió en un worktree aparte (`../essb-docs-s105`, fuera del repo), quitado al
+  terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin la de la 104):
@@ -2972,6 +2982,23 @@ Alternativas legítimas:
   103 aflojó `R9-358` tras correr la regresión que caía por la lista exacta. Otras dos de la misma clase
   (tomar las claves tarde, cubrirse con un ajeno) también caían por ella sobre `ee88726`, y con el
   control aflojado pasan. Antes de aflojar, armá más de una regresión de lo que el control veía.
+- **Una hipótesis del ledger que nombra una herramienta se mide con un cambio bueno de esa herramienta
+  (sesión 105, `R9-360`, `R9-361`).** «`runAllTimersAsync` lo cierra» venía medido contra una
+  regresión. Con un intervalo que no se apaga nunca, lanza («Aborting after running 100000 timers»), y
+  termina en cuanto no queda ningún temporizador: uno puesto 5 vueltas después pasaba
+  (`notaQuitaVueltasYTimeout5x7200000`). Lo que da tiempo y vueltas juntos son mil vueltas con los
+  pendientes en cada una (`tiempoYVueltas`), con su corte en vueltas (1010). Las reglas de la 31 y la 82.
+- **Un control que lee «de quién» en la pila tiene su propio cambio bueno (sesión 105, `R9-371`).** La
+  respuesta a la regla de la 88 (un registro compartido) trae la de la 82: un `prepWrite.bind` en un
+  `then` borra el marco del store, y los 4 casos caen con el código bueno.
+- **Dos pendientes pueden tener una causa (sesión 105, `R9-372`).** El rojo engañoso de la rehecha de
+  `R9-327` con `notaLenta50` era el arrastre de `backupPrepTurn.test.ts` sin aislamiento: lo cruzaron
+  dos agentes que medían cada uno el suyo. Medí los pendientes de a grupos, no de a uno.
+- **Un evento que la prueba manda «en cuanto X» espera a X sin un tope corto, con un control de que X
+  pasó (sesión 105, `53bdbe6`).** El estado tardío de `R9-364` salía tras mil vueltas aunque lo pedido
+  siguiera pendiente: con la migración 1005 vueltas más lenta (un cambio bueno), lo restaurado iba a la
+  Mesa de Cata, y el rojo era el del daño. Es la regla de la 79, en un diseño que su agente midió sin
+  demorar la migración; lo vio la matriz, antes del OK.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
