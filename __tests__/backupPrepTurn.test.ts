@@ -976,14 +976,18 @@ const respaldoDurante345 = async (
     abrir();
     // R9-364 — en cuanto lo que pidio el respaldo resolvio, llega otro estado:
     // la clave se toma al resolver, y uno que la tomara por su cuenta despues
-    // escribiria en la Mesa de Cata.
+    // escribiria en la Mesa de Cata. Se espera a que resuelva (a lo sumo cien
+    // mil vueltas), y `resolvioAntesDeCata` lo dice: con mil como tope, una
+    // migracion 1005 vueltas mas lenta (un cambio bueno) recibia a Cata con
+    // las claves pendientes, y el rojo era el del dano.
     for (
       let i = 0;
-      i < 1000 && pedidas().some(p => p.endsWith(': pendiente'));
+      i < 100000 && pedidas().some(p => p.endsWith(': pendiente'));
       i++
     ) {
       await vuelta();
     }
+    const resolvioAntesDeCata = !pedidas().some(p => p.endsWith(': pendiente'));
     otros.push(setPrepAccount('cata'));
     const [, resultado] = await Promise.all([primero, respaldo, ...otros]);
     mg.mockImplementation(realMg);
@@ -991,6 +995,7 @@ const respaldoDurante345 = async (
     const de = (base: string) => (ultimo ? `${base}:${ultimo}` : base);
     expect({
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+      resolvioAntesDeCata, // CONTROL: lo pedido resolvio antes del estado tardio
       hechoAntesDeAbrir,
       // R9-358, R9-365 — al abrir, el respaldo pidio alguna clave, nada de lo
       // que pidio resolvio, y no escribio en la Mesa; que pidio primero, o
@@ -1014,6 +1019,7 @@ const respaldoDurante345 = async (
     }).toEqual({
       ...esperado,
       migracionRetenida: '@prep_by_account',
+      resolvioAntesDeCata: true,
       hechoAntesDeAbrir: false,
       alAbrir: {pidio: true, resueltas: [], escritas: []},
       pedidasAlFinal: ['@prep_notes: resuelta', '@prep_series: resuelta'],
