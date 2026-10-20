@@ -1141,8 +1141,20 @@
 > usa la escritura).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **354**. Ramas `fix/s101-arreglos-s100` y
-> `docs/review-s101-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s101-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `d47e326`, CI verde en
+> el log, run `38783879671`, 374/4665; corregido en la 102). Detalle:
 > `detail/S101-arreglo-de-s100.md`.
+>
+> **Sesión 102 (2026-10-19): revisión del diff de la 101** (`29087b8..44927a5`), en un chat nuevo, en
+> la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor). Lo de la 101 se
+> sostiene como código, y en la matriz (330 corridas) ninguna salida cambia. Cuatro nuevos: `R9-355`
+> (los dos estados de `R9-351` nunca repiten el primero ni son tres: el tercer residuo), `R9-356`
+> (los varios estados de `R9-337` y `R9-344` llegan en la misma tarea), `R9-357` (la tabla de las
+> partes hace fallar un solo par método-clave) y `R9-358` (`pedidasAlAbrir` del respaldo fija el
+> orden de sus claves).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **358**. Rama `docs/review-s102-diff-s101`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S102-revision-del-diff-s101.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2152,6 +2164,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** con un control nuevo, la pieza que demora va también antes del paso que lee;
     una regla de la revisión anterior se corre en todas las pruebas del mismo diseño; un control de
     «pidió y espera» lee el pedido, no lo que usa la escritura.
+
+- **Sesión 102 — 2026-10-19. Revisión del diff de la 101.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S102-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S102-sonda.cjs.txt` (de `S102-gen.cjs.txt`, que también arma la
+    sonda de cada agente en su worktree, y `S102-propias.txt`); la matriz de la 101 y sus 20 piezas
+    aparte (330 corridas) con `S102-matriz.cjs.txt`; todo lo de los agentes re-medido en el principal.
+  - **Resultado:** lo de la 101 se sostiene como código; la matriz no cambia. Nuevos `R9-355`..`R9-358`
+    (P3 y P3 bajo). No queda ningún P0 abierto.
+  - **Detalle: `detail/S102-revision-del-diff-s101.md`.**
+  - **Las lecciones:** al llevar la cantidad de un caso a otra parte, se lleva también su forma; varios
+    estados en la misma tarea son distintos en valor, no en tiempo; una falla inyectada por par
+    (método, clave) no ve un camino de error que toca otro par; las pruebas-sonda de una sesión se
+    anclan en su último commit.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

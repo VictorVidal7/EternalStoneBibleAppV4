@@ -1,13 +1,13 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-15, fin de la sesión 101.** La 101 hizo el (cc) en un chat nuevo,
-> en la terminal y sin agentes: cerrados `R9-348`..`R9-352` (pruebas, y dos frases de
-> `prepAccount.ts`), y dos nuevos, residuos de sus propios arreglos, sin arreglar (`R9-353`, `R9-354`).
+> **Última actualización: 2026-10-19, fin de la sesión 102.** La 102 hizo el (cd) en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor): lo de la 101 se
+> sostiene como código, la matriz no cambia, y cuatro nuevos (`R9-355`..`R9-358`, P3 y P3 bajo).
 >
-> La 100 ya está mergeada y pusheada (`main` = `29087b8`, CI verde en el log, run `38658003458`,
-> 374/4665). Las ramas de la 101 (`fix/s101-arreglos-s100` y `docs/review-s101-fix` encima) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 354 hallazgos. **Lo
-> siguiente:** la 102 revisa el diff de la 101 (mensaje (cd), en `_scratch/S102-PROMPT.md`).
+> La 101 ya está mergeada y pusheada (`main` = `d47e326`, CI verde en el log, run `38783879671`,
+> 374/4665). La rama de la 102 (`docs/review-s102-diff-s101`, solo docs) va **sin mergear hasta el OK
+> de Victor**. **No queda ningún P0 abierto**, y hay 358 hallazgos. **Lo siguiente:** la 103 arregla
+> `R9-353`..`R9-358` (mensaje (ce), en `_scratch/S103-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -534,11 +534,15 @@ chat nuevo con 3 agentes que solo midieron, con `_scratch/S98-PROMPT.md`). Y su 
 sesión 99, en un chat nuevo con 12 agentes que solo midieron, con `_scratch/S99-PROMPT.md`). Y la
 revisión de su diff (la (cb), sesión 100, en un chat nuevo y sin agentes, con
 `_scratch/S100-PROMPT.md`). Y su arreglo (la (cc), sesión 101, en un chat nuevo y sin agentes, con
-`_scratch/S101-PROMPT.md`). **Lo siguiente es el (cd).**
+`_scratch/S101-PROMPT.md`). Y la revisión de su diff (la (cd), sesión 102, en un chat nuevo con 3
+agentes que solo midieron, con `_scratch/S102-PROMPT.md`). **Lo siguiente es el (ce).**
 
-**(cd) Sesión 102: revisar el diff de la 101** (`29087b8..44927a5`: el control por llamador de
-`R9-349`, la falla que se repite, dos estados en la última parte, `viejoAlEmpezar` y dos frases). El
-mensaje está en `_scratch/S102-PROMPT.md`, que manda sobre este archivo.
+**(ce) Sesión 103: arreglar lo de la 101 y la 102** (`R9-353`..`R9-358`: pruebas). El mensaje está en
+`_scratch/S103-PROMPT.md`, que manda sobre este archivo.
+
+**(cd) Sesión 102: revisar el diff de la 101 — ya HECHO en la sesión 102, en un chat nuevo, en la
+terminal, con 3 agentes en worktree que solo midieron.** Lo de la 101 se sostiene como código; cuatro
+nuevos (`R9-355`..`R9-358`). El mensaje está en `_scratch/S102-PROMPT.md`.
 
 **(cc) Sesión 101: arreglar lo de la 100 — ya HECHO en la sesión 101, en un chat nuevo, en la
 terminal y sin agentes.** Cerrados `R9-348`..`R9-352`; dos nuevos (`R9-353`, `R9-354`), sin arreglar.
@@ -2112,19 +2116,19 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 101 (2026-10-15).**
+**Medido al cerrar la sesión 102 (2026-10-19).**
 
-- **La 100, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `29087b8` (solo
-  docs; el último código es `5aa5c96`). CI verificado en el log: run `38658003458`, 3 jobs, Node
-  v24.21.0, 374/4665. Su rama se borró tras `git cherry`.
-- **Las ramas de la 101, sin mergear a propósito y sin pushear:** `fix/s101-arreglos-s100`
-  (`ac1a7a5`, `9336ddc`, `44927a5`) y `docs/review-s101-fix` encima (solo docs). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno. El checkpoint se escribió en un worktree aparte (`../essb-docs-s101`,
-  fuera del repo), quitado al terminar.
+- **La 101, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `d47e326` (solo
+  docs; el último código es `44927a5`). CI verificado en el log: run `38783879671`, 3 jobs, Node
+  v24.21.0, 374/4665. Sus ramas se borraron tras `git cherry`.
+- **La rama de la 102, sin mergear a propósito y sin pushear:** `docs/review-s102-diff-s101` (solo
+  docs, sobre `d47e326`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
+  incluye.
+- **Los worktrees:** ninguno. Los de los 3 agentes se borraron solos con sus ramas; el checkpoint se
+  escribió en un worktree aparte (`../essb-docs-s102`, fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 101):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 102):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -2902,6 +2906,23 @@ Alternativas legítimas:
   Con `prepKey` espiado, un store que pide su clave y escribe con otra pasa si es más lento que la
   espera (`tardeClave2000+pideYDescarta`). Es la regla de la 86, en un control escrito con §5 como
   lista.
+- **Al llevar la cantidad de un caso a otra parte, llevá también su forma (sesión 102, `R9-355`).** La
+  101 puso en la última parte dos estados distintos entre sí y del primero: con dos como tope, «el
+  segundo» y «el último» son el mismo, y sin el primero repetido, también «el último distinto del
+  primero». Un filtro de re-disparos (`ignoraPrimeroEnDev`) y `claveDelSegundoEnDev` pasan las 1037.
+  La forma (nulo→ana→nulo) la tenía la de `R9-337`, en la migración.
+- **Varios estados en la misma tarea son distintos en valor, no en tiempo (sesión 102, `R9-356`).**
+  `setPrepAccount` fija la cuenta en su primera línea: llamados seguidos, una microtarea después ya
+  es la del último, y leer el primero una microtarea tarde (`claveDelPrimeroEn{Dev,Trabajo}Micro`)
+  pasa las 1037. Con los estados de a uno, con una vuelta entre ellos, cae. Es la regla de la 76.
+- **Una falla inyectada por par (método, clave) no ve un camino de error que toca otro par (sesión
+  102, `R9-357`).** Un `removeItem` en un `catch`, fuera del `try`, pasa las 1037; con el disco
+  fallando entero, los dos estados lanzan. La regla de la 49 (la falla se repite) vale también para
+  «se extiende».
+- **Las pruebas-sonda que sostienen un hallazgo se anclan en el último commit de la sesión (sesión
+  102).** La 101 midió `R9-353` sobre `ac1a7a5` y cambió esa prueba en `44927a5`: en la matriz de la
+  102, sus cuatro pruebas-sonda no aplicaban. Antes de cerrar, corré las piezas del ledger sobre el
+  último commit (modo `anclas`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

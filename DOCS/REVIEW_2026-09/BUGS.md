@@ -1490,7 +1490,8 @@
 >
 > **Sesión 101 (2026-10-15): arreglo de lo de la 100**, en un chat nuevo, en la terminal y sin
 > agentes. Arreglos en `fix/s101-arreglos-s100` (`ac1a7a5`, `9336ddc`, `44927a5`; pruebas, y dos
-> frases de `prepAccount.ts`), docs en `docs/review-s101-fix`, sin mergear hasta el OK de Victor.
+> frases de `prepAccount.ts`), docs en `docs/review-s101-fix`: mergeadas y pusheadas con el OK de
+> Victor (`main` = `d47e326`, CI verde en el log, run `38783879671`, 374/4665; corregido en la 102).
 >
 > - **Cerrados (5):** `R9-349` (`prepKey` espiado: cada llamador pidió su clave y la esperaba al
 >   abrir, y la tiene al final), `R9-348` (la falla desde la `n`-ésima llamada, solo en el trabajo),
@@ -1502,6 +1503,22 @@
 >   clave que usa la escritura; lo abrió la 101).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **354**. Detalle: `detail/S101-arreglo-de-s100.md`.
+>
+> **Sesión 102 (2026-10-19): revisión del diff de la 101** (`29087b8..44927a5`), en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron (los pidió Victor). Solo docs, en
+> `docs/review-s102-diff-s101`, sin mergear hasta el OK de Victor.
+>
+> - **Lo de la 101 se sostiene como código:** `prepAccount.ts` es solo comentarios (`S101-igual`,
+>   con su control). En la matriz (330 corridas: las 310 de la 101 y 20 piezas que corrió aparte),
+>   ninguna salida cambia; las 4 pruebas-sonda de `R9-353` traían el ancla de `ac1a7a5`, y re-ancladas
+>   dan lo mismo sobre `44927a5`.
+> - **Nuevos (4):** `R9-355` (los dos estados de `R9-351` nunca repiten el primero ni son tres: el
+>   tercer residuo; lo abrió la 101), `R9-356` (los estados de `R9-337` y `R9-344` llegan en la misma
+>   tarea; lo abrió la 101 en la de `R9-344`), `R9-357` (la tabla de las partes hace fallar un solo
+>   par método-clave; no lo abrió la 101) y `R9-358` (`pedidasAlAbrir` del respaldo fija el orden de
+>   sus claves; lo abrió la 101).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **358**. Detalle: `detail/S102-revision-del-diff-s101.md`.
 
 ---
 
@@ -9510,6 +9527,126 @@ readReleases()` en lugar de `return`): `prep` 56/56 y suite 1037/1037. El caso d
   - **Arreglo (hipótesis), sin medir:** leer también la clave que recibe `prepWrite` de cada store
     (espiado), pendiente al abrir si ya se llamó. Con el store lento ANTES de llamar a `prepWrite`
     (`storeLento<K>`), al abrir todavía no se llamó: medir las dos demoras.
+
+- **`R9-355` (S102, pruebas / Mesa / `R9-351` — P3) — 🐛 los dos estados de la última parte que
+  agregó `R9-351` son siempre distintos entre sí y del primero, y nunca más de dos: una regresión que
+  ignore un estado igual al primero, o que tome el segundo, pasa `prep` y el suite, y lo pedido va a
+  la cuenta que no es.** MEDIDO en la sesión 102 (agente 3; re-medido en el principal con
+  `_scratch/S102-sonda.cjs.txt`, de `S102-gen.cjs.txt`; piezas en `S102-propias.txt`).
+  - Los casos de `R9-344` (`prepAccount.test.ts`) mandan durante `finishRelease` nulo→ana→beto y
+    ana→beto→nulo: el último es también «el último distinto del primero» y también «el segundo».
+  - **Piezas** (en `prepAccount.ts`, solo para los estados que llegan durante `finishRelease`):
+    - `ignoraPrimeroEnDev`: un estado igual al primero se toma como un re-disparo y no cambia
+      `account` (la forma natural de filtrar un re-disparo de `onAuthStateChanged`);
+    - `claveUltimoDistintoEnDev`: lo pedido toma la cuenta del último estado distinto del primero;
+    - `claveDelSegundoEnDev`: lo pedido toma la del segundo, si llegaron dos o más.
+
+    Las tres pasan `prep` 56/56 y el suite 1037/1037.
+
+  - **El daño** (prueba-sonda `primeroRepetido344`: seis casos más dentro de la de `R9-344`, que solo
+    imprimen; con el código bueno, 56/56, y lo pedido va siempre a la cuenta del último; la retención
+    armada y `escritaAntesDeAbrir: false` en todos):
+
+    | caso (primero → durante la última parte)   | bueno      | `ignoraPrimero…`, `…UltimoDistinto…` | `claveDelSegundo…` |
+    | ------------------------------------------ | ---------- | ------------------------------------ | ------------------ |
+    | ana → beto → ana (con y sin devoluciones)  | Ana        | **Beto**                             | Ana                |
+    | nulo → ana → nulo (con y sin devoluciones) | sin cuenta | **Ana**                              | sin cuenta         |
+    | nulo → ana → nulo → beto                   | Beto       | Beto                                 | **sin cuenta**     |
+    | nulo → ana → beto → nulo                   | sin cuenta | **Beto**                             | **Beto**           |
+
+  - **La forma está fijada en la migración, no en la última parte:** `ignoraPrimeroEnTodo` (el mismo
+    filtro en todo el trabajo) cae en la de `R9-337` (nulo, ana y nulo durante la migración), 55/56.
+  - Es la regla de la 96 (varios, no uno) y la de la 101 (una regla de la revisión anterior, en todas
+    las pruebas del mismo diseño): `R9-351` llevó a la última parte la cantidad de `R9-337`, no su
+    forma.
+  - **¿Lo abrió la 101?** Sí (`ac1a7a5`).
+  - P3: verde falso ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** sumar a la de `R9-344` ana→beto→ana y nulo→ana→nulo (con y
+    sin devoluciones) y nulo→ana→beto→nulo, con lo pedido en la cuenta del último. Tiene que caer con
+    las tres piezas. Con `R9-356`: los estados, de a uno.
+
+- **`R9-356` (S102, pruebas / Mesa / `R9-337`, `R9-351` — P3) — 🐛 los varios estados de las pruebas
+  de `R9-337` y `R9-344` llegan en la MISMA tarea: una regresión que fije la cuenta del primero que
+  llega una microtarea después pasa `prep` y el suite, y con los estados de a uno lo pedido va a la
+  cuenta que no es.** MEDIDO en la sesión 102 (agente 1 en la de `R9-344`; la de `R9-337`, en el
+  principal).
+  - La de `R9-344` (`prepAccount.test.ts:978`) hace `durante.map(uid => setPrepAccount(uid))`, y la de
+    `R9-337` (`:860-861`) llama a `setPrepAccount('ana')` y a `setPrepAccount(null)` seguidos, sin
+    ceder. `setPrepAccount` fija `account` en su primera línea (`prepAccount.ts:257`), así que una
+    microtarea después ya es la del último: la regresión solo se distingue con los estados en tareas
+    distintas.
+  - **Piezas** (en `prepAccount.ts`):
+    - `claveDelPrimeroEnDevMicro` (como `claveDelPrimeroEnDev`, de la 100, pero la cuenta del primer
+      estado que llega durante `finishRelease` se fija una microtarea después): `prep` 56/56, suite
+      1037/1037;
+    - `claveDelPrimeroEnTrabajoMicro` (lo mismo, en todo el trabajo del primer estado): `prep` 56/56,
+      suite 1037/1037.
+  - **El daño** (pruebas-sonda que mandan los mismos estados de a uno, con una vuelta entre ellos, y
+    los mismos esperados; con el código bueno, 56/56):
+    - `estadosSeparados344` con `claveDelPrimeroEnDevMicro`: cae la de `R9-344` (55/56) en los cuatro
+      casos de dos estados: nulo→ana→beto deja lo escrito en la Mesa de Ana, no en la de Beto, y
+      ana→beto→nulo en la de Beto, que ya salió, no en la «sin cuenta»; el daño de `R9-351`.
+    - `estadosSeparados337` con `claveDelPrimeroEnTrabajoMicro`: cae la de `R9-337` (55/56): lo
+      escrito sin cuenta va a la Mesa de Ana, que ya salió (`deAna` con la nota, `sinCuenta: []`).
+      Con `claveDelPrimeroEnDevMicro`, pasa (sus estados llegan en la migración).
+  - Es la regla de la 76 (una puerta construye un punto del orden, no el tramo): los estados son
+    distintos en valor, no en tiempo. Y la de la 96 (varios, no uno).
+  - **¿Lo abrió la 101?** En la de `R9-344`, sí (`ac1a7a5`, los casos de `R9-351`). En la de
+    `R9-337`, no: es de la 97.
+  - P3: verde falso ante regresiones construidas; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** en las dos pruebas, los estados de a uno, con una vuelta entre
+    ellos, y los mismos esperados. Tiene que caer con las dos piezas (cada una en la suya), y vale
+    también para los casos nuevos de `R9-355`.
+
+- **`R9-357` (S102, pruebas / Mesa / `R9-348` — P3) — 🐛 la tabla de las partes hace fallar un solo
+  par (método, clave): un camino de error que, fuera de su `try`, toca un par que ninguna parte hace
+  fallar pasa `prep` y el suite, y con el disco fallando entero los dos estados lanzan.** MEDIDO en
+  la sesión 102 (agente 2; re-medido en el principal).
+  - El ayudante de las partes (`prepAccount.test.ts`) hace fallar `metodo` sobre `clave`, desde la
+    `n`-ésima llamada (`R9-348`). Una falla de disco real no se queda en un método ni en una clave.
+  - **Piezas** (en `prepAccount.ts`, fuera de todo `try`), las dos `prep` 56/56 y suite 1037/1037:
+    - `migraQuitaMarcaEnCatch`: en el `catch` de `migrateLegacyPrep`, `await
+AsyncStorage.removeItem(MIGRATED_KEY)` («para reintentar en el arranque siguiente»);
+    - `notaQuitaEnCatch`: en el `catch` de `finishRelease`, tras el aviso, `await
+AsyncStorage.removeItem(RELEASE_KEY)` antes del `return`.
+  - **El daño:**
+    - Prueba-sonda `discoEntero348` (una prueba nueva antes de `it.each(partes)`: `getItem`,
+      `multiSet` y `multiRemove` fallan en toda clave durante el trabajo, con una devolución de bob
+      anotada): con el código bueno, 57/57 y `{"lanzo":[],"nota":"[\"bob\"]"}`; con cualquiera de
+      las dos, `lanzo: ["primero","segundo"]`: el daño de `R9-336`.
+    - Prueba-sonda `notaSembrada348` (el caso de la lectura de la nota, con bob anotado: `llamadas:
+2`, `nota: '["bob"]'`): con el código bueno, 56/56; con `notaQuitaEnCatch`, cae solo en `nota`
+      (`null`): una lectura fallida borra la nota, y la Mesa de la cuenta borrada se queda bajo su
+      uid (el daño de `R9-274`). Hoy ese caso no siembra nada, y su `nota: null` sale igual.
+  - **Control:** `reNotaEnCatchDev` (en el `catch` de `giveBack`, `noteReleases` fuera del `try`:
+    otra clave, con métodos que la tabla hace fallar) cae en dos casos de `R9-343`. El hueco es el par
+    que ninguna parte hace fallar, no «otra clave» en general.
+  - **La falla de una parte que tumba la siguiente de la misma clave:** sin caso (agente 2, por
+    enumeración de las llamadas en una corrida limpia, sin regresión por cada par).
+  - Es la regla de la 49 (una falla puede repetirse y extenderse) un paso más allá de `R9-348`.
+  - **¿Lo abrió la 101?** No: la falla por (método, clave) es del ayudante de la 97 y de la tabla de
+    la 99; las dos piezas pasaban igual antes de la 101.
+  - P3: verde falso ante regresiones construidas; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** un caso de disco entero (como `discoEntero348`) y una
+    devolución sembrada en el caso de la lectura de la nota (como `notaSembrada348`). Tiene que caer
+    con las dos piezas.
+
+- **`R9-358` (S102, pruebas / respaldo / `R9-349` — P3 bajo) — 🐛 `pedidasAlAbrir` del respaldo
+  fija el orden en que pide sus claves: pedir las dos a la vez, sin cambiar lo escrito, la hace
+  caer.** MEDIDO en la sesión 102 (agente 1; re-medido en el principal).
+  - En `backupPrepTurn.test.ts`, la de `R9-345` del respaldo espera `pedidasAlAbrir: ['@prep_notes:
+pendiente']` («La de las series la pide después de tener la de las notas»): la lista exacta fija
+    además que la de las series todavía no se pidió.
+  - **Pieza `respaldoClavesJuntas`** (en `BackupService.ts`, el respaldo pide a `prepKey` las dos
+    claves que restaura antes de esperar ninguna): cae `prep` 55/56 y el suite 1036/1037, solo esa y
+    solo en `pedidasAlAbrir` (`+ "@prep_series: pendiente"`); `pedidasAlFinal` y lo escrito, iguales.
+  - Es la regla de la 82 (un control se corre contra un cambio bueno de su superficie): el control
+    dice que el respaldo pidió y espera, no en qué orden.
+  - **¿Lo abrió la 101?** Sí (`9336ddc`, `44927a5`).
+  - P3 bajo: un rojo ante un cambio que no cambia lo escrito; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** que el control lea «lo pedido al abrir está pendiente, y la de
+    las notas está pedida», no la lista exacta. Tiene que pasar con `respaldoClavesJuntas` y caer con
+    `lento2000+llegarRestaura`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
