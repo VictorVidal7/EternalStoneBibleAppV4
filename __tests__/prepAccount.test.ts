@@ -829,7 +829,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // R9-337 — con DOS estados durante el trabajo del primero (se entra y se
   // sale), lo pedido antes va a la cuenta de cuando termina, la del ultimo:
   // con la del primero que llego mientras tanto, iba a la Mesa de una cuenta
-  // que ya habia salido.
+  // que ya habia salido. R9-356 — los dos estados llegan de a uno, con una
+  // vuelta entre ellos: llamados seguidos, en la misma tarea, una microtarea
+  // despues la cuenta ya era la del ultimo, y fijar la del primero que llega
+  // una microtarea tarde pasaba.
   it('R9-337: con nulo, una cuenta y nulo durante el trabajo del primer estado, lo pedido antes va a la cuenta del ultimo', async () => {
     const P = 'John/3/16-21';
     const vuelta = () => new Promise(r => setImmediate(r));
@@ -858,7 +861,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
         await vuelta();
       }
       const segundo = setPrepAccount('ana');
+      await vuelta();
       const tercero = setPrepAccount(null);
+      await vuelta();
       await unaHora();
       const escritaAntesDeAbrir = escrita;
       abrir();
@@ -895,7 +900,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // pasaba. R9-355 — y con el primero repetido al final (ana→beto→ana,
   // nulo→ana→nulo) y con tres (nulo→ana→beto→nulo): con dos distintos, «el
   // ultimo» era tambien «el segundo» y «el ultimo distinto del primero», y
-  // tomar uno de esos, o ignorar un estado igual al primero, pasaba.
+  // tomar uno de esos, o ignorar un estado igual al primero, pasaba. R9-356 —
+  // los estados llegan de a uno, con una vuelta entre ellos: llamados seguidos,
+  // en la misma tarea, una microtarea despues la cuenta ya era la del ultimo, y
+  // fijar la del primero que llega una microtarea tarde pasaba.
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
     const vuelta = () => new Promise(r => setImmediate(r));
@@ -978,7 +986,11 @@ describe('R9-59 — la Mesa por cuenta', () => {
         // mas lenta que la espera, el estado llegaba antes de la union, la
         // retencion se armaba despues, y leida al final decia lo mismo.
         const alLlegar = retenida;
-        const otros = durante.map(uid => setPrepAccount(uid));
+        const otros: Array<Promise<void>> = [];
+        for (const uid of durante) {
+          otros.push(setPrepAccount(uid));
+          await vuelta();
+        }
         await unaHora();
         const escritaAntesDeAbrir = escrita;
         abrir();
