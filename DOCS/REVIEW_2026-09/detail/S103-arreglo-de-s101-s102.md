@@ -211,9 +211,16 @@ Cada agente corrió la lista sobre su diseño (en su informe, con la pieza y la 
 
 ## 8. El checkpoint
 
-- **Dónde se escribió:** en `../essb-docs-s103`, mientras la matriz corría en el principal.
+- **Dónde se escribió:** en `../essb-docs-s103`, mientras la matriz corría en el principal. El
+  pre-commit no corre en un worktree fuera del repo (no tiene `node_modules`: «"prettier" no se
+  reconoce»): el cambio se pasó al principal con un parche (`_scratch/S103-docs.diff.txt`), y se
+  commiteó ahí, con el hook.
 - **Las piezas del ledger, en modo `anclas` sobre `28fa337`** (la regla de la 102): las 360 de la
   matriz aplican; `vueltasSinReloj357`, `soloR358` y las de las tandas 7 a 9 se corrieron sobre ese
   commit.
-- **Las compuertas:** PENDIENTE
+- **Las compuertas:** `npx prettier --write "DOCS/REVIEW_2026-09/**/*.md"`, y `npm run validate` con
+  `NODE_ENV=development` sobre `822a45d`, sin worktrees (`_scratch/S103-validate.out.txt`): exit 0.
+  Typecheck limpio, lint con 0 errores (los 70 avisos de siempre), `format:check` limpio, y jest
+  374/374 suites y 4672/4672 pruebas (7 más: la de disco entero, y 3 casos de más en cada uno de los
+  dos `it.each` de `R9-353`).
 - **El mensaje de la 104** está en `_scratch/S104-PROMPT.md`.
