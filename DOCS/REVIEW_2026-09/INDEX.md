@@ -1191,8 +1191,21 @@
 > pila).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **372**. Ramas `fix/s105-arreglos-s104` y
-> `docs/review-s105-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s105-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `bdd9eaf`, CI verde en el
+> log, run `39478051223`, 374/4672; corregido en la 106). Detalle:
 > `detail/S105-arreglo-de-s103-s104.md`.
+>
+> **Sesión 106 (2026-10-20): revisión del diff de la 105** (`ad6ba69..53bdbe6`), en un chat nuevo, en
+> la terminal, con 4 agentes en worktree que solo midieron (los pidió Victor): la segunda vuelta de la
+> 105, cada uno atacando lo integrado de otro. Ocho nuevos, todos en las pruebas: `R9-373`
+> (`tiempoYVueltas`, un corte en eslabones sin escribir), `R9-374` (el reloj falso antes de un trabajo
+> que la prueba espera), `R9-375` (`mockSqlite` fuera del aislamiento), `R9-376` (la espera de Cata con
+> el registro vacío), `R9-377` (el filtro de la pila del respaldo, por módulo), `R9-378` (`pedidas`,
+> lista exacta en la escritura y la lectura), `R9-379` (el control de la lectura no se compara con
+> estados) y `R9-380` (residuos de `R9-359`). `R9-370`, decidido: opción (a).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **380**. Rama `docs/review-s106-diff-s105`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S106-revision-del-diff-s105.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2256,6 +2269,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** una hipótesis del ledger que nombra una herramienta se mide con un cambio bueno
     de esa herramienta; un control que lee «de quién» en la pila tiene su propio cambio bueno; dos
     pendientes pueden tener una causa.
+
+- **Sesión 106 — 2026-10-20. Revisión del diff de la 105.** En un chat nuevo, en la terminal, con 4
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S106-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S106-sonda.cjs.txt` (de `S106-gen.cjs.txt`, que arma también la
+    sonda de cada agente); las seis entradas del reparto, en cuatro agentes; todo lo suyo re-medido en
+    el principal, en la matriz de la 105 con sus corridas (`S106-matriz.cjs.txt`, 595).
+  - **Resultado:** nuevos `R9-373`..`R9-380` (P3 y P3 bajo), todos en las pruebas. `R9-370`, decidido
+    (opción (a)). No queda ningún P0 abierto.
+  - **Detalle: `detail/S106-revision-del-diff-s105.md`.**
+  - **Las lecciones:** un control de «nada pendiente» pregunta qué pasa si no contó nada; una
+    herramienta que corre lo pendiente una vez por vuelta tiene un corte en eslabones; «lo que el
+    trabajo programa vence aquí» pregunta por lo que el trabajo espera; `resetModules` no reinicia lo
+    que la fábrica de un mock cierra; un control que se calcula y no se compara no vigila; antes de
+    llamar «cambio bueno» a una pieza, preguntá si abre en la app una ventana nueva.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

@@ -1562,7 +1562,8 @@
 > **Sesión 105 (2026-10-20): arreglo de lo de la 103 y la 104**, en un chat nuevo, en la terminal, con
 > 10 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor: 6 para las
 > entradas y 4 para el Pendiente). Arreglos en `fix/s105-arreglos-s104` (`1b299a9`, `fce7950`, `53bdbe6`; solo
-> pruebas), docs en `docs/review-s105-fix`.
+> pruebas), docs en `docs/review-s105-fix`. Mergeadas y pusheadas con el OK de Victor (`main` =
+> `bdd9eaf`, CI verde en el log, run `39478051223`, 374/4672; corregido en la 106).
 >
 > - **Cerrados (10):** `R9-359` (las retenciones y la tabla leen la clave por `multiGet`), `R9-360` y
 >   `R9-361` (mil vueltas con los temporizadores pendientes en cada una, y un centinela de dos horas),
@@ -1577,6 +1578,24 @@
 >   «de quién» de `R9-363` se lee en la pila: un `bind` lo hace caer).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **372**. Detalle: `detail/S105-arreglo-de-s103-s104.md`.
+>
+> **Sesión 106 (2026-10-20): revisión del diff de la 105** (`ad6ba69..53bdbe6`, solo pruebas), en un
+> chat nuevo, en la terminal, con 4 agentes en worktree que solo midieron (los pidió Victor): la
+> segunda vuelta de la 105, cada uno atacando lo integrado de otro. Solo docs, en
+> `docs/review-s106-diff-s105`.
+>
+> - **Nuevos (8), todos en las pruebas:** `R9-373` (`tiempoYVueltas` tiene un corte en eslabones sin
+>   escribir: una cadena de 1001 temporizadores pasa, con el daño de `R9-360`), `R9-374` (el reloj falso
+>   antes de un trabajo que la prueba espera: un trabajo que cede con un temporizador traba 15 pruebas),
+>   `R9-375` (`mockSqlite` queda fuera del aislamiento de `R9-372`), `R9-376` (la espera de Cata y
+>   `resolvioAntesDeCata` con el registro vacío), `R9-377` (el filtro de la pila del respaldo cuenta
+>   cualquier pedido del módulo), `R9-378` (`pedidas` de la escritura y la lectura, lista exacta por
+>   base), `R9-379` (el control «al abrir» de la lectura no se compara en los casos con estados) y
+>   `R9-380` (residuos de `R9-359`: `getAllKeys` y el orden de las claves).
+> - **La matriz** (595 corridas sobre `53bdbe6`): las 510 de la 105 dan lo mismo que en la 105 (376
+>   caen, 134 pasan); de las 84 de los agentes, 83 dan lo mismo que en su worktree.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **380**. Detalle: `detail/S106-revision-del-diff-s105.md`.
 
 ---
 
@@ -10083,6 +10102,10 @@ setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos
     con el store 2001 vueltas más lento antes de llamar a `prepWrite`, «un estado» lo ve, con 2002 no,
     y una vuelta más por cada estado de `despues`. Con las mil vueltas por estado de `R9-361`, el corte
     de los casos de varios sube: sin medir.
+  - **Medido en la 106** (agente 4, re-medido; `notasLentoAntesPrepWrite<K>+pideYDescarta`): «un
+    estado» cae con 2001 y pasa con 2004; nulo→beto→nulo cae con 3008 y pasa con 4004. Concuerda con
+    la frase de la prueba («unas dos mil vueltas y mil mas por cada estado de `despues`»).
+  - **En la lectura, el control movido no se compara** en los casos con estados: `R9-379`.
 
 - **`R9-367` (S105, pruebas / Mesa / `R9-357` — P3) — 🐛 la tabla de las partes no lee las claves: una
   regresión que, al fallar la lectura de la nota, borra la Mesa de una cuenta que no es la de ahora (la
@@ -10164,6 +10187,16 @@ setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos
   - P3: una entrada partida, sin pérdida en disco, en un camino de migración.
   - **Arreglo (hipótesis de `src/`, decide Victor):** con el primer estado nulo y sin dueño, que la
     migración tome la cuenta del último estado, o que no se marque hasta un estado con cuenta.
+  - **DECIDIDO el 2026-10-20 (tras la sesión 105), opción (a)**, por el orquestador de la 105 con la
+    delegación de Victor («lo dejo a tu mejor criterio»): sin dueño registrado, la migración toma como
+    dueña la cuenta del ÚLTIMO estado que llegó antes de terminar el trabajo del primer estado (la
+    regla de las claves, `R9-337`), no la del primero. **Por qué:** la entrada partida nace de que las
+    dos reglas difieren; con un primer estado nulo al restaurar la sesión (§5, sesión 57) ese nulo es
+    pasajero, y una Mesa sin dueño registrado no dice de quién es, así que «el primero» tampoco era un
+    dato. La (b) dejaría sin migrar a quien de verdad no inicia sesión. Lo implementa la 107 en `src/`
+    (con las cabeceras de `migrateLegacyPrep` y `prepKey`), con su prueba vista FALLAR sin el arreglo
+    (`duenoDurante` hecha prueba); antes mide la hipótesis: con dueño registrado, nulo→nulo, y
+    `R9-331`, `R9-337` y `R9-344` igual que hoy. Escrito en la §7 de `CONTINUAR.md`.
 
 - **`R9-371` (S105, pruebas / Mesa / `R9-363` — P3 bajo) — 🐛 los controles de `R9-363` leen de quién es
   cada pedido en la pila: un store que llama a `prepWrite` desde un `bind` en un `then` (la misma
@@ -10174,6 +10207,11 @@ setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos
     falta el store.
   - En el respaldo (`BackupService` en la pila), un pedido desde una función de otro módulo tras un
     `await`: sin medir.
+  - **Medido en la 106** (agente 2; re-medido en el principal con `_scratch/S106-sonda.cjs.txt`):
+    `respaldoClaveOtroModulo` (el respaldo pide sus dos claves por un ayudante de `prepNotesStore` que
+    hace `await Promise.resolve()` y después `prepKey`) tumba los 4 casos del respaldo (59/63); sin el
+    `await` (`…SinAwait`), 63/63. Con el registro vacío, la espera de Cata sale enseguida y el rojo
+    trae las columnas del daño: `R9-376`.
   - Es la regla de la 82, en el control que esta sesión escribió para `R9-363`. Se dejó así: sin la
     pila, el ajeno ocupaba el lugar del que falta (`R9-363`, con pérdida de datos en el respaldo).
   - P3 bajo: un rojo ante un cambio bueno; nada pasa en falso.
@@ -10198,6 +10236,180 @@ setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos
   - **✅ ARREGLADO en la sesión 105** (`fce7950`, diseño del agente 10): el `beforeEach` de `R9-340`
     (módulos y almacén propios por prueba). `colgadaBpt` pasa (65/65) y `colgadaBpt+sinAislarBpt` cae;
     con `notaLenta50`, la de `R9-327` ya no cae; con `turnoAntesSqlite` caen las mismas 9.
+  - **Corregido en la 106** (`R9-375`): de esas 9, los 4 casos de `R9-345` caen por arrastre de
+    `mockSqlite` (timeout de 20 s), no por la regresión: el aislamiento no lo alcanza.
+
+- **`R9-373` (S106, pruebas / Mesa / `R9-360`, `R9-361` — P3) — 🐛 `tiempoYVueltas()` corre un eslabón
+  de una cadena de temporizadores por vuelta: una quita de la nota tras una cadena de 1001 pasa `prep` y
+  el suite, y la nota de Bob se pierde; tras un estado, fijar la cuenta del primero tras 2001 eslabones
+  también pasa.** MEDIDO en la sesión 106 (agentes 1 y 4; re-medido en el principal con
+  `_scratch/S106-sonda.cjs.txt`, de `S106-gen.cjs.txt`: la matriz y `S106-tanda-suite.out.txt`; piezas
+  en `S106-sondas-agente-1/S106-a1-propias.txt`).
+  - `tiempoYVueltas()` da mil vueltas con `runOnlyPendingTimersAsync` en cada una: corre lo que ya
+    estaba pendiente, así que un temporizador que programa el siguiente avanza un eslabón por vuelta (dos
+    si el centinela de dos horas sigue pendiente y el eslabón dura una hora o menos).
+  - **Piezas** (`notaQuitaCadena<K>x<MS>`: en el `catch` de `finishRelease`, K `setTimeout` de MS ms en
+    cadena con `unref`, y el último quita la nota): con eslabones de dos horas, 1000 cae (61/63: la fila
+    de la nota y la de disco entero, `nota: null`) y 1001 pasa (`prep` 63/63, suite 1044/1044); con tres
+    horas, 1001 pasa; con una hora, 1002 cae y 1003 pasa (`unaHora()` corre uno más).
+  - **Tras un estado** (`claveDelPrimeroEnDevCadena<K>x10`: como `claveDelPrimeroEnDevMicro`, leyendo la
+    cuenta al final de una cadena de K eslabones de 10 ms): 1000 cae (61/63: `R9-344` y la lectura de
+    `R9-345`), 1001 cae solo en `R9-344` (los casos de 3 o más estados), y 2001 pasa (`prep` 63/63, suite
+    1044/1044). El corte son mil eslabones por cada estado que sigue al primero.
+  - **El daño:** el de `R9-360` (la nota de bob se quita, y su Mesa queda bajo su uid sin la nota que la
+    devolvería: el de `R9-274`); tras un estado, el de `R9-361` (lo pedido va a la cuenta del primero).
+  - **La frase** (`prepAccount.test.ts`, de la 105): «lo que el trabajo programa vence aqui, aunque lo
+    programe unas vueltas despues o en cadena». No escribe ninguno de los dos cortes (1010 vueltas, de
+    `R9-360`; mil eslabones).
+  - Es la regla de la 74 (el corte, escrito) en la herramienta que la 105 midió solo en vueltas, y la
+    de la 105 (una hipótesis que nombra una herramienta, con un cambio de esa herramienta).
+  - **¿Lo abrió la 105?** Sí (`1b299a9`: `tiempoYVueltas`).
+  - P3: verde falso ante una regresión construida, con pérdida de datos; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** escribir los cortes en la frase. Más vueltas los mueven, no los
+    quitan; una espera hasta que no quede ningún temporizador no termina con un intervalo inocuo
+    (`R9-360`).
+
+- **`R9-374` (S106, pruebas / Mesa / `R9-357`, `R9-360` — P3 bajo) — 🐛 con el reloj falso puesto antes
+  del trabajo y la prueba esperándolo antes de dar tiempo, un trabajo que cede con un temporizador
+  (aunque sea de 0 ms) se traba: caen 15 pruebas por timeout y `R9-344` en su control.** MEDIDO en la
+  sesión 106 (agentes 1 y 3; re-medido en el principal).
+  - La tabla de las partes, la de disco entero y la de `R9-320` ponen `relojesFalsos()` y después hacen
+    `await` de los estados (`correr`, `setPrepAccount`) antes de `tiempoYVueltas()`: un temporizador que
+    el trabajo espera no vence nunca.
+  - **Piezas** (cambios buenos): `cedeConTimeoutEnNota0` (`finishRelease` espera un `setTimeout` de 0
+    ms antes de leer la nota): `prep` 47/63, las 13 filas de la tabla, disco entero y `R9-320` con
+    «Exceeded timeout of 20000 ms», y `R9-344` con `retenida: null` (el bucle de mil sale sin la
+    retención armada); 302 s. `cedeConTimeoutAlEmpezar0` (antes de migrar): 46/63, y además `R9-310`.
+    `notaReintentaConEspera10` (si la lectura falla, espera 10 ms y reintenta): 61/63, las dos de la nota
+    por timeout. `unionDevTimeout1` (la devolución espera 1 ms antes de unir): 53/63, las 6 filas de la
+    devolución por timeout, y `R9-292`, las dos de `R9-275` y `R9-344`.
+  - **La frase** de `tiempoYVueltas` («lo que el trabajo programa vence aqui») vale para lo que el
+    trabajo deja corriendo sin esperar, no para lo que espera. La de las esperas de `R9-357` habla de
+    «un plazo puesto a proposito»; ceder con un temporizador no lo es.
+  - **¿Quién lo abrió?** Con las pruebas de `44927a5` (antes de la 103), `cedeConTimeoutEnNota0` tumba
+    solo `R9-310`, `R9-344` y `R9-320` (3 de 59); con las de `ad6ba69`, las 15 trabas. Las de la tabla y
+    disco entero son de la 103 (`c53c5e8`); la frase, de la 105.
+  - Es la regla de la 82 (un cambio bueno de la superficie: aquí, el reloj) y la de la 105.
+  - P3 bajo: un rojo ante un cambio bueno (trabas de 20 s cada una); nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** lanzar el trabajo sin esperarlo, dar `tiempoYVueltas()`, y
+    después esperarlo; o que la frase lo acote a lo que el trabajo no espera.
+
+- **`R9-375` (S106, pruebas / respaldo / `R9-372` — P3) — 🐛 el aislamiento de `R9-372` no alcanza a
+  `mockSqlite`: una prueba colgada con la puerta de SQLite puesta se la deja a la siguiente, y con
+  `turnoAntesSqlite` los 4 casos de `R9-345` del respaldo caen por timeout, no por la regresión.**
+  MEDIDO en la sesión 106 (agente 2; re-medido en el principal).
+  - `mockSqlite` es un objeto del archivo de prueba que cierra la fábrica de
+    `jest.mock('../src/lib/database')`; `jest.resetModules()` vuelve a correr la fábrica con el mismo
+    objeto, y el `beforeEach` de `R9-372` no lo reinicia.
+  - **Prueba-sonda `colgadaSqliteBpt`** (la primera prueba deja la puerta puesta; la segunda restaura un
+    respaldo vacío y mira si termina en mil vueltas): 64/65, `{"puertaAlEmpezar":true,
+"terminoATiempo":false}`. Con `limpiaSqliteBpt` (el `beforeEach` pone `mockSqlite.puerta = null` y
+    `retenida = 0`), 65/65; `limpiaSqliteBpt` sola, 63/63.
+  - **`turnoAntesSqlite`**: 54/63; de las 9, `R9-327` y los 4 de `R9-345` dan «Exceeded timeout»; con
+    `limpiaSqliteBpt+turnoAntesSqlite`, 58/63 (las otras 5, con `R9-327` todavía por timeout, el suyo).
+    Corrige la nota de `R9-372` («caen las mismas 9»).
+  - Es la regla de la 99 (módulos y almacén propios por prueba), en lo que la fábrica cierra.
+  - **¿Lo abrió la 105?** El arrastre es de antes; la 105 lo dio por cerrado (`fce7950`).
+  - P3: un hueco de las pruebas, con rojos que tapan el diff del caso; nada pasa en falso en lo medido.
+  - **Arreglo (hipótesis), medido solo como pieza:** `limpiaSqliteBpt`. Sin medir: `mockSqlite.retenida`,
+    que dos pruebas leen como control, con un respaldo viejo en vuelo.
+
+- **`R9-376` (S106, pruebas / respaldo / `R9-364`, `R9-371` — P3 bajo) — 🐛 la espera de Cata y
+  `resolvioAntesDeCata` leen el registro filtrado por la pila: si el filtro no ve los pedidos, el
+  registro está vacío, la espera sale en la primera vuelta y el control dice `true`; Cata llega durante
+  el trabajo, y el rojo trae las columnas del daño.** MEDIDO en la sesión 106 (agente 2; re-medido en el
+  principal).
+  - `53bdbe6` espera «hasta que nada de lo pedido este pendiente» (`pedidas()`, filtrado por
+    `BackupService` en la pila). Un pedido que el filtro no ve no cuenta como pendiente.
+  - **Pieza `respaldoClaveOtroModulo`** (un cambio bueno: el respaldo pide sus dos claves por un ayudante
+    de `prepNotesStore` que hace `await Promise.resolve()` y después `prepKey`): `prep` 59/63, los 4
+    casos, con `pidio: false`, `pedidasAlFinal: []`, `escritas: ["@prep_notes:cata",
+"@prep_series:cata"]` y la Mesa del caso vacía (`sinCuenta: []`, `deBeto: []`…). Lo restaurado va
+    entero a la Mesa de Cata, que llegó durante el trabajo: en la app, ahí iría. Sin el `await`
+    (`…SinAwait`), 63/63; sin Cata (`sinEstadoTardio+…`), 59/63 solo en los controles.
+  - El rojo se distingue leyéndolo entero (`pidio: false` va en el mismo diff), pero sus columnas de
+    datos son las del daño de `R9-364`.
+  - Es la regla de la 73 («no pasó» no es «estaba esperando») en el control que la 105 agregó tras su
+    matriz, y la de la 82 (`R9-371`, en el respaldo).
+  - **¿Lo abrió la 105?** Sí (`53bdbe6`).
+  - P3 bajo: un rojo ante un cambio bueno, con las columnas del daño; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** que la espera y el control exijan también que se haya contado
+    algún pedido. Tiene que seguir cayendo con `respaldoPideYTomaTras2000`.
+
+- **`R9-377` (S106, pruebas / respaldo / `R9-363`, `R9-371` — P3 bajo) — 🐛 el filtro de la pila del
+  respaldo cuenta cualquier pedido hecho desde `BackupService`: una lectura de notas lanzada desde
+  `importBackup` antes de sus claves cubre a un respaldo que toma la de las notas por su cuenta, y la
+  regresión pasa `prep` y el suite.** MEDIDO en la sesión 106 (agente 2; re-medido en el principal).
+  - **Piezas:** `respaldoNotasTrasSeries` (de la 104: pide y espera la de las series, y la de las notas
+    la toma por su cuenta después) cae en los 4 casos (59/63). Con `ajenoDesdeRespaldo` (`void
+getAllPrepNotes()` en el cuerpo de `importBackup`, antes de sus claves; sola, 63/63),
+    `ajenoDesdeRespaldo+respaldoNotasTrasSeries` pasa `prep` 63/63 y el suite 1044/1044.
+  - El filtro dice «desde el módulo», no «este es el pedido del que escribe». Es la regla de la 88 (de
+    quién es lo que cuenta) en la respuesta de la 105 a `R9-363`.
+  - **El daño:** en los casos de la prueba, ninguno (todos tienen series, y con series la regresión
+    escribe bien). El de `R9-363` aparece sin series, un caso que la prueba no arma: sin medir.
+  - **¿Lo abrió la 105?** Sí (`fce7950`).
+  - P3 bajo: verde falso ante una regresión construida, sin daño medido.
+  - **Arreglo (hipótesis), sin medir:** la de `R9-371` (marcar lo que pasa cada llamador en lugar de
+    leer la pila), con este ajeno corrido contra el esperado de hoy.
+
+- **`R9-378` (S106, pruebas / Mesa / `R9-349`, `R9-365` — P3 bajo) — 🐛 `pedidas` de la escritura y la
+  lectura de `R9-345` es una lista exacta por base, sin «de quién»: un store que pide su clave dos veces,
+  o una lectura ajena en la ventana, tumban los 4 casos de la escritura con el código bueno.** MEDIDO en
+  la sesión 106 (agentes 3 y 4; re-medido en el principal).
+  - La 105 aflojó esto mismo en el respaldo (`R9-365`: un conjunto, sin cantidad) y filtró por la pila
+    las llamadas a `prepWrite` (`R9-363`); `vigilarClaves().pedidas()` sigue contando todo `prepKey` de
+    la base, con la cantidad.
+  - **Piezas:** `notasPideDosVeces` (`savePrepNote` pide su clave una vez de más, sin usarla): 58/63, los
+    4 casos solo por `+ "@prep_notes: pendiente"` y `+ "@prep_notes: resuelta"`, y `R9-292` (su
+    `spyOn` retiene la primera clave pedida, que el store ya no usa). `ajenoLecturaEnEscritura345`
+    (`void getAllPrepNotes()` justo antes del control): 59/63, los 4. En la lectura,
+    `ajenoLecturaAntesDelControl345` y `…TrasAbrir345`: 62/63.
+  - **Sin verde falso medido:** con el ajeno, `…+llegarLeeNotasLenta2000` y
+    `…+tardeClave2000+llegarEscribeNotas` caen igual que sin él.
+  - Es la regla de la 101 (una regla de la revisión anterior, en todas las pruebas del mismo diseño) y
+    la de la 88.
+  - **¿Lo abrió la 105?** La lista es de la 101 (`R9-349`); la 105 la arregló solo en el respaldo.
+  - P3 bajo: un rojo ante un cambio bueno; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** leer `pedidas` como conjunto y por la pila, como en el respaldo
+    (con `R9-371` y `R9-377`). Antes de aflojarla, correr las regresiones que hoy caen por la lista
+    exacta (la regla de la 104).
+
+- **`R9-379` (S106, pruebas / Mesa / `R9-366` — P3 bajo) — 🐛 en la lectura de `R9-345`, el control «al
+  abrir» y `pedidasAlFinal` no se comparan en los 6 casos con estados: leerlo antes de los estados pasa,
+  aunque la nota de `R9-366` y el comentario de la prueba digan que se movió.** MEDIDO en la sesión 106
+  (agente 3; re-medido en el principal).
+  - `caso` calcula `antesDeAbrir` y `pedidasAlFinal` siempre, pero el esperado de `durante` lee solo
+    `retenida`, `clave` y `leido` (de `1121ec9`, la 103); los controles se comparan solo en
+    `migracion` y `devolucion`, sin `despues`. La 105 movió su lectura tras los estados (`1b299a9`) y
+    escribió «el control "al abrir" leido despues de todos, justo antes de abrir (R9-366)».
+  - **Pieza `lecturaControlAntesDeEstados`** (el control leído antes de los otros estados, como antes de
+    `R9-366`): `prep` 63/63. `muestraLectura345` imprime, en los 6 casos, `antesDeAbrir: {clave: null,
+leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_notes: resuelta']`.
+  - **Sin daño medido:** las regresiones de tiempo de la lectura las ven los datos de los casos de
+    dirección (`lecturaAlSiguienteDurante` y `lecturaPideYDescartaLenta3010` caen por `leido`, 62/63).
+  - Es la regla de la 30 (un comentario que dice la consecuencia tiene que verla).
+  - **¿Lo abrió la 105?** La falta de comparación es de la 103; la afirmación, de la 105.
+  - P3 bajo: un control que no vigila en esos casos; sin verde falso medido.
+  - **Arreglo (hipótesis), sin medir:** comparar `antesDeAbrir` y `pedidasAlFinal` también en
+    `durante`, o sacar la lectura de la frase y de la nota de `R9-366`.
+
+- **`R9-380` (S106, pruebas / Mesa / `R9-359` — P3 bajo) — 🐛 residuos de `R9-359`: leer si está la
+  marca con `getAllKeys` tumba 13 pruebas, y leer la marca y el dueño con `multiGet` en el otro orden
+  tumba una fila de la tabla, sin cambiar lo que hace la app.** MEDIDO en la sesión 106 (agente 3;
+  re-medido en el principal).
+  - `lecturas()` (la 105) retiene y falla la lectura de la clave por `multiGet`, por donde pasa
+    `getItem`. `getAllKeys` no pasa por él.
+  - **Piezas:** `migraMarcaPorGetAllKeys` (la migración mira si la marca está con `getAllKeys`; la marca
+    solo vale `'1'`): `prep` 50/63: las retenciones de la migración (sin `migracionRetenida`), la pareja
+    de `R9-340`, `R9-331`, `R9-337`, los 4 casos de la escritura y los 4 del respaldo de `R9-345`, y la
+    fila «la primera lectura». `migraClavesAlReves` (`multiGet([dueño, marca])`): 62/63, «la lectura
+    del dueño» con `llamadas: 2` (el orden `[marca, dueño]`, `migraConMultiGet`, pasa).
+  - Es la regla de la 82, la clase de `R9-359` (y de `R9-358`, `R9-365`, `R9-368`).
+  - **¿Lo abrió la 105?** El arreglo de `R9-359` cubre un método (`multiGet`); lo demás es de antes.
+  - P3 bajo: un rojo ante un cambio bueno; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** retener y fallar sobre la clave en todo método que la lea
+    (`getAllKeys` incluido), y contar las llamadas sin depender del orden de las claves.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
