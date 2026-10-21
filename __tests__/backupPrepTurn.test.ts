@@ -9,19 +9,22 @@
  *
  * R9-275 — la parte de SQLite del respaldo puede esperar en una puerta
  * (`mockSqlite`): la clave de la Mesa ya esta resuelta, y falta escribirla.
+ * Cada prueba tiene la suya (R9-375): el `beforeEach` pone una nueva antes de
+ * cargar los modulos, y la fabrica se queda con la de la prueba que la carga.
  */
-const mockSqlite: {puerta: Promise<void> | null; retenida: number} = {
+let mockSqlite: {puerta: Promise<void> | null; retenida: number} = {
   puerta: null,
   retenida: 0,
 };
 jest.mock('../src/lib/database', () => {
+  const sqlite = mockSqlite;
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
     getDatabase: jest.fn().mockResolvedValue({
       withTransactionAsync: async (fn: () => Promise<void>) => {
-        if (mockSqlite.puerta) {
-          mockSqlite.retenida += 1;
-          await mockSqlite.puerta;
+        if (sqlite.puerta) {
+          sqlite.retenida += 1;
+          await sqlite.puerta;
         }
         return fn();
       },
@@ -134,7 +137,10 @@ async function devolverConTope(
 // Como en `prepAccount.test.ts` (R9-340): cada prueba con su propia instancia
 // de los modulos de la Mesa y del respaldo, y su propio almacen. Un trabajo que
 // una prueba deja colgado sigue en la instancia vieja, y no toca los de la
-// siguiente.
+// siguiente. `jest.resetModules()` vuelve a correr la fabrica del mock de
+// `database`, pero no reinicia lo que ella cierra de este archivo: la puerta de
+// SQLite (`mockSqlite`) es nueva en cada prueba, y un respaldo viejo en vuelo
+// espera y cuenta en la de su prueba, no en la de la siguiente (R9-375).
 type PA = typeof import('../src/features/study/prepAccount');
 type AS = typeof import('@react-native-async-storage/async-storage').default;
 type BS = typeof import('../src/services/BackupService');
@@ -153,6 +159,7 @@ let savePrepNote: typeof import('../src/features/study/prepNotesStore').savePrep
 
 beforeEach(async () => {
   jest.resetModules();
+  mockSqlite = {puerta: null, retenida: 0};
   jest.doMock('@react-native-async-storage/async-storage', () =>
     jest.requireActual(
       '@react-native-async-storage/async-storage/jest/async-storage-mock',
@@ -184,6 +191,73 @@ beforeEach(async () => {
 
 afterEach(() => {
   __resetPrepAccountForTests();
+});
+
+// R9-375 — la puerta de SQLite de una prueba, vigilada: la primera la deja
+// puesta (con `retenida` en 1) y deja un respaldo en vuelo antes de SQLite; la
+// siguiente lo suelta con su propia puerta puesta. Con la puerta compartida, su
+// respaldo no terminaba; limpiandola en el `beforeEach`, el viejo contaba como
+// retenido en la suya. Van juntas: la segunda sola cae en su control.
+describe('R9-375: la puerta de SQLite que una prueba deja puesta', () => {
+  const viejo = {
+    enSqlite: false,
+    soltar: () => {},
+    abrirPuerta: () => {},
+  };
+  it('deja su puerta puesta y un respaldo en vuelo antes de SQLite', async () => {
+    mockSqlite.puerta = new Promise<void>(r => (viejo.abrirPuerta = () => r()));
+    mockSqlite.retenida = 1;
+    const db = jest.requireMock<{__mockInstance: {getDatabase: jest.Mock}}>(
+      '../src/lib/database',
+    ).__mockInstance;
+    const sqlite = await db.getDatabase();
+    const antesDeSqlite = new Promise<void>(r => (viejo.soltar = () => r()));
+    db.getDatabase.mockImplementation(async () => {
+      await antesDeSqlite;
+      viejo.enSqlite = true;
+      return sqlite;
+    });
+    void importBackup(respaldoConMesa({}));
+    for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r));
+    expect(viejo.enSqlite).toBe(false);
+  });
+
+  it('la siguiente tiene la suya: su respaldo termina, y el viejo no cuenta en ella', async () => {
+    const vuelta = () => new Promise(r => setImmediate(r));
+    const alEmpezar = {
+      puerta: mockSqlite.puerta !== null,
+      retenida: mockSqlite.retenida,
+      viejoEnSqlite: viejo.enSqlite,
+    };
+    let abrir!: () => void;
+    let termino = false;
+    const r = importBackup(respaldoConMesa({})).then(() => (termino = true));
+    try {
+      for (let i = 0; i < 1000 && !termino; i++) await vuelta();
+      const terminoATiempo = termino;
+      mockSqlite.puerta = new Promise<void>(res => (abrir = res));
+      viejo.soltar();
+      for (let i = 0; i < 1000 && !viejo.enSqlite; i++) await vuelta();
+      for (let i = 0; i < 20; i++) await vuelta();
+      expect({
+        alEmpezar,
+        terminoATiempo,
+        viejoEnSqlite: viejo.enSqlite,
+        retenida: mockSqlite.retenida,
+      }).toEqual({
+        alEmpezar: {puerta: false, retenida: 0, viejoEnSqlite: false},
+        terminoATiempo: true,
+        viejoEnSqlite: true, // CONTROL: el respaldo viejo llego a SQLite en esta
+        retenida: 0,
+      });
+    } finally {
+      mockSqlite.puerta = null;
+      abrir?.();
+      viejo.soltar();
+      viejo.abrirPuerta();
+      await r;
+    }
+  });
 });
 
 it('R9-273: restaurado mientras corre una union, o la escritura de un store, el respaldo no se pierde', async () => {
@@ -875,6 +949,8 @@ const respaldoDurante345 = async (
   primerEstado: string | null,
   despues: Array<string | null>,
   esperado: object,
+  // R9-369 — la parte del trabajo que espera (ver abajo).
+  parte: 'migracion' | 'devolucion' = 'migracion',
 ) => {
   const T = Date.now() - 60 * 60 * 1000;
   const P = 'John/3/16-21';
@@ -894,28 +970,91 @@ const respaldoDurante345 = async (
     JSON.stringify(serie('serie-de-antes', P, 1)),
   );
   await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+  // R9-369 — o una devolucion pendiente (la Mesa de Bob, borrado), con la
+  // migracion ya hecha: no mueve nada. Con datos en cada clave que el respaldo
+  // escribe, en la «sin cuenta» (P) y en la de Bob, que vuelve a ella.
+  if (parte === 'devolucion') {
+    await AsyncStorage.clear();
+    await AsyncStorage.multiSet([
+      ['@prep_by_account', '1'],
+      [
+        '@prep_notes',
+        JSON.stringify({
+          [P]: {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+        }),
+      ],
+      ['@prep_series', JSON.stringify(serie('serie-sin-cuenta', P, 1))],
+      [
+        '@prep_notes:bob',
+        JSON.stringify({
+          'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
+        }),
+      ],
+      [
+        '@prep_series:bob',
+        JSON.stringify(serie('serie-de-bob', 'Rom/8/28', 1)),
+      ],
+      ['@prep_release_pending', JSON.stringify(['bob'])],
+    ]);
+  }
   // R9-359 — la retencion, en `multiGet`: en el mock, `getItem` pasa por el, y
   // asi vale para la lectura de la marca con el metodo que sea.
   const mg = AsyncStorage.multiGet as unknown as jest.Mock;
   const realMg = mg.getMockImplementation()!;
+  const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+  const realMs = ms.getMockImplementation()!;
   let abrir!: () => void;
   const puerta = new Promise<void>(r => (abrir = r));
   // La migracion del primer estado (nulo) espera en su primera lectura.
   let migracionRetenida: string | null = null;
   mg.mockImplementation(async (ks: string[], cb?: unknown) => {
-    if (ks.includes('@prep_by_account') && migracionRetenida === null) {
+    if (
+      parte === 'migracion' &&
+      ks.includes('@prep_by_account') &&
+      migracionRetenida === null
+    ) {
       migracionRetenida = '@prep_by_account';
       await puerta;
     }
     return realMg(ks, cb);
   });
+  // R9-380 — y en `getAllKeys`: la marca vale solo por estar, y mirar si esta
+  // asi (un cambio bueno) dejaba la retencion sin armar.
+  const ak = AsyncStorage.getAllKeys as unknown as jest.Mock;
+  const realAk = ak.getMockImplementation()!;
+  ak.mockImplementation(async () => {
+    if (parte === 'migracion' && migracionRetenida === null) {
+      migracionRetenida = '@prep_by_account';
+      await puerta;
+    }
+    return realAk();
+  });
+  // R9-369 — o la union de la devolucion, en la «sin cuenta».
+  let devolucionRetenida: string[] | null = null;
+  ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+    const union = pairs.find(([k]) => k === '@prep_notes');
+    if (parte === 'devolucion' && union && devolucionRetenida === null) {
+      devolucionRetenida = Object.keys(JSON.parse(union[1])).sort();
+      await puerta;
+    }
+    return realMs(pairs);
+  });
   const realPrepKey = prepAccount.prepKey;
   // R9-363 — cada pedido dice de quien es: un pedido ajeno de la misma base
   // (una lectura de notas en la ventana) no ocupa el lugar del respaldo.
+  // R9-377 — y es del respaldo el que hace el respaldo mismo (quien llama a
+  // `prepKey` esta en `BackupService`), no cualquiera con `BackupService` en
+  // la pila: una lectura de notas lanzada desde el respaldo pide desde
+  // `prepNotesStore`, y cubria a un respaldo que tomaba la suya por su cuenta.
   const claves: Array<{base: string; pendiente: boolean}> = [];
+  const llamador = () =>
+    (new Error().stack ?? '')
+      .split('\n')
+      .slice(1)
+      .find(m => !/backupPrepTurn\.test|node_modules/.test(m)) ?? '';
   const espia = jest.spyOn(prepAccount, 'prepKey').mockImplementation(base => {
     const pedida = {base, pendiente: true};
-    if (/BackupService/.test(new Error().stack ?? '')) claves.push(pedida);
+    if (/BackupService/.test(llamador())) claves.push(pedida);
     const clave = realPrepKey(base);
     void clave.then(() => (pedida.pendiente = false));
     return clave;
@@ -943,6 +1082,10 @@ const respaldoDurante345 = async (
     managePrepAccount();
     const primero = setPrepAccount(primerEstado);
     for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
+      await vuelta();
+    }
+    const devolucion = parte === 'devolucion';
+    for (let i = 0; devolucion && i < 1000 && !devolucionRetenida; i++) {
       await vuelta();
     }
     let hecho = false;
@@ -979,22 +1122,23 @@ const respaldoDurante345 = async (
     // escribiria en la Mesa de Cata. Se espera a que resuelva (a lo sumo cien
     // mil vueltas), y `resolvioAntesDeCata` lo dice: con mil como tope, una
     // migracion 1005 vueltas mas lenta (un cambio bueno) recibia a Cata con
-    // las claves pendientes, y el rojo era el del dano.
-    for (
-      let i = 0;
-      i < 100000 && pedidas().some(p => p.endsWith(': pendiente'));
-      i++
-    ) {
-      await vuelta();
-    }
-    const resolvioAntesDeCata = !pedidas().some(p => p.endsWith(': pendiente'));
+    // las claves pendientes, y el rojo era el del dano. R9-376 — «resolvio» es
+    // que el respaldo pidio algo y nada de eso esta pendiente: sin ningun pedido
+    // contado (uno que el filtro no ve), se espera a que el respaldo termine, y
+    // el control dice que no.
+    const resuelto = () =>
+      claves.length > 0 && !pedidas().some(p => p.endsWith(': pendiente'));
+    for (let i = 0; i < 100000 && !resuelto() && !hecho; i++) await vuelta();
+    const resolvioAntesDeCata = resuelto();
     otros.push(setPrepAccount('cata'));
     const [, resultado] = await Promise.all([primero, respaldo, ...otros]);
     mg.mockImplementation(realMg);
+    ak.mockImplementation(realAk);
     const ultimo = [primerEstado, ...despues].pop();
     const de = (base: string) => (ultimo ? `${base}:${ultimo}` : base);
     expect({
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+      devolucionRetenida, // CONTROL: o la union de la devolucion (R9-369)
       resolvioAntesDeCata, // CONTROL: lo pedido resolvio antes del estado tardio
       hechoAntesDeAbrir,
       // R9-358, R9-365 — al abrir, el respaldo pidio alguna clave, nada de lo
@@ -1027,10 +1171,15 @@ const respaldoDurante345 = async (
       fallo: false,
       deAna: [P],
       seriesDeAna: ['serie-de-antes'],
+      devolucionRetenida: null,
+      // R9-369 — en la devolucion, las retenidas y lo de Ana, del caso.
+      ...(parte === 'devolucion' ? esperado : {}),
     });
   } finally {
     abrir();
     mg.mockImplementation(realMg);
+    ak.mockImplementation(realAk);
+    ms.mockImplementation(realMs);
     espia.mockRestore();
     espiaEscribe.mockRestore();
     jest.useRealTimers();
@@ -1063,4 +1212,45 @@ it.each([
   'R9-345: restaurado durante el trabajo del primer estado de auth, el respaldo no reemplaza la Mesa de antes que la migracion mueve (%s)',
   (_nombre, primerEstado, despues, esperado) =>
     respaldoDurante345(primerEstado, despues, esperado),
+);
+// R9-369 — lo mismo mientras se termina una devolucion pendiente, con la
+// migracion ya hecha: no mueve nada, y lo restaurado va igual a la cuenta del
+// ultimo estado, en las dos direcciones. Con la migracion moviendo siempre, un
+// respaldo que tomaba la cuenta de cuando pidio sus claves si la migracion no
+// movia nada pasaba `prep` y el suite.
+const devolucion369 = {
+  migracionRetenida: null,
+  devolucionRetenida: ['John/3/16-21', 'Rom/8/28'],
+  deBeto: [],
+  seriesDeBeto: [],
+};
+it.each([
+  [
+    'nulo, y ana tras el pedido',
+    null,
+    ['ana'],
+    {
+      ...devolucion369,
+      deAna: ['Ps/23/1-6'],
+      seriesDeAna: ['serie-del-respaldo'],
+      sinCuenta: ['John/3/16-21', 'Rom/8/28'],
+      seriesSinCuenta: ['serie-de-bob', 'serie-sin-cuenta'],
+    },
+  ],
+  [
+    'ana, y nulo tras el pedido',
+    'ana',
+    [null],
+    {
+      ...devolucion369,
+      deAna: [],
+      seriesDeAna: [],
+      sinCuenta: ['Ps/23/1-6'],
+      seriesSinCuenta: ['serie-del-respaldo'],
+    },
+  ],
+] as Array<[string, string | null, Array<string | null>, object]>)(
+  'R9-369: restaurado mientras se termina una devolucion pendiente, el respaldo va a la cuenta del ultimo estado (%s)',
+  (_nombre, primerEstado, despues, esperado) =>
+    respaldoDurante345(primerEstado, despues, esperado, 'devolucion'),
 );
