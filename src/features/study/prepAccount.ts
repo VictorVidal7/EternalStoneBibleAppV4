@@ -17,9 +17,11 @@
  * - The Mesa written before this (the unsuffixed keys) goes ONCE to the owner
  *   of the local store (`@local_store_owner_uid`, the last account that
  *   signed in here) or, with none recorded, to the Google account signed in
- *   at that moment. With neither, it stays the Mesa «sin cuenta». The owner is
- *   the best guess of whose it was; it runs at the first auth state of the
- *   process, before any sign-in can claim the store for someone else.
+ *   once the give-backs pending are read (R9-370: the last auth state to come
+ *   by then, not always the first; see `migrateLegacyPrep`). With neither, it
+ *   stays the Mesa «sin cuenta». The owner is the best guess of whose it was;
+ *   it is read in the first auth state's work of the process, before any key
+ *   resolves and before any sign-in can claim the store for someone else.
  * - On a Google sign-in that keeps the local data (no previous owner, or the
  *   migration question answered «Migrar»), the Mesa «sin cuenta» joins the
  *   account's: what was written before signing in follows the person, as the
@@ -90,7 +92,8 @@ let firstState = true;
 /**
  * R9-331 — what the first auth state does before any key resolves. R9-336 —
  * every state awaits it, so it must not reject: each of its steps takes its
- * own failure (`migrateLegacyPrep`, `finishRelease`, `giveBack`). If it
+ * own failure (`migrateLegacyPrep`, `finishRelease`, `moveUnownedPrep`,
+ * `giveBack`). If it
  * rejected, every state would throw and no key would ever resolve.
  */
 let firstWork: Promise<void> = Promise.resolve();
@@ -107,7 +110,10 @@ export function prepKeyFor(base: string, uid: string | null): string {
  * it is taken once that work is done to its last step (R9-331, R9-344: the
  * migration, the read of the give-backs pending, and each of them up to taking
  * it off the note), with the account signed in when it is done: that of the
- * last auth state to come by then, not the first one's (R9-337). Without
+ * last auth state to come by then, not the first one's (R9-337). The Mesa
+ * written before R9-59, with no owner recorded, goes to the account signed in
+ * once the give-backs pending are read (R9-370): the same as the keys' unless
+ * a state comes while they are given back (see `migrateLegacyPrep`). Without
  * `managePrepAccount` (no `AuthProvider`), always at the call. A write goes to
  * the account of that key even if it waits behind others, except R9-275: if that
  * account's Mesa was given back by the time the write's turn comes, a store's
@@ -258,8 +264,8 @@ export async function setPrepAccount(uid: string | null): Promise<void> {
   if (firstState) {
     firstState = false;
     firstWork = (async () => {
-      await migrateLegacyPrep(uid);
-      await finishRelease();
+      const unowned = await migrateLegacyPrep();
+      await finishRelease(unowned);
     })();
   }
   // R9-331 — a state that comes while the first one's work runs waits for it
@@ -270,17 +276,54 @@ export async function setPrepAccount(uid: string | null): Promise<void> {
   markKnown = null;
 }
 
-async function migrateLegacyPrep(signedIn: string | null): Promise<void> {
+/**
+ * The Mesa written before R9-59 goes once to its owner (see the header): with
+ * one recorded, here. R9-370 — with none, `finishRelease` moves it once the
+ * give-backs pending are read and before the first of them, to the account
+ * signed in then: that of the last auth state to come by then, not the first
+ * one's. The keys take the same (see `prepKey`) unless a state comes while the
+ * give-backs run. It went to the first one's: with a first state null while
+ * the session is restored and the account a moment after (or an account and
+ * then null), the Mesa went with the first and the keys with the last, and an
+ * edit of a passage of that Mesa, asked meanwhile, was split between the two.
+ * It does not wait for the give-backs: they join a deleted account's Mesa into
+ * the Mesa «sin cuenta», and moving that one after them would carry the
+ * deleted account's Mesa into another account. Says whether that move is still
+ * to do.
+ */
+async function migrateLegacyPrep(): Promise<boolean> {
   try {
-    if ((await AsyncStorage.getItem(MIGRATED_KEY)) === '1') return;
-    const owner =
-      storeOwnerAccount(await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY)) ??
-      signedIn;
-    if (owner) await oneAtATime(() => joinPrep(null, owner));
+    if ((await AsyncStorage.getItem(MIGRATED_KEY)) === '1') return false;
+    const owner = storeOwnerAccount(
+      await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY),
+    );
+    if (!owner) return true;
+    await oneAtATime(() => joinPrep(null, owner));
     await AsyncStorage.setItem(MIGRATED_KEY, '1');
   } catch (error) {
     // Tried again on the next start; until then, the Mesa «sin cuenta».
     logger.warn('Failed to move the Mesa to its account', {
+      error: String(error),
+    });
+  }
+  return false;
+}
+
+/**
+ * R9-370 — the Mesa written before R9-59 with no owner recorded (see
+ * `migrateLegacyPrep`). The account is read in the join's turn: with none,
+ * it stays the Mesa «sin cuenta».
+ */
+async function moveUnownedPrep(): Promise<void> {
+  try {
+    await oneAtATime(() => {
+      const owner = account;
+      return owner ? joinPrep(null, owner) : Promise.resolve();
+    });
+    await AsyncStorage.setItem(MIGRATED_KEY, '1');
+  } catch (error) {
+    // Moved on the next start; until then, the Mesa «sin cuenta».
+    logger.warn('Failed to move the Mesa to the account signed in', {
       error: String(error),
     });
   }
@@ -321,8 +364,13 @@ async function noteRelease(uid: string): Promise<void> {
   }
 }
 
-/** R9-274 — the Mesas given back that did not finish (see `releasePrepAccount`). */
-async function finishRelease(): Promise<void> {
+/**
+ * R9-274 — the Mesas given back that did not finish (see `releasePrepAccount`).
+ * R9-370 — `unowned`: once they are read (or their read failed), and before
+ * the first is given back, the Mesa written before R9-59 is moved (see
+ * `migrateLegacyPrep`).
+ */
+async function finishRelease(unowned: boolean): Promise<void> {
   let uids: string[];
   try {
     uids = await readReleases();
@@ -331,8 +379,9 @@ async function finishRelease(): Promise<void> {
     logger.warn('Failed to read the Mesa to give back', {
       error: String(error),
     });
-    return;
+    uids = [];
   }
+  if (unowned) await moveUnownedPrep();
   // R9-276 — each on its own: one that fails again waits for the next start.
   for (const uid of uids) await giveBack(uid);
 }

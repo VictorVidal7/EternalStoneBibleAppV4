@@ -39,12 +39,40 @@ let setPrepSelfReviewQuestion: Auto['setPrepSelfReviewQuestion'];
 const claves = async () =>
   (await AsyncStorage.getAllKeys()).filter(k => k.startsWith('@prep')).sort();
 const pasajes = async () => Object.keys(await getAllPrepNotes()).sort();
-// R9-359 — las retenciones y las fallas de una LECTURA se arman en `multiGet`:
-// en el mock, `getItem(k)` pasa por `multiGet([k])`, asi que vigilan la
-// lectura de la clave sea cual sea el metodo. Armadas en `getItem`, leer la
-// marca y el dueno con un solo `multiGet` (un cambio bueno) las dejaba sin
-// armar, y caian 14 pruebas.
-const lecturas = () => AsyncStorage.multiGet as unknown as jest.Mock;
+// R9-359, R9-380 — las retenciones y las fallas de una LECTURA se arman sobre
+// la clave, en todo metodo que la lea: `multiGet` (en el mock, `getItem(k)`
+// pasa por `multiGet([k])`) y `getAllKeys` para la marca de la migracion, la
+// unica clave del trabajo que vale solo por estar (`'1'`): mirar si esta es
+// leerla. Las demas hay que leerlas por su valor, y ese `multiGet` es su
+// lectura; contar un `getAllKeys` como lectura de toda clave sumaba una
+// llamada a cada fila de la tabla y armaba en la migracion la retencion de la
+// nota (R9-344). La funcion que se le da a `lecturas().mockImplementation`
+// corre en cada `multiGet` con sus claves, y en cada `getAllKeys` con la
+// marca, antes de la lectura real. Armadas en `getItem`, leer la marca y el
+// dueno con un solo `multiGet` (un cambio bueno) tumbaba 14 pruebas; solo en
+// `multiGet`, mirar si esta la marca con `getAllKeys`, 13.
+type Leer = (ks: string[], cb?: unknown) => Promise<unknown>;
+const lecturas = () => {
+  const mg = AsyncStorage.multiGet as unknown as jest.Mock;
+  const ak = AsyncStorage.getAllKeys as unknown as jest.Mock;
+  const realMg: Leer = mg.getMockImplementation()!;
+  const realAk = ak.getMockImplementation()!;
+  const soloPorEstar = ['@prep_by_account'];
+  return {
+    getMockImplementation: (): Leer | undefined => realMg,
+    mockImplementation: (leer: Leer) => {
+      mg.mockImplementation(leer);
+      ak.mockImplementation(
+        leer === realMg
+          ? realAk
+          : async () => {
+              await leer(soloPorEstar);
+              return realAk();
+            },
+      );
+    },
+  };
+};
 
 // R9-340 — cada prueba con su propia instancia de los modulos de la Mesa (y
 // del logger que usan) y su propio almacen: un trabajo del primer estado que
@@ -123,7 +151,21 @@ const centinelaLargo = () => {
 };
 // R9-360, R9-361 — mil vueltas con los relojes falsos puestos, y en cada una
 // los temporizadores pendientes, de cualquier plazo: lo que el trabajo
-// programa vence aqui, aunque lo programe unas vueltas despues o en cadena.
+// programa vence aqui, aunque lo programe unas vueltas despues o en cadena,
+// con dos cortes (R9-373). Cada vuelta corre lo que estaba pendiente al
+// empezarla, hasta el ultimo de esos plazos. En vueltas: en la tabla y con
+// todo el disco fallando, una quita de la nota que el paso que falla pone en
+// un temporizador de dos horas 1003 vueltas despues se ve, y 1004 no; de una
+// hora o de 10 ms, 1005 y 1006. En cadena (cada temporizador programa el
+// siguiente, y el ultimo quita la nota): con eslabones de dos o tres horas,
+// 1000 se ven y 1001 no; de una hora, 1002 y 1003 (la primera vuelta corre
+// dos, con el centinela de dos horas pendiente, y la hora de despues otro);
+// de 10 ms, 5000 se ven (la primera vuelta corre hasta el centinela). Tras
+// los estados, fijar la cuenta al final de una cadena de 10 ms que empieza en
+// la devolucion del primero se ve con mil eslabones por cada estado que llega
+// antes del ultimo, y con uno mas no (en la de R9-344, 1000 y 1001 con dos
+// estados, 2000 y 2001 con tres; en la lectura de R9-345, con dos, 1000 y
+// 1001).
 // Con `unaHora()` sola, uno de mas de una hora pasaba; con una vuelta entre
 // dos estados, uno de 10 ms vencia ya con el ultimo. `runAllTimersAsync`
 // terminaba en cuanto no quedaba ninguno (no veia uno puesto unas vueltas
@@ -134,6 +176,33 @@ const tiempoYVueltas = async () => {
     if (jest.getTimerCount() > 0) await jest.runOnlyPendingTimersAsync();
     await new Promise(r => setImmediate(r));
   }
+};
+// R9-374 — con el reloj falso puesto, lo que el trabajo ESPERA no se espera con
+// un `await` directo ni con vueltas solas: un trabajo que cede con un
+// temporizador (aunque sea de 0 ms) se trababa, porque nadie lo adelantaba. Se
+// dan vueltas hasta que `listo()`, y cada mil vueltas sin listo, el temporizador
+// siguiente (solo ese: con todos los pendientes en cada vuelta, una quita
+// programada en el trabajo corria con el disco fallando todavia, y la de disco
+// entero no la veia). Hasta cien mil vueltas.
+const vueltasYReloj = async (listo: () => boolean) => {
+  for (let i = 1; i <= 100000 && !listo(); i++) {
+    if (i % 1000 === 0 && jest.getTimerCount() > 0) {
+      await jest.advanceTimersToNextTimerAsync();
+    }
+    await new Promise(r => setImmediate(r));
+  }
+};
+// El trabajo, esperado asi: si lanza, el rechazo llega a la prueba (mientras se
+// dan las vueltas, no queda sin atender); si no termina, lanza.
+const esperarConReloj = async <T>(trabajo: Promise<T>): Promise<T> => {
+  let termino = false;
+  const fin = trabajo.finally(() => {
+    termino = true;
+  });
+  fin.catch(() => undefined);
+  await vueltasYReloj(() => termino);
+  if (!termino) throw new Error('el trabajo no termino en cien mil vueltas');
+  return fin;
 };
 
 // Los relojes reales vuelven tambien si una prueba cae con los falsos puestos.
@@ -149,26 +218,33 @@ afterEach(() => {
 // R9-354 — y las que recibe `prepWrite` (espiado igual): de cada llamada, la
 // clave cuando resuelve, o «pendiente». Un store que pide la suya a `prepKey`
 // y escribe con otra ya tomada la tiene resuelta al abrir.
+// R9-378 — `pedidas` es un conjunto: cuantas veces se pidio una base no es de
+// la prueba (un store que pide la suya dos veces, o una lectura ajena en la
+// ventana, tumbaban los casos con el codigo bueno).
 const vigilarClaves = () => {
   const real = pa.prepKey;
-  const pedidas: Array<{base: string; pendiente: boolean}> = [];
+  const pedidas = new Map<
+    Promise<string>,
+    {base: string; pendiente: boolean}
+  >();
   const espia = jest.spyOn(pa, 'prepKey').mockImplementation(base => {
     const pedida = {base, pendiente: true};
-    pedidas.push(pedida);
     const clave = real(base);
+    pedidas.set(clave, pedida);
     void clave.then(() => (pedida.pendiente = false));
     return clave;
   });
-  // R9-363 — y de quien es cada llamada: el store que la hace (por la pila).
-  // Una de otro lado no cuenta: un `prepWrite` ajeno de la misma base ocupaba
-  // el lugar del store que no lo llama.
+  // R9-363 — y de quien es cada llamada: la base del pedido a `prepKey` que
+  // el llamador le pasa (la misma promesa). Una con una clave que no salio de
+  // un pedido no cuenta: un `prepWrite` ajeno de la misma base ocupaba el
+  // lugar del store que no lo llama. R9-371 — por el pedido y no por la pila:
+  // un store que llama a `prepWrite` desde un `bind` no deja su marco.
   const realWrite = pa.prepWrite;
   const recibidas: Array<{quien: string | null; clave: string | null}> = [];
   const espiaWrite = jest
     .spyOn(pa, 'prepWrite')
     .mockImplementation((key, fn) => {
-      const pila = new Error().stack ?? '';
-      const quien = /[\\/](prep\w+Store)\.ts/.exec(pila)?.[1] ?? null;
+      const quien = pedidas.get(key)?.base ?? null;
       const recibida = {quien, clave: null as string | null};
       recibidas.push(recibida);
       void key.then(k => (recibida.clave = k));
@@ -181,12 +257,14 @@ const vigilarClaves = () => {
         .map(({quien, clave}) => `${quien}: ${clave ?? 'pendiente'}`)
         .sort(),
     pedidas: () =>
-      pedidas
-        .map(
-          ({base, pendiente}) =>
-            `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
-        )
-        .sort(),
+      [
+        ...new Set(
+          [...pedidas.values()].map(
+            ({base, pendiente}) =>
+              `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
+          ),
+        ),
+      ].sort(),
     soltar: () => {
       espia.mockRestore();
       espiaWrite.mockRestore();
@@ -395,6 +473,132 @@ describe('R9-59 — la Mesa por cuenta', () => {
       expect({sinCuenta: await pasajes(), claves: await claves()}).toEqual({
         sinCuenta: ['John/3/16-21'],
         claves: ['@prep_by_account', '@prep_notes', '@prep_series'],
+      });
+    });
+
+    // R9-370 — sin dueno registrado, la Mesa de antes va a la cuenta del ultimo
+    // estado que llego cuando se leyo la nota de las devoluciones, antes de la
+    // primera, como las claves (R9-337), no a la del primero. Con el primer
+    // estado de una cuenta y el ultimo de otra (un nulo al restaurar la sesion y
+    // la cuenta enseguida, o al reves), la Mesa iba con el primero y las claves
+    // con el ultimo: una edicion de un pasaje de antes, pedida mientras tanto,
+    // quedaba partida entre las dos Mesas. Los dos lados del momento: la cuenta
+    // en la misma tarea, mientras se lee el dueno o mientras se lee la nota, va
+    // con todo a la cuenta; tras el trabajo, todo se queda en la «sin cuenta» (la
+    // cuenta la une al entrar, si conserva los datos). Con una devolucion
+    // pendiente, la Mesa devuelta no se mezcla: se mueve antes de devolver, y la
+    // de bob va a la «sin cuenta». Un estado que llega mientras se devuelve se
+    // lleva las claves y no la Mesa de antes.
+    it('R9-370: sin dueno registrado, con el primer estado de una cuenta y el ultimo de otra, la Mesa de antes y lo pedido van juntos a la del ultimo', async () => {
+      const P = 'John/3/16-21';
+      const B = 'Rom/8/28';
+      const vuelta = () => new Promise(r => setImmediate(r));
+      const secciones = async (k: string, pasaje = P) => {
+        const raw = await AsyncStorage.getItem(k);
+        return raw ? (JSON.parse(raw)[pasaje]?.sections ?? null) : null;
+      };
+      const mg = lecturas();
+      const realMg = mg.getMockImplementation()!;
+      let abrir = () => {};
+      const out: Record<string, unknown> = {};
+      // [primer estado, ultimo, clave cuya lectura se retiene antes del ultimo]
+      const casos: Record<string, [string | null, string | null, string?]> = {
+        mismaTarea: [null, 'ana'],
+        anaYNulo: ['ana', null],
+        leyendoDueno: [null, 'ana', '@local_store_owner_uid'],
+        leyendoNota: [null, 'ana', '@prep_release_pending'],
+        leyendoNotaConBob: [null, 'ana', '@prep_release_pending'],
+        trasElTrabajo: [null, 'ana'],
+      };
+      try {
+        for (const [cuando, [primer, ultimo, retener]] of Object.entries(
+          casos,
+        )) {
+          __resetPrepAccountForTests();
+          await AsyncStorage.clear();
+          await sembrar();
+          if (cuando === 'leyendoNotaConBob') {
+            await AsyncStorage.setItem(
+              '@prep_notes:bob',
+              JSON.stringify({
+                [B]: {sections: {observation: 'de bob'}, updatedAt: 1},
+              }),
+            );
+            await AsyncStorage.setItem(
+              '@prep_release_pending',
+              JSON.stringify(['bob']),
+            );
+          }
+          const puerta = new Promise<void>(r => (abrir = r));
+          let retenida = false;
+          mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+            if (retener && !retenida && ks.includes(retener)) {
+              retenida = true;
+              await puerta;
+            }
+            return realMg(ks, cb);
+          });
+          managePrepAccount();
+          const edita = savePrepNote(P, 'application', 'durante', 2);
+          const primero = setPrepAccount(primer);
+          let segundo: Promise<void> = Promise.resolve();
+          if (!retener && cuando !== 'trasElTrabajo')
+            segundo = setPrepAccount(ultimo);
+          if (retener) {
+            for (let i = 0; i < 1000 && !retenida; i++) await vuelta();
+            segundo = setPrepAccount(ultimo);
+            for (let i = 0; i < 1000; i++) await vuelta();
+            abrir();
+          }
+          await Promise.all([primero, segundo, edita]);
+          if (cuando === 'trasElTrabajo') await setPrepAccount(ultimo);
+          mg.mockImplementation(realMg);
+          out[cuando] = {
+            retenida, // CONTROL: la lectura esperaba (solo con `retener`)
+            deAna: await secciones('@prep_notes:ana'),
+            sinCuenta: await secciones('@prep_notes'),
+            ...(cuando === 'leyendoNotaConBob'
+              ? {
+                  bobEnAna: await secciones('@prep_notes:ana', B),
+                  bobSinCuenta: await secciones('@prep_notes', B),
+                }
+              : {}),
+            claves: await claves(),
+          };
+        }
+      } finally {
+        abrir();
+        mg.mockImplementation(realMg);
+      }
+      const ambas = {observation: 'de antes', application: 'durante'};
+      const aAna = {
+        deAna: ambas,
+        sinCuenta: null,
+        claves: ['@prep_by_account', '@prep_notes:ana', '@prep_series:ana'],
+      };
+      const sinCuenta = {
+        deAna: null,
+        sinCuenta: ambas,
+        claves: ['@prep_by_account', '@prep_notes', '@prep_series'],
+      };
+      expect(out).toEqual({
+        mismaTarea: {retenida: false, ...aAna},
+        anaYNulo: {retenida: false, ...sinCuenta},
+        leyendoDueno: {retenida: true, ...aAna},
+        leyendoNota: {retenida: true, ...aAna},
+        leyendoNotaConBob: {
+          retenida: true,
+          ...aAna,
+          bobEnAna: null,
+          bobSinCuenta: {observation: 'de bob'},
+          claves: [
+            '@prep_by_account',
+            '@prep_notes',
+            '@prep_notes:ana',
+            '@prep_series:ana',
+          ],
+        },
+        trasElTrabajo: {retenida: false, ...sinCuenta},
       });
     });
 
@@ -973,7 +1177,6 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // una microtarea tarde pasaba.
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
-    const vuelta = () => new Promise(r => setImmediate(r));
     const mr = AsyncStorage.multiRemove as unknown as jest.Mock;
     const realMr = mr.getMockImplementation()!;
     const mg = lecturas();
@@ -1048,7 +1251,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
           () => (escrita = true),
         );
         const estado1 = setPrepAccount(primero);
-        for (let i = 0; i < 1000 && retenida === null; i++) await vuelta();
+        // Con el reloj (R9-374): un trabajo que cede con un temporizador llegaba
+        // a las mil vueltas sin la retencion armada.
+        await vueltasYReloj(() => retenida !== null);
         // Leida cuando llega el otro estado, no al final: con la devolucion
         // mas lenta que la espera, el estado llegaba antes de la union, la
         // retencion se armaba despues, y leida al final decia lo mismo.
@@ -1225,12 +1430,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
     deAna: ['Ps/23/1-6'],
     deBeto: [],
     sinCuenta: [P345],
-    // Las cuatro que recibe `prepWrite`, de la «sin cuenta», una por store.
+    // Las cuatro que recibe `prepWrite`, de la «sin cuenta», una por store
+    // (la base que pidio: la clave que recibio).
     recibidasAlFinal: [
-      'prepIllustrationsStore: @prep_illustrations',
-      'prepNotesStore: @prep_notes',
-      'prepSelfReviewStore: @prep_self_review',
-      'prepSeriesStore: @prep_series',
+      '@prep_illustrations: @prep_illustrations',
+      '@prep_notes: @prep_notes',
+      '@prep_self_review: @prep_self_review',
+      '@prep_series: @prep_series',
     ],
     // Los otros tres, tambien en la «sin cuenta».
     claves: [
@@ -1248,10 +1454,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
     deBeto: [P345],
     sinCuenta: [],
     recibidasAlFinal: [
-      'prepIllustrationsStore: @prep_illustrations:beto',
-      'prepNotesStore: @prep_notes:beto',
-      'prepSelfReviewStore: @prep_self_review:beto',
-      'prepSeriesStore: @prep_series:beto',
+      '@prep_illustrations: @prep_illustrations:beto',
+      '@prep_notes: @prep_notes:beto',
+      '@prep_self_review: @prep_self_review:beto',
+      '@prep_series: @prep_series:beto',
     ],
     claves: [
       '@prep_by_account',
@@ -1266,6 +1472,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
     primerEstado: string | null,
     despues: Array<string | null>,
     esperado: object,
+    // R9-369 — la parte del trabajo que espera (ver abajo).
+    parte: 'migracion' | 'devolucion' = 'migracion',
   ) => {
     const P = P345;
     const vuelta = () => new Promise(r => setImmediate(r));
@@ -1278,24 +1486,65 @@ describe('R9-59 — la Mesa por cuenta', () => {
       }),
     );
     await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
+    // R9-369 — o una devolucion pendiente (la Mesa de Bob, borrado), con la
+    // migracion ya hecha, como en la lectura de abajo.
+    if (parte === 'devolucion') {
+      await AsyncStorage.clear();
+      await AsyncStorage.multiSet([
+        ['@prep_by_account', '1'],
+        [
+          '@prep_notes',
+          JSON.stringify({
+            'Ps/23/1-6': {sections: {observation: 'sin cuenta'}, updatedAt: 1},
+          }),
+        ],
+        [
+          '@prep_notes:bob',
+          JSON.stringify({
+            'Rom/8/28': {sections: {observation: 'de Bob'}, updatedAt: 1},
+          }),
+        ],
+        ['@prep_release_pending', JSON.stringify(['bob'])],
+      ]);
+    }
     const mg = lecturas();
     const realMg = mg.getMockImplementation()!;
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const realMs = ms.getMockImplementation()!;
     let abrir!: () => void;
     const puerta = new Promise<void>(r => (abrir = r));
     // La migracion del primer estado (nulo) espera en su primera lectura.
     let migracionRetenida: string | null = null;
     mg.mockImplementation(async (ks: string[], cb?: unknown) => {
-      if (ks.includes('@prep_by_account') && migracionRetenida === null) {
+      if (
+        parte === 'migracion' &&
+        ks.includes('@prep_by_account') &&
+        migracionRetenida === null
+      ) {
         migracionRetenida = '@prep_by_account';
         await puerta;
       }
       return realMg(ks, cb);
+    });
+    // R9-369 — o la union de la devolucion, en la «sin cuenta».
+    let devolucionRetenida: string[] | null = null;
+    ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+      const union = pairs.find(([k]) => k === '@prep_notes');
+      if (parte === 'devolucion' && union && devolucionRetenida === null) {
+        devolucionRetenida = Object.keys(JSON.parse(union[1])).sort();
+        await puerta;
+      }
+      return realMs(pairs);
     });
     try {
       relojesFalsos();
       managePrepAccount();
       const primero = setPrepAccount(primerEstado);
       for (let i = 0; i < 1000 && migracionRetenida === null; i++) {
+        await vuelta();
+      }
+      const devolucion = parte === 'devolucion';
+      for (let i = 0; devolucion && i < 1000 && !devolucionRetenida; i++) {
         await vuelta();
       }
       let escrita = false;
@@ -1353,6 +1602,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       mg.mockImplementation(realMg);
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
+        devolucionRetenida, // CONTROL: o la union de la devolucion (R9-369)
         antesDeAbrir,
         pedidasAlFinal,
         recibidasResueltasAlAbrir,
@@ -1365,6 +1615,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
       }).toEqual({
         ...esperado,
         migracionRetenida: '@prep_by_account',
+        devolucionRetenida: null,
+        // R9-369 — en la devolucion, las retenidas y lo de Ana, del caso.
+        ...(parte === 'devolucion' ? esperado : {}),
         antesDeAbrir: {
           clave: null,
           escrita: false,
@@ -1386,6 +1639,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     } finally {
       abrir();
       mg.mockImplementation(realMg);
+      ms.mockImplementation(realMs);
     }
   };
   it.each([
@@ -1402,6 +1656,72 @@ describe('R9-59 — la Mesa por cuenta', () => {
     'R9-345: lo escrito durante el trabajo del primer estado de auth no se va con la Mesa de antes (%s)',
     (_nombre, primerEstado, despues, esperado) =>
       escrituraDurante345(primerEstado, despues, esperado),
+  );
+  // R9-369 — lo mismo mientras se termina una devolucion pendiente, con la
+  // migracion ya hecha: no mueve nada, y lo escrito va igual a la cuenta del
+  // ultimo estado, en las dos direcciones. Solo la lectura sembraba una
+  // devolucion: un store que tomaba la cuenta de cuando pidio su clave si la
+  // migracion no movia nada pasaba aqui (con un estado tras el pedido, lo vio
+  // solo R9-292), y lo escrito iba a la cuenta contraria.
+  const devolucion369 = {
+    migracionRetenida: null,
+    devolucionRetenida: ['Ps/23/1-6', 'Rom/8/28'],
+    deBeto: [],
+  };
+  it.each([
+    [
+      'nulo, y ana tras los pedidos',
+      null,
+      ['ana'],
+      {
+        ...devolucion369,
+        clave: '@prep_notes:ana',
+        deAna: [P345],
+        sinCuenta: ['Ps/23/1-6', 'Rom/8/28'],
+        recibidasAlFinal: [
+          '@prep_illustrations: @prep_illustrations:ana',
+          '@prep_notes: @prep_notes:ana',
+          '@prep_self_review: @prep_self_review:ana',
+          '@prep_series: @prep_series:ana',
+        ],
+        claves: [
+          '@prep_by_account',
+          '@prep_illustrations:ana',
+          '@prep_notes',
+          '@prep_notes:ana',
+          '@prep_self_review:ana',
+          '@prep_series:ana',
+        ],
+      },
+    ],
+    [
+      'ana, y nulo tras los pedidos',
+      'ana',
+      [null],
+      {
+        ...devolucion369,
+        clave: '@prep_notes',
+        deAna: [],
+        sinCuenta: [P345, 'Ps/23/1-6', 'Rom/8/28'],
+        recibidasAlFinal: [
+          '@prep_illustrations: @prep_illustrations',
+          '@prep_notes: @prep_notes',
+          '@prep_self_review: @prep_self_review',
+          '@prep_series: @prep_series',
+        ],
+        claves: [
+          '@prep_by_account',
+          '@prep_illustrations',
+          '@prep_notes',
+          '@prep_self_review',
+          '@prep_series',
+        ],
+      },
+    ],
+  ] as Array<[string, string | null, Array<string | null>, object]>)(
+    'R9-369: lo escrito mientras se termina una devolucion pendiente va a la cuenta del ultimo estado (%s)',
+    (_nombre, primerEstado, despues, esperado) =>
+      escrituraDurante345(primerEstado, despues, esperado, 'devolucion'),
   );
 
   // R9-345 — lo mismo para una lectura, en las dos partes del trabajo: pedida
@@ -1552,35 +1872,61 @@ describe('R9-59 — la Mesa por cuenta', () => {
         const r = await caso(primerEstado, retener, despues);
         durante[nombre] = {
           retenida: r.retenida,
+          antesDeAbrir: r.antesDeAbrir,
+          pedidasAlFinal: r.pedidasAlFinal,
           clave: r.clave,
           leido: r.leido,
         };
       }
+      // R9-379 — el control «al abrir» y el del final se comparan tambien en
+      // los casos con estados: calculados y sin comparar, no vigilaban.
+      const alAbrir = {
+        clave: null,
+        leido: null,
+        pedidas: ['@prep_notes: pendiente'],
+      };
+      const alFinal = ['@prep_notes: resuelta'];
       expect({durante}).toEqual({
         durante: {
           migracionNuloAna: {
             retenida: [P],
+            antesDeAbrir: alAbrir,
+            pedidasAlFinal: alFinal,
             clave: '@prep_notes:ana',
             leido: [P],
           },
-          migracionAnaNulo: {retenida: [P], clave: '@prep_notes', leido: []},
+          migracionAnaNulo: {
+            retenida: [P],
+            antesDeAbrir: alAbrir,
+            pedidasAlFinal: alFinal,
+            clave: '@prep_notes',
+            leido: [],
+          },
           migracionAnaNuloAna: {
             retenida: [P],
+            antesDeAbrir: alAbrir,
+            pedidasAlFinal: alFinal,
             clave: '@prep_notes:ana',
             leido: [P],
           },
           devolucionNuloAna: {
             retenida: [R, 'Rom/8/28'],
+            antesDeAbrir: alAbrir,
+            pedidasAlFinal: alFinal,
             clave: '@prep_notes:ana',
             leido: [],
           },
           devolucionAnaNulo: {
             retenida: [R, 'Rom/8/28'],
+            antesDeAbrir: alAbrir,
+            pedidasAlFinal: alFinal,
             clave: '@prep_notes',
             leido: [R, 'Rom/8/28'],
           },
           devolucionNuloAnaNulo: {
             retenida: [R, 'Rom/8/28'],
+            antesDeAbrir: alAbrir,
+            pedidasAlFinal: alFinal,
             clave: '@prep_notes',
             leido: [R, 'Rom/8/28'],
           },
@@ -1616,6 +1962,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
     }
   });
 
+  // R9-367 — lo que queda en disco al final: las claves de la Mesa (de cada
+  // cuenta y la «sin cuenta»), la marca y la nota. Una Mesa vaciada cuenta como
+  // quitada: dejarla vacia o quitarla es lo mismo para quien la lee.
+  const clavesConDatos = async () =>
+    (await AsyncStorage.multiGet(await claves()))
+      .filter(([, v]) => v !== '{}')
+      .map(([k]) => k);
+
   // R9-336 — todo estado espera el trabajo del primero (R9-331), asi que ese
   // trabajo no puede rechazar: cada paso se traga su falla. R9-343 — un caso
   // por cada PARTE del trabajo que puede fallar, no por paso: la migracion (sus
@@ -1627,8 +1981,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // de esas partes podian sacarla sin que cayera nada.
   //
   // El control dice QUE fallo, por contenido: lo que escribia o quitaba la
-  // primera llamada que fallo (`escribia`) y los avisos de los pasos que se
-  // tragaron las fallas (`aviso`).
+  // primera llamada que fallo (`escribia`), y que el paso de esa parte se la
+  // trago: su aviso esta entre los de la corrida con falla (`avisos`, leidos
+  // al final). R9-368 — no la lista exacta: un aviso de mas en un paso que se
+  // traga su falla no cambia lo que hace. Que la parte siguiente de la misma
+  // clave corrio tras la falla (lo que veia un segundo aviso) lo dicen los
+  // datos de un caso que falla una sola vez (`una`).
   // Y `llamadas`: cuantas llamadas tocan la clave en el trabajo SIN falla (una
   // corrida limpia, antes), asi la `n`-esima es la de esa parte. Contar las
   // que fallaron no lo decia: con otra llamada de la clave delante (aun del
@@ -1640,6 +1998,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     clave: string,
     n: number,
     sembrar?: () => Promise<void>,
+    una?: boolean,
   ) => {
     const vuelta = () => new Promise(r => setImmediate(r));
     // R9-359 — una lectura (`getItem`) falla en `multiGet`, por donde pasa en el
@@ -1651,7 +2010,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     let fallar = false;
     let llamadas = 0;
     let centinela = {corrio: false};
-    let fallo: {escribia: unknown; aviso: string[]} | null = null;
+    let fallo: {escribia: unknown} | null = null;
     const avisos: string[] = [];
     const warn = jest
       .spyOn(logger, 'warn')
@@ -1679,6 +2038,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     // R9-348 — con `fallar`, la `n`-esima llamada que toca `clave` lanza, y
     // las siguientes tambien: una falla de disco puede repetirse (R9-212).
     // Fallando una sola vez, un reintento de la parte fuera de su `try` pasaba.
+    // Con `una`, solo la `n`-esima (el caso que mira la parte siguiente).
     // `fallo`: la primera que lanzo.
     mock.mockImplementation(async (arg: unknown, cb?: unknown) => {
       const toca =
@@ -1686,8 +2046,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
           ? (arg as Array<[string, string]>).some(([k]) => k === clave)
           : (arg as string[]).includes(clave);
       if (toca) llamadas += 1;
-      if (fallar && toca && llamadas >= n) {
-        fallo ??= {escribia: contenido(arg), aviso: avisos};
+      if (fallar && toca && (una ? llamadas === n : llamadas >= n)) {
+        fallo ??= {escribia: contenido(arg)};
         throw new Error('disco');
       }
       return real(arg, cb);
@@ -1714,11 +2074,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
       void pasajes().then(r => (leido = r));
       // Los dos terminan tambien si lanzan; la lectura, no: se la espera a lo
       // sumo cien mil vueltas (con mil, una lectura mil vueltas mas lenta daba
-      // `leido: null` sin que nadie lanzara, el rojo del dano).
-      await Promise.all([
+      // `leido: null` sin que nadie lanzara, el rojo del dano). Con la falla, el
+      // reloj falso ya esta puesto (R9-374).
+      const estados = Promise.all([
         setPrepAccount(null).catch(() => lanzo.push('primero')),
         setPrepAccount(null).catch(() => lanzo.push('segundo')),
       ]);
+      await (conFalla ? esperarConReloj(estados) : estados);
       for (let i = 0; i < 100000 && leido === null; i++) await vuelta();
       fallar = false;
       return {lanzo, leido};
@@ -1739,12 +2101,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
       return {
         llamadas: limpias,
         fallo,
+        avisos: [...avisos],
         esperaCompleta: centinela.corrio,
         lanzo,
         leido,
         // La nota de las devoluciones: la que fallo se queda, y la termina el
         // arranque siguiente.
         nota: await AsyncStorage.getItem('@prep_release_pending'),
+        claves: await clavesConDatos(),
       };
     } finally {
       mock.mockImplementation(real);
@@ -1753,6 +2117,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
   };
 
   const MIGRA = 'Failed to move the Mesa to its account';
+  const MUEVE = 'Failed to move the Mesa to the account signed in';
   const NOTA = 'Failed to read the Mesa to give back';
   const DEV = 'Failed to give the Mesa back';
   const mesaDe = (pasaje: string) =>
@@ -1772,11 +2137,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
     metodo: 'getItem' | 'multiSet' | 'multiRemove';
     clave: string;
     n?: number;
+    una?: boolean;
     llamadas: number;
     escribia: unknown;
-    aviso: string | string[];
+    aviso: string;
     leido: string[];
     nota: string | null;
+    claves: string[];
   };
   const Ps = 'Ps/23/1-6';
   const partes: Parte[] = [
@@ -1789,6 +2156,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
+      claves: ['@prep_notes'],
     },
     {
       titulo: 'R9-343: la lectura del dueno, en la migracion',
@@ -1799,6 +2167,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
+      claves: ['@prep_notes'],
     },
     {
       titulo: 'R9-343: una lectura de la union de la migracion',
@@ -1810,6 +2179,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
+      claves: ['@prep_notes'],
     },
     {
       titulo: 'R9-343: la escritura de la union de la migracion',
@@ -1821,6 +2191,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
+      claves: ['@prep_notes'],
     },
     {
       titulo: 'R9-343: la quita de la union de la migracion',
@@ -1832,22 +2203,43 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
+      // La union ya se escribio: queda en las dos, como en la de una
+      // devolucion.
+      claves: ['@prep_notes', '@prep_notes:ana'],
     },
     {
+      // R9-370 — sin dueno registrado, la marca la escribe `moveUnownedPrep`
+      // (tras leer la nota de devoluciones), con su aviso; la de abajo, con
+      // dueno, la escribe la migracion.
       titulo: 'R9-343: la marca de la migracion',
       metodo: 'multiSet',
       clave: '@prep_by_account',
       llamadas: 1,
       escribia: '1',
-      aviso: MIGRA,
+      aviso: MUEVE,
       leido: [Ps],
       nota: null,
+      claves: ['@prep_notes'],
+    },
+    {
+      titulo: 'R9-370: la marca de la migracion, con dueno registrado',
+      sembrar: conDueno,
+      metodo: 'multiSet',
+      clave: '@prep_by_account',
+      llamadas: 1,
+      escribia: '1',
+      aviso: MIGRA,
+      // la union ya llevo la Mesa a la de Ana: la «sin cuenta» queda vacia.
+      leido: [],
+      nota: null,
+      claves: ['@prep_notes:ana'],
     },
     {
       // R9-357 — con una devolucion anotada: la lectura que falla deja la nota
-      // (y la Mesa de Bob) para el arranque siguiente. Sin nada anotado, una
-      // nota quitada al fallar salia igual (`null`). Sin falla, la nota se lee
-      // dos veces: en `finishRelease` y al terminar la devolucion.
+      // (y la Mesa de Bob, en `claves`: R9-367) para el arranque siguiente.
+      // Sin nada anotado, una nota quitada al fallar salia igual (`null`). Sin
+      // falla, la nota se lee dos veces: en `finishRelease` y al terminar la
+      // devolucion.
       titulo: 'R9-336: la lectura de la nota de devoluciones',
       sembrar: () => conDevoluciones('bob'),
       metodo: 'getItem',
@@ -1857,6 +2249,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: NOTA,
       leido: [Ps],
       nota: '["bob"]',
+      claves: [
+        '@prep_by_account',
+        '@prep_notes',
+        '@prep_notes:bob',
+        '@prep_release_pending',
+      ],
     },
     {
       titulo: 'R9-343: una lectura de la union de una devolucion pendiente',
@@ -1868,6 +2266,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: DEV,
       leido: [Ps],
       nota: '["bob"]',
+      claves: [
+        '@prep_by_account',
+        '@prep_notes',
+        '@prep_notes:bob',
+        '@prep_release_pending',
+      ],
     },
     {
       titulo: 'R9-336: la escritura de la union de una devolucion pendiente',
@@ -1879,6 +2283,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: DEV,
       leido: [Ps],
       nota: '["bob"]',
+      claves: [
+        '@prep_by_account',
+        '@prep_notes',
+        '@prep_notes:bob',
+        '@prep_release_pending',
+      ],
     },
     {
       titulo: 'R9-343: la quita de la union de una devolucion pendiente',
@@ -1890,6 +2300,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: DEV,
       leido: [Ps, 'Rom/8/28'],
       nota: '["bob"]',
+      // La union ya se escribio: lo de Bob queda en las dos (`joinPrep`
+      // escribe la union antes de quitar).
+      claves: [
+        '@prep_by_account',
+        '@prep_notes',
+        '@prep_notes:bob',
+        '@prep_release_pending',
+      ],
     },
     {
       // La primera lectura de la nota es la de `finishRelease`.
@@ -1903,6 +2321,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: DEV,
       leido: [Ps, 'Rom/8/28'],
       nota: '["bob"]',
+      claves: ['@prep_by_account', '@prep_notes', '@prep_release_pending'],
     },
     {
       // La de Bob falla; la de Carl, que la re-escribe despues sin Carl,
@@ -1914,9 +2333,29 @@ describe('R9-59 — la Mesa por cuenta', () => {
       clave: '@prep_release_pending',
       llamadas: 1,
       escribia: ['carl'],
-      aviso: [DEV, DEV],
+      aviso: DEV,
       leido: ['Eph/2/8', Ps, 'Rom/8/28'],
       nota: '["bob","carl"]',
+      claves: ['@prep_by_account', '@prep_notes', '@prep_release_pending'],
+    },
+    {
+      // R9-368 — la misma, fallando una sola vez: la de Carl corre despues y
+      // re-escribe la nota sin Carl. Con la falla repetida, que esa parte
+      // siguiente corrio lo decia solo un segundo aviso; una nota que, tras
+      // fallar, ya no se cambia en el resto del proceso pasaba con los avisos
+      // leidos como conjunto.
+      titulo:
+        'R9-368: la re-escritura de la nota al terminar una devolucion, fallando una vez, con otra pendiente',
+      sembrar: () => conDevoluciones('bob', 'carl'),
+      metodo: 'multiSet',
+      clave: '@prep_release_pending',
+      una: true,
+      llamadas: 1,
+      escribia: ['carl'],
+      aviso: DEV,
+      leido: ['Eph/2/8', Ps, 'Rom/8/28'],
+      nota: '["bob"]',
+      claves: ['@prep_by_account', '@prep_notes', '@prep_release_pending'],
     },
     {
       titulo: 'R9-343: la quita de la nota al terminar la ultima devolucion',
@@ -1928,6 +2367,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: DEV,
       leido: [Ps, 'Rom/8/28'],
       nota: '["bob"]',
+      claves: ['@prep_by_account', '@prep_notes', '@prep_release_pending'],
     },
   ];
 
@@ -1938,21 +2378,25 @@ describe('R9-59 — la Mesa por cuenta', () => {
       metodo,
       clave,
       n,
+      una,
       llamadas,
       escribia,
       aviso,
       leido,
       nota,
+      claves,
     }) => {
       expect(
-        await primerEstadoConFalla(metodo, clave, n ?? 1, sembrar),
+        await primerEstadoConFalla(metodo, clave, n ?? 1, sembrar, una),
       ).toEqual({
         llamadas, // CONTROL: sin falla, ninguna otra llamada toca la clave
-        fallo: {escribia, aviso: [aviso].flat()}, // CONTROL: fallo esa parte, y se la trago su paso
+        fallo: {escribia}, // CONTROL: fallo esa parte
+        avisos: expect.arrayContaining([aviso]), // CONTROL: y se la trago su paso
         esperaCompleta: true, // CONTROL: la espera corrio un temporizador de dos horas puesto en el trabajo
         lanzo: [],
         leido,
         nota,
+        claves,
       });
     },
   );
@@ -2001,10 +2445,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       managePrepAccount();
       const centinela = centinelaLargo();
       void pasajes().then(r => (leido = r));
-      await Promise.all([
-        setPrepAccount(null).catch(() => lanzo.push('primero')),
-        setPrepAccount(null).catch(() => lanzo.push('segundo')),
-      ]);
+      await esperarConReloj(
+        Promise.all([
+          setPrepAccount(null).catch(() => lanzo.push('primero')),
+          setPrepAccount(null).catch(() => lanzo.push('segundo')),
+        ]),
+      );
       // La lectura vuelve tambien con el disco fallando (vacia); se la espera
       // como en la tabla.
       for (let i = 0; i < 100000 && leido === null; i++) {
@@ -2024,7 +2470,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
         nota: await AsyncStorage.getItem('@prep_release_pending'),
         claves: await claves(),
       }).toEqual({
-        avisos: [MIGRA, NOTA, 'Failed to read prep notes'], // CONTROL: fallo el disco, y cada paso se trago su falla
+        // CONTROL: fallo el disco, y cada paso se trago su falla (su aviso
+        // esta; uno de mas no cambia lo que hace: R9-368)
+        avisos: expect.arrayContaining([
+          MIGRA,
+          NOTA,
+          'Failed to read prep notes',
+        ]),
         esperaCompleta: true, // CONTROL: la espera corrio un temporizador de dos horas puesto en el trabajo
         lanzo: [],
         leido: [], // las claves se soltaron
@@ -2285,7 +2737,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       try {
         relojesFalsos();
         managePrepAccount();
-        if (union === 'adopcion') await setPrepAccount('ana');
+        if (union === 'adopcion') await esperarConReloj(setPrepAccount('ana'));
         // Otra escritura toma el turno y espera en una puerta; detras pide el
         // suyo la union; y la edicion de las notas de Ana lo pide cuando se
         // suelta su clave.
