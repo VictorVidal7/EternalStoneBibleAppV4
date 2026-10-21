@@ -1204,8 +1204,20 @@
 > lista exacta en la escritura y la lectura), `R9-379` (el control de la lectura no se compara con
 > estados) y `R9-380` (residuos de `R9-359`). `R9-370`, decidido: opción (a).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **380**. Rama `docs/review-s106-diff-s105`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S106-revision-del-diff-s105.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **380**. Rama `docs/review-s106-diff-s105`: mergeada y
+> pusheada con el OK de Victor (`main` = `02d8e93`, CI verde en el log, run `39517664016`, 374/4672;
+> corregido en la 107). Detalle: `detail/S106-revision-del-diff-s105.md`.
+>
+> **Sesión 107 (2026-10-21): arreglo de lo de la 105 y la 106**, en un chat nuevo, en la terminal, con
+> 12 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Cerrados
+> `R9-367`..`R9-380`. `R9-370`, implementado en `src/` (opción (a)): sin dueño registrado, la Mesa de
+> antes va con la cuenta que hay tras leer la nota de devoluciones, antes de la primera, con el corte
+> escrito. Dos nuevos, los costos de dos arreglos: `R9-381` (el «de quién» de la escritura por la
+> identidad del pedido) y `R9-382` (el filtro del respaldo por quien llama).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **382**. Ramas `fix/s107-arreglos-s106` y
+> `docs/review-s107-fix`, sin mergear hasta el OK de Victor. Detalle:
+> `detail/S107-arreglo-de-s105-s106.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2283,6 +2295,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     trabajo programa vence aquí» pregunta por lo que el trabajo espera; `resetModules` no reinicia lo
     que la fábrica de un mock cierra; un control que se calcula y no se compara no vigila; antes de
     llamar «cambio bueno» a una pieza, preguntá si abre en la app una ventana nueva.
+
+- **Sesión 107 — 2026-10-21. Arreglo de lo de la 105 y la 106.** En un chat nuevo, en la terminal,
+  con 12 agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor); con
+  `_scratch/S107-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S107-sonda.cjs.txt` (de `S107-gen.cjs.txt`, que arma la sonda de
+    cada agente y re-ancla las piezas de antes donde `R9-370` cambió `src/`); una entrada (o dos
+    pegadas) por agente; los diseños integrados con `git apply --3way` y re-medidos en el principal
+    (`S107-matriz.cjs.txt`).
+  - **Resultado:** cerrados `R9-367`..`R9-380`; `R9-370`, en `src/`. Nuevos `R9-381` y `R9-382` (P3
+    bajo), los costos de dos arreglos. No queda ningún P0 abierto.
+  - **Detalle: `detail/S107-arreglo-de-s105-s106.md`.**
+  - **Las lecciones:** una decisión que nombra un momento se mide en cada paso hasta ese momento; un
+    caso tiene su espejo; un arreglo que parte un camino en dos pide una fila por camino; una pieza se
+    re-ancla solo donde el texto nuevo hace lo mismo; un «de quién» por identidad tiene su cambio
+    bueno, como el de la pila.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con
