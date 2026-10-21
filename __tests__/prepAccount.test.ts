@@ -155,8 +155,9 @@ const centinelaLargo = () => {
 // con dos cortes (R9-373). Cada vuelta corre lo que estaba pendiente al
 // empezarla, hasta el ultimo de esos plazos. En vueltas: en la tabla y con
 // todo el disco fallando, una quita de la nota que el paso que falla pone en
-// un temporizador de dos horas 1003 vueltas despues se ve, y 1004 no; de una
-// hora o de 10 ms, 1005 y 1006. En cadena (cada temporizador programa el
+// un temporizador de dos horas 1002 vueltas despues se ve, y 1003 no; de una
+// hora o de 10 ms, 1004 y 1005 (sin dueno registrado, el trabajo sigue tras la
+// falla con la Mesa de antes: R9-370). En cadena (cada temporizador programa el
 // siguiente, y el ultimo quita la nota): con eslabones de dos o tres horas,
 // 1000 se ven y 1001 no; de una hora, 1002 y 1003 (la primera vuelta corre
 // dos, con el centinela de dos horas pendiente, y la hora de despues otro);
