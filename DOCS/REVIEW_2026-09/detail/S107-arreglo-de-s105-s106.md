@@ -151,7 +151,8 @@ Los dos los abrió la 107 a sabiendas, para cerrar un verde falso.
 - **Un corte medido sobre el diseño de un agente se re-mide sobre lo integrado** (`R9-373`). A9 escribió
   los cortes sobre `02d8e93`; con `R9-370`, el trabajo sigue un paso tras la falla y el corte en vueltas
   bajó uno: la frase prometía ver una regresión que pasaba. Lo vio la matriz (tres corridas de A9 que
-  caían en su worktree pasaban aquí).
+  caían en su worktree pasaban aquí). **Corregido en la 108** (`R9-387`): la causa no es `R9-370`; con el
+  `src` de antes y la prueba nueva el corte ya bajó.
 - **Una pieza re-anclada se lee entera, el reemplazo también** (`S107-gen`): el ancla aplicaba, pero el
   reemplazo traía `?? signedIn` o un `return;` que el código nuevo ya no tiene; 27 y 13 rojos que no eran
   de la regresión.

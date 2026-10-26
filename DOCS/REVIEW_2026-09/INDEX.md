@@ -1216,8 +1216,17 @@
 > identidad del pedido) y `R9-382` (el filtro del respaldo por quien llama).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **382**. Ramas `fix/s107-arreglos-s106` y
-> `docs/review-s107-fix`, sin mergear hasta el OK de Victor. Detalle:
-> `detail/S107-arreglo-de-s105-s106.md`.
+> `docs/review-s107-fix`: mergeadas y pusheadas con el OK de Victor (`main` = `0d682da`, CI verde en el
+> log, run `39656058508`, 374/4681; corregido en la 108). Detalle: `detail/S107-arreglo-de-s105-s106.md`.
+>
+> **Sesión 108 (2026-10-26): revisión del diff de la 107** (`02d8e93..27d598b`, con `src/`: `R9-370`),
+> en un chat nuevo, en la terminal, con 3 agentes en worktree que solo midieron. Cinco nuevos:
+> `R9-383` (la mudanza de `R9-370` sin fila), `R9-384` (`R9-344` sin caso sin dueño), `R9-385` (el corte
+> de `R9-370`, escrito más angosto en `src/`), `R9-386` (`pedidas` como conjunto) y `R9-387` (la causa
+> del corte de `R9-373`, falsa).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **387**. Rama `docs/review-s108-diff-s107`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S108-revision-del-diff-s107.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2310,6 +2319,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     caso tiene su espejo; un arreglo que parte un camino en dos pide una fila por camino; una pieza se
     re-ancla solo donde el texto nuevo hace lo mismo; un «de quién» por identidad tiene su cambio
     bueno, como el de la pila.
+
+- **Sesión 108 — 2026-10-26. Revisión del diff de la 107.** En un chat nuevo, en la terminal, con 3
+  agentes en worktree que solo midieron; con `_scratch/S108-PROMPT.md`. Solo docs.
+  - **Cómo se trabajó:** `_scratch/S108-sonda.cjs.txt` (de `S108-gen.cjs.txt`, sobre `S107-sonda`, sin
+    repetir el re-anclado); tres miradas (`R9-370` en `src/` y su fila; el re-anclado, las gemelas sin
+    dueño y los cortes; el respaldo y la integración a mano); todo lo suyo re-medido en el principal, y
+    la matriz de la 107 sobre la punta (`S108-matriz.cjs.txt`).
+  - **Resultado:** nuevos `R9-383`..`R9-387` (P3 y P3 bajo): uno de `src/` (una frase) y cuatro de las
+    pruebas. No queda ningún P0 abierto.
+  - **Detalle: `detail/S108-revision-del-diff-s107.md`.**
+  - **Las lecciones:** una fila por camino necesita datos que hagan trabajar a la parte; el corte de una
+    decisión empieza donde se toma el valor; lo que un re-anclado deja en un solo camino se lista, y cada
+    pieza pide su gemela; la causa de un corte que se movió se mide moviendo una cosa por vez.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

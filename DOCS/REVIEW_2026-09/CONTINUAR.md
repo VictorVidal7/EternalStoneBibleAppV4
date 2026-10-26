@@ -1,14 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-21, fin de la sesión 107.** La 107 hizo el (ci) en un chat nuevo,
-> en la terminal, con 12 agentes en worktree que midieron los diseños antes de escribirlos (los pidió
-> Victor). Cerrados `R9-367`..`R9-380`, con `R9-370` implementado en `src/` (opción (a), con el corte
-> escrito); dos nuevos (`R9-381`, `R9-382`), los costos de dos arreglos, sin arreglar.
+> **Última actualización: 2026-10-26, fin de la sesión 108.** La 108 hizo el (cj) en un chat nuevo,
+> en la terminal, con 3 agentes en worktree que solo midieron: la revisión del diff de la 107, primero
+> lo que escribió el orquestador (`R9-370` en `src/`). Cinco nuevos (`R9-383`..`R9-387`), sin arreglar:
+> uno de `src/` (una frase de las cabeceras) y cuatro de las pruebas.
 >
-> La 106 ya está mergeada y pusheada (`main` = `02d8e93`, CI verde en el log, run `39517664016`,
-> 374/4672). Las ramas de la 107 (`fix/s107-arreglos-s106`, con `src/`, y `docs/review-s107-fix`) van
-> **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 382 hallazgos. **Lo
-> siguiente:** la 108 revisa el diff de la 107 (mensaje (cj), en `_scratch/S108-PROMPT.md`).
+> La 107 ya está mergeada y pusheada (`main` = `0d682da`, CI verde en el log, run `39656058508`,
+> 374/4681). La rama de la 108 (`docs/review-s108-diff-s107`, solo docs) va **sin mergear hasta el OK
+> de Victor**. **No queda ningún P0 abierto**, y hay 387 hallazgos. **Lo siguiente:** la 109 arregla
+> `R9-381`..`R9-387` (mensaje (ck), en `_scratch/S109-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -543,12 +543,16 @@ Y la revisión de su diff (la (cf), sesión 104, en un chat nuevo con 6 agentes 
 midieron los diseños antes de escribirlos, con `_scratch/S105-PROMPT.md`). Y la revisión de su diff
 (la (ch), sesión 106, en un chat nuevo con 4 agentes que solo midieron, con `_scratch/S106-PROMPT.md`).
 Y su arreglo (la (ci), sesión 107, en un chat nuevo con 12 agentes que midieron los diseños antes de
-escribirlos, con `_scratch/S107-PROMPT.md`). **Lo siguiente es el (cj).**
+escribirlos, con `_scratch/S107-PROMPT.md`). Y la revisión de su diff (la (cj), sesión 108, en un chat
+nuevo con 3 agentes que solo midieron, con `_scratch/S108-PROMPT.md`). **Lo siguiente es el (ck).**
 
-**(cj) Sesión 108: revisar el diff de la 107** (`02d8e93..` la punta de `fix/s107-arreglos-s106`, con
-`src/`: `R9-370`), empezando por lo que el orquestador escribió o cambió sobre los diseños (el «c» de
-`R9-370` en `src/`, la fila nueva de la marca, el re-anclado de `S107-gen` y la integración). El mensaje
-está en `_scratch/S108-PROMPT.md`, que manda sobre este archivo.
+**(ck) Sesión 109: arreglar lo de la 107 y la 108** (`R9-381`..`R9-387`; `R9-385` es una frase de
+`src/`), en las pruebas salvo esa frase, con cada prueba nueva vista FALLAR con su pieza. El mensaje está
+en `_scratch/S109-PROMPT.md`, que manda sobre este archivo.
+
+**(cj) Sesión 108: revisar el diff de la 107 — ya HECHO en la sesión 108, en un chat nuevo, en la
+terminal, con 3 agentes en worktree que solo midieron.** Cinco nuevos (`R9-383`..`R9-387`). El mensaje
+está en `_scratch/S108-PROMPT.md`.
 
 **(ci) Sesión 107: arreglar lo de la 105 y la 106 — ya HECHO en la sesión 107, en un chat nuevo, en la
 terminal, con 12 agentes en worktree que midieron los diseños.** Cerrados `R9-367`..`R9-380` (`R9-370`
@@ -2147,23 +2151,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 107 (2026-10-21).**
+**Medido al cerrar la sesión 108 (2026-10-26).**
 
-- **La 106, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `02d8e93` (solo
-  docs; el último código era `53bdbe6`, solo `__tests__/`). CI verificado en el log: run
-  `39517664016`, 3 jobs, «Run Tests» en Node v24.21.0, 374/4672. Su rama se borró tras `git cherry`.
-- **Las ramas de la 107, sin mergear a propósito y sin pushear:** `fix/s107-arreglos-s106`
-  (`a0323d7`: `src/features/study/prepAccount.ts` y `__tests__/prepAccount.test.ts`; `1e9e809`:
-  `__tests__/backupPrepTurn.test.ts`; `27d598b`: los cortes de `R9-373` sobre lo integrado) y
-  `docs/review-s107-fix` encima (solo docs). Se mergean en
-  fast-forward con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno. El de A2 se borró solo; los otros 11 se quitaron a mano tras comparar su
-  `_scratch` con su copia (`_scratch/S107-sondas-agente-N/`) y su diff guardado con su `git diff`
-  (`S107-limpiar.sh.txt`). El checkpoint se escribió en un worktree aparte (`../essb-docs-s107`, fuera
-  del repo), quitado al terminar.
+- **La 107, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `0d682da` (solo
+  docs; el último código es `27d598b`, `src/` en `a0323d7`). CI verificado en el log: run
+  `39656058508`, 3 jobs, «Run Tests» en Node v24.22.0, 374/4681. Sus ramas se borraron tras
+  `git cherry`. Comprobado en la 108 con `git fetch` y `git log -1 origin/main`.
+- **La rama de la 108, sin mergear a propósito y sin pushear:** `docs/review-s108-diff-s107` (solo
+  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. Los de A2 y A3 se borraron solos; el de A1, a mano, tras comparar su
+  `_scratch` con su copia (`_scratch/S108-sondas-agente-1/`; sin cambios en el árbol). El checkpoint se
+  escribió en un worktree aparte (`../essb-docs-s108`, fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 107):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 108):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -3051,12 +3052,36 @@ Alternativas legítimas:
   no aplica y se dice. Y el reemplazo se lee entero: `migraConMultiGet` traía `?? signedIn` y 13 quitas
   un `return;` que el código nuevo ya no tiene (27 y 13 rojos que no eran de la regresión).
 - **Un corte medido sobre el diseño de un agente se re-mide sobre lo integrado (sesión 107, `R9-373`).**
-  A9 escribió los cortes en vueltas sobre `02d8e93`; con `R9-370` el trabajo sigue un paso tras la falla,
-  el corte bajó uno, y la frase prometía ver una regresión que pasaba. Lo vio la matriz: tres corridas de
-  A9 que caían en su worktree pasaban en el principal.
+  A9 escribió los cortes en vueltas sobre `02d8e93`; sobre lo integrado el corte bajó uno, y la frase
+  prometía ver una regresión que pasaba. Lo vio la matriz: tres corridas de A9 que caían en su worktree
+  pasaban en el principal. (La causa que escribió la 107, «con `R9-370` el trabajo sigue un paso tras la
+  falla», es falsa: con el `src` de antes y la prueba nueva el corte ya bajó; lo bajaron las pruebas.
+  Medido en la 108, `R9-387`.)
 - **Un control que lee «de quién» por identidad tiene su propio cambio bueno, como el de la pila
   (sesión 107, `R9-381`, `R9-382`).** El envoltorio de una promesa pierde la identidad como el `bind`
   perdía el marco; un ayudante en el mismo módulo que el ajeno no se distingue por quien llama.
+- **Una fila por camino necesita datos que hagan trabajar a la parte (sesión 108, `R9-383`).** La 107
+  partió la fila de la marca en dos caminos; sin dueño, la tabla corre con los estados nulos, y ahí la
+  mudanza no une nada: siete regresiones de su unión, su marca o la nota fallida pasan `prep` y el suite,
+  con la Mesa de antes marcada sin mover o las claves trabadas. La fila existía; sus datos no hacían
+  trabajar la parte. Es la regla de la 104 («un dato vacío no dice adónde fue») en la tabla.
+- **El corte de una decisión empieza donde se toma el valor, no en el paso que la motivó (sesión 108,
+  `R9-385`).** La 107 escribió «un estado mientras se devuelve», porque las devoluciones decidieron dónde
+  mover; la mudanza lee la cuenta al empezar su turno, y un estado durante su unión o su marca, sin
+  devoluciones, también parte el pasaje (`corte370a1`). Medí el corte desde la lectura del valor.
+- **Lo que un re-anclado deja en un solo camino se lista, y cada pieza pide su gemela (sesión 108,
+  `R9-384`).** La 107 hizo una gemela sin dueño (`claveAntesDelTurnoMueve370`); el agente 2 listó unas
+  diez piezas que el re-anclado dejó solo en el camino con dueño, y la de `R9-344`
+  (`claveTrasMover344`) y las del `catch` de la migración pasan sin dueño. Es la regla de la 99 (un caso
+  por camino) sobre las piezas.
+- **Al aflojar un control exacto, la clase incluye «pedir de más y usar lo de más» (sesión 108,
+  `R9-386`).** La 107 corrió 18 regresiones antes de aflojar `pedidas`; un store que vuelve a pedir su
+  clave y escribe con la segunda solo lo veía la cantidad. Las reglas de la 103 y la 104, con la
+  regresión que usa lo que la lista contaba de más.
+- **La causa de un corte que se movió se mide moviendo una cosa por vez (sesión 108, `R9-387`).** La 107
+  cambió `src/` y las pruebas juntos, vio bajar el corte y se lo atribuyó a `src/` por lectura. Con el
+  `src` de antes y la prueba nueva, y al revés, se ve qué lo movió. Es la regla de la 87 (una lección se
+  mide antes de escribirla).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

@@ -1599,7 +1599,8 @@
 >
 > **Sesión 107 (2026-10-21): arreglo de lo de la 105 y la 106**, en un chat nuevo, en la terminal, con
 > 12 agentes en worktree que midieron los diseños antes de escribirlos. En `fix/s107-arreglos-s106`
-> (`a0323d7`, `1e9e809`), con `src/`.
+> (`a0323d7`, `1e9e809`, `27d598b`), con `src/`. Mergeadas y pusheadas con el OK de Victor (`main` =
+> `0d682da`, CI verde en el log, run `39656058508`, 374/4681; corregido en la 108).
 >
 > - **Cerrados:** `R9-367`..`R9-380`. `R9-370`, implementado (opción (a)): sin dueño registrado, la Mesa
 >   de antes se mueve tras leer la nota de devoluciones y antes de la primera, con la cuenta de ese
@@ -1609,6 +1610,21 @@
 >   quien llama: un ayudante de otro módulo).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **382**. Detalle: `detail/S107-arreglo-de-s105-s106.md`.
+>
+> **Sesión 108 (2026-10-26): revisión del diff de la 107** (`02d8e93..27d598b`, con `src/`: `R9-370`),
+> en un chat nuevo, en la terminal, con 3 agentes en worktree que solo midieron: la segunda vuelta de la
+> 107, primero lo que escribió el orquestador. Solo docs, en `docs/review-s108-diff-s107`.
+>
+> - **Nuevos (5):** `R9-383` (la mudanza de `R9-370` no tiene fila: siete regresiones de su unión, su
+>   marca o la nota fallida pasan `prep` y el suite), `R9-384` (`R9-344` sin caso sin dueño), `R9-385`
+>   (las cabeceras de `src/` escriben el corte de `R9-370` más angosto de lo que es), `R9-386` (`pedidas`
+>   como conjunto deja de ver un store que vuelve a pedir su clave) y `R9-387` (la causa escrita de la
+>   bajada del corte de `R9-373` es falsa; el corte de `vueltasYReloj`, sin escribir).
+> - **La matriz** (797 corridas sobre la punta): de las 746 de la 107, ninguna pasa de caer a pasar (718
+>   iguales; una cambia por una carrera de reloj real en `R9-310`); de las 66 de los agentes, 63 dan lo
+>   mismo que en su worktree (las otras 3, explicadas en el detalle).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **387**. Detalle: `detail/S108-revision-del-diff-s107.md`.
 
 ---
 
@@ -10256,6 +10272,10 @@ setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos
   - **La tabla:** sin dueño, la marca la escribe `moveUnownedPrep`, con su aviso («Failed to move the
     Mesa to the account signed in»); una fila nueva prueba la marca con dueño registrado. Cada una cae
     con la falla de su marca fuera del `try` (`marcaSaleConDueno370`, `marcaSaleSinDueno370`).
+  - **Revisado en la 108:** el corte escrito, medido (`dano344SinDueno108`, `corte370a1`): un estado
+    mientras se devuelve parte el pasaje, como dice. Pero la ventana empieza antes, cuando la mudanza lee
+    la cuenta (`R9-385`). La unión de la mudanza no tiene fila (`R9-383`), y `R9-344` no tiene caso sin
+    dueño (`R9-384`). El código, sin regresión medida.
 
 - **`R9-371` (S105, pruebas / Mesa / `R9-363` — P3 bajo) — 🐛 los controles de `R9-363` leen de quién es
   cada pedido en la pila: un store que llama a `prepWrite` desde un `bind` en un `then` (la misma
@@ -10339,6 +10359,9 @@ setPrepAccount(uid)`), y `abrir()` va después: lo «al abrir» se lee hasta dos
     con 2 h, 1002/1003; con 10 ms y 1 h, 1004/1005. Sin dueño registrado, el trabajo sigue tras la falla
     con la Mesa de antes (`R9-370`). Re-medido en el principal y corregido en `27d598b`.
   - **Corrige el «1010» de `R9-360`** (y de esta entrada): el corte en vueltas no es 1010.
+  - **Corregido en la 108** (`R9-387`): los números se sostienen sobre la punta, pero la causa no es
+    `R9-370`. Con el `src` de `02d8e93` y la prueba de hoy, el corte ya es 1002/1003; lo bajaron las
+    pruebas de la 107.
 
 - **`R9-374` (S106, pruebas / Mesa / `R9-357`, `R9-360` — P3 bajo) — 🐛 con el reloj falso puesto antes
   del trabajo y la prueba esperándolo antes de dar tiempo, un trabajo que cede con un temporizador
@@ -10479,6 +10502,8 @@ getAllPrepNotes()` en el cuerpo de `importBackup`, antes de sus claves; sola, 63
     `ajenoLecturaEnEscritura345` y los ajenos de la lectura pasan. Antes de aflojar, el agente 6 corrió
     18 regresiones de las que caían por la lista y por la pila: ninguna deja de caer, y
     `notasAlSiguienteDurante` cae también en «un estado».
+  - **Corregido en la 108** (`R9-386`): un store que vuelve a pedir su clave y escribe con la segunda
+    deja de caer en los 4 casos (la ve solo `R9-292`, por sus controles).
 
 - **`R9-379` (S106, pruebas / Mesa / `R9-366` — P3 bajo) — 🐛 en la lectura de `R9-345`, el control «al
   abrir» y `pedidasAlFinal` no se comparan en los 6 casos con estados: leerlo antes de los estados pasa,
@@ -10565,6 +10590,151 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3 bajo: un rojo ante un cambio bueno, sin columnas de daño.
   - **Arreglo (hipótesis), sin medir:** ninguno que el agente 7 viera sin abrir otra vez `R9-377`; por
     lectura, `AsyncLocalStorage` no lo cierra (el ajeno hereda el contexto del respaldo).
+
+- **`R9-383` (S108, pruebas / Mesa / `R9-370`, `R9-343` — P3) — 🐛 la mudanza de `R9-370` no tiene fila:
+  sin dueño, la tabla de las partes corre con los estados nulos, y una regresión en la unión de
+  `moveUnownedPrep` o en su marca pasa `prep` y el suite: la Mesa de antes queda sin mover para siempre,
+  o el trabajo del primer estado rechaza y las claves no se sueltan nunca.** MEDIDO en la sesión 108
+  (agentes 1 y 2; re-medido en el principal con `_scratch/S108-sonda.cjs.txt`, de `S108-gen.cjs.txt`:
+  `S108-verif.out.txt` y `S108-verif-suite.out.txt`; piezas en `S108-sondas-agente-1/S108-a1-propias.txt`
+  y `S108-sondas-agente-2/S108-a2-propias.txt`).
+  - Sin dueño, las filas de la tabla corren con los dos estados nulos: `moveUnownedPrep` no une nada y solo
+    escribe la marca (la fila de la marca termina con `claves: ['@prep_notes']`). Las filas de la unión
+    usan `conDueno`. La 107 partió en dos la fila de la marca, no las de la unión. Disco entero (`R9-357`)
+    no llega a la mudanza: su primera lectura falla.
+  - **Piezas** (regresiones; todas `prep` 72/72 y suite 1053/1053): `mudanzaUnionFueraDelTry108` y
+    `mueveUnionSale` (la unión de la mudanza fuera del `try`), `mudanzaMarcaAntes108` (la marca antes de
+    la unión), `mudanzaMarcaAunqueFalle108` (se traga la falla de la unión con su aviso y marca igual),
+    `mueveQuitaMarcaEnCatch` y `mueveLeeEnCatchMultiGet` (en el `catch` de la mudanza, fuera de todo
+    `try`, quita la marca o la relee con `multiGet`: las gemelas de `migraQuitaMarcaEnCatch` y
+    `migraLeeEnCatchMultiGet`), y `notaFallaMarcaSinMover108` (si falla la lectura de la nota, marca sin
+    mover).
+  - **El daño** (pruebas-sonda). Con el código bueno, `fallaMudanzaA1` (sin dueño, con `ana`, falla una
+    vez la escritura de la unión o la lectura de la nota, y después un arranque sin fallas): el primer
+    arranque no lanza, y la Mesa de antes queda sin mover y sin marca (o, con la nota fallida, movida); en
+    el siguiente, Ana la ve. Y `danoMueve108` (todo método del disco falla desde que la migración leyó el
+    dueño) pasa:
+    - con la marca antes, marcada aunque falle, o la nota fallida marcando sin mover, la Mesa de antes
+      queda marcada en la «sin cuenta» y Ana no la ve nunca (`deAna: []` también en el arranque
+      siguiente);
+    - con la unión fuera del `try`, el primer estado lanza (`lanzo: ['ana']`, `leido: null`); con el disco
+      entero, las tres gemelas del agente 2 hacen lanzar los dos estados y la clave no se suelta nunca
+      (`lanzo: true`, `otroLanzo: true`, `resuelta: null`): el daño de `R9-336`.
+  - **Las que sí se ven:** `notaVuelveReturn108` (vuelve el `return;` al `catch` de la nota) cae en la
+    fila de la nota, por `claves`; `mueveAntesDeNota108`, en la prueba de `R9-370`; `marcaSaleSinDueno370`
+    (de la 107), en la fila de la marca.
+  - Es la regla de la 107 (una fila por camino), en la unión, y la de la 104 (un dato vacío no dice
+    adónde fue): la fila existe, pero sus datos no hacen trabajar a la parte.
+  - **¿Lo abrió la 107?** Sí (`a0323d7`): antes, sin dueño y con una cuenta, la unión era la de la
+    migración.
+  - P3: verde falso ante regresiones construidas, con la Mesa de antes perdida de vista o las claves
+    trabadas; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** filas de la unión de la mudanza (lectura, escritura, quita) y de la
+    nota fallida sin dueño y con un estado con cuenta, leyendo `claves`; o hacer pruebas de
+    `fallaMudanzaA1` y `danoMueve108`.
+
+- **`R9-384` (S108, pruebas / Mesa / `R9-344`, `R9-370` — P3) — 🐛 `R9-344` no tiene caso sin dueño: tomar
+  la cuenta de lo pedido antes al terminar la mudanza (antes de las devoluciones) pasa `prep` y el suite,
+  y lo escrito va a la cuenta contraria.** MEDIDO en la sesión 108 (agente 2; re-medido en el principal).
+  - Las pruebas de `R9-344` y de `R9-345` van con dueño registrado (prueba-sonda `caminos108`: anota el
+    camino de cada prueba). Sin dueño, entre la lectura de la nota y las devoluciones está la mudanza. La
+    107 hizo la gemela de `claveAntesDelTurnoUnion` (`claveAntesDelTurnoMueve370`), no la de
+    `claveTrasUnionMigracion344`.
+  - **Pieza `claveTrasMover344`** (lo pedido antes toma la cuenta al terminar `moveUnownedPrep`): `prep`
+    72/72 y suite 1053/1053.
+  - **El daño** (prueba-sonda `dano344SinDueno108`: sin dueño, la Mesa de antes y una devolución pendiente
+    de Bob; una edición pedida antes de todo estado; el segundo estado llega con la quita de la nota
+    retenida): con el código bueno (73/73), en ana→nulo la edición va a la «sin cuenta» y en nulo→ana a la
+    Mesa de Ana; con la pieza, al revés en las dos direcciones.
+  - El mismo caso mide el corte escrito de `R9-370` (un estado mientras se devuelve), que la 107 dejó por
+    lectura: la Mesa de antes va con el primero (a Ana en ana→nulo, a la «sin cuenta» en nulo→ana), la
+    edición con el último, y la Mesa de Bob a la «sin cuenta». Ver `R9-385`.
+  - Es la regla de la 99 (un caso por camino) y la de la 107 (lo que el re-anclado deja en un solo camino).
+  - **¿Lo abrió la 107?** Sí (`a0323d7`).
+  - P3: verde falso ante una regresión construida, con mezcla de cuentas.
+  - **Arreglo (hipótesis), sin medir:** un caso sin dueño en la de `R9-344` (o hacer prueba de
+    `dano344SinDueno108`).
+
+- **`R9-385` (S108, Mesa / `R9-370` — P3 bajo) — 🐛 las cabeceras de `prepKey` y `migrateLegacyPrep` dicen
+  que la Mesa de antes va con las claves salvo que llegue un estado mientras se devuelve; la ventana
+  empieza cuando la mudanza lee la cuenta: un estado durante su unión o su marca, sin ninguna devolución,
+  también parte el pasaje.** MEDIDO en la sesión 108 (agente 1; re-medido en el principal).
+  - `moveUnownedPrep` lee `account` al empezar el turno de su unión; las claves la toman al terminar el
+    trabajo. `prepKey`: «the same as the keys' unless a state comes while they are given back».
+    `migrateLegacyPrep`: «The keys take the same (see `prepKey`) unless a state comes while the
+    give-backs run». El comentario de la prueba de `R9-370` dice lo mismo, y sus «dos lados del momento»
+    son la lectura de la nota y el final del trabajo: la ventana no tiene caso.
+  - **Prueba-sonda `corte370a1`** (sin dueño, la Mesa de antes con un pasaje y una edición de ese pasaje
+    pedida antes de todo estado; el segundo estado llega con algo retenido, mil vueltas):
+    - con la lectura de la unión de la mudanza retenida (ana→nulo) o el `multiSet` de su marca (en las dos
+      direcciones), sin devoluciones, el pasaje queda partido (`deAna: {observation: 'de antes'}`,
+      `sinCuenta: {application: 'durante'}`, o al revés);
+    - con la nota retenida (control), las dos secciones juntas en la Mesa de Ana;
+    - con la devolución de Bob retenida, partido también (el corte escrito), y la Mesa de Bob en la «sin
+      cuenta».
+  - El daño es el de `R9-370` (una entrada partida, nada perdido en disco), en una ventana más chica.
+  - Es la regla de la 107 («el corte va donde la regla deja de ser cierta, y se escribe») y la de la 92
+    (la oración entera).
+  - **¿Lo abrió la 107?** Sí (`a0323d7`).
+  - P3 bajo: una frase falsa de `src/`, con el daño de `R9-370` en la ventana de una unión.
+  - **Arreglo (hipótesis), sin medir:** que las dos cabeceras (y el comentario de la prueba) digan «un
+    estado que llega desde que la mudanza lee la cuenta», con un caso en esa ventana en la prueba de
+    `R9-370`.
+
+- **`R9-386` (S108, pruebas / Mesa / `R9-378`, `R9-371` — P3 bajo) — 🐛 con `pedidas` como conjunto, la
+  escritura de `R9-345` deja de ver un store que vuelve a pedir su clave y escribe con la segunda: la ve
+  solo `R9-292`, por un caso que no se arma.** MEDIDO en la sesión 108 (agente 3; re-medido en el
+  principal).
+  - `R9-378` (`a0323d7`) aflojó `pedidas` a un conjunto sin cantidad, y `R9-371` cuenta como del store toda
+    llamada a `prepWrite` con una promesa de `prepKey`. La segunda pedida es una promesa de `prepKey`, y su
+    `'@prep_notes: resuelta'` ya está en el conjunto.
+  - **Pieza `notasRepideSiPendiente2000`** (si la clave seguía pendiente una microtarea después de
+    pedirla, el store la espera, da 2000 vueltas, la pide otra vez y escribe con la segunda): `prep` 71/72
+    y suite 1052/1053, solo `R9-292`, y solo por sus controles (`otraEnEspera: 0`, `otraPedidaAntes: 0`: el
+    caso no se arma). Los 4 casos de `R9-345` y los 2 de `R9-369` de la escritura pasan. Con la prueba de
+    `02d8e93` (`pat02d8e93+…`), caen los 4 de `R9-345`: los veía la cantidad.
+  - Sin la condición (`notasRepide2000`), la ve además «con el estado de auth conocido, una escritura va a
+    la cuenta de cuando se pidió», por los datos (68/72; `notasTarde2000`, la misma demora con la primera
+    clave, 69/72).
+  - **El daño** (prueba-sonda `sondaRepideTarde`: una nota pedida antes de todo estado, `ana`, y nulo una
+    vuelta después de terminar el trabajo): con el código bueno, lo escrito queda en la Mesa de Ana; con
+    la pieza, en la «sin cuenta» (la cuenta de un estado posterior al trabajo). La escritura de `R9-345`
+    no tiene ningún estado tras el trabajo; el respaldo sí (Cata, `R9-364`).
+  - La nota de `R9-378` («ninguna deja de caer», de 18 regresiones) no tenía esta clase. Es la regla de la
+    103 y la 104 (aflojar un control exacto le quita una regresión que veía, y se arma más de una de la
+    clase) y la de la 89 (que caiga por otro caso no cierra el hueco).
+  - **¿Lo abrió la 107?** Sí (`a0323d7`).
+  - P3 bajo: verde falso de los casos de `R9-345` ante una regresión construida, con mezcla de cuentas; el
+    `prep` la ve solo por los controles de otra prueba.
+  - **Arreglo (hipótesis), sin medir:** un estado tras el trabajo en los casos de la escritura (como Cata
+    en el respaldo). Sin medir también: la pieza en series, ilustraciones y autoevaluación.
+
+- **`R9-387` (S108, pruebas / Mesa / `R9-373`, `R9-374` — P3 bajo) — 🐛 la causa escrita de que el corte
+  en vueltas bajara es falsa: no fue `R9-370`, fueron las pruebas de la 107; y el paréntesis de
+  `vueltasYReloj` no escribe su corte.** MEDIDO en la sesión 108 (agente 2; re-medido en el principal).
+  - La frase de `tiempoYVueltas` («sin dueno registrado, el trabajo sigue tras la falla con la Mesa de
+    antes: R9-370»), la nota de `R9-373`, la regla de la 107 en la §5 de `CONTINUAR.md` y el §6 de
+    `detail/S107-arreglo-de-s105-s106.md` atribuyen la bajada a `src/`.
+  - **Medido** (`notaQuitaVueltasYTimeout<K>x7200000`):
+    - con el `src` de `02d8e93` y la prueba de hoy (`pa02d8e93+srcViejo…`), 1002 cae (la fila de la nota y
+      disco entero) y 1003 pasa (caen solo las dos de `pa02d8e93` sola: `R9-370` y la fila de la marca);
+    - con el `src` de hoy y la prueba de `02d8e93` (`pat02d8e93+…`), 1003 cae y 1004 pasa (solo la fila de
+      la marca, por el aviso nuevo);
+    - hoy, 1002 cae y 1003 pasa.
+  - El corte lo bajaron las pruebas; cuál de sus cambios, sin medir (por lectura, `esperarConReloj`).
+    Disco entero ni llega a la mudanza. Los números de la frase, re-medidos sobre la punta, se sostienen
+    todos (agente 2; en el principal, 1002/1003 con dos horas).
+  - **Lo sin medir de `R9-374`** (`notaQuitaYLenta<K>x<MS>`: la quita en un temporizador sin esperarlo, y
+    después el trabajo tarda K vueltas reales): con 990 vueltas caen la fila de la nota y disco entero
+    (70/72); con 1010 (y 2000, agente 2), solo la fila (71/72). Sin verde falso, pero disco entero deja de
+    verla: `vueltasYReloj` la adelanta con el disco fallando todavía, lo que su paréntesis («solo ese: con
+    todos los pendientes en cada vuelta, una quita … corria con el disco fallando todavia») dice evitar,
+    sin el corte.
+  - Es la regla de la 87 (una lección se mide antes de escribirla) y la de la 74 (el corte, escrito).
+  - **¿Lo abrió la 107?** Sí (`a0323d7`, `27d598b`).
+  - P3 bajo: dos frases de las pruebas, y una lección, falsas o sin su corte; nada pasa en falso.
+  - **Arreglo (hipótesis), sin medir:** quitar la causa (o medir qué cambio la bajó) y escribir el corte de
+    `vueltasYReloj`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
