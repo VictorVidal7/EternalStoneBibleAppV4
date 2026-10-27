@@ -156,8 +156,7 @@ const centinelaLargo = () => {
 // empezarla, hasta el ultimo de esos plazos. En vueltas: en la tabla y con
 // todo el disco fallando, una quita de la nota que el paso que falla pone en
 // un temporizador de dos horas 1002 vueltas despues se ve, y 1003 no; de una
-// hora o de 10 ms, 1004 y 1005 (sin dueno registrado, el trabajo sigue tras la
-// falla con la Mesa de antes: R9-370). En cadena (cada temporizador programa el
+// hora o de 10 ms, 1004 y 1005. En cadena (cada temporizador programa el
 // siguiente, y el ultimo quita la nota): con eslabones de dos o tres horas,
 // 1000 se ven y 1001 no; de una hora, 1002 y 1003 (la primera vuelta corre
 // dos, con el centinela de dos horas pendiente, y la hora de despues otro);
@@ -184,7 +183,10 @@ const tiempoYVueltas = async () => {
 // dan vueltas hasta que `listo()`, y cada mil vueltas sin listo, el temporizador
 // siguiente (solo ese: con todos los pendientes en cada vuelta, una quita
 // programada en el trabajo corria con el disco fallando todavia, y la de disco
-// entero no la veia). Hasta cien mil vueltas.
+// entero no la veia). Hasta cien mil vueltas. Con un corte (R9-387): una quita
+// de la nota que el paso que falla pone en un temporizador de 10 ms, con el
+// trabajo tardando despues 998 vueltas, la de disco entero la ve; con 999 o
+// mas, no (vence con el disco fallando todavia). La fila de la nota la ve igual.
 const vueltasYReloj = async (listo: () => boolean) => {
   for (let i = 1; i <= 100000 && !listo(); i++) {
     if (i % 1000 === 0 && jest.getTimerCount() > 0) {
@@ -478,18 +480,20 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
 
     // R9-370 — sin dueno registrado, la Mesa de antes va a la cuenta del ultimo
-    // estado que llego cuando se leyo la nota de las devoluciones, antes de la
-    // primera, como las claves (R9-337), no a la del primero. Con el primer
-    // estado de una cuenta y el ultimo de otra (un nulo al restaurar la sesion y
-    // la cuenta enseguida, o al reves), la Mesa iba con el primero y las claves
-    // con el ultimo: una edicion de un pasaje de antes, pedida mientras tanto,
-    // quedaba partida entre las dos Mesas. Los dos lados del momento: la cuenta
-    // en la misma tarea, mientras se lee el dueno o mientras se lee la nota, va
-    // con todo a la cuenta; tras el trabajo, todo se queda en la «sin cuenta» (la
-    // cuenta la une al entrar, si conserva los datos). Con una devolucion
-    // pendiente, la Mesa devuelta no se mezcla: se mueve antes de devolver, y la
-    // de bob va a la «sin cuenta». Un estado que llega mientras se devuelve se
-    // lleva las claves y no la Mesa de antes.
+    // estado que llego cuando la mudanza lee la cuenta (en el turno de su union,
+    // leida la nota de las devoluciones y antes de la primera), como las claves
+    // (R9-337), no a la del primero. Con el primer estado de una cuenta y el
+    // ultimo de otra (un nulo al restaurar la sesion y la cuenta enseguida, o al
+    // reves), la Mesa iba con el primero y las claves con el ultimo: una edicion
+    // de un pasaje de antes, pedida mientras tanto, quedaba partida entre las dos
+    // Mesas. Antes de esa lectura (en la misma tarea, mientras se lee el dueno o
+    // la nota), la cuenta va con todo; tras el trabajo, con el primero nulo, todo
+    // se queda en la «sin cuenta» (la cuenta la une al entrar, si conserva los
+    // datos). Con una devolucion pendiente, la Mesa devuelta no se mezcla: se
+    // mueve antes de devolver, y la de bob va a la «sin cuenta». El corte
+    // (R9-385): un estado que llega desde esa lectura hasta el final del trabajo
+    // (durante la union de la mudanza o su marca, o mientras se devuelve) se
+    // lleva las claves y no la Mesa de antes, y el pasaje queda partido.
     it('R9-370: sin dueno registrado, con el primer estado de una cuenta y el ultimo de otra, la Mesa de antes y lo pedido van juntos a la del ultimo', async () => {
       const P = 'John/3/16-21';
       const B = 'Rom/8/28';
@@ -500,21 +504,33 @@ describe('R9-59 — la Mesa por cuenta', () => {
       };
       const mg = lecturas();
       const realMg = mg.getMockImplementation()!;
+      const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+      const realMs = ms.getMockImplementation()!;
       let abrir = () => {};
       const out: Record<string, unknown> = {};
-      // [primer estado, ultimo, clave cuya lectura se retiene antes del ultimo]
-      const casos: Record<string, [string | null, string | null, string?]> = {
+      // [primer estado, ultimo, clave cuya lectura (con `true`, cuya escritura)
+      // se retiene antes del ultimo]
+      const casos: Record<
+        string,
+        [string | null, string | null, string?, boolean?]
+      > = {
         mismaTarea: [null, 'ana'],
         anaYNulo: ['ana', null],
         leyendoDueno: [null, 'ana', '@local_store_owner_uid'],
         leyendoNota: [null, 'ana', '@prep_release_pending'],
         leyendoNotaConBob: [null, 'ana', '@prep_release_pending'],
+        // R9-385 — el corte: la union de la mudanza (su lectura de la Mesa «sin
+        // cuenta») y su marca, sin devoluciones
+        uniendoAnaYNulo: ['ana', null, '@prep_notes'],
+        marcandoNuloYAna: [null, 'ana', '@prep_by_account', true],
+        marcandoAnaYNulo: ['ana', null, '@prep_by_account', true],
         trasElTrabajo: [null, 'ana'],
       };
       try {
-        for (const [cuando, [primer, ultimo, retener]] of Object.entries(
-          casos,
-        )) {
+        for (const [
+          cuando,
+          [primer, ultimo, retener, escritura],
+        ] of Object.entries(casos)) {
           __resetPrepAccountForTests();
           await AsyncStorage.clear();
           await sembrar();
@@ -533,12 +549,25 @@ describe('R9-59 — la Mesa por cuenta', () => {
           const puerta = new Promise<void>(r => (abrir = r));
           let retenida = false;
           mg.mockImplementation(async (ks: string[], cb?: unknown) => {
-            if (retener && !retenida && ks.includes(retener)) {
+            if (retener && !escritura && !retenida && ks.includes(retener)) {
               retenida = true;
               await puerta;
             }
             return realMg(ks, cb);
           });
+          ms.mockImplementation(
+            async (pares: Array<[string, string]>, cb?: unknown) => {
+              if (
+                escritura &&
+                !retenida &&
+                pares.some(([k]) => k === retener)
+              ) {
+                retenida = true;
+                await puerta;
+              }
+              return realMs(pares, cb);
+            },
+          );
           managePrepAccount();
           const edita = savePrepNote(P, 'application', 'durante', 2);
           const primero = setPrepAccount(primer);
@@ -554,6 +583,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
           await Promise.all([primero, segundo, edita]);
           if (cuando === 'trasElTrabajo') await setPrepAccount(ultimo);
           mg.mockImplementation(realMg);
+          ms.mockImplementation(realMs);
           out[cuando] = {
             retenida, // CONTROL: la lectura esperaba (solo con `retener`)
             deAna: await secciones('@prep_notes:ana'),
@@ -570,8 +600,22 @@ describe('R9-59 — la Mesa por cuenta', () => {
       } finally {
         abrir();
         mg.mockImplementation(realMg);
+        ms.mockImplementation(realMs);
       }
       const ambas = {observation: 'de antes', application: 'durante'};
+      // el corte: la Mesa de antes con la cuenta que leyo la mudanza, lo pedido
+      // con la del ultimo
+      const partido = (mesa: string | null) => ({
+        retenida: true,
+        deAna: mesa ? {observation: 'de antes'} : {application: 'durante'},
+        sinCuenta: mesa ? {application: 'durante'} : {observation: 'de antes'},
+        claves: [
+          '@prep_by_account',
+          '@prep_notes',
+          '@prep_notes:ana',
+          mesa ? '@prep_series:ana' : '@prep_series',
+        ],
+      });
       const aAna = {
         deAna: ambas,
         sinCuenta: null,
@@ -599,6 +643,9 @@ describe('R9-59 — la Mesa por cuenta', () => {
             '@prep_series:ana',
           ],
         },
+        uniendoAnaYNulo: partido('ana'),
+        marcandoNuloYAna: partido(null),
+        marcandoAnaYNulo: partido('ana'),
         trasElTrabajo: {retenida: false, ...sinCuenta},
       });
     });

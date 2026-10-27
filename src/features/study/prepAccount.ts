@@ -112,8 +112,9 @@ export function prepKeyFor(base: string, uid: string | null): string {
  * it off the note), with the account signed in when it is done: that of the
  * last auth state to come by then, not the first one's (R9-337). The Mesa
  * written before R9-59, with no owner recorded, goes to the account signed in
- * once the give-backs pending are read (R9-370): the same as the keys' unless
- * a state comes while they are given back (see `migrateLegacyPrep`). Without
+ * when its move's turn comes, once the give-backs pending are read (R9-370):
+ * the same as the keys' unless a state comes from then until that work is done
+ * (R9-385; see `migrateLegacyPrep`). Without
  * `managePrepAccount` (no `AuthProvider`), always at the call. A write goes to
  * the account of that key even if it waits behind others, except R9-275: if that
  * account's Mesa was given back by the time the write's turn comes, a store's
@@ -280,12 +281,14 @@ export async function setPrepAccount(uid: string | null): Promise<void> {
  * The Mesa written before R9-59 goes once to its owner (see the header): with
  * one recorded, here. R9-370 — with none, `finishRelease` moves it once the
  * give-backs pending are read and before the first of them, to the account
- * signed in then: that of the last auth state to come by then, not the first
- * one's. The keys take the same (see `prepKey`) unless a state comes while the
- * give-backs run. It went to the first one's: with a first state null while
- * the session is restored and the account a moment after (or an account and
- * then null), the Mesa went with the first and the keys with the last, and an
- * edit of a passage of that Mesa, asked meanwhile, was split between the two.
+ * signed in when that move's turn comes: that of the last auth state to come
+ * by then, not the first one's. The keys take the same (see `prepKey`) unless
+ * a state comes from then until the work is done (R9-385): while the move joins
+ * or writes its mark, or while the give-backs run. It went to the first one's:
+ * with a first state null while the session is restored and the account a
+ * moment after (or an account and then null), the Mesa went with the first and
+ * the keys with the last, and an edit of a passage of that Mesa, asked
+ * meanwhile, was split between the two.
  * It does not wait for the give-backs: they join a deleted account's Mesa into
  * the Mesa «sin cuenta», and moving that one after them would carry the
  * deleted account's Mesa into another account. Says whether that move is still
