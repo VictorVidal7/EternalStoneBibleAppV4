@@ -4,6 +4,7 @@
  * `setPrepAccount`, como hace `AuthProvider`.
  */
 
+import {AsyncLocalStorage} from 'async_hooks';
 import {PREP_SELF_REVIEW_QUESTION_IDS} from '../src/features/study/prepSelfReview';
 
 type PA = typeof import('../src/features/study/prepAccount');
@@ -226,65 +227,71 @@ afterEach(() => {
 // ventana, tumbaban los casos con el codigo bueno).
 const vigilarClaves = () => {
   const real = pa.prepKey;
-  type Pedida = {base: string; pendiente: boolean; delStore: boolean};
-  const pedidas = new Map<Promise<unknown>, Pedida>();
-  // R9-381 — de quien es cada pedido: del store de su base si el archivo del
-  // store esta en la pila al pedir (los stores la piden en su cuerpo). Uno de
-  // la prueba o de otro modulo no es de ningun store: un `prepWrite` ajeno con
-  // una clave de `prepKey` ocupaba el lugar del store que no lo llama.
-  const STORE_DE: Record<string, string> = {
-    '@prep_notes': 'prepNotesStore',
-    '@prep_series': 'prepSeriesStore',
-    '@prep_illustrations': 'prepIllustrationsStore',
-    '@prep_self_review': 'prepSelfReviewStore',
-  };
-  const pideElStore = (base: string) =>
-    base in STORE_DE &&
-    (new Error().stack ?? '').includes(`${STORE_DE[base]}.ts:`);
-  // Y el pedido pasa a lo que sale de su `.then`: un store que le pasa a
-  // `prepWrite` su clave envuelta (`key.then(k => k)`) sigue siendo el del
-  // pedido. Una promesa nueva que no sale de ahi (`(async () => key)()`), no.
-  const marcar = <T>(clave: Promise<T>, pedida: Pedida): Promise<T> => {
-    pedidas.set(clave, pedida);
-    const then = clave.then.bind(clave);
-    clave.then = ((...args: Parameters<typeof then>) =>
-      marcar(then(...args), pedida)) as typeof clave.then;
-    return clave;
-  };
+  const pedidas: Array<{base: string; pendiente: boolean}> = [];
   const espia = jest.spyOn(pa, 'prepKey').mockImplementation(base => {
-    const pedida = {base, pendiente: true, delStore: pideElStore(base)};
+    const pedida = {base, pendiente: true};
+    pedidas.push(pedida);
     const clave = real(base);
     void clave.then(() => (pedida.pendiente = false));
-    return marcar(clave, pedida);
+    return clave;
   });
-  // R9-363 — y de quien es cada llamada: la base del pedido de un store que
-  // el llamador le pasa (la misma promesa, o una de su `.then`). Una con una
-  // clave que no salio de un pedido de un store no cuenta: un `prepWrite`
-  // ajeno de la misma base ocupaba el lugar del store que no lo llama.
-  // R9-371 — por el pedido y no por la pila de `prepWrite`: un store que lo
-  // llama desde un `bind` no deja su marco.
+  // R9-388, R9-394 — y de quien es cada llamada a `prepWrite`: de la base que
+  // escribe su funcion (lo que pasa por `multiSet` mientras corre, tambien
+  // tras un `await`). Una que no escribe nada no es de ningun store: un
+  // `prepWrite` ajeno con una clave de `prepKey` ocupaba el lugar del store
+  // que no lo llama. Ni la pila al pedir (un ajeno del mismo modulo del store,
+  // o una pila mas corta que el marco del store, con `Error.stackTraceLimit`)
+  // ni la promesa que recibe (un `async` que espera la clave es otra promesa)
+  // lo decian. De quien es se sabe al final: la funcion corre en su turno.
+  // Su costo, medido: lo que la funcion escribe por algo registrado antes de
+  // llamarla (un `then` de afuera que ella dispara) no cuenta, y los 6 casos
+  // caen con el codigo bueno; un ajeno cuya funcion escribe la misma base
+  // cuenta (lo ven otras seis pruebas); y una clave que no salio del pedido
+  // pero resuelve con el, al mismo valor, cuenta (la ven los de R9-369).
+  type Recibida = {
+    quien: string | null;
+    clave: string | null;
+    alAbrir?: boolean;
+  };
+  const corriendo = new AsyncLocalStorage<Recibida>();
+  const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+  const msAntes = ms.getMockImplementation()!;
+  ms.mockImplementation(
+    (pares: Array<[string, string]>, ...resto: unknown[]) => {
+      const recibida = corriendo.getStore();
+      if (recibida) recibida.quien = pares[0][0].split(':')[0];
+      return msAntes(pares, ...resto);
+    },
+  );
   const realWrite = pa.prepWrite;
-  const recibidas: Array<{quien: string | null; clave: string | null}> = [];
+  const recibidas: Recibida[] = [];
   const espiaWrite = jest
     .spyOn(pa, 'prepWrite')
     .mockImplementation((key, fn) => {
-      const pedida = pedidas.get(key);
-      const quien = pedida?.delStore ? pedida.base : null;
-      const recibida = {quien, clave: null as string | null};
+      const recibida: Recibida = {quien: null, clave: null};
       recibidas.push(recibida);
       void key.then(k => (recibida.clave = k));
-      return realWrite(key, fn);
+      return realWrite(key, k => corriendo.run(recibida, () => fn(k)));
     });
+  const deStores = () => recibidas.filter(({quien}) => quien !== null);
+  const texto = ({quien, clave}: Recibida) =>
+    `${quien}: ${clave ?? 'pendiente'}`;
   return {
-    escrituras: () =>
-      recibidas
-        .filter(({quien}) => quien !== null)
-        .map(({quien, clave}) => `${quien}: ${clave ?? 'pendiente'}`)
+    escrituras: () => deStores().map(texto).sort(),
+    // R9-354 — las claves que ya habia resuelto cada llamada al abrir: se
+    // miran al abrir (`fotoAlAbrir`), y se leen al final, con su dueno.
+    fotoAlAbrir: () => {
+      for (const r of recibidas) r.alAbrir = r.clave !== null;
+    },
+    resueltasAlAbrir: () =>
+      deStores()
+        .filter(({alAbrir}) => alAbrir)
+        .map(texto)
         .sort(),
     pedidas: () =>
       [
         ...new Set(
-          [...pedidas.values()].map(
+          pedidas.map(
             ({base, pendiente}) =>
               `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
           ),
@@ -293,6 +300,7 @@ const vigilarClaves = () => {
     soltar: () => {
       espia.mockRestore();
       espiaWrite.mockRestore();
+      ms.mockImplementation(msAntes);
     },
   };
 };
@@ -1801,10 +1809,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       // R9-354 — ninguna clave que recibio `prepWrite` estaba resuelta al
       // abrir. Un store que todavia no lo llamo no aparece: mas lento antes de
       // llamarlo que todas las esperas (dos horas, unas dos mil vueltas y mil
-      // mas por cada estado de `despues`), aparece solo al final.
-      const recibidasResueltasAlAbrir = vigiladas
-        .escrituras()
-        .filter(k => !k.endsWith(': pendiente'));
+      // mas por cada estado de `despues`), aparece solo al final. Se miran
+      // aqui y se leen al final (`recibidasResueltasAlAbrir`), cuando se sabe
+      // de que store es cada llamada (R9-388).
+      vigiladas.fotoAlAbrir();
       abrir();
       // R9-386 — en cuanto lo que pidieron los stores resolvio, llega otro
       // estado (Cata), como en el respaldo (R9-364): la clave se toma al
@@ -1825,6 +1833,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       await Promise.all([primero, edita, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
       const recibidasAlFinal = vigiladas.escrituras();
+      const recibidasResueltasAlAbrir = vigiladas.resueltasAlAbrir();
       vigiladas.soltar();
       mg.mockImplementation(realMg);
       expect({
