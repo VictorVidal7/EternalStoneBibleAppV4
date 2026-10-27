@@ -1642,6 +1642,25 @@
 >   `R9-310`, intermitente) y una que pasa porque `R9-382` dejó pasar su cambio bueno.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **389**. Detalle: `detail/S109-arreglo-de-s107-s108.md`.
+>
+> **Sesión 110 (2026-10-27): revisión del diff de la 109** (`c8e5e96..4839952`, con `src/`: solo
+> comentarios, `R9-385`), en un chat nuevo, en la terminal, con 10 agentes en worktree que solo midieron
+> (los pidió Victor): la segunda vuelta de la 109. Solo docs, en `docs/review-s110-diff-s109`.
+>
+> - **Nuevos (11), ninguno P0:** `R9-390` (el `String` envuelto del respaldo esconde una regresión que
+>   pierde las series restauradas), `R9-391` (la lectura de la Mesa de destino de la mudanza, sin fila),
+>   `R9-392` (ilustraciones y autoevaluación sin sembrar en la Mesa de antes), `R9-393` (sin devoluciones,
+>   varios estados en la mudanza), `R9-394` (un ajeno del mismo módulo del store, y el corte de la pila),
+>   `R9-395` (un export en paralelo tapa `R9-377`), `R9-396` (el corte en tiempo del tope de Cata), y
+>   cuatro frases o momentos de las pruebas (`R9-397`..`R9-400`).
+> - **`src/` (`R9-385`):** ninguna lectura de las cabeceras pasa con daño; el momento que nombran no tiene
+>   caso (`R9-399`).
+> - **La matriz** (1136 corridas sobre la punta): de las comparadas con la 109, 829 iguales y ninguna deja
+>   de ver una prueba que veía, salvo dos carreras de reloj real, intermitentes (`cedeConTimeoutAlEmpezar0`
+>   en `R9-310`, y `claveDelPrimeroEnTrabajoTimeout10` en `R9-370`); las 186 de los agentes, iguales a su
+>   worktree.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **400**. Detalle: `detail/S110-revision-del-diff-s109.md`.
 
 ---
 
@@ -10874,6 +10893,216 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - Es la regla de la 107 («el envoltorio pierde la identidad»), del lado de la cadena.
   - **¿Lo abrió la 109?** Sí (`4839952`), a sabiendas: cerró `R9-382` sin volver a abrir `R9-377`.
   - P3 bajo: un rojo ante un cambio bueno, sin columnas de daño; y una diferencia con la app, sin medir.
+  - **Medido en la 110:** `R9-390` (lo que hace el objeto con una regresión y con un cambio bueno de
+    `src/`).
+
+- **`R9-390` (S110, pruebas / respaldo / `R9-389`, `R9-382` — P3) — 🐛 con el `String` envuelto del
+  respaldo, una regresión de `src/` que compare la clave restaurada de las series con `!==` pasa `prep` y
+  el suite, y en la app pierde las series restauradas sin cuenta; y un cambio bueno que descarta una
+  clave que no es cadena tumba los 6 casos con las columnas del daño.** MEDIDO en la sesión 110 (agente 5;
+  re-medido en el principal con `_scratch/S110-sonda.cjs.txt`, de `S110-gen.cjs.txt`; piezas en
+  `S110-sondas-agente-5/S110-a5-propias.txt`).
+  - Lo que `R9-389` dejaba «sin medir». Por lectura, hoy `src/` no lo distingue: `importBackup` guarda la
+    clave, y `prepMultiSet` la usa con `join`, `startsWith`, `slice` y como clave de `multiSet`, que la
+    pasan a cadena. Sí la distinguen `===`, `!==`, `Set.has`, `includes` y `typeof`.
+  - **`restauraSaltaSeriesSinCuenta110A5`** (una regresión: al restaurar, la clave de las series «sin
+    cuenta» se compara con `!==` y se salta): `prep` 78/78 y suite 1059/1059. Con un espía que
+    devuelve la cadena (`espiaCadena110A5+…`) y con la prueba de antes (`bpt1e9e809+…`), 74/78: los 4 casos
+    que terminan sin cuenta, con las series restauradas perdidas. En notas, la gemela
+    (`restauraSaltaSinCuenta110A5`) la ven `R9-273` y `R9-292` (76/78); en las series, ninguna otra prueba.
+  - **`queuePairValida110A5`** (un cambio bueno: el respaldo descarta un par cuya clave no es cadena): 72/78,
+    los 6 casos, con las columnas del daño (nada escrito, las Mesas vacías); con `espiaCadena110A5`, 78/78.
+  - Es la regla de la 109 («un espía que devuelve otro tipo cambia lo que recibe el código»), medida, y la
+    de la 88 (un riesgo escrito «sin medir» es lo primero que se mide).
+  - **¿Lo abrió la 109?** Sí (`4839952`): con `bpt1e9e809`, la regresión cae y el cambio bueno pasa.
+  - P3: verde falso con pérdida de lo restaurado ante una regresión construida, y un rojo de daño ante un
+    cambio bueno; el código está bien.
+  - **Arreglo (hipótesis), sin medir:** que el espía devuelva la cadena y cuente por otro lado (lo que
+    llega a `prepMultiSet` comparado por valor y por pedido), o el arreglo que la 111 elija para `R9-389`.
+
+- **`R9-391` (S110, pruebas / Mesa / `R9-383`, `R9-343` — P3) — 🐛 la lectura de la Mesa de destino en la
+  mudanza (`@prep_notes:<cuenta>`) no tiene fila: una mudanza que se traga esa falla y toma la Mesa de
+  destino por vacía pasa `prep`, y pisa lo que la cuenta ya tenía.** MEDIDO en la sesión 110 (agente 7;
+  re-medido en el principal; piezas en `S110-sondas-agente-7/S110-a7-propias.txt`).
+  - Las filas sin dueño de `R9-383` hacen fallar la lectura de la «sin cuenta» (`@prep_notes`); la de la
+    Mesa de destino es la gemela sin dueño de «R9-343: una lectura de la union de la migracion», sin fila.
+  - **`mueveDestinoTolerante110`** (la unión de la mudanza, y solo ella, se traga la falla al leer la Mesa
+    de destino y la toma por vacía): `prep` 78/78; con `pat27d598b`, 72/72.
+  - **El daño** (prueba-sonda `danoMudanzaA7`, caso `danoDestino`: la Mesa de antes con un pasaje y la de
+    Ana con datos, y la lectura de la de Ana falla una vez): con el código bueno, nada se pierde; con la
+    pieza, Ana pierde `Ps/23/1-6` (prosa escrita a mano) y la mudanza queda marcada, así que el arranque
+    siguiente no lo recupera (79/80).
+  - **Las vecinas:** `mueveSinLeerDestino110` (no lee la Mesa de destino) la ve solo `R9-314`, por sus datos
+    (77/78); `mueveLeeDestinoFuera110` (la lee fuera del `try`), solo la gemela de disco entero de `R9-383`
+    (77/78).
+  - Es la regla de la 107 (una fila por camino) en las lecturas de la mudanza, y la de la 108 (cada pieza
+    pide su gemela).
+  - **¿Lo abrió la 109?** No: la mudanza es de la 107 (`a0323d7`), y la 109 le hizo filas a la lectura de
+    la «sin cuenta», no a la de destino.
+  - P3: verde falso con pérdida de prosa ante una regresión construida; el código está bien.
+  - **Arreglo (hipótesis), medido como pieza por el agente 7:** una fila sin dueño con `ana`, sobre el
+    `getItem` de `@prep_notes:ana` (`filaDestinoMudanzaA7`): 79/79 con el código bueno; cae con
+    `mueveDestinoTolerante110` (78/79), y con las dos vecinas (agente 7).
+
+- **`R9-392` (S110, pruebas / Mesa / `R9-383`, `R9-370` — P3) — 🐛 ninguna prueba siembra ilustraciones ni
+  autoevaluación en una Mesa de antes sin dueño: una mudanza que recorre solo notas y series pasa `prep`,
+  y las otras dos bases quedan en la «sin cuenta», marcadas.** MEDIDO en la sesión 110 (agente 7;
+  re-medido en el principal).
+  - Las filas de `R9-383` siembran `@prep_notes`; la prueba de `R9-370`, también `@prep_series`.
+  - **`mueveListaAMano110`** (la unión de la mudanza recorre una lista escrita a mano: notas y series):
+    `prep` 78/78; con `pat27d598b`, 72/72.
+  - **El daño** (`danoMudanzaA7`, caso `danoBases`): con la pieza, `@prep_illustrations` y
+    `@prep_self_review` quedan sin mover, con la marca puesta, y Ana no los ve (79/80).
+  - Es la regla de la 104 (un dato vacío no dice adónde fue), en cada base, y la de la 109 (una pieza de un
+    store pide la misma en los otros tres).
+  - **¿Lo abrió la 109?** No (`a0323d7`).
+  - P3: verde falso con datos fuera de la vista de su dueña ante una regresión construida.
+  - **Arreglo (hipótesis), sin medir:** sembrar las cuatro bases en la Mesa de antes de una fila sin dueño
+    (o de la prueba de `R9-370`) y leer `claves`.
+
+- **`R9-393` (S110, pruebas / Mesa / `R9-384`, `R9-351`, `R9-355` — P3) — 🐛 sin dueño y sin devoluciones,
+  la última parte del trabajo es la mudanza, y ningún caso tiene varios estados ahí: cuatro formas de
+  `R9-351` y `R9-355` tomadas durante la mudanza pasan `prep`, y lo escrito va a otra cuenta.** MEDIDO en
+  la sesión 110 (agente 8; re-medido en el principal; piezas en `S110-sondas-agente-8/S110-a8-propias.txt`).
+  - Los cuatro casos sin dueño de `R9-344` (`R9-384`) tienen dos devoluciones, con los estados en la quita
+    de la nota, tras la mudanza; los casos en la ventana de la mudanza (`R9-385`) tienen un estado.
+  - **Piezas** (las cuentas de las claves fijadas solo mientras corre `moveUnownedPrep`):
+    `claveDelPrimeroEnMudanza110`, `claveDelSegundoEnMudanza110`, `claveUltimoDistintoEnMudanza110` e
+    `ignoraPrimeroEnMudanza110`: `prep` 78/78 cada una. El control `claveTrasUnionMudanza110` cae (76/78).
+  - **El daño** (prueba-sonda `dano384Mudanza110`: sin dueño, sin devoluciones, la marca de la mudanza
+    retenida, una edición pedida antes de todo estado): 79/79 con el código bueno; con cada pieza, 78/79,
+    con la edición en otra cuenta (con `claveDelPrimeroEnMudanza110`, en nulo→ana→beto→nulo, en la Mesa de
+    Ana en lugar de la «sin cuenta»).
+  - Es la regla de la 99 (retener la ÚLTIMA parte) en un camino donde la última parte depende de los datos,
+    y la de la 109 (la forma de un caso va con su camino nuevo).
+  - **¿Lo abrió la 109?** No: el camino es de la 107 (`a0323d7`); la 109 llevó las formas de tres estados
+    solo al caso con dos devoluciones.
+  - P3: verde falso con mezcla de cuentas ante una regresión construida.
+  - **Arreglo (hipótesis), sin medir:** casos sin dueño y sin devoluciones en la de `R9-344`, con la marca
+    de la mudanza retenida y las formas de tres estados (o hacer prueba de `dano384Mudanza110`).
+
+- **`R9-394` (S110, pruebas / Mesa / `R9-388`, `R9-381` — P3 bajo) — 🐛 el «de quién» por la pila al pedir
+  cuenta como del store un ajeno de su mismo módulo, también un ayudante de notas llamado desde otro store:
+  tapa al store que no escribe en los 6 casos; y la pila tiene un corte en `Error.stackTraceLimit`.** MEDIDO
+  en la sesión 110 (agente 3; re-medido en el principal; piezas en `S110-sondas-agente-3/S110-a3-propias.txt`).
+  - Lo que `R9-388` dejaba «por lectura». Un pedido es del store si su archivo está en algún marco de la
+    pila al pedir.
+  - **`ajenoMismoModuloNotasA3+notasSinPrepWrite`** y **`ajenoSeriesPorNotasA3+notasSinPrepWrite`** (el
+    ayudante, llamado desde el store de series): 72/78, sin ninguno de los 6 casos (los ven otras 6 pruebas).
+    En series, `ajenoMismoModuloSeriesA3+seriesSinPrepWriteA3`: 77/78, solo `R9-325` (sin el ajeno, 71/78);
+    en ilustraciones y autoevaluación, lo mismo (agente 3).
+  - **El corte de la pila:** el archivo del store está en el sexto marco en los 4 stores. Con
+    `Error.stackTraceLimit` en 5 (`pilaLimiteA3x5`), los 6 casos caen con el código bueno (72/78); con 6,
+    pasan. Jest lo pone en 100; el de Node es 10.
+  - Hoy en `src/` no hay un ajeno así (los otros pedidos de cada módulo son lecturas).
+  - Es la regla de la 107 («un ayudante en el mismo módulo que el ajeno no se distingue por quien llama»),
+    del lado del store, y la de la 74 (el corte, escrito).
+  - **¿Lo abrió la 109?** No: con `pat27d598b`, `ajenoMismoModuloNotasA3+notasSinPrepWrite` da 66/72, sin
+    ninguno de los casos.
+  - P3 bajo: verde falso de los 6 casos ante una regresión construida, que en tres stores ve solo `R9-325`;
+    y un rojo ante un cambio del entorno.
+  - **Arreglo (hipótesis), sin medir:** el que la 111 elija para `R9-388`, medido también contra estas
+    piezas.
+
+- **`R9-395` (S110, pruebas / respaldo / `R9-382`, `R9-377` — P3 bajo) — 🐛 un export en paralelo (o un
+  lector de la Mesa dentro de `BackupService`) tapa la regresión de `R9-377`: sus pedidos cuentan como del
+  respaldo.** MEDIDO en la sesión 110 (agente 6; re-medido en el principal; piezas en
+  `S110-sondas-agente-6/S110-a6-propias.txt`).
+  - `R9-382` cuenta un pedido si viene de `BackupService` o si su clave llega a `prepMultiSet`; la primera
+    mitad cuenta todo pedido de ese módulo, y `buildBackup` pide sus claves ahí.
+  - **`ajenoExportA6+respaldoNotasTrasSeries`** (el `buildBackup()` real lanzado desde la prueba) y
+    **`ajenoBsA6+respaldoNotasTrasSeries`**: 78/78; la regresión sola, 72/78. Con `bpt1e9e809`, igual
+    (78/78).
+  - En los casos de hoy (todos con series), la regresión no tiene daño y la ven solo los controles, que el
+    export engaña (`pidio: true`). El daño con un respaldo sin series es el del Pendiente (`R9-377`): lo
+    midió el agente 6 en su worktree (`respaldoSinSerieA6`), sin re-medir en el principal.
+  - Es la regla de la 88 (un control que lee un registro compartido dice de quién es lo que cuenta).
+  - **¿Lo abrió la 109?** No (`1e9e809`, la 107).
+  - P3 bajo: verde falso de los controles ante una regresión construida.
+  - **Arreglo (hipótesis), sin medir (del agente 6):** un caso sin series, que los datos ven sin el filtro,
+    o contar «desde `importBackup`».
+
+- **`R9-396` (S110, pruebas / Mesa y respaldo / `R9-386`, `R9-364` — P3 bajo) — 🐛 el tope de cien mil
+  vueltas de la espera de Cata tiene un corte en tiempo real: con una migración que espera un temporizador
+  de 1 s (un cambio bueno), Cata llega durante el trabajo y los 8 casos de `R9-345` caen con las columnas
+  del daño.** MEDIDO en la sesión 110 (agente 4; re-medido en el principal; piezas en
+  `S110-sondas-agente-4/S110-a4-propias.txt`).
+  - **`migraUnionTimeout<MS>A4`** (la migración con dueño espera un `setTimeout` real antes de su unión):
+    con 100 ms, 78/78; con 1000, 70/78 (los 4 de la escritura y los 4 del respaldo), con
+    `resolvioAntesDeCata: false` y lo escrito y lo restaurado en la Mesa de Cata. El agente 4 vio el
+    respaldo caer ya con 300 ms y la escritura pasar. El corte depende de la carga (en node solo, cien mil
+    vueltas son unos 124 ms).
+  - El control separa el rojo del daño (no hay verde falso). Los dos comentarios dicen «a lo sumo cien mil
+    vueltas», sin el corte en tiempo.
+  - Es la regla de la 103 (un plazo en vueltas no ve un temporizador) y la de la 105 (lo que la prueba manda
+    «en cuanto X» espera a X sin un tope corto).
+  - **¿Lo abrió la 109?** En la escritura, sí (`bd9ee9f`); en el respaldo, el tope es de la 105
+    (`53bdbe6`).
+  - P3 bajo: un rojo ante un cambio bueno, con las columnas del daño.
+  - **Arreglo (hipótesis), sin medir:** esperar a X con reloj (vueltas y tiempo) o sin tope, y escribir el
+    corte.
+
+- **`R9-397` (S110, pruebas / respaldo / `R9-376`, `R9-382` — P3 bajo) — 🐛 la frase de `R9-376` sobre la
+  espera de Cata quedó contradiciendo a `R9-382`: dice que sin un pedido contado el control da «no», y
+  `resuelto` cuenta todo pedido; seguida al pie de la letra, vuelve el rojo que `R9-382` cerró.** MEDIDO en
+  la sesión 110 (agente 9; re-medido en el principal; piezas en `S110-sondas-agente-9/S110-a9-propias.txt`).
+  - La frase es de la 106; la 109 hizo que `resuelto` cuente todo pedido y escribió «R9-382 — todo pedido»
+    justo debajo. Con un pedido que el filtro no ve (`respaldoClaveOtroModuloCopiaA6`), el control da `true`.
+  - **`resueltoComoR376A9`** (`resuelto` como dice la frase: solo lo contado): 78/78; con
+    `respaldoClaveOtroModuloSinAwait` (el cambio bueno de `R9-382`, 78/78 hoy), 72/78, los 6 casos, solo por
+    `resolvioAntesDeCata: false`.
+  - Es la regla de la 95 (un arreglo que cambia cuándo se toma un valor re-mide las frases que lo dicen) y
+    la de la 90 (un comentario que describe un dato es una definición).
+  - **¿Lo abrió la 109?** Sí (`4839952`).
+  - P3 bajo: una frase de las pruebas que, seguida, devuelve un rojo ante un cambio bueno.
+  - **Arreglo (hipótesis), sin medir:** que la frase diga que `resuelto` cuenta todo pedido, y qué control
+    queda para «no contó nada».
+
+- **`R9-398` (S110, pruebas / Mesa / `R9-383` — P3 bajo) — 🐛 la gemela de disco entero de `R9-383` dice que
+  falla «la nota, la unión de la mudanza y su marca», y la marca nunca se intenta.** MEDIDO en la sesión 110
+  (agente 9; re-medido en el principal).
+  - Con el disco caído, la lectura de la unión falla, el `catch` avisa (`MUEVE`) y no marca; el control
+    `avisos` (`arrayContaining`) no fija qué se intentó.
+  - **Prueba-sonda `marcaIntentadaA9`** (que se intentó escribir `@prep_by_account`): cae con el código bueno
+    (77/78, `marcaA9: []`).
+  - Sin verde falso medido: la fila de la marca de `R9-383` ve su falla sola. Una regresión de la marca que
+    aparezca solo con la falla extendida, sin medir.
+  - **¿Lo abrió la 109?** Sí (`0e1c7b5`).
+  - P3 bajo: una frase de las pruebas que afirma un paso que no ocurre.
+
+- **`R9-399` (S110, pruebas / Mesa / `R9-385`, `R9-370` — P3 bajo) — 🐛 el momento que escriben las
+  cabeceras («when its move's turn comes») no tiene caso: en todos, el turno está libre, y una mudanza que
+  lee la cuenta antes de pedir el turno (`mueveSinTurno370`) pasa `prep`; con el turno ocupado, parte el
+  pasaje.** MEDIDO en la sesión 110 (agente 2; re-medido en el principal; piezas en
+  `S110-sondas-agente-2/S110-a2-propias.txt`).
+  - **Prueba-sonda `turnoOcupado110`** (sin dueño, la Mesa de antes; un `prepWrite` ajeno con clave literal
+    retiene el turno antes de todo estado; la edición pedida antes de todo estado; el segundo estado llega
+    con la mudanza esperando el turno): 79/79 con el código bueno (la Mesa de antes y la edición juntas); con
+    `mueveSinTurno370`, 78/79, con el pasaje partido en ana→nulo y en nulo→ana.
+  - **En la app, por lectura:** durante el primer trabajo, solo toman el turno sin esperarlo
+    `adoptNoAccountPrep` (al entrar conservando lo local) y un `giveBack` (al borrar la cuenta). Con la
+    adopción, el resultado es el mismo: su unión ya vació la «sin cuenta» en la cuenta (agente 1); un
+    borrado de cuenta durante el primer estado, sin medir. Sin daño medido en la app.
+  - Es la regla de la 78 (una regla escrita sin su prueba no protege) y la de la 76 (una puerta construye
+    un punto del orden).
+  - **¿Lo abrió la 109?** No: el código y la falta de caso son de la 107 (`a0323d7`); la 109 escribió el
+    momento sin ponerle caso.
+  - P3 bajo: verde falso ante una regresión construida, con el daño de `R9-370` en un orden que la app, por
+    lectura, no arma.
+  - **Arreglo (hipótesis), sin medir:** hacer prueba de `turnoOcupado110` (u ocupar el turno en un caso de
+    `R9-370`).
+
+- **`R9-400` (S110, pruebas / Mesa / `R9-387` — P3 bajo) — 🐛 la frase de `vueltasYReloj` escribe su corte con
+  «un temporizador de 10 ms», y el corte no depende del plazo: es en vueltas.** MEDIDO en la sesión 110
+  (agente 10; re-medido en el principal).
+  - `notaQuitaYLenta<K>x<MS>`: con MS = 0, 1, 10, 1000 y dos horas (agente 10; en el principal, 0 y 1000),
+    998 vueltas ven las cuatro filas (74/78) y 999 solo las dos de la nota (76/78). Cada mil vueltas la
+    herramienta adelanta el próximo temporizador, sea cual sea su plazo.
+  - Sin verde falso: la frase es cierta, pero nombra un parámetro que no mueve el corte. Los números de
+    `tiempoYVueltas` se sostienen sobre `4839952` (agente 10).
+  - Es la regla de la 74 (el corte, escrito) y la de la 90.
+  - **¿Lo abrió la 109?** Sí (`f13db80`).
+  - P3 bajo: una frase de las pruebas, más angosta que lo que hace la herramienta.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

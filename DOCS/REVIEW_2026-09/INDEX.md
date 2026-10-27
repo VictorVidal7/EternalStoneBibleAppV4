@@ -1225,8 +1225,8 @@
 > de `R9-370`, escrito más angosto en `src/`), `R9-386` (`pedidas` como conjunto) y `R9-387` (la causa
 > del corte de `R9-373`, falsa).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **387**. Rama `docs/review-s108-diff-s107`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S108-revision-del-diff-s107.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **387**. Rama `docs/review-s108-diff-s107`, mergeada y
+> pusheada con la de la 109 (corregido en la 110). Detalle: `detail/S108-revision-del-diff-s107.md`.
 >
 > **Sesión 109 (2026-10-26): arreglo de lo de la 107 y la 108**, en un chat nuevo, en la terminal, con 6
 > agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Cerrados
@@ -1236,8 +1236,20 @@
 > `src/` recibe un `String` envuelto).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **389**. Ramas `fix/s109-arreglos-s108` y
-> `docs/review-s109-fix` (encima de la de la 108), sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s109-fix` (encima de la de la 108), mergeadas y pusheadas con el OK de Victor (`main` =
+> `d229e67`, CI verde en el log, run `40437095524`, 374/4687; corregido en la 110). Detalle:
 > `detail/S109-arreglo-de-s107-s108.md`.
+>
+> **Sesión 110 (2026-10-27): revisión del diff de la 109** (`c8e5e96..4839952`), en un chat nuevo, en la
+> terminal, con 10 agentes en worktree que solo midieron (los pidió Victor). Once nuevos, ninguno P0:
+> `R9-390` (el `String` envuelto del respaldo esconde una regresión que pierde series), `R9-391` y
+> `R9-392` (la mudanza: la lectura de destino sin fila, y dos bases sin sembrar), `R9-393` (sin
+> devoluciones, varios estados en la mudanza), `R9-394` (un ajeno del mismo módulo del store), `R9-395`
+> (un export tapa `R9-377`), `R9-396` (el corte en tiempo del tope de Cata) y cuatro frases o momentos de
+> las pruebas (`R9-397`..`R9-400`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **400**. Rama `docs/review-s110-diff-s109`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S110-revision-del-diff-s109.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2357,6 +2369,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** una pieza de un store pide la misma en los otros tres; la forma de un caso va con
     su camino nuevo; dos diseños en la misma prueba se miden juntos; un espía que devuelve otro tipo
     cambia lo que recibe el código bajo prueba.
+
+- **Sesión 110 — 2026-10-27. Revisión del diff de la 109.** En un chat nuevo, en la terminal, con 10
+  agentes en worktree que solo midieron (los pidió Victor); con `_scratch/S110-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S110-sonda.cjs.txt` (de `S110-gen.cjs.txt`, sobre `S109-sonda`); una
+    mirada estrecha por agente; cada afirmación re-medida en el principal (57 corridas), y la matriz de la
+    109 sobre la punta (`S110-matriz.cjs.txt`).
+  - **Resultado:** nuevos `R9-390`..`R9-400` (cuatro P3 con daño medido, siete P3 bajo). No queda ningún
+    P0 abierto.
+  - **Detalle: `detail/S110-revision-del-diff-s109.md`.**
+  - **Las lecciones:** la última parte del trabajo depende de los datos; un costo escrito «sin medir» se
+    mide con una regresión que dependa de él; una fila por lectura del camino; un momento que una frase
+    nombra necesita un caso donde difiera del vecino; un arreglo que cambia lo que cuenta un control
+    re-mide su frase vieja.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con
