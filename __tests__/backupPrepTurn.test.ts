@@ -1046,23 +1046,51 @@ const respaldoDurante345 = async (
   // `prepKey` esta en `BackupService`), no cualquiera con `BackupService` en
   // la pila: una lectura de notas lanzada desde el respaldo pide desde
   // `prepNotesStore`, y cubria a un respaldo que tomaba la suya por su cuenta.
-  const claves: Array<{base: string; pendiente: boolean}> = [];
+  // R9-382 — o es del respaldo el pedido cuya clave escribe el respaldo: cada
+  // pedido devuelve su propia clave (un `String` envuelto), y la que llega a
+  // `prepMultiSet` dice de que pedido es. Un ayudante de otro modulo pide desde
+  // fuera de `BackupService`, como el ajeno; lo separa que el respaldo escribe
+  // con la clave de su pedido (si el ayudante devuelve otra cadena, una copia,
+  // no se separa). Se cuenta al final, tambien lo de «al abrir».
+  const claves: Array<{
+    base: string;
+    pendiente: boolean;
+    desdeElRespaldo: boolean;
+    clave?: unknown;
+  }> = [];
   const llamador = () =>
     (new Error().stack ?? '')
       .split('\n')
       .slice(1)
       .find(m => !/backupPrepTurn\.test|node_modules/.test(m)) ?? '';
   const espia = jest.spyOn(prepAccount, 'prepKey').mockImplementation(base => {
-    const pedida = {base, pendiente: true};
-    if (/BackupService/.test(llamador())) claves.push(pedida);
-    const clave = realPrepKey(base);
-    void clave.then(() => (pedida.pendiente = false));
-    return clave;
+    const pedida: (typeof claves)[number] = {
+      base,
+      pendiente: true,
+      desdeElRespaldo: /BackupService/.test(llamador()),
+    };
+    claves.push(pedida);
+    return realPrepKey(base).then(k => {
+      pedida.pendiente = false;
+      pedida.clave = Object(k);
+      return pedida.clave as string;
+    });
   });
-  const pedidas = () =>
-    claves.map(
-      ({base, pendiente}) => `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
+  const delRespaldo = () => {
+    const usadas = new Set<unknown>(
+      espiaEscribe.mock.calls.flatMap(([pairs]) => pairs.map(([k]) => k)),
     );
+    return claves.filter(p => p.desdeElRespaldo || usadas.has(p.clave));
+  };
+  const pedidas = (lista: Array<[(typeof claves)[number], boolean]>) =>
+    lista
+      .filter(([p]) => delRespaldo().includes(p))
+      .map(
+        ([{base}, pendiente]) =>
+          `${base}: ${pendiente ? 'pendiente' : 'resuelta'}`,
+      );
+  const ahora = () =>
+    claves.map(p => [p, p.pendiente] as [(typeof claves)[number], boolean]);
   // R9-364 — y las claves de la Mesa con que el respaldo ESCRIBE (`prepMultiSet`,
   // espiado): un respaldo que pide las suyas y escribe con otras no pasa por
   // `prepWrite`. Sin implementacion propia (llama a la real), y limpio: si una
@@ -1071,7 +1099,7 @@ const respaldoDurante345 = async (
   espiaEscribe.mockClear();
   const escritas = () =>
     espiaEscribe.mock.calls.flatMap(([pairs]) =>
-      pairs.map(([k]) => k).filter(k => k.startsWith('@prep_')),
+      pairs.map(([k]) => String(k)).filter(k => k.startsWith('@prep_')),
     );
   try {
     // Una hora de reloj falso y mil vueltas, como en las de `prepKey`
@@ -1114,7 +1142,7 @@ const respaldoDurante345 = async (
     // Lo «al abrir» se lee aqui, tras los otros estados y justo antes de abrir
     // (R9-366).
     const hechoAntesDeAbrir = hecho;
-    const pedidasAlAbrir = pedidas();
+    const enAbrir = ahora();
     const escritasAlAbrir = escritas();
     abrir();
     // R9-364 — en cuanto lo que pidio el respaldo resolvio, llega otro estado:
@@ -1126,8 +1154,8 @@ const respaldoDurante345 = async (
     // que el respaldo pidio algo y nada de eso esta pendiente: sin ningun pedido
     // contado (uno que el filtro no ve), se espera a que el respaldo termine, y
     // el control dice que no.
-    const resuelto = () =>
-      claves.length > 0 && !pedidas().some(p => p.endsWith(': pendiente'));
+    // R9-382 — todo pedido: de quien es se sabe al escribir, despues.
+    const resuelto = () => claves.length > 0 && !claves.some(p => p.pendiente);
     for (let i = 0; i < 100000 && !resuelto() && !hecho; i++) await vuelta();
     const resolvioAntesDeCata = resuelto();
     otros.push(setPrepAccount('cata'));
@@ -1136,6 +1164,7 @@ const respaldoDurante345 = async (
     ak.mockImplementation(realAk);
     const ultimo = [primerEstado, ...despues].pop();
     const de = (base: string) => (ultimo ? `${base}:${ultimo}` : base);
+    const pedidasAlAbrir = pedidas(enAbrir);
     expect({
       migracionRetenida, // CONTROL: la migracion esperaba en su lectura
       devolucionRetenida, // CONTROL: o la union de la devolucion (R9-369)
@@ -1151,7 +1180,7 @@ const respaldoDurante345 = async (
       },
       // Al final: las dos pedidas (sin contar cuantas veces) y resueltas, y
       // escritas con la cuenta del ultimo estado del trabajo, no con la de Cata.
-      pedidasAlFinal: [...new Set(pedidas())].sort(),
+      pedidasAlFinal: [...new Set(pedidas(ahora()))].sort(),
       escritas: [...new Set(escritas())].sort(),
       fallo: resultado.asyncStorageWriteFailed, // CONTROL: el respaldo escribio
       deAna: await mapa('@prep_notes:ana'),
