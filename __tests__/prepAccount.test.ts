@@ -1222,7 +1222,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // los estados llegan de a uno, con `tiempoYVueltas` entre ellos (R9-361: en
   // vueltas y en tiempo): llamados seguidos, en la misma tarea, una microtarea
   // despues la cuenta ya era la del ultimo, y fijar la del primero que llega
-  // una microtarea tarde pasaba.
+  // una microtarea tarde pasaba. R9-384 — y sin dueno registrado (R9-370): ahi,
+  // entre la lectura de la nota y las devoluciones esta la mudanza, que lleva
+  // la Mesa de antes a la cuenta de cuando la lee (aqui, la del primero: el
+  // corte de R9-370), y lo pedido va con el ultimo. Con dueno en todos los
+  // casos, tomar la cuenta al terminar la mudanza pasaba; y con un solo estado
+  // sin dueno, pasaban las formas de R9-351 y R9-355 tras la mudanza (tomar el
+  // primero o el segundo que llega, o el ultimo distinto del primero, o
+  // ignorar uno igual al primero).
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
     const mr = AsyncStorage.multiRemove as unknown as jest.Mock;
@@ -1240,12 +1247,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
       primero: string | null,
       durante: Array<string | null>,
       devoluciones: boolean,
+      sinDueno = false,
     ) => {
       __resetPrepAccountForTests();
       await AsyncStorage.clear();
-      // La Mesa de antes, de `zoe`: la migracion la une.
+      // La Mesa de antes, de `zoe`: la migracion la une. Sin dueno, la mudanza.
       await AsyncStorage.setItem('@prep_notes', mesa('Ps/23/1-6'));
-      await AsyncStorage.setItem('@local_store_owner_uid', 'zoe');
+      if (!sinDueno) {
+        await AsyncStorage.setItem('@local_store_owner_uid', 'zoe');
+      }
       if (devoluciones) {
         await AsyncStorage.setItem('@prep_notes:bob', mesa('Rom/8/28'));
         await AsyncStorage.setItem('@prep_notes:carl', mesa('Eph/2/8'));
@@ -1261,12 +1271,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let retenida: {
         parte: string;
         deZoe: string[];
+        deAna: string[];
         sinCuenta: string[];
       } | null = null;
       const retener = async (parte: string) => {
         retenida = {
           parte,
           deZoe: await mapa('@prep_notes:zoe'),
+          deAna: await mapa('@prep_notes:ana'),
           sinCuenta: await mapa('@prep_notes'),
         };
         await puerta;
@@ -1334,13 +1346,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
     const conDevoluciones = {
       parte: 'quita la nota',
       deZoe: ['Ps/23/1-6'],
+      deAna: [],
       sinCuenta: ['Eph/2/8', 'Rom/8/28'],
     };
     const sinDevoluciones = {
       parte: 'lee la nota',
       deZoe: ['Ps/23/1-6'],
+      deAna: [],
       sinCuenta: [],
     };
+    const sinMudar = ['Eph/2/8', 'Ps/23/1-6', 'Rom/8/28'];
     expect({
       entra: await caso(null, ['ana'], true),
       sale: await caso('ana', [null], true),
@@ -1359,6 +1374,20 @@ describe('R9-59 — la Mesa por cuenta', () => {
         null,
         ['ana', 'beto', null],
         false,
+      ),
+      entraSinDueno: await caso(null, ['ana'], true, true),
+      saleSinDueno: await caso('ana', [null], true, true),
+      anaBetoNuloAnaSinDueno: await caso(
+        'ana',
+        ['beto', null, 'ana'],
+        true,
+        true,
+      ),
+      nuloAnaBetoNuloSinDueno: await caso(
+        null,
+        ['ana', 'beto', null],
+        true,
+        true,
       ),
     }).toEqual({
       entra: {
@@ -1458,6 +1487,36 @@ describe('R9-59 — la Mesa por cuenta', () => {
         deAna: [],
         deBeto: [],
         sinCuenta: [P],
+      },
+      // Sin dueno, la Mesa de antes va con el primero (la mudanza ya leyo la
+      // cuenta: el corte de R9-370), y lo pedido, con el ultimo.
+      entraSinDueno: {
+        retenida: {...conDevoluciones, deZoe: [], sinCuenta: sinMudar},
+        escritaAntesDeAbrir: false,
+        deAna: [P],
+        deBeto: [],
+        sinCuenta: sinMudar,
+      },
+      saleSinDueno: {
+        retenida: {...conDevoluciones, deZoe: [], deAna: ['Ps/23/1-6']},
+        escritaAntesDeAbrir: false,
+        deAna: ['Ps/23/1-6'],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', P, 'Rom/8/28'],
+      },
+      anaBetoNuloAnaSinDueno: {
+        retenida: {...conDevoluciones, deZoe: [], deAna: ['Ps/23/1-6']},
+        escritaAntesDeAbrir: false,
+        deAna: [P, 'Ps/23/1-6'],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', 'Rom/8/28'],
+      },
+      nuloAnaBetoNuloSinDueno: {
+        retenida: {...conDevoluciones, deZoe: [], sinCuenta: sinMudar},
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: ['Eph/2/8', P, 'Ps/23/1-6', 'Rom/8/28'],
       },
     });
   });
