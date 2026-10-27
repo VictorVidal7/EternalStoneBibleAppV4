@@ -2047,6 +2047,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     n: number,
     sembrar?: () => Promise<void>,
     una?: boolean,
+    cuenta: string | null = null,
   ) => {
     const vuelta = () => new Promise(r => setImmediate(r));
     // R9-359 — una lectura (`getItem`) falla en `multiGet`, por donde pasa en el
@@ -2125,8 +2126,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
       // `leido: null` sin que nadie lanzara, el rojo del dano). Con la falla, el
       // reloj falso ya esta puesto (R9-374).
       const estados = Promise.all([
-        setPrepAccount(null).catch(() => lanzo.push('primero')),
-        setPrepAccount(null).catch(() => lanzo.push('segundo')),
+        setPrepAccount(cuenta).catch(() => lanzo.push('primero')),
+        setPrepAccount(cuenta).catch(() => lanzo.push('segundo')),
       ]);
       await (conFalla ? esperarConReloj(estados) : estados);
       for (let i = 0; i < 100000 && leido === null; i++) await vuelta();
@@ -2186,6 +2187,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
     clave: string;
     n?: number;
     una?: boolean;
+    // La cuenta de los dos estados (sin ella, nulos).
+    cuenta?: string;
     llamadas: number;
     escribia: unknown;
     aviso: string;
@@ -2282,6 +2285,61 @@ describe('R9-59 — la Mesa por cuenta', () => {
       nota: null,
       claves: ['@prep_notes:ana'],
     },
+    // R9-383 — sin dueno registrado, la mudanza (`moveUnownedPrep`) une solo
+    // con un estado con cuenta: con los estados nulos no une nada, y una
+    // regresion de su union, de su marca o de la nota fallida pasaba la tabla.
+    // La lectura que falla es la de la «sin cuenta»: la de la Mesa de Ana la
+    // vuelve a hacer la lectura pedida antes.
+    {
+      titulo: 'R9-383: una lectura de la union de la mudanza, sin dueno',
+      cuenta: 'ana',
+      metodo: 'getItem',
+      clave: '@prep_notes',
+      llamadas: 1,
+      escribia: null,
+      aviso: MUEVE,
+      leido: [],
+      nota: null,
+      // sin mover y sin marca: se mueve en el arranque siguiente.
+      claves: ['@prep_notes'],
+    },
+    {
+      titulo: 'R9-383: la escritura de la union de la mudanza, sin dueno',
+      cuenta: 'ana',
+      metodo: 'multiSet',
+      clave: '@prep_notes:ana',
+      llamadas: 1,
+      escribia: [Ps],
+      aviso: MUEVE,
+      leido: [],
+      nota: null,
+      claves: ['@prep_notes'],
+    },
+    {
+      titulo: 'R9-383: la quita de la union de la mudanza, sin dueno',
+      cuenta: 'ana',
+      metodo: 'multiRemove',
+      clave: '@prep_notes',
+      llamadas: 1,
+      escribia: ['@prep_notes'],
+      aviso: MUEVE,
+      leido: [Ps],
+      nota: null,
+      claves: ['@prep_notes', '@prep_notes:ana'],
+    },
+    {
+      titulo: 'R9-383: la marca de la mudanza, sin dueno, con una cuenta',
+      cuenta: 'ana',
+      metodo: 'multiSet',
+      clave: '@prep_by_account',
+      llamadas: 1,
+      escribia: '1',
+      aviso: MUEVE,
+      leido: [Ps],
+      nota: null,
+      // movida y sin marca: la mudanza del arranque siguiente no mueve nada.
+      claves: ['@prep_notes:ana'],
+    },
     {
       // R9-357 — con una devolucion anotada: la lectura que falla deja la nota
       // (y la Mesa de Bob, en `claves`: R9-367) para el arranque siguiente.
@@ -2300,6 +2358,27 @@ describe('R9-59 — la Mesa por cuenta', () => {
       claves: [
         '@prep_by_account',
         '@prep_notes',
+        '@prep_notes:bob',
+        '@prep_release_pending',
+      ],
+    },
+    {
+      // R9-383 — la misma con una cuenta: la Mesa de antes se mueve igual (sin
+      // ella, la «sin cuenta» quedaba igual movida o no).
+      titulo:
+        'R9-383: la lectura de la nota de devoluciones, sin dueno, con una cuenta',
+      sembrar: () => conDevoluciones('bob'),
+      cuenta: 'ana',
+      metodo: 'getItem',
+      clave: '@prep_release_pending',
+      llamadas: 2,
+      escribia: null,
+      aviso: NOTA,
+      leido: [Ps],
+      nota: '["bob"]',
+      claves: [
+        '@prep_by_account',
+        '@prep_notes:ana',
         '@prep_notes:bob',
         '@prep_release_pending',
       ],
@@ -2427,6 +2506,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       clave,
       n,
       una,
+      cuenta,
       llamadas,
       escribia,
       aviso,
@@ -2435,7 +2515,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       claves,
     }) => {
       expect(
-        await primerEstadoConFalla(metodo, clave, n ?? 1, sembrar, una),
+        await primerEstadoConFalla(metodo, clave, n ?? 1, sembrar, una, cuenta),
       ).toEqual({
         llamadas, // CONTROL: sin falla, ninguna otra llamada toca la clave
         fallo: {escribia}, // CONTROL: fallo esa parte
@@ -2531,6 +2611,94 @@ describe('R9-59 — la Mesa por cuenta', () => {
         nota: '["bob"]',
         // La Mesa de Bob y su nota se quedan para el arranque siguiente, y la
         // migracion no se marco.
+        claves: ['@prep_notes', '@prep_notes:bob', '@prep_release_pending'],
+      });
+    } finally {
+      mocks.forEach((mock, i) => mock.mockImplementation(reales[i]));
+      warn.mockRestore();
+    }
+  });
+
+  // R9-383 — con el disco entero, la migracion falla en su primera lectura y
+  // no llega a la mudanza. Aqui falla desde que leyo el dueno (no hay), con un
+  // estado con cuenta: la nota, la union de la mudanza y su marca. Un camino de
+  // error de la mudanza fuera de su `try` (quitar la marca, o releerla, en su
+  // `catch`) pasaba la tabla.
+  it('R9-383: sin dueno registrado, con todo el disco fallando desde la lectura del dueno, ningun estado lanza, las claves se sueltan y la Mesa de antes se queda para el arranque siguiente', async () => {
+    const todos = [
+      'getItem',
+      'multiGet',
+      'setItem',
+      'multiSet',
+      'removeItem',
+      'multiRemove',
+      'mergeItem',
+      'multiMerge',
+      'getAllKeys',
+      'clear',
+    ] as const;
+    const mocks = todos.map(m => AsyncStorage[m] as unknown as jest.Mock);
+    const reales = mocks.map(m => m.getMockImplementation()!);
+    let caido = false;
+    mocks.forEach((mock, i) =>
+      mock.mockImplementation(async (...args: unknown[]) => {
+        if (caido) throw new Error('disco');
+        const r = await reales[i](...args);
+        // `getItem(k)` pasa por `multiGet([k])`: el dueno se lee entero.
+        if (JSON.stringify(args).includes('@local_store_owner_uid')) {
+          caido = true;
+        }
+        return r;
+      }),
+    );
+    const avisos: string[] = [];
+    const warn = jest
+      .spyOn(logger, 'warn')
+      .mockImplementation((mensaje, contexto) => {
+        if (String(contexto?.error).includes('disco')) avisos.push(mensaje);
+      });
+    try {
+      await conDevoluciones('bob');
+      await AsyncStorage.setItem('@prep_notes', mesaDe(Ps));
+      relojesFalsos();
+      let leido: string[] | null = null;
+      const lanzo: string[] = [];
+      managePrepAccount();
+      const espera = centinelaLargo();
+      void pasajes().then(r => (leido = r));
+      await esperarConReloj(
+        Promise.all([
+          setPrepAccount('ana').catch(() => lanzo.push('primero')),
+          setPrepAccount('ana').catch(() => lanzo.push('segundo')),
+        ]),
+      );
+      for (let i = 0; i < 100000 && leido === null; i++) {
+        await new Promise(r => setImmediate(r));
+      }
+      caido = false;
+      await tiempoYVueltas();
+      await unaHora();
+      expect({
+        avisos,
+        esperaCompleta: espera.corrio,
+        lanzo,
+        leido,
+        nota: await AsyncStorage.getItem('@prep_release_pending'),
+        claves: await claves(),
+      }).toEqual({
+        // CONTROL: fallo el disco desde la nota, y cada paso se trago su falla
+        // (la mudanza tambien: llego)
+        avisos: expect.arrayContaining([
+          NOTA,
+          MUEVE,
+          'Failed to read prep notes',
+        ]),
+        esperaCompleta: true, // CONTROL: la espera corrio un temporizador de dos horas puesto en el trabajo
+        lanzo: [],
+        leido: [], // las claves se soltaron
+        nota: '["bob"]',
+        // La Mesa de antes, sin mover y sin marca, y la de Bob con su nota:
+        // para el arranque siguiente.
         claves: ['@prep_notes', '@prep_notes:bob', '@prep_release_pending'],
       });
     } finally {
