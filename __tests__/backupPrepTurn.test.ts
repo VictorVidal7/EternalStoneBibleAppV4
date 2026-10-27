@@ -1147,16 +1147,28 @@ const respaldoDurante345 = async (
     abrir();
     // R9-364 — en cuanto lo que pidio el respaldo resolvio, llega otro estado:
     // la clave se toma al resolver, y uno que la tomara por su cuenta despues
-    // escribiria en la Mesa de Cata. Se espera a que resuelva (a lo sumo cien
-    // mil vueltas), y `resolvioAntesDeCata` lo dice: con mil como tope, una
-    // migracion 1005 vueltas mas lenta (un cambio bueno) recibia a Cata con
-    // las claves pendientes, y el rojo era el del dano. R9-376 — «resolvio» es
+    // escribiria en la Mesa de Cata. Se espera a que resuelva, y
+    // `resolvioAntesDeCata` lo dice: con mil como tope, una migracion 1005
+    // vueltas mas lenta (un cambio bueno) recibia a Cata con las claves
+    // pendientes, y el rojo era el del dano. R9-396 — y con cien mil, una que
+    // esperaba un temporizador real de 300 ms: mientras el trabajo del primer
+    // estado sigue, no hay tope en vueltas, y su corte es el guarda de diez
+    // segundos de reloj real (jest corta la prueba a los veinte). Terminado el
+    // trabajo, a lo sumo cien mil vueltas. R9-376 — «resolvio» es
     // que el respaldo pidio algo y nada de eso esta pendiente: sin ningun pedido
     // contado (uno que el filtro no ve), se espera a que el respaldo termine, y
     // el control dice que no.
     // R9-382 — todo pedido: de quien es se sabe al escribir, despues.
     const resuelto = () => claves.length > 0 && !claves.some(p => p.pendiente);
-    for (let i = 0; i < 100000 && !resuelto() && !hecho; i++) await vuelta();
+    let trabajoHecho = false;
+    const fin = () => (trabajoHecho = true);
+    void primero.then(fin, fin);
+    const desde = Date.now();
+    for (let tras = 0; tras < 100000 && !resuelto() && !hecho;) {
+      await vuelta();
+      if (trabajoHecho) tras++;
+      else if (Date.now() - desde > 10000) break;
+    }
     const resolvioAntesDeCata = resuelto();
     otros.push(setPrepAccount('cata'));
     const [, resultado] = await Promise.all([primero, respaldo, ...otros]);

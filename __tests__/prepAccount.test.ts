@@ -184,10 +184,13 @@ const tiempoYVueltas = async () => {
 // dan vueltas hasta que `listo()`, y cada mil vueltas sin listo, el temporizador
 // siguiente (solo ese: con todos los pendientes en cada vuelta, una quita
 // programada en el trabajo corria con el disco fallando todavia, y la de disco
-// entero no la veia). Hasta cien mil vueltas. Con un corte (R9-387): una quita
-// de la nota que el paso que falla pone en un temporizador de 10 ms, con el
-// trabajo tardando despues 998 vueltas, la de disco entero la ve; con 999 o
-// mas, no (vence con el disco fallando todavia). La fila de la nota la ve igual.
+// entero no la veia). Hasta cien mil vueltas. Con un corte en vueltas, no en
+// tiempo (R9-387, R9-400): el temporizador siguiente se adelanta cada mil
+// vueltas sea cual sea su plazo, asi que una quita de la nota que el paso que
+// falla pone en un temporizador (de 0 ms o de dos horas), con el trabajo
+// tardando despues 998 vueltas, la ven las dos filas de disco entero; con 999
+// o mas, no (vence con el disco fallando todavia). Las dos filas de la lectura
+// de la nota la ven igual.
 const vueltasYReloj = async (listo: () => boolean) => {
   for (let i = 1; i <= 100000 && !listo(); i++) {
     if (i % 1000 === 0 && jest.getTimerCount() > 0) {
@@ -1818,15 +1821,26 @@ describe('R9-59 — la Mesa por cuenta', () => {
       // estado (Cata), como en el respaldo (R9-364): la clave se toma al
       // resolver, y un store que la volviera a pedir despues escribiria en la
       // Mesa de Cata (`pedidas` es un conjunto: la segunda no se contaba). Se
-      // espera a que resuelva (a lo sumo cien mil vueltas), y
-      // `resolvioAntesDeCata` lo dice; sin ningun pedido contado, se espera a
-      // que los stores terminen, y el control dice que no (R9-376).
+      // espera a que resuelva, y `resolvioAntesDeCata` lo dice; sin ningun
+      // pedido contado, se espera a que los stores terminen, y el control dice
+      // que no (R9-376).
+      // R9-396 — mientras el trabajo del primer estado sigue, sin tope en
+      // vueltas: con cien mil, una migracion que esperaba un temporizador real
+      // de un segundo (un cambio bueno) recibia a Cata con lo pedido pendiente.
+      // Su corte es el guarda de diez segundos de reloj real (jest corta la
+      // prueba a los veinte). Terminado el trabajo, a lo sumo cien mil vueltas.
       const resuelto = () => {
         const p = vigiladas.pedidas();
         return p.length > 0 && !p.some(k => k.endsWith(': pendiente'));
       };
-      for (let i = 0; i < 100000 && !resuelto() && !escrita; i++) {
+      let trabajoHecho = false;
+      const fin = () => (trabajoHecho = true);
+      void primero.then(fin, fin);
+      const desde = Date.now();
+      for (let tras = 0; tras < 100000 && !resuelto() && !escrita;) {
         await vuelta();
+        if (trabajoHecho) tras++;
+        else if (Date.now() - desde > 10000) break;
       }
       const resolvioAntesDeCata = resuelto();
       otros.push(setPrepAccount('cata'));
