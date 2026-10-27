@@ -226,28 +226,50 @@ afterEach(() => {
 // ventana, tumbaban los casos con el codigo bueno).
 const vigilarClaves = () => {
   const real = pa.prepKey;
-  const pedidas = new Map<
-    Promise<string>,
-    {base: string; pendiente: boolean}
-  >();
-  const espia = jest.spyOn(pa, 'prepKey').mockImplementation(base => {
-    const pedida = {base, pendiente: true};
-    const clave = real(base);
+  type Pedida = {base: string; pendiente: boolean; delStore: boolean};
+  const pedidas = new Map<Promise<unknown>, Pedida>();
+  // R9-381 — de quien es cada pedido: del store de su base si el archivo del
+  // store esta en la pila al pedir (los stores la piden en su cuerpo). Uno de
+  // la prueba o de otro modulo no es de ningun store: un `prepWrite` ajeno con
+  // una clave de `prepKey` ocupaba el lugar del store que no lo llama.
+  const STORE_DE: Record<string, string> = {
+    '@prep_notes': 'prepNotesStore',
+    '@prep_series': 'prepSeriesStore',
+    '@prep_illustrations': 'prepIllustrationsStore',
+    '@prep_self_review': 'prepSelfReviewStore',
+  };
+  const pideElStore = (base: string) =>
+    base in STORE_DE &&
+    (new Error().stack ?? '').includes(`${STORE_DE[base]}.ts:`);
+  // Y el pedido pasa a lo que sale de su `.then`: un store que le pasa a
+  // `prepWrite` su clave envuelta (`key.then(k => k)`) sigue siendo el del
+  // pedido. Una promesa nueva que no sale de ahi (`(async () => key)()`), no.
+  const marcar = <T>(clave: Promise<T>, pedida: Pedida): Promise<T> => {
     pedidas.set(clave, pedida);
-    void clave.then(() => (pedida.pendiente = false));
+    const then = clave.then.bind(clave);
+    clave.then = ((...args: Parameters<typeof then>) =>
+      marcar(then(...args), pedida)) as typeof clave.then;
     return clave;
+  };
+  const espia = jest.spyOn(pa, 'prepKey').mockImplementation(base => {
+    const pedida = {base, pendiente: true, delStore: pideElStore(base)};
+    const clave = real(base);
+    void clave.then(() => (pedida.pendiente = false));
+    return marcar(clave, pedida);
   });
-  // R9-363 — y de quien es cada llamada: la base del pedido a `prepKey` que
-  // el llamador le pasa (la misma promesa). Una con una clave que no salio de
-  // un pedido no cuenta: un `prepWrite` ajeno de la misma base ocupaba el
-  // lugar del store que no lo llama. R9-371 — por el pedido y no por la pila:
-  // un store que llama a `prepWrite` desde un `bind` no deja su marco.
+  // R9-363 — y de quien es cada llamada: la base del pedido de un store que
+  // el llamador le pasa (la misma promesa, o una de su `.then`). Una con una
+  // clave que no salio de un pedido de un store no cuenta: un `prepWrite`
+  // ajeno de la misma base ocupaba el lugar del store que no lo llama.
+  // R9-371 — por el pedido y no por la pila de `prepWrite`: un store que lo
+  // llama desde un `bind` no deja su marco.
   const realWrite = pa.prepWrite;
   const recibidas: Array<{quien: string | null; clave: string | null}> = [];
   const espiaWrite = jest
     .spyOn(pa, 'prepWrite')
     .mockImplementation((key, fn) => {
-      const quien = pedidas.get(key)?.base ?? null;
+      const pedida = pedidas.get(key);
+      const quien = pedida?.delStore ? pedida.base : null;
       const recibida = {quien, clave: null as string | null};
       recibidas.push(recibida);
       void key.then(k => (recibida.clave = k));
@@ -1702,6 +1724,22 @@ describe('R9-59 — la Mesa por cuenta', () => {
         .escrituras()
         .filter(k => !k.endsWith(': pendiente'));
       abrir();
+      // R9-386 — en cuanto lo que pidieron los stores resolvio, llega otro
+      // estado (Cata), como en el respaldo (R9-364): la clave se toma al
+      // resolver, y un store que la volviera a pedir despues escribiria en la
+      // Mesa de Cata (`pedidas` es un conjunto: la segunda no se contaba). Se
+      // espera a que resuelva (a lo sumo cien mil vueltas), y
+      // `resolvioAntesDeCata` lo dice; sin ningun pedido contado, se espera a
+      // que los stores terminen, y el control dice que no (R9-376).
+      const resuelto = () => {
+        const p = vigiladas.pedidas();
+        return p.length > 0 && !p.some(k => k.endsWith(': pendiente'));
+      };
+      for (let i = 0; i < 100000 && !resuelto() && !escrita; i++) {
+        await vuelta();
+      }
+      const resolvioAntesDeCata = resuelto();
+      otros.push(setPrepAccount('cata'));
       await Promise.all([primero, edita, ...otros]);
       const pedidasAlFinal = vigiladas.pedidas();
       const recibidasAlFinal = vigiladas.escrituras();
@@ -1710,6 +1748,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       expect({
         migracionRetenida, // CONTROL: la migracion esperaba en su lectura
         devolucionRetenida, // CONTROL: o la union de la devolucion (R9-369)
+        resolvioAntesDeCata, // CONTROL: lo pedido resolvio antes del estado tardio
         antesDeAbrir,
         pedidasAlFinal,
         recibidasResueltasAlAbrir,
@@ -1717,12 +1756,15 @@ describe('R9-59 — la Mesa por cuenta', () => {
         clave,
         deAna: await mapa('@prep_notes:ana'), // CONTROL: la migracion movio lo de antes
         deBeto: await mapa('@prep_notes:beto'),
+        deCata: await mapa('@prep_notes:cata'),
         sinCuenta: await mapa('@prep_notes'),
         claves: await claves(),
       }).toEqual({
         ...esperado,
         migracionRetenida: '@prep_by_account',
         devolucionRetenida: null,
+        resolvioAntesDeCata: true,
+        deCata: [],
         // R9-369 — en la devolucion, las retenidas y lo de Ana, del caso.
         ...(parte === 'devolucion' ? esperado : {}),
         antesDeAbrir: {
