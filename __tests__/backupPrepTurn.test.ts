@@ -1042,46 +1042,52 @@ const respaldoDurante345 = async (
   const realPrepKey = prepAccount.prepKey;
   // R9-363 — cada pedido dice de quien es: un pedido ajeno de la misma base
   // (una lectura de notas en la ventana) no ocupa el lugar del respaldo.
-  // R9-377 — y es del respaldo el que hace el respaldo mismo (quien llama a
-  // `prepKey` esta en `BackupService`), no cualquiera con `BackupService` en
-  // la pila: una lectura de notas lanzada desde el respaldo pide desde
-  // `prepNotesStore`, y cubria a un respaldo que tomaba la suya por su cuenta.
-  // R9-382 — o es del respaldo el pedido cuya clave escribe el respaldo: cada
-  // pedido devuelve su propia clave (un `String` envuelto), y la que llega a
-  // `prepMultiSet` dice de que pedido es. Un ayudante de otro modulo pide desde
-  // fuera de `BackupService`, como el ajeno; lo separa que el respaldo escribe
-  // con la clave de su pedido (si el ayudante devuelve otra cadena, una copia,
-  // no se separa). Se cuenta al final, tambien lo de «al abrir».
-  const claves: Array<{
-    base: string;
-    pendiente: boolean;
-    desdeElRespaldo: boolean;
-    clave?: unknown;
-  }> = [];
-  const llamador = () =>
-    (new Error().stack ?? '')
-      .split('\n')
-      .slice(1)
-      .find(m => !/backupPrepTurn\.test|node_modules/.test(m)) ?? '';
+  // R9-382 — es del respaldo el pedido cuya clave escribe el respaldo, aunque
+  // lo pida un ayudante de otro modulo. R9-389, R9-390 — cada pedido devuelve
+  // la cadena: con un `String` envuelto, `src/` recibia un objeto, y una
+  // comparacion con `!==` pasaba aqui y perdia datos en la app. Sin identidad,
+  // un pedido ajeno de la misma clave se separa por lo que hace con ella: la
+  // lee. R9-377 — una lectura de notas lanzada desde el respaldo cubria a un
+  // respaldo que tomaba la suya por su cuenta; R9-395 — y un export en
+  // paralelo, que pide desde `BackupService`. Por pedido: cada lectura de una
+  // clave ya entregada, desde donde sea, descuenta un pedido con esa clave. Se
+  // cuenta al final, tambien lo de «al abrir». No se ve un ajeno que pide y no
+  // lee, ni uno que lee despues de que termina el caso; y un respaldo que lee
+  // su propia clave antes de escribir cae.
+  const claves: Array<{base: string; pendiente: boolean; clave?: string}> = [];
+  // Las lecturas de una clave de la Mesa ya entregada.
+  const leidas: string[] = [];
   const espia = jest.spyOn(prepAccount, 'prepKey').mockImplementation(base => {
-    const pedida: (typeof claves)[number] = {
-      base,
-      pendiente: true,
-      desdeElRespaldo: /BackupService/.test(llamador()),
-    };
+    const pedida: (typeof claves)[number] = {base, pendiente: true};
     claves.push(pedida);
     return realPrepKey(base).then(k => {
       pedida.pendiente = false;
-      pedida.clave = Object(k);
-      return pedida.clave as string;
+      pedida.clave = k;
+      return k;
     });
   });
   const delRespaldo = () => {
-    const usadas = new Set<unknown>(
+    const usadas = new Set<string>(
       espiaEscribe.mock.calls.flatMap(([pairs]) => pairs.map(([k]) => k)),
     );
-    return claves.filter(p => p.desdeElRespaldo || usadas.has(p.clave));
+    const lecturas = [...leidas];
+    return claves.filter(p => {
+      if (p.clave === undefined || !usadas.has(p.clave)) return false;
+      const i = lecturas.indexOf(p.clave);
+      if (i < 0) return true;
+      lecturas.splice(i, 1);
+      return false;
+    });
   };
+  // `getItem` pasa por `multiGet` en el mock (ver R9-359).
+  const retenerLectura = mg.getMockImplementation()!;
+  mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+    const resueltas = new Set(
+      claves.filter(p => !p.pendiente).map(p => p.clave),
+    );
+    leidas.push(...ks.filter(k => resueltas.has(k)));
+    return retenerLectura(ks, cb);
+  });
   const pedidas = (lista: Array<[(typeof claves)[number], boolean]>) =>
     lista
       .filter(([p]) => delRespaldo().includes(p))
@@ -1154,11 +1160,11 @@ const respaldoDurante345 = async (
     // esperaba un temporizador real de 300 ms: mientras el trabajo del primer
     // estado sigue, no hay tope en vueltas, y su corte es el guarda de diez
     // segundos de reloj real (jest corta la prueba a los veinte). Terminado el
-    // trabajo, a lo sumo cien mil vueltas. R9-376 — «resolvio» es
-    // que el respaldo pidio algo y nada de eso esta pendiente: sin ningun pedido
-    // contado (uno que el filtro no ve), se espera a que el respaldo termine, y
-    // el control dice que no.
-    // R9-382 — todo pedido: de quien es se sabe al escribir, despues.
+    // trabajo, a lo sumo cien mil vueltas. R9-376, R9-382, R9-397 — «resolvio»
+    // es que hubo algun pedido a `prepKey`, de quien sea, y ninguno esta
+    // pendiente: de quien es se sabe al escribir, despues, y un ayudante de
+    // otro modulo no se distingue todavia de un ajeno. Sin ningun pedido, se
+    // espera a que el respaldo termine, y el control dice que no.
     const resuelto = () => claves.length > 0 && !claves.some(p => p.pendiente);
     let trabajoHecho = false;
     const fin = () => (trabajoHecho = true);
