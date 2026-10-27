@@ -531,7 +531,13 @@ describe('R9-59 — la Mesa por cuenta', () => {
       let abrir = () => {};
       const out: Record<string, unknown> = {};
       // [primer estado, ultimo, clave cuya lectura (con `true`, cuya escritura)
-      // se retiene antes del ultimo]
+      // se retiene antes del ultimo, o `turno`]
+      // R9-399 — con `turno`, algo ajeno retiene el turno desde antes de todo
+      // estado (en la app, una adopcion o una devolucion no esperan el trabajo
+      // del primer estado), y el ultimo llega con la mudanza esperandolo: la
+      // cuenta va con el ultimo, como dice la cabecera («when its move's turn
+      // comes»). Con el turno libre, leerla al pedir el turno pasaba.
+      const TURNO = 'turno';
       const casos: Record<
         string,
         [string | null, string | null, string?, boolean?]
@@ -546,6 +552,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
         uniendoAnaYNulo: ['ana', null, '@prep_notes'],
         marcandoNuloYAna: [null, 'ana', '@prep_by_account', true],
         marcandoAnaYNulo: ['ana', null, '@prep_by_account', true],
+        turnoOcupadoNuloYAna: [null, 'ana', TURNO],
+        turnoOcupadoAnaYNulo: ['ana', null, TURNO],
         trasElTrabajo: [null, 'ana'],
       };
       try {
@@ -590,6 +598,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
               return realMs(pares, cb);
             },
           );
+          const ajeno =
+            retener === TURNO
+              ? prepWrite(
+                  Promise.resolve('@prep_illustrations:zz'),
+                  () => puerta,
+                )
+              : Promise.resolve();
+          // la union de la mudanza (un pedido sin etiqueta), en la cola del turno
+          const mudanzaEsperando = () =>
+            __prepTurnWaitingForTests(undefined as unknown as string) === 1;
           managePrepAccount();
           const edita = savePrepNote(P, 'application', 'durante', 2);
           const primero = setPrepAccount(primer);
@@ -597,12 +615,17 @@ describe('R9-59 — la Mesa por cuenta', () => {
           if (!retener && cuando !== 'trasElTrabajo')
             segundo = setPrepAccount(ultimo);
           if (retener) {
-            for (let i = 0; i < 1000 && !retenida; i++) await vuelta();
+            for (let i = 0; i < 1000 && !retenida; i++) {
+              await vuelta();
+              if (retener === TURNO) retenida = mudanzaEsperando();
+            }
             segundo = setPrepAccount(ultimo);
             for (let i = 0; i < 1000; i++) await vuelta();
+            // y sigue esperando cuando se suelta
+            if (retener === TURNO) retenida = retenida && mudanzaEsperando();
             abrir();
           }
-          await Promise.all([primero, segundo, edita]);
+          await Promise.all([ajeno, primero, segundo, edita]);
           if (cuando === 'trasElTrabajo') await setPrepAccount(ultimo);
           mg.mockImplementation(realMg);
           ms.mockImplementation(realMs);
@@ -668,6 +691,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
         uniendoAnaYNulo: partido('ana'),
         marcandoNuloYAna: partido(null),
         marcandoAnaYNulo: partido('ana'),
+        turnoOcupadoNuloYAna: {retenida: true, ...aAna},
+        turnoOcupadoAnaYNulo: {retenida: true, ...sinCuenta},
         trasElTrabajo: {retenida: false, ...sinCuenta},
       });
     });
@@ -1258,6 +1283,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
     const realMr = mr.getMockImplementation()!;
     const mg = lecturas();
     const realMg = mg.getMockImplementation()!;
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const realMs = ms.getMockImplementation()!;
     const mapa = async (k: string) =>
       Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
     const mesa = (pasaje: string) =>
@@ -1289,7 +1316,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       const puerta = new Promise<void>(r => (abrir = r));
       // La ultima parte del trabajo espera en una puerta: quitar la nota (en
       // el mock, `removeItem` pasa por `multiRemove`) o, sin devoluciones,
-      // leerla. `retenida` dice lo que ya estaba hecho.
+      // leerla. R9-393 — sin dueno y sin devoluciones, la ultima parte es la
+      // mudanza: espera la escritura de su marca (en el mock, `setItem` pasa
+      // por `multiSet`). `retenida` dice lo que ya estaba hecho.
+      const enLaMarca = sinDueno && !devoluciones;
       let retenida: {
         parte: string;
         deZoe: string[];
@@ -1318,6 +1348,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
       mg.mockImplementation(async (ks: string[], cb?: unknown) => {
         if (
           !devoluciones &&
+          !enLaMarca &&
           retenida === null &&
           ks.includes('@prep_release_pending')
         ) {
@@ -1325,6 +1356,18 @@ describe('R9-59 — la Mesa por cuenta', () => {
         }
         return realMg(ks, cb);
       });
+      ms.mockImplementation(
+        async (pares: Array<[string, string]>, cb?: unknown) => {
+          if (
+            enLaMarca &&
+            retenida === null &&
+            pares.some(([k]) => k === '@prep_by_account')
+          ) {
+            await retener('marca');
+          }
+          return realMs(pares, cb);
+        },
+      );
       try {
         relojesFalsos();
         managePrepAccount();
@@ -1363,6 +1406,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
         abrir();
         mr.mockImplementation(realMr);
         mg.mockImplementation(realMg);
+        ms.mockImplementation(realMs);
       }
     };
     const conDevoluciones = {
@@ -1409,6 +1453,18 @@ describe('R9-59 — la Mesa por cuenta', () => {
         null,
         ['ana', 'beto', null],
         true,
+        true,
+      ),
+      anaBetoNuloAnaSinDuenoNiDevoluciones: await caso(
+        'ana',
+        ['beto', null, 'ana'],
+        false,
+        true,
+      ),
+      nuloAnaBetoNuloSinDuenoNiDevoluciones: await caso(
+        null,
+        ['ana', 'beto', null],
+        false,
         true,
       ),
     }).toEqual({
@@ -1539,6 +1595,32 @@ describe('R9-59 — la Mesa por cuenta', () => {
         deAna: [],
         deBeto: [],
         sinCuenta: ['Eph/2/8', P, 'Ps/23/1-6', 'Rom/8/28'],
+      },
+      // R9-393 — los estados llegan con la mudanza escribiendo su marca, y su
+      // union ya hecha con la cuenta que leyo (la del primero).
+      anaBetoNuloAnaSinDuenoNiDevoluciones: {
+        retenida: {
+          parte: 'marca',
+          deZoe: [],
+          deAna: ['Ps/23/1-6'],
+          sinCuenta: [],
+        },
+        escritaAntesDeAbrir: false,
+        deAna: [P, 'Ps/23/1-6'],
+        deBeto: [],
+        sinCuenta: [],
+      },
+      nuloAnaBetoNuloSinDuenoNiDevoluciones: {
+        retenida: {
+          parte: 'marca',
+          deZoe: [],
+          deAna: [],
+          sinCuenta: ['Ps/23/1-6'],
+        },
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [],
+        sinCuenta: [P, 'Ps/23/1-6'],
       },
     });
   });
