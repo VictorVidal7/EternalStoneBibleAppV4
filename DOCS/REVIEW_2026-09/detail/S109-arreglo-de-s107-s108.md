@@ -148,8 +148,9 @@ Los dos, los costos medidos de dos arreglos (`R9-388` ya caía con la prueba de 
 - **Las compuertas:** `npx prettier --write "DOCS/REVIEW_2026-09/**/*.md"` (en el principal, con el del
   repo: en el worktree de docs, sin `node_modules`, `npx` había bajado otro), y `npm run validate` con
   `NODE_ENV=development`, sin worktrees (`_scratch/S109-validate.out.txt`): typecheck limpio, lint con 0
-  errores (los 70 avisos de siempre) y `format:check` limpio. **Jest no terminó:** Claude Code cortó el
-  proceso a mitad de la corrida por falta de memoria del sistema, y no se volvió a correr sin el OK de
-  Victor. Lo que sí se corrió: `prep` entero sobre `4839952` (78/78), la matriz (995 corridas en `prep`) y,
-  sobre su diseño, el suite de A3 (1053/1053).
+  errores (los 70 avisos de siempre) y `format:check` limpio. Jest no terminó ahí: Claude Code cortó el
+  proceso a mitad de la corrida por falta de memoria del sistema. Con el OK de Victor, se corrió aparte
+  (`NODE_ENV=development npx jest --maxWorkers=4`, `_scratch/S109-jest.out.txt`): 374/374 suites y
+  4687/4687 pruebas (las 4681 de la 107 más 6: las cinco filas y la gemela de disco entero de `R9-383`),
+  código de salida 0.
 - **El mensaje de la 110** está en `_scratch/S110-PROMPT.md`.
