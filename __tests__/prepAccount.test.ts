@@ -2281,6 +2281,17 @@ describe('R9-59 — la Mesa por cuenta', () => {
     }
     await AsyncStorage.setItem('@prep_release_pending', JSON.stringify(uids));
   };
+  // R9-392 — la Mesa de antes con las cuatro bases (las notas las siembra
+  // `correr`): con solo notas, una mudanza que dejaba atras una base pasaba.
+  const antesCuatro = async () => {
+    for (const base of [
+      '@prep_series',
+      '@prep_illustrations',
+      '@prep_self_review',
+    ]) {
+      await AsyncStorage.setItem(base, mesaDe(base));
+    }
+  };
   type Parte = {
     titulo: string;
     sembrar?: () => Promise<void>;
@@ -2389,10 +2400,14 @@ describe('R9-59 — la Mesa por cuenta', () => {
     // R9-383 — sin dueno registrado, la mudanza (`moveUnownedPrep`) une solo
     // con un estado con cuenta: con los estados nulos no une nada, y una
     // regresion de su union, de su marca o de la nota fallida pasaba la tabla.
-    // La lectura que falla es la de la «sin cuenta»: la de la Mesa de Ana la
-    // vuelve a hacer la lectura pedida antes.
+    // R9-392 — con las cuatro bases en la Mesa de antes, y `claves` dice donde
+    // quedo cada una. R9-391 — una fila por cada lectura de la union: la de la
+    // «sin cuenta» y la de la Mesa de Ana (tragada, la tomaba por vacia y la
+    // pisaba). La lectura pedida antes vuelve a leer la de Ana: cuenta en
+    // `llamadas`.
     {
       titulo: 'R9-383: una lectura de la union de la mudanza, sin dueno',
+      sembrar: antesCuatro,
       cuenta: 'ana',
       metodo: 'getItem',
       clave: '@prep_notes',
@@ -2402,10 +2417,35 @@ describe('R9-59 — la Mesa por cuenta', () => {
       leido: [],
       nota: null,
       // sin mover y sin marca: se mueve en el arranque siguiente.
-      claves: ['@prep_notes'],
+      claves: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
+    },
+    {
+      titulo:
+        'R9-391: la lectura de la Mesa de destino de la mudanza, sin dueno',
+      sembrar: antesCuatro,
+      cuenta: 'ana',
+      metodo: 'getItem',
+      clave: '@prep_notes:ana',
+      llamadas: 2,
+      escribia: null,
+      aviso: MUEVE,
+      leido: [],
+      nota: null,
+      claves: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
     },
     {
       titulo: 'R9-383: la escritura de la union de la mudanza, sin dueno',
+      sembrar: antesCuatro,
       cuenta: 'ana',
       metodo: 'multiSet',
       clave: '@prep_notes:ana',
@@ -2414,22 +2454,43 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MUEVE,
       leido: [],
       nota: null,
-      claves: ['@prep_notes'],
+      claves: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
     },
     {
       titulo: 'R9-383: la quita de la union de la mudanza, sin dueno',
+      sembrar: antesCuatro,
       cuenta: 'ana',
       metodo: 'multiRemove',
       clave: '@prep_notes',
       llamadas: 1,
-      escribia: ['@prep_notes'],
+      escribia: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
       aviso: MUEVE,
       leido: [Ps],
       nota: null,
-      claves: ['@prep_notes', '@prep_notes:ana'],
+      claves: [
+        '@prep_illustrations',
+        '@prep_illustrations:ana',
+        '@prep_notes',
+        '@prep_notes:ana',
+        '@prep_self_review',
+        '@prep_self_review:ana',
+        '@prep_series',
+        '@prep_series:ana',
+      ],
     },
     {
       titulo: 'R9-383: la marca de la mudanza, sin dueno, con una cuenta',
+      sembrar: antesCuatro,
       cuenta: 'ana',
       metodo: 'multiSet',
       clave: '@prep_by_account',
@@ -2439,7 +2500,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       leido: [Ps],
       nota: null,
       // movida y sin marca: la mudanza del arranque siguiente no mueve nada.
-      claves: ['@prep_notes:ana'],
+      claves: [
+        '@prep_illustrations:ana',
+        '@prep_notes:ana',
+        '@prep_self_review:ana',
+        '@prep_series:ana',
+      ],
     },
     {
       // R9-357 — con una devolucion anotada: la lectura que falla deja la nota
@@ -2468,7 +2534,10 @@ describe('R9-59 — la Mesa por cuenta', () => {
       // ella, la «sin cuenta» quedaba igual movida o no).
       titulo:
         'R9-383: la lectura de la nota de devoluciones, sin dueno, con una cuenta',
-      sembrar: () => conDevoluciones('bob'),
+      sembrar: async () => {
+        await conDevoluciones('bob');
+        await antesCuatro();
+      },
       cuenta: 'ana',
       metodo: 'getItem',
       clave: '@prep_release_pending',
@@ -2479,9 +2548,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       nota: '["bob"]',
       claves: [
         '@prep_by_account',
+        '@prep_illustrations:ana',
         '@prep_notes:ana',
         '@prep_notes:bob',
         '@prep_release_pending',
+        '@prep_self_review:ana',
+        '@prep_series:ana',
       ],
     },
     {
@@ -2722,7 +2794,8 @@ describe('R9-59 — la Mesa por cuenta', () => {
 
   // R9-383 — con el disco entero, la migracion falla en su primera lectura y
   // no llega a la mudanza. Aqui falla desde que leyo el dueno (no hay), con un
-  // estado con cuenta: la nota, la union de la mudanza y su marca. Un camino de
+  // estado con cuenta: la nota y la union de la mudanza, que falla en su
+  // primera lectura, asi que la marca no se intenta (R9-398). Un camino de
   // error de la mudanza fuera de su `try` (quitar la marca, o releerla, en su
   // `catch`) pasaba la tabla.
   it('R9-383: sin dueno registrado, con todo el disco fallando desde la lectura del dueno, ningun estado lanza, las claves se sueltan y la Mesa de antes se queda para el arranque siguiente', async () => {
