@@ -1248,8 +1248,20 @@
 > (un export tapa `R9-377`), `R9-396` (el corte en tiempo del tope de Cata) y cuatro frases o momentos de
 > las pruebas (`R9-397`..`R9-400`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **400**. Rama `docs/review-s110-diff-s109`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S110-revision-del-diff-s109.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **400**. Rama `docs/review-s110-diff-s109`, mergeada y
+> pusheada con el OK de Victor (`main` = `ef81827`, CI verde en el log, run `40561648671`, 374/4687;
+> corregido en la 111). Detalle: `detail/S110-revision-del-diff-s109.md`.
+>
+> **Sesión 111 (2026-10-27): arreglo de lo de la 109 y la 110**, en un chat nuevo, en la terminal, con 5
+> agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Cerrados
+> `R9-388`..`R9-400`, solo en las pruebas: `src/` recibe la cadena; el «de quién» de la escritura es la
+> función que escribe la base; la espera de Cata no cuenta vueltas mientras sigue el trabajo. Cinco
+> nuevos, ninguno P0: `R9-401` (las filas de la mudanza fallan solo las lecturas de notas) y los costos
+> medidos de los arreglos, `R9-402`..`R9-405`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **405**. Ramas `fix/s111-arreglos-s110` y
+> `docs/review-s111-fix` (encima), sin mergear hasta el OK de Victor. Detalle:
+> `detail/S111-arreglo-de-s109-s110.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2382,6 +2394,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     mide con una regresión que dependa de él; una fila por lectura del camino; un momento que una frase
     nombra necesita un caso donde difiera del vecino; un arreglo que cambia lo que cuenta un control
     re-mide su frase vieja.
+
+- **Sesión 111 — 2026-10-27. Arreglo de lo de la 109 y la 110.** En un chat nuevo, en la terminal, con 5
+  agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor); con
+  `_scratch/S111-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S111-sonda.cjs.txt` (de `S111-gen.cjs.txt`, sobre `S110-sonda`); las 13
+    entradas juntadas por prueba en 5 agentes; los diseños aplicados en serie y commiteados de a uno
+    (`25ce228`..`56c7d33`); cada prueba nueva vista caer en el principal con su pieza y pasar con la de
+    `4839952`; la matriz de la 110 sobre la punta (`S111-matriz.cjs.txt`, 1239).
+  - **Resultado:** cerrados `R9-388`..`R9-400`; nuevos `R9-401`..`R9-405` (P3 bajo; cuatro son costos de
+    los arreglos). No queda ningún P0 abierto.
+  - **Detalle: `detail/S111-arreglo-de-s109-s110.md`.**
+  - **Las lecciones:** entre diseños con costos, se elige por quién más ve cada costo; sin envoltorio, el
+    «de quién» pasa a lo que se hace con el valor; un control que lee un gancho tiene los cambios buenos
+    del gancho; la matriz ve lo que un agente no corrió; al sembrar cada base, la falla va a cada base.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con
