@@ -147,5 +147,6 @@ hallazgos.
   `espiaCadena110A5` (lo que hace hoy la prueba), árbol limpio (`S111-anclas-cierre.out.txt`).
 - **Las compuertas:** `npx prettier --write "DOCS/REVIEW_2026-09/**/*.md"` en el principal, y
   `npm run validate` con `NODE_ENV=development`, sin worktrees, en primer plano
-  (`_scratch/S111-validate.out.txt`).
+  (`_scratch/S111-validate.out.txt`): typecheck limpio, lint con 0 errores (los 70 avisos de siempre),
+  `format:check` limpio y jest 374/374 suites y 4688/4688 pruebas (una más: la fila de `R9-391`).
 - **El mensaje de la 112** está en `_scratch/S112-PROMPT.md`.
