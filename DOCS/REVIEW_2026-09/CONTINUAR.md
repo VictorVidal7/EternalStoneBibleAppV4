@@ -1,14 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-26, fin de la sesión 108.** La 108 hizo el (cj) en un chat nuevo,
-> en la terminal, con 3 agentes en worktree que solo midieron: la revisión del diff de la 107, primero
-> lo que escribió el orquestador (`R9-370` en `src/`). Cinco nuevos (`R9-383`..`R9-387`), sin arreglar:
-> uno de `src/` (una frase de las cabeceras) y cuatro de las pruebas.
+> **Última actualización: 2026-10-26, fin de la sesión 109.** La 109 hizo el (ck) en un chat nuevo,
+> en la terminal, con 6 agentes en worktree que midieron los diseños antes de escribirlos (los pidió
+> Victor). Cerrados `R9-381`..`R9-387`, con `R9-385` en `src/` (solo comentarios); dos nuevos (`R9-388`,
+> `R9-389`), los costos de dos arreglos, sin arreglar.
 >
 > La 107 ya está mergeada y pusheada (`main` = `0d682da`, CI verde en el log, run `39656058508`,
-> 374/4681). La rama de la 108 (`docs/review-s108-diff-s107`, solo docs) va **sin mergear hasta el OK
-> de Victor**. **No queda ningún P0 abierto**, y hay 387 hallazgos. **Lo siguiente:** la 109 arregla
-> `R9-381`..`R9-387` (mensaje (ck), en `_scratch/S109-PROMPT.md`).
+> 374/4681). Las ramas de la 108 (`docs/review-s108-diff-s107`, solo docs) y de la 109
+> (`fix/s109-arreglos-s108`, con `src/`, y `docs/review-s109-fix` encima) van **sin mergear hasta el OK
+> de Victor**. **No queda ningún P0 abierto**, y hay 389 hallazgos. **Lo siguiente:** la 110 revisa el
+> diff de la 109 (mensaje (cl), en `_scratch/S110-PROMPT.md`).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -544,11 +545,18 @@ midieron los diseños antes de escribirlos, con `_scratch/S105-PROMPT.md`). Y la
 (la (ch), sesión 106, en un chat nuevo con 4 agentes que solo midieron, con `_scratch/S106-PROMPT.md`).
 Y su arreglo (la (ci), sesión 107, en un chat nuevo con 12 agentes que midieron los diseños antes de
 escribirlos, con `_scratch/S107-PROMPT.md`). Y la revisión de su diff (la (cj), sesión 108, en un chat
-nuevo con 3 agentes que solo midieron, con `_scratch/S108-PROMPT.md`). **Lo siguiente es el (ck).**
+nuevo con 3 agentes que solo midieron, con `_scratch/S108-PROMPT.md`). Y su arreglo (la (ck), sesión
+109, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
+`_scratch/S109-PROMPT.md`). **Lo siguiente es el (cl).**
 
-**(ck) Sesión 109: arreglar lo de la 107 y la 108** (`R9-381`..`R9-387`; `R9-385` es una frase de
-`src/`), en las pruebas salvo esa frase, con cada prueba nueva vista FALLAR con su pieza. El mensaje está
-en `_scratch/S109-PROMPT.md`, que manda sobre este archivo.
+**(cl) Sesión 110: revisar el diff de la 109** (`c8e5e96..4839952`, con `src/`: solo comentarios,
+`R9-385`), empezando por lo que el orquestador juntó (dos diseños en la escritura de `R9-345`) y los
+costos `R9-388` y `R9-389`. El mensaje está en `_scratch/S110-PROMPT.md`, que manda sobre este archivo.
+
+**(ck) Sesión 109: arreglar lo de la 107 y la 108 — ya HECHO en la sesión 109, en un chat nuevo, en la
+terminal, con 6 agentes en worktree que midieron los diseños.** Cerrados `R9-381`..`R9-387` (`R9-385`,
+solo comentarios en `src/`); dos nuevos (`R9-388`, `R9-389`), los costos de dos arreglos. El mensaje
+está en `_scratch/S109-PROMPT.md`.
 
 **(cj) Sesión 108: revisar el diff de la 107 — ya HECHO en la sesión 108, en un chat nuevo, en la
 terminal, con 3 agentes en worktree que solo midieron.** Cinco nuevos (`R9-383`..`R9-387`). El mensaje
@@ -2151,20 +2159,25 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 108 (2026-10-26).**
+**Medido al cerrar la sesión 109 (2026-10-26).**
 
 - **La 107, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `0d682da` (solo
-  docs; el último código es `27d598b`, `src/` en `a0323d7`). CI verificado en el log: run
+  docs; el último código era `27d598b`, `src/` en `a0323d7`). CI verificado en el log: run
   `39656058508`, 3 jobs, «Run Tests» en Node v24.22.0, 374/4681. Sus ramas se borraron tras
-  `git cherry`. Comprobado en la 108 con `git fetch` y `git log -1 origin/main`.
-- **La rama de la 108, sin mergear a propósito y sin pushear:** `docs/review-s108-diff-s107` (solo
-  docs). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. Los de A2 y A3 se borraron solos; el de A1, a mano, tras comparar su
-  `_scratch` con su copia (`_scratch/S108-sondas-agente-1/`; sin cambios en el árbol). El checkpoint se
-  escribió en un worktree aparte (`../essb-docs-s108`, fuera del repo), quitado al terminar.
+  `git cherry`. Comprobado en la 109 con `git fetch` y `git log -1 origin/main`.
+- **Las ramas de la 108 y la 109, sin mergear a propósito y sin pushear, una encima de la otra:**
+  `docs/review-s108-diff-s107` (`c8e5e96`, solo docs); `fix/s109-arreglos-s108` encima (`f13db80`:
+  `src/features/study/prepAccount.ts`, solo comentarios, y `__tests__/prepAccount.test.ts`; `0e1c7b5`,
+  `1d6d3a4` y `bd9ee9f`: `__tests__/prepAccount.test.ts`; `4839952`: `__tests__/backupPrepTurn.test.ts`);
+  y `docs/review-s109-fix` encima (solo docs). Se mergean en fast-forward a la punta de
+  `docs/review-s109-fix` con el OK de Victor. Si ya se mergearon, `main` las incluye.
+- **Los worktrees:** ninguno. Los seis de los agentes (cada uno con su diseño sin commitear) se quitaron
+  a mano tras comparar su `_scratch` con su copia (`_scratch/S109-sondas-agente-N/`) y su diff guardado
+  con su `git diff` (`S109-limpiar.sh.txt`). El checkpoint se escribió en un worktree aparte
+  (`../essb-docs-s109`, fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin la de la 108):
+Las demás ramas locales, en total 11 contando `main` (sin las de la 108 y la 109):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -3082,6 +3095,20 @@ Alternativas legítimas:
   cambió `src/` y las pruebas juntos, vio bajar el corte y se lo atribuyó a `src/` por lectura. Con el
   `src` de antes y la prueba nueva, y al revés, se ve qué lo movió. Es la regla de la 87 (una lección se
   mide antes de escribirla).
+- **Una pieza de un store pide la misma en los otros tres (sesión 109, `R9-386`).** La entrada nombraba
+  la de notas (`notasRepideSiPendiente2000`); las de series, ilustraciones y autoevaluación pasaban el
+  `prep` entero, sin que ni `R9-292` las viera. Es la regla de la 108 (cada pieza pide su gemela), entre
+  stores.
+- **La forma de un caso va con su camino nuevo (sesión 109, `R9-384`).** Un caso sin dueño con un solo
+  estado no ve las formas de varios estados: cuatro gemelas sin dueño de `R9-351` y `R9-355` pasaban
+  `prep` y el suite hasta los casos de tres estados. Las reglas de la 100 y la 102, en el camino que
+  abrió la 107.
+- **Dos diseños en la misma prueba se miden juntos (sesión 109, `R9-381`, `R9-386`).** Con la marca por
+  `.then` sola, `notasEncadenaRepide2000` pasaba los casos; con el estado tras el trabajo de otro agente,
+  cae. Ningún agente los midió juntos: lo vio la verificación en el principal, sobre lo integrado.
+- **Un espía que devuelve otro tipo cambia lo que recibe el código bajo prueba (sesión 109, `R9-389`).**
+  Para contar el respaldo por la identidad de su clave, cada pedido devuelve un `String` envuelto, y
+  `src/` lo recibe en lugar de la cadena. Escribilo como costo, con lo que no se midió.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

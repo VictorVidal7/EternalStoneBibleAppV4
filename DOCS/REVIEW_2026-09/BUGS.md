@@ -1625,6 +1625,23 @@
 >   mismo que en su worktree (las otras 3, explicadas en el detalle).
 >
 > **No queda ningún P0 abierto.** Hallazgos: **387**. Detalle: `detail/S108-revision-del-diff-s107.md`.
+>
+> **Sesión 109 (2026-10-26): arreglo de lo de la 107 y la 108**, en un chat nuevo, en la terminal, con 6
+> agentes en worktree que midieron los diseños antes de escribirlos. En `fix/s109-arreglos-s108`
+> (`f13db80`, `0e1c7b5`, `1d6d3a4`, `bd9ee9f`, `4839952`), con `src/` (solo comentarios).
+>
+> - **Cerrados:** `R9-381`..`R9-387`, cada prueba nueva vista caer con las piezas de su entrada y pasar
+>   con la prueba de antes. Dentro de las entradas, diez verdes falsos más de las mismas clases (las
+>   gemelas de `R9-386` en los otros stores, las de `R9-384` de tres estados, dos de la mudanza y un
+>   ajeno de `src/`), cerrados con ellas.
+> - **Nuevos (2), los costos de dos arreglos:** `R9-388` (el «de quién» por la pila al pedir y la marca
+>   por `.then`: un `async` que espera la clave) y `R9-389` (el respaldo por la clave que escribe: una
+>   copia de la cadena; `src/` recibe un `String` envuelto).
+> - **La matriz** (995 corridas sobre la punta): de las 797 de la 108, 655 iguales y 119 que solo suman
+>   caídas; ninguna deja de ver una prueba que veía, salvo `cedeConTimeoutEnNota0` (la carrera de reloj de
+>   `R9-310`, intermitente) y una que pasa porque `R9-382` dejó pasar su cambio bueno.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **389**. Detalle: `detail/S109-arreglo-de-s107-s108.md`.
 
 ---
 
@@ -10575,6 +10592,25 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3 bajo: un rojo ante un cambio bueno, y un verde falso de los casos que el `prep` entero ve.
   - **Opciones (sin medir, del agente 6):** contar si la clave es la del pedido o si la pila tiene el
     store; o propagar la marca por `.then` (no cubre un `async` que la espere).
+  - **✅ ARREGLADO en la sesión 109** (`bd9ee9f`, el diseño «B» del agente 5): un pedido a `prepKey` es
+    del store de su base solo si el archivo del store está en la pila al pedir, y la marca del pedido
+    pasa a lo que sale de su `.then`. En el principal, sobre lo integrado: `notasClaveEnvuelta` y
+    `claveEnvuelta` pasan (78/78); `ajenoMarcado371+notasSinPrepWrite` cae en los 4 casos de `R9-345` y
+    los 2 de `R9-369` (66/78, lo mismo que `notasSinPrepWrite` sola). Lo que caía por el control sigue
+    cayendo en esos casos (`pideYDescarta`, 71/78; `tardeClave2000+pideYDescarta`, 63/78), y
+    `notasPrepWriteSinMarco` (el `bind` de `R9-371`) pasa.
+  - **Las otras opciones, medidas por el agente 5** (como piezas, sobre la prueba de antes): la de la
+    entrada (la identidad, o la pila de `prepWrite`) y «la pila al pedir y la de `prepWrite`» no ven el
+    `bind` sobre la clave envuelta (`notasEnvueltaYBind371`, un cambio bueno, cae); la marca por `.then`
+    sola no ve el ajeno; comparar además el valor no agrega nada sin un estado tras el trabajo. Cada
+    diseño tiene su cambio bueno que cae: el de este, `R9-388`.
+  - **Un ajeno de `src/` de la misma clase** (agente 5): `ajenoSeriesNotas` (el store de series llama a
+    `prepWrite` con una clave de `@prep_notes` que pide él) pasaba los casos igual que el marcado
+    (`pat27d598b+ajenoSeriesNotas+notasSinPrepWrite`: 66/72, sin ningún caso de `R9-345`); con el
+    arreglo caen los 6 (66/78).
+  - **Con `R9-386` puesto** (medido junto en el principal): `notasEncadenaRepide2000` (la clave
+    encadenada a un `then` que vuelve a pedir a `prepKey`), que con la marca por `.then` sola pasaba los
+    casos, cae en los 6 (68/78).
 
 - **`R9-382` (S107, pruebas / respaldo / `R9-377` — P3 bajo) — 🐛 el filtro del respaldo por quien llama a
   `prepKey` tumba los 4 casos con un respaldo que pide sus claves por un ayudante de otro módulo, aun sin
@@ -10590,6 +10626,18 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3 bajo: un rojo ante un cambio bueno, sin columnas de daño.
   - **Arreglo (hipótesis), sin medir:** ninguno que el agente 7 viera sin abrir otra vez `R9-377`; por
     lectura, `AsyncLocalStorage` no lo cierra (el ajeno hereda el contexto del respaldo).
+  - **✅ ARREGLADO en la sesión 109** (`4839952`, diseño del agente 6): cada pedido devuelve su propia
+    clave (un `String` envuelto), y es del respaldo si se pidió desde `BackupService` (el filtro de
+    `R9-377`) o si su clave llega a `prepMultiSet`. «Al abrir» se guarda y se filtra al final; la espera
+    de Cata cuenta todo pedido. En el principal: `respaldoClaveOtroModuloSinAwait` y
+    `respaldoClaveOtroModulo` pasan (78/78); `ajenoDesdeRespaldo+respaldoNotasTrasSeries` (`R9-377`) sigue
+    cayendo en los 6 casos del respaldo (72/78).
+  - **Hacen falta las dos partes** (agente 6): la identidad sola tumba un cambio bueno
+    (`respaldoNotasDosVeces+soloUsadaA6`, por «al abrir»), y el filtro solo es el de antes.
+  - **Lo que caía por el filtro sigue cayendo** (agente 6, las mismas pruebas que hoy): «no pide»,
+    «pide y descarta», «cubierta por un ajeno» y, nuevas, «pedir de más y usar lo de más»
+    (`respaldoRepide2000A6`, `respaldoRepideOtroModulo2000A6`, por los datos).
+  - Su costo: `R9-389`.
 
 - **`R9-383` (S108, pruebas / Mesa / `R9-370`, `R9-343` — P3) — 🐛 la mudanza de `R9-370` no tiene fila:
   sin dueño, la tabla de las partes corre con los estados nulos, y una regresión en la unión de
@@ -10632,6 +10680,18 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - **Arreglo (hipótesis), sin medir:** filas de la unión de la mudanza (lectura, escritura, quita) y de la
     nota fallida sin dueño y con un estado con cuenta, leyendo `claves`; o hacer pruebas de
     `fallaMudanzaA1` y `danoMueve108`.
+  - **✅ ARREGLADO en la sesión 109** (`0e1c7b5`, diseño del agente 2): `primerEstadoConFalla` acepta la
+    cuenta de los dos estados, y la tabla suma cinco filas sin dueño con `ana` (la lectura, la escritura
+    y la quita de la unión de la mudanza, su marca, y la nota fallida con Bob anotado), más una gemela de
+    disco entero que sí llega a la mudanza (falla desde la lectura del dueño, con `ana`). En el
+    principal, sobre lo integrado (78 pruebas): las siete caen, cada una en su fila
+    (`mudanzaUnionFueraDelTry108` y `mueveUnionSale`, 74/78; `mudanzaMarcaAntes108`, 73/78;
+    `mudanzaMarcaAunqueFalle108`, 75/78; `mueveQuitaMarcaEnCatch` y `mueveLeeEnCatchMultiGet`, 77/78, por
+    la gemela; `notaFallaMarcaSinMover108`, 76/78); siguen cayendo `notaVuelveReturn108` (75/78) y
+    `marcaSaleSinDueno370` (76/78).
+  - **Dos más de la clase** (agente 2): `mueveReintentaFuera109` (el `catch` de la mudanza reintenta la
+    unión fuera de todo `try`: la regla de la 100) y `mueveMarcaEnCatch109` (el `catch` escribe la marca
+    igual) pasaban la prueba de `27d598b` (72/72); con el arreglo, 74/78 y 75/78.
 
 - **`R9-384` (S108, pruebas / Mesa / `R9-344`, `R9-370` — P3) — 🐛 `R9-344` no tiene caso sin dueño: tomar
   la cuenta de lo pedido antes al terminar la mudanza (antes de las devoluciones) pasa `prep` y el suite,
@@ -10654,6 +10714,16 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3: verde falso ante una regresión construida, con mezcla de cuentas.
   - **Arreglo (hipótesis), sin medir:** un caso sin dueño en la de `R9-344` (o hacer prueba de
     `dano344SinDueno108`).
+  - **✅ ARREGLADO en la sesión 109** (`1d6d3a4`, diseño del agente 3): cuatro casos sin dueño en la de
+    `R9-344`, con dos devoluciones pendientes (nulo→ana, ana→nulo, ana→beto→nulo→ana y
+    nulo→ana→beto→nulo), con el control de la retenida leyendo también la Mesa de Ana. La Mesa de antes va
+    con el primero (el corte de `R9-370`) y lo pedido con el último. En el principal: `claveTrasMover344`
+    cae (77/78).
+  - **Cuatro gemelas más, sin dueño** (agente 3; la regla de la 108): las formas de `R9-351` y `R9-355`
+    tomadas tras la mudanza (`claveDelPrimeroTrasMover384`, `claveDelSegundoTrasMover384`,
+    `claveUltimoDistintoTrasMover384`, `ignoraPrimeroTrasMover384`) pasaban `prep` y el suite con la
+    prueba de `27d598b` (72/72; 1053/1053, agente 3). Solo las ven los casos de tres estados; con el
+    arreglo, cada una cae (77/78).
 
 - **`R9-385` (S108, Mesa / `R9-370` — P3 bajo) — 🐛 las cabeceras de `prepKey` y `migrateLegacyPrep` dicen
   que la Mesa de antes va con las claves salvo que llegue un estado mientras se devuelve; la ventana
@@ -10680,6 +10750,18 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - **Arreglo (hipótesis), sin medir:** que las dos cabeceras (y el comentario de la prueba) digan «un
     estado que llega desde que la mudanza lee la cuenta», con un caso en esa ventana en la prueba de
     `R9-370`.
+  - **✅ ARREGLADO en la sesión 109** (`f13db80`, diseño del agente 1): las cabeceras dicen que la Mesa
+    de antes va a la cuenta de cuando le llega el turno a la mudanza, y que se separa de las claves si
+    llega un estado «from then until the work is done» (durante la unión de la mudanza o su marca, o
+    mientras se devuelve). La prueba de `R9-370` suma tres casos en la ventana (`uniendoAnaYNulo`, con la
+    lectura de la unión retenida; `marcandoNuloYAna` y `marcandoAnaYNulo`, con la escritura de la marca
+    retenida), con el pasaje partido como esperado.
+  - **Las regresiones que los distinguen** (en el principal): `mueveCuentaTrasLeer385` (la mudanza lee
+    la Mesa «sin cuenta» y después la cuenta) cae en la de `R9-370` y en la fila de la lectura de la
+    unión de `R9-383` (76/78); `mueveSigueAlUltimo385` (tras la marca, une la Mesa a la cuenta de ahora)
+    cae solo en la de `R9-370` (77/78). Las dos pasan la prueba de `27d598b` (72/72).
+    `mueveSinTurno370` sigue pasando (78/78): el turno está libre en todos los casos (sin medir con el
+    turno ocupado).
 
 - **`R9-386` (S108, pruebas / Mesa / `R9-378`, `R9-371` — P3 bajo) — 🐛 con `pedidas` como conjunto, la
   escritura de `R9-345` deja de ver un store que vuelve a pedir su clave y escribe con la segunda: la ve
@@ -10708,6 +10790,19 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     `prep` la ve solo por los controles de otra prueba.
   - **Arreglo (hipótesis), sin medir:** un estado tras el trabajo en los casos de la escritura (como Cata
     en el respaldo). Sin medir también: la pieza en series, ilustraciones y autoevaluación.
+  - **✅ ARREGLADO en la sesión 109** (`bd9ee9f`, diseño del agente 4): en cuanto lo pedido resolvió (a
+    lo sumo cien mil vueltas, o los stores terminados), llega Cata, con su control
+    (`resolvioAntesDeCata`) y su Mesa vacía como esperado. En el principal: `notasRepideSiPendiente2000`
+    cae en los 4 casos de `R9-345` y los 2 de `R9-369` (71/78, más `R9-292`), por los datos;
+    `notasRepide2000`, 68/78; `notasTarde2000` (el control de la demora) no toca los 6 (75/78, las tres de
+    hoy).
+  - **Las gemelas en los otros stores** (agente 4): `seriesRepideSiPendiente2000`,
+    `ilusRepideSiPendiente2000` y `autoRepideSiPendiente2000` pasaban el `prep` entero con la prueba de
+    `27d598b` (72/72: ni `R9-292` las veía, un verde falso con mezcla de cuentas); con el arreglo, cada
+    una cae en los 6 (72/78). `seriesTarde2000` pasa (78/78).
+  - **El corte** (agente 4): una segunda pedida en la misma tanda de microtareas que la resolución
+    (`notasRepideSiPendienteV0`) pasa los casos; desde una vuelta (`V1`), cae. Con 0 vueltas no hay daño
+    en la app: un estado de auth llega en una macrotarea.
 
 - **`R9-387` (S108, pruebas / Mesa / `R9-373`, `R9-374` — P3 bajo) — 🐛 la causa escrita de que el corte
   en vueltas bajara es falsa: no fue `R9-370`, fueron las pruebas de la 107; y el paréntesis de
@@ -10735,6 +10830,50 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3 bajo: dos frases de las pruebas, y una lección, falsas o sin su corte; nada pasa en falso.
   - **Arreglo (hipótesis), sin medir:** quitar la causa (o medir qué cambio la bajó) y escribir el corte de
     `vueltasYReloj`.
+  - **✅ ARREGLADO en la sesión 109** (`f13db80`, diseño del agente 1): la frase de `tiempoYVueltas` pierde
+    la causa (qué cambio de las pruebas bajó el corte sigue sin medir), y `vueltasYReloj` escribe su
+    corte. Re-medido sobre la punta: con la quita en un temporizador de 10 ms y el trabajo tardando
+    después 998 vueltas, caen la fila de la nota y disco entero (con lo integrado, también sus filas sin
+    dueño de `R9-383`: 74/78); con 999, solo las filas de la nota (76/78). El agente 1 midió además 990,
+    997, 1000, 1001, 1010 y 2000 con la prueba de `27d598b`, y 998/999 sobre su diseño.
+
+- **`R9-388` (S109, pruebas / Mesa / `R9-381`, `R9-371` — P3 bajo) — 🐛 el «de quién» de la escritura de
+  `R9-345` por la pila al pedir y la marca por `.then` tiene su propio cambio bueno: un store que le pasa
+  a `prepWrite` una promesa nueva que espera su clave (`(async () => key)()`) tumba los 4 casos de
+  `R9-345` y los 2 de `R9-369`.** MEDIDO en la sesión 109 (agente 5, sobre su diseño; re-medido en el
+  principal sobre lo integrado).
+  - El arreglo de `R9-381` (`bd9ee9f`) cuenta una llamada a `prepWrite` si su clave es la promesa de un
+    pedido del store, o una que sale de su `.then`. Una promesa que no sale de ahí no lleva la marca.
+  - **`notasClaveAsync`** (un cambio bueno): 72/78, los 6 casos, solo porque falta la llamada del store
+    en `recibidas`; el comentario de `vigilarClaves` lo dice. Con la prueba de antes también caía (66/72,
+    agente 5: la identidad sola tampoco lo veía); la entrada de `R9-381` lo dejaba por lectura («no cubre
+    un `async` que la espere»).
+  - Cada opción medida por el agente 5 tiene el suyo: la pila de `prepWrite` no ve un `bind` sobre la
+    clave envuelta (`notasEnvueltaYBind371`), y la marca por `.then` no ve un `async`. Es la regla de la
+    105 y la de la 107 («un control que lee "de quién" tiene su propio cambio bueno»).
+  - **Sin medir (por lectura):** un ajeno en el mismo módulo del store contaría como del store (la clase
+    de `R9-382`); y la pila al pedir depende de `Error.stackTraceLimit` (con el de jest, el marco del
+    store entra en los 4 stores).
+  - **¿Lo abrió la 109?** No: ya caía con la identidad de la 107 (`a0323d7`). La 109 lo dejó a sabiendas:
+    el diseño que lo cerraba (la pila de `prepWrite`) tumba `notasEnvueltaYBind371`.
+  - P3 bajo: un rojo ante un cambio bueno, sin columnas de daño.
+
+- **`R9-389` (S109, pruebas / respaldo / `R9-382`, `R9-377` — P3 bajo) — 🐛 el pedido del respaldo por la
+  clave que escribe tiene su propio cambio bueno: un ayudante de otro módulo que devuelve otra cadena (una
+  copia de la clave) tumba los 4 casos de `R9-345` y los 2 de `R9-369` del respaldo, solo por los
+  controles; y el espía le pasa a `src/` un `String` envuelto en vez de la cadena.** MEDIDO en la sesión
+  109 (agente 6, sobre su diseño; re-medido en el principal sobre lo integrado).
+  - El arreglo de `R9-382` (`4839952`) cuenta un pedido si se pidió desde `BackupService` o si su clave,
+    el mismo objeto, llega a `prepMultiSet`. Para eso cada pedido devuelve `Object(k)`, guardado.
+  - **`respaldoClaveOtroModuloCopiaA6`** (un cambio bueno: el ayudante devuelve `k.slice(0)`): 72/78, los
+    6 casos, solo por `pidio: false` y `pedidasAlFinal: []`, sin las columnas del daño. El comentario de
+    la prueba lo dice.
+  - **Sin medir:** que `src/` reciba un objeto y no la cadena, en los casos del respaldo. Con el código de
+    hoy pasa (78/78); una regresión que compare la clave con `===`, la meta en un `Set` o pregunte su
+    `typeof` actuaría distinto que en la app.
+  - Es la regla de la 107 («el envoltorio pierde la identidad»), del lado de la cadena.
+  - **¿Lo abrió la 109?** Sí (`4839952`), a sabiendas: cerró `R9-382` sin volver a abrir `R9-377`.
+  - P3 bajo: un rojo ante un cambio bueno, sin columnas de daño; y una diferencia con la app, sin medir.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -1227,6 +1227,17 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **387**. Rama `docs/review-s108-diff-s107`, sin mergear
 > hasta el OK de Victor. Detalle: `detail/S108-revision-del-diff-s107.md`.
+>
+> **Sesión 109 (2026-10-26): arreglo de lo de la 107 y la 108**, en un chat nuevo, en la terminal, con 6
+> agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor). Cerrados
+> `R9-381`..`R9-387` (`R9-385`: solo comentarios en `src/`), con diez verdes falsos más de las mismas
+> clases. Dos nuevos, los costos de dos arreglos: `R9-388` (el «de quién» por la pila al pedir: un
+> `async` que espera la clave) y `R9-389` (el respaldo por la clave que escribe: una copia de la cadena, y
+> `src/` recibe un `String` envuelto).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **389**. Ramas `fix/s109-arreglos-s108` y
+> `docs/review-s109-fix` (encima de la de la 108), sin mergear hasta el OK de Victor. Detalle:
+> `detail/S109-arreglo-de-s107-s108.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2332,6 +2343,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** una fila por camino necesita datos que hagan trabajar a la parte; el corte de una
     decisión empieza donde se toma el valor; lo que un re-anclado deja en un solo camino se lista, y cada
     pieza pide su gemela; la causa de un corte que se movió se mide moviendo una cosa por vez.
+
+- **Sesión 109 — 2026-10-26. Arreglo de lo de la 107 y la 108.** En un chat nuevo, en la terminal, con 6
+  agentes en worktree que midieron los diseños antes de escribirlos (los pidió Victor); con
+  `_scratch/S109-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S109-sonda.cjs.txt` (de `S109-gen.cjs.txt`, sobre `S108-sonda`); una
+    entrada por agente (las dos frases juntas), los seis diffs aplicados sin conflictos y commiteados de a
+    uno; cada pieza re-medida en el principal sobre lo integrado, y la matriz de la 108 sobre la punta
+    (`S109-matriz.cjs.txt`).
+  - **Resultado:** cerrados `R9-381`..`R9-387`; nuevos `R9-388` y `R9-389` (P3 bajo), los costos de dos
+    arreglos. No queda ningún P0 abierto.
+  - **Detalle: `detail/S109-arreglo-de-s107-s108.md`.**
+  - **Las lecciones:** una pieza de un store pide la misma en los otros tres; la forma de un caso va con
+    su camino nuevo; dos diseños en la misma prueba se miden juntos; un espía que devuelve otro tipo
+    cambia lo que recibe el código bajo prueba.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con
