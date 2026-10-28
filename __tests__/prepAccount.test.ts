@@ -2506,6 +2506,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       await AsyncStorage.setItem(base, mesaDe(base));
     }
   };
+  // R9-407 — y con dueno registrado: con solo las notas, una migracion que
+  // dejaba atras las ilustraciones o la autoevaluacion pasaba la tabla.
+  const conDuenoCuatro = async () => {
+    await conDueno();
+    await antesCuatro();
+  };
   type Parte = {
     titulo: string;
     sembrar?: () => Promise<void>;
@@ -2548,7 +2554,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     },
     {
       titulo: 'R9-343: una lectura de la union de la migracion',
-      sembrar: conDueno,
+      sembrar: conDuenoCuatro,
       metodo: 'getItem',
       clave: '@prep_notes:ana',
       llamadas: 1,
@@ -2556,11 +2562,16 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
-      claves: ['@prep_notes'],
+      claves: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
     },
     {
       titulo: 'R9-343: la escritura de la union de la migracion',
-      sembrar: conDueno,
+      sembrar: conDuenoCuatro,
       metodo: 'multiSet',
       clave: '@prep_notes:ana',
       llamadas: 1,
@@ -2568,21 +2579,40 @@ describe('R9-59 — la Mesa por cuenta', () => {
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
-      claves: ['@prep_notes'],
+      claves: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
     },
     {
       titulo: 'R9-343: la quita de la union de la migracion',
-      sembrar: conDueno,
+      sembrar: conDuenoCuatro,
       metodo: 'multiRemove',
       clave: '@prep_notes',
       llamadas: 1,
-      escribia: ['@prep_notes'],
+      escribia: [
+        '@prep_illustrations',
+        '@prep_notes',
+        '@prep_self_review',
+        '@prep_series',
+      ],
       aviso: MIGRA,
       leido: [Ps],
       nota: null,
       // La union ya se escribio: queda en las dos, como en la de una
       // devolucion.
-      claves: ['@prep_notes', '@prep_notes:ana'],
+      claves: [
+        '@prep_illustrations',
+        '@prep_illustrations:ana',
+        '@prep_notes',
+        '@prep_notes:ana',
+        '@prep_self_review',
+        '@prep_self_review:ana',
+        '@prep_series',
+        '@prep_series:ana',
+      ],
     },
     {
       // R9-370 — sin dueno registrado, la marca la escribe `moveUnownedPrep`
@@ -2600,7 +2630,7 @@ describe('R9-59 — la Mesa por cuenta', () => {
     },
     {
       titulo: 'R9-370: la marca de la migracion, con dueno registrado',
-      sembrar: conDueno,
+      sembrar: conDuenoCuatro,
       metodo: 'multiSet',
       clave: '@prep_by_account',
       llamadas: 1,
@@ -2609,7 +2639,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
       // la union ya llevo la Mesa a la de Ana: la «sin cuenta» queda vacia.
       leido: [],
       nota: null,
-      claves: ['@prep_notes:ana'],
+      claves: [
+        '@prep_illustrations:ana',
+        '@prep_notes:ana',
+        '@prep_self_review:ana',
+        '@prep_series:ana',
+      ],
     },
     // R9-383 — sin dueno registrado, la mudanza (`moveUnownedPrep`) une solo
     // con un estado con cuenta: con los estados nulos no une nada, y una
@@ -2759,6 +2794,32 @@ describe('R9-59 — la Mesa por cuenta', () => {
       escribia: null,
       aviso: NOTA,
       leido: [Ps],
+      nota: '["bob"]',
+      claves: [
+        '@prep_by_account',
+        '@prep_illustrations:ana',
+        '@prep_notes:ana',
+        '@prep_notes:bob',
+        '@prep_release_pending',
+        '@prep_self_review:ana',
+        '@prep_series:ana',
+      ],
+    },
+    {
+      // R9-407 — la misma con dueno registrado: la migracion termina y pone la
+      // marca, y una base que no movio quedaria marcada en la «sin cuenta».
+      titulo:
+        'R9-407: la lectura de la nota de devoluciones, con dueno registrado',
+      sembrar: async () => {
+        await conDevoluciones('bob');
+        await conDuenoCuatro();
+      },
+      metodo: 'getItem',
+      clave: '@prep_release_pending',
+      llamadas: 2,
+      escribia: null,
+      aviso: NOTA,
+      leido: [],
       nota: '["bob"]',
       claves: [
         '@prep_by_account',
