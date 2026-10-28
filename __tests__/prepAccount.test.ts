@@ -4047,4 +4047,82 @@ describe('R9-59 — la Mesa por cuenta', () => {
       },
     });
   });
+
+  // R9-408 — la gemela de R9-269 en la autoevaluacion: una respuesta guardada
+  // justo antes de que la Mesa cambie de cuenta va con ella. La escritura
+  // tiene su turno, con su lectura retenida, y en la ventana una cuenta adopta
+  // la Mesa «sin cuenta» (entra) o la devuelve (sale). Si la funcion del store
+  // lanza la escritura y suelta el turno sin esperarla, la union mueve lo de
+  // antes y la respuesta llega despues a la Mesa que ya se fue: la de antes
+  // de Ana, o la de la cuenta borrada. El «de quien» de la escritura (R9-403)
+  // no lo ve: lo lanzado hereda el contexto de la llamada. La ventana corre con
+  // el reloj falso (`tiempoYVueltas`): un turno soltado tras un temporizador
+  // tambien se ve.
+  it('R9-408: una respuesta de la autoevaluacion guardada mientras la Mesa cambia de cuenta va con ella, entre o salga', async () => {
+    const P = 'John/3/16-21';
+    const R = 'Rom/8/28';
+    const q = PREP_SELF_REVIEW_QUESTION_IDS[0];
+    const mg = lecturas();
+    const realMg = mg.getMockImplementation()!;
+    const pasajesDe = async (k: string) =>
+      Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')).sort();
+    const caso = async (entra: boolean) => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      managePrepAccount();
+      await setPrepAccount(entra ? null : 'ana');
+      await setPrepSelfReviewQuestion(P, q, true);
+      const clave = entra ? '@prep_self_review' : '@prep_self_review:ana';
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let retenida = false;
+      mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+        if (!retenida && ks.length === 1 && ks[0] === clave) {
+          retenida = true;
+          await puerta;
+        }
+        return realMg(ks, cb);
+      });
+      let escritaAntesDeAbrir = false;
+      let abierta = false;
+      relojesFalsos();
+      try {
+        const escribe = setPrepSelfReviewQuestion(R, q, true);
+        void escribe.then(() => (escritaAntesDeAbrir = !abierta));
+        await vueltasYReloj(() => retenida);
+        const mueve = entra
+          ? adoptNoAccountPrep('ana')
+          : releasePrepAccount('ana');
+        await tiempoYVueltas();
+        abierta = true;
+        abrir();
+        await esperarConReloj(escribe);
+        await esperarConReloj(mueve);
+      } finally {
+        abrir();
+        mg.mockImplementation(realMg);
+        jest.useRealTimers();
+      }
+      return {
+        retenida,
+        escritaAntesDeAbrir,
+        deAna: await pasajesDe('@prep_self_review:ana'),
+        sinCuenta: await pasajesDe('@prep_self_review'),
+      };
+    };
+    expect({entra: await caso(true), sale: await caso(false)}).toEqual({
+      entra: {
+        retenida: true,
+        escritaAntesDeAbrir: false, // la union espera a la escritura
+        deAna: [P, R],
+        sinCuenta: [],
+      },
+      sale: {
+        retenida: true,
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        sinCuenta: [P, R],
+      },
+    });
+  });
 });
