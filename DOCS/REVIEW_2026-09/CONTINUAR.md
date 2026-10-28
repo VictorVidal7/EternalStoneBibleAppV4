@@ -1,14 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-27, fin de la sesión 111.** La 111 hizo el (cm) en un chat nuevo,
-> en la terminal, con 5 agentes en worktree que midieron los diseños antes de escribirlos (los pidió
-> Victor). Cerrados `R9-388`..`R9-400`, solo en las pruebas; cinco nuevos (`R9-401`..`R9-405`), cuatro de
-> ellos los costos medidos de los arreglos, sin arreglar.
+> **Última actualización: 2026-10-27, fin de la sesión 112.** La 112 hizo el (cn) en un chat nuevo,
+> en la terminal, con 5 agentes en worktree que solo midieron (los pidió Victor): la revisión del diff de
+> la 111, la ÚLTIMA vuelta del ciclo de las pruebas de la Mesa (decisión de Victor, §7). Cuatro nuevos
+> (`R9-406`..`R9-409`), todos de las pruebas; tres con daño medido en una prueba-sonda (`R9-406`..`R9-408`),
+> que la 113 arregla, y nada más del ciclo.
 >
-> La 110 ya está mergeada y pusheada (`main` = `ef81827`, CI verde en el log, run `40561648671`,
-> 374/4687). Las ramas de la 111 (`fix/s111-arreglos-s110`, solo pruebas, y `docs/review-s111-fix`
-> encima) van **sin mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 405 hallazgos.
-> **Lo siguiente:** la 112 revisa el diff de la 111 (mensaje (cn), en `_scratch/S112-PROMPT.md`).
+> La 111 ya está mergeada y pusheada (`main` = `741f6f0`, CI verde en el log, run `40589890000`,
+> 374/4688). La rama de la 112 (`docs/review-s112-diff-s111`, solo docs) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 409 hallazgos. **Lo siguiente:** la 113 arregla
+> `R9-406`..`R9-408` y cierra el ciclo (mensaje (co), en `_scratch/S113-PROMPT.md`); después, `A12` en la
+> 114 (su mensaje lo escribe la 113).
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -548,12 +550,20 @@ nuevo con 3 agentes que solo midieron, con `_scratch/S108-PROMPT.md`). Y su arre
 109, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
 `_scratch/S109-PROMPT.md`). Y la revisión de su diff (la (cl), sesión 110, en un chat nuevo con 10
 agentes que solo midieron, con `_scratch/S110-PROMPT.md`). Y su arreglo (la (cm), sesión 111, en un chat
-nuevo con 5 agentes que midieron los diseños antes de escribirlos, con `_scratch/S111-PROMPT.md`). **Lo
-siguiente es el (cn).**
+nuevo con 5 agentes que midieron los diseños antes de escribirlos, con `_scratch/S111-PROMPT.md`). Y la
+revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que solo midieron, con
+`_scratch/S112-PROMPT.md`), la ÚLTIMA vuelta del ciclo de las pruebas de la Mesa (§7). **Lo siguiente es
+el (co).**
 
-**(cn) Sesión 112: revisar el diff de la 111** (`ef81827..56c7d33`, solo pruebas), empezando por los
-costos que la 111 eligió (`R9-402`..`R9-404`) y lo que el orquestador juntó (el comentario de la espera de
-Cata en el respaldo). El mensaje está en `_scratch/S112-PROMPT.md`, que manda sobre este archivo.
+**(co) Sesión 113: arreglar SOLO lo que la 112 midió con daño** (`R9-406`, `R9-407`, `R9-408`: tres
+verdes falsos de las pruebas de la Mesa, con mezcla de cuentas o datos fuera de la vista de su dueña en una
+prueba-sonda), sin abrir otra revisión del ciclo. **Después, `A12`** (Modo A, P0, «EN CURSO»), en la
+114, en la terminal: su mensaje lo escribe la 113, con los tres hilos que nombra el de la 113. El mensaje
+está en `_scratch/S113-PROMPT.md`, que manda sobre este archivo.
+
+**(cn) Sesión 112: revisar el diff de la 111 — ya HECHO en la sesión 112, en un chat nuevo, en la
+terminal, con 5 agentes en worktree que solo midieron.** Cuatro nuevos (`R9-406`..`R9-409`), tres con daño
+medido. El mensaje está en `_scratch/S112-PROMPT.md`.
 
 **(cm) Sesión 111: arreglar lo de la 109 y la 110 — ya HECHO en la sesión 111, en un chat nuevo, en la
 terminal, con 5 agentes en worktree que midieron los diseños.** Cerrados `R9-388`..`R9-400`; cinco nuevos
@@ -2169,24 +2179,21 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 111 (2026-10-27).**
+**Medido al cerrar la sesión 112 (2026-10-27).**
 
-- **La 110, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `ef81827` (solo docs; el
-  último código era `4839952`, `src/` en `f13db80`). CI verificado en el log: run `40561648671`, 3 jobs,
-  «Run Tests» en Node v24.21.0, 374/4687. Su rama se borró tras `git cherry`. Comprobado en la 111 con
-  `git fetch` y `git log -1 origin/main`.
-- **Las ramas de la 111, sin mergear a propósito y sin pushear, una encima de la otra:**
-  `fix/s111-arreglos-s110` (`25ce228`, `9cd06d0`, `23f9b2d`: `__tests__/prepAccount.test.ts`; `4020b19`:
-  las dos pruebas; `56c7d33`: `__tests__/backupPrepTurn.test.ts`; `src/` no cambia) y
-  `docs/review-s111-fix` encima (solo docs). Se mergean en fast-forward a la punta de
-  `docs/review-s111-fix` con el OK de Victor. Si ya se mergearon, `main` las incluye.
-- **Los worktrees:** ninguno. Los cinco de los agentes (cada uno con su diseño sin commitear) se quitaron
-  a mano tras comparar su `git diff` con el guardado (`_scratch/S111-a<N>-final.diff.txt`) y su `_scratch`
-  con su copia (`_scratch/S111-sondas-agente-N/`). El checkpoint se escribió en un worktree aparte
-  (`../essb-docs-s111`, fuera del repo), quitado al terminar.
+- **La 111, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `741f6f0` (solo docs; el
+  último código es `56c7d33`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
+  `40589890000`, 3 jobs, «Run Tests» en Node v24.21.0, 374/4688. Sus ramas se borraron tras `git cherry`.
+  Comprobado en la 112 con `git fetch` y `git log -1 origin/main` (los docs de la 111 decían «sin mergear»:
+  corregido aquí).
+- **La rama de la 112, sin mergear a propósito y sin pushear:** `docs/review-s112-diff-s111` (solo docs).
+  Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. Los cinco de los agentes (solo midieron) se quitaron tras comparar su
+  `_scratch` con su copia (`_scratch/S112-sondas-agente-N/`). El checkpoint se escribió en un worktree
+  aparte (`../essb-docs-s112`, fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
-Las demás ramas locales, en total 11 contando `main` (sin las de la 111):
+Las demás ramas locales, en total 11 contando `main` (sin la de la 112):
 
 - **Cinco ramas de arreglos YA MERGEADAS, que se pueden borrar:**
   `fix/review-p0-cola-y-cursor-conflictos`, `fix/review-p0-dinero-entitlement`,
@@ -3155,6 +3162,20 @@ Alternativas legítimas:
 - **Al sembrar cada base, la falla va también a cada base (sesión 111, `R9-401`).** Las filas de la
   mudanza siembran las cuatro bases y fallan solo las notas: tragarse la lectura de otra base pasa. La
   regla de la 109, en las filas de la 110.
+- **Lo que un arreglo lleva a un camino, lo pide el camino vecino (sesión 112, `R9-406`, `R9-407`).** La
+  111 sembró las cuatro bases solo sin dueño, y con dueño una migración que salta las ilustraciones pasa el
+  suite y deja la base marcada sin mover. Y llevó la forma de tres estados a la mudanza solo con formas que
+  vuelven al primero, donde «el primero» y «el último» son el mismo: tomar el primero mezcla cuentas. Los
+  tres daños de la 112 no los abrió la 111: son gemelas de arreglos viejos en otro camino. Las reglas de la
+  102 y la 108, del lado del camino que el arreglo no tocó.
+- **Lo que un control hereda no lo distingue (sesión 112, `R9-408`).** El «de quién» por contexto pasa a
+  todo lo que la función lanza: una escritura que sale del turno (`void run(k)`) lleva el contexto de la
+  llamada, y en tres stores pasa `prep` con daño. Un control que sigue la llamada no ve lo que la llamada
+  deja corriendo; eso lo ven los datos de un caso con algo en la ventana. La regla de la 107, del lado de
+  la herencia.
+- **Un conteo que resta no dice a quién le resta (sesión 112, `R9-404`, `R9-409`).** «Cada lectura
+  descuenta un pedido con esa clave» resta el más viejo, que es el del respaldo si el lector pide después.
+  La regla de la 88 vale también para lo que se descuenta.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3384,6 +3405,28 @@ Alternativas legítimas:
 
 ## 7. Decisiones de Victor que NO hay que volver a preguntarle
 
+- **El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112, decidido por Victor el 2026-10-27
+  (tras la 111).** La 112 fue la última vuelta de revisión de `__tests__/prepAccount.test.ts` y
+  `__tests__/backupPrepTurn.test.ts`.
+  - **Por qué:** el ciclo revisión ↔ arreglo no converge. Las revisiones de la 102 a la 110 trajeron 4, 7,
+    8, 5 y 11 nuevos, casi todos P3 de las pruebas, sin P0 y con `src/` casi quieto desde la 107: cada
+    diseño de control tiene su cambio bueno que cae, y cada arreglo trae sus costos (`R9-401`..`R9-405`).
+    Seguir gasta la cuota sin bajar el riesgo de la app.
+  - **El corte:** si la 112 no encuentra nada con daño medido (en la app, o en una prueba-sonda que muestre
+    pérdida o mezcla de datos), lo que encuentre queda como costo conocido, junto con `R9-401`..`R9-405`, y
+    no hay una 113 de arreglos de estas pruebas. Si algo tiene daño medido, la 113 arregla SOLO eso, sin
+    abrir otra revisión del ciclo. No se propone otra vuelta salvo que Victor la pida.
+  - **Lo siguiente, en este orden, sin mezclar modos en una sesión (charter §3):** `A12` (Modo A, P0, «EN
+    CURSO»: superficies de crash), en la terminal. Después, en una sesión aparte con emulador (Modo C: la
+    receta de `reference_essb-device-testing-and-automation`, APK debug, nunca el teléfono de Victor), las
+    filas C P0 de dinero y gating: `C15` (ofrenda), `C39` (donación), `C55` (canje de gift-code), `C16` y
+    `C56` (gating premium), y `C6`, `C54`. Después, las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por
+    agente.
+  - **Lo que resultó en la 112:** tres verdes falsos con daño medido en una prueba-sonda (`R9-406`,
+    `R9-407`, `R9-408`; ninguno lo abrió la 111: son gemelas de arreglos viejos en otro camino), así que
+    la 113 arregla SOLO esos tres. `R9-409` (frases) y las notas «Medido en la 112» de `R9-396`, `R9-402`,
+    `R9-403` y `R9-404` quedan como costo conocido, con `R9-401`..`R9-405`. `A12` va en la 114, en un chat
+    nuevo (sin mezclar los arreglos con el Modo A). Detalle: `detail/S112-revision-del-diff-s111.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,

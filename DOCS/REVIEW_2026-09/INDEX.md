@@ -1260,8 +1260,20 @@
 > medidos de los arreglos, `R9-402`..`R9-405`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **405**. Ramas `fix/s111-arreglos-s110` y
-> `docs/review-s111-fix` (encima), sin mergear hasta el OK de Victor. Detalle:
+> `docs/review-s111-fix` (encima), mergeadas y pusheadas con el OK de Victor (`main` = `741f6f0`, CI verde
+> en el log, run `40589890000`, 374/4688; corregido en la 112). Detalle:
 > `detail/S111-arreglo-de-s109-s110.md`.
+>
+> **Sesión 112 (2026-10-27): revisión del diff de la 111, la ÚLTIMA vuelta del ciclo de las pruebas de la
+> Mesa** (decisión de Victor, §7 de `CONTINUAR.md`), en un chat nuevo, en la terminal, con 5 agentes en
+> worktree que solo midieron (los pidió Victor). Cuatro nuevos, ninguno P0, ninguno abierto por la 111: tres
+> verdes falsos con daño medido en una prueba-sonda (`R9-406`: el último estado distinto del primero en la
+> mudanza; `R9-407`: las cuatro bases con dueño; `R9-408`: la escritura que sale del turno en tres stores),
+> que la 113 arregla, y `R9-409` (cuatro frases, costo conocido). Lo demás, notas en `R9-396` y
+> `R9-402`..`R9-404`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **409**. Rama `docs/review-s112-diff-s111`, sin mergear
+> hasta el OK de Victor. Detalle: `detail/S112-revision-del-diff-s111.md`.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2408,6 +2420,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** entre diseños con costos, se elige por quién más ve cada costo; sin envoltorio, el
     «de quién» pasa a lo que se hace con el valor; un control que lee un gancho tiene los cambios buenos
     del gancho; la matriz ve lo que un agente no corrió; al sembrar cada base, la falla va a cada base.
+- **Sesión 112 — 2026-10-27. Revisión del diff de la 111, la última vuelta del ciclo de las pruebas de la
+  Mesa.** En un chat nuevo, en la terminal, con 5 agentes en worktree que solo midieron (los pidió
+  Victor); con `_scratch/S112-PROMPT.md`.
+  - **Cómo se trabajó:** `_scratch/S112-sonda.cjs.txt` (de `S112-gen.cjs.txt`, sobre `S111-sonda`); las
+    seis miradas del mensaje en 5 agentes, con el corte de Victor primero (medir el daño de cada verde
+    falso); los tres con daño re-medidos en el principal; la matriz de la 111 sobre la punta
+    (`S112-matriz.cjs.txt`).
+  - **Resultado:** nuevos `R9-406`..`R9-409`; tres con daño medido (la 113 arregla solo esos), ninguno
+    abierto por la 111. El ciclo se cierra con la 113; después, `A12` (la 114). No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S112-revision-del-diff-s111.md`.**
+  - **Las lecciones:** lo que un arreglo lleva a un camino, lo pide el camino vecino; lo que un control
+    hereda no lo distingue; un conteo que resta no dice a quién le resta.
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con
