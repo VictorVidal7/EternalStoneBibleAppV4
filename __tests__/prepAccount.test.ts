@@ -3770,6 +3770,116 @@ describe('R9-59 — la Mesa por cuenta', () => {
     }
   });
 
+  // R9-408 — la gemela de R9-269 en las series: la escritura de un store que
+  // sale de su turno (la funcion la lanza y devuelve el turno sin esperarla)
+  // pasaba, porque ninguna prueba ponia una adopcion ni una devolucion entre
+  // el pedido de la serie y su escritura. Aqui la escritura se demora (su
+  // lectura, o su escritura, retenida en una puerta) y en esa ventana Ana
+  // adopta la Mesa «sin cuenta», o su cuenta se devuelve. Con el turno, la
+  // adopcion espera y la serie va con la Mesa; sin el, la serie creada sin
+  // sesion se queda en la «sin cuenta», y la de Ana, bajo el uid devuelto.
+  it('R9-408: una serie pedida antes de una adopcion o una devolucion va con la Mesa, aunque su escritura tarde', async () => {
+    const ms = AsyncStorage.multiSet as unknown as jest.Mock;
+    const realMs = ms.getMockImplementation()!;
+    const mg = lecturas();
+    const realMg = mg.getMockImplementation()!;
+    const titulos = async (k: string) =>
+      Object.values(
+        JSON.parse((await AsyncStorage.getItem(k)) ?? '{}') as Record<
+          string,
+          {name: string}
+        >,
+      )
+        .map(s => s.name)
+        .sort();
+    let abrir: () => void = () => undefined;
+    // `retener`: la lectura de la clave de la serie (`multiGet([k])`) o su
+    // escritura (en el mock, `setItem` pasa por `multiSet`), la primera.
+    // `sale`: con la sesion de Ana, su cuenta se devuelve en la ventana; si
+    // no, sin sesion, Ana adopta la Mesa «sin cuenta».
+    const caso = async (retener: 'lectura' | 'escritura', sale: boolean) => {
+      __resetPrepAccountForTests();
+      await AsyncStorage.clear();
+      managePrepAccount();
+      await setPrepAccount(sale ? 'ana' : null);
+      await createPrepSeries('vieja');
+      const clave = sale ? '@prep_series:ana' : '@prep_series';
+      const puerta = new Promise<void>(r => (abrir = r));
+      let retenida = false;
+      const esperar = async (es: boolean) => {
+        if (!retenida && es) {
+          retenida = true;
+          await puerta;
+        }
+      };
+      mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+        await esperar(
+          retener === 'lectura' && ks.length === 1 && ks[0] === clave,
+        );
+        return realMg(ks, cb);
+      });
+      ms.mockImplementation(async (pairs: Array<[string, string]>) => {
+        await esperar(
+          retener === 'escritura' && pairs.some(([k]) => k === clave),
+        );
+        return realMs(pairs);
+      });
+      let antesDeAbrir = false;
+      try {
+        let hecha = false;
+        const crea = createPrepSeries('durante');
+        void crea.then(() => (hecha = true));
+        for (let i = 0; i < 1000 && !retenida; i++) {
+          await new Promise(r => setImmediate(r));
+        }
+        const ventana = sale
+          ? releasePrepAccount('ana')
+          : adoptNoAccountPrep('ana');
+        for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r));
+        antesDeAbrir = hecha;
+        abrir();
+        await crea;
+        await ventana;
+        // Una escritura que salio del turno termina despues: se espera, para
+        // ver en que Mesa queda.
+        for (let i = 0; i < 50; i++) await new Promise(r => setImmediate(r));
+      } finally {
+        abrir();
+        mg.mockImplementation(realMg);
+        ms.mockImplementation(realMs);
+      }
+      return {
+        retenida,
+        antesDeAbrir,
+        ana: await titulos('@prep_series:ana'),
+        sinCuenta: await titulos('@prep_series'),
+      };
+    };
+    const adopta = {
+      retenida: true,
+      antesDeAbrir: false, // la escritura espera a la puerta
+      ana: ['durante', 'vieja'],
+      sinCuenta: [],
+    };
+    const devuelve = {
+      retenida: true,
+      antesDeAbrir: false,
+      ana: [],
+      sinCuenta: ['durante', 'vieja'],
+    };
+    expect({
+      adoptaConLecturaRetenida: await caso('lectura', false),
+      adoptaConEscrituraRetenida: await caso('escritura', false),
+      devuelveConLecturaRetenida: await caso('lectura', true),
+      devuelveConEscrituraRetenida: await caso('escritura', true),
+    }).toEqual({
+      adoptaConLecturaRetenida: adopta,
+      adoptaConEscrituraRetenida: adopta,
+      devuelveConLecturaRetenida: devuelve,
+      devuelveConEscrituraRetenida: devuelve,
+    });
+  });
+
   it('R9-269: volver a entrar no borra lo escrito sin sesion en el mismo pasaje (ni lo restaurado), y una escritura durante la union no se pierde', async () => {
     const T = Date.now() - 60 * 60 * 1000;
     const P = 'John/3/16-21';
