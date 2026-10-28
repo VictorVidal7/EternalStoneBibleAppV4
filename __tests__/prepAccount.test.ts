@@ -1287,7 +1287,12 @@ describe('R9-59 — la Mesa por cuenta', () => {
   // casos, tomar la cuenta al terminar la mudanza pasaba; y con un solo estado
   // sin dueno, pasaban las formas de R9-351 y R9-355 tras la mudanza (tomar el
   // primero o el segundo que llega, o el ultimo distinto del primero, o
-  // ignorar uno igual al primero).
+  // ignorar uno igual al primero). R9-406 — y sin dueno ni devoluciones, con
+  // dos estados durante la marca de la mudanza, distintos entre si y del
+  // primero (nulo→ana→beto, ana→beto→nulo): los casos de tres estados vuelven
+  // al primero, donde «el primero» y «el ultimo» son la misma cuenta, y tomar
+  // la del primero (la que leyo la mudanza) si llegan varios durante ella
+  // pasaba.
   it('R9-344: con un estado que llega durante la ultima parte del trabajo del primero, lo pedido antes va a la cuenta de cuando termina, entre o salga', async () => {
     const P = 'John/3/16-21';
     const mr = AsyncStorage.multiRemove as unknown as jest.Mock;
@@ -1478,6 +1483,18 @@ describe('R9-59 — la Mesa por cuenta', () => {
         false,
         true,
       ),
+      nuloAnaBetoSinDuenoNiDevoluciones: await caso(
+        null,
+        ['ana', 'beto'],
+        false,
+        true,
+      ),
+      anaBetoNuloSinDuenoNiDevoluciones: await caso(
+        'ana',
+        ['beto', null],
+        false,
+        true,
+      ),
     }).toEqual({
       entra: {
         retenida: conDevoluciones,
@@ -1632,6 +1649,32 @@ describe('R9-59 — la Mesa por cuenta', () => {
         deAna: [],
         deBeto: [],
         sinCuenta: [P, 'Ps/23/1-6'],
+      },
+      // R9-406 — con el ultimo distinto del primero, lo pedido va al ultimo
+      // (Beto, o la «sin cuenta»), no a la cuenta que leyo la mudanza.
+      nuloAnaBetoSinDuenoNiDevoluciones: {
+        retenida: {
+          parte: 'marca',
+          deZoe: [],
+          deAna: [],
+          sinCuenta: ['Ps/23/1-6'],
+        },
+        escritaAntesDeAbrir: false,
+        deAna: [],
+        deBeto: [P],
+        sinCuenta: ['Ps/23/1-6'],
+      },
+      anaBetoNuloSinDuenoNiDevoluciones: {
+        retenida: {
+          parte: 'marca',
+          deZoe: [],
+          deAna: ['Ps/23/1-6'],
+          sinCuenta: [],
+        },
+        escritaAntesDeAbrir: false,
+        deAna: ['Ps/23/1-6'],
+        deBeto: [],
+        sinCuenta: [P],
       },
     });
   });
