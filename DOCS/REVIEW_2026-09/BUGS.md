@@ -1730,6 +1730,20 @@
 > - Cada sonda, re-medida igual en el principal.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **417**. Detalle: `detail/A12-superficies-crash.md`.
+>
+> **Sesión 115 (2026-10-28): el Modo C P0 de dinero y gating, con emulador**, en un chat nuevo, en la
+> terminal, con 7 agentes en worktree en dos olas (los pidió Victor; 4 emuladores como techo). Solo docs.
+>
+> - **Nuevos (5), ninguno P0:** `R9-418` (P2, la hoja de ofrenda se corta arriba y no tiene scroll), `R9-419`
+>   (P3, los productos de donación con precio en dólares en Play Console), `R9-420` (P3, la donación sin red no
+>   dice nada), `R9-421` (P2, Sepia elegido con premium queda heredado para siempre) y `R9-422` (P3, el
+>   historial abierto desde la Mesa no ve lo de los últimos 700 ms).
+> - **Filas:** `C16` ✅; `C15`, `C56` 🐛 P2; `C39`, `C6` 🐛 P3; `C55` y `C54` PENDIENTE, «sin medir» por
+>   decisión de Victor (necesitan una cuenta no anónima, y la única cuenta de Google del AVD es la suya).
+> - **De paso:** `R9-412` medido en el dispositivo (sigue P2; el bucle no tiene salida desde la interfaz);
+>   `R9-417`, sin medir (Metro ve los clones del AVD como un solo dispositivo); `R9-135`, premisa confirmada.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **422**. Detalle: `detail/C15-hoja-ofrenda.md` y vecinos.
 
 ---
 
@@ -11593,6 +11607,15 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     providers (el componente de hoy ya sirve: medido), y en el fallback nativo un «Volver al inicio»
     (`router.replace('/')`) y un camino «borrar datos», como el de `ErrorBoundary.web.tsx`.
   - Costo sin daño: cada «Reintentar» repite `initializeApp()` y suma un `logger.error`.
+  - **✅ Medido en el dispositivo en la sesión 115 (Modo C, agente 7; sigue P2):** con `@reading_plan_progress
+= null` (el dato de `R9-411`, escrito con `run-as` y sqlite3 en `RKStorage`), Home lanza `TypeError: Cannot
+convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Algo salió mal». Dos
+    «Reintentar»: cada uno repite `initializeApp()` y vuelve a caer; atrás saca al launcher y el arranque en
+    frío vuelve a caer: el consejo del fallback («cierra y vuelve a abrir») no saca del bucle. **Matiz nuevo:**
+    un deep link a otra ruta (`eternalbible://settings`) más «Reintentar» sí sale (Ajustes abre sin error),
+    pero tocar «Inicio» vuelve a caer: desde la interfaz el usuario no tiene salida. **Para la propuesta:**
+    «Volver al inicio» no alcanza cuando la pantalla que lanza ES el inicio; hace falta el camino «borrar
+    datos». Limpieza hecha (la clave borrada, Home normal). Evidencia: `_scratch/S115-sondas-agente-7/`.
 
 - **`R9-413` (S114, `A12` hilo 2 / preferencias del lector / `R9-267`, `R9-28` — P2) — 🐛 una lectura de
   `@reader_preferences` que rechaza al montar escribe los valores por defecto encima, y `sepiaGrandfathered`
@@ -11665,6 +11688,69 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     fatal.
   - **Arreglo propuesto (sin escribir):** `HermesInternal.enablePromiseRejectionTracker` en release, con un
     `onUnhandled` que llame a `logger.error`.
+  - **⚠️ Sesión 115 (Modo C, agente 7): «sin medir» en el dispositivo.** Si `HermesInternal.hasPromise()` da
+    `true` en el APK debug no se pudo leer: las 4 instancias eran clones del mismo AVD y Metro las ve como un
+    solo dispositivo (`device=ca54da87…`), así que el depurador de Hermes las mezcla (conexión cerrada al
+    abrir, código 1006, y después la lista de destinos vacía). Hace falta UN solo emulador conectado a Metro
+    (o AVDs distintos). El script de solo lectura quedó listo: `_scratch/S115-sondas-agente-7/S115-a7-cdp-leer.cjs.txt`.
+    Lo escrito arriba no cambia.
+
+- **`R9-418` (S115, `C15` / hoja de ofrenda — P2) — 🐛 la hoja de ofrenda se sale de la pantalla por arriba y
+  no tiene scroll: con letra normal, en un Pixel 9 Pro, no se ven el título ni el comienzo de la intro.**
+  MEDIDO en la sesión 115 (agente 1, emulador; visto también por el agente 6 desde el historial).
+  - `src/components/offering/OfferingSheet.tsx:217-389` y `:396-411`: no hay `ScrollView`; el contenido
+    (título, intro de 4 renglones, 7 extras, niveles, leyenda, transparencia, enlace) va en un `View` con
+    `justifyContent: 'flex-end'`, así que lo que sobra se corta arriba.
+  - **Repro:** instalación limpia → Ajustes → «Desbloquear con premium». `_scratch/S115-sondas-agente-1/S115-a1-09b-hoja-ajustes.png`;
+    en `S115-a1-09c.xml.txt` el título «Una ofrenda voluntaria» no está en pantalla y la intro empieza en
+    y=0; deslizar no mueve nada. Mientras dice «Procesando…» se corta más.
+  - Los precios y el enlace de restaurar siguen visibles abajo: no toca el dinero. Lo que no se lee es el
+    marco de la ofrenda («…como una ofrenda en la iglesia, no una compra…»). P2. La revisión Fable no pudo ver
+    esta hoja (su emulador no tenía ofertas).
+  - **Propuesta (sin escribir):** el contenido dentro de un `ScrollView` con `maxHeight` (los niveles y el
+    enlace al alcance), y medir también con letra grande.
+
+- **`R9-419` (S115, `C39` / Play Console, fuera del repo — P3) — 🐛 los productos de donación llevan un precio
+  en DÓLARES en el título: el diálogo de Play muestra «Donación $1.99» junto a «MX$34.00», y en México «$» es
+  el peso.** MEDIDO en la sesión 115 (agente 2, emulador; diálogo de Play cancelado, nunca confirmado).
+  - Los productos `donacion_1..4` de Play Console (`S115-a2-*` con el diálogo de los 4 niveles, por ejemplo
+    «Donación $19.99 — MX$339.00»). No es código: el título lo pone la consola.
+  - **Propuesta:** renombrar los productos sin monto («Donación», o «Donación 1..4»).
+
+- **`R9-420` (S115, `C39` / donación — P3) — 🐛 sin red, «Apoyar con una donación» no hace nada visible.**
+  MEDIDO en la sesión 115 (agente 2, emulador, modo avión).
+  - `src/components/offering/DonationSheet.tsx:70-73` y `:106-120`: sin red, `getDonationProducts` devuelve
+    `[]`, la hoja pasa a `unavailable` y se cierra sin mensaje; el comentario de `:106` dice que es a propósito
+    («degrade quietly»). Con la red de vuelta, el siguiente toque abre normal. Sin pérdida ni cobro.
+  - **Propuesta (sin escribir):** un toast que distinga «sin conexión» de «no hay productos».
+
+- **`R9-421` (S115, `C56` / preferencias del lector / `R9-413` — P2) — 🐛 Sepia elegido con premium queda
+  «heredado» para siempre: `sepiaGrandfathered` se recalcula en CADA hidratación, no una sola vez.** MEDIDO en
+  la sesión 115 (agente 5, emulador; re-leído en el código por el orquestador).
+  - `src/context/ReaderPreferencesContext.tsx:161-162`: `parsed.sepiaGrandfathered === true || parsed.theme === 'sepia'`
+    en cada arranque, aunque el comentario de `:150-160` dice que es «el ÚNICO momento en la vida del
+    aparato» y que nunca se re-deriva.
+  - **Repro:** instalación nueva, premium → lector → «Aa» → Sepia; arranque en frío (el blob guardado ya tiene
+    `"theme":"sepia"`, y queda `"sepiaGrandfathered":true`); apagar premium: la tipografía premium vuelve a
+    Sans, Sepia se queda. Evidencia en `_scratch/S115-sondas-agente-5/`.
+  - Premium que sobrevive a su revocación, pero un tema de lectura de cuatro: P2. No es `R9-413` (la
+    dirección contraria: el flag que se pierde).
+  - **Propuesta (sin escribir, del agente 5):** derivarlo solo cuando el blob NO trae la clave
+    (`parsed.sepiaGrandfathered === undefined && parsed.theme === 'sepia'`, un blob anterior al gate) y
+    respetar un `false` explícito.
+
+- **`R9-422` (S115, `C6` / Mesa / `R9-143` — P3) — 🐛 el historial abierto desde la cabecera de la Mesa no
+  muestra lo escrito en los últimos 700 ms.** MEDIDO en la sesión 115 (agente 6, emulador).
+  - `app/features/prep/index.tsx:960-966`: `handleOpenHistory` navega sin `flushDrafts`, a diferencia de los
+    botones que arregló `R9-143` (`:988-998`). La nota se guarda con un debounce de 700 ms (`:1071-1081`) y el
+    historial lee una vez al tomar el foco (`app/features/prep/history.tsx:116-121`).
+  - **Repro:** premium; en la Mesa de un pasaje, escribir y tocar el ícono del historial en el mismo
+    `adb shell` («input text …; input tap 668 264»): con un pasaje existente, el historial muestra la vista
+    previa vieja (`S115-a6-22-historial-carrera.png`); con uno nuevo (Romanos 8:28), abre sin la entrada
+    (`S115-a6-24-carrera-pasaje-nuevo.png`). Al volver a tomar el foco, aparece.
+  - Sin pérdida: el dato se guarda. P3. Por lectura, `handleOpenSeries` (`:971-977`) tampoco hace flush (sin
+    medir).
+  - **Propuesta (sin escribir):** `flushDrafts()` antes de navegar, como `R9-143`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -11737,6 +11823,12 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   propio `giftCodeService.ts:185-200` lo admite («_Not fixed at the root_»). Escenario: Ana
   (premium) cierra sesión, y el `logIn('beto')` falla con red inestable. Beto conserva el premium
   de Ana en cada arranque posterior. Severidad baja: el premium lo pagó alguien en ese teléfono.
+  **⚠️ Sesión 115 (Modo C, agentes 3 y 6): la premisa, CONFIRMADA en el dispositivo.** Tras dos arranques en
+  frío, el usuario de RevenueCat sigue siendo `$RCAnonymousID:…`, nunca el uid de Firebase (`linkUser` no
+  hace nada sin configurar, `offeringService.ts:224`). La severidad no cambia. Visto al lado: con la cuenta
+  de Google que ya tiene la ofrenda, una instalación nueva publica la compra bajo ese `$RCAnonymousID` al
+  arrancar, y tras una restauración (la de `C15`, camino `alreadyOwned`) cada instalación nueva sale premium sola
+  (`detail/C15-hoja-ofrenda.md`).
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige

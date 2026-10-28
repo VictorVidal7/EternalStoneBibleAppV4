@@ -1,14 +1,16 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-28, fin de la sesión 114.** La 114 hizo el (cp) en un chat nuevo, en la
-> terminal, con 10 agentes en worktree que solo midieron (los pidió Victor): **cerró `A12`** (los tres hilos
-> de la sesión 6, superficies de crash) con ocho nuevos, `R9-410`..`R9-417`, ninguno P0. Con eso se cierra
-> el Modo A P0. El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-10-28, fin de la sesión 115.** La 115 hizo el (cq) en un chat nuevo, en la
+> terminal, con 7 agentes en worktree que solo midieron (los pidió Victor), en dos olas, cada uno con su
+> emulador: **el Modo C P0 de dinero y gating.** Cinco nuevos, `R9-418`..`R9-422`, ninguno P0: `C16` ✅,
+> `C15`/`C56` 🐛 P2, `C39`/`C6` 🐛 P3; `C55` y `C54` quedan «sin medir» por decisión de Victor (necesitan
+> una cuenta de Google de prueba). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 113 ya está mergeada y pusheada (`main` = `6404e57`, CI verde en el log, run `40646472229`,
-> 374/4693). La rama de la 114 (`docs/review-s114-a12`, solo docs) va **sin mergear hasta el OK de
-> Victor**. **No queda ningún P0 abierto**, y hay 417 hallazgos. **Lo siguiente:** el Modo C P0 de dinero y
-> gating, con emulador, en la 115 (mensaje (cq), en `_scratch/S115-PROMPT.md`), en un chat nuevo.
+> La 114 ya está mergeada y pusheada (`main` = `origin/main` = `d34bd4d`, CI verde en el log, run
+> `40733537620`, 374/4693). La rama de la 115 (`docs/review-s115-modo-c`, solo docs) va **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 422 hallazgos. **Lo siguiente:** las P1/P2
+> (`A13`+, `B6`–`B10`) en tandas, una fila por agente, en la 116 (mensaje (cr), en `_scratch/S116-PROMPT.md`),
+> en un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -551,10 +553,17 @@ nuevo con 5 agentes que midieron los diseños antes de escribirlos, con `_scratc
 revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que solo midieron, con
 `_scratch/S112-PROMPT.md`), la ÚLTIMA vuelta del ciclo de las pruebas de la Mesa (§7). Y su arreglo (la
 (co), sesión 113, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
-`_scratch/S113-PROMPT.md`), que cierra el ciclo. Y el (cp), `A12`, HECHO en la sesión 114. **Lo siguiente
-es el (cq).**
+`_scratch/S113-PROMPT.md`), que cierra el ciclo. Y el (cp), `A12`, HECHO en la sesión 114. Y el (cq), el
+Modo C P0 de dinero y gating, HECHO en la sesión 115. **Lo siguiente es el (cr).**
 
-**(cq) Sesión 115: el Modo C P0 de dinero y gating, con emulador** (la receta de
+**(cr) Sesión 116: las P1/P2 en tandas, una fila por agente** (el Modo C de la 115 no encontró ningún P0),
+en un chat nuevo, en la terminal, sin mezclar modos en una sesión: la primera tanda, del Modo A (`A13`+, por
+el orden del índice) o del Modo B (`B6`–`B10`), la que Victor elija. El mensaje está en
+`_scratch/S116-PROMPT.md`, que manda sobre este archivo.
+
+**(cq) Sesión 115: el Modo C P0 de dinero y gating — ya HECHO en la sesión 115** (`R9-418`..`R9-422`,
+ninguno P0; `C16` ✅, `C15`/`C56` P2, `C39`/`C6` P3, `C55`/`C54` «sin medir» por decisión de Victor;
+`detail/C15-hoja-ofrenda.md` y vecinos). Lo que pedía: el Modo C P0 de dinero y gating, con emulador (la receta de
 `reference_essb-device-testing-and-automation`, APK debug, nunca el teléfono de Victor), en un chat nuevo,
 sin mezclar modos: `C15` (ofrenda), `C39` (donación), `C55` (canje de gift-code), `C16` y `C56` (gating
 premium), y `C6`, `C54`. Lo que la 114 dejó para el dispositivo: `HermesInternal.hasPromise()` en el build
@@ -2193,17 +2202,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 114 (2026-10-28).**
+**Medido al cerrar la sesión 115 (2026-10-28).**
 
-- **La 113, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `6404e57` (solo docs; el
+- **La 114, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `d34bd4d` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `40646472229`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Sus ramas se borraron tras `git cherry`.
-  Comprobado en la 114 con `git fetch` y `git log -1 origin/main`.
-- **La rama de la 114, sin mergear a propósito y sin pushear:** `docs/review-s114-a12` (solo docs: el
-  ledger de `A12`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. Los diez de los agentes (sin cambios) se borraron solos con sus ramas; sus
-  copias, en `_scratch/S114-sondas-agente-N/`. El checkpoint se escribió en un worktree aparte
-  (`../essb-docs-s114`, fuera del repo), quitado al terminar.
+  `40733537620`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
+  Comprobado en la 115 con `git fetch` y `git log -1 origin/main`.
+- **La rama de la 115, sin mergear a propósito y sin pushear:** `docs/review-s115-modo-c` (solo docs: el
+  ledger del Modo C P0 de dinero y gating). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
+  `main` la incluye.
+- **Los worktrees:** ninguno. Los de los agentes (sin cambios) se borran solos con sus ramas; sus copias, en
+  `_scratch/S115-sondas-agente-N/`. El checkpoint se escribió en un worktree aparte (`../essb-docs-s115`,
+  fuera del repo), quitado al terminar.
+- **Los emuladores:** apagados, y Metro también. Las instancias eran de solo lectura: el AVD `Pixel_9_Pro`
+  no cambió (sigue con el APK debug vc73).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2235,8 +2247,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 18** (todo el Modo B P0 + las 12 filas del Modo A P0; `A12`, en la 114).
-**Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+**Cerradas: 23** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; y 5 del Modo C P0 en la
+115: `C6`, `C15`, `C16`, `C39`, `C56`). **Pendientes: 115** (entre ellas `C54` y `C55`, «sin medir» en la
+115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2313,10 +2326,15 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 115: el mensaje (cq), el Modo C P0 de dinero y gating, con emulador**
-(`_scratch/S115-PROMPT.md`): `C15`, `C39`, `C55`, `C16`, `C56`, `C6` y `C54`. `A12` se cerró en la 114
-(`R9-410`..`R9-417`, ninguno P0), y con ella el Modo A P0. La nube no es una opción. Lo de abajo es el menú
-de siempre para después.
+**Recomendado para la sesión 116: el mensaje (cr), las P1/P2 en tandas, una fila por agente**
+(`_scratch/S116-PROMPT.md`): `A13`+ o `B6`–`B10`, sin mezclar modos. El Modo C P0 de dinero y gating se
+midió en la 115 (`R9-418`..`R9-422`, ninguno P0). La nube no es una opción. Lo de abajo es el menú de
+siempre para después.
+
+**~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
+**Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
+`C26a` (login de Google), `C54` y `C55` necesitan **una cuenta de Google de PRUEBA** que Victor agregue a una
+instancia de solo lectura (la del AVD es la suya y ya tiene la ofrenda): ver §6, «Modo C».
 
 **~~Recomendado: terminar `A12`~~ HECHO en la 114** (`detail/A12-superficies-crash.md`).
 
@@ -3352,6 +3370,34 @@ Alternativas legítimas:
 
 ## 6. Hechos duros que ya no hay que volver a averiguar
 
+- **Modo C: lo que costó la sesión 115** (el entorno entero, en `detail/C15-hoja-ofrenda.md`):
+  - **El techo de emuladores es la memoria COMPROMETIDA, no la libre:** cada instancia de `Pixel_9_Pro`
+    compromete ~6,4 GB (con `-memory 1536` también) y el total es ~52 GB. **4 a la vez como máximo** (con
+    Metro); con 7 se agotó: Metro sirvió un bundle roto («Compiling JS failed … ';' expected»; arreglo:
+    matar Metro y `--clear`), un emulador murió, adb se cayó y Bash no podía hacer fork. Arrancalas de a una:
+    tres a la vez dejaron dos trabadas (~450 MB, sin llegar a adb).
+  - **Instancias de solo lectura:** `emulator -avd Pixel_9_Pro -port <p> -read-only -no-snapshot-save
+-no-boot-anim -no-audio`, con el APK debug vc73 ya instalado (sin cambios nativos desde vc73); `pm clear`
+    de la app = onboarding y cuenta anónima nueva; nada queda en el AVD al apagar. La primera carga tras
+    `pm clear` tarda de 1 a 5 min en «Preparing...»: en debug, `bible-seed.db` (21,8 MB) baja de Metro
+    (`nativeSeedAssets.ts:37-40`).
+  - **Metro ve los clones del mismo AVD como UN dispositivo** (mismo `device=`): el depurador de Hermes por
+    CDP no sirve con varios a la vez (`R9-417` quedó sin medir por eso). Para CDP, un solo emulador.
+  - **La cuenta de Google del AVD es la REAL de Victor (`victorvdu@gmail.com`) y ya tiene la ofrenda.** Tocar
+    un nivel de la hoja de ofrenda hace que Play responda «You already own this item» y la app restaura sola
+    (`OfferingSheet.tsx:125-138`): el derecho pasa al uid del emulador. Desde la restauración de la 115, cada
+    instalación nueva con esa cuenta arranca premium. Nunca iniciar sesión con Google en la app con esa
+    cuenta (sus datos reales).
+  - **Con la cuenta anónima, el sync y el canje no existen** (`SyncEngineContext.tsx:93`,
+    `settings.tsx:541`, `redeem.ts:148`): `C26a`, `C54` y `C55` necesitan una cuenta de Google de PRUEBA que
+    Victor agregue a una instancia (Ajustes del sistema → Cuentas).
+  - **El toggle premium de dev no sobrevive a un arranque en frío:** RevenueCat responde y gana
+    (`PremiumContext.tsx:74-85`, el diseño de `R9-9`/`R9-10`). Para medir free tras un arranque en frío con
+    la cuenta que ya tiene la ofrenda, no hay forma desde la UI.
+  - **`scripts/device2.js`** (el 2.o dispositivo por firebase-admin) tiene como uid por defecto la cuenta REAL
+    de Victor: siempre `--uid=` explícito.
+  - Las compras se paran en el diálogo de Play (con «Test card, always approves» para la donación); nunca se
+    confirman sin el OK de Victor.
 - **El repo de GitHub es PÚBLICO** (`VictorVidal7/EternalStoneBibleAppV4`). Cualquier cosa
   commiteada es material publicado.
 - **0 secretos de GitHub Actions** en el repo y `default_workflow_permissions: "read"` → el
@@ -3455,6 +3501,11 @@ Alternativas legítimas:
     cierra el Modo A P0. **Lo siguiente:** el Modo C P0 de dinero y gating, con emulador (la 115,
     `_scratch/S115-PROMPT.md`); después, las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por agente.
     Detalle: `detail/A12-superficies-crash.md`.
+  - **El Modo C P0 de dinero y gating, medido en la 115 (2026-10-28):** cinco nuevos (`R9-418`..`R9-422`),
+    ninguno P0. **Decidido por Victor en la sesión:** las compras paran en el diálogo de Play; «Restaurar»
+    una sola vez (ocurrió sola, por `alreadyOwned`); `C55` y `C54` quedan «sin medir» antes que iniciar
+    sesión con su cuenta. **Lo siguiente:** las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por agente (la
+    116, `_scratch/S116-PROMPT.md`). Detalle: `detail/C15-hoja-ofrenda.md` y vecinos.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,
