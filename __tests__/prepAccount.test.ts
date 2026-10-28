@@ -475,9 +475,46 @@ describe('R9-59 — la Mesa por cuenta', () => {
         JSON.stringify({s1: {id: 's1', name: 'Romanos', passages: []}}),
       );
     };
+    // R9-407 — con dueno, la Mesa de antes con las cuatro bases: con solo
+    // notas y series, una migracion que dejaba atras las ilustraciones o la
+    // autoevaluacion pasaba, y la base se quedaba en la «sin cuenta», marcada
+    // como movida (su duena no la ve y el arranque siguiente no la mueve). Es
+    // R9-392 en el camino con dueno. `dondeQuedo` dice, por base, que claves
+    // tienen lo de antes.
+    const antes: Record<string, string> = {
+      '@prep_notes': 'John/3/16-21',
+      '@prep_series': 's1',
+      '@prep_illustrations': 'i1',
+      '@prep_self_review': 'q1',
+    };
+    const sembrarCuatro = async () => {
+      await sembrar();
+      await AsyncStorage.setItem(
+        '@prep_illustrations',
+        JSON.stringify({i1: {id: 'i1', updatedAt: 1}}),
+      );
+      await AsyncStorage.setItem(
+        '@prep_self_review',
+        JSON.stringify({q1: {id: 'q1', updatedAt: 1}}),
+      );
+    };
+    const dondeQuedo = async () => {
+      const todas = await AsyncStorage.getAllKeys();
+      const out: Record<string, string[]> = {};
+      for (const [base, id] of Object.entries(antes)) {
+        out[base] = [];
+        for (const k of [...todas].sort()) {
+          if (k !== base && !k.startsWith(`${base}:`)) continue;
+          if (id in JSON.parse((await AsyncStorage.getItem(k)) ?? '{}')) {
+            out[base].push(k);
+          }
+        }
+      }
+      return out;
+    };
 
     it('va una vez al dueno del almacen, aunque ahora no haya sesion', async () => {
-      await sembrar();
+      await sembrarCuatro();
       await AsyncStorage.setItem('@local_store_owner_uid', 'ana');
       managePrepAccount();
       await setPrepAccount(null);
@@ -487,10 +524,23 @@ describe('R9-59 — la Mesa por cuenta', () => {
         sinCuenta,
         deAna: await pasajes(),
         claves: await claves(),
+        dondeQuedo: await dondeQuedo(),
       }).toEqual({
         sinCuenta: [],
         deAna: ['John/3/16-21'],
-        claves: ['@prep_by_account', '@prep_notes:ana', '@prep_series:ana'],
+        claves: [
+          '@prep_by_account',
+          '@prep_illustrations:ana',
+          '@prep_notes:ana',
+          '@prep_self_review:ana',
+          '@prep_series:ana',
+        ],
+        dondeQuedo: {
+          '@prep_notes': ['@prep_notes:ana'],
+          '@prep_series': ['@prep_series:ana'],
+          '@prep_illustrations': ['@prep_illustrations:ana'],
+          '@prep_self_review': ['@prep_self_review:ana'],
+        },
       });
     });
 
@@ -502,13 +552,29 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
 
     it('sin dueno ni sesion, se queda como la Mesa «sin cuenta»; y el marcador de una cuenta borrada no es un dueno', async () => {
-      await sembrar();
+      await sembrarCuatro();
       await AsyncStorage.setItem('@local_store_owner_uid', '(deleted)');
       managePrepAccount();
       await setPrepAccount(null);
-      expect({sinCuenta: await pasajes(), claves: await claves()}).toEqual({
+      expect({
+        sinCuenta: await pasajes(),
+        claves: await claves(),
+        dondeQuedo: await dondeQuedo(),
+      }).toEqual({
         sinCuenta: ['John/3/16-21'],
-        claves: ['@prep_by_account', '@prep_notes', '@prep_series'],
+        claves: [
+          '@prep_by_account',
+          '@prep_illustrations',
+          '@prep_notes',
+          '@prep_self_review',
+          '@prep_series',
+        ],
+        dondeQuedo: {
+          '@prep_notes': ['@prep_notes'],
+          '@prep_series': ['@prep_series'],
+          '@prep_illustrations': ['@prep_illustrations'],
+          '@prep_self_review': ['@prep_self_review'],
+        },
       });
     });
 
