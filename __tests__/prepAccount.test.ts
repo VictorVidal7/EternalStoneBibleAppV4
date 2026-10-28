@@ -3699,6 +3699,91 @@ describe('R9-59 — la Mesa por cuenta', () => {
     });
   });
 
+  // R9-408 — la escritura de un store termina dentro de su turno: con la
+  // lectura de la ilustracion retenida, la adopcion (o la devolucion) pedida
+  // mientras tanto espera detras, y lo creado va con la Mesa. Una escritura
+  // que se lanzara y devolviera el turno sin esperarla dejaba la ilustracion
+  // en la clave de antes: fuera de la Mesa de Ana al adoptar, y bajo el uid
+  // devuelto al devolver. La gemela de R9-269 (una escritura durante la
+  // union), en las ilustraciones.
+  it.each([
+    ['sin sesion, y Ana adopta la Mesa', null, 'adopta'],
+    ['con Ana, y se devuelve su Mesa', 'ana', 'devuelve'],
+  ] as const)(
+    'R9-408: una ilustracion creada %s mientras se lee va con la Mesa',
+    async (_caso, primero, ventana) => {
+      const clave = primero
+        ? `@prep_illustrations:${primero}`
+        : '@prep_illustrations';
+      const vuelta = () => new Promise(r => setImmediate(r));
+      managePrepAccount();
+      await setPrepAccount(primero);
+      const vieja = await createPrepIllustration();
+      const mg = lecturas();
+      const realMg = mg.getMockImplementation()!;
+      let abrir!: () => void;
+      const puerta = new Promise<void>(r => (abrir = r));
+      let retenida = false;
+      mg.mockImplementation(async (ks: string[], cb?: unknown) => {
+        if (!retenida && ks.length === 1 && ks[0] === clave) {
+          retenida = true;
+          await puerta;
+        }
+        return realMg(ks, cb);
+      });
+      let abierta = false;
+      let creaAntesDeAbrir = false;
+      const creada: {id?: string} = {};
+      try {
+        const crea = createPrepIllustration().then(i => {
+          creada.id = i?.id;
+          creaAntesDeAbrir = !abierta;
+        });
+        for (let i = 0; i < 1000 && !retenida; i++) await vuelta();
+        // Se abre cuando la Mesa termino, o tras mil vueltas: con la
+        // escritura en su turno, la Mesa espera detras y nunca termina antes;
+        // con un numero fijo de vueltas, una Mesa mas lenta llegaba despues de
+        // la escritura lanzada, y esa regresion pasaba.
+        let mesaHecha = false;
+        const mesa = (
+          ventana === 'adopta'
+            ? adoptNoAccountPrep('ana')
+            : releasePrepAccount('ana')
+        ).finally(() => {
+          mesaHecha = true;
+        });
+        for (let i = 0; i < 1000 && !mesaHecha; i++) await vuelta();
+        abierta = true;
+        abrir();
+        await crea;
+        await mesa;
+      } finally {
+        abierta = true;
+        abrir();
+        mg.mockImplementation(realMg);
+      }
+      const nombre: Record<string, string> = {
+        [vieja?.id ?? 'vieja']: 'vieja',
+        [creada.id ?? 'durante']: 'durante',
+      };
+      const en = async (k: string) =>
+        Object.keys(JSON.parse((await AsyncStorage.getItem(k)) ?? '{}'))
+          .map(id => nombre[id] ?? 'otra')
+          .sort();
+      expect({
+        retenida, // CONTROL: la lectura de la ilustracion espero en la puerta
+        creaAntesDeAbrir,
+        ana: await en('@prep_illustrations:ana'),
+        sinCuenta: await en('@prep_illustrations'),
+      }).toEqual({
+        retenida: true,
+        creaAntesDeAbrir: false,
+        ana: ventana === 'adopta' ? ['durante', 'vieja'] : [],
+        sinCuenta: ventana === 'adopta' ? [] : ['durante', 'vieja'],
+      });
+    },
+  );
+
   // R9-298 — el respaldo mira las cuentas devueltas cuando le llega el turno,
   // no al pedirlo: una devolucion pedida antes que el respaldo corre antes.
   it('R9-298: un respaldo que pide su turno detras de la devolucion de su cuenta va con ella a la «sin cuenta»', async () => {
