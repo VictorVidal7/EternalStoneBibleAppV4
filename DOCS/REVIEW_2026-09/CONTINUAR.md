@@ -1,16 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-27, fin de la sesión 113.** La 113 hizo el (co) en un chat nuevo,
-> en la terminal, con 6 agentes en worktree que midieron los diseños antes de escribirlos (los pidió
-> Victor): arregló lo que la 112 midió con daño (`R9-406`, `R9-407`, `R9-408`, seis commits de pruebas en
-> `__tests__/prepAccount.test.ts`), sin abrir otra revisión. **El ciclo de las pruebas de la Mesa queda
-> CERRADO** (§7): arreglado lo que tenía daño, el resto costo conocido.
+> **Última actualización: 2026-10-28, fin de la sesión 114.** La 114 hizo el (cp) en un chat nuevo, en la
+> terminal, con 10 agentes en worktree que solo midieron (los pidió Victor): **cerró `A12`** (los tres hilos
+> de la sesión 6, superficies de crash) con ocho nuevos, `R9-410`..`R9-417`, ninguno P0. Con eso se cierra
+> el Modo A P0. El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 112 ya está mergeada y pusheada (`main` = `7529981`, CI verde en el log, run `40611073805`,
-> 374/4688). Las ramas de la 113 (`fix/s113-arreglos-s112` y `docs/review-s113-fix`, encima) van **sin
-> mergear hasta el OK de Victor**. **No queda ningún P0 abierto**, y hay 409 hallazgos. **Lo siguiente:**
-> `A12` en la 114 (mensaje (cp), en `_scratch/S114-PROMPT.md`), en un chat nuevo; después, el Modo C de
-> dinero y gating, con emulador.
+> La 113 ya está mergeada y pusheada (`main` = `6404e57`, CI verde en el log, run `40646472229`,
+> 374/4693). La rama de la 114 (`docs/review-s114-a12`, solo docs) va **sin mergear hasta el OK de
+> Victor**. **No queda ningún P0 abierto**, y hay 417 hallazgos. **Lo siguiente:** el Modo C P0 de dinero y
+> gating, con emulador, en la 115 (mensaje (cq), en `_scratch/S115-PROMPT.md`), en un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -447,10 +445,9 @@ Y dos corolarios que valen por sí solos:
   repasos se **traspasa** (se limpia) cuando entra otra cuenta, pero **no** decide que cerrar
   sesión deba borrarlo. Eso sigue siendo de Victor.
 
-**7. `A12` está `EN CURSO`, no pendiente.** Tiene `detail/A12-superficies-crash.md` escrito
-con **3 hilos abiertos y verificados por `grep`, pero sin escenario de fallo alcanzable**,
-que es lo que falta para que sean hallazgos. No la re-empieces desde cero: lee ese archivo,
-que además dice por dónde seguir. **Cerrarla cierra el bloque P0 entero del Modo A.**
+**7. `A12` está CERRADA (sesión 114).** Los 3 hilos de la sesión 6 cerraron con `R9-410`..`R9-417`
+(ninguno P0) y lo demás «no alcanzable» o «sin medir», en `detail/A12-superficies-crash.md`. Con eso se
+cerró el bloque P0 entero del Modo A.
 
 **Los P1 y P2 `R9-51`..`R9-64` ya están re-verificados** (sesión 22): cada entrada lleva su
 nota «⚠️ Sesión 22» con lo que cambió. Leéla antes de arreglar una: varias traían un remedio
@@ -554,9 +551,18 @@ nuevo con 5 agentes que midieron los diseños antes de escribirlos, con `_scratc
 revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que solo midieron, con
 `_scratch/S112-PROMPT.md`), la ÚLTIMA vuelta del ciclo de las pruebas de la Mesa (§7). Y su arreglo (la
 (co), sesión 113, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
-`_scratch/S113-PROMPT.md`), que cierra el ciclo. **Lo siguiente es el (cp).**
+`_scratch/S113-PROMPT.md`), que cierra el ciclo. Y el (cp), `A12`, HECHO en la sesión 114. **Lo siguiente
+es el (cq).**
 
-**(cp) Sesión 114: `A12`** (Modo A, P0, «EN CURSO» desde la sesión 6: superficies de crash), en un chat
+**(cq) Sesión 115: el Modo C P0 de dinero y gating, con emulador** (la receta de
+`reference_essb-device-testing-and-automation`, APK debug, nunca el teléfono de Victor), en un chat nuevo,
+sin mezclar modos: `C15` (ofrenda), `C39` (donación), `C55` (canje de gift-code), `C16` y `C56` (gating
+premium), y `C6`, `C54`. Lo que la 114 dejó para el dispositivo: `HermesInternal.hasPromise()` en el build
+real (`R9-417`) y el fatal nativo en Crashlytics. El mensaje está en `_scratch/S115-PROMPT.md`, que manda
+sobre este archivo.
+
+**(cp) Sesión 114: `A12` — ya HECHO en la sesión 114** (`R9-410`..`R9-417`, ninguno P0;
+`detail/A12-superficies-crash.md`). Lo que pedía: `A12` (Modo A, P0, «EN CURSO» desde la sesión 6: superficies de crash), en un chat
 nuevo, en la terminal, sin mezclar modos: los tres hilos abiertos de `detail/A12-superficies-crash.md` (el
 `ErrorBoundary` como wrapper más interno, con `CustomPlansContext.tsx` y todo `JSON.parse` sin validar en
 un provider; cero manejadores globales de error y las promesas flotantes; el `ErrorBoundary` nativo sin
@@ -2187,21 +2193,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 113 (2026-10-27).**
+**Medido al cerrar la sesión 114 (2026-10-28).**
 
-- **La 112, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `7529981` (solo docs; el
-  último código era `56c7d33`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `40611073805`, 3 jobs, «Run Tests» en Node v24.21.0, 374/4688. Su rama se borró tras `git cherry`.
-  Comprobado en la 113 con `git fetch` y `git log -1 origin/main` (los docs de la 112 decían «sin mergear»:
-  corregido aquí).
-- **Las ramas de la 113, sin mergear a propósito y sin pushear:** `fix/s113-arreglos-s112` (seis commits
-  de pruebas, `1f6acd4`..`f3bee15`, solo `__tests__/prepAccount.test.ts`; `src/` sigue en `f13db80`) y
-  `docs/review-s113-fix` encima (solo docs). Se mergean en fast-forward con el OK de Victor. Si ya se
-  mergearon, `main` las incluye.
-- **Los worktrees:** ninguno. Los seis de los agentes (cada uno con su diseño sin commitear) se quitaron
-  tras comparar su `git diff` con el diff guardado y su `_scratch` con su copia
-  (`_scratch/S113-sondas-agente-N/`, `S113-limpiar.sh.txt`). El checkpoint se escribió en un worktree
-  aparte (`../essb-docs-s113`, fuera del repo), quitado al terminar.
+- **La 113, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `6404e57` (solo docs; el
+  último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
+  `40646472229`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Sus ramas se borraron tras `git cherry`.
+  Comprobado en la 114 con `git fetch` y `git log -1 origin/main`.
+- **La rama de la 114, sin mergear a propósito y sin pushear:** `docs/review-s114-a12` (solo docs: el
+  ledger de `A12`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. Los diez de los agentes (sin cambios) se borraron solos con sus ramas; sus
+  copias, en `_scratch/S114-sondas-agente-N/`. El checkpoint se escribió en un worktree aparte
+  (`../essb-docs-s114`, fuera del repo), quitado al terminar.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2233,7 +2235,7 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 17** (todo el Modo B P0 + 11 filas del Modo A P0). **`A12` en curso.**
+**Cerradas: 18** (todo el Modo B P0 + las 12 filas del Modo A P0; `A12`, en la 114).
 **Pendientes: 120.** Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
@@ -2311,14 +2313,12 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 114: el mensaje (cp), `A12`** (`_scratch/S114-PROMPT.md`), solo en la
-terminal; el ciclo de las pruebas de la Mesa está cerrado (§7). La nube no es una opción. Lo de abajo es
-el menú de siempre para después.
+**Recomendado para la sesión 115: el mensaje (cq), el Modo C P0 de dinero y gating, con emulador**
+(`_scratch/S115-PROMPT.md`): `C15`, `C39`, `C55`, `C16`, `C56`, `C6` y `C54`. `A12` se cerró en la 114
+(`R9-410`..`R9-417`, ninguno P0), y con ella el Modo A P0. La nube no es una opción. Lo de abajo es el menú
+de siempre para después.
 
-**Recomendado: terminar `A12`** (Modo A, P0) — superficies de crash. Está a medias con 3
-hilos abiertos en `detail/A12-superficies-crash.md`, y **es la última fila P0 del Modo A**.
-El hilo más prometedor ya está localizado: `CustomPlansContext.tsx:69` parsea `@custom_plans`
-**sin validar**, y ese provider está **por encima** del `ErrorBoundary`.
+**~~Recomendado: terminar `A12`~~ HECHO en la 114** (`detail/A12-superficies-crash.md`).
 
 Alternativas legítimas:
 
@@ -3450,6 +3450,11 @@ Alternativas legítimas:
     de las pruebas de la Mesa está CERRADO:** `R9-401`..`R9-405`, `R9-409`, las notas «Medido en la 112» y
     los costos de la 113 no se arreglan, y no se propone otra vuelta salvo que Victor la pida. Detalle:
     `detail/S113-arreglo-de-s112.md`.
+  - **`A12`, cerrada en la 114 (2026-10-28):** los tres hilos cerraron con ocho nuevos (`R9-410`..`R9-417`),
+    ninguno P0. El único disparador de un crash de arranque es un respaldo fabricado (`R9-410`). Con eso se
+    cierra el Modo A P0. **Lo siguiente:** el Modo C P0 de dinero y gating, con emulador (la 115,
+    `_scratch/S115-PROMPT.md`); después, las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por agente.
+    Detalle: `detail/A12-superficies-crash.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,

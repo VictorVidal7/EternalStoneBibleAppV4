@@ -1,6 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: Modo A · fila `A12`, que está `EN CURSO` (parcial).** Sesión 2 cerró
+> **Frontera actual: el Modo C P0 de dinero y gating (`C15`, `C39`, `C55`, `C16`, `C56`, `C6`, `C54`), la
+> sesión 115.** El Modo A P0 quedó cerrado en la 114 con `A12` (`R9-410`..`R9-417`). Sesión 2 cerró
 > todo el Modo B P0. Sesión 3 cerró 6 filas del Modo A P0 (`R9-9`..`R9-32`, 9 P0). Sesiones
 > 4 y 5 cerraron `A4` (`R9-33`..`R9-39`, 6 P0) y registraron 4 reportes de campo
 > (`R9-40`..`R9-43`). **Sesión 6 (2026-09-14) cerró `A8`, `A9`, `A10` y `A11` con
@@ -1285,8 +1286,25 @@
 > turno, una prueba por store). Ninguno nuevo; los costos del arreglo, escritos en `R9-408`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **409**. Ramas `fix/s113-arreglos-s112` y
-> `docs/review-s113-fix` (encima), sin mergear hasta el OK de Victor. Detalle:
-> `detail/S113-arreglo-de-s112.md`. **Lo siguiente: `A12`** (la 114, `_scratch/S114-PROMPT.md`).
+> `docs/review-s113-fix` (encima), mergeadas y pusheadas con el OK de Victor (`main` = `6404e57`, CI verde
+> en el log, run `40646472229`, 374/4693; corregido en la 114). Detalle: `detail/S113-arreglo-de-s112.md`.
+>
+> **Sesión 114 (2026-10-28): `A12` (Modo A, superficies de crash), CERRADA**, en un chat nuevo, en la
+> terminal, con 10 agentes en worktree que solo midieron (los pidió Victor). Los tres hilos de la sesión 6
+> cerraron: ocho nuevos, ninguno P0.
+>
+> - **Hilo 1:** `R9-410` (`ThemeProvider` lanza por encima del boundary con un tema guardado que es un nombre
+>   del prototipo, escrito por un respaldo fabricado) y `R9-411` (el import escribe el progreso de planes sin
+>   validar).
+> - **Hilo 3:** `R9-412` (el boundary nativo: uno solo, nada por encima, «Reintentar» en bucle).
+> - **Hilo 2:** `R9-413`..`R9-416` (rechazos con daño o mudos) y `R9-417` (ninguno llega a Crashlytics).
+> - Lo demás, «no alcanzable» o «sin medir» en el detalle.
+>
+> Con eso se cierra el bloque P0 del Modo A.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **417**. Rama `docs/review-s114-a12` (solo docs), sin mergear
+> hasta el OK de Victor. Detalle: `detail/A12-superficies-crash.md`. **Lo siguiente: el Modo C P0 de dinero y
+> gating** (la 115, `_scratch/S115-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1418,7 +1436,7 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A9  | Persistencia/autoguardado de la Mesa (`features/prep`)             | P0        | 🐛 BUG    | `A9-mesa-persistencia`          |
 | A10 | Memoria/SRS: `MemoryDeckContext`, `lib/memory`                     | P0        | 🐛 BUG    | `A10-memoria-srs`               |
 | A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | 🐛 BUG    | `A11-progreso-rachas`           |
-| A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | EN CURSO  | `A12-superficies-crash`         |
+| A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | 🐛 BUG    | `A12-superficies-crash`         |
 | A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | PENDIENTE | —                               |
 | A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | PENDIENTE | —                               |
 | A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | PENDIENTE | —                               |

@@ -1714,6 +1714,22 @@
 > - **El ciclo queda cerrado:** lo siguiente es `A12`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **409**. Detalle: `detail/S113-arreglo-de-s112.md`.
+>
+> **Sesión 114 (2026-10-28): `A12` (Modo A, superficies de crash), los tres hilos abiertos desde la sesión
+> 6**, en un chat nuevo, en la terminal, con 10 agentes en worktree que solo midieron (los pidió Victor).
+> Solo docs.
+>
+> - **Nuevos (8), ninguno P0:** el hilo 1 da `R9-410` (`ThemeProvider` lanza por encima del boundary con un
+>   tema guardado que es un nombre del prototipo; llega por un respaldo fabricado) y `R9-411` (el import
+>   escribe el progreso de planes sin validar; con `null`, Home cae en bucle); el hilo 3, `R9-412` (el boundary
+>   nativo: uno solo, nada por encima, «Reintentar» en bucle); el hilo 2, `R9-413`..`R9-416` (promesas que
+>   rechazan: preferencias y progreso pisados con lo de memoria, el editor de resaltados mudo, los estilos de
+>   compartir) y `R9-417` (ningún rechazo llega a Crashlytics en release).
+> - **No alcanzable:** ningún otro de los 19 providers nativos ni de los 11 web lanza por encima del boundary
+>   con un dato que la app pueda escribir (`detail/A12-superficies-crash.md`).
+> - Cada sonda, re-medida igual en el principal.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **417**. Detalle: `detail/A12-superficies-crash.md`.
 
 ---
 
@@ -11501,6 +11517,154 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     esperado lo dice). Sin pieza.
   - **¿Lo abrió la 111?** Sí (`56c7d33`, `9cd06d0`).
   - P3 bajo: frases de las pruebas, sin daño.
+
+- **`R9-410` (S114, `A12` hilo 1 / tema y respaldo — P2) — 🐛 `ThemeProvider` lanza POR ENCIMA del
+  `ErrorBoundary` con un `@app_color_theme` que es un nombre del prototipo, y el import de respaldo lo
+  escribe.** MEDIDO en la sesión 114 (agente 3; la web, agente 5; re-medido igual en el principal).
+  - `src/hooks/useTheme.tsx:1158` valida con `savedColorTheme in colorThemes`, y `in` recorre el prototipo:
+    `constructor`, `toString`, `__proto__` y `hasOwnProperty` pasan. En el render, `:1215`
+    (`colorThemes[colorTheme].gradients[timeOfDay]`) lanza «Cannot read properties of undefined (reading
+    'morning')»; `:1218` es igual.
+  - `ThemeProvider` es el 2.º provider desde afuera (`app/_layout.tsx:430`; web `app/_layout.web.tsx:307`):
+    ningún boundary lo ve. En release, un throw de render sin boundary cierra la app (agente 7, por lectura:
+    `ErrorHandlers.js:59-67` → `ExceptionsManager.handleException(error, true)` → `JavascriptException`), en
+    cada arranque: solo se sale borrando los datos o desinstalando.
+  - **Camino:** `BackupService.ts:1252-1255` acepta cualquier string en `user.appTheme.colorTheme`, y
+    `:1376-1377` lo escribe tal cual en `@app_color_theme`; `ThemeProvider` no escucha la restauración, así
+    que lanza desde el arranque siguiente. Ninguna versión de la app escribe un nombre así (`setColorTheme`
+    es tipado; un tema retirado no pasa el `in` y cae a `midnight`, medido): hace falta un archivo de
+    respaldo fabricado o editado, importado desde el selector (`BackupService.ts:1713`).
+  - **Sondas** (`_scratch/S114-sondas-agente-3/`): `S114-a3-temaProto` 6/6 (controles: `ocean` monta, un
+    tema retirado cae a `midnight`; los cuatro nombres escapan al boundary externo de la sonda, y el de la
+    app ni llama a su `logger.error`) y `S114-a3-respaldoTema` 2/2 (`importBackup` real lo da por
+    restaurado en `appColorTheme`, y el primer y el segundo arranque lanzan fuera del boundary). Web:
+    `S114-sondas-agente-5/S114-a5-arbolweb` (pantalla en blanco; en web no hay camino: no hay import).
+  - **P2, no P0:** el mecanismo es justo el que buscaba el hilo 1, pero el disparador es un dato fabricado.
+    Si Victor da por alcanzable un respaldo ajeno o corrupto, sube.
+  - **Arreglo propuesto (sin escribir):** `Object.prototype.hasOwnProperty.call(colorThemes, saved)` en
+    `useTheme.tsx:1158`, y la misma guarda en `BackupService.ts:1253` antes de escribir.
+
+- **`R9-411` (S114, `A12` hilo 1 / respaldo y planes / `R9-30` — P2) — 🐛 `importBackup` escribe
+  `readingPlanProgress` y `readingPlanReadChapters` sin validar la forma, contra su propio comentario, y con
+  `null` Home cae al `ErrorBoundary` en cada arranque.** MEDIDO en la sesión 114 (agente 1; re-medido igual
+  en el principal).
+  - `BackupService.ts:1191` dice «pre-validate + coerce every present section BEFORE writing», pero
+    `:1233-1235` toma esas dos secciones como presentes con `!== undefined` y `:1332-1346` las escribe tal
+    cual: `null`, `42`, `[1,2]` y una entrada sin `completedDays` se guardan y salen en `restoredSections`.
+    `ReadingPlanProgressContext.tsx:164-186` (`hydrateFromStorage`) tampoco valida, y la señal de
+    restauración re-hidrata al instante.
+  - **Lo que cae:** los consumidores, por debajo del boundary (Home, `app/(tabs)/index.tsx:1586` y
+    `:1668-1700`; `app/(tabs)/plan/[id].tsx:93`). Con `@reading_plan_progress = null`, Home cae, «Reintentar»
+    vuelve a caer y relanzar también (el bucle de `R9-412`). `42`, `completedDays` de texto o
+    `read_chapters = null` no tumban nada.
+  - **Camino:** ningún escritor de la app produce `null` (el export manda `planProgress ?? {}` desde
+    `32fceb49`): solo un archivo de respaldo editado o de otra herramienta. P2, con el criterio de `R9-410`.
+  - **Sonda:** `_scratch/S114-sondas-agente-1/S114-a1-planes` 11/11 (los providers en el orden del layout,
+    el `ErrorBoundary` real y un consumidor que copia las dos lecturas de Home; la Home real, sin montar).
+  - `@custom_plans` con `[null]` o con un plan sin `days` también tumba Home en bucle, pero no es alcanzable:
+    solo lo escribe su contexto, con planes validados por `customPlanFromBundle`, y no viaja en el respaldo
+    (`R9-30`).
+  - **Arreglo propuesto (sin escribir):** en `importBackup`, esas dos secciones como fallidas si no son
+    `isPlainObject`; en `hydrateFromStorage`, aceptar solo un objeto plano.
+
+- **`R9-412` (S114, `A12` hilo 3 / `ErrorBoundary` nativo / `R9-14` — P2) — 🐛 el boundary nativo es uno
+  solo, el más interno de 19 providers, sin nada por encima, y «Reintentar» es un bucle sin salida ante un
+  error determinista.** MEDIDO en la sesión 114 (agente 10; re-medido igual en el principal).
+  - `src/components/ErrorBoundary.tsx:38-40`: `reset()` solo hace `setState({error: null})`, y el fallback
+    tiene un único botón. `app/_layout.tsx:448-450` envuelve `<AppContent />`, la app entera (las pestañas
+    incluidas). En nativo no hay boundary por pantalla ni por ruta; la web tiene tres capas
+    (`app/_layout.web.tsx:237` por pantalla, `:317` raíz, `app/(tabs)/_layout.web.tsx:62` con
+    `key={pathname}`).
+  - **Por encima del layout raíz no hay nada:** `app/_layout.tsx` no exporta `ErrorBoundary`, y expo-router 57
+    solo envuelve una ruta con su `Try` si el módulo lo exporta (`useScreens.js:141-156`); `ExpoRoot` no trae
+    uno propio. En release, ese throw cierra la app (agente 7, `R9-410`).
+  - **Sondas** (`_scratch/S114-sondas-agente-10/`):
+    - `S114-a10-reset` 3/3: con el dato malo en un provider de ARRIBA, 5 de 5 «Reintentar» vuelven al
+      fallback (un `logger.error` por vuelta); con un error pasajero, recupera y remonta lo de abajo (en la
+      app, repite `initializeApp()`, `app/_layout.tsx:148`); el fallback no depende de `LanguageProvider`.
+    - `S114-a10-router` 5/5, con expo-router real: una pantalla que lanza siempre, abierta al arrancar o por
+      enlace, es un bucle (la ruta sigue); abierta con `push`, un toque vuelve a `/` y se pierde el
+      historial; `router.replace('/')` y después «Reintentar» saca del bucle de la ruta; un `_layout` que
+      lanza escapa, y el mismo exportando `ErrorBoundary` queda atrapado.
+  - **Es el amplificador de `R9-410` y `R9-411`** (y de cualquier throw de render futuro en Home, la ruta
+    inicial): con un dato guardado que tumba una pantalla, la única salida es borrar los datos. Sin un
+    disparador alcanzable demostrado, P2 (estructural); P0 si aparece uno.
+  - **Propuesta (sin escribir):** exportar `ErrorBoundary` desde `app/_layout.tsx` con un fallback sin
+    providers (el componente de hoy ya sirve: medido), y en el fallback nativo un «Volver al inicio»
+    (`router.replace('/')`) y un camino «borrar datos», como el de `ErrorBoundary.web.tsx`.
+  - Costo sin daño: cada «Reintentar» repite `initializeApp()` y suma un `logger.error`.
+
+- **`R9-413` (S114, `A12` hilo 2 / preferencias del lector / `R9-267`, `R9-28` — P2) — 🐛 una lectura de
+  `@reader_preferences` que rechaza al montar escribe los valores por defecto encima, y `sepiaGrandfathered`
+  se pierde para siempre; el rechazo queda sin catch.** MEDIDO en la sesión 114 (agente 6; re-medido igual
+  en el principal).
+  - `src/context/ReaderPreferencesContext.tsx:144-180` (`hydrateFromStorage`: `.then` sin `.catch`; el
+    `.finally` pone `hydrated`), llamada con `void` en `:184` y `:191`; el efecto de `:198-203` persiste en
+    cuanto `hydrated` es true.
+  - **Sonda:** `_scratch/S114-sondas-agente-6/S114-a6-lecturaFallida` (caso PREFS; `getItem` rechaza una
+    vez): queda en disco `{"theme":"system","fontSize":16,"sepiaGrandfathered":false}`, sin que el usuario
+    toque nada; el control conserva `sepia`/24/`true`. El rechazo sale sin manejar (jest tumba el caso).
+  - **Daño:** las preferencias, y `sepiaGrandfathered` no se vuelve a derivar: el usuario de antes del gate
+    pierde Sepia gratis (roza el gating premium). Camino: un fallo de E/S de AsyncStorage en esa lectura
+    (raro); en web, el almacenamiento bloqueado (el agente 5 lo vio en `S114-a5-arbolweb`). P2.
+  - **Arreglo propuesto (sin escribir):** el de `R9-267` (no persistir hasta una lectura que haya leído el
+    disco) y un `catch` en la hidratación.
+
+- **`R9-414` (S114, `A12` hilo 2 / progreso de lectura y de planes / `R9-267`, `R9-284` — P2) — 🐛 una
+  lectura que falla al montar deja el mapa vacío en memoria, y la siguiente escritura lo vuelca entero
+  sobre el disco.** MEDIDO en la sesión 114 (agente 6; re-medido igual en el principal).
+  - `src/context/ReadingProgressContext.tsx:98-130` (el `catch` deja `{}`) → `saveProgress` (`:136`): tras
+    leer un capítulo nuevo queda en disco solo `Mark`; el control conserva John, Luke, Genesis y Mark. Es el
+    escritor sin guarda de `R9-284`, con otro disparador.
+  - `src/context/ReadingPlanProgressContext.tsx:164-185` → `persist` (`:199`): tras marcar un día de otro
+    plan queda solo `planB`, y los días de `planA` se pierden.
+  - **Sonda:** `S114-a6-lecturaFallida`, casos PROGRESO y PLANES (con sus controles). P2: hace falta un fallo
+    de E/S en la lectura.
+  - **Arreglo propuesto (sin escribir):** el de `R9-267`, en los dos contextos.
+
+- **`R9-415` (S114, `A12` hilo 2 / resaltados / `R9-50` — P2) — 🐛 `saveEditor` de resaltados no tiene
+  `try`: si `updateHighlight` rechaza, «Guardar» no hace nada ni avisa, y la única salida, Cancelar, pierde
+  lo escrito.** MEDIDO en la sesión 114 (agente 9; re-medido igual en el principal).
+  - `app/(tabs)/highlights.tsx:187-200` (`await highlightService.updateHighlight(...)` sin `try`);
+    `HighlightService.ts:126-129` lanza «Highlight not found» si la fila ya no está.
+  - **Sonda:** `_scratch/S114-sondas-agente-9/S114-a9-resaltadoNota` 2/2 (control: el editor se cierra, sale
+    el aviso y hay un `queueWrite`; con el rechazo: la promesa del `onPress` rechaza sin catch, sin aviso ni
+    `queueWrite`, y el editor sigue abierto).
+  - **Camino (por lectura, sin sondear):** un pull de sync que aplica el borrado hecho en otro dispositivo
+    con el editor abierto, o un error de SQLite. Mismo patrón, sin medir: los `confirmDelete` de
+    `highlights.tsx:167` y `notes.tsx:84` (el diálogo queda abierto).
+  - **Arreglo propuesto (sin escribir):** `try`/`catch` con `toast.error`.
+
+- **`R9-416` (S114, `A12` hilo 2 / compartir — P3) — 🐛 guardar o borrar un estilo de compartir con el
+  almacenamiento fallando no avisa nada.** MEDIDO en la sesión 114 (agente 8; re-medido igual en el
+  principal).
+  - `src/features/share/PremiumShareExtras.tsx:126-133` y `:147`: `.then` sin `.catch`;
+    `compactStylePresetsStore.ts:40-63` hace `setItem` sin `try`.
+  - **Sonda:** `_scratch/S114-sondas-agente-8/S114-a8-presets`: al guardar, ningún aviso, la lista sin
+    tocar, y la cadena rechaza sin manejar. Al borrar, el preset sembrado no pasó el filtro de lectura
+    (`antes=0`): que siga en disco, sin medir.
+  - P3: raro (disco lleno) y sin nada a medias.
+
+- **`R9-417` (S114, `A12` hilo 2 / runtime, observabilidad — P2) — 🐛 en release, ninguna promesa rechazada
+  sin catch llega a Crashlytics ni a un log: el rastreo de Crashlytics engancha el `Promise` de la librería
+  `promise`, no el de Hermes.** MEDIDO en la sesión 114 (agente 7; re-medido igual en el principal).
+  - `@react-native-firebase/crashlytics/lib/handlers.ts:159-177` (sobre
+    `promise/setimmediate/rejection-tracking`); RN en Hermes usa el `Promise` nativo y rastrea los rechazos
+    solo en `__DEV__` (`react-native/Libraries/Core/polyfillPromise.js:25-35`,
+    `promiseRejectionTrackingOptions.js:24-55`).
+  - **Sonda:** `_scratch/S114-sondas-agente-7/S114-a7-runtime`, caso a7-3 con `__DEV__=false`: solo llega a
+    `recordErrorPromise` el rechazo hecho con `promise/core` (`globalPromiseEsCore=false`,
+    `ganchoEnGlobal=undefined`; el caso sale «×» porque jest marca el rechazo nativo que crea a propósito).
+    Sin medir: que `HermesInternal.hasPromise()` dé `true` en el build real (emulador).
+  - **Consecuencia:** `R9-413`..`R9-416` y los «sin medir» del hilo 2 no los ve nadie, ni en el dispositivo
+    ni en Crashlytics. No pierde datos por sí solo. P2.
+  - **Corrige el hilo 2 de la sesión 6:** el código de la app no instala manejadores, pero las librerías
+    instalan tres, encadenados: RN (`Libraries/Core/setUpErrorHandling.js:24-35`), expo-router
+    (`build/utils/splash.js:31-42`) y Crashlytics (`handlers.ts:99-157`, solo desde el primer `logger.*`,
+    `app/_layout.tsx:232`). Ninguno ve un throw de render sin boundary: va directo a `ExceptionsManager`,
+    fatal.
+  - **Arreglo propuesto (sin escribir):** `HermesInternal.enablePromiseRejectionTracker` en release, con un
+    `onUnhandled` que llame a `logger.error`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
