@@ -1272,8 +1272,21 @@
 > que la 113 arregla, y `R9-409` (cuatro frases, costo conocido). Lo demás, notas en `R9-396` y
 > `R9-402`..`R9-404`.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **409**. Rama `docs/review-s112-diff-s111`, sin mergear
-> hasta el OK de Victor. Detalle: `detail/S112-revision-del-diff-s111.md`.
+> **No queda ningún P0 abierto.** Hallazgos: **409**. Rama `docs/review-s112-diff-s111`, mergeada y
+> pusheada con el OK de Victor (`main` = `7529981`, CI verde en el log, run `40611073805`, 374/4688;
+> corregido en la 113). Detalle: `detail/S112-revision-del-diff-s111.md`.
+>
+> **Sesión 113 (2026-10-27): arreglo de lo que la 112 midió con daño, y el CIERRE del ciclo de las pruebas
+> de la Mesa** (§7 de `CONTINUAR.md`: arreglado lo que tenía daño, el resto costo conocido), en un chat nuevo,
+> en la terminal, con 6 agentes en worktree que midieron los diseños antes de
+> escribirlos (los pidió Victor). Seis commits de pruebas, solo en `__tests__/prepAccount.test.ts`:
+> `R9-406` (los dos estados distintos del primero en la marca de la mudanza), `R9-407` (las cuatro bases
+> con dueño, por `sembrar()` y por las filas de la tabla de partes) y `R9-408` (la escritura que sale del
+> turno, una prueba por store). Ninguno nuevo; los costos del arreglo, escritos en `R9-408`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **409**. Ramas `fix/s113-arreglos-s112` y
+> `docs/review-s113-fix` (encima), sin mergear hasta el OK de Victor. Detalle:
+> `detail/S113-arreglo-de-s112.md`. **Lo siguiente: `A12`** (la 114, `_scratch/S114-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -2433,6 +2446,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Detalle: `detail/S112-revision-del-diff-s111.md`.**
   - **Las lecciones:** lo que un arreglo lleva a un camino, lo pide el camino vecino; lo que un control
     hereda no lo distingue; un conteo que resta no dice a quién le resta.
+- **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
+  se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en
+  worktree que midieron los diseños antes de escribirlos (los pidió Victor: «Podrías mandar 6 agentes para
+  avanzar más?»).
+  - **Cómo se trabajó:** `_scratch/S113-sonda.cjs.txt` (de `S113-gen.cjs.txt`, sobre `S112-sonda`, con un
+    re-anclado); tres entradas en seis tareas, por camino y por store, en regiones distintas del archivo;
+    los seis diseños aplicados en serie y commiteados de a uno; la matriz de la 112 sobre la punta
+    (`S113-matriz.cjs.txt`).
+  - **Resultado:** cerrados `R9-406`, `R9-407` y `R9-408`; ninguno nuevo. Los costos del arreglo, escritos
+    sin número en `R9-408`. El ciclo queda cerrado (§7); lo siguiente es `A12` (la 114). No queda ningún P0
+    abierto.
+  - **Detalle: `detail/S113-arreglo-de-s112.md`.**
 
 - **Sesión 99 — 2026-10-14. Arreglo de lo de la 98.** En un chat nuevo, en la terminal, con 12
   agentes en worktree que solo midieron (los pidió Victor: 15, y después 12); con

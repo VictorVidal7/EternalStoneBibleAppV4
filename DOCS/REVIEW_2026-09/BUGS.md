@@ -1697,6 +1697,23 @@
 > - **Lo siguiente:** la 113 arregla `R9-406`..`R9-408` y nada más del ciclo; después, `A12`.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **409**. Detalle: `detail/S112-revision-del-diff-s111.md`.
+>
+> **Sesión 113 (2026-10-27): arreglo de lo que la 112 midió con daño, y el CIERRE del ciclo de las pruebas
+> de la Mesa** (§7 de `CONTINUAR.md`), en un chat nuevo, en la terminal, con 6 agentes en worktree que
+> midieron los diseños antes de escribirlos (los pidió Victor). Seis commits de pruebas, solo en
+> `__tests__/prepAccount.test.ts`.
+>
+> - **Cerrados (3):** `R9-406` (`1f6acd4`), `R9-407` (`e503b87`, `ac5acfc`) y `R9-408` (`9011b19`,
+>   `5029129`, `f3bee15`). Cada prueba nueva, vista caer con su regresión (y su daño) y pasar con el código
+>   bueno y, revertida, cada regresión pasa.
+> - **Ninguno nuevo.** Lo medido de más (dos costos del arreglo, sin daño), escrito sin número en `R9-408`.
+> - **La matriz** (1381 corridas sobre la punta, en 8 procesos paralelos al final): las de los agentes,
+>   iguales a su worktree o con más caídas (los dos diseños de `R9-407` juntos); de las comparadas con la
+>   112, 3 cambian si caen: una carrera conocida (`R9-310`), una por carga, y `seriesTarde2000`, que llevó
+>   a ver otro camino hasta `R9-330` (la cola de un store; anotado allí, sin número: sigue pendiente).
+> - **El ciclo queda cerrado:** lo siguiente es `A12`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **409**. Detalle: `detail/S113-arreglo-de-s112.md`.
 
 ---
 
@@ -8883,6 +8900,14 @@ R9-292`). El JS emitido sin comentarios es igual al de `e4d7e3a`, y su control c
   - P3: una ventana estrecha al entrar con Google; la entrada se parte, no se pierde.
   - **Arreglo (hipótesis), sin medir:** que lo escrito para la «sin cuenta» detrás de una adopción
     siga a la cuenta adoptada solo para las entradas que la unión movió.
+  - **Visto en la 113, sin revisar** (`R9-330` sigue pendiente por decisión de Victor, §7): otro camino
+    hasta la misma ventana, con el código de hoy. La cola de un store (`writeQueue` en
+    `prepSeriesStore.ts:70`) pide el turno de una escritura al terminar la anterior, aunque la clave se
+    tomó al pedirla. Con la primera serie en su turno, una segunda pedida sin cuenta ANTES de la adopción
+    pide su turno detrás de ella y escribe en la «sin cuenta» ya vaciada (prueba-sonda `colaSegunda113`,
+    sobre la de `R9-408`: al adoptar, «segunda» queda en la «sin cuenta» y las otras dos con Ana; al
+    devolver, bien). Lo vio la matriz por `seriesTarde2000`. No suma número; queda para cuando Victor
+    decida `R9-330`.
   - **Sesión 95: sin arreglar, a decidir por Victor.** Medido por el agente 3 (re-medido aquí):
     - Redirigir la escritura entera (`sigueAdopcion`) tumba la de `R9-269`: tiene que ser por
       entrada.
@@ -11361,6 +11386,14 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3: verde falso con mezcla de cuentas ante una regresión construida; el código está bien.
   - **Arreglo (hipótesis), sin medir:** en la de `R9-344`, un caso sin dueño ni devoluciones con dos estados
     distintos entre sí y del primero en la marca de la mudanza (o hacer prueba de `danoDosEstadosMarca`).
+  - **✅ ARREGLADO en la sesión 113** (`1f6acd4`, diseño del agente 1): en la de `R9-344`, los casos
+    `nuloAnaBetoSinDuenoNiDevoluciones` y `anaBetoNuloSinDuenoNiDevoluciones` (sin dueño ni devoluciones, la
+    marca de la mudanza retenida), con lo pedido antes en la cuenta del último. Con
+    `primeroSiVariosEnMudanza112` caen los dos (78/79), con `John/3/16-21` en la Mesa de Ana con la sesión
+    cerrada, o en la «sin cuenta» en lugar de la de Beto; con la prueba de antes (`pat56c7d33+…`), 79/79.
+    Caen igual con la marca demorada (3 y 1001 vueltas) y con un lector en la ventana de la marca; las cuatro
+    formas de la 110 en la mudanza siguen cayendo. Los casos retienen la marca, no la unión:
+    `primeroSiVariosEnUnion112` pasa (sin caso que la active; su daño sigue en el Pendiente).
 
 - **`R9-407` (S112, pruebas / Mesa / `R9-392`, `R9-383` — P3) — 🐛 con dueño registrado, ninguna prueba
   siembra ilustraciones ni autoevaluación en la Mesa de antes: una migración que salta una de esas bases
@@ -11380,6 +11413,20 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3: verde falso con datos fuera de la vista de su dueña ante una regresión construida.
   - **Arreglo (hipótesis), sin medir:** sembrar las cuatro bases en la Mesa de antes de un caso con dueño (o
     hacer prueba de `danoConDuenoBases`).
+  - **✅ ARREGLADO en la sesión 113**, por los dos caminos que nombraba la hipótesis:
+    - `e503b87` (diseño del agente 2): en «la Mesa de antes», `sembrarCuatro()` (sin cambiar `sembrar()`) y
+      `dondeQuedo()`; el caso con dueño («va una vez al dueno del almacen…») espera cada base en la de Ana, y
+      su espejo (`(deleted)`), en la «sin cuenta». Con `migraSaltaIlus112` o `migraSaltaAuto112`, 78/79: cae
+      el caso con dueño, con la base en la «sin cuenta» y `@prep_by_account` puesta.
+    - `ac5acfc` (diseño del agente 3): en la tabla de partes, `conDuenoCuatro` siembra las cuatro bases en
+      las filas con dueño (las de `R9-343` y la marca con dueño de `R9-370`), y una fila nueva (la lectura de
+      la nota de devoluciones con dueño, la gemela de la de `R9-383`) muestra la base marcada y sin mover. Con
+      cada regresión caen tres filas (77/80).
+    - Con la prueba de antes (`pat56c7d33+…`), las dos regresiones pasan. Caen igual con la migración
+      demorada (`migraTarde50`, `migraLenta50A3`…); los cambios buenos de lectura de la migración
+      (`migraConMultiGet`) no tumban las filas nuevas. El espejo de la quita (`migraNoQuita{Ilus,Auto}113A3`:
+      mueve la base y no la quita de la «sin cuenta») cae también (77/80; con la prueba de antes, pasa).
+    - Sin fallas por base (`R9-401` y `migraDestinoToleranteIlus112` siguen como costo conocido).
 
 - **`R9-408` (S112, pruebas / Mesa / `R9-269`, `R9-292`, `R9-403` — P3) — 🐛 la escritura de un store que
   sale de su turno (la función lanza la escritura y devuelve el turno sin esperarla) pasa `prep` en series,
@@ -11402,6 +11449,35 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3: verde falso con datos fuera de la vista de su dueña ante una regresión construida.
   - **Arreglo (hipótesis), sin medir:** la gemela de `R9-269` en series (o hacer prueba de
     `danoSalidaTurnoA1`), con su gemela en ilustraciones y autoevaluación.
+  - **✅ ARREGLADO en la sesión 113**, una prueba por store, cada una con el espejo (la cuenta que sale en la
+    ventana, con `releasePrepAccount`):
+    - **Series** (`9011b19`, agente 4): cuatro casos (adopta o devuelve, con la lectura o la escritura de la
+      serie retenida). Con `seriesEscribeSinEsperar112` caen los cuatro, con la serie en la «sin cuenta» al
+      adoptar o bajo el uid devuelto al salir. Ve también una variante que la prueba de antes no veía
+      (`seriesSaleTrasLeer113A4`: lee en el turno y lanza el `setItem` sin esperarlo).
+    - **Ilustraciones** (`5029129`, agente 5): dos casos. Con `ilusEscribeSinEsperar112` caen los dos: al
+      adoptar, la ilustración creada queda en la «sin cuenta» y `createPrepIllustration` devuelve `null`; al
+      salir, **se pierde** (no está en ninguna clave). Es el daño en ilustraciones que la 112 dejó sin medir.
+    - **Autoevaluación** (`f3bee15`, agente 6): dos casos. Con `autoEscribeSinEsperar112` caen los dos: al
+      adoptar, la respuesta queda en la «sin cuenta»; al salir, bajo la cuenta devuelta.
+    - Con la prueba de antes (`pat56c7d33+…`), las tres regresiones pasan. Cada prueba cae igual con la
+      regresión demorada o adelantada (una escritura lanzada tarde, tras un temporizador o sin turno) y con la
+      ventana demorada; un ajeno en la ventana (un lector del store y una nota) no la tapa ni la tumba.
+    - **Costos conocidos del arreglo, sin daño** (el corte de Victor: escritos, no arreglados):
+      - Un `createPrepSeries` que lee las series antes de pedir su turno (un cambio bueno,
+        `seriesLeeAntes113A4`) tumba la fila «adopta con la lectura retenida»: la lectura retenida pasa a ser
+        la del llamador y la escritura va, bien, a la «sin cuenta»; las columnas parecen daño y no lo son.
+      - Las ventanas de ilustraciones y autoevaluación se miden en vueltas: un turno retenido más de unas mil
+        vueltas antes de soltar la escritura (`autoSaleTrasVueltas2000113A6`) pasa.
+      - La matriz: `seriesTarde2000` (de la 109, «cambio bueno»: el store espera la clave y da 2000 vueltas
+        ANTES de pedir su turno) tumba la de series al adoptar, con «durante» en la «sin cuenta»; con la
+        prueba de antes, 79/79. No es un rojo sin daño: con el turno pedido después del de la adopción, la
+        escritura va detrás de la unión, y eso es `R9-330` (ver la nota de la 113 allí).
+      - Por lectura, sin medir: un store que escribiera por `mergeItem` no quedaría retenido.
+    - Medido de más, sin abrir nada: una adopción que espera 500 vueltas o 30 ms tumba `R9-273` y `R9-269`, y
+      una devolución que espera 500 vueltas tumba `R9-292` y `R9-275` (esperas en vueltas fijas de pruebas
+      viejas; igual con la prueba de antes). Y `ajenoEscribeIlusSiEsta112` (nota en `R9-403`) lo ven ahora
+      también las filas de ilustraciones.
 
 - **`R9-409` (S112, pruebas / respaldo y Mesa / `R9-404`, `R9-393`, `R9-364` — P3 bajo) — 🐛 cuatro frases
   del diff de la 111 dicen más o menos de lo que hace la prueba; ninguna, seguida al pie de la letra, deja
