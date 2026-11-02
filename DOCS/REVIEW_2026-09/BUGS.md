@@ -1744,6 +1744,18 @@
 >   `R9-417`, sin medir (Metro ve los clones del AVD como un solo dispositivo); `R9-135`, premisa confirmada.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **422**. Detalle: `detail/C15-hoja-ofrenda.md` y vecinos.
+>
+> **Sesión 116 (2026-11-02): el Modo A P1, la primera tanda (`A13`, `A14`, `A15`)**, en un chat nuevo, en la
+> terminal, con 3 agentes en worktree que solo midieron, una fila cada uno. Solo docs.
+>
+> - **Nuevos (4), ninguno P0:** `R9-423` (P2, al volver a cambiar de versión con el audio, la voz sigue en la
+>   anterior), `R9-424` (P1, la versión descargada elegida se pierde en cada arranque en frío), `R9-425` (P1,
+>   el temporizador «al final del capítulo» no para) y `R9-426` (P2, lo que se pausa o se cierra en el hueco
+>   entre dos versículos o capítulos vuelve a sonar).
+> - **Filas:** `A13` 🐛; `A14` y `A15` EN CURSO (alcance sin recorrer, en sus detalles).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **426**. Detalle: `detail/A13-lector-capitulo.md`,
+> `detail/A14-base-de-datos.md`, `detail/A15-audio-tts.md`.
 
 ---
 
@@ -3637,6 +3649,45 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     pierde (`R9-273`, P3; no lo abrió la 55). Las cuatro Mesas tienen reloj (`updatedAt`), no solo
     las notas y las series: al borrar la cuenta, gana la más nueva en todas. `R9-273`, arreglado
     en la 57 (`831c7e4`).
+
+- **`R9-424` (S116, `A14` / registro de versiones / `useBibleVersion` (fila `A28`) — P1) — 🐛 la versión
+  descargada que el usuario eligió se pierde en cada arranque en frío.** MEDIDO con sonda en la sesión 116
+  (agente 2), re-medido igual en el principal.
+  - `src/hooks/useBibleVersion.tsx:93-105`: la red de seguridad (si la elegida no está en
+    `availableVersions`, cae a una empaquetada del mismo idioma) corre con `installedVersionIds` = solo las
+    empaquetadas (`:47-48`). `loadSavedVersion` (`:107-123`, un `getItem`) vuelve antes que
+    `refreshInstalledVersions` (`:59-69`: `bibleDB.initialize()` + `getDatabaseStats()`, un `COUNT(*)` y un
+    `DISTINCT version` sobre ~93k filas). Cuando la base dice que KJV está, la elegida ya es WEB, y con
+    `hasExplicitChoice` el efecto de idioma (`:82-88`) no la corrige. La red no escribe `@bible_version`: pasa
+    en cada arranque.
+  - **Repro:** Ajustes → Gestionar versiones → descargar KJV (o BSB, RV1909, SSE1569) → elegirla → cerrar y
+    abrir la app: el lector muestra WEB (o RVR1960). `BibleVersionProvider` se monta por encima de todo
+    (`app/_layout.tsx:432`) mientras corre `initializeBibleData` (`:200-212`).
+  - **Agravante (por lectura):** seis pantallas leen `@bible_version` directo y siguen en KJV (la Luz diaria,
+    la Mesa, estudio, sentimientos y las dos de share-faith; las líneas, en el detalle): en una misma sesión,
+    dos versiones. Misma raíz que el BUG-2 de Fable, por otro camino.
+  - **Sonda:** `_scratch/S116-sondas-agente-2/S116-a2-versionArranque.test.tsx.txt`: con el `getItem` antes
+    que la base, `selectedVersion` = `RVR1960, WEB, KJV, WEB, WEB` (final WEB, guardado KJV); el control, con
+    la base antes, termina en KJV. Que el arranque real tenga el primer orden es por lectura.
+  - **Propuesta (sin escribir):** que la red de seguridad espere la primera respuesta de
+    `refreshInstalledVersions` (una bandera `installedKnown`). Detalle: `detail/A14-base-de-datos.md`.
+
+- **`R9-425` (S116, `A15` / temporizador de sueño y avance de capítulo — P1) — 🐛 el temporizador «al final
+  del capítulo» no para: la narración pasa al capítulo siguiente, y el temporizador ya no existe.** MEDIDO con
+  sonda en la sesión 116 (agente 3), re-medido igual en el principal.
+  - `src/features/audio/context/AudioPlayerContext.tsx:570-572`: en el `onDone` del último versículo, con
+    `mode === 'end-of-chapter'`, `cancelSleepTimer()` deja `mode: null` en el mismo callback que sube
+    `chapterEndCount` (`:577-584`). `AudioChapterAdvancer.tsx:71-72` lee el modo de un ref renovado en cada
+    render, y `shouldAdvanceChapter` (`:94-96`) ve `null`; con el avance continuo en `true` (el valor por
+    defecto, `AudioPlayerContext.tsx:116`), avanza. El comentario de `:573-576` dice lo contrario.
+  - **Repro:** reproductor → temporizador → «Al final del capítulo» (`MiniAudioPlayer.tsx:1074` →
+    `SleepTimerModal.tsx:177`). Al terminar el capítulo suena el siguiente, y así hasta el fin del canon, con
+    la pantalla despierta. Quien se duerme con ese temporizador amanece con la app narrando.
+  - **Sonda:** `_scratch/S116-sondas-agente-3/S116-a3-finCapitulo.test.tsx.txt`: control sin temporizador →
+    «Juan 4:1»; con «al final del capítulo», `textos=["Juan 3:1","Juan 3:2","Juan 4:1"]`, `getChapter` 1 vez,
+    `modo=null`. La única prueba previa es la de la función pura, que sí devuelve `false`.
+  - **Propuesta (sin escribir):** que el avanzador decida con el modo con el que terminó el capítulo (que el
+    aviso lo lleve), no con el de después de cancelarlo. Detalle: `detail/A15-audio-tts.md`.
 
 ---
 
@@ -11751,6 +11802,40 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
   - Sin pérdida: el dato se guarda. P3. Por lectura, `handleOpenSeries` (`:971-977`) tampoco hace flush (sin
     medir).
   - **Propuesta (sin escribir):** `flushDrafts()` antes de navegar, como `R9-143`.
+
+- **`R9-423` (S116, `A13` / lector y audio — P2) — 🐛 al volver a cambiar de versión con el audio, la voz
+  sigue leyendo la versión anterior.** MEDIDO con sonda en la sesión 116 (agente 1), re-medido igual en el
+  principal.
+  - `app/(tabs)/verse/[book]/[chapter].tsx:1328-1345`: el seguro `audioVersionResyncRef` guarda
+    `libro/capítulo/versión` del último re-sync y sale si coincide (`:1344`); su único escritor es `:1345` y
+    nada lo limpia.
+  - **Repro:** escuchar Juan 3 en RVR1960 → cambiar a WEB (re-sync; seguro = `43/3/WEB`) → cerrar el
+    reproductor con la ✕ (`hidePlayer` oculta y para; el motor conserva sus versículos) → volver a RVR1960 (oculto:
+    sin re-sync, `chapterNavigation.ts:238-243`) → «Escuchar» (el motor carga RVR1960) → cambiar a WEB: la
+    clave es igual al seguro y no hay re-sync. Texto en inglés, voz en español: el defecto del Sprint 102,
+    por otro camino. Salida: parar y volver a «Escuchar».
+  - **Sonda:** `_scratch/S116-sondas-agente-1/S116-a1-resyncLatch.test.tsx.txt` (afirma el defecto, 2/2
+    verdes): control «cargas WEB tras el cambio = 1 | motor = WEB»; caso «cargas WEB tras el 2.o cambio = 0 |
+    motor = RVR1960 | pantalla = WEB».
+  - **Propuesta (sin escribir):** comparar contra `audioState.contentVersionId` en vez de recordar la última
+    clave. Detalle: `detail/A13-lector-capitulo.md`.
+
+- **`R9-426` (S116, `A15` / continuaciones programadas del audio / `R9-425` — P2) — 🐛 lo que se pausa o se
+  cierra en el hueco entre dos versículos (50 ms) o dos capítulos (~150 ms) vuelve a sonar.** MEDIDO con sonda
+  en la sesión 116 (agente 3), re-medido igual en el principal.
+  - `src/features/audio/context/AudioPlayerContext.tsx:589-592` (y `:551`, `:566`): `setTimeout(() =>
+speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVerseByIndex` (`:450-512`) no
+    mira `isPaused`, y su `onStart` (`:517-525`) pisa la pausa. `AudioChapterAdvancer.tsx:149`: el
+    `setTimeout(() => playRef.current(), 150)` tras `loadChapter` solo se cancela si cambia `chapterEndCount`.
+  - **Repro:** (1) un temporizador por minutos que vence en el hueco: `pause()` + `cancelSleepTimer()`, y el
+    versículo siguiente suena; sin temporizador, la narración sigue sin fin. (2) Cerrar el reproductor justo
+    tras el fin de un capítulo: el siguiente suena con el reproductor oculto, sin control. (3) Una pausa o el
+    paso a segundo plano en el hueco: como (1).
+  - **Sonda:** `_scratch/S116-sondas-agente-3/S116-a3-hueco50.test.tsx.txt`, dos rojos: tras vencer,
+    `textos=["Juan 3:1","Juan 3:2"]` y al final `isPlaying:true, timer:false`; tras la ✕,
+    `textos=["Juan 3:1","Juan 4:1"]` con `visible=false`.
+  - **Propuesta (sin escribir):** un contador de generación que cada continuación compruebe al ejecutarse.
+    Detalle: `detail/A15-audio-tts.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

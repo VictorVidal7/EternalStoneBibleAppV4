@@ -1,6 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por agente, la sesión 116.** El Modo
+> **Frontera actual: el Modo A P1 en tandas, una fila por agente, la sesión 117: el resto de `A14` y `A15`
+> («EN CURSO») y `A16`, y si hay más agentes, `A17`+.** La 116 hizo `A13` (🐛), `A14` y `A15` (EN CURSO):
+> `R9-423`..`R9-426`, ninguno P0. El Modo
 > C P0 de dinero y gating se midió en la 115 (`R9-418`..`R9-422`, ninguno P0; `C55` y `C54` quedan «sin
 > medir» por decisión de Victor). El Modo A P0 quedó cerrado en la 114 con `A12` (`R9-410`..`R9-417`). Sesión 2 cerró
 > todo el Modo B P0. Sesión 3 cerró 6 filas del Modo A P0 (`R9-9`..`R9-32`, 9 P0). Sesiones
@@ -1326,9 +1328,28 @@
 > - **De paso:** `R9-412` medido en el dispositivo (sigue P2: el bucle no tiene salida desde la interfaz);
 >   `R9-417` sin medir (Metro ve los clones del AVD como un solo dispositivo); `R9-135`, premisa confirmada.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **422**. Rama `docs/review-s115-modo-c` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente: las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por agente** (la
-> 116, `_scratch/S116-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **422**. Rama `docs/review-s115-modo-c` (solo docs), **mergeada y
+> pusheada con el OK de Victor** (`main` = `origin/main` = `f6c7986`, CI verde en el log, run `40785326481`,
+> 374/4693; la rama, borrada tras `git cherry`). **Lo siguiente: las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una
+> fila por agente** (la 116, `_scratch/S116-PROMPT.md`).
+>
+> **Sesión 116 (2026-11-02): el Modo A P1, la primera tanda (`A13`, `A14`, `A15`)**, en un chat nuevo, en la
+> terminal, con 3 agentes `fork` en worktree que solo midieron, una fila cada uno (reglas en
+> `_scratch/S116-agentes-reglas.md.txt`, sondas con `_scratch/S116-correr.cjs.txt`). Solo docs.
+>
+> - **`A13` 🐛:** `R9-423` (P2, al volver a cambiar de versión con el audio, la voz sigue en la versión
+>   anterior: el seguro del re-sync no se limpia).
+> - **`A14` EN CURSO:** `R9-424` (P1, la versión descargada elegida se pierde en cada arranque en frío: la red
+>   de seguridad de `useBibleVersion` corre antes de que la base diga qué hay instalado); tres candidatos sin
+>   medir (el reset de datos, dos descargas a la vez, la copia del sembrado no atómica).
+> - **`A15` EN CURSO:** `R9-425` (P1, el temporizador «al final del capítulo» no para: se cancela antes de que
+>   el avanzador decida, y la narración sigue capítulo tras capítulo) y `R9-426` (P2, lo que se pausa o se
+>   cierra en el hueco entre dos versículos o capítulos vuelve a sonar).
+> - Cada sonda, re-medida igual en el principal; lo que sostiene cada hallazgo, verificado a mano.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **426**. Rama `docs/review-s116-a13-a15` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** el resto de `A14` y `A15`, y `A16`+ (la 117,
+> `_scratch/S117-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1461,9 +1482,9 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A10 | Memoria/SRS: `MemoryDeckContext`, `lib/memory`                     | P0        | 🐛 BUG    | `A10-memoria-srs`               |
 | A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | 🐛 BUG    | `A11-progreso-rachas`           |
 | A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | 🐛 BUG    | `A12-superficies-crash`         |
-| A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | PENDIENTE | —                               |
-| A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | PENDIENTE | —                               |
-| A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | PENDIENTE | —                               |
+| A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | 🐛 BUG    | `A13-lector-capitulo`           |
+| A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | EN CURSO  | `A14-base-de-datos`             |
+| A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | EN CURSO  | `A15-audio-tts`                 |
 | A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | PENDIENTE | —                               |
 | A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | PENDIENTE | —                               |
 | A18 | Word study / idiomas originales (`features/study`)                 | P1        | PENDIENTE | —                               |
@@ -2509,6 +2530,19 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     AVD es la real de Victor y ya tiene la ofrenda (tocar un nivel la restaura sola al uid del emulador); el
     toggle premium de dev no sobrevive a un arranque en frío; sin una cuenta de Google de prueba, nada de sync
     ni de canje se mide.
+- **Sesión 116 — 2026-11-02. El Modo A P1, la primera tanda: `A13`, `A14`, `A15`.** En un chat nuevo, con
+  `_scratch/S116-PROMPT.md`, en la terminal, con 3 agentes `fork` en worktree que solo midieron, una fila
+  cada uno (el mensaje decía «si no digo cuántos, 3»). Solo docs.
+  - **Cómo se trabajó:** las reglas comunes en `_scratch/S116-agentes-reglas.md.txt` (con el Pendiente
+    cruzado contra cada fila y los `R9` que ya nombraban cada área), el corredor `_scratch/S116-correr.cjs.txt`
+    (la forma de `S114-correr`), probado en el principal antes de lanzar. Completaron los 3 sin cortes
+    (225-234k tokens, 44-66 llamadas, 7-15 min); cada sonda, re-medida igual en el principal.
+  - **Resultado:** `A13` 🐛 (`R9-423`, P2); `A14` EN CURSO (`R9-424`, P1); `A15` EN CURSO (`R9-425`, P1;
+    `R9-426`, P2). Ninguno P0.
+  - **Detalle:** `detail/A13-lector-capitulo.md`, `detail/A14-base-de-datos.md`, `detail/A15-audio-tts.md`.
+  - **Las lecciones:** un candidato de una fila puede ser el camino de llegada de otro (el reset de datos de
+    `A14` lleva a la página en blanco de `A13`); un mock que devuelve un objeto nuevo en cada render cuelga
+    jest con un efecto en bucle (67 MB de salida).
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en

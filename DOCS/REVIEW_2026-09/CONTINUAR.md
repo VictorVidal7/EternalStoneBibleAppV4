@@ -1,16 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-10-28, fin de la sesión 115.** La 115 hizo el (cq) en un chat nuevo, en la
-> terminal, con 7 agentes en worktree que solo midieron (los pidió Victor), en dos olas, cada uno con su
-> emulador: **el Modo C P0 de dinero y gating.** Cinco nuevos, `R9-418`..`R9-422`, ninguno P0: `C16` ✅,
-> `C15`/`C56` 🐛 P2, `C39`/`C6` 🐛 P3; `C55` y `C54` quedan «sin medir» por decisión de Victor (necesitan
-> una cuenta de Google de prueba). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-02, fin de la sesión 116.** La 116 hizo el (cr) en un chat nuevo, en la
+> terminal, con 3 agentes en worktree que solo midieron, una fila cada uno: **el Modo A P1, la primera tanda.**
+> Cuatro nuevos, `R9-423`..`R9-426`, ninguno P0: `A13` 🐛 (`R9-423`, P2); `A14` EN CURSO (`R9-424`, P1);
+> `A15` EN CURSO (`R9-425`, P1; `R9-426`, P2). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 114 ya está mergeada y pusheada (`main` = `origin/main` = `d34bd4d`, CI verde en el log, run
-> `40733537620`, 374/4693). La rama de la 115 (`docs/review-s115-modo-c`, solo docs) va **sin mergear hasta
-> el OK de Victor**. **No queda ningún P0 abierto**, y hay 422 hallazgos. **Lo siguiente:** las P1/P2
-> (`A13`+, `B6`–`B10`) en tandas, una fila por agente, en la 116 (mensaje (cr), en `_scratch/S116-PROMPT.md`),
-> en un chat nuevo.
+> La 115 ya está mergeada y pusheada (`main` = `origin/main` = `f6c7986`, CI verde en el log, run
+> `40785326481`, 374/4693). La rama de la 116 (`docs/review-s116-a13-a15`, solo docs) va **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 426 hallazgos. **Lo siguiente:** el Modo A P1 en
+> tandas, una fila por agente: el resto de `A14` y `A15` y `A16`+, en la 117 (mensaje (cs), en
+> `_scratch/S117-PROMPT.md`), en un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -554,9 +553,17 @@ revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que s
 `_scratch/S112-PROMPT.md`), la ÚLTIMA vuelta del ciclo de las pruebas de la Mesa (§7). Y su arreglo (la
 (co), sesión 113, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
 `_scratch/S113-PROMPT.md`), que cierra el ciclo. Y el (cp), `A12`, HECHO en la sesión 114. Y el (cq), el
-Modo C P0 de dinero y gating, HECHO en la sesión 115. **Lo siguiente es el (cr).**
+Modo C P0 de dinero y gating, HECHO en la sesión 115. Y el (cr), la primera tanda del Modo A P1, HECHO en la
+sesión 116. **Lo siguiente es el (cs).**
 
-**(cr) Sesión 116: las P1/P2 en tandas, una fila por agente** (el Modo C de la 115 no encontró ningún P0),
+**(cs) Sesión 117: el Modo A P1, la segunda tanda, una fila por agente,** en un chat nuevo, en la terminal:
+el resto de `A14` (los llamadores de `getDb()`, `originals-download-service`, `nativeSeedAssets`) y de `A15`
+(`MiniAudioPlayer`, `VoiceSelector`), y `A16` (búsqueda); con más agentes, `A17`, `A18`, `A19`… El mensaje
+está en `_scratch/S117-PROMPT.md`, que manda sobre este archivo.
+
+**(cr) Sesión 116: las P1/P2 en tandas, una fila por agente — ya HECHO en la sesión 116** (`A13`, `A14`,
+`A15`: `R9-423`..`R9-426`, ninguno P0; `detail/A13-lector-capitulo.md` y vecinos). Lo que pedía: las P1/P2
+en tandas, una fila por agente (el Modo C de la 115 no encontró ningún P0),
 en un chat nuevo, en la terminal, sin mezclar modos en una sesión: la primera tanda, del Modo A (`A13`+, por
 el orden del índice) o del Modo B (`B6`–`B10`), la que Victor elija. El mensaje está en
 `_scratch/S116-PROMPT.md`, que manda sobre este archivo.
@@ -2202,20 +2209,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 115 (2026-10-28).**
+**Medido al cerrar la sesión 116 (2026-11-02).**
 
-- **La 114, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `d34bd4d` (solo docs; el
+- **La 115, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `f6c7986` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `40733537620`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
-  Comprobado en la 115 con `git fetch` y `git log -1 origin/main`.
-- **La rama de la 115, sin mergear a propósito y sin pushear:** `docs/review-s115-modo-c` (solo docs: el
-  ledger del Modo C P0 de dinero y gating). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó,
-  `main` la incluye.
-- **Los worktrees:** ninguno. Los de los agentes (sin cambios) se borran solos con sus ramas; sus copias, en
-  `_scratch/S115-sondas-agente-N/`. El checkpoint se escribió en un worktree aparte (`../essb-docs-s115`,
+  `40785326481`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
+  Comprobado en la 116 con `git fetch` y `git log -1 origin/main`.
+- **La rama de la 116, sin mergear a propósito y sin pushear:** `docs/review-s116-a13-a15` (solo docs: el
+  ledger de `A13`, `A14` y `A15`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
+  incluye.
+- **Los worktrees:** ninguno. Los de los agentes se quitan al terminar; sus copias, en
+  `_scratch/S116-sondas-agente-N/`. El checkpoint se escribió en un worktree aparte (`../essb-docs-s116`,
   fuera del repo), quitado al terminar.
-- **Los emuladores:** apagados, y Metro también. Las instancias eran de solo lectura: el AVD `Pixel_9_Pro`
-  no cambió (sigue con el APK debug vc73).
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2247,9 +2252,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 23** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; y 5 del Modo C P0 en la
-115: `C6`, `C15`, `C16`, `C39`, `C56`). **Pendientes: 115** (entre ellas `C54` y `C55`, «sin medir» en la
-115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+**Cerradas: 24** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
+115: `C6`, `C15`, `C16`, `C39`, `C56`; y `A13` en la 116). **Pendientes: 114** (entre ellas `C54` y `C55`,
+«sin medir» en la 115, y `A14`/`A15`, EN CURSO desde la 116). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2326,10 +2331,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 116: el mensaje (cr), las P1/P2 en tandas, una fila por agente**
-(`_scratch/S116-PROMPT.md`): `A13`+ o `B6`–`B10`, sin mezclar modos. El Modo C P0 de dinero y gating se
-midió en la 115 (`R9-418`..`R9-422`, ninguno P0). La nube no es una opción. Lo de abajo es el menú de
-siempre para después.
+**Recomendado para la sesión 117: el mensaje (cs), la segunda tanda del Modo A P1, una fila por agente**
+(`_scratch/S117-PROMPT.md`): el resto de `A14` y `A15` (EN CURSO), y `A16`+, sin mezclar modos. La 116 hizo
+`A13`, `A14` y `A15` (`R9-423`..`R9-426`, ninguno P0). `B6`–`B10` (Modo B) van en otra sesión. La nube no es
+una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
 **Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
@@ -3210,6 +3215,11 @@ Alternativas legítimas:
   adopción en la ventana, el turno queda detrás de la unión, y la prueba nueva de `R9-408` cae con daño. La
   etiqueta valía para el caso de la 109: el rojo pedía una prueba-sonda con el código real
   (`colaSegunda113`), que mostró la misma ventana sin ninguna pieza.
+- **Con un agente por fila, el orquestador cruza los «sin medir» de las filas vecinas (sesión 116).** El
+  candidato del reset de datos de `A14` (el registro de versiones no se refresca) es el camino de llegada de
+  la página en blanco sin mensaje de `A13`, y ninguno de los dos agentes lo podía ver solo. Y en una sonda que
+  monta una pantalla, un mock que devuelve un objeto NUEVO en cada render (`favorites: []`) mete en bucle un
+  efecto y cuelga jest (10 min, 67 MB de salida, `ENOBUFS`): los mocks de contexto, con objetos estables.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3506,6 +3516,10 @@ Alternativas legítimas:
     una sola vez (ocurrió sola, por `alreadyOwned`); `C55` y `C54` quedan «sin medir» antes que iniciar
     sesión con su cuenta. **Lo siguiente:** las P1/P2 (`A13`+, `B6`–`B10`) en tandas, una fila por agente (la
     116, `_scratch/S116-PROMPT.md`). Detalle: `detail/C15-hoja-ofrenda.md` y vecinos.
+  - **La primera tanda del Modo A P1, en la 116 (2026-11-02):** `A13`, `A14` y `A15`, un agente por fila;
+    cuatro nuevos (`R9-423`..`R9-426`), ninguno P0. `A13` cerrada; `A14` y `A15` siguen EN CURSO por el
+    alcance que no se recorrió (en sus detalles). **Lo siguiente:** el resto de `A14` y `A15`, y `A16`+, en
+    tandas (la 117, `_scratch/S117-PROMPT.md`). Detalle: `detail/A13-lector-capitulo.md` y vecinos.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,
