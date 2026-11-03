@@ -12310,6 +12310,64 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** una sombra o un velo bajo la fila, o fijar también el último color. Detalle:
     `detail/A25-theming.md`.
 
+- **`R9-457` (S123, `A26` / navegación, enlaces compartidos — P2) — 🐛 un enlace compartido abierto en frío deja
+  su pantalla sin nada debajo: la flecha no hace nada y el atrás del sistema cierra la app.** MEDIDO con sonda en
+  la 123 (la pantalla real del estudio compartido sobre la navegación real).
+  - `study-shared/index.tsx:291`, `:426`, `devotional-shared/index.tsx:187`, `:240` y `together/index.tsx:251`
+    llaman `router.back()` sin la guarda que `dbd9a2f` puso en otros ocho sitios (`journeys/index.tsx:82` y
+    vecinos). La raíz: `app/_layout.tsx:119-130` sin `unstable_settings.initialRouteName`; en producción el
+    `GO_BACK` sin manejar se descarta (`ExpoRoot.js:151-153`).
+  - **Repro:** con la app cerrada, tocar un estudio compartido por WhatsApp: la flecha no hace nada y el atrás
+    cierra la app. Igual con un calendario devocional y una invitación a un plan.
+  - **Sonda:** `_scratch/S123-compartidoAtras.test.tsx.txt`: en frío `canGoBack()` es `false` y la flecha lanza
+    «GO_BACK was not handled» (dev) sin mover la ruta. Control: en caliente vuelve a `/`. `S123-navLayout`,
+    pruebas 3-5: el atrás del sistema en frío llega a `exitApp`; con `initialRouteName: '(tabs)'`, a Home.
+  - **Propuesta (sin escribir):** `initialRouteName` y la guarda de `dbd9a2f`. Detalle: `detail/A26-navegacion.md`.
+
+- **`R9-458` (S123, `A26` / navegación, lector — P3) — 🐛 una ida y vuelta lector → Estudio → lector pierde la
+  lectura de partida: el atrás salta de Estudio a Home.** MEDIDO con sonda en la 123 (el segundo camino, por
+  lectura).
+  - `app/(tabs)/_layout.tsx:21-28` promete seguir el recorrido, pero `backBehavior="history"` guarda cada pestaña
+    una vez (`TabRouter.js:63-66`) y el lector es una sola ruta cuyos params se pisan. Y la pila de saltos del
+    lector se vacía en cada blur (`[chapter].tsx:1281-1284`), también al abrir el estudio de palabra.
+  - **Repro:** Juan 3 → «Referencias» → «Modo estudio» → una conexión (Romanos 8) → atrás (Estudio) → atrás: Home.
+  - **Sonda:** `_scratch/S123-navLayout.test.tsx.txt`, prueba 6: `['/features/study?…', '/', 'exitApp']`.
+    Control (prueba 7): con `backBehavior="fullHistory"`, pasa por `/verse/John/3`.
+  - **Propuesta (sin escribir):** `fullHistory`, medido contra la pila de saltos. Detalle:
+    `detail/A26-navegacion.md`.
+
+- **`R9-459` (S123, `A26` / navegación, Niños — P3) — 🐛 en una historia de Niños, el atrás del sistema sale de
+  la historia en vez de volver una escena, y al volver arranca de la primera.** MEDIDO con sonda en la 123.
+  - `app/features/kids/[storyId].tsx`: «Anterior»/«Siguiente» (`:216-231`) y quiz (`:466`), sin
+    `useBackHandlerStep` (su hermana `lectio.tsx:356-370` sí); la escena en `useState(0)` (`:98`).
+  - **Repro:** «La Creación» → «Siguiente» ×3 → atrás: la lista. Reabrirla: escena 1.
+  - **Sonda:** `_scratch/S123-ninosAtras.test.tsx.txt`: el atrás lo consume el navegador (`/features/kids`) y al
+    reabrir la escena es la 0. Control: «Anterior» pasa de la 4 a la 3.
+  - **Propuesta (sin escribir):** `useBackHandlerStep` como en `lectio`. Detalle: `detail/A26-navegacion.md`.
+
+- **`R9-460` (S123, `A27` / deep links — P3) — 🐛 un enlace que no es de ninguna ruta abre la pantalla por
+  defecto de expo-router, en inglés y con un «Sitemap» de todas las rutas.** MEDIDO con sonda en la 123.
+  - Sin `app/+not-found.tsx` ni `extra.router.sitemap: false` (`expo-router/build/global-state/utils.js:14-17`);
+    la pantalla es `views/Unmatched.js:51-104` («Unmatched Route», «Go back», «Sitemap»).
+  - **Repro:** el App Link sin su `#d=` (`https://eternalstonebible.github.io/o/`): `redirectSystemPath`
+    (`+native-intent.tsx:27-36`) lo deja pasar y se abre `/o/`. Igual un `eternalbible://` mal escrito o de una
+    versión más nueva.
+  - **Sonda:** `_scratch/S123-enlaces.test.tsx.txt`, prueba 2: se monta `expo-router-unmatched` con los cuatro
+    textos. Control (prueba 1): con `#d=`, `/features/together?d=…`.
+  - **Propuesta (sin escribir):** un `+not-found.tsx` traducido y `sitemap: false`. Detalle:
+    `detail/A27-deep-links.md`.
+
+- **`R9-461` (S123, `A27` / deep links, enlaces compartidos — P3) — 🐛 un enlace compartido con el `d` repetido
+  tira la app entera a la pantalla de error.** MEDIDO con sonda en la 123.
+  - `decodeTogetherParam` hace `param.trim()` sin mirar el tipo (`bundle.ts:751-752`); con la clave repetida,
+    `useLocalSearchParams` da un arreglo. En el render de `study-shared/index.tsx:103-107` y
+    `devotional-shared/index.tsx:91-95`, y en el efecto de `together/index.tsx:179-182`; el `ErrorBoundary`
+    envuelve `AppContent` entero (`app/_layout.tsx:448-450`).
+  - **Repro:** `eternalbible://features/study-shared?d=<p>&d=<p>` (solo a mano; la app no lo emite).
+  - **Sonda:** `S123-enlaces`, prueba 4: «param.trim is not a function». Control (prueba 3): un solo `d` monta.
+  - **Propuesta (sin escribir):** normalizar `d` o rechazar lo que no es `string`. Detalle:
+    `detail/A27-deep-links.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,

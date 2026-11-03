@@ -1,7 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 123: `A26` (navegación y BackHandler) y
-> siguientes.** La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 124: `A28` (hooks compartidos) y
+> siguientes.** La 123 (sin agentes) cerró `A26` y `A27` (🐛): `R9-457`..`R9-461`, ninguno P0. La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
 > `R9-449`..`R9-456`, ninguno P0. La 121
 > (con 3 agentes a pedido de Victor) cerró `A22` y `A23` (🐛): `R9-442`..`R9-448`, P3, ninguno P0. La
 > 120 (con 2 agentes a pedido de Victor) cerró `A20` (🐛): `R9-439`..`R9-441`, ninguno P0, y `A21` (✅). La
@@ -1440,8 +1440,23 @@
 > - **`A25` 🐛:** `R9-454` (P2, los avisos ilegibles en oscuro y alto contraste), `R9-455` (P3, las etiquetas de
 >   rareza) y `R9-456` (P3, las cifras del recuadro de Home de mañana).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **456**. Rama `docs/review-s122-a24-a25` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A26`+ por el orden del índice (la 123, `_scratch/S123-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **456**. Rama `docs/review-s122-a24-a25` (solo docs), mergeada y
+> pusheada con el OK de Victor (`5692a51`, CI verde en el log, run `41680715154`, 374/4693; corregido en la
+> 123). **Lo siguiente:** `A26`+ por el orden del índice (la 123, `_scratch/S123-PROMPT.md`).
+>
+> **Sesión 123 (2026-11-03): el Modo A P1, la octava tanda (`A26`, `A27`)**, en un chat nuevo, en la terminal,
+> sin agentes. Solo docs. Las sondas montan la navegación REAL de expo-router 57 (`renderRouter`) con los layouts
+> de la app y despachan el atrás del sistema como Android.
+>
+> - **`A26` 🐛:** `R9-457` (P2, un enlace compartido abierto en frío: la flecha no hace nada y el atrás cierra la
+>   app), `R9-458` (P3, lector → Estudio → lector: el atrás salta la lectura de partida) y `R9-459` (P3, la
+>   historia de Niños sin `useBackHandlerStep`). El hook, sus diez usos y las 61 hojas están bien.
+> - **`A27` 🐛:** `R9-460` (P3, una ruta inexistente abre la pantalla por defecto de expo-router, en inglés y con
+>   «Sitemap») y `R9-461` (P3, un `d` repetido tira la app a la pantalla de error). Los enlaces que la app
+>   emite, los avisos y el onboarding con un enlace pendiente están bien.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **461**. Rama `docs/review-s123-a26-a27` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A28`+ por el orden del índice (la 124, `_scratch/S124-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1587,8 +1602,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | 🐛 BUG    | `A23-logros`                    |
 | A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | 🐛 BUG    | `A24-i18n`                      |
 | A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | 🐛 BUG    | `A25-theming`                   |
-| A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | PENDIENTE | —                               |
-| A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | PENDIENTE | —                               |
+| A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | 🐛 BUG    | `A26-navegacion`                |
+| A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | 🐛 BUG    | `A27-deep-links`                |
 | A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | PENDIENTE | —                               |
 | A29 | Árbol de contexts + `ServicesContext` (18 providers)               | P1        | PENDIENTE | —                               |
 | A30 | Seguridad de tipos: `any` / `as` / `@ts-ignore` / `!`              | P1        | PENDIENTE | —                               |
