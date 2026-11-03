@@ -1,14 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-02, fin de la sesión 117.** La 117 hizo el (cs) en un chat nuevo, en la
-> terminal, SIN agentes: **el Modo A P1, la segunda tanda.** Cinco nuevos, `R9-427`..`R9-431`, ninguno P0:
-> `A14` 🐛 cerrada sin nuevos; `A15` 🐛 cerrada (`R9-427`, P1); `A16` 🐛 (`R9-428`..`R9-431`, P2). El ciclo
-> de las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-02, fin de la sesión 118.** La 118 hizo el (ct) en un chat nuevo, en la
+> terminal, SIN agentes: **el Modo A P1, la tercera tanda.** Cinco nuevos, `R9-432`..`R9-436`, ninguno P0:
+> `A17` 🐛 (`R9-432`, P2; `R9-433`, P3); `A18` 🐛 (`R9-435`, `R9-436`, P2; `R9-434`, P3). `A19` (Home) no se
+> empezó: queda PENDIENTE entera para la 119. El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 116 ya está mergeada y pusheada (`main` = `origin/main` = `d6b3f05`, CI verde en el log, run
-> `41535819079`, 374/4693). La rama de la 117 (`docs/review-s117-a14-a16`, solo docs) va **sin mergear hasta
-> el OK de Victor**. **No queda ningún P0 abierto**, y hay 431 hallazgos. **Lo siguiente:** el Modo A P1 por
-> el orden del índice, `A17` (quiz) y siguientes, en la 118 (mensaje (ct), en `_scratch/S118-PROMPT.md`), en
+> La 117 ya está mergeada y pusheada (`main` = `origin/main` = `8cea3ad`, CI verde en el log, run
+> `41554994227`, 374/4693). La rama de la 118 (`docs/review-s118-a17-a18`, solo docs) va **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 436 hallazgos. **Lo siguiente:** el Modo A P1 por
+> el orden del índice, `A19` (Home) y siguientes, en la 119 (mensaje (cu), en `_scratch/S119-PROMPT.md`), en
 > un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
@@ -554,11 +554,16 @@ revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que s
 (co), sesión 113, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
 `_scratch/S113-PROMPT.md`), que cierra el ciclo. Y el (cp), `A12`, HECHO en la sesión 114. Y el (cq), el
 Modo C P0 de dinero y gating, HECHO en la sesión 115. Y el (cr), la primera tanda del Modo A P1, HECHO en la
-sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. **Lo siguiente es el (ct).**
+sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. Y el (ct), la tercera tanda, HECHO en la
+sesión 118. **Lo siguiente es el (cu).**
 
-**(ct) Sesión 118: el Modo A P1, la tercera tanda,** en un chat nuevo, en la terminal: `A17` (quiz), `A18`
-(word study / idiomas originales), `A19` (Home)… por el orden del índice, hasta donde alcance. El mensaje está
-en `_scratch/S118-PROMPT.md`, que manda sobre este archivo.
+**(cu) Sesión 119: el Modo A P1, la cuarta tanda,** en un chat nuevo, en la terminal: `A19` (Home,
+`(tabs)/index.tsx`), y si queda margen `A20` (Ajustes), por el orden del índice. El mensaje está en
+`_scratch/S119-PROMPT.md`, que manda sobre este archivo.
+
+**(ct) Sesión 118: el Modo A P1, la tercera tanda — ya HECHO en la sesión 118** (sin agentes: `A17` y `A18`
+cerradas, `R9-432`..`R9-436`, ninguno P0; `A19` sin empezar; `detail/A17-quiz.md` y `detail/A18-word-study.md`).
+El mensaje está en `_scratch/S118-PROMPT.md`.
 
 **(cs) Sesión 117: el Modo A P1, la segunda tanda — ya HECHO en la sesión 117** (sin agentes: `A14`, `A15`
 y `A16` cerradas, `R9-427`..`R9-431`, ninguno P0; `detail/A16-busqueda.md` y vecinos). El mensaje está en
@@ -2212,17 +2217,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 117 (2026-11-02).**
+**Medido al cerrar la sesión 118 (2026-11-02).**
 
-- **La 116, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `d6b3f05` (solo docs; el
+- **La 117, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `8cea3ad` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41535819079`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
-  Comprobado en la 117 con `git fetch` y `git log -1 origin/main`.
-- **La rama de la 117, sin mergear a propósito y sin pushear:** `docs/review-s117-a14-a16` (solo docs: el
-  ledger de `A14`, `A15` y `A16`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
+  `41554994227`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
+  Comprobado en la 118 con `git fetch` y `git log -1 origin/main`.
+- **La rama de la 118, sin mergear a propósito y sin pushear:** `docs/review-s118-a17-a18` (solo docs: el
+  ledger de `A17` y `A18`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
   incluye.
-- **Los worktrees:** ninguno. La 117 fue sin agentes; el checkpoint se escribió en un worktree aparte
-  (`../essb-docs-s117`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S117-*.txt`.
+- **Los worktrees:** ninguno. La 118 fue sin agentes; el checkpoint se escribió en un worktree aparte
+  (`../essb-docs-s118`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S118-*.txt`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2254,9 +2259,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 24** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
-115: `C6`, `C15`, `C16`, `C39`, `C56`; y `A13` en la 116). **Pendientes: 114** (entre ellas `C54` y `C55`,
-«sin medir» en la 115, y `A14`/`A15`, EN CURSO desde la 116). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+**Cerradas: 29** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
+115: `C6`, `C15`, `C16`, `C39`, `C56`; `A13` en la 116; `A14`, `A15` y `A16` en la 117; `A17` y `A18` en la
+118). **Pendientes: 109** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2333,10 +2338,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 118: el mensaje (ct), la tercera tanda del Modo A P1** (`_scratch/S118-PROMPT.md`):
-`A17` (quiz) y siguientes por el orden del índice, sin mezclar modos. La 117 cerró `A14`, `A15` y `A16`
-(`R9-427`..`R9-431`, ninguno P0); la 116, `A13`. `B6`–`B10` (Modo B) van en otra sesión. La nube no es una
-opción. Lo de abajo es el menú de siempre para después.
+**Recomendado para la sesión 119: el mensaje (cu), la cuarta tanda del Modo A P1** (`_scratch/S119-PROMPT.md`):
+`A19` (Home, 2671 L, 10 efectos, 12 `await`) y, si queda margen, `A20` (Ajustes), sin mezclar modos. La 118
+cerró `A17` y `A18` (`R9-432`..`R9-436`, ninguno P0); la 117, `A14`, `A15` y `A16`. `B6`–`B10` (Modo B) van en
+otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
 **Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
@@ -3228,6 +3233,13 @@ Alternativas legítimas:
   `useRef`; `interpolate` lineal con recorte) y un control que pasa. Y para la base, `node:sqlite` (Node 24)
   trae FTS5: el `BibleDatabase` real corre en jest sobre `assets/bible-seed.db` en solo lectura (un adaptador
   con `getAllAsync`), con la entrada real (`_scratch/S117-buscarReal.test.ts.txt`).
+- **Una `key` por id reinicia el estado solo si el id cambia (sesión 118, `R9-432`).** El quiz reinicia la
+  ronda al cambiar de categoría y la vuelve a barajar, pero la primera pregunta puede ser la misma: el panel no
+  se remonta y queda respondido sobre el orden nuevo. Se ve con `Math.random` sembrado y 60 rondas (5 de 59
+  repiten). Y en un componente que queda montado con `visible` (una hoja), lo que termina tarde trae el cierre
+  del render en que empezó (`R9-435`); un efecto que lee un estado que otro efecto del mismo commit vacía, lo
+  lee viejo (`R9-434`). Al identificar una pregunta en la sonda, enunciado Y opciones: varias comparten el
+  enunciado.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3531,6 +3543,10 @@ Alternativas legítimas:
   - **La segunda tanda, en la 117 (2026-11-02), SIN agentes (lo pidió Victor):** `A14` y `A15` cerradas,
     `A16` hecha; cinco nuevos (`R9-427`..`R9-431`), ninguno P0. **Lo siguiente:** `A17`+ por el orden del
     índice (la 118, `_scratch/S118-PROMPT.md`). Detalle: `detail/A16-busqueda.md` y vecinos.
+  - **La tercera tanda, en la 118 (2026-11-02), sin agentes:** `A17` y `A18` cerradas; cinco nuevos
+    (`R9-432`..`R9-436`), ninguno P0. `A19` no se empezó (mejor entera que a medias). **Lo siguiente:** `A19`+
+    por el orden del índice (la 119, `_scratch/S119-PROMPT.md`). Detalle: `detail/A17-quiz.md` y
+    `detail/A18-word-study.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,

@@ -1768,6 +1768,19 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **431**. Detalle: `detail/A14-base-de-datos.md`,
 > `detail/A15-audio-tts.md`, `detail/A16-busqueda.md`.
+>
+> **Sesión 118 (2026-11-02): el Modo A P1, la tercera tanda (`A17`+)**, en un chat nuevo, en la terminal, sin
+> agentes. Solo docs.
+>
+> - **Nuevos, ninguno P0:** `R9-432` (P2, al cambiar de categoría con la pregunta respondida, el panel puede
+>   quedar respondido sobre la ronda nueva), `R9-433` (P3, el reloj del cronometrado sigue detrás del diálogo
+>   «¿Salir?»), `R9-435` (P2, la hoja de originales muestra, tras la descarga, las palabras de otro
+>   versículo), `R9-436` (P2, desde Datos bíblicos, fragmentos en RVR1960 con la interfaz en inglés) y `R9-434`
+>   (P3, al quitar el filtro por libro, sus filas vuelven sin texto).
+> - **Filas:** `A17` 🐛, `A18` 🐛.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **436**. Detalle: `detail/A17-quiz.md`,
+> `detail/A18-word-study.md`.
 
 ---
 
@@ -11935,6 +11948,80 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - **Propuesta (sin escribir):** resaltar con el mismo corte que el FTS (separar por lo que no es letra o
     número, sin `OR`/`AND`/`NOT`, `*` como prefijo, comillas fuera) y por palabra entera o prefijo. Detalle:
     `detail/A16-busqueda.md`.
+
+- **`R9-432` (S118, `A17` / quiz — P2) — 🐛 al cambiar de categoría con la pregunta ya respondida, si la ronda
+  nueva empieza con la misma pregunta, el panel queda respondido sobre el orden nuevo de opciones.** MEDIDO
+  con sonda en la sesión 118.
+  - `app/features/quiz/index.tsx:493` monta `QuizPanel` con `key={current.id}`. `restartWithSettings`
+    (`:213-228`, desde `handlePickCategory` y `handleToggleTimedMode`) arma una ronda nueva y re-baraja las
+    opciones; con el mismo id React no remonta, y el `selected` viejo (`QuizPanel.tsx:80`) se compara con el
+    `correctPosition` nuevo (`:84`, `:124-138`).
+  - **Repro:** Quiz → «Todos» → responder la pregunta 1 → tocar la categoría de esa pregunta (gratis): 1 de
+    cada 4 veces en «Sabiduría» o «Cartas», 1 de 7 en «Pentateuco», 1 de 8 en «Evangelios» (con el
+    contrarreloj, premium, 1 de 24 en «Todos»). La ronda dice «Pregunta 1», «Aciertos: 0», «Errores: 0», y el
+    panel ya está respondido: «Incorrecto» sobre un acierto, otra opción en rojo, «Siguiente». La pregunta no
+    cuenta: la ronda de 8 cierra con «Aciertos: 7 · Errores: 0» y «¡Ronda perfecta!».
+  - **Sonda:** `_scratch/S118-quizMismaClave.test.tsx.txt` (la pantalla y el panel reales, `Math.random`
+    sembrado): 59 rondas, 5 con la misma pregunta, las 5 respondidas tras el cambio y con el veredicto cambiado:
+    rojo. Control, las 54 con otra pregunta: ninguna respondida. Cola:
+    `{"tarjeta":"Aciertos: 7 · Errores: 0","tamañoRonda":8}`.
+  - **Propuesta (sin escribir):** que la clave del panel cambie con cada ronda (un contador que suba en
+    `restartWithSettings` y `startNextRound`, junto al id). Detalle: `detail/A17-quiz.md`.
+
+- **`R9-433` (S118, `A17` / quiz — P3) — 🐛 en el modo cronometrado, el reloj sigue corriendo detrás del
+  diálogo «¿Salir del quiz?».** MEDIDO con sonda en la sesión 118.
+  - `src/components/quiz/QuizPanel.tsx:89-103`: el efecto del reloj depende solo de
+    `[timedMode, answered, timeLeft]`; nada lo pausa con `showExitConfirm` abierto
+    (`app/features/quiz/index.tsx:297-315`, `:534-544`). Por lectura, lo mismo con las estadísticas encima
+    (`handleOpenStats`, `:243-249`: el quiz queda montado debajo).
+  - **Repro (premium):** Quiz → «Modo cronometrado» → responder la 1 y pasar a la 2 → atrás → «¿Salir del quiz?
+    Perderás tu progreso de esta ronda.» → esperar 15 s → «Cancelar»: «¡Se acabó el tiempo!», «Errores: 1». El
+    diálogo que protege la ronda la deja perder una pregunta.
+  - **Sonda:** `_scratch/S118-quizReloj.test.tsx.txt` (temporizadores falsos): diálogo abierto 16 s y
+    «Cancelar», `{"dialogo":true,"seAcaboElTiempo":true,"errores1":true}`: rojo. Control, 10 s sin diálogo:
+    `"⏱ 5s"`, sin vencer.
+  - **Propuesta (sin escribir):** pasarle al panel una pausa (`showExitConfirm`, o la pantalla sin foco).
+    Detalle: `detail/A17-quiz.md`.
+
+- **`R9-434` (S118, `A18` / estudio de palabra — P3) — 🐛 al quitar el filtro por libro, las filas de ese libro
+  vuelven sin el texto del versículo.** MEDIDO con sonda en la sesión 118.
+  - `app/(tabs)/features/word-study.tsx:232-263`: el efecto de los fragmentos corre en el mismo commit que el
+    reset de `:194-197` y lee la caché del render, que todavía es la del libro: salta esas filas. El reset la
+    vacía después y, con la ventana igual (`snippetWindow` en 30), el efecto no vuelve a correr.
+  - **Repro:** un estudio de palabra → tocar la barra de un libro → tocarla otra vez: las filas de ese libro que
+    entran en las primeras 30 quedan solo con la referencia y la palabra, hasta el primer desplazamiento.
+  - **Sonda:** `_scratch/S118-wsFragmentos.test.tsx.txt`: 3 filas de Mateo y 2 de Hechos; tras filtrar por
+    Hechos y quitar el filtro, `{"mt":3,"hch":0,"filasHch":2}`, y solo se piden las de Mateo: rojo. Control: las
+    de Mateo vuelven con su texto.
+  - **Propuesta (sin escribir):** limpiar la caché en el mismo efecto que pide. Detalle:
+    `detail/A18-word-study.md`.
+
+- **`R9-435` (S118, `A18` / idiomas originales — P2) — 🐛 si la hoja de idiomas originales se cierra durante
+  la descarga del pack y se abre sobre otro versículo, al terminar muestra las palabras del primero bajo la
+  referencia del segundo.** MEDIDO con sonda en la sesión 118.
+  - La hoja queda montada (`app/(tabs)/verse/[book]/[chapter].tsx:3578-3585`; igual en
+    `app/features/prophecies/index.tsx:1512-1519`). `handleDownload`
+    (`src/components/reading/OriginalLanguagesSheet.tsx:153-166`) es el del render en que se tocó «Descargar»,
+    y al terminar llama a su `loadWords` (`:107-112`), el del versículo de entonces.
+  - **Repro:** sin el pack, Juan 3:16 → «Idiomas originales» → «Descargar (~30 MB)» → cerrar → Juan 3:17 →
+    «Idiomas originales» (sigue «Descargando…») → al terminar: «Juan 3:17» con las palabras de 3:16 (y su
+    interlineal y sus enlaces). Igual con «Actualizar» (`:477-487`). Se corrige al cerrar y abrir.
+  - **Sonda:** `_scratch/S118-olsDescarga.test.tsx.txt`: `{"ref317":true,"palabra16":true,"palabra17":false}`:
+    rojo. Control, la descarga termina en el mismo versículo: las palabras de 3:16.
+  - **Propuesta (sin escribir):** recargar al terminar las palabras del versículo actual (un `ref` al último
+    `loadWords`). Detalle: `detail/A18-word-study.md`.
+
+- **`R9-436` (S118, `A18` / estudio de palabra — P2) — 🐛 desde Datos bíblicos, el estudio de palabra muestra
+  los fragmentos en RVR1960 aunque la interfaz esté en inglés.** MEDIDO con sonda en la sesión 118.
+  - `app/features/facts/index.tsx:178` abre `/features/word-study?strongs=…` sin `version`; la pantalla pone las
+    referencias en el idioma de la interfaz (`word-study.tsx:100`) y los fragmentos en una versión fija:
+    `version ?? 'RVR1960'` (`:240`).
+  - **Repro:** interfaz en inglés → Datos bíblicos → un dato con número de Strong → «Matthew 1:20» con el texto
+    de Reina-Valera debajo, en toda la lista.
+  - **Sonda:** `_scratch/S118-wsVersion.test.tsx.txt` (interfaz `en`, sin `version`): «Matthew 1:20», y cada
+    fragmento se pide con `["RVR1960"]`: rojo.
+  - **Propuesta (sin escribir):** pasar la versión elegida desde Datos bíblicos, o caer a la del usuario.
+    Detalle: `detail/A18-word-study.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

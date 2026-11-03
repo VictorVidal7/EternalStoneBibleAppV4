@@ -1,6 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 118: `A17` (quiz) y siguientes.** La 117
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 119: `A19` (Home) y siguientes.** La 118
+> (sin agentes) cerró `A17` y `A18` (🐛): `R9-432`..`R9-436`, ninguno P0. La 117
 > (sin agentes) cerró `A14`, `A15` y `A16` (🐛): `R9-427`..`R9-431`, ninguno P0. La 116 hizo `A13` (🐛):
 > `R9-423`..`R9-426`, ninguno P0. El Modo
 > C P0 de dinero y gating se midió en la 115 (`R9-418`..`R9-422`, ninguno P0; `C55` y `C54` quedan «sin
@@ -1363,8 +1364,25 @@
 >   «Cargar más» mezcla) y `R9-431` (P2, el resaltado no sigue al FTS: «God's» en WEB, `*`, `OR`). La
 >   búsqueda real (FTS5 con `node:sqlite` sobre el sembrado) aguanta la entrada real.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **431**. Rama `docs/review-s117-a14-a16` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A17`+ por el orden del índice (la 118, `_scratch/S118-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **431**. Rama `docs/review-s117-a14-a16` (solo docs), mergeada y
+> pusheada con el OK de Victor (`8cea3ad`, CI run `41554994227`; corregido en la 118). **Lo siguiente:** `A17`+
+> por el orden del índice (la 118, `_scratch/S118-PROMPT.md`).
+>
+> **Sesión 118 (2026-11-02): el Modo A P1, la tercera tanda (`A17`+)**, en un chat nuevo, en la terminal, SIN
+> agentes. Sondas con `_scratch/S116-correr.cjs.txt`. Solo docs.
+>
+> - **`A17` 🐛:** `R9-432` (P2, al cambiar de categoría con la pregunta respondida, si la ronda nueva empieza
+>   con la misma, el panel queda respondido sobre el orden nuevo: «Incorrecto» sobre un acierto, y la pregunta
+>   no cuenta) y `R9-433` (P3, el reloj del modo cronometrado sigue detrás del diálogo «¿Salir?»).
+> - **`A18` 🐛:** `R9-435` (P2, cerrar la hoja de originales durante la descarga y abrirla en otro versículo:
+>   al terminar, las palabras del primero bajo la referencia del segundo), `R9-436` (P2, desde Datos bíblicos,
+>   los fragmentos del estudio de palabra salen en RVR1960 con la interfaz en inglés) y `R9-434` (P3, al quitar
+>   el filtro por libro, sus filas vuelven sin el texto del versículo).
+> - **`A19` (Home) no se empezó:** 2671 L, 10 efectos, 12 `await`, 58 imports; mejor entera en la 119 que a
+>   medias aquí.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **436**. Rama `docs/review-s118-a17-a18` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A19`+ por el orden del índice (la 119, `_scratch/S119-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1501,8 +1519,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | 🐛 BUG    | `A14-base-de-datos`             |
 | A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | 🐛 BUG    | `A15-audio-tts`                 |
 | A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | 🐛 BUG    | `A16-busqueda`                  |
-| A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | PENDIENTE | —                               |
-| A18 | Word study / idiomas originales (`features/study`)                 | P1        | PENDIENTE | —                               |
+| A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | 🐛 BUG    | `A17-quiz`                      |
+| A18 | Word study / idiomas originales (`features/study`)                 | P1        | 🐛 BUG    | `A18-word-study`                |
 | A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | PENDIENTE | —                               |
 | A20 | Ajustes (`(tabs)/settings.tsx`, 1289 L)                            | P1        | PENDIENTE | —                               |
 | A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | PENDIENTE | —                               |
@@ -2569,6 +2587,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     devuelve `undefined`: un defecto de un valor animado que sobrevive no se ve sin darle la semántica real
     (un `useRef`). Y `node:sqlite` (Node 24) trae FTS5: el `BibleDatabase` real corre sobre
     `assets/bible-seed.db` en jest, con la entrada real.
+- **Sesión 118 — 2026-11-02. El Modo A P1, la tercera tanda: `A17`, `A18`.** En un chat nuevo, con
+  `_scratch/S118-PROMPT.md`, en la terminal, sin agentes. Solo docs.
+  - **Cómo se trabajó:** lectura por rangos y cinco sondas de jest con el corredor de la 116, sobre los
+    componentes reales; el checkpoint, en un worktree aparte (`../essb-docs-s118`) con commit en el principal.
+  - **Resultado:** `A17` 🐛 (`R9-432`, P2; `R9-433`, P3); `A18` 🐛 (`R9-435`, `R9-436`, P2; `R9-434`, P3).
+    Ninguno P0. `A19` sin empezar (PENDIENTE entera).
+  - **Detalle:** `detail/A17-quiz.md`, `detail/A18-word-study.md`.
+  - **Las lecciones:** una `key` por id solo reinicia el estado si el id cambia: un reinicio que puede repetir
+    el id (una ronda re-barajada) deja el estado viejo, y se ve con `Math.random` sembrado y muchas rondas. Y en
+    un componente que queda montado (una hoja con `visible`), un callback que termina tarde trae el cierre del
+    render en que empezó.
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en
