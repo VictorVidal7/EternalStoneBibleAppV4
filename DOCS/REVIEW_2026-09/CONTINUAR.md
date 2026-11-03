@@ -1,18 +1,18 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-03, fin de la sesión 123.** La 123 hizo el (cy) en un chat nuevo, en la
-> terminal, sin agentes: **el Modo A P1, la octava tanda.** Cinco nuevos, `R9-457`..`R9-461` (uno P2, el resto
-> P3), ninguno P0: `A26` 🐛 (un enlace compartido abierto en frío queda sin nada debajo: la flecha no hace nada y
-> el atrás cierra la app; lector → Estudio → lector salta la lectura de partida; la historia de Niños sin
-> `useBackHandlerStep`) y `A27` 🐛 (una ruta inexistente abre la pantalla por defecto de expo-router, en inglés
-> y con «Sitemap»; un `d` repetido tira la app a la pantalla de error). Las sondas montan la navegación REAL de
-> expo-router (`renderRouter`, §5, sesión 123). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-03, fin de la sesión 124.** La 124 hizo el (cz) en el mismo chat que la 123,
+> en la terminal, con 3 agentes `fork` en worktree que solo midieron (los pidió Victor: «¿podrías continuar aquí
+> mismo utilizando 3 agentes?»): **el Modo A P1, la novena tanda.** Cinco nuevos, `R9-462`..`R9-466` (uno P2, el
+> resto P3), ninguno P0: `A28` 🐛 (con la app viva de un día para otro, Home da lo de ayer como hecho hoy; un
+> cuadro blanco al arrancar en oscuro o alto contraste) y `A29` 🐛 (la pestaña Favoritos relee la base en un
+> bucle sin fin; cada aviso en el lector vuelve a contar el capítulo; un doble toque en un corazón guarda dos
+> filas). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 122 ya está mergeada y pusheada (`main` = `origin/main` = `5692a51`, CI verde en el log, run
-> `41680715154`, 374/4693; corregido en la 123: sus docs decían «sin mergear»). La rama de la 123
-> (`docs/review-s123-a26-a27`, solo docs) va **sin mergear hasta el OK de Victor**. **No queda ningún P0
-> abierto**, y hay 461 hallazgos. **Lo siguiente:** el Modo A P1 por el orden del índice, `A28` (hooks
-> compartidos) y siguientes, en la 124 (mensaje (cz), en `_scratch/S124-PROMPT.md`), en un chat nuevo.
+> La 123 ya está mergeada y pusheada (`main` = `origin/main` = `11fdef8`, CI verde en el log, run
+> `41686904536`, 374/4693; corregido en la 124: sus docs decían «sin mergear»). La rama de la 124
+> (`docs/review-s124-a28-a29`, solo docs) va **sin mergear hasta el OK de Victor**. **No queda ningún P0
+> abierto**, y hay 466 hallazgos. **Lo siguiente:** el Modo A P1 por el orden del índice, `A30` (seguridad de
+> tipos) y siguientes, en la 125 (mensaje (da), en `_scratch/S125-PROMPT.md`), en un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -560,11 +560,16 @@ Modo C P0 de dinero y gating, HECHO en la sesión 115. Y el (cr), la primera tan
 sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. Y el (ct), la tercera tanda, HECHO en la
 sesión 118. Y el (cu), la cuarta tanda, HECHO en la sesión 119. Y el (cv), la quinta tanda, HECHO en la
 sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. Y el (cx), la séptima tanda, HECHO en la
-sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. **Lo siguiente es el (cz).**
+sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la novena tanda, HECHO en la sesión 124. **Lo siguiente es el (da).**
 
-**(cz) Sesión 124: el Modo A P1, la novena tanda,** en un chat nuevo, en la terminal: `A28` (hooks compartidos:
-`src/hooks/*`, 19 archivos), y si queda margen `A29` (el árbol de contexts y `ServicesContext`), por el orden
-del índice. El mensaje está en `_scratch/S124-PROMPT.md`, que manda sobre este archivo.
+**(da) Sesión 125: el Modo A P1, la décima tanda,** en un chat nuevo, en la terminal: `A30` (seguridad de tipos:
+`any` / `as` / `@ts-ignore` / `!`), y si queda margen `A31` (código muerto), por el orden del índice. El mensaje
+está en `_scratch/S125-PROMPT.md`, que manda sobre este archivo.
+
+**(cz) Sesión 124: el Modo A P1, la novena tanda — ya HECHO en la sesión 124** (en el mismo chat que la 123, con
+3 agentes a pedido de Victor: `A28` 🐛, `R9-462`, `R9-463`; `A29` 🐛, `R9-464`..`R9-466`; uno P2, el resto P3,
+ninguno P0; `detail/A28-hooks.md` y `detail/A29-contexts.md`). El mensaje era `_scratch/S124-PROMPT.md` (Victor
+pidió seguir en el mismo chat, con agentes).
 
 **(cy) Sesión 123: el Modo A P1, la octava tanda — ya HECHO en la sesión 123** (en un chat nuevo, sin agentes:
 `A26` 🐛, `R9-457`..`R9-459`; `A27` 🐛, `R9-460`, `R9-461`; uno P2, el resto P3, ninguno P0;
@@ -2243,16 +2248,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 123 (2026-11-03).**
+**Medido al cerrar la sesión 124 (2026-11-03).**
 
-- **La 122, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `5692a51` (solo docs; el
+- **La 123, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `11fdef8` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41680715154`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 123: los docs de la
-  122 decían «sin mergear»).
-- **La rama de la 123, sin mergear a propósito y sin pushear:** `docs/review-s123-a26-a27` (solo docs: el
-  ledger de `A26` y `A27`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 123 fue sin agentes; el checkpoint se escribió en un worktree aparte
-  (`../essb-docs-s123`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S123-*.txt`.
+  `41686904536`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 124: los docs de la
+  123 decían «sin mergear»).
+- **La rama de la 124, sin mergear a propósito y sin pushear:** `docs/review-s124-a28-a29` (solo docs: el
+  ledger de `A28` y `A29`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 124 fue con 3 agentes (`fork` en worktree, a pedido de Victor), que solo
+  midieron; el checkpoint se escribió en un worktree aparte (`../essb-docs-s124`, fuera del repo), quitado al
+  terminar. Las sondas, en `_scratch/S124-*.txt` y `_scratch/S124-sondas-agente-{1,2,3}/`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2284,11 +2290,11 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 38** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
+**Cerradas: 40** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
 115: `C6`, `C15`, `C16`, `C39`, `C56`; `A13` en la 116; `A14`, `A15` y `A16` en la 117; `A17` y `A18` en la
 118; `A19` en la 119; `A20` y `A21` en la 120; `A22` y `A23` en la 121; `A24` y `A25` en la 122; `A26` y `A27`
-en la 123).
-**Pendientes: 100** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+en la 123; `A28` y `A29` en la 124).
+**Pendientes: 98** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2365,9 +2371,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 124: el mensaje (cz), la novena tanda del Modo A P1** (`_scratch/S124-PROMPT.md`):
-`A28` (hooks compartidos) y, si queda margen, `A29` (el árbol de contexts), sin mezclar modos. La 123 cerró `A26`
-y `A27` (`R9-457`..`R9-461`, ninguno P0); la 122, `A24` y `A25`. `B6`–`B10` (Modo B) van en otra sesión. La nube
+**Recomendado para la sesión 125: el mensaje (da), la décima tanda del Modo A P1** (`_scratch/S125-PROMPT.md`):
+`A30` (seguridad de tipos) y, si queda margen, `A31` (código muerto), sin mezclar modos. La 124 cerró `A28` y
+`A29` (`R9-462`..`R9-466`, ninguno P0); la 123, `A26` y `A27`. `B6`–`B10` (Modo B) van en otra sesión. La nube
 no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
@@ -3302,6 +3308,14 @@ Alternativas legítimas:
   `expo-router`, el mock de `expo-linking` de `testing-library/mocks.js` llega tarde para `Unmatched.js`: izarlo
   en la sonda (`_scratch/S123-enlaces.test.tsx.txt`). Recetas: `S123-navLayout` (layouts),
   `S123-compartidoAtras` y `S123-ninosAtras` (una pantalla real sobre el router real).
+- **Un mock de contexto estable tapa lo que el provider real NO estabiliza (sesión 124, `R9-464`, `R9-465`).**
+  La regla de la 116 (objetos estables) evita colgar jest, pero esconde las cascadas: `detail/A13` mockeaba
+  `useToast` estable y no vio que cada aviso re-agenda el temporizador del lector; un foco que corre solo al
+  montar no ve el bucle de la pestaña Favoritos. Para medir un efecto con algo del contexto en sus deps, el
+  PROVIDER real (con un consumidor que cuente) y el foco como expo-router (re-corre al cambiar el callback,
+  `useFocusEffect.js:45`). Y «hoy» se mide con `Date` falso y un re-render SIN foco nuevo (`R9-462`). Reparto
+  que cerró dos filas con 3 agentes: los hooks / el árbol / adentro de cada provider
+  (`_scratch/S124-agentes-reglas.md.txt`; 345-420k tokens cada uno, 5-13 min, sin cortes).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3627,6 +3641,10 @@ Alternativas legítimas:
   - **La octava tanda, en la 123 (2026-11-03), en un chat nuevo, sin agentes:** `A26` y `A27` cerradas (🐛);
     cinco nuevos (`R9-457`..`R9-461`, uno P2), ninguno P0. **Lo siguiente:** `A28`+ por el orden del índice
     (la 124, `_scratch/S124-PROMPT.md`). Detalle: `detail/A26-navegacion.md` y `detail/A27-deep-links.md`.
+  - **La novena tanda, en la 124 (2026-11-03), en el mismo chat que la 123, con 3 agentes a pedido de Victor
+    (solo midieron):** `A28` y `A29` cerradas (🐛); cinco nuevos (`R9-462`..`R9-466`, uno P2), ninguno P0. **Lo
+    siguiente:** `A30`+ por el orden del índice (la 125, `_scratch/S125-PROMPT.md`). Detalle:
+    `detail/A28-hooks.md` y `detail/A29-contexts.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,

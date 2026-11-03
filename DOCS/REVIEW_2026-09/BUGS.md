@@ -12368,6 +12368,62 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** normalizar `d` o rechazar lo que no es `string`. Detalle:
     `detail/A27-deep-links.md`.
 
+- **`R9-462` (S124, `A28` / hooks, Home — P3) — 🐛 con la app viva de un día para otro, las tarjetas de racha y
+  de meta de Home muestran lo de ayer como hecho hoy.** MEDIDO con sonda en la 124 (agente 1, re-medido).
+  - `now` se toma solo en el `useFocusEffect` de carga: `useDevotionStreak.ts:36`, `:45`; `usePrayerStreak.ts:36`;
+    `useMemoryGoal.ts:85`, `:110`; `useWeeklyChallenge.ts:44`, `:54`; los compone `useConstancyRings.ts:72-73`.
+    Nada escucha `AppState`, y las tarjetas de Home (`app/(tabs)/index.tsx:1325-1353`) no llevan `key` por día.
+  - **Repro:** el devocional de noche, la app en segundo plano; a la mañana, Home dice «· hecho hoy».
+  - **Sonda:** `_scratch/S124-a1-hoyViejo.test.tsx.txt`: el 4 a las 08:00 sin foco nuevo, `hecho: true`.
+    Control: con foco, «pendiente hoy». `usePrayerStreak`: `todayDone` `true` sin foco, `false` con foco.
+  - **Propuesta (sin escribir):** re-tomar `now` en `AppState` `active` y a medianoche. Detalle:
+    `detail/A28-hooks.md`.
+
+- **`R9-463` (S124, `A28` / hooks, tema — P3) — 🐛 en cada arranque en frío, quien usa el modo oscuro o «Alto
+  contraste» ve primero un cuadro blanco.** MEDIDO con sonda en la 124 (agente 1, re-medido; la duración, Modo C).
+  - `ThemeProvider` (`useTheme.tsx:1106-1121`) arranca en `'light'` y lee lo guardado en efectos (`:1131-1172`);
+    no hay `SplashScreen.preventAutoHideAsync`, y la pantalla de carga de `AppContent` (`app/_layout.tsx:283-300`)
+    pinta `colors.background`.
+  - **Sonda:** `_scratch/S124-a1-temaArranque.test.tsx.txt`: oscuro guardado, fondos `#ffffff`, `#ffffff`,
+    `#0a0d1a`; alto contraste, `#ffffff` y `#000000`. Control: claro, todos claros.
+  - **Propuesta (sin escribir):** sostener el splash hasta leer, o arrancar con `useColorScheme()`. Detalle:
+    `detail/A28-hooks.md`.
+
+- **`R9-464` (S124, `A29` / contexts, Favoritos — P2) — 🐛 con la pestaña Favoritos abierta, la app relee los
+  favoritos de la base en un bucle sin fin.** MEDIDO con sonda en la 124 (agente 2, re-medido).
+  - `FavoritesContext.tsx` no memoiza nada: `refreshFavorites` (`:474`) es nueva en cada render, y
+    `app/(tabs)/favorites.tsx:53-61` la pone en las deps de su `useFocusEffect`, que expo-router re-corre al
+    cambiar el callback; `loadFavorites` termina en `setFavorites(data)` (`:262-263`). Desde `59963e0`.
+  - **Repro:** abrir Favoritos y quedarse: lecturas de SQLite y renders sin pausa hasta salir.
+  - **Sonda:** `_scratch/S124-a2-favoritosFoco.test.tsx.txt`: 301 lecturas en 40 vueltas (el tope; sin tope,
+    9034 en 20,7 s); tras desmontar, 0. Controles: el provider solo, 1; un foco que corre solo al montar, 2.
+  - **Propuesta (sin escribir):** `useCallback`/`useMemo` en el provider, o `[]` en el foco. Detalle:
+    `detail/A29-contexts.md`.
+
+- **`R9-465` (S124, `A29` / contexts, lector — P3) — 🐛 cada aviso en el lector vuelve a contar el capítulo: los
+  versículos leídos, el tiempo y el libro más leído salen inflados.** MEDIDO con sonda en la 124 (agente 2,
+  re-medido).
+  - `ToastContext.tsx:115`: `value={{…}}` nuevo en cada render; el temporizador de 5 s del lector tiene `toast`
+    en sus deps (`[chapter].tsx:762-851`), así que cada aviso lo re-agenda y vuelve a llamar a `trackVersesRead`
+    (`:784`), que suma sin deduplicar (`AchievementService.ts:324-363`).
+  - **Repro:** el capítulo que completa un día de plan (su propio aviso «Día N completado», `:809`), o cualquier
+    aviso (favorito, copiar, nota) y 5 s quieto.
+  - **Sonda:** `_scratch/S124-a2-toastLector.test.tsx.txt`: control, una llamada; un aviso a los 6 s, dos; el día
+    de plan, `trackVersesRead` 2 y `markChapterRead` 2.
+  - **Propuesta (sin escribir):** `useMemo` en el `value` de Toast, o un ref en el temporizador. Detalle:
+    `detail/A29-contexts.md`.
+
+- **`R9-466` (S124, `A29` / contexts, favoritos — P3) — 🐛 un doble toque en un corazón guarda el mismo versículo
+  dos veces, y quitarlo una vez deja el corazón lleno.** MEDIDO con sonda en la 124 (agente 3, re-medido).
+  - `FavoritesContext.tsx:296-304` deduplica con el `favorites` del cierre, que cambia recién en `:331`, tras
+    `bibleDB.addFavorite` (`:321`) y `trackBookmark` (`:322-330`); la tabla no tiene UNIQUE en `verse_id`
+    (`database/index.ts:565-579`) y el INSERT no lleva `OR IGNORE` (`:2274-2291`). Ningún corazón se deshabilita
+    mientras guarda (el del reproductor, `MiniAudioPlayer.tsx:360-380`, el candidato de `detail/A15`).
+  - **Sonda:** `_scratch/S124-a3-corazonDoble.test.tsx.txt`: doble toque, 2 filas, 2 `queueWrite`, 2
+    `trackBookmark`; quitar una vez deja `isFavorite` en `true`. Control: en serie, 1 fila.
+  - **Propuesta (sin escribir):** un `Set` de «guardando» y un índice único con `OR IGNORE`. Detalle:
+    `detail/A29-contexts.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,

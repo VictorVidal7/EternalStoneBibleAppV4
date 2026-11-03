@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 124: `A28` (hooks compartidos) y
-> siguientes.** La 123 (sin agentes) cerró `A26` y `A27` (🐛): `R9-457`..`R9-461`, ninguno P0. La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 125: `A30` (seguridad de tipos) y
+> siguientes.** La 124 (con 3 agentes a pedido de Victor, en el mismo chat que la 123) cerró `A28` y `A29` (🐛):
+> `R9-462`..`R9-466`, ninguno P0. La 123 (sin agentes) cerró `A26` y `A27` (🐛): `R9-457`..`R9-461`, ninguno P0. La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
 > `R9-449`..`R9-456`, ninguno P0. La 121
 > (con 3 agentes a pedido de Victor) cerró `A22` y `A23` (🐛): `R9-442`..`R9-448`, P3, ninguno P0. La
 > 120 (con 2 agentes a pedido de Victor) cerró `A20` (🐛): `R9-439`..`R9-441`, ninguno P0, y `A21` (✅). La
@@ -1455,8 +1456,22 @@
 >   «Sitemap») y `R9-461` (P3, un `d` repetido tira la app a la pantalla de error). Los enlaces que la app
 >   emite, los avisos y el onboarding con un enlace pendiente están bien.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **461**. Rama `docs/review-s123-a26-a27` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A28`+ por el orden del índice (la 124, `_scratch/S124-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **461**. Rama `docs/review-s123-a26-a27` (solo docs), mergeada y
+> pusheada con el OK de Victor (`11fdef8`, CI verde en el log, run `41686904536`, 374/4693; corregido en la
+> 124). **Lo siguiente:** `A28`+ por el orden del índice (la 124, `_scratch/S124-PROMPT.md`).
+>
+> **Sesión 124 (2026-11-03): el Modo A P1, la novena tanda (`A28`, `A29`)**, en el mismo chat que la 123, en la
+> terminal, con 3 agentes `fork` en worktree a pedido de Victor («¿podrías continuar aquí mismo utilizando 3
+> agentes?»), que solo midieron. Solo docs.
+>
+> - **`A28` 🐛:** `R9-462` (P3, con la app viva de un día para otro, Home da lo de ayer como hecho hoy) y
+>   `R9-463` (P3, un cuadro blanco al arrancar en oscuro o alto contraste).
+> - **`A29` 🐛:** `R9-464` (P2, la pestaña Favoritos relee la base en un bucle sin fin), `R9-465` (P3, cada aviso
+>   en el lector vuelve a contar el capítulo) y `R9-466` (P3, un doble toque en un corazón guarda dos filas). El
+>   orden del árbol está bien.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **466**. Rama `docs/review-s124-a28-a29` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A30`+ por el orden del índice (la 125, `_scratch/S125-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1604,8 +1619,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | 🐛 BUG    | `A25-theming`                   |
 | A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | 🐛 BUG    | `A26-navegacion`                |
 | A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | 🐛 BUG    | `A27-deep-links`                |
-| A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | PENDIENTE | —                               |
-| A29 | Árbol de contexts + `ServicesContext` (18 providers)               | P1        | PENDIENTE | —                               |
+| A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | 🐛 BUG    | `A28-hooks`                     |
+| A29 | Árbol de contexts + `ServicesContext` (18 providers)               | P1        | 🐛 BUG    | `A29-contexts`                  |
 | A30 | Seguridad de tipos: `any` / `as` / `@ts-ignore` / `!`              | P1        | PENDIENTE | —                               |
 | A31 | Código muerto: exports sin usar, archivos huérfanos                | P1        | PENDIENTE | —                               |
 | A32 | Mesa de preparación — altitud (`prep/index.tsx`, 3467 L)           | P2        | PENDIENTE | —                               |
