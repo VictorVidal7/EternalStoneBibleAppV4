@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 125: `A30` (seguridad de tipos) y
-> siguientes.** La 124 (con 3 agentes a pedido de Victor, en el mismo chat que la 123) cerró `A28` y `A29` (🐛):
+> **Frontera actual: el Modo A por el orden del índice, la sesión 126: `A32` (Mesa de preparación, altitud, P2)
+> y siguientes.** La 125 (con 8 agentes a pedido de Victor) cerró `A30` y `A31` (🐛): `R9-467`..`R9-472`, ninguno
+> P0; con ellas se terminan las filas P1 del Modo A. La 124 (con 3 agentes a pedido de Victor, en el mismo chat que la 123) cerró `A28` y `A29` (🐛):
 > `R9-462`..`R9-466`, ninguno P0. La 123 (sin agentes) cerró `A26` y `A27` (🐛): `R9-457`..`R9-461`, ninguno P0. La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
 > `R9-449`..`R9-456`, ninguno P0. La 121
 > (con 3 agentes a pedido de Victor) cerró `A22` y `A23` (🐛): `R9-442`..`R9-448`, P3, ninguno P0. La
@@ -1470,8 +1471,24 @@
 >   en el lector vuelve a contar el capítulo) y `R9-466` (P3, un doble toque en un corazón guarda dos filas). El
 >   orden del árbol está bien.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **466**. Rama `docs/review-s124-a28-a29` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A30`+ por el orden del índice (la 125, `_scratch/S125-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **466**. Rama `docs/review-s124-a28-a29` (solo docs), mergeada y
+> pusheada con el OK de Victor (`12f46df`, CI verde en el log, run `41691560533`, 374/4693; corregido en la
+> 125). **Lo siguiente:** `A30`+ por el orden del índice (la 125, `_scratch/S125-PROMPT.md`).
+>
+> **Sesión 125 (2026-11-03): el Modo A P1, la décima tanda (`A30`, `A31`)**, en un chat nuevo, en la terminal, con
+> 8 agentes `fork` en worktree a pedido de Victor («Podrías mandar 8 agentes?»; confirmó el reparto antes de
+> lanzarlos), que solo midieron: 6 en `A30`, cada uno con una fuente del dato, y 2 en `A31`. Solo docs.
+>
+> - **`A30` 🐛:** `R9-467` (P2, una colección con «%» en el nombre tira la app a la pantalla de error), `R9-468`
+>   (P3, cancelar Google se ve como error), `R9-469` (P3, «Combinar» guarda «—» o un número como texto), `R9-470`
+>   (P3, un respaldo fabricado con `__proto__` contamina `Object.prototype`) y `R9-471` (P3, la vista previa de
+>   Widgets no abre el versículo); sumas a `R9-461` y a `R9-421`. De 835 marcas (709 `as`, 62 `!`, 64 `any`, 0
+>   `@ts-ignore`), el resto es honesto.
+> - **`A31` 🐛:** `R9-472` (P3, cada bundle lleva las pantallas de la otra plataforma: ~970 KB de fuente en web).
+>   Ninguna copia muerta esconde hoy un defecto alcanzable.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **472**. Rama `docs/review-s125-a30-a31` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A32`+ por el orden del índice (la 126, `_scratch/S126-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1621,8 +1638,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | 🐛 BUG    | `A27-deep-links`                |
 | A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | 🐛 BUG    | `A28-hooks`                     |
 | A29 | Árbol de contexts + `ServicesContext` (18 providers)               | P1        | 🐛 BUG    | `A29-contexts`                  |
-| A30 | Seguridad de tipos: `any` / `as` / `@ts-ignore` / `!`              | P1        | PENDIENTE | —                               |
-| A31 | Código muerto: exports sin usar, archivos huérfanos                | P1        | PENDIENTE | —                               |
+| A30 | Seguridad de tipos: `any` / `as` / `@ts-ignore` / `!`              | P1        | 🐛 BUG    | `A30-seguridad-tipos`           |
+| A31 | Código muerto: exports sin usar, archivos huérfanos                | P1        | 🐛 BUG    | `A31-codigo-muerto`             |
 | A32 | Mesa de preparación — altitud (`prep/index.tsx`, 3467 L)           | P2        | PENDIENTE | —                               |
 | A33 | Profecías (`prophecies/index.tsx`, 1892 L)                         | P2        | PENDIENTE | —                               |
 | A34 | Journeys + "Tu camino" (`journeys/`, `journey/`)                   | P2        | PENDIENTE | —                               |

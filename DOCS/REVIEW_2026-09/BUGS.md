@@ -11891,6 +11891,13 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
   - **Propuesta (sin escribir, del agente 5):** derivarlo solo cuando el blob NO trae la clave
     (`parsed.sepiaGrandfathered === undefined && parsed.theme === 'sepia'`, un blob anterior al gate) y
     respetar un `false` explícito.
+  - **Candidato sin medir de la 125 (`A30`, agente 2): el respaldo es otro camino que esa propuesta no cierra.**
+    `BackupService.ts:181` tipa `readerPreferencesFull` como `ReaderPreferences`, pero solo lo valida con
+    `isPlainObject` (`:1244`); `:1365-1371` lo escribe tal cual y `ReaderPreferencesContext.tsx:149-172` lo copia
+    con `...parsed` (solo sanea `theme` y `fontFamily`). Un respaldo de un aparato «heredado» (o editado) con
+    `sepiaGrandfathered: true` abre Sepia sin premium en el aparato que lo importa; respetar un `false` explícito
+    no lo cierra, porque el respaldo trae `true`. Receta para medirlo: `S114-a1-planes` (`importBackup` real) con
+    el `ReaderPreferencesProvider` real. Detalle: `detail/A30-seguridad-tipos.md`.
 
 - **`R9-422` (S115, `C6` / Mesa / `R9-143` — P3) — 🐛 el historial abierto desde la cabecera de la Mesa no
   muestra lo escrito en los últimos 700 ms.** MEDIDO en la sesión 115 (agente 6, emulador).
@@ -12367,6 +12374,14 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `S123-enlaces`, prueba 4: «param.trim is not a function». Control (prueba 3): un solo `d` monta.
   - **Propuesta (sin escribir):** normalizar `d` o rechazar lo que no es `string`. Detalle:
     `detail/A27-deep-links.md`.
+  - **Medido en la 125 (`A30`, agente 3): la misma raíz en más pantallas.** `useLocalSearchParams<{k?: string}>()`
+    afirma `string`, y con `?k=a&k=b` llega un arreglo: `prep/history.tsx:88-89` y
+    `prep/illustrations/index.tsx:157` (`parsePassageKey` falla en el `split`), `word-study.tsx:90`, `:92` (el
+    `.trim()` de `strongs` y `gloss`) y `lectio.tsx:89` (`getBookByName`: «name.toLowerCase is not a function»).
+    Sonda: `_scratch/S125-sondas-agente-3/S125-a3-paramArreglo.test.ts.txt`, 4/4 con las funciones reales
+    (re-medida igual en el principal). Solo a mano, como el original; misma propuesta. Sin medir:
+    `constellation.tsx:121`, `reference-chain.tsx:83`, `study.tsx:125` y `prep/index.tsx:296` (pasan
+    `params.book` a funciones de libro). Detalle: `detail/A30-seguridad-tipos.md`.
 
 - **`R9-462` (S124, `A28` / hooks, Home — P3) — 🐛 con la app viva de un día para otro, las tarjetas de racha y
   de meta de Home muestran lo de ayer como hecho hoy.** MEDIDO con sonda en la 124 (agente 1, re-medido).
@@ -12423,6 +12438,118 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `trackBookmark`; quitar una vez deja `isFavorite` en `true`. Control: en serie, 1 fila.
   - **Propuesta (sin escribir):** un `Set` de «guardando» y un índice único con `OR IGNORE`. Detalle:
     `detail/A29-contexts.md`.
+
+- **`R9-467` (S125, `A30` / params, colecciones — P2) — 🐛 una colección con «%» en el nombre tira la app entera
+  a la pantalla de error al abrirla, y no se abre nunca.** MEDIDO con sonda en la 125 (agente 3, re-medido igual
+  en el principal).
+  - `app/features/collections/[name].tsx:64-67` vuelve a decodificar el param con `decodeURIComponent`, sin
+    `try`, pero el param ya llega decodificado: expo-router lo decodifica en `getStateFromPath.js:301-305` y en
+    `useLocalSearchParams.js:35-40` (las dos con `try`). La lista lo codificó en `collections/index.tsx:62`.
+  - **Camino:** crear una colección «Promesas 100%» (`normalizeCollectionName` deja pasar el `%`) y tocarla en
+    Colecciones: el render lanza `URIError` y el `ErrorBoundary` de `_layout.tsx:448-450` se lleva toda la app;
+    «Reintentar» vuelve a la misma ruta. Los favoritos no se pierden. Variante sin medir: un `%XX` válido en el
+    nombre abriría la colección vacía.
+  - **Sonda:** `_scratch/S125-sondas-agente-3/S125-a3-coleccionPorciento.test.tsx.txt` (la pantalla real sobre
+    `renderRouter`), 3/3: `URIError: URI malformed` y el árbol desmontado; el param que entrega expo-router ya es
+    `'Promesas 100%'`. Control: «Promesas» abre con su versículo.
+  - **Propuesta (sin escribir):** quitar ese `decodeURIComponent` (o envolverlo en `try`). Detalle:
+    `detail/A30-seguridad-tipos.md`.
+
+- **`R9-468` (S125, `A30` / cuenta, Google — P3) — 🐛 cancelar el selector de cuentas de Google muestra «No se
+  pudo iniciar sesión» en vez de «Inicio de sesión cancelado», y cada cancelación va a Crashlytics como error.**
+  MEDIDO con sonda en la 125 (agentes 2 y 4, por separado; las dos re-medidas iguales en el principal).
+  - `@react-native-google-signin/google-signin` 16.1.4 NO rechaza al cancelar: resuelve `{type:'cancelled',
+data:null}` (`translateNativeRejection.js:12-17`). `extractIdToken(signInResult: any)`
+    (`src/context/AuthContext.tsx:252-262`) no conoce esa forma, y `:414-418` lanza `Error('GoogleSignin returned
+no idToken')` sin `code`. El `catch (err: any)` de `app/(tabs)/settings.tsx:156-168` solo reconoce `'-5'`,
+    `'12501'` y `'SIGN_IN_CANCELLED'` (la forma de antes de v13): esa rama está muerta desde `4015a6a2`.
+  - **Camino:** Ajustes → «Iniciar sesión con Google» → atrás en el selector. No se guarda nada malo.
+  - **Sondas:** `_scratch/S125-sondas-agente-4/S125-a4-googleCancel.test.tsx.txt` (la librería real con su módulo
+    nativo falso, el `AuthProvider` real y Ajustes real): `toast.info` no se llama, `toast.error` recibe «No se
+    pudo iniciar sesión…» y `logger.error` «Google sign-in failed» (la prueba 2 cae a propósito); control: con la
+    cuenta elegida, `signInWithCredential` y la bienvenida. `_scratch/S125-sondas-agente-2/S125-a2-googleCancel.test.tsx.txt`,
+    3/3, con el `AuthProvider` real. La re-autenticación de «Eliminar cuenta» (`AuthContext.tsx:719-723`) tiene
+    la misma raíz, sin daño: ahí el error es el correcto.
+  - **Propuesta (sin escribir):** si `result?.type === 'cancelled'`, lanzar con `code: 'SIGN_IN_CANCELLED'`, y
+    tipar la respuesta como `SignInResponse`. Confirmarlo en un teléfono es Modo C (`C26a`). Detalle:
+    `detail/A30-seguridad-tipos.md`.
+
+- **`R9-469` (S125, `A30` / sync, Conflictos — P3) — 🐛 «Combinar» guarda «—» (o un número como texto) sobre
+  los campos que en este teléfono son `null`, en local y en la nube.** MEDIDO con sonda en la 125 (agente 6,
+  re-medido igual en el principal).
+  - `app/(tabs)/conflicts.tsx:48-59` (`formatValue`) muestra `null` como «—» y lo pone como VALOR del borrador; al
+    guardar (`:206-226`) el tipo se adivina con `current[k] ?? localVersion[k]`: un arreglo se parte por comas,
+    un número pasa por `Number`, y todo lo demás, `null` incluido, queda como la cadena del borrador. `merged as
+ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad, y `resolveConflict('merge')`
+    lo aplica en local y lo empuja (`SyncEngine.ts:3422-3424`).
+  - **Camino:** dos teléfonos con la misma cuenta; en uno, un favorito sin nota ni puntaje (`nullifyUndefined`
+    los manda como `null`, `FavoritesContext.tsx:94-111`) o un resaltado sin nota ni categoría
+    (`highlights.ts:60-68`); el otro le pone nota o puntaje dentro de la ventana de 30 s (campos materiales,
+    `FavoritesContext.tsx:246`, `highlights.ts:158`); Conflictos → «Combinar» → guardar.
+  - **Sonda:** `_scratch/S125-sondas-agente-6/S125-a6-combinarTipos.test.tsx.txt` (el `SyncEngine` real con un
+    adaptador en memoria; molde `conflictsScreenCurrentLocal`), 3/3: sin tocar el borrador, `{"note":"—",
+"rating":"—"}` en local y en lo empujado; escribiendo 5, la cadena `"5"`. Control: con un puntaje numérico (3),
+    se guarda el número 5.
+  - **Qué ve el usuario:** la nota «—» en los dos teléfonos; un puntaje de texto no aparece en
+    `getFavoritesByRating` (`FavoritesContext.tsx:454` compara con `===`); un resaltado queda con la categoría «—».
+    La app no cae. No es `R9-36` ni `R9-160` (la foto contra lo de ahora), es el tipo.
+  - **Propuesta (sin escribir):** un borrador que distinga «vacío» de «—» y que convierta según el tipo del campo
+    en la entidad, no según el valor de este teléfono. Detalle: `detail/A30-seguridad-tipos.md`.
+
+- **`R9-470` (S125, `A30` / respaldo, progreso de lectura — P3) — 🐛 un respaldo con la clave `__proto__` en el
+  progreso de lectura escribe en `Object.prototype` durante toda la sesión.** MEDIDO con sonda en la 125 (agente
+  1, re-medido igual en el principal).
+  - El mapa entra dado por bueno (`as ChapterProgressMap` en `BackupService.ts:1228-1229`; `JSON.parse` tipado en
+    `ReadingProgressContext.tsx:102`), y `canonicalizeProgressMap` (`src/lib/progress/progressKeys.ts:36-44`) toma
+    cada clave como un libro: `out[key] ??= {}` (`:39`) con `"__proto__"` devuelve `Object.prototype`, y
+    `target[chapter] = pct` (`:43`) escribe en el prototipo de todos los objetos. Es el único `??= {}` de dos
+    niveles del repo.
+  - **Camino:** Ajustes → importar un `.json` con `bible.chapterProgressMap = {"__proto__": {...}}`. Hace falta un
+    archivo fabricado o editado (ninguna versión escribe esa clave; por Firestore no llega: `__.*__` está
+    reservado). Es el criterio de `R9-410` (la misma familia: un nombre del prototipo que entra por el respaldo),
+    con otra raíz.
+  - **Sonda:** `_scratch/S125-sondas-agente-1/S125-a1-protoProgreso.test.ts.txt`, 4/4: un mapa normal no toca el
+    prototipo; `{}` y `[]` heredan la clave; el `importBackup` real, desde el texto del archivo, contamina el
+    prototipo (y lo guardado ya no la trae: se cura al reiniciar); con la clave `hasOwnProperty`,
+    `({a:1}).hasOwnProperty('a')` lanza «not a function». Qué pantalla cae no se midió (Modo C, o una sonda de
+    render): P3, sube a P2 si una cae.
+  - **Propuesta (sin escribir):** saltar `__proto__`, `constructor` y `prototype`, o `Object.create(null)` para
+    `out` y `target`. `detail/A11` había dado `progressKeys.ts` por defensivo sin mirar `__proto__`. Detalle:
+    `detail/A30-seguridad-tipos.md`.
+
+- **`R9-471` (S125, `A30` / rutas, Widgets — P3) — 🐛 tocar el versículo en la vista previa de Widgets abre el
+  capítulo arriba, no en el versículo.** MEDIDO con sonda en la 125 (agente 3, re-medido igual en el principal).
+  - `src/screens/WidgetsDemoScreen.tsx:37-39` navega con `?highlight=<v>` (con `as never`, que esconde el nombre
+    del param), pero el lector lee `verse` (`[chapter].tsx:196-200`) y nadie lee `highlight`.
+  - **Camino:** Ajustes → Funcionalidades → Widgets → tocar «Verso del Día»: abre 1 Pedro 2 en el versículo 1, no en
+    el 24. La QA de Fable (`QA_REVISION_FABLE.md:96`) anotó solo el capítulo.
+  - **Sonda:** `_scratch/S125-sondas-agente-3/S125-a3-widgetVersiculo.test.tsx.txt`, 2/2: el lector recibe
+    `{"book":"1 Pedro","chapter":"2","highlight":"24"}`, sin `verse`. Control: `?verse=24` sí llega.
+  - **Propuesta (sin escribir):** mandar `?verse=`. Es el único de los 195 sitios de navegación cuyos params no
+    lee el destino (`S125-a3-rutas.tsv.txt`). Detalle: `detail/A30-seguridad-tipos.md`.
+
+- **`R9-472` (S125, `A31` / bundle — P3) — 🐛 cada bundle lleva también las pantallas de la otra plataforma: en
+  web, unos 970 KB de fuente que nunca se evalúan.** MEDIDO en la 125 (agente 8: sonda, re-medida igual en el
+  principal, y el sourcemap del release de Android).
+  - `node_modules/expo-router/_ctx.web.js` y `_ctx.android.js` toman todo `app/**/*.tsx` (el sufijo de plataforma
+    es opcional en su regex); Metro no filtra un `require.context` por plataforma
+    (`metro/src/node-haste/DependencyGraph.js:218-226`) y `getRoutesCore.js:222-225` descarta después los de la
+    otra plataforma: quedan empaquetados y no se evalúan. Sin tree shaking (ni `EXPO_UNSTABLE_TREE_SHAKING` ni
+    `asyncRoutes`), entra también todo lo que solo esos archivos importan.
+  - **Camino:** quien abre la app web (Firebase Hosting) baja en el primer arranque el lector, el inicio, los
+    ajustes y los layouts nativos, con todo lo suyo.
+  - **Medido:** `_scratch/S125-sondas-agente-8/S125-a8-ctxPlataforma.test.ts.txt` (el regex real de `_ctx` y el
+    `getRoutes` real), 2/2: en Android, 6 `.web.tsx` empaquetados y descartados (47 269 bytes); en web, 6 nativos
+    (359 704 bytes). Con lo que arrastran (`S125-a8-grafo.cjs.txt`, sobreestima un poco): en web, 73 módulos del
+    repo, 969 987 bytes, el 6,07 % del fuente del repo en el bundle web (`[chapter].tsx` 160 KB, `(tabs)/index.tsx`
+    100 KB, `BackupService.ts` 65 KB…), más `expo-notifications`, `@expensify/react-native-live-markdown`,
+    `expo-constants` y `expo-document-picker`, que solo importa ese código; en Android, 9 módulos, 79 876 bytes
+    (0,33 %). El release de Android en disco (2026-09-02) y su sourcemap traen los 6 `app/**.web.tsx`: el
+    mecanismo, confirmado en el artefacto. Sin medir: el peso minificado y comprimido (`npx expo export --platform
+web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el peso.
+  - **Propuesta (sin escribir):** que cada ruta de `app/` sea un archivo sin sufijo que reexporte la pantalla de
+    `src/screens/X` (Metro sí elige `X.tsx` o `X.web.tsx` por plataforma), o `asyncRoutes` en web. Renombrar a
+    `.native.tsx` no sirve: el regex de web también lo toma. Detalle: `detail/A31-codigo-muerto.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
