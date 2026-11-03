@@ -1815,6 +1815,20 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **448**. Detalle: `detail/A22-compartir.md`,
 > `detail/A23-logros.md`.
+>
+> **Sesión 122 (2026-11-03): el Modo A P1, la séptima tanda (`A24`, `A25`)**, en el mismo chat que la 121, en la
+> terminal, con 3 agentes a pedido de Victor (solo midieron; las sondas de los hallazgos, re-medidas en el
+> principal). Solo docs.
+>
+> - **Nuevos, ninguno P0:** `R9-449` (P3, «Reiniciar plan» con el nombre crudo), `R9-450` (P2, el PDF de
+>   discusión de la Mesa en español), `R9-451` (P3, la vista previa del widget siempre en RVR1960), `R9-452` (P3,
+>   «Lunes, 2 De Noviembre» en dos sitios), `R9-453` (P3, la Comparación de versiones mezcla idiomas), `R9-454`
+>   (P2, los avisos ilegibles en oscuro y alto contraste), `R9-455` (P3, las etiquetas de rareza) y `R9-456` (P3,
+>   las cifras del recuadro de Home de mañana).
+> - **Suma a uno escrito:** `R9-439`, un camino sin medir (el arranque en frío).
+> - **Filas:** `A24` 🐛, `A25` 🐛.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **456**. Detalle: `detail/A24-i18n.md`, `detail/A25-theming.md`.
 
 ---
 
@@ -12107,6 +12121,10 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     de 14 si la hora del aviso ya pasó hoy).
   - **Propuesta (sin escribir):** serializar los refrescos (una promesa en curso que el siguiente encadena) o
     descartar el que llega viejo con un contador de generación. Detalle: `detail/A20-ajustes.md`.
+  - **Camino sin medir, anotado en la 122 (`A24`):** el arranque en frío, sin ningún toque. `LanguageProvider`
+    arranca en `'es'` (`useLanguage.tsx:19`) y el idioma y la versión guardados llegan aparte de
+    `setIsLoading(false)` (`app/_layout.tsx:209-226`); si uno llega después, el efecto de `:180-198` corre dos
+    veces seguidas: los dos refrescos de esta entrada. Pide montar `AppContent`. Detalle: `detail/A24-i18n.md`.
 
 - **`R9-440` (S120, `A20` / Ajustes — P3) — 🐛 sin conexión y con cambios en cola, Ajustes dice
   «Sincronizando N cambios…».** MEDIDO con sonda en la sesión 120.
@@ -12213,6 +12231,84 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S121-rachaInsignias.test.ts.txt`, `insigniasOtraCuenta`: con otro uid, las mismas 4 y
     `equipadoB: null`: rojo. Control: mismo uid, 0. No es `R9-30` (el respaldo) ni `R9-22`/`R9-48`.
   - **Propuesta (sin escribir):** guardarlas como el progreso (del dispositivo). Detalle: `detail/A23-logros.md`.
+
+- **`R9-449` (S122, `A24` / i18n, planes — P3) — 🐛 el diálogo «Reiniciar plan» de un plan curado muestra el
+  nombre crudo: «{{n}}» literal en 4 planes, y en español con la UI en inglés.** MEDIDO con sonda en la 122.
+  - `app/(tabs)/plan/[id].tsx:869`: `title={plan.name}`; el resto de la pantalla usa `getLocalizedPlan` (`:280`),
+    lo único que reemplaza el `{{n}}` (`reading-plans.ts:2166`).
+  - **Repro:** un plan curado con progreso → ↻ en la cabecera (`:687-694`): «Nuevo Testamento en {{n}} Días»; en
+    inglés, «Primeros pasos con Jesús».
+  - **Sonda:** `_scratch/S122-fueraDiccionario.test.ts.txt`, prueba 1: 4 nombres con `{{n}}`, 17 de 17 distintos
+    del inglés: rojo. Control: la pantalla llama a `getLocalizedPlan`.
+  - **Propuesta (sin escribir):** `title={localizedPlan.name}`. Detalle: `detail/A24-i18n.md`.
+
+- **`R9-450` (S122, `A24` / i18n, Mesa — P2) — 🐛 el PDF «Guía de discusión» sale en español aunque la UI y el
+  estudio estén en inglés.** MEDIDO con sonda en la 122.
+  - `src/features/study/prepPdf.ts:78-112` (`DISCUSSION_GUIDE_STAGES`, solo español); `:419`
+    `<html lang="es">` fijo; `buildPrepHtml` sin idioma (`:445`).
+  - **Repro:** Mesa (con la ofrenda) → Exportar → «discusión» con la UI en inglés: pasaje y pie en inglés, las
+    etapas y preguntas para el grupo en español.
+  - **Sonda:** `S122-fueraDiccionario`, prueba 2 (estudio en KJV): `lang="es"`, «Observación», «¿Qué dice el
+    texto literalmente?»: rojo. Control: pasaje y pie en inglés.
+  - No es lo Pendiente de la Mesa. **Propuesta (sin escribir):** pasar el idioma y llevar las etapas a
+    `translations.ts` (contenido sensible: en borrador, revisado en los dos idiomas). Detalle: `detail/A24-i18n.md`.
+
+- **`R9-451` (S122, `A24` / i18n, widget — P3) — 🐛 la vista previa del widget «Versículo del día» muestra
+  siempre la RVR1960 en español.** MEDIDO con sonda en la 122.
+  - `src/widgets/WidgetTaskHandler.ts:41-50`: `getVerse(…, 'RVR1960')` y `translation: 'RVR1960'` fijos;
+    `getVerseOfTheDay()` sin idioma ni versión; el respaldo (`:72-81`), en español. Es la vista previa de
+    `features/widgets` (no hay widget nativo registrado).
+  - **Sonda:** `S122-fueraDiccionario`, prueba 3: `{"version":"RVR1960","translation":"RVR1960"}`: rojo.
+  - **Propuesta (sin escribir):** recibir la versión elegida. Detalle: `detail/A24-i18n.md`.
+
+- **`R9-452` (S122, `A24` / i18n, fechas — P3) — 🐛 el BUG-9 de Fable (`textTransform: 'capitalize'` sobre
+  fechas) se arregló solo en Daily Light: «Lunes, 2 De Noviembre» sigue en dos sitios.** MEDIDO con sonda en la 122.
+  - `21cd7cd` tocó solo `daily-light`; siguen `app/features/devotional/index.tsx:730` y
+    `src/components/celestial/VerseOfDayCard.tsx:1020-1024` (`historyLabel`).
+  - **Sonda:** `S122-fueraDiccionario`, prueba 4 (Intl real): «Lunes, 2 De Noviembre» y «Lunes, 2 Nov»: rojo.
+    Control: Daily Light ya no capitaliza.
+  - **Propuesta (sin escribir):** el arreglo de `21cd7cd`. Detalle: `detail/A24-i18n.md`.
+
+- **`R9-453` (S122, `A24` / i18n, Comparación de versiones — P3) — 🐛 la Comparación de versiones mezcla idiomas
+  en tres sitios.** MEDIDO con sonda en la 122.
+  - `src/screens/VersionComparisonScreen.tsx:1490-1493` y `:1605-1608`: «{n} versículo(s) seleccionado(s)» y
+    «Comparar {n} Versículo(s)», literales en español (selección múltiple, `:1461-1466`); `:1370`
+    `toLocaleDateString()` sin locale; `:1232-1237` cae a `VersionComparison.ts`, donde faltan `rv1909`,
+    `sse1569` y `web` (WEB en inglés con la UI en español, RV1909 en español con la UI en inglés).
+  - **Sonda:** `S122-fueraDiccionario`, prueba 5 (`faltan: ["rv1909","sse1569","web"]`), y el barrido
+    `_scratch/S122-sondas-agente-2/S122-a2-barrido` (`:1491`, `:1492`, `:1606`, `:1607`).
+  - **Propuesta (sin escribir):** las claves que faltan y el locale de la UI. Detalle: `detail/A24-i18n.md`.
+
+- **`R9-454` (S122, `A25` / theming, avisos — P2) — 🐛 los avisos (toasts) quedan ilegibles en modo oscuro y en
+  «Alto contraste».** MEDIDO con sonda en la 122.
+  - `src/components/Toast.tsx:78-104`: texto e ícono `'#ffffff'` fijos sobre `colors.success/error/warning/info`,
+    que en oscuro (`useTheme.tsx:1022-1024`, info por tema) y en alto contraste (`:1073-1076`) son claros. El
+    mensaje es de 16 px (`:289`): pide 4.5:1. Desde `5f26509`.
+  - **Repro:** cualquier aviso con el modo oscuro o «Alto contraste» activado.
+  - **Sonda:** `_scratch/S122-paletas.test.tsx.txt`, prueba 1 (el `Toast` real, 132 combinaciones): 68 bajo 3:1,
+    103 bajo 4.5:1; alto contraste: success 1.74, error 2.78, warning 1.9, info 1.56: rojo. Control: la variante
+    default, 15.84.
+  - P2: en el modo para baja visión ningún aviso se lee, y el de error es a menudo la única señal de un fallo.
+    **Propuesta (sin escribir):** una tinta por variante. Detalle: `detail/A25-theming.md`.
+
+- **`R9-455` (S122, `A25` / theming, insignias — P3) — 🐛 las etiquetas de rareza de la colección de insignias
+  tienen poco contraste en cualquier tema.** MEDIDO con sonda en la 122.
+  - `src/screens/BadgeCollectionScreen.tsx:160-168`: mapa fijo por rareza bajo blanco de 8, 10 y 12 px
+    (`:1052-1055`, `:1096-1099`, `:1170-1173`); el canónico es `rarityColors.ts:24-56`, con otros valores.
+  - **Sonda:** `_scratch/S122-chipsInmersivo.test.ts.txt`, prueba 1: common 2.54, rare 3.68, epic 4.23, legendary
+    2.15, mythic 3.53: rojo. Control: 17.85.
+  - **Propuesta (sin escribir):** color y tinta de `rarityColors`. Detalle: `detail/A25-theming.md`.
+
+- **`R9-456` (S122, `A25` / theming, Home — P3) — 🐛 de mañana, con 6 temas, las cifras blancas del recuadro de
+  cabecera de Home caen sobre un color claro.** MEDIDO con sonda en la 122 (la posición, por lectura).
+  - `app/(tabs)/index.tsx:803-865` (degradado diagonal de `gradient.headerColors`) con la fila de `StatsCard` al
+    pie (`StatsCard.tsx:83-84`, `:169-175`: `#ffffff` 18 px, `rgba(255,255,255,0.75)` 9 px).
+    `themeHeaderContrast` solo fija el primer color.
+  - **Sonda:** `S122-paletas`, prueba 2 (16 temas × 4 horas): el valor bajo 3:1 contra el último color en 6
+    (ocean, forest, sunset, esmeralda, arena, aurora, de mañana); la etiqueta bajo 4.5:1 en 18: rojo. Control: el
+    primer color pasa en 64 de 64.
+  - **Propuesta (sin escribir):** una sombra o un velo bajo la fila, o fijar también el último color. Detalle:
+    `detail/A25-theming.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -1,6 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 122: `A24` (i18n) y siguientes.** La 121
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 123: `A26` (navegación y BackHandler) y
+> siguientes.** La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
+> `R9-449`..`R9-456`, ninguno P0. La 121
 > (con 3 agentes a pedido de Victor) cerró `A22` y `A23` (🐛): `R9-442`..`R9-448`, P3, ninguno P0. La
 > 120 (con 2 agentes a pedido de Victor) cerró `A20` (🐛): `R9-439`..`R9-441`, ninguno P0, y `A21` (✅). La
 > 119 cerró `A19` (🐛): `R9-437`, `R9-438`, ninguno P0. La 118
@@ -1423,8 +1425,23 @@
 >   puede ganar), `R9-446` (P3, dos revisiones a la vez: modal doble o puntos perdidos), `R9-447` (P3, la racha
 >   de logros no baja con la app viva) y `R9-448` (P3, otra cuenta re-celebra las insignias y pierde el título).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **448**. Rama `docs/review-s121-a22-a23` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A24`+ por el orden del índice (la 122, `_scratch/S122-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **448**. Rama `docs/review-s121-a22-a23` (solo docs), mergeada y
+> pusheada con el OK de Victor (`680c287`, CI verde en el log, run `41676638436`, 374/4693; corregido en la
+> 122). **Lo siguiente:** `A24`+ por el orden del índice (la 122, `_scratch/S122-PROMPT.md`).
+>
+> **Sesión 122 (2026-11-03): el Modo A P1, la séptima tanda (`A24`, `A25`)**, en el mismo chat que la 121, en la
+> terminal, con 3 agentes `fork` en worktree a pedido de Victor («¿Podrías continuar mandando otros 3
+> agentes?»), que solo midieron. Solo docs.
+>
+> - **`A24` 🐛:** `R9-449` (P3, «Reiniciar plan» con el nombre crudo), `R9-450` (P2, el PDF de discusión de la
+>   Mesa en español), `R9-451` (P3, la vista previa del widget siempre en RVR1960), `R9-452` (P3, fechas con
+>   «De» mayúscula en dos sitios) y `R9-453` (P3, la Comparación de versiones mezcla idiomas). El diccionario
+>   (tipado, paridad, tokens) está sano. Y un camino sin medir para `R9-439` (el arranque en frío).
+> - **`A25` 🐛:** `R9-454` (P2, los avisos ilegibles en oscuro y alto contraste), `R9-455` (P3, las etiquetas de
+>   rareza) y `R9-456` (P3, las cifras del recuadro de Home de mañana).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **456**. Rama `docs/review-s122-a24-a25` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A26`+ por el orden del índice (la 123, `_scratch/S123-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1568,8 +1585,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | ✅ OK     | `A21-onboarding`                |
 | A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | 🐛 BUG    | `A22-compartir`                 |
 | A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | 🐛 BUG    | `A23-logros`                    |
-| A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | PENDIENTE | —                               |
-| A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | PENDIENTE | —                               |
+| A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | 🐛 BUG    | `A24-i18n`                      |
+| A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | 🐛 BUG    | `A25-theming`                   |
 | A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | PENDIENTE | —                               |
 | A27 | Deep links (`+native-intent.tsx`, params por pantalla)             | P1        | PENDIENTE | —                               |
 | A28 | Hooks compartidos (`src/hooks/*`, 19 archivos)                     | P1        | PENDIENTE | —                               |
@@ -2677,6 +2694,20 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     revierte tres de las cuatro cosas exclusivas y la cuarta (la plantilla) se comparte. Y lo que un servicio
     devuelve para celebrar se pierde si el llamador lo descarta (`R9-444`): la sonda mide el llamador, no solo
     el servicio.
+- **Sesión 122 — 2026-11-03. El Modo A P1, la séptima tanda: `A24` y `A25`.** En el mismo chat que la 121, en la
+  terminal, con 3 agentes `fork` en worktree (los pidió Victor: «¿Podrías continuar mandando otros 3
+  agentes?»). Solo docs.
+  - **Cómo se trabajó:** reglas comunes en `_scratch/S122-agentes-reglas.md.txt`; el agente 1, el diccionario
+    como objeto y su tipado; el 2, lo que no pasa por el diccionario (literales, datos, formato); el 3, los
+    colores fijos con daño de contraste, calculado con los temas reales. Unos 300k tokens y 54-66 llamadas cada
+    uno, 8-9 min, sin cortes; los worktrees se borraron solos. Las sondas de los hallazgos, re-medidas iguales en
+    el principal. El checkpoint, en `../essb-docs-s122` con commit en el principal.
+  - **Resultado:** `A24` 🐛 (`R9-449`..`R9-453`), `A25` 🐛 (`R9-454`..`R9-456`); dos P2, el resto P3; ninguno P0.
+  - **Detalle:** `detail/A24-i18n.md`, `detail/A25-theming.md`.
+  - **La lección:** en las filas transversales, el barrido da la lista y la sonda el daño: un diccionario sano
+    (tipado contra ES, paridad, tokens) no impide los textos que lo esquivan (`plan.name` en vez del localizado,
+    un PDF armado aparte), y un tema que pasa su prueba de contraste como TEXTO puede fallar como FONDO de una
+    tinta fija (`R9-454`).
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en
