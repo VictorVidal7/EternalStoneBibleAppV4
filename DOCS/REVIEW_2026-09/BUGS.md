@@ -12551,6 +12551,59 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     `src/screens/X` (Metro sí elige `X.tsx` o `X.web.tsx` por plataforma), o `asyncRoutes` en web. Renombrar a
     `.native.tsx` no sirve: el regex de web también lo toma. Detalle: `detail/A31-codigo-muerto.md`.
 
+- **`R9-473` (S126, `A32` / Mesa, notas — P2) — 🐛 un solo debounce para todas las secciones: tocar la barra de
+  formato de otra tarjeta antes de 700 ms y salir pierde lo último escrito en la primera.** MEDIDO con sonda en
+  la 126 (agente 1, re-medido igual en el principal). Familia de `R9-58`, con otro mecanismo.
+  - `app/features/prep/index.tsx:1071-1081` usa UN `useDebouncedCallback` de 700 ms para todas las secciones, y
+    use-debounce guarda solo los últimos argumentos: la llamada para la sección B reemplaza la pendiente de A, y el
+    `flush()` al desmontar (`:1089`) empuja solo la de B. La barra de formato de B (`MarkdownFormatToolbar`,
+    `:2474-2487`, que llama a `handleNoteChange(B)`) no le quita el foco a A (`keyboardShouldPersistTaps="handled"`,
+    `:1827`): no hay `blur` de A (`:1105-1129`) que la salve. `R9-58` daba el `flush()` por bueno: lo es, pero
+    solo para la última sección.
+  - **Camino:** escribir en «Idea central»; sin pausa de 700 ms, tocar lista, negrita o título en la barra de la
+    tarjeta de abajo; atrás (cierra el teclado sin `blur`, como dice el comentario de `:1065-1070`); atrás otra vez.
+    Lo mismo si la app pasa a segundo plano y se cierra. Se pierde lo escrito en A desde su última pausa.
+  - **Sonda:** `_scratch/S126-sondas-agente-1/S126-a1-debounceCompartido.test.tsx.txt` (la Mesa real, el
+    `PremiumProvider` real y el debounce real), 3/3: el store queda en `{"application":"- "}`, sin «Idea central».
+    Controles: con una pausa de 900 ms, o con `blur` de A, `bigIdea` se guarda.
+  - **Propuesta (sin escribir):** un debounce por sección, o vaciar el pendiente de otra sección antes de agendar
+    uno nuevo. Detalle: `detail/A32-mesa-altitud.md`.
+
+- **`R9-474` (S126, `A32` / Mesa, navegación — P3) — 🐛 dos toques en «Modo púlpito» abren dos púlpitos, y atrás
+  vuelve al primero.** MEDIDO con sonda en la 126 (agente 1, re-medido igual en el principal).
+  - `handleOpenPulpit` (`app/features/prep/index.tsx:1028-1058`) espera `flushDrafts()` (una lectura y escritura
+    serializada por sección, `:988-998`) y `resolveVersion()` antes del `router.push`; el botón no se deshabilita
+    en ese hueco y la pantalla no se movió. El `router.push` de expo-router es `PUSH` en la pila
+    (`getNavigationAction.js:51-52`, por lectura). `handleOpenIllustrations` (`:1008-1023`) tiene la misma forma.
+  - **Camino:** premium, la Mesa con notas → «Modo púlpito» → durante el guardado no se ve nada → tocar otra vez.
+  - **Sonda:** `_scratch/S126-sondas-agente-1/S126-a1-originalesYDoblePush.test.tsx.txt`, bloque «púlpito», 2/2:
+    dos toques seguidos, 2 `push`; control, 1. (Las 2 pruebas del bloque «originales» de la misma sonda caen por
+    el montaje, también su control: no miden nada.) Sin medir: el ancho del hueco en el dispositivo, la pila con
+    `renderRouter`, y el banco de ilustraciones en modo insertar (dos `router.back()`).
+  - **Propuesta (sin escribir):** un ref de «navegando» en los dos botones. Detalle: `detail/A32-mesa-altitud.md`.
+
+- **`R9-475` (S126, `A33` / Profecías, mazo — P2) — 🐛 con una versión en español, «Memorizar» en el Hilo
+  profético crea una segunda carta del mismo versículo, y no reconoce la que ya estaba.** MEDIDO con sonda en la
+  126 (agente 2, re-medido igual en el principal).
+  - `app/features/prophecies/index.tsx:456-461` arma la clave del mazo con el nombre del libro en el idioma de la
+    versión (`:220-221`), y `:468-474` llama a `addCard` con ese nombre: con RVR1960, «Génesis/3/15». El resto de la
+    app usa el canónico en inglés (`canonicalBookName` → `nameEn`, `src/constants/bible.ts:686-703`): el selector
+    del mazo (`memory/index.tsx:147-151`), el quiz (`quizVerseLookup.ts:11-13`), Favoritos, y Daily Light desde
+    `6b2c5ca2` («use canonical book name for the memory-deck verse key»). El mazo descarta repetidos por esa clave
+    (`MemoryDeckContext.tsx:467-470`), y «Génesis/3/15» no es «Genesis/3/15».
+  - **Camino:** RVR1960 (la versión por defecto en español) → Profecías → una profecía → «Memorizar». Si el
+    versículo ya estaba en el mazo (desde Daily Light, el selector o el quiz), el botón dice «Memorizar» y entra
+    una segunda carta: dos repasos del mismo versículo y dos documentos en la nube. Al revés, lo memorizado desde
+    Profecías no aparece como memorizado en Daily Light ni en el quiz.
+  - **Sonda:** `_scratch/S126-sondas-agente-2/S126-a2-profeciaMazo.test.tsx.txt`, 3/3: la pantalla real con
+    RVR1960 y la carta canónica en el mazo da `{"canonicalKey":"Genesis/3/15","screenKey":"Génesis/3/15",
+"memorizedShown":false,"addCardBook":"Génesis"}`; con el `MemoryDeckProvider` real, `{"cards":["Génesis/3/15",
+"Genesis/3/15"]}`. Control: con KJV, «Memorizado». La prueba existente `propheticThreadBackAndHeader.test.tsx`
+    mockea `hasCard: () => false`.
+  - **Propuesta (sin escribir):** `canonicalBookName(info.display)` en la clave y en `addCard`, como `6b2c5ca2`,
+    más una migración que fusione las cartas ya guardadas con el nombre en español. Sin medir, para `A36`:
+    `lectio.tsx:101-105` y `:233-239` hacen lo mismo con `bookDisplay`. Detalle: `detail/A33-profecias.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
