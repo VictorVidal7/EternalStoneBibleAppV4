@@ -1790,6 +1790,17 @@
 > - **Filas:** `A19` 🐛.
 >
 > **No queda ningún P0 abierto.** Hallazgos: **438**. Detalle: `detail/A19-home.md`.
+>
+> **Sesión 120 (2026-11-02/03): el Modo A P1, la quinta tanda (`A20`, `A21`)**, en un chat nuevo, en la
+> terminal, con 2 agentes a pedido de Victor (solo midieron; cada sonda re-medida en el principal). Solo docs.
+>
+> - **Nuevos, ninguno P0:** `R9-439` (P3, dos cambios seguidos de idioma o de versión dejan el aviso del
+>   versículo del día agendado dos veces), `R9-440` (P3, sin conexión y con cambios en cola, Ajustes dice
+>   «Sincronizando…») y `R9-441` (P3, «Reportar un problema» no hace nada sin app de correo).
+> - **Filas:** `A20` 🐛, `A21` ✅.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **441**. Detalle: `detail/A20-ajustes.md`,
+> `detail/A21-onboarding.md`.
 
 ---
 
@@ -12062,6 +12073,46 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     el mismo mapa da `"40%"`.
   - **Propuesta (sin escribir):** leer el progreso con un `ref` al `getChapterProgress` actual, o calcular el %
     en el render. Detalle: `detail/A19-home.md`.
+
+- **`R9-439` (S120, `A20` / Ajustes — P3) — 🐛 dos cambios seguidos de idioma o de versión dejan el aviso del
+  versículo del día agendado dos veces.** MEDIDO con sonda en la sesión 120.
+  - `src/lib/notifications/NotificationService.ts:232-235`: `scheduleDailyVerseNotifications` cancela por tipo
+    y después agenda 14 días, con un `await` del versículo por día; nada lo serializa, tampoco
+    `refreshDailyVerseNotifications` (`:351-360`). Lo dispara el efecto de `app/_layout.tsx:180-198` (deps
+    `[isLoading, language, selectedVersion.id]`).
+  - **Repro:** con el recordatorio activo, en Ajustes tocar «English» y enseguida «Español»
+    (`app/(tabs)/settings.tsx:365`, `:393`), o dos versiones seguidas (`:283`): los dos refrescos cancelan antes
+    de que el otro agende, y los dos agendan. Dos avisos por día (uno por idioma o por versión) hasta el
+    próximo arranque en frío o el próximo cambio.
+  - **Sonda:** `_scratch/S120-notifDoble.test.ts.txt` (el servicio real, `expo-notifications` simulado): a la
+    vez, `{"total":28,"en":14,"es":14}`: rojo. Control, uno tras otro: `{"total":14,"en":14,"es":0}` (13 en vez
+    de 14 si la hora del aviso ya pasó hoy).
+  - **Propuesta (sin escribir):** serializar los refrescos (una promesa en curso que el siguiente encadena) o
+    descartar el que llega viejo con un contador de generación. Detalle: `detail/A20-ajustes.md`.
+
+- **`R9-440` (S120, `A20` / Ajustes — P3) — 🐛 sin conexión y con cambios en cola, Ajustes dice
+  «Sincronizando N cambios…».** MEDIDO con sonda en la sesión 120.
+  - `app/(tabs)/settings.tsx:96-99`: «sincronizando» sale para todo `pendingWrites > 0` antes de mirar
+    `isOnline`, así que las ramas `offlineWithQueue`/`offlineWithQueueSingular` (`:100-107`) no se alcanzan
+    nunca (desde `1b94b78`, y nada más usa esas claves). Es otra rama del indicador que `R9-33`, otro defecto.
+  - **Repro:** con cuenta, en modo avión, marcar un favorito y abrir Ajustes: «Sincronizando 1 cambio…» en vez
+    de «Sin conexión — 1 cambio encolado».
+  - **Sonda:** `_scratch/S120-ajustesCuenta.test.tsx.txt`, prueba 1 (la pantalla real): con `pendingWrites` 2 y
+    sin red, «Sincronizando 2 cambios…»: rojo. Control 1b, sin red y sin cola: «Sin conexión».
+  - **Propuesta (sin escribir):** mirar `isOnline` antes que `pendingWrites`. Detalle: `detail/A20-ajustes.md`.
+
+- **`R9-441` (S120, `A20` / Ajustes — P3) — 🐛 «Reportar un problema» no hace nada si no hay app de
+  correo.** MEDIDO con sonda en la sesión 120.
+  - `src/components/settings/FeedbackRow.tsx:51`: `void Linking.openURL(mailto)`; sin una app que atienda el
+    intent, `openURL` rechaza y nadie lo atrapa: sin toast, sin Alert, y la dirección no se ve para copiarla. La
+    hermana `src/features/audio/lib/openTtsSettings.ts:34-45` sí atrapa el rechazo y cae a un respaldo.
+  - **Repro:** Ajustes → Acerca de → «Reportar un problema» en un teléfono sin cliente de correo (Gmail
+    deshabilitado, sin servicios de Google): el toque no responde.
+  - **Sonda:** `_scratch/S120-feedbackSinCorreo.test.tsx.txt` (la fila real): con `openURL` rechazando,
+    `enganchada=false alert=0 direccionVisible=false`: verde de la sonda (muestra el defecto). Control:
+    `openTtsSettings` con el rechazo resuelve y cae a su respaldo (2 llamadas a `sendIntent`).
+  - **Propuesta (sin escribir):** `catch` con un aviso que muestre la dirección (o la copie). Detalle:
+    `detail/A20-ajustes.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

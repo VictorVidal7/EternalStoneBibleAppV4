@@ -1,6 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 120: `A20` (Ajustes) y siguientes.** La
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 121: `A22` (Compartir) y siguientes.** La
+> 120 (con 2 agentes a pedido de Victor) cerró `A20` (🐛): `R9-439`..`R9-441`, ninguno P0, y `A21` (✅). La
 > 119 cerró `A19` (🐛): `R9-437`, `R9-438`, ninguno P0. La 118
 > (sin agentes) cerró `A17` y `A18` (🐛): `R9-432`..`R9-436`, ninguno P0. La 117
 > (sin agentes) cerró `A14`, `A15` y `A16` (🐛): `R9-427`..`R9-431`, ninguno P0. La 116 hizo `A13` (🐛):
@@ -1393,8 +1394,21 @@
 >   no quita nada) y `R9-438` (P2, al volver a Home, «Continuar leyendo» muestra el % de cuando se montó: el
 >   foco corre un `loadHomeData` viejo).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **438**. Rama `docs/review-s119-a19` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A20`+ por el orden del índice (la 120, `_scratch/S120-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **438**. Rama `docs/review-s119-a19` (solo docs), mergeada y
+> pusheada con el OK de Victor (`76ca485`, CI run `41579033670`; corregido en la 120). **Lo siguiente:** `A20`+
+> por el orden del índice (la 120, `_scratch/S120-PROMPT.md`).
+>
+> **Sesión 120 (2026-11-02/03): el Modo A P1, la quinta tanda (`A20`, `A21`)**, en un chat nuevo, en la
+> terminal, con 2 agentes `fork` en worktree a pedido de Victor («¿Podrías mandar 2 agentes?»), que solo
+> midieron. Solo docs.
+>
+> - **`A20` 🐛:** `R9-439` (P3, dos cambios seguidos de idioma o de versión dejan el aviso del versículo del día
+>   agendado dos veces), `R9-440` (P3, sin conexión y con cola, Ajustes dice «Sincronizando…») y `R9-441` (P3,
+>   «Reportar un problema» no hace nada sin app de correo).
+> - **`A21` ✅:** el asistente, su compuerta y las pistas aguantan; su «sin medir» es el sembrado de `A14`.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **441**. Rama `docs/review-s120-a20-a21` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A22`+ por el orden del índice (la 121, `_scratch/S121-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1534,8 +1548,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | 🐛 BUG    | `A17-quiz`                      |
 | A18 | Word study / idiomas originales (`features/study`)                 | P1        | 🐛 BUG    | `A18-word-study`                |
 | A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | 🐛 BUG    | `A19-home`                      |
-| A20 | Ajustes (`(tabs)/settings.tsx`, 1289 L)                            | P1        | PENDIENTE | —                               |
-| A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | PENDIENTE | —                               |
+| A20 | Ajustes (`(tabs)/settings.tsx`, 1326 L)                            | P1        | 🐛 BUG    | `A20-ajustes`                   |
+| A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | ✅ OK     | `A21-onboarding`                |
 | A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | PENDIENTE | —                               |
 | A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | PENDIENTE | —                               |
 | A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | PENDIENTE | —                               |
@@ -2620,6 +2634,18 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un `useFocusEffect(useCallback(…, deps))` con dependencias de menos corre, en cada foco, el
     cierre del render en que cambiaron: lo que viene de un contexto queda congelado, lo que se lee de la base
     no. Para verlo en jest, el mock del foco tiene que guardar el callback del último efecto, no el del render.
+- **Sesión 120 — 2026-11-02/03. El Modo A P1, la quinta tanda: `A20` y `A21`.** En un chat nuevo, con
+  `_scratch/S120-PROMPT.md`, en la terminal, con 2 agentes `fork` en worktree (los pidió Victor: «¿Podrías
+  mandar 2 agentes?»; el mensaje pegado decía «sin agentes»). Solo docs.
+  - **Cómo se trabajó:** reglas comunes en `_scratch/S120-agentes-reglas.md.txt`; el agente 1, `settings.tsx`
+    entera y las secciones con escritura; el 2, `A21` entera y el resto de `src/components/settings`. Unos
+    170k tokens y 47 llamadas cada uno, 5-6 min, sin cortes; los worktrees se borraron solos. Las tres sondas,
+    re-medidas iguales en el principal. El checkpoint, en `../essb-docs-s120` con commit en el principal.
+  - **Resultado:** `A20` 🐛 (`R9-439`, `R9-440`, `R9-441`, P3), `A21` ✅. Ninguno P0.
+  - **Detalle:** `detail/A20-ajustes.md`, `detail/A21-onboarding.md`.
+  - **La lección:** un refresco que cancela y vuelve a agendar con `await` en el medio, disparado por un efecto
+    que puede correr dos veces seguidas, se pisa consigo mismo: cancelar no sirve si el otro todavía no agendó.
+    Se ve en jest lanzando los dos refrescos sin esperar el primero.
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en
