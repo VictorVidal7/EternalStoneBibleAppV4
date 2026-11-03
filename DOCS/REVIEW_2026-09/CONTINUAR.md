@@ -1,17 +1,18 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-03, fin de la sesión 120.** La 120 hizo el (cv) en un chat nuevo, en la
-> terminal, con 2 agentes `fork` en worktree que solo midieron (los pidió Victor: «¿Podrías mandar 2
-> agentes?», aunque el mensaje pegado decía «sin agentes»): **el Modo A P1, la quinta tanda.** Tres nuevos,
-> `R9-439`..`R9-441` (P3), ninguno P0: `A20` 🐛 (avisos agendados dos veces, el indicador de sync sin
-> «sin conexión» con cola, el correo de «Reportar un problema» sin salida) y `A21` ✅. El ciclo de las pruebas
-> de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-03, fin de la sesión 121.** La 121 hizo el (cw) en un chat nuevo, en la
+> terminal, con 3 agentes `fork` en worktree que solo midieron (los pidió Victor: «¿Podrías mandar 3
+> agentes?»): **el Modo A P1, la sexta tanda.** Siete nuevos, `R9-442`..`R9-448` (P3), ninguno P0: `A22` 🐛
+> (estilos guardados con nombre repetido, la plantilla exclusiva que sigue tras perder el entitlement; y una
+> nota en `R9-416`) y `A23` 🐛 (logros de capítulo sin celebrar, `share_master` imposible, revisiones a la vez
+> con modal doble o puntos perdidos, la racha que no baja con la app viva, las insignias por cuenta). El ciclo
+> de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 119 ya está mergeada y pusheada (`main` = `origin/main` = `76ca485`, CI verde en el log, run
-> `41579033670`, 374/4693). La rama de la 120 (`docs/review-s120-a20-a21`, solo docs) va **sin mergear hasta
-> el OK de Victor**. **No queda ningún P0 abierto**, y hay 441 hallazgos. **Lo siguiente:** el Modo A P1 por el
-> orden del índice, `A22` (Compartir) y siguientes, en la 121 (mensaje (cw), en `_scratch/S121-PROMPT.md`), en
-> un chat nuevo.
+> La 120 ya está mergeada y pusheada (`main` = `origin/main` = `f5493d4`, CI verde en el log, run
+> `41588115408`, 374/4693). La rama de la 121 (`docs/review-s121-a22-a23`, solo docs) va **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 448 hallazgos. **Lo siguiente:** el Modo A P1 por el
+> orden del índice, `A24` (i18n) y siguientes, en la 122 (mensaje (cx), en `_scratch/S122-PROMPT.md`), en un
+> chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -558,11 +559,15 @@ revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que s
 Modo C P0 de dinero y gating, HECHO en la sesión 115. Y el (cr), la primera tanda del Modo A P1, HECHO en la
 sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. Y el (ct), la tercera tanda, HECHO en la
 sesión 118. Y el (cu), la cuarta tanda, HECHO en la sesión 119. Y el (cv), la quinta tanda, HECHO en la
-sesión 120. **Lo siguiente es el (cw).**
+sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. **Lo siguiente es el (cx).**
 
-**(cw) Sesión 121: el Modo A P1, la sexta tanda,** en un chat nuevo, en la terminal: `A22` (Compartir:
-`ShareService`, `features/share`, `ImageShareModal`), y si queda margen `A23` (logros e insignias), por el orden
-del índice. El mensaje está en `_scratch/S121-PROMPT.md`, que manda sobre este archivo.
+**(cx) Sesión 122: el Modo A P1, la séptima tanda,** en un chat nuevo, en la terminal: `A24` (i18n: paridad de
+claves ES/EN, `translations.ts`), y si queda margen `A25` (theming: `useTheme` y los hex literales), por el
+orden del índice. El mensaje está en `_scratch/S122-PROMPT.md`, que manda sobre este archivo.
+
+**(cw) Sesión 121: el Modo A P1, la sexta tanda — ya HECHO en la sesión 121** (con 3 agentes a pedido de
+Victor: `A22` 🐛, `R9-442`, `R9-443` y una nota en `R9-416`; `A23` 🐛, `R9-444`..`R9-448`; todos P3, ninguno
+P0; `detail/A22-compartir.md` y `detail/A23-logros.md`). El mensaje está en `_scratch/S121-PROMPT.md`.
 
 **(cv) Sesión 120: el Modo A P1, la quinta tanda — ya HECHO en la sesión 120** (con 2 agentes a pedido de
 Victor: `A20` 🐛, `R9-439`..`R9-441`, ninguno P0; `A21` ✅; `detail/A20-ajustes.md` y
@@ -2228,17 +2233,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 120 (2026-11-02).**
+**Medido al cerrar la sesión 121 (2026-11-03).**
 
-- **La 119, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `76ca485` (solo docs; el
+- **La 120, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `f5493d4` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41579033670`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 120: los docs de la
-  119 decían «sin mergear»).
-- **La rama de la 120, sin mergear a propósito y sin pushear:** `docs/review-s120-a20-a21` (solo docs: el
-  ledger de `A20` y `A21`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 120 fue con 2 agentes (`fork` en worktree, a pedido de Victor), que solo
-  midieron; el checkpoint se escribió en un worktree aparte (`../essb-docs-s120`, fuera del repo), quitado al
-  terminar. Las sondas, en `_scratch/S120-*.txt` y `_scratch/S120-sondas-agente-{1,2}/`.
+  `41588115408`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 121: los docs de la
+  120 decían «sin mergear»).
+- **La rama de la 121, sin mergear a propósito y sin pushear:** `docs/review-s121-a22-a23` (solo docs: el
+  ledger de `A22` y `A23`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 121 fue con 3 agentes (`fork` en worktree, a pedido de Victor), que solo
+  midieron; el checkpoint se escribió en un worktree aparte (`../essb-docs-s121`, fuera del repo), quitado al
+  terminar. Las sondas, en `_scratch/S121-*.txt` y `_scratch/S121-sondas-agente-{1,2,3}/`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2270,9 +2275,10 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 30** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
+**Cerradas: 34** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
 115: `C6`, `C15`, `C16`, `C39`, `C56`; `A13` en la 116; `A14`, `A15` y `A16` en la 117; `A17` y `A18` en la
-118; `A19` en la 119). **Pendientes: 108** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+118; `A19` en la 119; `A20` y `A21` en la 120; `A22` y `A23` en la 121). **Pendientes: 104** (entre ellas `C54`
+y `C55`, «sin medir» en la 115; la 120 no había movido este conteo, corregido en la 121). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2349,9 +2355,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 121: el mensaje (cw), la sexta tanda del Modo A P1** (`_scratch/S121-PROMPT.md`):
-`A22` (Compartir) y, si queda margen, `A23` (logros e insignias), sin mezclar modos. La 120 cerró `A20`
-(`R9-439`..`R9-441`, ninguno P0) y `A21` (✅); la 119, `A19`. `B6`–`B10` (Modo B) van en otra sesión. La nube
+**Recomendado para la sesión 122: el mensaje (cx), la séptima tanda del Modo A P1** (`_scratch/S122-PROMPT.md`):
+`A24` (i18n) y, si queda margen, `A25` (theming), sin mezclar modos. La 121 cerró `A22` y `A23`
+(`R9-442`..`R9-448`, ninguno P0); la 120, `A20` y `A21`. `B6`–`B10` (Modo B) van en otra sesión. La nube
 no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
@@ -3263,6 +3269,13 @@ Alternativas legítimas:
   dos sin esperar el primero, con un control que los espera en serie. Y con agentes por fila (a pedido de
   Victor): repartir una fila grande en «la pantalla y lo que escribe» contra «lo que solo presenta» deja
   cerrar las dos filas en una sesión (`_scratch/S120-agentes-reglas.md.txt`).
+- **Lo que se revierte al perder el entitlement, entero; y lo que se celebra, desde el llamador (sesión 121,
+  `R9-443`, `R9-444`).** Un modal que vive montado revierte tres de sus cuatro cosas exclusivas al caer
+  `isPremium`, y la cuarta se comparte: la sonda monta el `PremiumProvider` real y dispara el listener. Un
+  servicio que devuelve lo desbloqueado no celebra nada si el llamador lo descarta: medí el llamador. Y el
+  agente que dice «nuevo» no siempre buscó la clave del archivo hermano: el orquestador encontró que guardar un
+  estilo sin `catch` ya era `R9-416` buscando `compactStylePresetsStore` (`_scratch/S121-agentes-reglas.md.txt`,
+  3 agentes, sin cortes).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3577,6 +3590,10 @@ Alternativas legítimas:
     cerrada (🐛) y `A21` (✅); tres nuevos (`R9-439`..`R9-441`, P3), ninguno P0. **Lo siguiente:** `A22`+ por
     el orden del índice (la 121, `_scratch/S121-PROMPT.md`). Detalle: `detail/A20-ajustes.md` y
     `detail/A21-onboarding.md`.
+  - **La sexta tanda, en la 121 (2026-11-03), con 3 agentes a pedido de Victor (solo midieron):** `A22` y
+    `A23` cerradas (🐛); siete nuevos (`R9-442`..`R9-448`, P3) y una nota en `R9-416`, ninguno P0. **Lo
+    siguiente:** `A24`+ por el orden del índice (la 122, `_scratch/S122-PROMPT.md`). Detalle:
+    `detail/A22-compartir.md` y `detail/A23-logros.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,

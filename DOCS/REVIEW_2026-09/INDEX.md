@@ -1,6 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 121: `A22` (Compartir) y siguientes.** La
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 122: `A24` (i18n) y siguientes.** La 121
+> (con 3 agentes a pedido de Victor) cerró `A22` y `A23` (🐛): `R9-442`..`R9-448`, P3, ninguno P0. La
 > 120 (con 2 agentes a pedido de Victor) cerró `A20` (🐛): `R9-439`..`R9-441`, ninguno P0, y `A21` (✅). La
 > 119 cerró `A19` (🐛): `R9-437`, `R9-438`, ninguno P0. La 118
 > (sin agentes) cerró `A17` y `A18` (🐛): `R9-432`..`R9-436`, ninguno P0. La 117
@@ -1407,8 +1408,23 @@
 >   «Reportar un problema» no hace nada sin app de correo).
 > - **`A21` ✅:** el asistente, su compuerta y las pistas aguantan; su «sin medir» es el sembrado de `A14`.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **441**. Rama `docs/review-s120-a20-a21` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A22`+ por el orden del índice (la 121, `_scratch/S121-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **441**. Rama `docs/review-s120-a20-a21` (solo docs), mergeada y
+> pusheada con el OK de Victor (`f5493d4`, CI verde en el log, run `41588115408`, 374/4693; corregido en la
+> 121). **Lo siguiente:** `A22`+ por el orden del índice (la 121, `_scratch/S121-PROMPT.md`).
+>
+> **Sesión 121 (2026-11-03): el Modo A P1, la sexta tanda (`A22`, `A23`)**, en un chat nuevo, en la terminal,
+> con 3 agentes `fork` en worktree a pedido de Victor («¿Podrías mandar 3 agentes?»), que solo midieron. Solo
+> docs.
+>
+> - **`A22` 🐛:** `R9-442` (P3, dos estilos guardados con el mismo nombre) y `R9-443` (P3, la plantilla
+>   exclusiva sigue y se comparte tras perder el entitlement); suma a `R9-416` (el mismo hueco en
+>   `ImageShareModal`). Lo que comparte (`ShareService`, la captura, los hermanos) aguanta.
+> - **`A23` 🐛:** `R9-444` (P3, el lector no celebra los logros de capítulo), `R9-445` (P3, `share_master` no se
+>   puede ganar), `R9-446` (P3, dos revisiones a la vez: modal doble o puntos perdidos), `R9-447` (P3, la racha
+>   de logros no baja con la app viva) y `R9-448` (P3, otra cuenta re-celebra las insignias y pierde el título).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **448**. Rama `docs/review-s121-a22-a23` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A24`+ por el orden del índice (la 122, `_scratch/S122-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1550,8 +1566,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | 🐛 BUG    | `A19-home`                      |
 | A20 | Ajustes (`(tabs)/settings.tsx`, 1326 L)                            | P1        | 🐛 BUG    | `A20-ajustes`                   |
 | A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | ✅ OK     | `A21-onboarding`                |
-| A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | PENDIENTE | —                               |
-| A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | PENDIENTE | —                               |
+| A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | 🐛 BUG    | `A22-compartir`                 |
+| A23 | Logros e insignias (`lib/achievements`, `lib/badges`)              | P1        | 🐛 BUG    | `A23-logros`                    |
 | A24 | i18n: paridad de claves ES/EN (`translations.ts`, 13066 L)         | P1        | PENDIENTE | —                               |
 | A25 | Theming: `useTheme` + barrido de hex literales                     | P1        | PENDIENTE | —                               |
 | A26 | Navegación y BackHandler (`useBackHandlerStep`, layouts)           | P1        | PENDIENTE | —                               |
@@ -2646,6 +2662,21 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **La lección:** un refresco que cancela y vuelve a agendar con `await` en el medio, disparado por un efecto
     que puede correr dos veces seguidas, se pisa consigo mismo: cancelar no sirve si el otro todavía no agendó.
     Se ve en jest lanzando los dos refrescos sin esperar el primero.
+- **Sesión 121 — 2026-11-03. El Modo A P1, la sexta tanda: `A22` y `A23`.** En un chat nuevo, con
+  `_scratch/S121-PROMPT.md`, en la terminal, con 3 agentes `fork` en worktree (los pidió Victor: «¿Podrías
+  mandar 3 agentes?»). Solo docs.
+  - **Cómo se trabajó:** reglas comunes en `_scratch/S121-agentes-reglas.md.txt`; el agente 1, lo que comparte
+    (`ShareService` y sus llamadores, la captura, los modales hermanos); el 2, `ImageShareModal` entero y lo que
+    guarda; el 3, `A23` entera. Unos 165-180k tokens y 33-49 llamadas cada uno, 6-7 min, sin cortes; los
+    worktrees se borraron solos. Las cuatro sondas, re-medidas iguales en el principal. El orquestador vio que
+    el «nuevo» de guardar un estilo sin `catch` ya era `R9-416` (por la clave `compactStylePresetsStore`): va
+    como nota. El checkpoint, en `../essb-docs-s121` con commit en el principal.
+  - **Resultado:** `A22` 🐛 (`R9-442`, `R9-443`), `A23` 🐛 (`R9-444`..`R9-448`); todos P3, ninguno P0.
+  - **Detalle:** `detail/A22-compartir.md`, `detail/A23-logros.md`.
+  - **La lección:** lo que se revierte al perder el entitlement hay que revertirlo entero: el modal de imagen
+    revierte tres de las cuatro cosas exclusivas y la cuarta (la plantilla) se comparte. Y lo que un servicio
+    devuelve para celebrar se pierde si el llamador lo descarta (`R9-444`): la sonda mide el llamador, no solo
+    el servicio.
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en

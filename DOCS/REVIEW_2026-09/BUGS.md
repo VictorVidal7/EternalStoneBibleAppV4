@@ -1801,6 +1801,20 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **441**. Detalle: `detail/A20-ajustes.md`,
 > `detail/A21-onboarding.md`.
+>
+> **Sesión 121 (2026-11-03): el Modo A P1, la sexta tanda (`A22`, `A23`)**, en un chat nuevo, en la terminal,
+> con 3 agentes a pedido de Victor (solo midieron; cada sonda re-medida en el principal). Solo docs.
+>
+> - **Nuevos, ninguno P0, todos P3:** `R9-442` (dos estilos guardados con el mismo nombre), `R9-443` (la
+>   plantilla exclusiva sigue y se comparte tras perder el entitlement), `R9-444` (el lector no celebra los
+>   logros de capítulo), `R9-445` (`share_master` no se puede ganar), `R9-446` (dos revisiones de logros a la
+>   vez: modal doble o puntos perdidos), `R9-447` (la racha de logros no baja con la app viva) y `R9-448` (otra
+>   cuenta re-celebra todas las insignias y pierde el título).
+> - **Suma a uno escrito:** `R9-416`, «Medido en la 121»: el mismo hueco en `ImageShareModal`.
+> - **Filas:** `A22` 🐛, `A23` 🐛.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **448**. Detalle: `detail/A22-compartir.md`,
+> `detail/A23-logros.md`.
 
 ---
 
@@ -11788,6 +11802,10 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     tocar, y la cadena rechaza sin manejar. Al borrar, el preset sembrado no pasó el filtro de lectura
     (`antes=0`): que siga en disco, sin medir.
   - P3: raro (disco lleno) y sin nada a medias.
+  - **Medido en la 121 (`A22`): el hermano tiene el mismo hueco.** `ImageShareModal.tsx:154-164`
+    (`saveStylePreset(...).then`, sin `catch`) y `:189` (el borrado), sobre `stylePresetsStore.ts:36-53` (atrapa
+    la lectura, no la escritura). Sonda `_scratch/S121-presets.test.tsx.txt`, bloque 3: con `setItem` rechazando
+    una vez, `{"setItem":6,"success":0,"error":0,"chips":0}` y el rechazo sin manejar. Mismo arreglo, en los dos.
 
 - **`R9-417` (S114, `A12` hilo 2 / runtime, observabilidad — P2) — 🐛 en release, ninguna promesa rechazada
   sin catch llega a Crashlytics ni a un log: el rastreo de Crashlytics engancha el `Promise` de la librería
@@ -12113,6 +12131,88 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `openTtsSettings` con el rechazo resuelve y cae a su respaldo (2 llamadas a `sendIntent`).
   - **Propuesta (sin escribir):** `catch` con un aviso que muestre la dirección (o la copie). Detalle:
     `detail/A20-ajustes.md`.
+
+- **`R9-442` (S121, `A22` / Compartir — P3) — 🐛 borrar un estilo guardado y guardar otro deja dos con el
+  mismo nombre.** MEDIDO con sonda en la sesión 121.
+  - `src/features/share/stylePresets.ts:53`: `name: String(presets.length + 1)`, por el largo de la lista, no
+    por el mayor número usado. Igual en `compactStylePresets.ts:52` (el almacén de `PremiumShareExtras`, 12
+    modales).
+  - **Repro:** con la ofrenda, lector → Imagen → «Guardar estilo» tres veces → ✕ en «Estilo 1» → «Guardar
+    estilo»: «Estilo 2», «Estilo 3», «Estilo 3», con dos looks distintos.
+  - **Sonda:** `_scratch/S121-presets.test.tsx.txt`, bloque 1 (el modal real):
+    `{"names":["2","3","3"],"chipLabels":["Estilo 2","Estilo 3","Estilo 3"]}`; el almacén compacto,
+    `["2","3","3"]`: rojo.
+  - **Propuesta (sin escribir):** el mayor número usado + 1. Detalle: `detail/A22-compartir.md`.
+
+- **`R9-443` (S121, `A22` / Compartir — P3) — 🐛 si el entitlement cae con el lector montado, la plantilla
+  exclusiva elegida sigue en la tarjeta y se comparte.** MEDIDO con sonda en la sesión 121.
+  - `src/components/reading/ImageShareModal.tsx:213-238` revierte tipografía, textura y foto propia al perder
+    `isPremium`, pero no `themeIndex`; la tarjeta usa `SHARE_TEMPLATES[themeIndex]` (`:245`) sin
+    `isTemplateUnlocked`, y `handleShare` (`:299-330`) la captura.
+  - **Repro:** el modal vive montado con el lector (`[chapter].tsx:3549`) y con `features/lectio.tsx:775`;
+    elegir «Estilo 11» (cosmos) con la ofrenda; el entitlement cae a mitad de sesión por el listener
+    (`PremiumContext.tsx:74-77`: un reembolso, el camino de `R9-9`, u otra cuenta en un teléfono compartido);
+    al volver a Imagen, la muestra sale bloqueada y seleccionada, y «Compartir» exporta el diseño exclusivo.
+  - **Sonda:** `_scratch/S121-presets.test.tsx.txt`, bloque 2 (`PremiumProvider` real): control, la textura
+    vuelve a «Ninguna»; la plantilla,
+    `{"seleccionadaBloqueada":{"selected":true},"nodosConColoresCosmos":4,"capturas":1,"ofrenda":0}`: rojo.
+  - P3: no cobra de más ni quita nada pagado. Sin medir, el mismo hueco en `useShareImage.ts:72-77` y
+    `NoteImageModal`. **Propuesta (sin escribir):** revertir también `themeIndex`. Detalle:
+    `detail/A22-compartir.md`.
+
+- **`R9-444` (S121, `A23` / logros — P3) — 🐛 el lector desbloquea los logros de capítulo sin celebrarlos.**
+  MEDIDO con sonda en la sesión 121.
+  - `app/(tabs)/verse/[book]/[chapter].tsx:791-794` descarta lo que devuelve `trackChapterCompleted`; `:821-832`
+    solo celebra lo de `trackVersesRead` (`:784`), que revisa antes de que suba el contador de capítulos
+    (`AchievementService.ts:399-417`). `first_chapter`, `chapters_10`, `chapters_50`, `chapters_150`: nunca en
+    el modal. La causa está en el lector (`A13`).
+  - **Repro:** leer el primer capítulo de la vida 5 s: «Primer capítulo» se desbloquea sin modal.
+  - **Sonda:** `_scratch/S121-logros.test.ts.txt`, `capituloSilencioso`: desbloqueados
+    `["chapters_10","first_chapter"]`, celebrados `[]`: rojo. Control: el servicio los devuelve.
+  - **Propuesta (sin escribir):** celebrar también lo que devuelve `trackChapterCompleted`. Detalle:
+    `detail/A23-logros.md`.
+
+- **`R9-445` (S121, `A23` / insignias — P3) — 🐛 la insignia «Evangelizador Digital» (`share_master`) no se
+  puede ganar.** MEDIDO con sonda en la sesión 121.
+  - `src/lib/badges/BadgeSystem.ts:367-376` la mide con `user_stats.total_shares`; solo lo escribe
+    `AchievementService.trackShare()` (`:696-701`), sin llamadores desde que se creó (`git log -S`: `0c6f5a6`).
+    El comentario de las insignias sin seguimiento a propósito (`BadgeSystem.ts:810-817`) no la nombra.
+  - **Sonda:** `_scratch/S121-logros.test.ts.txt`, `compartirSinContar`: 25 `shareVerse` con éxito → progreso 0:
+    rojo. Control: 25 `trackShare()` → desbloqueada.
+  - **Propuesta (sin escribir):** `trackShare` al compartir con éxito, o declararla sin seguimiento. Detalle:
+    `detail/A23-logros.md`.
+
+- **`R9-446` (S121, `A23` / logros — P3) — 🐛 dos revisiones de logros a la vez celebran dos veces el mismo
+  logro o pierden puntos.** MEDIDO con sonda en la sesión 121.
+  - `AchievementService.ts:763-786` (`unlockAchievement`: lee `is_unlocked`, `await`, escribe) y `:789-801`
+    (`addPoints`: lee el total, quizá del caché, y escribe encima), sin serializar. La regla de `R9-439`.
+  - **Repro:** resaltar (`:1533-1537`), guardar una nota (`:1088`) o terminar un libro (`:877`) mientras corre
+    la cadena del temporizador de 5 s del lector.
+  - **Sonda:** `_scratch/S121-logros.test.ts.txt`, `puntosCarrera`: 12 de 41 desfases fallan (10 con
+    `first_verse`, `verses_10` y `first_highlight` dos veces en la cola del modal; 2 con 20 puntos de 30). Control
+    en serie: 30 de 30.
+  - **Propuesta (sin escribir):** serializar, o `UPDATE … WHERE is_unlocked = 0` y sumar en SQL. Detalle:
+    `detail/A23-logros.md`.
+
+- **`R9-447` (S121, `A23` / logros — P3) — 🐛 con la app viva de un día para otro, la «racha actual» de logros
+  no baja.** MEDIDO con sonda en la sesión 121.
+  - `recomputeReadingStreak` (`AchievementService.ts:538-563`) solo corre en `initialize()` (una vez por proceso)
+    y en `trackVersesRead`; `getReadingStreak` (`:847`) devuelve lo guardado.
+  - **Repro:** racha de 5, un día sin leer, volver desde segundo plano: las estadísticas siguen en 5 hasta leer o
+    arrancar en frío.
+  - **Sonda:** `_scratch/S121-rachaInsignias.test.ts.txt`, `rachaVieja`: `{"vivo":5,"delLog":0,"enFrio":0}`: rojo.
+    Control: en frío, 0.
+  - **Propuesta (sin escribir):** recalcular al leerla. Detalle: `detail/A23-logros.md`.
+
+- **`R9-448` (S121, `A23` / insignias — P3) — 🐛 otra cuenta en el mismo teléfono re-celebra todas las
+  insignias y pierde el título equipado.** MEDIDO con sonda en la sesión 121.
+  - `app/features/badges.tsx:22` pasa `user.uid`; `BadgeSystem.ts:728-786` y `:864-925` guardan insignias y
+    títulos por `user_id`, pero el progreso sale de `user_stats`, del dispositivo.
+  - **Repro:** «Cerrar sesión» (uid anónimo nuevo) o entrar con otra cuenta de Google, y abrir la colección: un
+    toast de insignia desbloqueada por cada una ya ganada (`BadgeCollectionScreen.tsx:119-129`) y sin título.
+  - **Sonda:** `_scratch/S121-rachaInsignias.test.ts.txt`, `insigniasOtraCuenta`: con otro uid, las mismas 4 y
+    `equipadoB: null`: rojo. Control: mismo uid, 0. No es `R9-30` (el respaldo) ni `R9-22`/`R9-48`.
+  - **Propuesta (sin escribir):** guardarlas como el progreso (del dispositivo). Detalle: `detail/A23-logros.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
