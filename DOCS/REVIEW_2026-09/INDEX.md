@@ -1,6 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 119: `A19` (Home) y siguientes.** La 118
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 120: `A20` (Ajustes) y siguientes.** La
+> 119 cerró `A19` (🐛): `R9-437`, `R9-438`, ninguno P0. La 118
 > (sin agentes) cerró `A17` y `A18` (🐛): `R9-432`..`R9-436`, ninguno P0. La 117
 > (sin agentes) cerró `A14`, `A15` y `A16` (🐛): `R9-427`..`R9-431`, ninguno P0. La 116 hizo `A13` (🐛):
 > `R9-423`..`R9-426`, ninguno P0. El Modo
@@ -1381,8 +1382,19 @@
 > - **`A19` (Home) no se empezó:** 2671 L, 10 efectos, 12 `await`, 58 imports; mejor entera en la 119 que a
 >   medias aquí.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **436**. Rama `docs/review-s118-a17-a18` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A19`+ por el orden del índice (la 119, `_scratch/S119-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **436**. Rama `docs/review-s118-a17-a18` (solo docs), mergeada y
+> pusheada con el OK de Victor (`1b04b52`, CI run `41570891071`; corregido en la 119). **Lo siguiente:** `A19`+
+> por el orden del índice (la 119, `_scratch/S119-PROMPT.md`).
+>
+> **Sesión 119 (2026-11-02): el Modo A P1, la cuarta tanda (`A19`)**, en el MISMO chat que la 118 (lo pidió
+> Victor: «continúa»), en la terminal, sin agentes. Solo docs.
+>
+> - **`A19` 🐛:** `R9-437` (P2, el corazón del versículo del día no dice si es favorito, y «Quitar de favoritos»
+>   no quita nada) y `R9-438` (P2, al volver a Home, «Continuar leyendo» muestra el % de cuando se montó: el
+>   foco corre un `loadHomeData` viejo).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **438**. Rama `docs/review-s119-a19` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A20`+ por el orden del índice (la 120, `_scratch/S120-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1521,7 +1533,7 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | 🐛 BUG    | `A16-busqueda`                  |
 | A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | 🐛 BUG    | `A17-quiz`                      |
 | A18 | Word study / idiomas originales (`features/study`)                 | P1        | 🐛 BUG    | `A18-word-study`                |
-| A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | PENDIENTE | —                               |
+| A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | 🐛 BUG    | `A19-home`                      |
 | A20 | Ajustes (`(tabs)/settings.tsx`, 1289 L)                            | P1        | PENDIENTE | —                               |
 | A21 | Onboarding (`lib/onboarding`, `useOnboarding`)                     | P1        | PENDIENTE | —                               |
 | A22 | Compartir (`ShareService`, `features/share`, `ImageShareModal`)    | P1        | PENDIENTE | —                               |
@@ -2598,6 +2610,16 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
     el id (una ronda re-barajada) deja el estado viejo, y se ve con `Math.random` sembrado y muchas rondas. Y en
     un componente que queda montado (una hoja con `visible`), un callback que termina tarde trae el cierre del
     render en que empezó.
+- **Sesión 119 — 2026-11-02. El Modo A P1, la cuarta tanda: `A19`.** En el mismo chat que la 118 (Victor:
+  «continúa»), con `_scratch/S119-PROMPT.md`, en la terminal, sin agentes. Solo docs.
+  - **Cómo se trabajó:** lectura por rangos y dos sondas; la segunda monta Home entera (contextos con objetos
+    estables, hijos de relleno, un `useFocusEffect` con la semántica de react-navigation). El checkpoint, en un
+    worktree aparte (`../essb-docs-s119`) con commit en el principal.
+  - **Resultado:** `A19` 🐛 (`R9-437`, `R9-438`, P2). Ninguno P0.
+  - **Detalle:** `detail/A19-home.md`.
+  - **La lección:** un `useFocusEffect(useCallback(…, deps))` con dependencias de menos corre, en cada foco, el
+    cierre del render en que cambiaron: lo que viene de un contexto queda congelado, lo que se lee de la base
+    no. Para verlo en jest, el mock del foco tiene que guardar el callback del último efecto, no el del render.
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en

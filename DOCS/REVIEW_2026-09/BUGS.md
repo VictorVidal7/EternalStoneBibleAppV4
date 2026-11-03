@@ -1781,6 +1781,15 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **436**. Detalle: `detail/A17-quiz.md`,
 > `detail/A18-word-study.md`.
+>
+> **Sesión 119 (2026-11-02): el Modo A P1, la cuarta tanda (`A19`)**, en el mismo chat que la 118, en la
+> terminal, sin agentes. Solo docs.
+>
+> - **Nuevos, ninguno P0:** `R9-437` (P2, el corazón del versículo del día no dice si es favorito, y «Quitar»
+>   no quita) y `R9-438` (P2, «Continuar leyendo» muestra el % de cuando se montó Home).
+> - **Filas:** `A19` 🐛.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **438**. Detalle: `detail/A19-home.md`.
 
 ---
 
@@ -12022,6 +12031,37 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     fragmento se pide con `["RVR1960"]`: rojo.
   - **Propuesta (sin escribir):** pasar la versión elegida desde Datos bíblicos, o caer a la del usuario.
     Detalle: `detail/A18-word-study.md`.
+
+- **`R9-437` (S119, `A19` / Home — P2) — 🐛 el corazón del versículo del día no dice si el versículo es
+  favorito, y «Quitar de favoritos» no quita nada.** MEDIDO con sonda en la sesión 119.
+  - `src/components/celestial/VerseOfDayCard.tsx:253`: el corazón es estado local (`isFavorited`, empieza en
+    `false`, sin prop que lo siembre) y `handleFavorite` (`:272-275`) lo invierte en cada toque. El
+    `onFavorite` de Home (`app/(tabs)/index.tsx:1020-1033`) solo agrega; Home re-monta la tarjeta por día
+    (`:937`).
+  - **Repro:** (a) un versículo del día que ya está en Favoritos (de ayer en el lector, o de hoy tras
+    reiniciar, o al ir a «Ayer» y volver): corazón vacío, «Añadir a favoritos». (b) Tocarlo (agrega, se pinta)
+    y tocarlo otra vez, «Quitar de favoritos»: se vacía y el versículo sigue en Favoritos.
+  - **Sonda:** `_scratch/S119-votdCorazon.test.tsx.txt` (la tarjeta real, el `onFavorite` de Home tal cual):
+    (a) `"añadir"` para un favorito: rojo; (b) `{"corazon":"añadir","esFavorito":true}`: rojo. Control, el
+    primer toque: `{"corazon":"quitar","esFavorito":true}`.
+  - **Propuesta (sin escribir):** pasar a la tarjeta si es favorito y un `onFavorite` que alterne, como el
+    lector. Detalle: `detail/A19-home.md`.
+
+- **`R9-438` (S119, `A19` / Home — P2) — 🐛 al volver a Home, «Continuar leyendo» muestra el progreso del
+  capítulo de cuando se montó la pantalla.** MEDIDO con sonda en la sesión 119.
+  - `app/(tabs)/index.tsx:390-394`: `useFocusEffect(useCallback(() => loadHomeData(), [selectedVersion.id,
+achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData` del render en que
+    cambiaron esas dependencias, con su `getChapterProgress` (`:213`), que cierra sobre el `progress` de su
+    render (`src/context/ReadingProgressContext.tsx:216-218`). La referencia (de la base) sí se refresca; el %
+    (`:536-543`) no.
+  - **Repro:** abrir la app → leer un capítulo hasta la mitad → volver a Home: «Juan 3:1 · 0%», congelado
+    toda la sesión hasta cambiar de versión. Fable lo vio en el área 28 («1 Pedro 2:1 · 0%» tras leer 1 Pedro 2) sin marcarlo.
+  - **Sonda:** `_scratch/S119-homeFoco.test.tsx.txt` (Home montada; el mock del foco llama al callback del
+    último efecto, como react-navigation): tras leer Juan 3 al 40 % y volver, `{"ref":["Juan 3:1"],
+"pct":["0%"]}`: rojo. Controles: la referencia cambia de «Juan 2:1» a «Juan 3:1»; Home montada de cero con
+    el mismo mapa da `"40%"`.
+  - **Propuesta (sin escribir):** leer el progreso con un `ref` al `getChapterProgress` actual, o calcular el %
+    en el render. Detalle: `detail/A19-home.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
