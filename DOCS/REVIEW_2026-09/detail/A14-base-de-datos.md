@@ -1,9 +1,11 @@
 # A14 — Capa de base de datos (`src/lib/database/`)
 
-> Modo A (auditoría estática, con sonda) · Prioridad **P1** · Sesión 116 (2026-11-02) · Estado **EN CURSO**
+> Modo A (auditoría estática, con sonda) · Prioridad **P1** · Sesiones 116 y 117 (2026-11-02) · Estado **🐛
+> BUG** (cerrada en la 117)
 >
-> **Resultado:** 1 hallazgo (`R9-424`, P1), ninguno P0, más tres candidatos sin medir. La fila sigue «EN
-> CURSO» por el alcance que no se recorrió (abajo, «Sin medir (alcance)»).
+> **Resultado:** 1 hallazgo (`R9-424`, P1), ninguno P0, más tres candidatos sin medir (esperan su tanda; los
+> de dispositivo, Modo C). La 117 recorrió el alcance que faltaba, sin hallazgos nuevos (abajo, «Sesión
+> 117»); `searchVerses`/`searchByBook` pasan a `A16`.
 >
 > **Cómo se midió:** el agente 2 de 3 (`fork` en worktree sobre `f6c7986`, solo midió; reglas en
 > `_scratch/S116-agentes-reglas.md.txt`). Sondas con `_scratch/S116-correr.cjs.txt`. Copias en
@@ -99,11 +101,45 @@ dice que «the CALLER refreshes the version registry».
   nativo no hay versión de pack ni camino de la interfaz para actualizar uno instalado.
 - **`DELETE FROM verses_fts` en el reset:** redundante (el trigger ya limpió) e inocuo.
 
-## Sin medir (alcance)
+## Sin medir (alcance) — recorrido en la 117
 
-- Los llamadores de `getDb()` que no llaman a `initialize()` antes: no se barrió cada uno.
-- `originals-download-service.ts` y `nativeSeedAssets.ts`: solo un vistazo.
+- ~~Los llamadores de `getDb()` que no llaman a `initialize()` antes~~: ✅ en la 117 (abajo).
+- ~~`originals-download-service.ts` y `nativeSeedAssets.ts`~~: ✅ en la 117 (abajo).
 - `searchVerses` y `searchByBook` con entrada real: son de `A16`.
+
+## Sesión 117 (2026-11-02): el alcance que faltaba, sin hallazgos nuevos
+
+En el principal, sin agentes, por lectura (`d6b3f05`).
+
+- **Los llamadores de `getDb()` sin `initialize()` ✅.** `getDb()` (`index.ts:459-464`) solo mira `this.db`,
+  que existe desde `:398`, antes del esquema y de los sembrados; 28 métodos públicos no llaman a
+  `initialize()` (`getChapter`, `getVerse`, `searchVerses`, notas, favoritos, `getDatabase`, `executeSql`…).
+  Nadie llega a ellos antes de tiempo:
+  - la pila de pantallas no se monta hasta que `initializeBibleData` termina (`app/_layout.tsx:210-227`,
+    `:283`), y esa espera `bibleDB.initialize()` entero (`data-loader.ts:21`); un fallo ahí cae a la pantalla
+    de error (`:273-280`, clase `A12`);
+  - lo que corre antes (providers) o fuera de la app llama a `initialize()` primero, que espera la promesa en
+    curso: `useBibleVersion.tsx:61`, `FavoritesContext.tsx:157,179,237,261`, los adaptadores de sync
+    (`notes.ts:74,94,126,141`, `highlights.ts:79,97,129,146`; el de notas es el arreglo de `R9-46`),
+    `reviewEventStore.ts:53,82,104,139`, `WidgetTaskHandler.ts:31` (tarea sin cabeza),
+    `NotificationService.ts:250`, `PredictiveCache.ts:50`, `BadgeSystem.ts:80`, `VersionComparison.ts:62`.
+  - La única excepción, `FavoritesContext.tsx:220-229` (`applyRemoteDelete` sin `initialize()`, error
+    tragado), solo la alcanza el borrado duro de `SyncEngine.ts:1984-1997`, que va después de leer el doc
+    del servidor; el borrado normal (lápida) pasa por `getLocal` (`:2144`), que inicializa. Sin camino
+    concreto en la ventana del arranque: no es hallazgo.
+- **`originals-download-service.ts` ✅.** A diferencia de los packs de versión, no verifica tamaño ni
+  sha256 del archivo bajado, pero nada se pierde: `importOriginalsPack` (`index.ts:1275-1311`) borra y vuelve a
+  llenar dentro de una transacción, así que un 200 que no es una base, o un archivo cortado (SQLite lo da por
+  corrupto al abrirlo: la cabecera cuenta más páginas que el archivo), revierte y deja lo instalado como
+  estaba. `importLocalOriginalsIfPresent` (`:132-145`) no borra un archivo cortado que no pudo importar: se
+  reintenta en cada apertura de la hoja hasta la próxima descarga, que lo pisa (costo, sin daño). El sha que
+  se guarda (`:179-182`) es el del `originals-meta.json` leído después, no el del archivo; sin camino
+  concreto en que difieran.
+- **`nativeSeedAssets.ts` ✅.** Tres resolvedores de `expo-asset` de 5 líneas; el `require` vive dentro de
+  cada función a propósito (el `.web.ts` no los ve). La copia del sembrado que los usa ya es un candidato (la
+  copia no atómica, arriba).
+- **Cruce con las filas vecinas (§5, sesión 116):** el único «sin medir» que sigue es de `A16`
+  (`searchVerses`/`searchByBook`); los tres candidatos de arriba esperan su tanda y no cambian.
 
 ## Para la fila `A31` (código muerto), sin barrer
 

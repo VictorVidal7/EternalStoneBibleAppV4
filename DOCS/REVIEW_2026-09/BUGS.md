@@ -1756,6 +1756,18 @@
 >
 > **No queda ningún P0 abierto.** Hallazgos: **426**. Detalle: `detail/A13-lector-capitulo.md`,
 > `detail/A14-base-de-datos.md`, `detail/A15-audio-tts.md`.
+>
+> **Sesión 117 (2026-11-02): el Modo A P1, la segunda tanda (`A14`, `A15`, `A16`)**, en un chat nuevo, en la
+> terminal, sin agentes. Solo docs.
+>
+> - **Nuevos (5), ninguno P0:** `R9-427` (P1, tras cerrar el reproductor con la ✕, el siguiente audio lo abre
+>   roto), `R9-428` (P2, la sugerencia «fe» no busca), `R9-429` (P2, «Probar otra búsqueda» deja «sin
+>   resultados ""»), `R9-430` (P2, al cambiar de versión, la búsqueda sigue en la anterior y «Cargar más»
+>   mezcla) y `R9-431` (P2, el resaltado no sigue lo que encontró el FTS).
+> - **Filas:** `A14` 🐛 y `A15` 🐛 cerradas; `A16` 🐛.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **431**. Detalle: `detail/A14-base-de-datos.md`,
+> `detail/A15-audio-tts.md`, `detail/A16-busqueda.md`.
 
 ---
 
@@ -3688,6 +3700,31 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     `modo=null`. La única prueba previa es la de la función pura, que sí devuelve `false`.
   - **Propuesta (sin escribir):** que el avanzador decida con el modo con el que terminó el capítulo (que el
     aviso lo lleve), no con el de después de cancelarlo. Detalle: `detail/A15-audio-tts.md`.
+
+- **`R9-427` (S117, `A15` / reproductor flotante — P1) — 🐛 tras cerrar el reproductor con la ✕, el siguiente
+  audio de la sesión lo abre roto: se ve la vista expandida, sus botones no responden, y los del reproductor
+  plegado están encima, invisibles.** MEDIDO con sonda en la sesión 117 (en el principal, sin agentes).
+  - `src/features/audio/components/MiniAudioPlayer.tsx:919-923`: la ✕ (solo existe en la vista expandida)
+    llama a `hidePlayer` (`AudioPlayerContext.tsx:892-900`), que pone `isExpanded: false` y oculta, pero el
+    valor animado `expandProgress` (`:173`) se queda en 1: solo lo mueven `handleToggleExpand`
+    (`:196-214`), el plegado por gesto (`:184-194`) y el cambio de ruta (`:495-500`, solo si
+    `isExpanded`). El componente sigue montado (`app/_layout.tsx:357`; oculto devuelve `null`, `:516-517`),
+    así que el valor sobrevive. Al volver a mostrarse, la altura (`:441-453`) y las opacidades (`:455-464`,
+    `:477-484`) salen de `expandProgress = 1`, y los `pointerEvents`/`zIndex` (`:585-590`, `:741-747`), de
+    `isExpanded = false`.
+  - **Repro:** reproducir (lector → Escuchar) → expandir → ✕ → en la misma sesión, volver a reproducir
+    (cualquier `loadChapter`: el lector, una lista de favoritos, un plan, una colección; `:1133`). El panel
+    sale a 248 px con la vista expandida: el play, el scrubber y la ✕ no hacen nada; un toque en la franja de
+    arriba cae en un botón invisible del plegado (play/pausa, siguiente, velocidad, expandir). Se arregla
+    expandiendo (tocando ahí a ciegas) y plegando, o reiniciando la app.
+  - **Sonda:** `_scratch/S117-expandProgress.test.tsx.txt` (el `MiniAudioPlayer` real; el contexto, un store
+    chico; el mock de Reanimated con `useSharedValue` persistente, como el hook real, e `interpolate` lineal):
+    (a) expandir → ✕ → mostrar: `height 248` (plegado: 64), plegado `{pe:"auto", opacity:0, z:10}`,
+    expandido `{pe:"none", opacity:1, z:-1}`, y la ✕ visible no llama a nada: rojo. (b) control: expandir →
+    plegar con el chevron → ocultar → mostrar: `height 64`, plegado `opacity 1`: verde.
+  - **Propuesta (sin escribir):** que el reproductor lleve `expandProgress` a `isExpanded` cuando cambie
+    (un efecto), o que `hidePlayer` se haga desde un manejador local que también lo baje a 0. Detalle:
+    `detail/A15-audio-tts.md`.
 
 ---
 
@@ -11836,6 +11873,68 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `textos=["Juan 3:1","Juan 4:1"]` con `visible=false`.
   - **Propuesta (sin escribir):** un contador de generación que cada continuación compruebe al ejecutarse.
     Detalle: `detail/A15-audio-tts.md`.
+
+- **`R9-428` (S117, `A16` / búsqueda — P2) — 🐛 con una versión en español, la búsqueda sugerida «fe» no busca
+  nada.** MEDIDO con sonda en la sesión 117.
+  - `src/i18n/translations.ts:231` sugiere `['amor', 'fe', 'esperanza', 'paz', 'salvación']`; el chip
+    (`app/(tabs)/search.tsx:957`) pasa por `handleSearchChange`, y `performSearch` (`:427-434`) descarta todo
+    lo de menos de 3 caracteres. Las inglesas (`:6803`) tienen todas 4 o más.
+  - **Repro:** Buscar (versión RVR1960, o cualquiera en español) → «Búsquedas populares» → «fe». La caja dice
+    «fe», debajo sigue el panel inicial y la pista «Escribe al menos 3 caracteres». Una de las cinco sugerencias
+    está muerta para todo usuario en español; «fe» sí tiene coincidencias en el índice.
+  - **Sonda:** `_scratch/S117-buscarPantalla.test.tsx.txt` (la pantalla real), caso (a): tras «fe» y 650 ms,
+    `searchVerses` 0 llamadas, caja `"fe"`, panel inicial visible: rojo; control, «amor»: 1 llamada
+    `["amor","RVR1960",200]`.
+  - **Propuesta (sin escribir):** cambiar la sugerencia («fe» por otra de 3+ letras) o dejar que un chip
+    busque sin el mínimo. Detalle: `detail/A16-busqueda.md`.
+
+- **`R9-429` (S117, `A16` / búsqueda — P2) — 🐛 «Probar otra búsqueda» vacía la caja pero deja «No se
+  encontraron resultados ""».** MEDIDO con sonda en la sesión 117.
+  - `app/(tabs)/search.tsx:868`: la acción del estado vacío hace `setSearchQuery('')` y nada más; `hasSearched`
+    sigue en `true`, así que el estado vacío (`:852-871`) se queda con la consulta vacía y el panel inicial
+    (`:879`) no vuelve. La ✕ de la caja (`:660-662`) sí pasa por `handleSearchChange('')`.
+  - **Repro:** Buscar → una palabra sin resultados → «Probar otra búsqueda»: la pantalla dice «No se encontraron
+    resultados ""», sin historial ni sugerencias.
+  - **Sonda:** `_scratch/S117-buscarPantalla.test.tsx.txt`, caso (b): `{"caja":"","vacioConComillas":true,
+"panelInicial":false}`: rojo; control (vaciar escribiendo, lo mismo que la ✕): panel inicial.
+  - **Propuesta (sin escribir):** que la acción llame a `handleSearchChange('')`. Detalle:
+    `detail/A16-busqueda.md`.
+
+- **`R9-430` (S117, `A16` / búsqueda — P2) — 🐛 al cambiar de versión, la búsqueda sigue mostrando los
+  resultados de la anterior con la etiqueta de la nueva, y «Cargar más» les pega la página 2 de la nueva.**
+  MEDIDO con sonda en la sesión 117.
+  - `app/(tabs)/search.tsx`: nada vuelve a buscar cuando cambia `selectedVersion` (sin efecto ni
+    `useFocusEffect`; `performSearch` solo corre al escribir). `loadMoreResults` (`:480-505`) pide la versión
+    NUEVA con `offset = allResults.length` (filas de la anterior) y las añade. El efecto por libro
+    (`:512-539`) sí se re-lanza con la nueva: los chips cuentan una versión y la lista muestra otra.
+  - **Repro:** Buscar «amor» (RVR1960, 208 resultados: hay «Cargar más») → tocar un resultado → en el lector,
+    cambiar a RV1909 (o WEB) → volver a Buscar (la pestaña conserva su estado): la lista sigue en RVR1960 con
+    el chip «RV1909»; «Cargar más» añade los resultados 201+ de RV1909. Un resultado abre el lector en la
+    versión nueva, con otro texto que el del fragmento.
+  - **Sonda:** `_scratch/S117-buscarPantalla.test.tsx.txt`, caso (c): tras el cambio, `{"RVR1960":200}`, chip
+    `RV1909`, ninguna búsqueda nueva; tras «Cargar más», llamada `["amor","RV1909",200,200]` y
+    `{"RVR1960":200,"RV1909":30}`: rojo.
+  - **Propuesta (sin escribir):** volver a buscar (o vaciar los resultados) cuando cambia la versión. Detalle:
+    `detail/A16-busqueda.md`.
+
+- **`R9-431` (S117, `A16` / búsqueda — P2) — 🐛 el resaltado de los resultados no sigue lo que encontró la
+  búsqueda: con un apóstrofo en inglés no resalta nada, y con `OR` resalta «or» dentro de otras palabras.**
+  MEDIDO con sonda en la sesión 117 (la base real).
+  - `src/lib/search/highlightMatches.ts:53-70`: parte la consulta por espacios y busca cada trozo como
+    subcadena, sin el tokenizador del FTS (`unicode61`, que separa por la puntuación) ni la sintaxis que
+    `sanitizeFtsQuery` deja pasar a propósito (`prefijo*`, `OR`, `"frase"`). La pantalla la usa en cada fila
+    (`app/(tabs)/search.tsx:290`). Sus 7 pruebas solo usan palabras sueltas.
+  - **Repro:** con WEB, buscar «God's» (el apóstrofo del teclado): 200 resultados, ninguno resaltado, porque
+    el texto WEB usa solo el apóstrofo curvo (7387 veces; 0 rectos). Con «love*» o «amor*», ninguno. Con «fe
+    OR esperanza», «or» resaltado dentro de «por», «ahora», «mayor», «gloria» (251 veces en 200 filas); con
+    «faith OR hope», dentro de «For», «Lord», «glory». Con «¿quién», 92 de 200 filas sin resaltar.
+  - **Sonda:** `_scratch/S117-buscarReal.test.ts.txt`: `BibleDatabase.searchVerses` real sobre
+    `assets/bible-seed.db` con `node:sqlite` (FTS5 real), y `highlightMatches` real sobre cada fila. Lo demás
+    sale bien: los acentos se pliegan («corazon», «nino»), la paginación no repite (208 ids únicos en dos
+    páginas) y `searchByBook` coincide con las páginas (6 en Juan).
+  - **Propuesta (sin escribir):** resaltar con el mismo corte que el FTS (separar por lo que no es letra o
+    número, sin `OR`/`AND`/`NOT`, `*` como prefijo, comillas fuera) y por palabra entera o prefijo. Detalle:
+    `detail/A16-busqueda.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

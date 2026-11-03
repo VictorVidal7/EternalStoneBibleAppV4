@@ -1,7 +1,7 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P1 en tandas, una fila por agente, la sesión 117: el resto de `A14` y `A15`
-> («EN CURSO») y `A16`, y si hay más agentes, `A17`+.** La 116 hizo `A13` (🐛), `A14` y `A15` (EN CURSO):
+> **Frontera actual: el Modo A P1 por el orden del índice, la sesión 118: `A17` (quiz) y siguientes.** La 117
+> (sin agentes) cerró `A14`, `A15` y `A16` (🐛): `R9-427`..`R9-431`, ninguno P0. La 116 hizo `A13` (🐛):
 > `R9-423`..`R9-426`, ninguno P0. El Modo
 > C P0 de dinero y gating se midió en la 115 (`R9-418`..`R9-422`, ninguno P0; `C55` y `C54` quedan «sin
 > medir» por decisión de Victor). El Modo A P0 quedó cerrado en la 114 con `A12` (`R9-410`..`R9-417`). Sesión 2 cerró
@@ -1347,9 +1347,24 @@
 >   cierra en el hueco entre dos versículos o capítulos vuelve a sonar).
 > - Cada sonda, re-medida igual en el principal; lo que sostiene cada hallazgo, verificado a mano.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **426**. Rama `docs/review-s116-a13-a15` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** el resto de `A14` y `A15`, y `A16`+ (la 117,
-> `_scratch/S117-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **426**. Rama `docs/review-s116-a13-a15` (solo docs), mergeada y
+> pusheada con el OK de Victor (`d6b3f05`, CI run `41535819079`; corregido en la 117). **Lo siguiente:** el
+> resto de `A14` y `A15`, y `A16`+ (la 117, `_scratch/S117-PROMPT.md`).
+>
+> **Sesión 117 (2026-11-02): el Modo A P1, la segunda tanda (`A14`, `A15`, `A16`)**, en un chat nuevo, en la
+> terminal, SIN agentes (lo pidió Victor). Sondas con `_scratch/S116-correr.cjs.txt`. Solo docs.
+>
+> - **`A14` 🐛 (cerrada):** el alcance que faltaba, sin nuevos: los llamadores de `getDb()` sin `initialize()`
+>   (nadie llega antes de tiempo), `originals-download-service.ts` y `nativeSeedAssets.ts`.
+> - **`A15` 🐛 (cerrada):** `R9-427` (P1, tras cerrar el reproductor con la ✕, el siguiente audio lo abre roto:
+>   la vista expandida a la vista, sus botones muertos, los del plegado invisibles encima). `VoiceSelector` ✅.
+> - **`A16` 🐛:** `R9-428` (P2, la sugerencia «fe» no busca: mínimo de 3 letras), `R9-429` (P2, «Probar otra
+>   búsqueda» deja «sin resultados ""»), `R9-430` (P2, al cambiar de versión la lista sigue en la anterior y
+>   «Cargar más» mezcla) y `R9-431` (P2, el resaltado no sigue al FTS: «God's» en WEB, `*`, `OR`). La
+>   búsqueda real (FTS5 con `node:sqlite` sobre el sembrado) aguanta la entrada real.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **431**. Rama `docs/review-s117-a14-a16` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A17`+ por el orden del índice (la 118, `_scratch/S118-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1483,9 +1498,9 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A11 | Progreso y rachas: `lib/progress`, `lib/reading`, rings            | P0        | 🐛 BUG    | `A11-progreso-rachas`           |
 | A12 | Superficies de crash: error boundaries, promesas sin catch         | P0        | 🐛 BUG    | `A12-superficies-crash`         |
 | A13 | Lector de capítulo (`verse/[book]/[chapter].tsx`, 3975 L)          | P1        | 🐛 BUG    | `A13-lector-capitulo`           |
-| A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | EN CURSO  | `A14-base-de-datos`             |
-| A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | EN CURSO  | `A15-audio-tts`                 |
-| A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | PENDIENTE | —                               |
+| A14 | Capa de base de datos (`lib/database/index.ts`, 2425 L)            | P1        | 🐛 BUG    | `A14-base-de-datos`             |
+| A15 | Audio/TTS (`features/audio`, `lib/speech`)                         | P1        | 🐛 BUG    | `A15-audio-tts`                 |
+| A16 | Búsqueda (`lib/search`, `(tabs)/search.tsx`)                       | P1        | 🐛 BUG    | `A16-busqueda`                  |
 | A17 | Quiz (`features/quiz`, `app/features/quiz`)                        | P1        | PENDIENTE | —                               |
 | A18 | Word study / idiomas originales (`features/study`)                 | P1        | PENDIENTE | —                               |
 | A19 | Home (`(tabs)/index.tsx`, 2671 L)                                  | P1        | PENDIENTE | —                               |
@@ -2543,6 +2558,17 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
   - **Las lecciones:** un candidato de una fila puede ser el camino de llegada de otro (el reset de datos de
     `A14` lleva a la página en blanco de `A13`); un mock que devuelve un objeto nuevo en cada render cuelga
     jest con un efecto en bucle (67 MB de salida).
+- **Sesión 117 — 2026-11-02. El Modo A P1, la segunda tanda: `A14`, `A15`, `A16`.** En un chat nuevo, con
+  `_scratch/S117-PROMPT.md`, en la terminal, sin agentes. Solo docs.
+  - **Cómo se trabajó:** lectura por rangos y tres sondas de jest con el corredor de la 116; el checkpoint, en
+    un worktree aparte (`../essb-docs-s117`) con commit en el principal.
+  - **Resultado:** `A14` 🐛 cerrada sin nuevos; `A15` 🐛 cerrada (`R9-427`, P1); `A16` 🐛 (`R9-428`..`R9-431`,
+    P2). Ninguno P0.
+  - **Detalle:** `detail/A14-base-de-datos.md`, `detail/A15-audio-tts.md`, `detail/A16-busqueda.md`.
+  - **Las lecciones:** el mock de Reanimated crea un `useSharedValue` nuevo en cada render y su `interpolate`
+    devuelve `undefined`: un defecto de un valor animado que sobrevive no se ve sin darle la semántica real
+    (un `useRef`). Y `node:sqlite` (Node 24) trae FTS5: el `BibleDatabase` real corre sobre
+    `assets/bible-seed.db` en jest, con la entrada real.
 
 - **Sesión 113 — 2026-10-27. Arreglo de lo que la 112 midió con daño; el ciclo de las pruebas de la Mesa
   se cierra.** En un chat nuevo, con `_scratch/S113-PROMPT.md`, en la terminal, con 6 agentes en

@@ -1,15 +1,15 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-02, fin de la sesión 116.** La 116 hizo el (cr) en un chat nuevo, en la
-> terminal, con 3 agentes en worktree que solo midieron, una fila cada uno: **el Modo A P1, la primera tanda.**
-> Cuatro nuevos, `R9-423`..`R9-426`, ninguno P0: `A13` 🐛 (`R9-423`, P2); `A14` EN CURSO (`R9-424`, P1);
-> `A15` EN CURSO (`R9-425`, P1; `R9-426`, P2). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-02, fin de la sesión 117.** La 117 hizo el (cs) en un chat nuevo, en la
+> terminal, SIN agentes: **el Modo A P1, la segunda tanda.** Cinco nuevos, `R9-427`..`R9-431`, ninguno P0:
+> `A14` 🐛 cerrada sin nuevos; `A15` 🐛 cerrada (`R9-427`, P1); `A16` 🐛 (`R9-428`..`R9-431`, P2). El ciclo
+> de las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 115 ya está mergeada y pusheada (`main` = `origin/main` = `f6c7986`, CI verde en el log, run
-> `40785326481`, 374/4693). La rama de la 116 (`docs/review-s116-a13-a15`, solo docs) va **sin mergear hasta
-> el OK de Victor**. **No queda ningún P0 abierto**, y hay 426 hallazgos. **Lo siguiente:** el Modo A P1 en
-> tandas, una fila por agente: el resto de `A14` y `A15` y `A16`+, en la 117 (mensaje (cs), en
-> `_scratch/S117-PROMPT.md`), en un chat nuevo.
+> La 116 ya está mergeada y pusheada (`main` = `origin/main` = `d6b3f05`, CI verde en el log, run
+> `41535819079`, 374/4693). La rama de la 117 (`docs/review-s117-a14-a16`, solo docs) va **sin mergear hasta
+> el OK de Victor**. **No queda ningún P0 abierto**, y hay 431 hallazgos. **Lo siguiente:** el Modo A P1 por
+> el orden del índice, `A17` (quiz) y siguientes, en la 118 (mensaje (ct), en `_scratch/S118-PROMPT.md`), en
+> un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -554,12 +554,15 @@ revisión de su diff (la (cn), sesión 112, en un chat nuevo con 5 agentes que s
 (co), sesión 113, en un chat nuevo con 6 agentes que midieron los diseños antes de escribirlos, con
 `_scratch/S113-PROMPT.md`), que cierra el ciclo. Y el (cp), `A12`, HECHO en la sesión 114. Y el (cq), el
 Modo C P0 de dinero y gating, HECHO en la sesión 115. Y el (cr), la primera tanda del Modo A P1, HECHO en la
-sesión 116. **Lo siguiente es el (cs).**
+sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. **Lo siguiente es el (ct).**
 
-**(cs) Sesión 117: el Modo A P1, la segunda tanda, una fila por agente,** en un chat nuevo, en la terminal:
-el resto de `A14` (los llamadores de `getDb()`, `originals-download-service`, `nativeSeedAssets`) y de `A15`
-(`MiniAudioPlayer`, `VoiceSelector`), y `A16` (búsqueda); con más agentes, `A17`, `A18`, `A19`… El mensaje
-está en `_scratch/S117-PROMPT.md`, que manda sobre este archivo.
+**(ct) Sesión 118: el Modo A P1, la tercera tanda,** en un chat nuevo, en la terminal: `A17` (quiz), `A18`
+(word study / idiomas originales), `A19` (Home)… por el orden del índice, hasta donde alcance. El mensaje está
+en `_scratch/S118-PROMPT.md`, que manda sobre este archivo.
+
+**(cs) Sesión 117: el Modo A P1, la segunda tanda — ya HECHO en la sesión 117** (sin agentes: `A14`, `A15`
+y `A16` cerradas, `R9-427`..`R9-431`, ninguno P0; `detail/A16-busqueda.md` y vecinos). El mensaje está en
+`_scratch/S117-PROMPT.md`.
 
 **(cr) Sesión 116: las P1/P2 en tandas, una fila por agente — ya HECHO en la sesión 116** (`A13`, `A14`,
 `A15`: `R9-423`..`R9-426`, ninguno P0; `detail/A13-lector-capitulo.md` y vecinos). Lo que pedía: las P1/P2
@@ -2209,18 +2212,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 116 (2026-11-02).**
+**Medido al cerrar la sesión 117 (2026-11-02).**
 
-- **La 115, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `f6c7986` (solo docs; el
+- **La 116, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `d6b3f05` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `40785326481`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
-  Comprobado en la 116 con `git fetch` y `git log -1 origin/main`.
-- **La rama de la 116, sin mergear a propósito y sin pushear:** `docs/review-s116-a13-a15` (solo docs: el
-  ledger de `A13`, `A14` y `A15`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
+  `41535819079`, 3 jobs, «Run Tests» en Node v24.22.1, 374/4693. Su rama se borró tras `git cherry`.
+  Comprobado en la 117 con `git fetch` y `git log -1 origin/main`.
+- **La rama de la 117, sin mergear a propósito y sin pushear:** `docs/review-s117-a14-a16` (solo docs: el
+  ledger de `A14`, `A15` y `A16`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
   incluye.
-- **Los worktrees:** ninguno. Los de los agentes se quitan al terminar; sus copias, en
-  `_scratch/S116-sondas-agente-N/`. El checkpoint se escribió en un worktree aparte (`../essb-docs-s116`,
-  fuera del repo), quitado al terminar.
+- **Los worktrees:** ninguno. La 117 fue sin agentes; el checkpoint se escribió en un worktree aparte
+  (`../essb-docs-s117`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S117-*.txt`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2331,10 +2333,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 117: el mensaje (cs), la segunda tanda del Modo A P1, una fila por agente**
-(`_scratch/S117-PROMPT.md`): el resto de `A14` y `A15` (EN CURSO), y `A16`+, sin mezclar modos. La 116 hizo
-`A13`, `A14` y `A15` (`R9-423`..`R9-426`, ninguno P0). `B6`–`B10` (Modo B) van en otra sesión. La nube no es
-una opción. Lo de abajo es el menú de siempre para después.
+**Recomendado para la sesión 118: el mensaje (ct), la tercera tanda del Modo A P1** (`_scratch/S118-PROMPT.md`):
+`A17` (quiz) y siguientes por el orden del índice, sin mezclar modos. La 117 cerró `A14`, `A15` y `A16`
+(`R9-427`..`R9-431`, ninguno P0); la 116, `A13`. `B6`–`B10` (Modo B) van en otra sesión. La nube no es una
+opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
 **Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
@@ -3220,6 +3222,12 @@ Alternativas legítimas:
   la página en blanco sin mensaje de `A13`, y ninguno de los dos agentes lo podía ver solo. Y en una sonda que
   monta una pantalla, un mock que devuelve un objeto NUEVO en cada render (`favorites: []`) mete en bucle un
   efecto y cuelga jest (10 min, 67 MB de salida, `ENOBUFS`): los mocks de contexto, con objetos estables.
+- **El mock de Reanimated no guarda los valores animados (sesión 117, `R9-427`).** Su `useSharedValue` crea
+  uno nuevo en cada render y su `interpolate` devuelve `undefined`: un defecto de un valor animado que
+  sobrevive a un `return null` es invisible con el mock tal cual. La sonda le da la semántica real (un
+  `useRef`; `interpolate` lineal con recorte) y un control que pasa. Y para la base, `node:sqlite` (Node 24)
+  trae FTS5: el `BibleDatabase` real corre en jest sobre `assets/bible-seed.db` en solo lectura (un adaptador
+  con `getAllAsync`), con la entrada real (`_scratch/S117-buscarReal.test.ts.txt`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3520,6 +3528,9 @@ Alternativas legítimas:
     cuatro nuevos (`R9-423`..`R9-426`), ninguno P0. `A13` cerrada; `A14` y `A15` siguen EN CURSO por el
     alcance que no se recorrió (en sus detalles). **Lo siguiente:** el resto de `A14` y `A15`, y `A16`+, en
     tandas (la 117, `_scratch/S117-PROMPT.md`). Detalle: `detail/A13-lector-capitulo.md` y vecinos.
+  - **La segunda tanda, en la 117 (2026-11-02), SIN agentes (lo pidió Victor):** `A14` y `A15` cerradas,
+    `A16` hecha; cinco nuevos (`R9-427`..`R9-431`), ninguno P0. **Lo siguiente:** `A17`+ por el orden del
+    índice (la 118, `_scratch/S118-PROMPT.md`). Detalle: `detail/A16-busqueda.md` y vecinos.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,
