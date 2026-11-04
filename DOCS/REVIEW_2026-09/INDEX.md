@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 128: `A35` (Niños) y `A36` (Oración y
-> lectio) y siguientes.** La 127 (con 6 agentes a pedido de Victor, en un chat nuevo) cerró `A32` (🐛): `R9-476`..`R9-485`, y `A34` (🐛): `R9-486`..`R9-488`; dos P2, ninguno P0. La 126 (con 2 agentes a pedido de Victor, en el mismo
+> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 129: `A37` (Planes y Juntos) y `A38`
+> (Widgets) y siguientes.** La 128 (con 8 agentes a pedido de Victor, en un chat nuevo) cerró `A35` (🐛):
+> `R9-489`..`R9-495`, y `A36` (🐛): `R9-496`..`R9-505`; tres P2, ninguno P0. La 127 (con 6 agentes a pedido de Victor, en un chat nuevo) cerró `A32` (🐛): `R9-476`..`R9-485`, y `A34` (🐛): `R9-486`..`R9-488`; dos P2, ninguno P0. La 126 (con 2 agentes a pedido de Victor, en el mismo
 > chat que la 125) dejó `A32` 🐛 EN CURSO (`R9-473`, `R9-474`) y cerró `A33` (🐛): `R9-475`, ninguno P0. La 125 (con 8 agentes a pedido de Victor) cerró `A30` y `A31` (🐛): `R9-467`..`R9-472`, ninguno
 > P0; con ellas se terminan las filas P1 del Modo A. La 124 (con 3 agentes a pedido de Victor, en el mismo chat que la 123) cerró `A28` y `A29` (🐛):
 > `R9-462`..`R9-466`, ninguno P0. La 123 (sin agentes) cerró `A26` y `A27` (🐛): `R9-457`..`R9-461`, ninguno P0. La 122 (con 3 agentes a pedido de Victor, en el mismo chat que la 121) cerró `A24` y `A25` (🐛):
@@ -1521,9 +1522,32 @@
 >   empezaste un día antes, al oeste de UTC) y `R9-488` (plurales y separador de miles), todos P3
 >   (`detail/A34-journeys-camino.md`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **488**. Rama `docs/review-s127-a32-a34` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A35` (Niños) y `A36` (Oración y lectio) por el orden del índice (la
-> 128, `_scratch/S128-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **488**. Rama `docs/review-s127-a32-a34` (solo docs), mergeada y
+> pusheada con el OK de Victor (`3473f79`, CI verde en el log, run `41782521959`, 374/4693; corregido en la 128).
+> **Lo siguiente:** `A35` (Niños) y `A36` (Oración y lectio) por el orden del índice (la 128,
+> `_scratch/S128-PROMPT.md`).
+>
+> **Sesión 128 (2026-11-04): el Modo A P2, la tercera tanda (`A35`, `A36`)**, en un chat nuevo, en la terminal,
+> con 8 agentes `fork` en worktree a pedido de Victor («Podrías lanzar 8 agentes para avanzar más?»), que solo
+> midieron; cada sonda de un hallazgo, re-medida igual en el principal. Solo docs.
+>
+> - **`A35` 🐛 (cerrada):** todos P3: `R9-489` («Ver versículo» muestra solo el primer versículo de la escena, a
+>   veces media frase), `R9-490` (el buen samaritano, escena 1, pregunta otra cosa que Lc 10:25), `R9-491` (un
+>   distractor del quiz de Daniel que el texto respalda en español), `R9-492` (dos toques en «Terminar» celebran
+>   dos veces), `R9-493` (el versículo de una escena en la siguiente), `R9-494` (la pista de «Escuchar todo» se
+>   gasta sin mostrarse) y `R9-495` (una historia de la lista arranca el reloj del plan, sin reinicio); nota a
+>   `R9-459` (`scenesSeen` sin lector) (`detail/A35-ninos.md`).
+> - **`A36` 🐛 (cerrada):** P2: `R9-496` (lectio: «Memorizar» con una versión en español duplica la carta, el
+>   gemelo de `R9-475`), `R9-497` («Reabrir» borra el testimonio sin confirmar) y `R9-498` (orar la Escritura
+>   guarda la oración cortada a 1000 y dice «Guardado»); P3: `R9-499` (el borrador del diario se descarta sin
+>   avisar), `R9-500` (la flecha de orar la Escritura sale y pierde lo escrito), `R9-501` (lo escrito tras
+>   guardar no se puede guardar), `R9-502` (ACTS desde el diario deja dos diarios en la pila), `R9-503` (RV1909 con
+>   otra versificación: Jonás 2), `R9-504` (el Salmo 51 entre los titulados «oración») y `R9-505` (las citas de
+>   los recordatorios de oración); notas a `R9-30`, `R9-59` y `R9-24` (`detail/A36-oracion-lectio.md`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **505**. Rama `docs/review-s128-a35-a36` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A37` (Planes y Juntos) y `A38` (Widgets) por el orden del índice (la
+> 129, `_scratch/S129-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1678,8 +1702,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A32 | Mesa de preparación — altitud (`prep/index.tsx`, 3467 L)           | P2        | 🐛 BUG    | `A32-mesa-altitud`              |
 | A33 | Profecías (`prophecies/index.tsx`, 1892 L)                         | P2        | 🐛 BUG    | `A33-profecias`                 |
 | A34 | Journeys + "Tu camino" (`journeys/`, `journey/`)                   | P2        | 🐛 BUG    | `A34-journeys-camino`           |
-| A35 | Niños (`features/kids`)                                            | P2        | PENDIENTE | —                               |
-| A36 | Oración y lectio (`features/prayer`, `lectio.tsx`)                 | P2        | PENDIENTE | —                               |
+| A35 | Niños (`features/kids`)                                            | P2        | 🐛 BUG    | `A35-ninos`                     |
+| A36 | Oración y lectio (`features/prayer`, `lectio.tsx`)                 | P2        | 🐛 BUG    | `A36-oracion-lectio`            |
 | A37 | Planes y Juntos (`CustomPlansContext`, `TogetherContext`)          | P2        | PENDIENTE | —                               |
 | A38 | Widgets (`src/widgets`, `features/widgets`)                        | P2        | PENDIENTE | —                               |
 | A39 | Timeline, facts, colecciones, marcadores                           | P2        | PENDIENTE | —                               |

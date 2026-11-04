@@ -3541,6 +3541,8 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   que favoritos/notas/resaltados **no se ven afectados**. No existe en la app ninguna acción
   que borre el contenido local. Quien vende su teléfono y sigue la instrucción deja sus notas
   privadas intactas para el siguiente dueño — y sirven de munición a `R9-23`.
+  **Medido en la 128 (`A36`, agente 8):** tampoco borra el diario de oración (`@prayer_requests_v1`), el registro
+  (`@prayer_log`) ni el progreso de Niños (`@kids_progress_v1`): esas claves solo aparecen en su propio store.
 
 - **`R9-25` (A3, cuota) — 🐛 `deleteAllCloudData` lee y borra sin límite ni lotes.**
   `deleteAccountData.ts:52-76`: `.get()` **sin `limit()`** por cada una de 8 colecciones +
@@ -3568,6 +3570,10 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   eso **no tiene ninguna ruta de recuperación**, contra lo que promete la UI
   (`translations.ts:4176`).
   **⚠️ Sesión 22:** re-confirmado con sonda en `HEAD`, sobre el `buildBackup()` real: `{"payloadPrepFields":["notes","series"],"fileContainsIllustration":false}`. El Banco de ilustraciones no viaja, y el propio `BackupService.ts:29-31` dice que exportar/importar es la ÚNICA vía para mover la Mesa entre dispositivos.
+  **Medido en la 128 (`A35`/`A36`, agente 8):** `@kids_progress_v1`, `@prayer_requests_v1` y `@prayer_log` siguen
+  fuera de `BackupService.ts:109-121`. Sin medir: un respaldo viejo puede volver a bloquear «Primera historia»
+  (`[storyId].tsx:241` exige `length === 1`; `AchievementService.ts:1112-1118` reescribe desde el respaldo), y ya
+  no se gana (`detail/A35-ninos.md`).
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -12351,6 +12357,10 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S123-ninosAtras.test.tsx.txt`: el atrás lo consume el navegador (`/features/kids`) y al
     reabrir la escena es la 0. Control: «Anterior» pasa de la 4 a la 3.
   - **Propuesta (sin escribir):** `useBackHandlerStep` como en `lectio`. Detalle: `detail/A26-navegacion.md`.
+  - **Medido en la 128 (`A35`, agentes 1 y 2):** la otra mitad: `markKidsSceneSeen` (`kidsProgress.ts:107-126`)
+    guarda `scenesSeen` en cada escena «para que una historia pueda reanudarse» (`:4-5`, `:26-27`), pero nada en
+    `app/` ni `src/` lo lee y la escena arranca en `useState(0)` (`[storyId].tsx:98`): reabrir es la escena 1
+    también al salir con la flecha.
 
 - **`R9-460` (S123, `A27` / deep links — P3) — 🐛 un enlace que no es de ninguna ruta abre la pantalla por
   defecto de expo-router, en inglés y con un «Sitemap» de todas las rutas.** MEDIDO con sonda en la 123.
@@ -12781,6 +12791,174 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `periodRecapModal.test.tsx:92` fija hoy «1 favoritos nuevos» como correcto.
   - **Sonda:** las pruebas «plurales» de `S127-a6-caminoFecha` y `S127-a6-periodoNumeros.test.tsx.txt`, 2/2;
     control: `(12345).toLocaleString('en-US')` = «12,345». En español, el separador solo se nota desde 10 000.
+
+- **`R9-489` (S128, `A35` / Niños, la historia — P3) — 🐛 «Ver versículo» muestra solo el primer versículo de la
+  escena, sin la referencia, y a veces media frase.** MEDIDO con sonda en la 128 (agente 3, re-medido igual en el
+  principal).
+  - `app/features/kids/[storyId].tsx:197-208` pide solo `scene.refs[0]`; `:412-421` lo pinta sin decir qué
+    versículo es. 23 de las 55 escenas anclan 2-3 versículos (`kidsStories.ts:7-9`).
+  - **Camino:** Niños → una historia → una escena → «Ver versículo»: en `resurrection-1` (Mt 27:59-60) la caja
+    dice «Y tomando José el cuerpo, lo envolvió en una sábana limpia,». `daniel-lions-5` muestra 6:21 entero,
+    pero el ángel de la escena está en 6:22.
+  - **Sonda:** `_scratch/S128-sondas-agente-3/S128-a3-versoEscena.test.ts.txt` (`node:sqlite` sobre la base):
+    13 cajas cortadas en 8 escenas (8 en RVR1960, 5 en WEB); control: las 32 escenas de un versículo, 0.
+  - **Propuesta (sin escribir):** pedir el rango entero de la escena y poner la referencia en la caja. Detalle:
+    `detail/A35-ninos.md`.
+
+- **`R9-490` (S128, `A35` / Niños, datos — P3) — 🐛 el buen samaritano, escena 1: el maestro de la ley pregunta
+  «cómo amar al prójimo», en los dos idiomas; Lc 10:25 pregunta cómo heredar la vida eterna.** MEDIDO contra la
+  base en la 128 (agente 3, re-medido igual en el principal).
+  - `src/i18n/translations.ts:6255-6257` (es) y `:12781-12783` (en). El amor al prójimo lo cita él mismo en 10:27.
+    Es prosa del relato, no una cita.
+  - **Sonda:** la de `R9-489`, prueba «buen samaritano, escena 1»: la base dice «vida eterna» / «eternal life»;
+    la escena no la nombra. Borrador de redacción en `S128-a3-informe.md.txt`: el texto lo decide Victor.
+
+- **`R9-491` (S128, `A35` / Niños, quiz — P3) — 🐛 `daniel-lions-q1`: un distractor que en español el texto
+  respalda, y que en inglés dice lo contrario.** MEDIDO en la 128 (agente 3, re-medido igual en el principal).
+  - «Nunca dejaba de orar en voz alta» es defendible por Dn 6:10 («como lo solía hacer antes») y 6:16
+    («continuamente»): el niño que la elige recibe «incorrecto». En inglés: «He never prayed out loud». La
+    correcta («Tres veces») está bien en los dos. **Sonda:** la de `R9-489`, prueba del distractor.
+
+- **`R9-492` (S128, `A35` / Niños, quiz — P3) — 🐛 dos toques en «Terminar» celebran dos veces la insignia de la
+  primera historia.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Disparador nuevo de
+  la raíz de `R9-446`.
+  - `src/components/kids/KidsQuizPanel.tsx:70-74`: `advance()` llama a `onFinish(score)` en cada toque; el panel
+    sigue montado hasta el `setStage('done')` de `handleQuizFinish` (`[storyId].tsx:234-255`), tras dos
+    escrituras en AsyncStorage. Dos `unlockAchievement('kids_first_story')` sin serializar
+    (`AchievementService.ts:763-786`).
+  - **Sonda:** `_scratch/S128-sondas-agente-1/S128-a1-historia.test.tsx.txt` (pantalla real, `AchievementService`
+    real sobre `node:sqlite`): `{"notifyCalls":2,"celebrados":["kids_first_story","kids_first_story"],"total_points":25}`
+    (los puntos cuadran porque `addPoints` también corre en carrera); control, un toque: 1 y 25.
+  - **Propuesta (sin escribir):** una guarda `finishedRef`; el arreglo de `R9-446` también lo cerraría.
+
+- **`R9-493` (S128, `A35` / Niños, la historia — P3) — 🐛 el versículo de una escena aparece debajo de la
+  siguiente.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Familia de
+  `R9-435`/`R9-476` (búsqueda sin `isStale`).
+  - `[storyId].tsx:189-214`: `toggleVerse` no comprueba que siga en la misma escena; el efecto de `:114-117`
+    limpia, pero la respuesta tardía vuelve a escribir, y `:197` (`verseText !== undefined`) no busca de nuevo.
+  - **Camino:** «Ver versículo» y enseguida «Siguiente» (o el tour «Escuchar todo») con la base en frío.
+  - **Sonda:** la de `R9-492`: `{"escena":2,"visto":"TEXTO 1:3 (escena 1)","llamadas":[[1,1,3]]}`; control
+    (respuesta antes de pasar): `[[1,1,3],[1,1,6]]` y se ve el 1:6.
+
+- **`R9-494` (S128, `A35` / Niños, la historia — P3) — 🐛 la pista única de «Escuchar todo» se gasta sin
+  mostrarse.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Cosmético.
+  - `[storyId].tsx:122-138`: `markListenAllHintSeen()` se guarda antes del temporizador de 900 ms; salir antes
+    la gasta. **Sonda:** la de `R9-492`: `{"flag":"1","toastInfo":0}`, y al volver tampoco; control (1,1 s): una vez.
+
+- **`R9-495` (S128, `A35` / Niños, el plan — P3) — 🐛 una historia terminada desde la lista arranca el reloj del
+  plan de 10 días, y no hay forma de empezarlo hoy ni de reiniciarlo.** MEDIDO con sonda en la 128 (agente 2,
+  re-medido igual en el principal con `TZ=America/Mexico_City`).
+  - `src/features/kids/kidsProgress.ts:164`: `planStartedAt ?? new Date().toISOString()` en
+    `markKidsStoryCompleted`, que corre con cualquier quiz (los dos caminos empujan `/features/kids/<id>`,
+    `plan.tsx:111-114`). Ningún export lo reinicia; con las 10 hechas, `'complete'` para siempre
+    (`planPace.ts:97-107`): una segunda vuelta, o un hermano en el mismo teléfono, sin plan.
+  - **Camino:** el 1-oct, «Noé» desde la lista; el 20-oct el padre abre «Plan de 10 días» por primera vez: «Te
+    esperan 8 días — a tu ritmo, sin prisa» (y la tarjeta del hub, `index.tsx:80-102`, igual).
+  - **Sonda:** `_scratch/S128-sondas-agente-2/S128-a2-planReloj.test.tsx.txt`, 4/4 (precondición de zona;
+    control: un perfil nuevo ve «Empieza hoy»).
+  - **Propuesta (sin escribir):** que lo arranque una historia abierta desde el plan (`?from=plan`) o un botón
+    «Empezar», y un «Empezar de nuevo» con el plan completo.
+
+- **`R9-496` (S128, `A36` / lectio — P2) — 🐛 con una versión en español, «Memorizar» en lectio no reconoce la
+  carta del mazo y la duplica.** MEDIDO con sonda en la 128 (agente 4, re-medido igual en el principal). Gemelo de
+  `R9-475` (la 126 lo dejó para esta fila).
+  - `app/features/lectio.tsx:101-105` arma `bookDisplay` en el idioma de la versión; `handleMemorize`
+    (`:230-246`) lo usa en `buildVerseKey` (`:233`) y en `addCard` (`:238-244`). El resto usa
+    `canonicalBookName` → `nameEn` (y `handleFinish`, `:271`, también).
+  - **Camino:** RVR1960 → lectio desde el Home, el lector o la guiada → «Terminar» → «Memorizar», con el
+    versículo ya en el mazo: sin aviso, «Juan/3/16» junto a «John/3/16» (dos repasos, dos documentos en la nube);
+    y lo memorizado aquí no figura como memorizado en el resto.
+  - **Sonda:** `_scratch/S128-sondas-agente-4/S128-a4-lectioMazo.test.tsx.txt`, 3/3:
+    `{"canonicalKey":"John/3/16","screenKey":"Juan/3/16","alreadyToast":false,"addCardBook":"Juan"}`; con el
+    `MemoryDeckProvider` real, `{"cards":["John/3/16","Juan/3/16"]}`; control (KJV): `alreadyToast:true`, 0.
+  - **Propuesta (sin escribir):** `canonicalBookName(bookDisplay)` en la clave y en `addCard`, con la migración
+    que ya propone `R9-475`. Detalle: `detail/A36-oracion-lectio.md`.
+
+- **`R9-497` (S128, `A36` / diario de oración — P2) — 🐛 «Reabrir» borra el testimonio escrito, sin confirmación
+  ni deshacer.** MEDIDO con sonda en la 128 (agente 5, re-medido igual en el principal).
+  - `app/features/prayer/index.tsx:354-359` hace `void reopen(r.id)` al primer toque; `reopenRequest`
+    (`src/features/prayer/prayer.ts:179-191`) borra `answeredNote` (hasta 1000 caracteres) y `answeredAt`, y se
+    persiste. «Eliminar» sí confirma (`:161-166`, `:774-783`); «Reabrir» está junto a «Compartir testimonio»
+    (`:375-390`) y su etiqueta no avisa. La función pura borra a propósito (`prayer.test.ts:116`): falta la
+    confirmación en la pantalla.
+  - **Sonda:** `_scratch/S128-sondas-agente-5/S128-a5-diario.test.tsx.txt` (pantalla real, store real,
+    `renderRouter`): `REABRIR -> en disco: {…,"answered":false} | dialogo: no`; al marcarla otra vez, el campo
+    vacío; control: «Eliminar» muestra el diálogo y en disco quedan 2.
+
+- **`R9-498` (S128, `A36` / orar la Escritura — P2) — 🐛 la oración del paseo se guarda en el diario cortada a 1000
+  caracteres, y la pantalla dice «Guardado».** MEDIDO con sonda en la 128 (agente 7, re-medido igual en el
+  principal).
+  - `app/features/prayer/scripture/[passageId].tsx:174-191` junta las oraciones de cada versículo en un `detail`
+    que `newPrayerRequest` corta sin aviso (`clean(…, PRAYER_DETAIL_MAX)`, `prayer.ts:87`, `:91-94`, `:111`). El
+    campo del paseo (`:296`) no tiene `maxLength` ni contador; el formulario del diario sí
+    (`prayer/index.tsx:602`, `:716`).
+  - **Camino:** Salmo 51 (19 versículos), una o dos frases por versículo → Amén → «Guardar en el diario»: se
+    pierde desde la mitad del versículo 13.
+  - **Sonda:** `_scratch/S128-sondas-agente-7/S128-a7-orarEscritura.test.tsx.txt`, 10/10:
+    `escrito=1500 guardado=1000 versiculos enteros=1,…,12 toast=[["Guardado en tu diario de oración"]]`; control:
+    una oración corta, entera. Sin medir si lectio o ACTS cortan igual.
+
+- **`R9-499` (S128, `A36` / diario de oración — P3) — 🐛 el atrás de Android o «Cancelar» descartan sin avisar el
+  borrador de una petición (y el del testimonio).** MEDIDO con sonda en la 128 (agente 5, re-medido igual en el
+  principal). La forma de `R9-57` en otra pantalla.
+  - `prayer/index.tsx`: `onRequestClose` (`:566`) y «Cancelar» (`:660`) cierran; el «+» vacía (`openAdd`,
+    `:113-120`); el testimonio, igual (`:696`, `:170`). **Sonda:** la de `R9-497`:
+    `ATRAS y «+» -> titulo: "" | en disco: 0`; control: «Guardar» deja la petición en disco. Si el `BackHandler`
+    del `Modal` gana siempre (como en `R9-57`), Modo C.
+
+- **`R9-500` (S128, `A36` / orar la Escritura — P3) — 🐛 la flecha del encabezado sale del paseo sin preguntar y
+  pierde lo escrito, mientras el atrás del sistema retrocede un versículo.** MEDIDO con sonda en la 128 (agente 7,
+  re-medido igual en el principal).
+  - `[passageId].tsx:153-156` (`goBack`), en la flecha de `:210-216`; `useBackHandlerStep` (`:166-172`)
+    retrocede un versículo y «Anterior» lleva la misma flecha; lo escrito vive solo en `notes` (`:77`).
+  - **Sonda:** la de `R9-498`, prueba 3: `router.back=1 alert=0 guardado=null`; control: el atrás del sistema
+    retrocede y conserva el texto.
+
+- **`R9-501` (S128, `A36` / orar la Escritura — P3) — 🐛 lo que se escribe después de guardar no se puede
+  guardar.** MEDIDO con sonda en la 128 (agente 7, re-medido igual en el principal).
+  - `[passageId].tsx:79`: `saved` nunca vuelve a `false`, y el botón depende de `!saved` (`:375`). **Sonda:** la de
+    `R9-498`, prueba 4: `botonGuardar=false entradas=1 detail="Mateo 6:9: Primera oración"`.
+
+- **`R9-502` (S128, `A36` / ACTS y diario — P3) — 🐛 «Añadir al diario» desde ACTS, llegado desde el diario, deja
+  dos diarios en la pila.** MEDIDO con sonda en la 128 (agentes 5 y 6 por separado, re-medido igual en el
+  principal).
+  - `app/features/prayer/acts.tsx:402-405`: `router.replace('/features/prayer?openAdd=1' as never)` encima del
+    diario que empujó ACTS («Orar ahora», `prayer/index.tsx:437-440`). Sin daño en los datos (el diario de abajo
+    recarga en el foco, `usePrayerJournal.ts:63-76`); sobra un atrás. Desde el Home no pasa. No es `R9-457` ni
+    `R9-458`.
+  - **Sondas:** `_scratch/S128-sondas-agente-6/S128-a6-actsDiario.test.tsx.txt` (`renderRouter` sobre los
+    layouts): `DIARIO atras 1: /features/prayer ["diario#1 openAdd=-"] | atras 2: /`; control desde el Home: un
+    atrás a `/`. La de `R9-497`: `atras x2: /features/prayer -> /features/prayer -> /`.
+  - **Propuesta (sin escribir):** si debajo está el diario, volver a él con el param; si no, el `replace`.
+
+- **`R9-503` (S128, `A36` / orar la Escritura, packs — P3) — 🐛 el pack RV1909 publicado sigue otra
+  versificación en 12 capítulos: en Jonás 2 la oración empieza con el pez y no llega a «La salvación pertenece á
+  Jehová».** MEDIDO con sonda en la 128 (agente 7, sobre el pack con el sha del manifiesto de Pages; re-medido
+  igual en el principal).
+  - `scripturePrayers.ts:114` (`range('Jonah', 2, 1, 9)`): en RV1909, Jonás 1 tiene 16 versículos. Frente a KJV,
+    RV1909 difiere en Nm 12 y 29, 1 S 23, 2 S 20, 2 Cr 33, Job 35, 38 y 40, Os 11, Jon 1, Hch 19 y 2 Co 13; SSE1569
+    en 1 Cr 3, 2 Cr 33, Sal 13 y Jer 39; WEB en Ro 16; RVR1960 y BSB en ninguno (`S128-a7-versif.out.txt`).
+  - **Sonda:** la de `R9-498`, prueba 2: `RV1909 primero="Mas jehová había prevenido un gran pez…"`; control
+    (RVR1960): de «Entonces oró Jonás» a «La salvación es de Jehová». Otras referencias en esos capítulos, sin
+    medir: `kidsStories.ts:705`, `:739`, `messianicProphecies.ts:535`, `theology.ts:51`, `cross-references.ts:88`,
+    `shareFaithObjections.ts:138`.
+
+- **`R9-504` (S128, `A36` / orar la Escritura — P3) — 🐛 el Salmo 51 está en la sección «Salmos que la Escritura
+  titula "oración"», y su título no lo dice.** MEDIDO en la 128 (agente 7, re-medido igual en el principal).
+  - `scripturePrayers.ts:100-101`, con las etiquetas de `translations.ts` (`:3726`, `:10274`). **Sonda:** la de
+    `R9-498`, prueba 7: el pack BSB (títulos en el versículo 1) da «For the choirmaster. A Psalm of David. When
+    Nathan…» para el 51; el 86, 90, 102 y 142 sí dicen «A prayer».
+
+- **`R9-505` (S128, `A36` / recordatorios de oración — P3) — 🐛 las citas de los recordatorios: 1 Pe 5:7 en
+  español es una paráfrasis presentada como cita, y en inglés es la redacción de la NIV sin atribución.** MEDIDO
+  contra la base en la 128 (agente 8, re-medido igual en el principal).
+  - `src/lib/notifications/prayerReminderCopy.ts:38`: «Echa sobre Él toda tu ansiedad, porque él tiene cuidado de
+    ti»; RVR1960: «echando toda vuestra ansiedad sobre él, porque él tiene cuidado de vosotros». `:64`: «Cast all
+    your anxiety on Him, because He cares for you» (NIV); WEB: «casting all your worries on him, because he cares
+    for you». Hebreos 4:16 (`:34`, `:60`) omite «pues»/«therefore» (extracto aceptable); Salmos 46:10, literal.
+  - **Camino:** con el recordatorio de oración activo, una de cada seis noches. La NIV es además una pregunta de
+    licencia para Victor (la de la NVI fue rechazada).
+  - **Sonda:** `_scratch/S128-sondas-agente-8/S128-a8-citas.cjs.txt` (`node:sqlite`), salida en su `.out.txt`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -13828,6 +14006,10 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   - **⚠️ Sesión 58:** lo que se escribe para la cuenta después de su devolución (el respaldo, un
     store) queda bajo el uid borrado (`R9-275`, P3); y la nota de `R9-274` tiene un solo lugar
     (`R9-276`, P3). Los dos, arreglados en la 59 (`37ba5f7`, `fb7696f`).
+  - **Medido en la 128 (`A36`, agente 8):** el mismo mecanismo con el diario de oración: `@prayer_requests_v1` es
+    del aparato («DEVICE-LOCAL», `prayerStore.ts:6-7`) y no se limpia al cerrar sesión ni al cambiar de cuenta,
+    así que en un teléfono compartido la cuenta siguiente ve las peticiones de la anterior. La decisión (b) se
+    aplicó solo a la Mesa; si el diario va por cuenta o por aparato lo decide Victor (§8 de CONTINUAR).
 - **`R9-60` (A10, respaldo) — 🐛 el respaldo omite 3 claves de AsyncStorage del área de memoria
   mientras respalda todas las demás preferencias locales.** Severidad **baja**. Patrón de lista
   enumerada a mano: `BackupPayload.memory` es literalmente `{memoryDeck, reviewEvents}`, y
