@@ -3574,6 +3574,9 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   fuera de `BackupService.ts:109-121`. Sin medir: un respaldo viejo puede volver a bloquear «Primera historia»
   (`[storyId].tsx:241` exige `length === 1`; `AchievementService.ts:1112-1118` reescribe desde el respaldo), y ya
   no se gana (`detail/A35-ninos.md`).
+  **Medido en la 129 (`A37`, agente 4):** `@together_groups` tampoco está en las `KEYS` (`BackupService.ts:109-121`):
+  al restaurar en otro teléfono, el plan vuelve alineado a la fecha del grupo, pero sin «Leyendo con {{grupo}}» ni
+  «Salir del grupo». (`@devotional_saved` ya lo nombra `detail/A7-backupservice.md:174`.)
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -3827,6 +3830,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     escritores de hoy canonicalizan.
   - `migrateCanonicalBookKeys` ya corrió y no lo cura, y además convierte `"Juan"` y `"John"` del
     mismo versículo en dos notas canónicas.
+  - **El gemelo en favoritos, en la 129:** `R9-520`.
 
 - **`R9-146` (S22, planes — P3) — 🐛 borrar un plan propio deja su progreso, y re-crearlo o
   re-importarlo desde Juntos lo resucita ya terminado.** CONFIRMADO con sonda:
@@ -12273,6 +12277,12 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `features/widgets` (no hay widget nativo registrado).
   - **Sonda:** `S122-fueraDiccionario`, prueba 3: `{"version":"RVR1960","translation":"RVR1960"}`: rojo.
   - **Propuesta (sin escribir):** recibir la versión elegida. Detalle: `detail/A24-i18n.md`.
+  - **⚠️ Corregido en la 129 (`A38`, agente 6):** «no hay widget nativo registrado» es FALSO. `app.json:24` carga
+    `plugins/with-verse-widget.js`, que copia `plugins/widget-files/VerseWidgetProvider.kt` (generado por
+    `scripts/build-widget-verses.js`) y registra el `receiver` (`:72-109`), desde `f5f02cc`. Ese widget no usa JS:
+    trae los 198 versículos escritos, sigue el idioma del TELÉFONO y usa RVR1960 o WEB fijas, a propósito
+    (`.kt:31-42`). Este hallazgo queda como lo que es: la vista previa de `features/widgets` no se parece al widget
+    real (versión, fondo, cabecera). Lo del widget nativo: `R9-515`..`R9-517` y la nota en `R9-471`.
 
 - **`R9-452` (S122, `A24` / i18n, fechas — P3) — 🐛 el BUG-9 de Fable (`textTransform: 'capitalize'` sobre
   fechas) se arregló solo en Daily Light: «Lunes, 2 De Noviembre» sigue en dos sitios.** MEDIDO con sonda en la 122.
@@ -12537,6 +12547,12 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
     `{"book":"1 Pedro","chapter":"2","highlight":"24"}`, sin `verse`. Control: `?verse=24` sí llega.
   - **Propuesta (sin escribir):** mandar `?verse=`. Es el único de los 195 sitios de navegación cuyos params no
     lee el destino (`S125-a3-rutas.tsv.txt`). Detalle: `detail/A30-seguridad-tipos.md`.
+  - **Medido en la 129 (`A38`, agente 6):** el gemelo nativo, fuera del JS: el widget del escritorio arma
+    `eternalbible://verse/<Libro>/<cap>?highlight=<v>` (`plugins/widget-files/VerseWidgetProvider.kt:330-332`,
+    generado por `scripts/build-widget-verses.js:152-155`), y el lector abre el capítulo arriba. Sonda:
+    `_scratch/S129-sondas-agente-6/S129-a6-widgetNativo.test.tsx.txt`, prueba 5 (`renderRouter` y el
+    `+native-intent` real): `{"book":"Romans","chapter":"10","highlight":"9"}`, sin `verse`. El mismo arreglo, en el
+    generador.
 
 - **`R9-472` (S125, `A31` / bundle — P3) — 🐛 cada bundle lleva también las pantallas de la otra plataforma: en
   web, unos 970 KB de fuente que nunca se evalúan.** MEDIDO en la 125 (agente 8: sonda, re-medida igual en el
@@ -12959,6 +12975,217 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Camino:** con el recordatorio de oración activo, una de cada seis noches. La NIV es además una pregunta de
     licencia para Victor (la de la NVI fue rechazada).
   - **Sonda:** `_scratch/S128-sondas-agente-8/S128-a8-citas.cjs.txt` (`node:sqlite`), salida en su `.out.txt`.
+
+- **`R9-506` (S129, `A37` / Juntos, unirse — P2) — 🐛 pegar el mensaje compartido entero, como el propio mensaje
+  pide, da «Ese código no es válido».** MEDIDO con sonda en la 129 (agentes 3, 4 y 5 por separado, re-medido
+  igual en el principal).
+  - `app/features/together/index.tsx:61-67` (`decodeJoinInput`) toma todo lo que sigue a `?d=`/`#d=` y se lo pasa
+    a `decodeTogetherParam` (`bundle.ts:751-753`, solo `trim`); `base64urlDecode` (`bundle.ts:139-141`) da `null`
+    en el primer salto de línea, y con el marcador encontrado no prueba el código `EB1-…` del mismo texto. El aviso
+    del portapapeles (`:189-203`) usa la misma función y tampoco aparece.
+  - Los mensajes del plan propio y del estudio de la Mesa terminan, después del enlace, con «¿No te abre el enlace?
+    Copia este mensaje y pégalo en Ajustes → Unirme a un grupo» (`translations.ts:5616-5617`, `:5634-5635`;
+    en `:12155-12156`, `:12172-12173`; armados en `ShareCustomPlanModal.tsx:44-46` y `prep/index.tsx:1340-1343`);
+    la invitación curada (`ShareTogetherModal.tsx:118-126`) falla igual si se pega entera. El devocional se salva
+    (su mensaje termina en el enlace).
+  - **Camino:** el enlace no abre la app → el usuario copia el mensaje (WhatsApp copia el mensaje entero) → Ajustes
+    → «Unirme a un grupo» → pegar → «Continuar»: error. Al plan propio y al estudio solo les queda copiar el enlace
+    suelto, y el mensaje no lo dice.
+  - **Sondas:** `_scratch/S129-sondas-agente-4/S129-a4-juntosPantalla.test.tsx.txt` (9/9: `S129A2`
+    `{"confirmacion":false,"errorCodigo":true,…}`; control, solo el enlace, `{"confirmacion":true}`),
+    `_scratch/S129-sondas-agente-3/S129-a3-pegarMensaje.test.tsx.txt` (6/6) y
+    `_scratch/S129-sondas-agente-5/S129-a5-compartir.test.tsx.txt` (es, en, curado, estudio).
+  - **Propuesta (sin escribir):** tomar solo `/[?#]d=([A-Za-z0-9_-]+)/` y, si no hay, buscar `EB1[- ]…` en el
+    texto. Detalle: `detail/A37-planes-juntos.md`.
+
+- **`R9-507` (S129, `A37` / planes propios — P2) — 🐛 tras editar un plan propio y «Guardar cambios», el atrás
+  muestra el plan VIEJO (que ya no existe) con 0 %, y un toque ahí guarda progreso huérfano.** MEDIDO con sonda en
+  la 129 (agentes 1 y 2 por separado, re-medido igual en el principal).
+  - **R1:** `app/features/plan-builder/index.tsx:231` hace `router.replace('/plan/<idNuevo>')` desde el Stack raíz:
+    expo-router apila una SEGUNDA instancia de `(tabs)`; debajo queda la primera, en `plan/<idViejo>` (editar
+    cambia el id: sale del contenido, `customPlans.ts:52-54`). **R2:** `plan/[id].tsx:93` resuelve con
+    `getReadingPlanById` (el registro de módulo, `customPlans.ts:131-135`), que se actualiza en un `useEffect`
+    (`CustomPlansContext.tsx:59-61`), después del render: la pantalla vieja sigue resolviendo el plan borrado.
+  - **Camino:** un plan propio con progreso → «Editar» → cambiar el nombre o los pasajes → «Guardar» → atrás (la
+    flecha de `:652` o el del sistema): el plan de antes, en 0 % (el progreso se migró al id nuevo); parece que se
+    perdió todo. Marcar un día ahí escribe `{"custom-<viejo>":[1]}` y la vista cae en «Libro no encontrado» sin
+    flecha (`:264-277`). Ese progreso huérfano abre la puerta a `R9-64`. Home muestra bien el plan editado.
+  - **Sondas:** `_scratch/S129-sondas-agente-1/S129-a1-editarAtras.test.tsx.txt` (`renderRouter` con la forma de
+    los layouts, providers reales): `FANTASMA -> plan viejo visible: 1 | registro tiene el viejo: false | contexto
+tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sondas-agente-2/S129-a2-atrasEditar.test.tsx.txt`
+    (2/2): `["/plan/custom-old [se ve: plan:custom-old]","/ [se ve: home]","exitApp"]`; control (crear): `["/","exitApp"]`.
+  - **Propuesta (sin escribir):** `back`/`dismissTo` en vez de `replace`, y los planes propios resueltos desde el
+    contexto. El mismo `replace` en `together/index.tsx:232`, `:241` (sin medir). Familia de `R9-502`.
+
+- **`R9-508` (S129, `A37` / constructor y paquete — P2) — 🐛 la vista previa promete un plan y se guarda otro,
+  recortado sin aviso a 400 días y 50 capítulos por día.** MEDIDO con sonda en la 129 (agentes 2 y 3 por separado,
+  re-medido igual en el principal).
+  - La vista previa (`plan-builder/index.tsx:166-171`, `:416-425`) cuenta sin topes; `onCreate` (`:211-212`) pasa
+    por `buildCustomPlan` → `makeCustomPlanBundle` (`src/lib/together/bundle.ts:339-360`), que recorta a
+    `MAX_PLAN_DAYS` 400 y `MAX_DAY_READINGS` 50 (`types.ts:28-30`); «Crear» solo mira nombre y pasajes (`:171`), y
+    el toast dice «¡Plan creado!».
+  - **Camino:** la Biblia a 1 capítulo por día: «1189 días» en la vista previa, 400 guardados, termina en 2 Crónicas
+    33; a 2 por día, 595 → 400 (Lamentaciones 3); «Pentateuco en 3 días»: 187 → 150 capítulos, y el día 2 empieza
+    en Éxodo 13 (faltan Éxodo 1-12); «NT en 5 días»: 260 → 250. Control: a 3 por día (el valor por defecto), 397
+    días enteros hasta Apocalipsis 22.
+  - **Sondas:** `_scratch/S129-sondas-agente-2/S129-a2-constructor.test.tsx.txt` (14/14, la pantalla real, casos
+    `[1a]`..`[1e]`) y `_scratch/S129-sondas-agente-3/S129-a3-codec.test.ts.txt` (8/8, `PLAN GRANDE`).
+  - **Propuesta (sin escribir):** la vista previa sobre el plan ya recortado, con aviso, o «Crear» deshabilitado
+    pasado el tope. Subir el tope rompe la decodificación en una app vieja (`bundle.ts:712`).
+
+- **`R9-509` (S129, `A37` / constructor — P2) — 🐛 cambiar solo el nombre de un plan hecho con «Número de días» lo
+  rearma con otros días, y el progreso pasa a marcar capítulos que el usuario no leyó.** MEDIDO con sonda en la 129
+  (agente 2, re-medido igual en el principal).
+  - El prellenado (`plan-builder/index.tsx:142-146`) pone siempre «Capítulos por día» = el día más largo
+    (`inferPerDay`, `customPlanBuild.ts:113-122`, que promete «within one») y `totalDays` en 7; el id sale del
+    contenido, así que `migratePlanProgress` (`:222`) copia `completedDays` tal cual.
+  - **Camino:** «Juan en 10 días» con los días 1-5 hechos (Juan 1-10) → «Editar» → solo el nombre → «Guardar»: 7
+    días; los días 1-5 son ahora Juan 1-15, y Juan 11-15 queda marcado como leído. Con la misma lógica, «Biblia en
+    un año» 365 → 298 días y «NT en 90 días» 90 → 87. Control: un plan hecho «por día» conserva días y reparto.
+    Es otra fuente de `R9-55`, con otro daño.
+  - **Sonda:** la de `R9-508`, casos `[2a]`, `[2b]` y su control:
+    `dia6 antes Juan 11,Juan 12 | despues Juan 16,Juan 17,Juan 18 | dias 1-5 = 10 caps antes y 15 despues`.
+
+- **`R9-510` (S129, `A37` / constructor — P3) — 🐛 el número escrito en un stepper se ignora si se toca el botón
+  sin salir antes del campo.** MEDIDO con sonda en la 129 (agente 2, re-medido igual en el principal); que el toque
+  no desenfoque se confirma en el dispositivo (Modo C).
+  - `StepperValueInput` (`plan-builder/index.tsx:62-104`) aplica lo escrito solo en `onBlur`/`onSubmitEditing`, y la
+    pantalla tiene `keyboardShouldPersistTaps="handled"` (`:277`; un toque en un botón no desenfoca:
+    `ScrollView.js:1452-1458`); el selector es un `Modal` sin `ScrollView` (`:449-588`). En iOS, `number-pad` no
+    tiene tecla de retorno.
+  - **Camino:** «Número de días» → escribir 25 → «Crear y empezar»: el campo dice 25, la vista previa sigue en 7 y
+    se guardan 7; en el selector, Génesis → «Hasta el capítulo» 3 → «Añadir pasaje»: Génesis 1-50. Controles (con
+    blur): 25 días y Génesis 1-3. **Sonda:** la de `R9-508`, casos `[3a]`, `[3b]`.
+
+- **`R9-511` (S129, `A37` / Juntos, devocional y estudio — P2) — 🐛 un devocional con más de 12 000 caracteres de
+  notas se comparte recortado sin aviso, y «Compartir» borra el borrador: lo que no entró ya no está en el
+  teléfono.** MEDIDO con sonda en la 129 (agentes 3 y 5 por separado, re-medido igual en el principal). Victor puede
+  subirlo: se pierde texto escrito (aquí P2, como `R9-498` y `R9-473`).
+  - `makeCalBundle` (`bundle.ts:441-453`) corta cada nota a `min(280, 12000 - total)` (`types.ts:43`): una nota a
+    la mitad y las siguientes fuera. La pantalla (`app/features/devotional/index.tsx:522`, `:532-534`) deja 184 días
+    de 280 sin mostrar el total; `onShare` (`:266-290`) guarda en «Tus devocionales» el paquete recortado
+    (`:257-264`) y borra el borrador (`:288-289`); «Reenviar» manda lo recortado. De la misma raíz, P3:
+    `makeStudyBundle` (`bundle.ts:383-394`) corta cada nota de la Mesa a 4 000 (y 20 000 el total), a media
+    palabra, sin `maxLength` en la Mesa.
+  - **Camino:** un devocional de 50 días con notas largas → «Compartir» → salir: 2 000 caracteres escritos fuera, y
+    el formulario vacío al volver.
+  - **Sondas:** `_scratch/S129-sondas-agente-5/S129-a5-compartir.test.tsx.txt` (la pantalla real):
+    `{"days":50,"typedChars":14000,"cap":12000,"sharedNotes":43,"savedNotes":43,"draftAfter":null,"formAfterReopen":false}`;
+    control (30 días): las 30. `S129-a3-codec` (`PRESUPUESTO`, `ESTUDIO LARGO`).
+  - **Visto de paso (P3, `:288-289`):** cancelar la hoja del sistema y salir también vacía el formulario (en Android
+    `Share.share` no distingue).
+  - **Propuesta (sin escribir):** mostrar lo que queda y cortar la caja en el tope, o no borrar el borrador si el
+    paquete recortó algo.
+
+- **`R9-512` (S129, `A37` / Juntos, invitar — P2) — 🐛 invitar a un plan curado con la duración elegida manda el
+  plan con su duración por defecto: el grupo deja de leer lo mismo el mismo día.** MEDIDO con sonda en la 129
+  (agente 5, re-medido igual en el principal).
+  - `ShareTogetherModal.tsx:105-108` arma `makePlanBundle` (`bundle.ts:318-332`: solo `p`, `s`, `g`), mientras quien
+    comparte lee `effectivePlanDays(plan, getPlanDuration(plan.id))` (`plan/[id].tsx:109-114`) y el mensaje lleva su
+    `{{n}}`; quien se une no tiene duración y, ya miembro, no ve el selector (`:302-303`).
+  - **Camino:** «Los 4 Evangelios» en 80 días → invitar → el otro se une: 40 días («Mateo 6, Mateo 7» el día 3
+    contra «Mateo 3»). **Sonda:** la de `R9-511`, `S129A5-2`: `"senderDays":80,"recipientDays":40`.
+  - **Propuesta (sin escribir):** la duración en el paquete como campo opcional, o avisar al compartir.
+
+- **`R9-513` (S129, `A37` / Juntos, importar — P3) — 🐛 importar otra vez el mismo plan propio reinicia su
+  calendario.** MEDIDO con sonda en la 129 (agente 4, re-medido igual en el principal con `TZ=America/Mexico_City`).
+  - `together/index.tsx:235-242` (`onImport`) llama a `setPlanStart(custom.id, ahora)` sin mirar si el plan ya
+    existe (el id sale del contenido); `setPlanStart` (`ReadingPlanProgressContext.tsx:259-268`) pisa `startedAt`.
+  - **Camino:** volver a tocar el enlace del chat (o el autor que prueba su propio enlace): «Te esperan 3 días» pasa
+    a «Llevas 6 días de ventaja» y desaparece «Ponte al día»; la fecha original se pierde (los días leídos no).
+  - **Sonda:** la de `R9-506`, `S129B1`: `"ritmoAntes":{"status":"behind",…},"ritmoDespues":{"status":"ahead",…}`;
+    control `S129B2`: re-unirse a una invitación curada conserva la fecha.
+
+- **`R9-514` (S129, `A37` / planes propios — P3) — 🐛 un nombre con `$&`, `$$` o `` $` `` se deforma en los textos
+  de la pantalla del plan.** MEDIDO con sonda en la 129 (agente 1, re-medido igual en el principal). Cosmético.
+  - `plan/[id].tsx:531-534`, `:904-907` y `:239-241` arman con `.replace('{{plan}}', nombre)`, que interpreta los
+    patrones `$` del nombre; `sanitizePlanName` (`bundle.ts:247-271`) deja pasar el `$`. «Plan $& diario» →
+    «Terminaste «Plan {{plan}} diario»…». El patrón está en toda la app (también en los mensajes de compartir y en
+    `:788` con el nombre del grupo): sin barrer. **Sonda:** la de `R9-507`, test `planCompletedMessage…`.
+
+- **`R9-515` (S129, `A38` / widget nativo — P3) — 🐛 el «VERSO DEL DÍA» del escritorio queda un día atrás buena
+  parte del día.** MEDIDO con sonda en la 129 (agente 6, re-medido igual en el principal con
+  `TZ=America/Mexico_City`); la hora del `onUpdate` de Android se confirma en el escritorio (Modo C).
+  - `verse_widget_info.xml:13`: `updatePeriodMillis="86400000"`, contadas desde que el widget se registró (al
+    colocarlo, al reiniciar, al actualizar), no desde la medianoche; el `receiver` (`with-verse-widget.js:87-97`)
+    no escucha `DATE_CHANGED`/`TIME_SET`/`TIMEZONE_CHANGED`; `refreshAll` (`.kt:350-359`) no tiene llamador y el
+    «WidgetRefresher» del comentario (`verse_widget_info.xml:5-6`) no existe.
+  - **Camino:** colocar el widget a las 20:00 → al día siguiente, hasta las 20:00, el versículo de ayer mientras el
+    inicio muestra el de hoy (la guía promete el mismo, «una vez al día»: `translations.ts:5552-5553`). No es
+    `R9-172` (una hora con horario de verano).
+  - **Sonda:** `_scratch/S129-sondas-agente-6/S129-a6-widgetNativo.test.tsx.txt` (8/8), prueba 4: `07:00 del 4-nov:
+el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el índice del `.kt` coincide con el
+    de la app los 365 días. **Propuesta (sin escribir):** refrescar a la medianoche local, en el generador.
+
+- **`R9-516` (S129, `A38` / widget nativo — P3) — 🐛 con el teléfono en inglés, el widget dice «VERSO DEL DÍA»
+  encima del versículo en inglés.** MEDIDO con sonda en la 129 (agente 6, re-medido igual en el principal).
+  - `verse_widget.xml:10-19` pinta `@string/verse_widget_label`, que el plugin escribe solo en `values/`
+    (`with-verse-widget.js:112-131`), sin `values-en`; `updateWidget` (`.kt:312-347`) cambia texto y referencia
+    según el teléfono, no la cabecera. La descripción del selector, igual. **Sonda:** la de `R9-515`, prueba 6.
+
+- **`R9-517` (S129, `A38` / widget nativo — P3) — 🐛 comillas dobladas en 33 de los 198 versículos en inglés.**
+  MEDIDO con sonda en la 129 (agente 6, re-medido igual en el principal). Cosmético.
+  - `.kt:322` envuelve el texto en «“…”» y 33 textos WEB ya traen las suyas: «“The LORD will fight for you, and you
+    shall be still.””». En español, 0. **Sonda:** la de `R9-515`, prueba 7.
+
+- **`R9-518` (S129, `A39` / marcadores retirados — P2) — 🐛 al iniciar sesión en una instalación nueva, la
+  migración de los marcadores duplica favoritos que la cuenta ya tenía, en todos los dispositivos.** MEDIDO con
+  sonda en la 129 (agente 7, re-medido igual en el principal); el duplicado, por lectura. Alcance chico.
+  - `app/_layout.tsx:161-175` pasa a la migración `favorites.map(f => f.verseId)` y el `addFavorite` del render en
+    que cambió el usuario: en una instalación nueva, Favoritos está vacío ahí (el motor baja los favoritos después;
+    `FavoritesContext` no se recarga al cambiar de cuenta). La migración (`retiredBookmarksMigration.ts:196-217`)
+    no encuentra el versículo, `addFavorite` (`FavoritesContext.tsx:297`) tampoco, y crea otro con id nuevo; al
+    bajar el original, `applyRemoteUpsert` (`:161-217`) lo inserta por `id` (la tabla no tiene `UNIQUE(verse_id)`,
+    `database/index.ts:565-578`).
+  - **Camino:** una cuenta que usó «Marcadores» hasta `d0b3a75` (2026-08-10) con el mismo versículo como marcador y
+    favorito → instala hoy en otro teléfono (o reinstala) → inicia sesión: el versículo dos veces en Favoritos (el
+    original con sus colecciones, el otro sin ninguna).
+  - **Sonda:** `_scratch/S129-sondas-agente-7/S129-a7-migracionAlEntrar.test.tsx.txt` (`AppContent` real, la
+    migración real): `antesDeEntrar=0 get=1 borrados=1 addFavorite=[{"book":"John","chapter":3,"verse":16,…}]`;
+    control: `addFavorite=[]`.
+
+- **`R9-519` (S129, `A39` / colecciones — P3) — 🐛 dos toques en chips distintos de «Agregar a colección» antes de
+  que vuelva la primera escritura: se pierde la primera.** MEDIDO con sonda en la 129 (agente 7, re-medido igual en
+  el principal).
+  - `AddToCollectionSheet.tsx:84-100`: `toggle` arma la lista desde el `fav.tags` del render; `updateFavorite`
+    (`FavoritesContext.tsx:386-400`) pone el estado tras el `await` de SQLite. Igual `create` (`:102-109`) seguido
+    de un chip. No es `R9-102`. **Sonda:** `S129-a7-dosToquesHoja.test.tsx.txt` (provider y hoja reales):
+    `{"db":["Promesas"],"state":["Promesas"]}`; control: `["Consuelo","Promesas"]`.
+
+- **`R9-520` (S129, `A39` / favoritos — P3) — 🐛 con la clave vieja de un respaldo anterior a `ad782e2`, «Agregar a
+  colección» crea un segundo favorito vacío.** MEDIDO con sonda en la 129 (agente 7, re-medido igual en el
+  principal). Gemelo de `R9-145` en favoritos.
+  - El lector busca el favorito por `verseId` canónico (`[chapter].tsx:1695-1702`; `addFavorite`, `:297`), y el
+    corazón (`isFavorite`, `:430-441`) por libro canónico; el import (`BackupService.ts:736-739`, `:1424-1440`) y
+    `applyRemoteUpsert` copian `verseId: "Juan_3_16"` tal cual. **Sonda:** `S129-a7-claveVieja.test.tsx.txt`:
+    `corazon=true yaEs=false filas=["Juan_3_16/[\"Promesas\"]","John_3_16/[]"]`; control: una fila.
+
+- **`R9-521` (S129, `A39` / Datos bíblicos — P3) — 🐛 los datos ya abiertos no siguen a la versión.** MEDIDO con
+  sonda en la 129 (agente 8; el 6 lo vio sin medir; re-medido igual en el principal). Familia de `R9-430`/`R9-486`.
+  - `app/features/facts/index.tsx:92-134`: `resolved[ref]` sin la versión; el efecto `:137-141` recarga solo el dato
+    del día. **Camino:** abrir «Pan sin tiempo para leudar» → el chip al lector → KJV → atrás: RVR1960 bajo el chip
+    viejo (la pila, por analogía con `S127-a5-pilaLector`). **Sonda:**
+    `_scratch/S129-sondas-agente-8/S129-a8-factsVersion.test.tsx.txt` (4/4): `"textoRVR":true,"textoKJV":false`;
+    control (montada con KJV), bien; cerrar y abrir lo cura.
+
+- **`R9-522` (S129, `A39` / línea de tiempo — P3) — 🐛 «Tu línea de tiempo» pierde el récord de racha de devoción a
+  los 400 días y muestra una racha menor como hito.** MEDIDO con sonda en la 129 (agente 8, re-medido igual en el
+  principal). Puede ser diseño: lo decide Victor.
+  - `timeline.tsx:139` usa el registro podado por `recordDevotion` (`devotionLog.ts:82-90`,
+    `DEVOTION_RETENTION_DAYS = 400`); `streakRecordEvents` (`timeline.ts:150-199`) compara solo con lo que queda.
+    La de lectura no se poda. **Sonda:** la de `R9-521`, prueba 4: `"antes":["devotion:2025-01-30=30"],
+"despues":["devotion:2026-03-06=10"]`; control sin poda, la de 30.
+
+- **`R9-523` (S129, `A39` / Datos bíblicos, contenido — P3, fidelidad) — 🐛 citas entre comillas que no son
+  literales y un conteo inflado.** MEDIDO contra la base y los packs en la 129 (agente 8, re-medido igual en el
+  principal).
+  - `passover-lamb-unbroken`: «no quebraréis hueso de él» / «not a bone of it shall be broken» no está en ninguna
+    versión de su idioma (RVR1960: «ni quebraréis hueso suyo»; KJV: «neither shall ye break a bone thereof»), la
+    familia de `R9-505`; `contentment-secret` (es): «en cualquier estado» (RVR1960 Fil 4:11: «cualquiera que sea mi
+    situación»); `first-last-adam` (es), otro orden; `ararat-mountains`, con RV1909 el versículo dice «montes de
+    Armenia»; `dan-to-beersheba`, «unas 12 veces»: 10 versículos nombran a los dos, 7 en ese orden (9 en cualquiera).
+  - **Sonda:** `_scratch/S129-sondas-agente-8/S129-a8-datosFacts.test.ts.txt` (3/3, `node:sqlite` sobre la base y
+    los packs). El texto lo decide Victor.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
