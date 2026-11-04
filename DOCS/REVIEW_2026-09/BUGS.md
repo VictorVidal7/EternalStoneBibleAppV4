@@ -3747,7 +3747,9 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     (`app/_layout.tsx:432`) mientras corre `initializeBibleData` (`:200-212`).
   - **Agravante (por lectura):** seis pantallas leen `@bible_version` directo y siguen en KJV (la Luz diaria,
     la Mesa, estudio, sentimientos y las dos de share-faith; las líneas, en el detalle): en una misma sesión,
-    dos versiones. Misma raíz que el BUG-2 de Fable, por otro camino.
+    dos versiones. Misma raíz que el BUG-2 de Fable, por otro camino. **Corrección de la 130:** son siete; también
+    el detalle de un tema (`app/features/themes/[theme].tsx:196`), que además no sigue a la versión cambiada con la
+    pantalla abierta (`R9-525`).
   - **Sonda:** `_scratch/S116-sondas-agente-2/S116-a2-versionArranque.test.tsx.txt`: con el `getItem` antes
     que la base, `selectedVersion` = `RVR1960, WEB, KJV, WEB, WEB` (final WEB, guardado KJV); el control, con
     la base antes, termina en KJV. Que el arranque real tenga el primer orden es por lectura.
@@ -12805,6 +12807,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `String(n)` («12345 verses read», donde «Tu camino» pone «12,345»), con `translations.ts:964-968` y
     `:7530-7534`. El resto de la app tiene singulares (`translations.ts:107`, `:289`, `:514`, `:620`).
     `periodRecapModal.test.tsx:92` fija hoy «1 favoritos nuevos» como correcto.
+  - **Los hermanos, en la 130:** `R9-524` (colecciones y la línea de tiempo, también en la imagen que se comparte).
   - **Sonda:** las pruebas «plurales» de `S127-a6-caminoFecha` y `S127-a6-periodoNumeros.test.tsx.txt`, 2/2;
     control: `(12345).toLocaleString('en-US')` = «12,345». En español, el separador solo se nota desde 10 000.
 
@@ -13186,6 +13189,54 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     Armenia»; `dan-to-beersheba`, «unas 12 veces»: 10 versículos nombran a los dos, 7 en ese orden (9 en cualquiera).
   - **Sonda:** `_scratch/S129-sondas-agente-8/S129-a8-datosFacts.test.ts.txt` (3/3, `node:sqlite` sobre la base y
     los packs). El texto lo decide Victor.
+
+- **`R9-524` (S130, `A39` / colecciones y línea de tiempo — P3) — 🐛 la imagen que se comparte dice «1 versículos»
+  y «1 hitos en tu camino».** MEDIDO con sonda en la 130 (en el principal, sin agentes). Familia de `R9-488`, en
+  otras pantallas.
+  - `CollectionImageModal.tsx:126` (`${card.count} ${tc.verses}`) y `TimelineImageModal.tsx:127` (el pie
+    `tl.shareCount.replace('{{n}}', …)`, con `translations.ts:409` y `:6963`); en pantalla, lo mismo en
+    `collections/[name].tsx:247` y `collections/index.tsx:182`. El único caso de un hito ya lo evita a mano el
+    compartir de una fila (`timeline.tsx:300-318`: la fecha en vez de «1 hito»), no el del encabezado.
+  - **Repro:** etiquetar un solo versículo con una colección → abrirla → «Compartir imagen»: «1 VERSÍCULOS». Una
+    instalación con un solo hito (el primer favorito) → «Tu línea de tiempo» → compartir: «1 hitos en tu camino».
+  - **Sonda:** `_scratch/S130-plurales.test.tsx.txt` (4/4: los dos modales reales con el diccionario real; control:
+    con 2, «2 versículos» y «2 hitos en tu camino»).
+  - **El mismo rótulo en `A40` (por lectura):** «Mis devocionales» dice «1 días · Comienza el…» para un devocional
+    de un solo día, que el constructor permite (`devotional/index.tsx:395-400`, con `translations.ts:5703` y
+    `:12241`).
+
+- **`R9-525` (S130, `A40` / temas, sentimientos, Luz diaria — P3) — 🐛 con la versión cambiada con la pantalla
+  abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la
+  voz de la versión nueva.** MEDIDO con sonda en la 130. Familia de `R9-430`, `R9-486` y `R9-521`, y el síntoma de
+  `R9-423` (texto en un idioma, voz en otro) por otro camino.
+  - `themes/[theme].tsx:189-215` y `feelings/[feeling].tsx:158-184` leen `@bible_version` una vez, en el `load`
+    del montaje (sin la versión en sus dependencias ni un foco). «Escuchar» (`:249` y `:230`) encola esas filas
+    con `loadChapter` sin `language`, y el motor narra con el idioma de la versión VIVA
+    (`AudioPlayerContext.tsx:1096`). Por lectura, la Luz diaria tiene el mismo `load` de montaje
+    (`daily-light/index.tsx:117-254`), sin lista de reproducción.
+  - **Repro:** Temas → «Paz» (en RVR1960) → tocar un versículo → en el lector, cambiar a KJV (el modo doble, o
+    Ajustes) → atrás: el tema sigue en español → «Escuchar»: la voz inglesa lee «Números 6:26» y el texto de
+    RVR1960. Igual desde un sentimiento («Ansioso»).
+  - **Sonda:** `_scratch/S130-versionAbierta.test.tsx.txt`, pruebas 1, 2 y 5 (las pantallas reales dentro del
+    `AudioPlayerProvider` REAL, `expo-speech` espiado): tras el cambio, 9 filas de RVR1960 y 0 de KJV; lo hablado
+    `{"texto":"RVR1960|4:6:26","idioma":"en-US"}` (y `RVR1960|19:4:8` en «Ansioso»). Control: montada con KJV,
+    filas y narración en KJV.
+  - **Propuesta (sin escribir):** la versión de `useBibleVersion` en las dependencias del `load` (que además
+    cierra el agravante de `R9-424` en estas pantallas), o pasar `language` a `loadChapter` con la versión de las
+    filas.
+
+- **`R9-526` (S130, `A40` / devocional compartido — P3) — 🐛 el devocional que se recibe nombra el libro en el
+  idioma de la interfaz y muestra el texto de la versión.** MEDIDO con sonda en la 130.
+  - `devotional-shared/index.tsx:115-124` arma `bookDisplay` con `language` (la interfaz); el texto viene de
+    `selectedVersion` (`:108`, `:126`). La misma cosa de dos formas: el constructor que lo manda
+    (`devotional/index.tsx:95-96`) y su gemelo `study-shared` (`:133`, `christLangForVersion`) nombran por la
+    versión, la regla de la app desde S99.
+  - **Repro:** interfaz en inglés y RVR1960 → abrir un enlace de devocional (`eternalbible://features/devotional-
+shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo pasaje en un estudio compartido dice «Juan
+    3:16».
+  - **Sonda:** `_scratch/S130-versionAbierta.test.tsx.txt`, pruebas 3 y 4 (la pantalla real con un `d` de
+    `makeCalBundle`): `{"john":true,"juan":false}` con el texto `RVR1960|43:3:16`; control, con la interfaz en
+    español, «Juan 3:16».
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

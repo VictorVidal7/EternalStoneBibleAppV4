@@ -1,17 +1,17 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-04, fin de la sesión 129.** La 129 hizo el (de) en el MISMO chat que la 128, en
-> la terminal, con 8 agentes que solo midieron (los pidió Victor: «podrías continuar aquí con otros 8 agentes?»; la
-> primera tanda de `fork` se cortó por el límite de 5 horas sin escribir nada y se relanzó con agentes nuevos):
-> **el Modo A P2, la cuarta tanda.** Dieciocho nuevos, `R9-506`..`R9-523` (siete P2, once P3), ninguno P0: `A37` 🐛
-> cerrada (planes propios y Juntos: seis P2), `A38` 🐛 cerrada (el widget nativo: tres P3, y la corrección de
-> `R9-451`) y `A39` 🐛 EN CURSO (un P2 y cinco P3). El ciclo de las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-04, fin de la sesión 130.** La 130 hizo el (df) en un chat nuevo, en la
+> terminal, SIN agentes (lo pidió Victor): **el Modo A P2, la quinta tanda.** Tres nuevos, `R9-524`..`R9-526`
+> (P3), ninguno P0: `A39` 🐛 cerrada (las tarjetas de imagen: «1 versículos») y `A40` 🐛 cerrada (un tema o un
+> sentimiento no siguen a la versión cambiada y «Escuchar» los lee con la voz de la nueva; el devocional recibido
+> nombra el libro en el idioma de la interfaz), más una suma a `R9-524` y una corrección de `R9-424`. El ciclo de
+> las pruebas de la Mesa sigue CERRADO (§7).
 >
-> La 128 ya está mergeada y pusheada (`main` = `origin/main` = `523e9a8`, CI verde en el log, run
-> `41871875138`, 374/4693; corregido en la 129: sus docs decían «sin mergear»). La rama de la 129
-> (`docs/review-s129-a37-a39`, solo docs) va **sin mergear hasta el OK de Victor**. **No queda ningún P0
-> abierto**, y hay 523 hallazgos. **Lo siguiente:** terminar `A39` y seguir con `A40` por el orden del índice, en
-> la 130 (mensaje (df), en `_scratch/S130-PROMPT.md`), en un chat nuevo.
+> La 129 ya está mergeada y pusheada (`main` = `origin/main` = `10be92f`, CI verde en el log, run
+> `41923339402`, 374/4693; corregido en la 130: sus docs decían «sin mergear»). La rama de la 130
+> (`docs/review-s130-a39-a40`, solo docs) va **sin mergear hasta el OK de Victor**. **No queda ningún P0
+> abierto**, y hay 526 hallazgos. **Lo siguiente:** `A41` y `A42` por el orden del índice, en la 131 (mensaje
+> (dg), en `_scratch/S131-PROMPT.md`), en un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -560,12 +560,18 @@ sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. Y el (ct), la
 sesión 118. Y el (cu), la cuarta tanda, HECHO en la sesión 119. Y el (cv), la quinta tanda, HECHO en la
 sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. Y el (cx), la séptima tanda, HECHO en la
 sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la novena tanda, HECHO en la sesión 124. Y el (da), la décima tanda, HECHO en la sesión 125. Y el (db), la primera tanda del Modo A P2, HECHO en la sesión 126. Y el (dc), la segunda tanda, HECHO en la
-sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. **Lo siguiente es el (df).**
+sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. **Lo siguiente es el
+(dg).**
 
-**(df) Sesión 130: el Modo A P2, la quinta tanda,** en un chat nuevo, en la terminal: terminar `A39` (las tarjetas
-de imagen de colecciones y de la línea de tiempo, y `timeline.tsx:388-639`) y seguir con `A40` (Devocional, Daily
-Light, guiada, sentimientos, temas), por el orden del índice. El mensaje está en `_scratch/S130-PROMPT.md`, que
-manda sobre este archivo. Alternativa legítima, si Victor la prefiere: `B6`–`B10` (Modo B), en otra sesión.
+**(dg) Sesión 131: el Modo A P2, la sexta tanda,** en un chat nuevo, en la terminal: `A41` (Teología y
+diccionario) y seguir con `A42` (Sermon-notes y share-faith), por el orden del índice. El mensaje está en
+`_scratch/S131-PROMPT.md`, que manda sobre este archivo. Alternativa legítima, si Victor la prefiere: `B6`–`B10`
+(Modo B), en otra sesión.
+
+**(df) Sesión 130: el Modo A P2, la quinta tanda — ya HECHO en la sesión 130** (en un chat nuevo, SIN agentes, a
+pedido de Victor: `A39` 🐛 cerrada, `R9-524`; `A40` 🐛 cerrada, `R9-525`, `R9-526`; P3, ninguno P0;
+`detail/A39-timeline-facts-colecciones.md` y `detail/A40-devocional-luz-guiada.md`). El mensaje era
+`_scratch/S130-PROMPT.md`.
 
 **(de) Sesión 129: el Modo A P2, la cuarta tanda — ya HECHO en la sesión 129** (en el mismo chat que la 128, con 8
 agentes a pedido de Victor: `A37` 🐛 cerrada, `R9-506`..`R9-514`; `A38` 🐛 cerrada, `R9-515`..`R9-517`; `A39` 🐛 EN
@@ -2272,18 +2278,16 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 129 (2026-11-04).**
+**Medido al cerrar la sesión 130 (2026-11-04).**
 
-- **La 128, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `523e9a8` (solo docs; el
+- **La 129, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `10be92f` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41871875138`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 129: los docs de la
-  128 decían «sin mergear»).
-- **La rama de la 129, sin mergear a propósito y sin pushear:** `docs/review-s129-a37-a39` (solo docs: el
-  ledger de `A37`, `A38` y `A39`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la
-  incluye.
-- **Los worktrees:** ninguno. La 129 fue con 8 agentes (en worktree, a pedido de Victor), que solo midieron; sus
-  worktrees se borraron solos (sin cambios). El checkpoint se escribió en un worktree aparte (`../essb-docs-s129`,
-  fuera del repo), quitado al terminar. Las sondas, en `_scratch/S129-sondas-agente-{1..8}/`.
+  `41923339402`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 130: los docs de la
+  129 decían «sin mergear»).
+- **La rama de la 130, sin mergear a propósito y sin pushear:** `docs/review-s130-a39-a40` (solo docs: el
+  ledger de `A39` y `A40`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 130 fue SIN agentes (lo pidió Victor). El checkpoint se escribió en un worktree
+  aparte (`../essb-docs-s130`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S130-*`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2315,12 +2319,12 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 49** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
+**Cerradas: 51** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
 115: `C6`, `C15`, `C16`, `C39`, `C56`; `A13` en la 116; `A14`, `A15` y `A16` en la 117; `A17` y `A18` en la
 118; `A19` en la 119; `A20` y `A21` en la 120; `A22` y `A23` en la 121; `A24` y `A25` en la 122; `A26` y `A27`
 en la 123; `A28` y `A29` en la 124; `A30` y `A31` en la 125; `A33` en la 126; `A32` y `A34` en la 127; `A35` y
-`A36` en la 128; `A37` y `A38` en la 129).
-**Pendientes: 89** (`A39` EN CURSO desde la 129) (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+`A36` en la 128; `A37` y `A38` en la 129; `A39` y `A40` en la 130).
+**Pendientes: 87** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2397,10 +2401,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 130: el mensaje (df), la quinta tanda del Modo A P2** (`_scratch/S130-PROMPT.md`):
-terminar `A39` y seguir con `A40`, por el orden del índice, sin mezclar modos. La 129 cerró `A37`
-(`R9-506`..`R9-514`) y `A38` (`R9-515`..`R9-517`) y dejó `A39` EN CURSO (`R9-518`..`R9-523`), ninguno P0; la 128,
-`A35` y `A36` (`R9-489`..`R9-505`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
+**Recomendado para la sesión 131: el mensaje (dg), la sexta tanda del Modo A P2** (`_scratch/S131-PROMPT.md`):
+`A41` (Teología y diccionario) y seguir con `A42` (Sermon-notes y share-faith), por el orden del índice, sin
+mezclar modos. La 130 (sin agentes) cerró `A39` (`R9-524`) y `A40` (`R9-525`, `R9-526`), P3, ninguno P0; la 129,
+`A37` y `A38` (`R9-506`..`R9-517`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
 **Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
@@ -3397,6 +3401,14 @@ Alternativas legítimas:
   una regla de juntar: tres agentes llegaron por separado a `R9-506` y dos a `R9-507`, `R9-508` y `R9-511`; un
   hallazgo que nombra una premisa de otro (aquí «no hay widget nativo», `R9-451`) se verifica y se corrige en la
   entrada vieja, sin re-severizarla (`_scratch/S129-agentes-reglas.md.txt`).
+- **Lo que SUENA se mide con el motor real; y una lista de «pantallas que hacen X» se re-cuenta en cada fila
+  (sesión 130, `R9-525`, `R9-424`).** Que un tema no siga a la versión cambiada se ve en las filas; que «Escuchar»
+  lea el texto viejo con la voz nueva, solo con el `AudioPlayerProvider` REAL y `expo-speech` espiado (el molde de
+  `__tests__/audioNarrationLanguage.test.tsx`): `loadChapter` sin `language` toma el idioma de la versión VIVA
+  (`AudioPlayerContext.tsx:1096`). Y la lista de `R9-424` («seis pantallas leen `@bible_version` directo») tenía
+  siete: un `grep` del patrón en la fila nueva la corrigió. Sin agentes, en el principal, dos filas (~4,6k L)
+  cerraron con 3 sondas (5/5, 4/4 y un script de `node:sqlite` sobre los 4 packs de Pages con el sha del
+  `packs/versions.json`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3747,6 +3759,10 @@ Alternativas legítimas:
     dieciocho nuevos (`R9-506`..`R9-523`, siete P2), ninguno P0. **Lo siguiente:** terminar `A39` y seguir con
     `A40` (la 130, `_scratch/S130-PROMPT.md`). Detalle: `detail/A37-planes-juntos.md`, `detail/A38-widgets.md`,
     `detail/A39-timeline-facts-colecciones.md`.
+  - **La quinta tanda del Modo A P2, en la 130 (2026-11-04), en un chat nuevo, SIN agentes (lo pidió Victor):**
+    `A39` y `A40` cerradas (🐛); tres nuevos (`R9-524`..`R9-526`, P3), ninguno P0, más una suma a `R9-524` y una
+    corrección de `R9-424`. **Lo siguiente:** `A41` y `A42` (la 131, `_scratch/S131-PROMPT.md`). Detalle:
+    `detail/A39-timeline-facts-colecciones.md` y `detail/A40-devocional-luz-guiada.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,

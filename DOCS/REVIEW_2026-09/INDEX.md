@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 130: terminar `A39` (Timeline, facts,
-> colecciones) y `A40` (Devocional, Daily Light, guiada, sentimientos, temas) y siguientes.** La 129 (con 8 agentes
+> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 131: `A41` (Teología y diccionario) y `A42`
+> (Sermon-notes y share-faith) y siguientes.** La 130 (sin agentes, en un chat nuevo) cerró `A39` (🐛, con
+> `R9-524`) y `A40` (🐛): `R9-525`, `R9-526`; P3, ninguno P0. La 129 (con 8 agentes
 > a pedido de Victor, en el mismo chat que la 128) cerró `A37` (🐛): `R9-506`..`R9-514`, y `A38` (🐛):
 > `R9-515`..`R9-517`, y dejó `A39` 🐛 EN CURSO: `R9-518`..`R9-523`; siete P2, ninguno P0. La 128 (con 8 agentes a pedido de Victor, en un chat nuevo) cerró `A35` (🐛):
 > `R9-489`..`R9-495`, y `A36` (🐛): `R9-496`..`R9-505`; tres P2, ninguno P0. La 127 (con 6 agentes a pedido de Victor, en un chat nuevo) cerró `A32` (🐛): `R9-476`..`R9-485`, y `A34` (🐛): `R9-486`..`R9-488`; dos P2, ninguno P0. La 126 (con 2 agentes a pedido de Victor, en el mismo
@@ -1569,9 +1570,26 @@
 >   instalación nueva); P3 `R9-519`..`R9-523`. Quedan sin recorrer las tarjetas de imagen y la mitad del render de
 >   la línea de tiempo (`detail/A39-timeline-facts-colecciones.md`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **523**. Rama `docs/review-s129-a37-a39` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** terminar `A39` y seguir con `A40` (Devocional, Daily Light, guiada,
-> sentimientos, temas) por el orden del índice (la 130, `_scratch/S130-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **523**. Rama `docs/review-s129-a37-a39` (solo docs), mergeada y
+> pusheada con el OK de Victor (`10be92f`, CI verde en el log, run `41923339402`, 374/4693; corregido en la 130).
+> **Lo siguiente:** terminar `A39` y seguir con `A40` (Devocional, Daily Light, guiada, sentimientos, temas) por el
+> orden del índice (la 130, `_scratch/S130-PROMPT.md`).
+>
+> **Sesión 130 (2026-11-04): el Modo A P2, la quinta tanda (`A39`, `A40`)**, en un chat nuevo, en la terminal, SIN
+> agentes (lo pidió Victor): todo en el chat principal, con las sondas corridas allí. Solo docs.
+>
+> - **`A39` 🐛 (cerrada):** P3 `R9-524` (la imagen que se comparte dice «1 versículos» y «1 hitos en tu camino»,
+>   familia de `R9-488`); el resto de las tarjetas de imagen y del render de la línea de tiempo, sin hallazgo
+>   (`detail/A39-timeline-facts-colecciones.md`).
+> - **`A40` 🐛 (cerrada):** P3 `R9-525` (con la versión cambiada con la pantalla abierta, un tema o un sentimiento
+>   siguen en la vieja y «Escuchar» los lee con la voz de la nueva) y `R9-526` (el devocional que se recibe nombra el
+>   libro en el idioma de la interfaz); suma a `R9-524` («1 días») y CORRECCIÓN de `R9-424` (son siete las pantallas
+>   que leen `@bible_version` directo). Los datos curados, sin otra versificación que importe
+>   (`detail/A40-devocional-luz-guiada.md`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **526**. Rama `docs/review-s130-a39-a40` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A41` (Teología y diccionario) y `A42` (Sermon-notes y share-faith) por
+> el orden del índice (la 131, `_scratch/S131-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1730,8 +1748,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A36 | Oración y lectio (`features/prayer`, `lectio.tsx`)                 | P2        | 🐛 BUG    | `A36-oracion-lectio`             |
 | A37 | Planes y Juntos (`CustomPlansContext`, `TogetherContext`)          | P2        | 🐛 BUG    | `A37-planes-juntos`              |
 | A38 | Widgets (`src/widgets`, `features/widgets`)                        | P2        | 🐛 BUG    | `A38-widgets`                    |
-| A39 | Timeline, facts, colecciones, marcadores                           | P2        | EN CURSO  | `A39-timeline-facts-colecciones` |
-| A40 | Devocional, Daily Light, guiada, sentimientos, temas               | P2        | PENDIENTE | —                                |
+| A39 | Timeline, facts, colecciones, marcadores                           | P2        | 🐛 BUG    | `A39-timeline-facts-colecciones` |
+| A40 | Devocional, Daily Light, guiada, sentimientos, temas               | P2        | 🐛 BUG    | `A40-devocional-luz-guiada`      |
 | A41 | Teología y diccionario (`features/theology`, `dictionary`)         | P2        | PENDIENTE | —                                |
 | A42 | Sermon-notes y share-faith                                         | P2        | PENDIENTE | —                                |
 | A43 | Reading insights (`reading-insights/index.tsx`, 1730 L)            | P2        | PENDIENTE | —                                |
