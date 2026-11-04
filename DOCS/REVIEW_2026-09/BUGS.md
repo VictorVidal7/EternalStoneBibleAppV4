@@ -12604,6 +12604,184 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     más una migración que fusione las cartas ya guardadas con el nombre en español. Sin medir, para `A36`:
     `lectio.tsx:101-105` y `:233-239` hacen lo mismo con `bookDisplay`. Detalle: `detail/A33-profecias.md`.
 
+- **`R9-476` (S127, `A32` / Mesa, originales — P2) — 🐛 si se mueve el rango o se cambia de pasaje mientras se
+  descarga el pack de originales, al terminar «Palabras clave» muestra las del pasaje de cuando se tocó
+  «Descargar».** MEDIDO con sonda en la 127 (agente 1, re-medido igual en el principal). Gemelo de `R9-435` (la
+  hoja del lector) en la Mesa.
+  - `app/features/prep/index.tsx:823-834`: `handleDownloadOriginals` llama, al terminar, al `loadOriginalWords`
+    del render del toque (`:695-739`), con el `table` de entonces y sin la guarda `isStale` de `load()`
+    (`:497-498`). El efecto del rango nuevo (`:741-743`) corrió durante la descarga, dio `notInstalled` y no
+    vuelve a correr; el foco (`:663-689`) solo relee las notas.
+  - **Camino:** premium sin el pack → Juan 3:16 → «Descargar» → con «Descargando… N%», «Aumentar Versículo final»
+    (`:1919`) o una sugerencia de tema (`setParams`, `:916-932`) → al terminar, «Juan 3:16-17» con solo las
+    palabras de 3:16, o «Romanos 5:8» con las de Juan 3:16. Sale moviendo el rango otra vez.
+  - **Sonda:** `_scratch/S127-sondas-agente-1/S127-a1-originalesViejos.test.tsx.txt`, 10/10:
+    `DAÑO rango {"etiqueta":true,"G25":true,"G2889":false,"G26":false,"importLocalDuranteLaDescarga":1}`,
+    `DAÑO pasaje {…"G25":true,…"G26":false}`; los controles (mover después de la descarga) dan G25+G2889 y solo
+    G26.
+  - **La misma raíz sin descarga** (`:741-743` y `loadCompareRows`, `:793-821`): ninguna de las dos cargas
+    descarta una respuesta vieja; reteniendo la carga de 3:16-17 y achicando a 3:16, aparece la palabra (y la
+    fila) del 17 bajo «Juan 3:16» (`MECANISMO`). Con un toque humano y consultas de milisegundos el orden casi no
+    se invierte: sin medir en dispositivo (Modo C), P3 a lo sumo. El agente 3 vio por separado la variante del
+    idioma (dos cambios en vuelo): la misma raíz.
+  - **Propuesta (sin escribir):** llamar al `loadOriginalWords` actual por un `ref` al terminar, o un contador en
+    las dependencias del efecto; el `runId` de `load()` para las dos cargas. Detalle: `detail/A32-mesa-altitud.md`.
+
+- **`R9-477` (S127, `A32` / originales, el pack — P2) — 🐛 el build del pack de originales descarta 235 palabras
+  griegas: 2 Corintios 13:13-14 y Filipenses 1:16-17 quedan sin originales, y otros 34 versículos incompletos.**
+  MEDIDO con sonda en la 127 (agente 3, re-medido igual en el principal) sobre el pack PUBLICADO en Pages (sha
+  `b16c8dd9…`, el de `originals-meta.json`, 2026-08-26) y las fuentes STEPBible del builder.
+  - `scripts/build-originals-pack.js:268-272`: el regex de `parseStep` acepta `{…}` o `(…)` entre el versículo y
+    `#`, pero TAGNT marca la versificación inglesa con corchetes (`2Co.13.13[13.14]#01`, `Php.1.16[1.17]`): esas
+    filas no casan y el `continue` las descarta sin contarlas. Es el agujero que `24d1cfd9` cerró para los
+    paréntesis. TAHOT no tiene filas con corchetes.
+  - **Camino:** premium con el pack → Mesa de 2 Co 13:14 (la bendición) → «No hay palabras del idioma original
+    marcadas para este pasaje.»; con 13:11-14, solo las palabras de 11-12, sin χάρις. La hoja de originales del
+    lector y el estudio de palabra (`A18`) leen el mismo dato.
+  - **Sonda:** `_scratch/S127-sondas-agente-3/S127-a3-originalesMesa.test.ts.txt` (necesita en
+    `%TEMP%/a3dl/` el pack publicado y `tagnt-*.txt`: URL en `S127-a3-informe.md.txt`): `2CO13:13-14
+{"status":"empty","filas":0}`, `2CO13:11-14 {…"porPrimerVerso":{"11":16,"12":5},"gracia_G5485":false}`,
+    `FIL1:16-17 {"status":"empty"}`, `CAIDAS {"filas":235,"grupos":38}`. Control: 2 Co 13:11-12 y Rom 16:25-27,
+    `ready`.
+  - **Propuesta (sin escribir):** aceptar `[ch.v]` y archivar la fila bajo la referencia entre corchetes (la KJV,
+    que siguen RVR1960 y WEB) con el renumerado de `24d1cfd9`; un contador de filas descartadas que haga fallar el
+    build; reconstruir y republicar el pack (y su `sha256`). Ojo con `R9-483`: republicar deja viejos todos los
+    packs instalados. Detalle: `detail/A32-mesa-altitud.md`.
+
+- **`R9-478` (S127, `A32` / Mesa, versión — P3) — 🐛 si la versión cambia con la Mesa abierta, la cabecera pasa a
+  la versión nueva y el texto se queda en la vieja.** MEDIDO con sonda en la 127 (agente 2, re-medido igual en el
+  principal). Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.
+  - `app/features/prep/index.tsx:1155-1159` toma `passageLabel` y `bookLang` de `selectedVersion` en cada render;
+    el texto, las referencias, Cristo, la introducción y `versionLabel` salen de `resolveVersion(params.version)`
+    en `load()` (`:507-508`), que depende solo de `[table, params.version]`. El agente 3 vio por separado que la
+    glosa (`:706`) tampoco recarga (coherente con el texto).
+  - **Camino:** Mesa de Juan 3:16 en RVR1960 → una referencia cruzada (`handleJump`, `:878-888`) → en el lector,
+    KJV → atrás: «John 3:16» sobre el texto en español. Si la Mesa llegó sin `version` (Home, estudio compartido),
+    el primer toque del rango la arregla; si llegó desde «Estudio» con `version` (`study.tsx:404-410`), queda
+    mezclada. Las notas van con la clave canónica: sin pérdida.
+  - **Sonda:** `_scratch/S127-sondas-agente-2/S127-a2-temaYVersion.test.tsx.txt`, prueba 4:
+    `TRAS-CAMBIO john=1 juan=0 textoRVR=1 textoKJV=0`, y el bosquejo copiado empieza `# John 3:16 (RVR1960)` con
+    el texto en español. Control: antes del cambio, «Juan 3:16».
+  - **Propuesta (sin escribir):** la cabecera con la lengua de la versión cargada, o `load` dependiente de
+    `selectedVersion.id` cuando no hay `params.version`.
+
+- **`R9-479` (S127, `A32` / Mesa, buscar por tema — P3) — 🐛 en inglés, «Search by topic» no encuentra el
+  ejemplo de su propio placeholder («fear»), ni 12 de 16 palabras de todos los días.** MEDIDO con sonda en la 127
+  (agente 2, re-medido igual en el principal).
+  - `src/features/study/prepThemeKeywords.ts:65-89`: `THEME_KEYWORDS` lleva el `id` inglés de cada tema y, de la
+    descripción, solo sustantivos en español; los sinónimos (`TOPIC_SYNONYM_EXPANSION`, `:97-112`), solo en
+    español. Lo muestran `prep/index.tsx:452-456` y `:1797-1805`.
+  - **Camino:** app en inglés, premium → «Search by topic» (`:943-952`) → el ejemplo del placeholder
+    (`translations.ts:7653-7654`, «E.g.: grace, forgiveness, fear») → «fear»: «We couldn’t find passages for that
+    topic». En español, «miedo» da 5.
+  - **Sonda:** la misma, pruebas 1-3: `PLACEHOLDER {…"es:miedo":5,…"en:fear":0}`, `PARES es=16/16 en=3/16` (sin
+    resultado en inglés: fear, anxiety, anguish, sadness, doubt, guilt, loneliness, purpose, tiredness, anger,
+    grief, direction); la Mesa real en inglés: «grace» da 5 filas (control) y «fear», «no encontramos».
+  - **Propuesta (sin escribir):** los sustantivos de la descripción inglesa y una tabla de sinónimos inglesa, o
+    quitar «fear» del placeholder.
+
+- **`R9-480` (S127, `A32` / Mesa, comparar versiones — P3) — 🐛 «Comparar versiones» sigue diciendo «solo una
+  versión» al volver de Ajustes con otra ya descargada.** MEDIDO con sonda en la 127 (agente 4, re-medido igual en
+  el principal).
+  - `app/features/prep/index.tsx:753-788`: `loadCompareVersions` depende de `[isPremium, language,
+selectedVersion.id]` y no corre al volver el foco; el botón de «solo una versión» (`:873-876`) hace
+    `router.push('/(tabs)/settings')`, y la Mesa queda montada debajo.
+  - **Camino:** premium con una sola versión → Mesa → «Comparar versiones» → «Ir a Ajustes» → descargar KJV →
+    atrás: sigue «solo una»; cambiar de pasaje tampoco recarga. Sale cerrando y reabriendo la Mesa.
+  - **Sonda:** `_scratch/S127-sondas-agente-4/S127-a4-mesaNav.test.tsx.txt` (`renderRouter`): `sigue «solo
+una»: true muestra elegir: false llamadas getAvailableVersions despues: 0`. Control: con dos versiones al abrir,
+    el selector aparece.
+
+- **`R9-481` (S127, `A32` / Mesa, navegación — P3) — 🐛 tras «Buscar por tema», el atrás del sistema sale de la
+  Mesa en vez de volver al pasaje.** MEDIDO con sonda en la 127 (agente 4, re-medido igual en el principal).
+  Familia de `R9-459`.
+  - `app/features/prep/index.tsx:944-953`: `handleOpenTopicSearch` limpia el pasaje con `router.setParams`, que
+    no deja entrada en el historial, y la Mesa no tiene `BackHandler` propio; la flecha del estado vacío
+    (`:1559`) y elegir una sugerencia (`:919-934`), lo mismo.
+  - **Camino:** lector en Juan 3 → Mesa de Juan 3:16 → lupa → atrás: `/verse/John/3`, y Juan 3:16 no vuelve por
+    el atrás. No se pierde nada (las notas están guardadas).
+  - **Sonda:** la misma: `tema: tras el boton -> /features/prep {"version":"RVR1960"}`, `tema: atras ->
+consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa, el atrás vuelve al lector.
+
+- **`R9-482` (S127, `A32` / Mesa, ilustraciones — P3) — 🐛 dos toques en una ilustración en modo insertar cierran
+  también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces.** MEDIDO
+  con sonda en la 127 (agente 4, re-medido igual en el principal). Familia de `R9-474` (el tercero, tras el
+  púlpito y el botón del banco de `A26`); `R9-143`/`R9-167` tienen otra raíz.
+  - `app/features/prep/illustrations/index.tsx:218-235`: `handleInsert` no tiene guarda: en cada toque lee,
+    agrega, guarda y hace `router.back()`.
+  - **Camino:** Mesa → «Insertar ilustración» → doble toque en una: se cae en el lector (los dos `back()`); si el
+    segundo llega tras la escritura del primero (durante la transición de salida: el borde lo decide el
+    dispositivo, Modo C), «Aplicación» la lleva dos veces.
+  - **Sonda:** `_scratch/S127-sondas-agente-4/S127-a4-ilustracionDoble.test.tsx.txt`, 3/3: `doble seguido ->
+/verse/John/3 insertada x 1`, `doble espaciado -> /verse/John/3 … insertada x 2`. Control: un toque vuelve a
+    `/features/prep` con la ilustración una vez.
+
+- **`R9-483` (S127, `A32` / Mesa, originales — P3) — 🐛 con el pack de originales de julio, los Salmos con título
+  salen vacíos en la Mesa, y la Mesa no ofrece actualizar.** MEDIDO con sonda en la 127 (agente 3, re-medido
+  igual en el principal).
+  - `app/features/prep/index.tsx:695-704` solo mira que el pack esté instalado; el aviso de pack nuevo
+    (`isOriginalsUpdateAvailable`) existe solo en `OriginalLanguagesSheet.tsx:145`.
+  - **Camino:** quien bajó el pack antes del 2026-08-26 → Mesa del Salmo 3:1-2 → «No hay palabras…», sin oferta.
+    Salida: actualizar desde la hoja del lector. Pesa más si se republica el pack por `R9-477`.
+  - **Sonda:** la de `R9-477`: `VIEJO {"viejo":["empty",0],"nuevo":["ready",13],"mesaOfreceActualizar":false}`.
+
+- **`R9-484` (S127, `A32` / originales, morfología — P3) — 🐛 28 palabras del pack publicado tienen un código de
+  morfología que el decodificador no conoce: 9 sin morfología y 13 compuestos que pierden el verbo.** MEDIDO con
+  sonda en la 127 (agente 3, re-medido igual en el principal).
+  - `src/features/study/morphologyDecoder.ts`: las tablas se filtraron contra el pack de julio; los 22 códigos
+    que no resuelven aparecen 0 veces ahí y 28 en el publicado (entraron con las filas que recuperó `24d1cfd9`).
+    Sin decodificar: Sal 69:28, Sal 45:15, el arameo de Dn 4-6, Hch 13:39; sin el verbo: Dt 13:2
+    `HC/VHu1cp/Sp3mp` como «Conjunción + Sufijo…», Dn 4:14, Jr 9:18, Neh 4:9, Is 64:5.
+  - **Camino:** premium con el pack → Mesa (o la hoja del lector, `A18`) de uno de esos versículos → la palabra sin
+    morfología o sin el verbo.
+  - **Sonda:** la de `R9-477`: `MORFO {"pares":4237,"nulos":9,…"segPerdidos":13,…}`; detalle en
+    `S127-a3-morfoCodigos.out.txt`. `__tests__/morphologyDecoder.test.ts:149-160` prueba la tabla contra sí misma,
+    no contra el pack.
+
+- **`R9-485` (S127, `A32` / originales, el pack — P3) — 🐛 los dobles corchetes de crítica textual llegan a la
+  palabra y a la glosa (Mc 16:9-20, Jn 7:53-8:11).** MEDIDO con sonda en la 127 (agente 3, re-medido igual en el
+  principal).
+  - `scripts/build-originals-pack.js:281-292` no limpia `[[`/`]]`: en Mc 16:9 la Mesa muestra `[[Ἀναστὰς` con la
+    glosa `[[Habiendo levantado`; en Jn 8:11, `estés pecando]]`. Raíz distinta de la de `R9-477`.
+  - **Sonda:** la de `R9-477`: `GLOSA {"griego":{"n":141861,"conMarca":25},…}` y `corchetes:55` filas. Cosmético.
+
+- **`R9-486` (S127, `A34` / Journeys — P3) — 🐛 la vista previa de una parada no sigue a la versión: tras cambiarla
+  en el lector y volver, sigue en la vieja bajo el chip en la nueva.** MEDIDO con sonda en la 127 (agente 5,
+  re-medido igual en el principal). Familia de `R9-430` (otra pantalla, otra clave: `previewText`).
+  - `app/features/journeys/[routeId].tsx:130-131` guarda el texto por parada sin la versión; `toggleExpand`
+    (`:226-252`) no lo vuelve a pedir si ya está (`:234`), y nada lo borra al cambiar `selectedVersion`. El chip
+    sí sigue a la versión (`localizedRef`, `:194-207`); `prophecies/index.tsx:288` sí recarga.
+  - **Camino:** Éxodo → «El Mar Rojo» (texto de RVR1960) → el chip «Éxodo 14:22» al lector → WEB → atrás: el texto
+    en español bajo «Exodus 14:22»; cerrar y abrir no lo cambia, y las paradas que abre después vienen en WEB.
+    Sale saliendo de la ruta.
+  - **Sonda:** `_scratch/S127-sondas-agente-5/S127-a5-vistaPrevia.test.tsx.txt`, 2/2:
+    `{"chipAntes":true,"chipDespues":true,"muestraRVR":true,"muestraWEB":false,"llamadas":["RVR1960"]}`; control
+    (montada con WEB) `{"chip":true,"llamadas":["WEB"]}`. Que la ruta queda montada bajo el lector:
+    `S127-a5-pilaLector.test.tsx.txt` (`renderRouter`), 1/1. Detalle: `detail/A34-journeys-camino.md`.
+
+- **`R9-487` (S127, `A34` / «Tu camino» — P3) — 🐛 en América (al oeste de UTC), «Tu camino» dice que empezaste un
+  día antes.** MEDIDO con sonda en la 127 (agente 6, re-medido igual en el principal con
+  `TZ=America/Mexico_City`).
+  - `src/features/journey/journeyRecap.ts:187-191`: `dayStringToMs` lee la fecha local `YYYY-MM-DD` del log
+    (escrita con `localDayKey`, `AchievementService.ts:331`) con `Date.parse`, que la toma como medianoche UTC; la
+    intro la formatea en hora local (`app/features/journey/index.tsx:226-231`, `:247-250`). El hermano
+    `periodRecap.ts:113-119` (`localDayMs`) lo hace bien. `daysSinceStart` (`:306-310`) arrastra el error sin
+    mostrarse.
+  - **Camino:** en México, quien empezó a leer el 17 de junio abre «Tu camino»: «desde el 16 de junio de 2026»
+    («since June 16, 2026»). Al este de UTC sale bien; Fable no lo vio (emulador en GMT, QA área 50).
+  - **Sonda:** `_scratch/S127-sondas-agente-6/S127-a6-caminoFecha.test.tsx.txt` (con la precondición de zona al
+    oeste de UTC), 6/6: el 16 en los dos idiomas; control: el mismo día por un favorito (ms locales), el 17.
+
+- **`R9-488` (S127, `A34` / «Tu camino» y recap por período — P3) — 🐛 rótulos sin singular («1 favoritos», «1
+  reading days») y, en la tarjeta del recap que se comparte, números sin separador de miles.** MEDIDO con sonda en
+  la 127 (agente 6, re-medido igual en el principal).
+  - `app/features/journey/index.tsx:466` y `:331-332`; `PeriodRecapModal.tsx:102-137` arma las filas con
+    `String(n)` («12345 verses read», donde «Tu camino» pone «12,345»), con `translations.ts:964-968` y
+    `:7530-7534`. El resto de la app tiene singulares (`translations.ts:107`, `:289`, `:514`, `:620`).
+    `periodRecapModal.test.tsx:92` fija hoy «1 favoritos nuevos» como correcto.
+  - **Sonda:** las pruebas «plurales» de `S127-a6-caminoFecha` y `S127-a6-periodoNumeros.test.tsx.txt`, 2/2;
+    control: `(12345).toLocaleString('en-US')` = «12,345». En español, el separador solo se nota desde 10 000.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
