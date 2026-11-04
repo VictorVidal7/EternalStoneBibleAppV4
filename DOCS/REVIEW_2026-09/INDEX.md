@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 131: `A41` (Teología y diccionario) y `A42`
-> (Sermon-notes y share-faith) y siguientes.** La 130 (sin agentes, en un chat nuevo) cerró `A39` (🐛, con
+> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 132: `A43` (Reading insights) y `A44`
+> (Comparación de versiones) y siguientes.** La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (🐛):
+> `R9-527`, y `A42` (🐛): `R9-528`; P3, ninguno P0. La 130 (sin agentes, en un chat nuevo) cerró `A39` (🐛, con
 > `R9-524`) y `A40` (🐛): `R9-525`, `R9-526`; P3, ninguno P0. La 129 (con 8 agentes
 > a pedido de Victor, en el mismo chat que la 128) cerró `A37` (🐛): `R9-506`..`R9-514`, y `A38` (🐛):
 > `R9-515`..`R9-517`, y dejó `A39` 🐛 EN CURSO: `R9-518`..`R9-523`; siete P2, ninguno P0. La 128 (con 8 agentes a pedido de Victor, en un chat nuevo) cerró `A35` (🐛):
@@ -1587,9 +1588,24 @@
 >   que leen `@bible_version` directo). Los datos curados, sin otra versificación que importe
 >   (`detail/A40-devocional-luz-guiada.md`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **526**. Rama `docs/review-s130-a39-a40` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A41` (Teología y diccionario) y `A42` (Sermon-notes y share-faith) por
-> el orden del índice (la 131, `_scratch/S131-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **526**. Rama `docs/review-s130-a39-a40` (solo docs), mergeada y
+> pusheada con el OK de Victor (`60cc41e`, CI verde en el log, run `41931041248`, 374/4693; corregido en la 131).
+> **Lo siguiente:** `A41` (Teología y diccionario) y `A42` (Sermon-notes y share-faith) por el orden del índice (la
+> 131, `_scratch/S131-PROMPT.md`).
+>
+> **Sesión 131 (2026-11-04): el Modo A P2, la sexta tanda (`A41`, `A42`)**, en el MISMO chat que la 130 (lo pidió
+> Victor: «podrías continuar aquí?»), en la terminal, SIN agentes. Solo docs.
+>
+> - **`A41` 🐛 (cerrada):** P3 `R9-527` (la cita del Salmo 90:2 en inglés, en Teología, no es la de ninguna versión
+>   que trae la app); y medido para `R9-503`: «La Trinidad» abre 2 Co 13:14, que en RV1909 no existe
+>   (`detail/A41-teologia-diccionario.md`).
+> - **`A42` 🐛 (cerrada):** P3 `R9-528` (al volver del editor de una nota de sermón o de un testimonio con un cambio
+>   de menos de 700 ms, la lista muestra el texto viejo; el dato se guarda); nota a `R9-525` (métodos y objeciones,
+>   la carga única de la versión) y, para `R9-503`, Job 38:4 sin defecto (`detail/A42-sermones-share-faith.md`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **528**. Rama `docs/review-s131-a41-a42` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A43` (Reading insights) y `A44` (Comparación de versiones) por el orden
+> del índice (la 132, `_scratch/S132-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1750,8 +1766,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A38 | Widgets (`src/widgets`, `features/widgets`)                        | P2        | 🐛 BUG    | `A38-widgets`                    |
 | A39 | Timeline, facts, colecciones, marcadores                           | P2        | 🐛 BUG    | `A39-timeline-facts-colecciones` |
 | A40 | Devocional, Daily Light, guiada, sentimientos, temas               | P2        | 🐛 BUG    | `A40-devocional-luz-guiada`      |
-| A41 | Teología y diccionario (`features/theology`, `dictionary`)         | P2        | PENDIENTE | —                                |
-| A42 | Sermon-notes y share-faith                                         | P2        | PENDIENTE | —                                |
+| A41 | Teología y diccionario (`features/theology`, `dictionary`)         | P2        | 🐛 BUG    | `A41-teologia-diccionario`       |
+| A42 | Sermon-notes y share-faith                                         | P2        | 🐛 BUG    | `A42-sermones-share-faith`       |
 | A43 | Reading insights (`reading-insights/index.tsx`, 1730 L)            | P2        | PENDIENTE | —                                |
 | A44 | Comparación de versiones (`VersionComparisonScreen`, 2141 L)       | P2        | PENDIENTE | —                                |
 | A45 | Landings compartidos + about-book + explore-all                    | P2        | PENDIENTE | —                                |

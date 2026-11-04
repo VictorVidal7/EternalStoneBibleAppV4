@@ -12961,6 +12961,15 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     (RVR1960): de «Entonces oró Jonás» a «La salvación es de Jehová». Otras referencias en esos capítulos, sin
     medir: `kidsStories.ts:705`, `:739`, `messianicProphecies.ts:535`, `theology.ts:51`, `cross-references.ts:88`,
     `shareFaithObjections.ts:138`.
+  - **Medido en la 131 (`A41`), `theology.ts:51`:** «La Trinidad» cita `2 Corinthians/13/14`, y en el pack RV1909
+    publicado 2 Co 13 tiene 13 versículos: la bendición trinitaria es el 13:13 y el 14 no existe. «Abrir en el
+    lector» (`theology/index.tsx:83-96`) empuja `?verse=14`: el lector reintenta el desplazamiento y abre el
+    capítulo arriba, sin resaltar nada (`[chapter].tsx:968-995`). KJV, BSB, SSE1569, RVR1960 y WEB tienen 14.
+    Sonda: `_scratch/S130-versif.cjs.txt` sobre los 4 packs de Pages (sha de `packs/versions.json`) y la base.
+  - **Medido en la 131 (`A42`), `shareFaithObjections.ts:138`:** `Job/38/4` es el mismo versículo en los seis textos
+    («¿Dónde estabas tú cuando yo fundaba la tierra?»); RV1909 difiere al final del capítulo (38 contra 41). Sin
+    defecto. De los seis «sin medir», quedan `kidsStories.ts:705`, `:739`, `messianicProphecies.ts:535` y
+    `cross-references.ts:88`.
 
 - **`R9-504` (S128, `A36` / orar la Escritura — P3) — 🐛 el Salmo 51 está en la sección «Salmos que la Escritura
   titula "oración"», y su título no lo dice.** MEDIDO en la 128 (agente 7, re-medido igual en el principal).
@@ -13224,6 +13233,9 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
   - **Propuesta (sin escribir):** la versión de `useBibleVersion` en las dependencias del `load` (que además
     cierra el agravante de `R9-424` en estas pantallas), o pasar `language` a `loadChapter` con la versión de las
     filas.
+  - **Los gemelos sin audio, en la 131 (`A42`, por lectura):** el detalle de un método y el de una objeción de
+    share-faith tienen el mismo `load` de montaje (`share-faith/methods/[id].tsx:208-234`,
+    `objections/[id].tsx:199-225`): con la versión cambiada en el lector, siguen en la vieja hasta reabrirlos.
 
 - **`R9-526` (S130, `A40` / devocional compartido — P3) — 🐛 el devocional que se recibe nombra el libro en el
   idioma de la interfaz y muestra el texto de la versión.** MEDIDO con sonda en la 130.
@@ -13237,6 +13249,37 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Sonda:** `_scratch/S130-versionAbierta.test.tsx.txt`, pruebas 3 y 4 (la pantalla real con un `d` de
     `makeCalBundle`): `{"john":true,"juan":false}` con el texto `RVR1960|43:3:16`; control, con la interfaz en
     español, «Juan 3:16».
+
+- **`R9-527` (S131, `A41` / Teología, contenido — P3, fidelidad) — 🐛 la cita del Salmo 90:2 en inglés no es la
+  de ninguna versión que trae la app.** MEDIDO contra la base y los packs en la 131 (en el principal, sin agentes).
+  Familia de `R9-523` y `R9-505`.
+  - `translations.ts:9828` (`theology.items.eternity.body`, EN): «Before the mountains were brought forth, or ever
+    you had formed the earth and the world, even from everlasting to everlasting, you are God.» KJV dice «or ever
+    thou hadst formed»; WEB, «were born, before you had formed»; BSB, «were born or You brought forth». Es la KJV
+    modernizada a mano (o una WEB vieja), sin atribución. Las otras 22 citas del español (RVR1960) y las demás del
+    inglés (WEB) son literales.
+  - **Repro:** interfaz en inglés → Teología → «No beginning, no end» → abrir la tarjeta.
+  - **Sonda:** `_scratch/S131-citasTeologia.cjs.txt` (cada cita entre comillas de los cuerpos, normalizada,
+    buscada en RVR1960 y RV1909, o en KJV, WEB y BSB; un versículo o dos seguidos); salida en
+    `S131-citasTeologia.out.txt`. El texto lo decide Victor.
+
+- **`R9-528` (S131, `A42` / notas de sermón y testimonios — P3) — 🐛 al volver del editor con un cambio de menos
+  de 700 ms, la lista muestra el texto viejo.** MEDIDO con sonda en la 131. Familia de `R9-422` (la Mesa), en otras
+  pantallas. Sin pérdida: el dato se guarda.
+  - `sermon-notes/index.tsx:76-86` recarga en el foco con `getAllSermonNotes` (`sermonNotesStore.ts:34-43`), que
+    lee `AsyncStorage` directo, fuera de la cola de escrituras (`:56-69`). El editor guarda con un debounce de
+    700 ms por campo y hace `flush` al DESMONTARSE (`sermon-notes/[id].tsx:136-156`): al volver, el foco de la lista
+    llega antes del desmontaje de la de arriba (por lectura: la pila la quita al terminar la transición), y aunque
+    llegara después, la lectura no espera la cola (medido). Lo mismo, por lectura, en
+    los testimonios (`share-faith/testimony/index.tsx:72-82`, `testimony/[id].tsx:123-151`,
+    `faithTestimonyStore.ts:33-43`).
+  - **Repro:** Notas de sermón → abrir una → escribir el título («Domingo de Ramos») → atrás enseguida: la lista
+    sigue con el título por defecto (y la fecha y el orden viejos). Al volver a enfocarla, aparece.
+  - **Sonda:** `_scratch/S131-sermonLista.test.tsx.txt` (las dos pantallas reales y el store real, el foco como
+    react-navigation): con el foco antes de desmontar, `{"lista":"Viejo","guardado":"Domingo de Ramos"}`; con el
+    orden inverso, también «Viejo»; control (el foco tras terminar la escritura): «Domingo de Ramos». 3/3.
+  - **Propuesta (sin escribir):** que `getAllSermonNotes` espere la cola (`await writeQueue`) y que el editor haga
+    `flush` al perder el foco, no solo al desmontarse.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

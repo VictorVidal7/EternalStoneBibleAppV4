@@ -1,17 +1,17 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-04, fin de la sesión 130.** La 130 hizo el (df) en un chat nuevo, en la
-> terminal, SIN agentes (lo pidió Victor): **el Modo A P2, la quinta tanda.** Tres nuevos, `R9-524`..`R9-526`
-> (P3), ninguno P0: `A39` 🐛 cerrada (las tarjetas de imagen: «1 versículos») y `A40` 🐛 cerrada (un tema o un
-> sentimiento no siguen a la versión cambiada y «Escuchar» los lee con la voz de la nueva; el devocional recibido
-> nombra el libro en el idioma de la interfaz), más una suma a `R9-524` y una corrección de `R9-424`. El ciclo de
-> las pruebas de la Mesa sigue CERRADO (§7).
+> **Última actualización: 2026-11-04, fin de la sesión 131.** La 131 hizo el (dg) en el MISMO chat que la 130 (lo
+> pidió Victor: «podrías continuar aquí?»), en la terminal, SIN agentes: **el Modo A P2, la sexta tanda.** Dos
+> nuevos, `R9-527` y `R9-528` (P3), ninguno P0: `A41` 🐛 cerrada (la cita del Salmo 90:2 en inglés, en Teología, no
+> es la de ninguna versión que trae la app) y `A42` 🐛 cerrada (al volver del editor de una nota de sermón o de un
+> testimonio, la lista muestra el texto viejo), más notas a `R9-503` y `R9-525`. El ciclo de las pruebas de la Mesa
+> sigue CERRADO (§7).
 >
-> La 129 ya está mergeada y pusheada (`main` = `origin/main` = `10be92f`, CI verde en el log, run
-> `41923339402`, 374/4693; corregido en la 130: sus docs decían «sin mergear»). La rama de la 130
-> (`docs/review-s130-a39-a40`, solo docs) va **sin mergear hasta el OK de Victor**. **No queda ningún P0
-> abierto**, y hay 526 hallazgos. **Lo siguiente:** `A41` y `A42` por el orden del índice, en la 131 (mensaje
-> (dg), en `_scratch/S131-PROMPT.md`), en un chat nuevo.
+> La 130 ya está mergeada y pusheada (`main` = `origin/main` = `60cc41e`, CI verde en el log, run
+> `41931041248`, 374/4693; corregido en la 131: sus docs decían «sin mergear»). La rama de la 131
+> (`docs/review-s131-a41-a42`, solo docs) va **sin mergear hasta el OK de Victor**. **No queda ningún P0
+> abierto**, y hay 528 hallazgos. **Lo siguiente:** `A43` y `A44` por el orden del índice, en la 132 (mensaje
+> (dh), en `_scratch/S132-PROMPT.md`), en un chat nuevo.
 >
 > **⛔ Modo SOLO TERMINAL desde el 2026-09-24:** el crédito de la nube se terminó. No propongas
 > sesiones en la nube: todo se hace en el chat local. Agentes (en worktree), solo si Victor los pide;
@@ -560,13 +560,18 @@ sesión 116. Y el (cs), la segunda tanda, HECHO en la sesión 117. Y el (ct), la
 sesión 118. Y el (cu), la cuarta tanda, HECHO en la sesión 119. Y el (cv), la quinta tanda, HECHO en la
 sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. Y el (cx), la séptima tanda, HECHO en la
 sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la novena tanda, HECHO en la sesión 124. Y el (da), la décima tanda, HECHO en la sesión 125. Y el (db), la primera tanda del Modo A P2, HECHO en la sesión 126. Y el (dc), la segunda tanda, HECHO en la
-sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. **Lo siguiente es el
-(dg).**
+sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. Y el (dg), la sexta tanda,
+HECHO en la sesión 131. **Lo siguiente es el (dh).**
 
-**(dg) Sesión 131: el Modo A P2, la sexta tanda,** en un chat nuevo, en la terminal: `A41` (Teología y
-diccionario) y seguir con `A42` (Sermon-notes y share-faith), por el orden del índice. El mensaje está en
-`_scratch/S131-PROMPT.md`, que manda sobre este archivo. Alternativa legítima, si Victor la prefiere: `B6`–`B10`
-(Modo B), en otra sesión.
+**(dh) Sesión 132: el Modo A P2, la séptima tanda,** en un chat nuevo, en la terminal: `A43` (Reading insights,
+`reading-insights/index.tsx` 1730 L) y seguir con `A44` (Comparación de versiones, `VersionComparisonScreen` 2141
+L), por el orden del índice. El mensaje está en `_scratch/S132-PROMPT.md`, que manda sobre este archivo.
+Alternativa legítima, si Victor la prefiere: `B6`–`B10` (Modo B), en otra sesión.
+
+**(dg) Sesión 131: el Modo A P2, la sexta tanda — ya HECHO en la sesión 131** (en el mismo chat que la 130, SIN
+agentes, a pedido de Victor: `A41` 🐛 cerrada, `R9-527`; `A42` 🐛 cerrada, `R9-528`; P3, ninguno P0;
+`detail/A41-teologia-diccionario.md` y `detail/A42-sermones-share-faith.md`). El mensaje era
+`_scratch/S131-PROMPT.md`.
 
 **(df) Sesión 130: el Modo A P2, la quinta tanda — ya HECHO en la sesión 130** (en un chat nuevo, SIN agentes, a
 pedido de Victor: `A39` 🐛 cerrada, `R9-524`; `A40` 🐛 cerrada, `R9-525`, `R9-526`; P3, ninguno P0;
@@ -2278,16 +2283,16 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 130 (2026-11-04).**
+**Medido al cerrar la sesión 131 (2026-11-04).**
 
-- **La 129, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `10be92f` (solo docs; el
+- **La 130, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `60cc41e` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41923339402`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 130: los docs de la
-  129 decían «sin mergear»).
-- **La rama de la 130, sin mergear a propósito y sin pushear:** `docs/review-s130-a39-a40` (solo docs: el
-  ledger de `A39` y `A40`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 130 fue SIN agentes (lo pidió Victor). El checkpoint se escribió en un worktree
-  aparte (`../essb-docs-s130`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S130-*`.
+  `41931041248`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 131: los docs de la
+  130 decían «sin mergear»).
+- **La rama de la 131, sin mergear a propósito y sin pushear:** `docs/review-s131-a41-a42` (solo docs: el
+  ledger de `A41` y `A42`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 131 fue SIN agentes, en el mismo chat que la 130. El checkpoint se escribió en un
+  worktree aparte (`../essb-docs-s131`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S131-*`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2319,12 +2324,12 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 ## 3. Dónde va la revisión
 
 **138 filas** en el ledger: Modo A 46 · Modo B 11 · Modo C 71 · Modo D 10.
-**Cerradas: 51** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
+**Cerradas: 53** (todo el Modo B P0 + las 12 filas del Modo A P0, `A12` en la 114; 5 del Modo C P0 en la
 115: `C6`, `C15`, `C16`, `C39`, `C56`; `A13` en la 116; `A14`, `A15` y `A16` en la 117; `A17` y `A18` en la
 118; `A19` en la 119; `A20` y `A21` en la 120; `A22` y `A23` en la 121; `A24` y `A25` en la 122; `A26` y `A27`
 en la 123; `A28` y `A29` en la 124; `A30` y `A31` en la 125; `A33` en la 126; `A32` y `A34` en la 127; `A35` y
-`A36` en la 128; `A37` y `A38` en la 129; `A39` y `A40` en la 130).
-**Pendientes: 87** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+`A36` en la 128; `A37` y `A38` en la 129; `A39` y `A40` en la 130; `A41` y `A42` en la 131).
+**Pendientes: 85** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2401,10 +2406,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 131: el mensaje (dg), la sexta tanda del Modo A P2** (`_scratch/S131-PROMPT.md`):
-`A41` (Teología y diccionario) y seguir con `A42` (Sermon-notes y share-faith), por el orden del índice, sin
-mezclar modos. La 130 (sin agentes) cerró `A39` (`R9-524`) y `A40` (`R9-525`, `R9-526`), P3, ninguno P0; la 129,
-`A37` y `A38` (`R9-506`..`R9-517`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
+**Recomendado para la sesión 132: el mensaje (dh), la séptima tanda del Modo A P2** (`_scratch/S132-PROMPT.md`):
+`A43` (Reading insights) y seguir con `A44` (Comparación de versiones), por el orden del índice, sin mezclar
+modos. La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (`R9-527`) y `A42` (`R9-528`), P3, ninguno P0;
+la 130, `A39` y `A40` (`R9-524`..`R9-526`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
 **Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
@@ -3409,6 +3414,14 @@ Alternativas legítimas:
   siete: un `grep` del patrón en la fila nueva la corrigió. Sin agentes, en el principal, dos filas (~4,6k L)
   cerraron con 3 sondas (5/5, 4/4 y un script de `node:sqlite` sobre los 4 packs de Pages con el sha del
   `packs/versions.json`).
+- **Una lista que recarga en el foco no ve el `flush` del editor que se desmonta; y una cita en inglés se mide
+  contra las versiones que TRAE la app (sesión 131, `R9-528`, `R9-527`).** Al volver, el foco de la pantalla de
+  abajo llega antes de que se desmonte la de arriba, y la lectura directa de `AsyncStorage` no espera la cola de
+  escrituras del store: la sonda monta las DOS pantallas reales, cambia un campo, llama al foco y desmonta en los dos
+  órdenes, con un control que enfoca tras la escritura (`_scratch/S131-sermonLista.test.tsx.txt`). Y las citas de un
+  texto curado se barren todas con un script (`_scratch/S131-citasTeologia.cjs.txt`: entre comillas, normalizadas,
+  un versículo o dos seguidos): la de Sal 90:2 era la KJV modernizada, que no está en KJV, WEB ni BSB. Un mock de
+  `@expo/vector-icons` con solo `Ionicons` rompe `MarkdownFormatToolbar`: mockearlo vacío si no interviene.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3763,6 +3776,10 @@ Alternativas legítimas:
     `A39` y `A40` cerradas (🐛); tres nuevos (`R9-524`..`R9-526`, P3), ninguno P0, más una suma a `R9-524` y una
     corrección de `R9-424`. **Lo siguiente:** `A41` y `A42` (la 131, `_scratch/S131-PROMPT.md`). Detalle:
     `detail/A39-timeline-facts-colecciones.md` y `detail/A40-devocional-luz-guiada.md`.
+  - **La sexta tanda del Modo A P2, en la 131 (2026-11-04), en el MISMO chat que la 130, SIN agentes (lo pidió
+    Victor):** `A41` y `A42` cerradas (🐛); dos nuevos (`R9-527`, `R9-528`, P3), ninguno P0, más notas a `R9-503` y
+    `R9-525`. **Lo siguiente:** `A43` y `A44` (la 132, `_scratch/S132-PROMPT.md`). Detalle:
+    `detail/A41-teologia-diccionario.md` y `detail/A42-sermones-share-faith.md`.
 - **`R9-330` queda PENDIENTE, decidido el 2026-10-13 (tras la sesión 95), con la recomendación de
   Claude («sigamos tu recomendación»).** Es la edición pedida sin cuenta detrás de la adopción, que
   queda partida entre dos Mesas. Hay un diseño por entrada medido como prototipo (`porEntradaAuto`,
