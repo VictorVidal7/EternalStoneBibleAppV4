@@ -30,8 +30,8 @@ keystore de la plantilla contra el del prebuild).
   No está el de subida (`A9:89:EC:46…EE:8D`, medido en el AAB de vc74) ni el de Play App Signing (Play re-firma
   cada AAB; su SHA-256, `3ac22403…2989`, es el único registrado en Firebase, agregado en la sesión 46: dato de la
   memoria, no medido aquí). **Camino:** con la app instalada desde Play en Android 12 o más, tocar en WhatsApp una
-  invitación `https://eternalstonebible.github.io/o/#d=…` (`bundle.ts:492-496`; `app.json:62-73`,
-  `autoVerify: true`) abre el navegador: la página `web/o/index.html` lee el `#d=` (`:167`) y rebota a
+  invitación `https://eternalstonebible.github.io/o/#d=…` (`bundle.ts:492-496`; `app.json:62-73`, y en el manifiesto
+  fusionado de vc74 `android:autoVerify="true"` con ese host y `pathPrefix="/o"`, `:175-181`) abre el navegador: la página `web/o/index.html` lee el `#d=` (`:167`) y rebota a
   `eternalbible://features/together?d=…` (`:176`, `:210`) o deja el botón «Open in Eternal Stone Bible». Lo que
   prometió `9b75f5e7` («a verified link opens the app DIRECTLY, dropping the browser flash») no pasa nunca fuera
   de un build de debug. Y el dominio queda delegado a una clave que tiene cualquiera: una app con el paquete
@@ -41,8 +41,9 @@ keystore de la plantilla contra el del prebuild).
   Victor (es un despliegue).
 - **`R9-551` (P3)** — `google-services.json:21` (`certificate_hash` `5e8f1606…f625`) es el SHA-1 del mismo
   keystore público, y Firebase lo tiene registrado en el proyecto de producción junto al de subida (`399e…`) y al de
-  Play (`422e…`, `3ac2…`). **Camino:** Google Sign-In valida paquete + SHA-1 contra los clientes OAuth de Android
-  del proyecto; con ese registro, una app con el paquete de la app firmada con el keystore de la plantilla puede
+  Play (`422e…`, `3ac2…`): eso está MEDIDO. **Camino (razonado, no medido):** Google Sign-In valida paquete + SHA-1
+  contra los clientes OAuth de Android del proyecto (la pata empírica: en las sesiones 44 a 46, el build de Play no
+  pudo iniciar sesión hasta que se registró la huella de Play App Signing); con ese registro, una app con el paquete de la app firmada con el keystore de la plantilla puede
   pedir el inicio de sesión contra el proyecto real y, si el usuario elige su cuenta en el selector («Eternal Stone
   Bible»), obtiene su sesión de Firebase y con ella lee y escribe `users/{uid}` (notas, diario de oración). La
   cadena es improbable (instalar una app falsa por fuera de Play, que no convive con la real); el daño, de
@@ -65,7 +66,8 @@ keystore de la plantilla contra el del prebuild).
   (`expo-notifications` re-agenda tras reiniciar), `VIBRATE` (`expo-haptics`), `ACCESS_NETWORK_STATE`/
   `ACCESS_WIFI_STATE` (netinfo), `WAKE_LOCK` (Firebase), `BILLING` (RevenueCat, `billing:8.3.0`),
   `READ_GSERVICES` (el reCAPTCHA de Firebase Auth), el install referrer y el `DYNAMIC_RECEIVER` de `androidx.core`.
-- **Los 9 componentes exportados son los esperados:** `MainActivity`, `VerseWidgetProvider` (solo
+- **Los 8 componentes exportados son los esperados** (`grep -c 'exported="true"'` da 9: el noveno es un comentario
+  del manifiesto, `:315`; la lista, `_scratch/S136-B6-exportados.out.txt`): `MainActivity`, `VerseWidgetProvider` (solo
   `APPWIDGET_UPDATE`; su `PendingIntent` con `FLAG_IMMUTABLE`, `VerseWidgetProvider.kt:338-342`), el receptor de
   FCM (permiso `c2dm.SEND`), el de Amazon IAP (permiso `NOTIFY`), las dos actividades de Firebase Auth, el
   `RevocationBoundService` y el `ProfileInstallReceiver` (permiso `DUMP`).

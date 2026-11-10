@@ -56,19 +56,24 @@
 ## Hallazgos
 
 - **`R9-554` (P3)** — La app no trae avisos de terceros en ningún lugar: no hay pantalla de licencias ni de
-  créditos (`grep` de «open source», «licencias», «third-party», «créditos», «acknowledg» en `app/` y `src/`: nada
-  que lo sea), el bundle es bytecode de Hermes (sin los encabezados de licencia del JS) y el AAB solo trae algunos
+  créditos (la búsqueda completa, sin cortar, de «open source», «licencia», «third-party», «créditos», «atribución»,
+  «attribution», «acerca de» en `app/` y `src/`, sin `bible-data-*`: 41 líneas, y lo único es la atribución de
+  CONTENIDO, «openbible.info (CC BY)» y «STEPBible (CC BY)», `translations.ts:829`, `:855`, `:908`, `:7395`:
+  `_scratch/S136-B10-avisos.out.txt`; la app ya atribuye su contenido, no su software), el bundle es bytecode de Hermes (sin los encabezados de licencia del JS) y el AAB solo trae algunos
   `META-INF/androidx/*/LICENSE.txt`. **Camino (a la licencia):** cada copia de la app de pago que se distribuye
   incumple condiciones que el licenciante pone para usar su código: MIT, ISC y BSD piden reproducir el copyright y
   la licencia en la distribución binaria; Apache-2.0, dar una copia de la licencia y los `NOTICE`; Entypo (CC BY-SA
-  4.0) y Font Awesome (OFL 1.1, sin aviso en sus metadatos), atribución. Las fuentes de íconos van en el AAB aunque
+  4.0) y Font Awesome (OFL 1.1), atribución (esas dos licencias son dato de conocimiento: el paquete instalado no las
+  dice, su `LICENSE` es el MIT del código, y las dos fuentes no traen aviso en sus metadatos, medido). Las fuentes de íconos van en el AAB aunque
   no se usen (`R9-555`). Riesgo bajo de reclamo, arreglo barato. **Propuesta (sin escribir):** generar en el build la
   lista de licencias de lo que se publica (las dependencias JS de producción y las librerías Maven) y mostrarla en
   Ajustes → Acerca de; o quitar lo que no se usa antes (`R9-553`, `R9-555`) para achicarla.
 - **`R9-555` (P3, de paso desde `B9`)** — El AAB de vc74 lleva las 19 fuentes de `@expo/vector-icons` (4 076 840 B
   sin comprimir) y la app usa dos familias: `Ionicons` (1300 menciones) y `MaterialCommunityIcons` (11). Las otras 17
   pesan 2 379 456 B. **Causa:** 159 archivos importan desde la raíz (`from '@expo/vector-icons'`), que re-exporta las
-  19 (`node_modules/@expo/vector-icons/build/Icons.js`), y Metro empaqueta todo lo que se requiere. **Camino:** el
+  19 (`node_modules/@expo/vector-icons/build/Icons.js`), y Metro empaqueta todo lo que se requiere: en el bundle de
+  Hermes están `Entypo`, `FontAwesome6` y `Zocial` (`_scratch/S136-B9-bundle.out.txt`), y `expo-router` solo nombra
+  `@expo/vector-icons` en un comentario, así que nadie más pide las 17. **Camino:** el
   instalado y la descarga cargan 2,4 MB de fuentes que nunca se dibujan, y entre ellas dos que piden atribución
   (`R9-554`). **Propuesta (sin escribir):** importar `@expo/vector-icons/Ionicons` y
   `@expo/vector-icons/MaterialCommunityIcons` (existen) y medir el AAB.

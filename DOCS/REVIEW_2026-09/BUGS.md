@@ -13701,8 +13701,8 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     subida (`A9:89:EC:46…`, medido en el AAB de vc74) y el de Play App Signing (`3ac22403…`, el registrado en Firebase
     en la sesión 46; dato de la memoria).
   - **Repro:** con la app de Play en Android 12 o más, tocar en WhatsApp una invitación
-    `https://eternalstonebible.github.io/o/#d=…` (`bundle.ts:492-496`; `app.json:62-73`, `autoVerify: true`): abre el
-    navegador, y `web/o/index.html:167-210` rebota a `eternalbible://features/together?d=…` o deja el botón. Lo que
+    `https://eternalstonebible.github.io/o/#d=…` (`bundle.ts:492-496`; `app.json:62-73`; en el manifiesto fusionado de
+    vc74, `android:autoVerify="true"` con ese host y `/o`, `:175-181`): abre el navegador, y `web/o/index.html:167-210` rebota a `eternalbible://features/together?d=…` o deja el botón. Lo que
     prometió `9b75f5e7` (abrir la app «DIRECTLY, dropping the browser flash») solo pasa en un build de debug. Y el
     dominio queda delegado a esa clave pública: una app con el paquete de la app firmada con ella verifica el enlace
     (instalada por fuera de Play; no convive con la real).
@@ -13713,10 +13713,12 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     Victor). Detalle: `detail/B6-permisos-android.md`.
 
 - **`R9-551` (S136, `B6` / Firebase, cliente OAuth de Android — P3) — 🐛 el proyecto de Firebase de producción acepta
-  como cliente OAuth de Android el certificado de debug público de la plantilla.** MEDIDO en la 136 (GET a Firebase).
+  como cliente OAuth de Android el certificado de debug público de la plantilla.** El registro, MEDIDO en la 136 (GET a
+  Firebase); la cadena de abajo, razonada.
   - `google-services.json:21`: `certificate_hash` `5e8f1606…f625`, el SHA-1 de ese mismo keystore; Firebase lo tiene
     registrado junto al de subida (`399e…`) y al de Play (`422e…`, `3ac2…`): `_scratch/S136-B6-sha-list.out.txt`.
-  - **Camino:** Google Sign-In valida paquete + SHA-1 contra los clientes OAuth del proyecto. Una app con el paquete
+  - **Camino:** Google Sign-In valida paquete + SHA-1 contra los clientes OAuth del proyecto (la pata empírica: en las
+    sesiones 44 a 46 el build de Play no pudo iniciar sesión hasta que se registró su huella). Una app con el paquete
     `com.eternalstonebible.app` firmada con el keystore de la plantilla puede pedir el inicio de sesión contra el
     proyecto real y, si el usuario elige su cuenta en el selector, obtener su sesión de Firebase: lee y escribe
     `users/{uid}` (notas, diario de oración). La cadena es improbable (instalar por fuera de Play una app falsa, que
@@ -13730,10 +13732,11 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   con el splash de la plantilla de Expo (una rejilla gris con círculos sobre blanco).** MEDIDO por archivos en la
   136 (el aspecto en el aparato, sin medir).
   - `app.json:44-48` (imagen `./assets/splash-icon.png`, fondo `#001122`): `expo-doctor` da «Additional property
-    "splash" is not allowed», y `expo-splash-screen` no está instalado. El prebuild del 2026-09-02 dejó los cinco
-    `splashscreen_logo.png` idénticos (sha256) a los de `node_modules/expo/template.tgz` y `splashscreen_background`
-    en `#FFFFFF`; `MainActivity` arranca con `Theme.App.SplashScreen`, cuyo `windowBackground` es ese PNG. El AAB de
-    vc74 lleva los mismos cinco (el mdpi, visto).
+    "splash" is not allowed», y `expo-splash-screen` no está instalado (nunca estuvo en `package.json`). El prebuild
+    del 2026-09-02 dejó los cinco `splashscreen_logo.png` idénticos (sha256) a los de `node_modules/expo/template.tgz`
+    y `splashscreen_background` en `#FFFFFF`; `MainActivity` arranca con `Theme.App.SplashScreen`, cuyo
+    `windowBackground` es ese PNG. El AAB local de vc74 lleva los mismos cinco (el mdpi, visto; que sea el subido a
+    Play no está medido).
   - **Repro:** arrancar en frío la app de Play en Android 7 a 11: la ventana inicial es el marcador de la plantilla.
     En Android 12 o más, el sistema pone el ícono sobre el fondo por defecto del tema, no `#001122` (inferido).
   - **Medida:** `_scratch/S136-B8-expo-doctor.out.txt`, `S136-B8-splash.out.txt`. **Propuesta (sin escribir):**
@@ -13746,7 +13749,9 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - 0 imports en `src/`, `app/`, las pruebas y los plugins. `expo-image` y `expo-status-bar` nunca se importaron;
     `@react-native-community/slider` y `@react-native-clipboard/clipboard` perdieron su último import en
     `9c3446b6` (2026-05-17, «dead code»), y quedó la dependencia. `autolinking.json` lista los dos de dev, y el merge
-    del release incluye los cuatro, más Glide 5.0.5 y sus plugins (`expo-image/android/build.gradle:44-55`).
+    del release incluye los cuatro, más Glide 5.0.5 y sus plugins (`expo-image/android/build.gradle:44-55`). Ningún
+    otro paquete los carga: `npm ls` sin otro dependiente, y el literal de la entrada JS de cada uno aparece 0 veces
+    en el bundle de Hermes del AAB local de vc74 (`_scratch/S136-B9-bundle.out.txt`).
   - **Camino:** el instalado y la descarga cargan código que no hace nada. En el AAB de vc74, solo las `.so`:
     `libavif_android.so` (899 752 B), `libanimation-decoder-gif.so` (275 368 B) y `libreact_codegen_RNCSlider.so`
     (237 048 B), 1,4 MB en arm64; el dex, sin medir.
@@ -13756,12 +13761,14 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
 - **`R9-554` (S136, `B10` / licencias de terceros — P3) — 🐛 la app de pago no trae ningún aviso de terceros, y las
   licencias de lo que publica lo piden.** MEDIDO por archivos en la 136.
   - Lo que se publica puede salir en una app de pago (nada copyleft; el MPL-2.0 de `lightningcss` es de build; los
-    SDK de Google y Amazon se redistribuyen en apps). Pero no hay pantalla de licencias ni de créditos (`grep` en
-    `app/` y `src/`), el bundle es bytecode de Hermes (sin encabezados de licencia) y el AAB de vc74 solo trae algunos
+    SDK de Google y Amazon se redistribuyen en apps). Pero no hay pantalla de licencias ni de créditos: la búsqueda
+    completa en `app/` y `src/` (`_scratch/S136-B10-avisos.out.txt`) solo da la atribución de CONTENIDO
+    («openbible.info (CC BY)», «STEPBible (CC BY)», `translations.ts:829`, `:855`); el bundle es bytecode de Hermes (sin encabezados de licencia) y el AAB de vc74 solo trae algunos
     `META-INF/androidx/*/LICENSE.txt`.
   - **Camino (a la licencia):** cada copia distribuida incumple las condiciones de MIT, ISC y BSD (reproducir el
     copyright y la licencia en la distribución binaria), de Apache-2.0 (la licencia y los `NOTICE`), y la atribución de
-    Entypo (CC BY-SA 4.0) y Font Awesome (OFL 1.1, sin aviso en sus metadatos), que van en el AAB (`R9-555`). Las 18
+    Entypo (CC BY-SA 4.0) y Font Awesome (OFL 1.1; esas dos licencias, de conocimiento: el paquete instalado no las
+    dice; sin aviso en sus metadatos, medido), que van en el AAB (`R9-555`). Las 18
     fuentes de texto sí cumplen: llevan el aviso OFL o Apache en sus metadatos.
   - **Medida:** `_scratch/S136-B10-lic-_.out.txt` (y los de `functions/` y `vercel/`), `S136-B10-fuentes.out.txt`.
     **Propuesta (sin escribir):** generar en el build la lista de licencias de lo publicado (JS de producción y
@@ -13771,8 +13778,9 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   `@expo/vector-icons` y la app usa dos: 2,4 MB de fuentes que nunca se dibujan.** MEDIDO en el AAB de vc74.
   - Las 19 suman 4 076 840 B; la app usa `Ionicons` y `MaterialCommunityIcons` (1300 y 11 menciones en `src/` y
     `app/`); las otras 17, 2 379 456 B. 159 archivos importan desde la raíz (`from '@expo/vector-icons'`), que
-    re-exporta las 19 (`@expo/vector-icons/build/Icons.js`).
-  - **Medida:** `_scratch/S136-B10-iconos.out.txt`. **Propuesta (sin escribir):** importar
+    re-exporta las 19 (`@expo/vector-icons/build/Icons.js`); en el bundle de Hermes están `Entypo`, `FontAwesome6` y
+    `Zocial`, y ningún otro paquete las pide (`expo-router` solo las nombra en un comentario).
+  - **Medida:** `_scratch/S136-B10-iconos.out.txt`, `S136-B9-bundle.out.txt`. **Propuesta (sin escribir):** importar
     `@expo/vector-icons/Ionicons` y `/MaterialCommunityIcons` y medir el AAB. Detalle: `detail/B10-licencias.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando

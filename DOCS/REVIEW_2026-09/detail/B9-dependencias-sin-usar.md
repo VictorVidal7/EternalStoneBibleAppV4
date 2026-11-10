@@ -21,7 +21,10 @@ y `S136-B9-nativos.out.txt` (autolinking, merge del release y `.so` del AAB de v
 ## Hallazgos
 
 - **`R9-553` (P3)** — Cuatro dependencias nativas sin ningún import (0 archivos en el código, las pruebas y los
-  plugins) se compilan en el release:
+  plugins) se compilan en el release. Tampoco las carga otro paquete: `npm ls` no les da más dependiente que la raíz,
+  `expo-router` solo las nombra en comentarios de documentación, y en el bundle de Hermes del AAB local de vc74 el
+  literal de la entrada JS de cada una aparece 0 veces (`ExpoImage`, `RNCSlider`, `RNCClipboard`,
+  `NativeStatusBarWrapper`: `_scratch/S136-B9-bundle.out.txt`). Su JS nunca corre; su parte nativa sí se compila:
   - `expo-image` 57.0.2 (`package.json`, `dependencies`), con Glide 5.0.5, su `avif-integration`, el `glide-plugin`
     de animaciones y `glide-transformations` (`node_modules/expo-image/android/build.gradle:44-55`). Nunca se
     importó (`git log -S"from 'expo-image'"` sobre `src/` y `app/` no da nada; entró con `7994d5d8`, 2025-12-19).
@@ -57,4 +60,5 @@ y `S136-B9-nativos.out.txt` (autolinking, merge del release y `.so` del AAB de v
 ## Sin medir
 
 - El peso en el dex de Glide y de los cuatro módulos (haría falta `bundletool` y un análisis del APK).
-- Si quitar `expo-status-bar` cambia algo de la barra de estado en el arranque (no se importa, así que no debería).
+- Quitar los cuatro, en un build: el bundle dice que su JS no corre (arriba), pero la parte nativa de un módulo de
+  Expo se registra al arrancar; la prueba es el build sin ellos y una pasada por la app.

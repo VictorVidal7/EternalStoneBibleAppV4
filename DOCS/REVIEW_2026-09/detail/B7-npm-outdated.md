@@ -34,8 +34,9 @@ Salidas: `S136-B7-raiz.out.txt`, `S136-B7-functions.out.txt`, `S136-B7-vercel-gi
 
 - El tren de parches del SDK 57: `expo` 57.0.12 → 57.0.32 y, con él, `npx expo install --fix` para los `expo-*` (22 de los 23 atrasados tienen parche en la 57)
   (p. ej. `expo-notifications` 57.0.10 → 57.0.25, `expo-router` 57.0.12 → 57.0.30, `expo-image-picker` 57.0.9 →
-  57.0.21), `jest-expo`, `babel-preset-expo` y `react-native-web` 0.21.2 → 0.21.4. Es UN grupo: los rangos los
-  dicta el `bundledNativeModules.json` del `expo` instalado.
+  57.0.21), `jest-expo`, `babel-preset-expo`, `react-native-web` 0.21.2 → 0.21.4 y `react-native` 0.86.2 → 0.86.3
+  (lo pide `expo-doctor` con `expo` 57.0.32: `detail/B8`; con él, `@react-native/jest-preset` 0.86.3). Es UN grupo:
+  los rangos los dicta el `bundledNativeModules.json` del `expo` instalado.
 - `@react-native-firebase/{app,auth,crashlytics,firestore}` 26.2.0 → 26.4.1: los cuatro con la misma versión.
 - `react-native-purchases` 10.7.1 → 10.16.0: es el cobro (RevenueCat); con prueba de compra y restauración.
 - `@react-native-google-signin/google-signin` 16.1.4 → 16.2.0: con un inicio de sesión de verdad (ver `R9-551`).

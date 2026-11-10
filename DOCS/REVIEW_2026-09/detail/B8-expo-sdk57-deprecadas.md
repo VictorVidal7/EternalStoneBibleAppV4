@@ -29,11 +29,13 @@ Salida: `_scratch/S136-B8-expo-doctor.out.txt`. `git status` limpio y los lockfi
 
 - **`R9-552` (P3)** — `app.json:44-48` declara `splash` (imagen `./assets/splash-icon.png`, fondo `#001122`), pero
   el SDK 57 ya no lo lee arriba (falla del esquema de `expo-doctor`) y `expo-splash-screen` no está instalado (ni en
-  `package.json` ni en `node_modules`). El prebuild del 2026-09-02 19:24 dejó los recursos de la plantilla sin tocar:
+  `package.json` ni en `node_modules`; nunca estuvo: `git log -S'expo-splash-screen' -- package.json package-lock.json`
+  no da nada). El prebuild del 2026-09-02 19:24 dejó los recursos de la plantilla sin tocar:
   los cinco `splashscreen_logo.png` son idénticos (sha256) a los de `node_modules/expo/template.tgz`, y
   `splashscreen_background` es `#FFFFFF` (`android/app/src/main/res/values/colors.xml`). `MainActivity` arranca con
-  `Theme.App.SplashScreen`, cuyo `windowBackground` es ese PNG. El AAB de vc74 lleva los mismos cinco PNG (el mdpi,
-  visto: la rejilla con círculos). **Camino:** en Android 7 a 11, cada arranque en frío muestra el marcador de la
+  `Theme.App.SplashScreen`, cuyo `windowBackground` es ese PNG. El AAB local de vc74 (el build del 2026-09-02; que
+  sea byte a byte el subido a Play no está medido) lleva los mismos cinco PNG (el mdpi, visto: la rejilla con
+  círculos). Desde cuándo el prebuild lo ignora, sin medir (el APK v3.0.4 tiene los recursos ofuscados). **Camino:** en Android 7 a 11, cada arranque en frío muestra el marcador de la
   plantilla como ventana inicial; en Android 12 o más, la pantalla de inicio del sistema pone el ícono sobre el fondo
   por defecto del tema (no `#001122`), porque el `windowBackground` no es un color (inferido de la API, sin medir en
   el aparato). **Propuesta (sin escribir):** instalar `expo-splash-screen` con su plugin (imagen, fondo y variante
