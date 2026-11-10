@@ -13724,7 +13724,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `users/{uid}` (notas, diario de oración). La cadena es improbable (instalar por fuera de Play una app falsa, que
     no convive con la real); el daño es de privacidad. **La severidad la decide Victor**, como `R9-547` (§8).
   - `B2` vio el `certificate_hash` como «información pública», sin notar que es el de la plantilla; la memoria de la
-    44 lo llamó «keystore», como si fuera propio. **Propuesta (sin escribir):** un keystore de debug propio fuera de
+    44 lo llamaba «debug keystore» sin decir que es el público (corregida en la 136). **Propuesta (sin escribir):** un keystore de debug propio fuera de
     git, registrar su SHA-1 en lugar de `5e8f…` (la consola de Firebase, con el OK de Victor) y volver a bajar
     `google-services.json` (lista 1 de los 4 hashes). Detalle: `detail/B6-permisos-android.md`.
 

@@ -47,8 +47,8 @@ keystore de la plantilla contra el del prebuild).
   pedir el inicio de sesión contra el proyecto real y, si el usuario elige su cuenta en el selector («Eternal Stone
   Bible»), obtiene su sesión de Firebase y con ella lee y escribe `users/{uid}` (notas, diario de oración). La
   cadena es improbable (instalar una app falsa por fuera de Play, que no convive con la real); el daño, de
-  privacidad: la severidad la decide Victor, como `R9-547` (§8). La memoria de la 44 llamó a `5e8f…` «keystore»,
-  como si fuera propio. **Propuesta (sin escribir):** un keystore de debug propio fuera de git, registrar su SHA-1
+  privacidad: la severidad la decide Victor, como `R9-547` (§8). La memoria de la 44 lo llamaba «debug keystore»
+  sin decir que es el público de la plantilla (corregida en la 136). **Propuesta (sin escribir):** un keystore de debug propio fuera de git, registrar su SHA-1
   en lugar de `5e8f…`, y volver a bajar `google-services.json` (hoy lista 1 de los 4 hashes registrados).
 
 ## ✅ con su evidencia
