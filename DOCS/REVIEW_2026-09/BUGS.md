@@ -13783,6 +13783,24 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Medida:** `_scratch/S136-B10-iconos.out.txt`, `S136-B9-bundle.out.txt`. **Propuesta (sin escribir):** importar
     `@expo/vector-icons/Ionicons` y `/MaterialCommunityIcons` y medir el AAB. Detalle: `detail/B10-licencias.md`.
 
+- **`R9-556` (S137, `C20a` / Memoria: el mazo y el registro de repasos — P3) — 🐛 un repaso puede quedar en el mazo
+  y faltar en el registro, y entonces la racha y la meta no lo cuentan.** MEDIDO en el emulador, 2 de 2.
+  - `reviewCard` (`src/context/MemoryDeckContext.tsx:519-551`) cambia el mazo con `edit(...)` (se escribe a
+    `@memory_deck` de RKStorage en el efecto de `:351-378`) y manda el evento con `void addReviewEvent(event)` a
+    `review_events` de `bible.db` (`src/lib/memory/reviewEventStore.ts:51-77`): dos almacenes, dos escrituras
+    asíncronas sin orden ni reintento, y nada las reconcilia al arrancar.
+  - **El camino del daño:** el proceso muere (OOM, Recientes, crash) entre las dos escrituras, justo tras
+    calificar. La tarjeta queda avanzada (sube de caja y sale de «Pendientes hoy») y el registro no tiene el
+    repaso: la meta, la racha, el heatmap y la retención no lo cuentan, y el respaldo tampoco lo lleva. Si era el
+    único repaso del día, la racha se corta.
+  - **Medida:** «Fácil» en la última tarjeta y `force-stop` a 150 ms y a 220 ms: el mazo con caja 3 y
+    `reviewCount 1`, el registro sin el evento (`_scratch/S137-sondas-agente-1/S137-a1-g3c-*`, `S137-a1-g3m-*`).
+    Con otras esperas, los dos o ninguno. Tras el frío, 3 repasos hechos y «2/10 hoy»
+    (`S137-a1-61-memoria-divergencia.png`); en Estadísticas, «Repasos 6» contra «4/10 hoy».
+  - **Severidad:** P3. La ventana es de décimas de segundo tras un toque; el daño es un repaso no contado (o una
+    racha cortada), no tarjetas perdidas. Distinto de `R9-48` (el registro al cerrar sesión) y de `R9-29` (el
+    import). Repro: `S137-a1-calificar-matar.sh.txt`. Detalle: `detail/C20a-memoria-srs.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -14809,6 +14827,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `use-debounce@10.1.1` y con sonda—. Lo único descubierto es el proceso que muere (swipe-away,
   OOM, cierre de pestaña). Detalle: `detail/A9-mesa-persistencia.md`.
   **❌ Corrección de la sesión 22: el remedio que sugiere la entrada NO cierra el bug en el teléfono** (medido). `flushOnExit` de `use-debounce` 10.1.1 hace dos cosas: un `flush()` al desmontar, que la Mesa ya hace a mano, y un listener de `document.visibilitychange`. **En React Native no hay `document`**, así que ese listener nunca se engancha; la sonda da `{"hadDocument":false,"appStateListenersRegisteredByHook":0}`. Solo arregla la mitad web. En nativo hace falta un listener de `AppState` → `'background'` que llame a `flush()`. Además, «púlpito, ilustraciones… todos persisten» es cierto, pero esos dos caminos conservan las trampas de `R9-47`: ver `R9-143`.
+  **Sesión 137 (`C1a`, medido en el emulador): la ventana no es de 700 ms.** Con la app en segundo plano el debounce no corre: a los 5 s y a los 30 s el texto no estaba en RKStorage, y se guardó al volver al primer plano (`_scratch/S137-sondas-agente-1/S137-a1-f3c-*`, `S137-a1-f3d-*`). Si el proceso muere en segundo plano se pierde lo tecleado desde la última pausa de 700 ms antes de salir, por mucho tiempo que haya pasado. La severidad se sostiene; el remedio es el de la sesión 22. Detalle: `detail/C1a-mesa-persistencia.md`.
 - **`R9-59` (A9, privacidad local) — 🐛 `@prep_notes` no se limpia al cerrar sesión ni al
   cambiar de cuenta: en un teléfono compartido, el sermón sin terminar del predicador anterior
   queda a la vista del siguiente.** Severidad **baja**. No existe ningún

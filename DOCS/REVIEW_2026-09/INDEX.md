@@ -1898,11 +1898,11 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 
 | #    | Área                                                            | Prioridad | Estado                      | Detalle                 |
 | ---- | --------------------------------------------------------------- | --------- | --------------------------- | ----------------------- |
-| C1a  | Mesa — persistencia y autoguardado de notas                     | P0        | PENDIENTE                   | —                       |
+| C1a  | Mesa — persistencia y autoguardado de notas                     | P0        | ✅ OK                       | `C1a-mesa-persistencia` |
 | C6   | Mesa — historial de preparaciones (premium)                     | P0        | 🐛 BUG (P3)                 | `C6-historial-mesa`     |
 | C15  | Hoja de ofrenda — copy, apertura, compra                        | P0        | 🐛 BUG (P2)                 | `C15-hoja-ofrenda`      |
 | C16  | Gating free vs premium en toda la Mesa                          | P0        | ✅ OK                       | `C16-gating-mesa`       |
-| C20a | Memoria/SRS — integridad de datos y racha (floor restaurado)    | P0        | PENDIENTE                   | —                       |
+| C20a | Memoria/SRS — integridad de datos y racha (floor restaurado)    | P0        | EN CURSO (🐛 P3)            | `C20a-memoria-srs`      |
 | C26a | Cuenta — login/logout Google, identidad                         | P0        | PENDIENTE (sin medir, S137) | `C26a-login-google`     |
 | C26b | Respaldar/restaurar (`BackupService`)                           | P0        | PENDIENTE                   | —                       |
 | C27a | Ajustes — borrar cuenta y reset de datos                        | P0        | PENDIENTE                   | —                       |
