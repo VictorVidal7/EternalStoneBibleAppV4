@@ -421,4 +421,5 @@ colección —el mínimo `updatedAt` de los conflictos pendientes— y usar
   cuando en total son 5 contándola a ella. Nimiedad de documentación, no la reporto.
 - **No revisé** `conflictAnalytics.ts` (213 L) ni `app/features/conflicts/insights.tsx`:
   son el panel de analítica sobre el log de auditoría, no la ruta de datos. Quedan para
-  una fila P2 si alguien quiere cerrarlos.
+  una fila P2 si alguien quiere cerrarlos. **Sesión 135:** los cubrió `A46` (`R9-544`, la auditoría pisada por
+  id; `detail/A46-conflictos.md`).

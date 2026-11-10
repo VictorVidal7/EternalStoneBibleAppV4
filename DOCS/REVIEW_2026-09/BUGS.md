@@ -4112,6 +4112,10 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     UTC y en `America/Mexico_City`.
   - Se ve en la tarjeta del inicio, en el widget y en la notificación diaria. La forma buena ya está
     en `dailyLight.ts:18-22`. Es la familia de `R9-63` y `R9-147`.
+  - **Sesión 135 (agente 6, `A45`):** re-medido igual con `TZ=Europe/Madrid` (la profecía de las 00:30 del
+    25-oct es la de ayer: `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, prueba 2). Una
+    superficie más: los subtítulos «Hoy · …» de explore-all (`explore-all/index.tsx:117-125`). Las demás
+    funciones «del día» de `src/` no usan la fórmula.
 
 - **`R9-173` (S25, lector web — P3, decidido) — 🐛 la opción (b) de `R9-109` no cubre el fallo de red
   ni el 404 del pack en un navegador que ya tiene texto: igual ve la pantalla de error.** MEDIDO por
@@ -12517,6 +12521,10 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
     La app no cae. No es `R9-36` ni `R9-160` (la foto contra lo de ahora), es el tipo.
   - **Propuesta (sin escribir):** un borrador que distinga «vacío» de «—» y que convierta según el tipo del campo
     en la entidad, no según el valor de este teléfono. Detalle: `detail/A30-seguridad-tipos.md`.
+  - **Sesión 135 (agente 7, `A46`), amplía:** con `tags: []` (el defecto de todo favorito,
+    `FavoritesContext.tsx:285`), `formatValue([])` siembra «[]» y guardar crea la colección «[]» en los dos
+    teléfonos (`_scratch/S135-sondas-agente-7/S135-a7-combinar.test.tsx.txt`, prueba 2:
+    `{"local":["[]"],"subido":["[]"]}`). Vaciar un puntaje guarda `0`. La coma dentro de un nombre es `R9-546`.
 
 - **`R9-470` (S125, `A30` / respaldo, progreso de lectura — P3) — 🐛 un respaldo con la clave `__proto__` en el
   progreso de lectura escribe en `Object.prototype` durante toda la sesión.** MEDIDO con sonda en la 125 (agente
@@ -13430,6 +13438,256 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     `compareVerseRange`).
   - **Propuesta (sin escribir):** una tabla de correspondencias por versión (la de `R9-503`) aplicada en
     `compareVerse`, o, como mínimo, que la nota distinga «otra numeración» de «omitido» para RV1909, SSE1569 y WEB.
+
+- **`R9-536` (S135, `A45` / devocional compartido, la cabecera — P3) — 🐛 un devocional compartido de un solo día dice
+  «Devocional · 1 días» / «Devotional · 1 days».** MEDIDO con sonda en la 135 (agente 1, re-medido igual en el
+  principal). Familia de `R9-531`, en otra pantalla.
+  - `devotional-shared/index.tsx:257` arma el rótulo con `dv.daysMeta.replace('{{n}}', String(bundle.d.length))`
+    (`translations.ts:5672`, `:12210`), sin clave singular.
+  - **Repro:** el constructor deja compartir un devocional de un día (`devotional/index.tsx:298`, `canShare =
+days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
+  - **Sonda:** `_scratch/S135-sondas-agente-1/S135-a1-landings.test.tsx.txt`, prueba 1a:
+    `{"rotEs":"Devocional · 1 días","rotEn":"Devotional · 1 days"}`; control 1b, el constructor permite un día.
+  - **Propuesta (sin escribir):** una clave `daysMetaOne`, como los hermanos de `R9-531`.
+
+- **`R9-537` (S135, `A45` / devocional compartido y explore-all, el día — P3) — 🐛 con la pantalla abierta de un día
+  para otro, el «Hoy» sigue siendo el de ayer.** MEDIDO con sonda en la 135 (agentes 1 y 6, re-medido igual en el
+  principal). Familia de `R9-462` (Home).
+  - `devotional-shared/index.tsx:162-169`: el día de foco sale de un `useMemo(…, [bundle])` que toma `new Date()`
+    una vez; `explore-all/index.tsx:117-125`: los subtítulos «Hoy · …» de «Hilo profético» y «¿Sabías qué?» son
+    `useMemo` con `[t.prophecies.items]` y `[t.bibleFacts.items]`; el `useFocusEffect` de `:97-107` solo relee
+    `lastVisitedId`. Nada escucha `AppState`.
+  - **Repro:** abrir un devocional compartido (o Inicio → «Explorar todo») de noche, dejar la app en segundo plano
+    con la pantalla abierta; a la mañana: la tarjeta «Hoy» del devocional sigue en el día de ayer (volver a tocar
+    el mismo enlace no cambia nada: el `d` es el mismo), y explore-all dice «Hoy · <lo de ayer>» mientras su
+    tarjeta abre el hub, que destaca lo de HOY (`prophecies/index.tsx:382`).
+  - **Sondas:** `S135-a1-landings`, prueba 2a (el 10 a las 23:00, luego el 11 a las 08:00):
+    `{"dia1":1,"dia2":0}`; control 2b, montada el 11: Día 2. `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`,
+    pruebas 3-4: `{"profAyerVisible":true,"profHoyVisible":false,"factAyerVisible":true,"hubAbreHoy":true}`;
+    control, montada el 11.
+  - P3: solo el rótulo queda viejo; lo que se abre es lo correcto. **Propuesta (sin escribir):** recalcular con
+    `AppState` → `active` o con una clave del día local, como la propuesta de `R9-462`.
+
+- **`R9-538` (S135, `A45` / landings compartidos, versificación — P3, fidelidad) — 🐛 el landing pone, bajo la
+  referencia que eligió quien comparte, el versículo con ese número en la versión de quien recibe: con RV1909, un
+  Jonás 2:1 compartido desde RVR1960 muestra el pez.** MEDIDO con sonda y sobre los packs publicados en la 135
+  (agente 1, re-medido igual en el principal). Familia de `R9-503` y `R9-535` (otra pantalla: lo que viaja entre
+  dos aparatos). Era un «sin medir» de `A37` (`detail/A37-planes-juntos.md:66-67`), medido aquí porque las
+  pantallas son de esta fila.
+  - El paquete trae solo números, no la versión de quien envía (`bundle.ts`); `devotional-shared/index.tsx:111-127`
+    y `study-shared/index.tsx:137-147` (también las referencias cruzadas `:149-180` y el cumplimiento en Cristo
+    `:191-203`) piden ese número a la versión del que recibe.
+  - **Repro:** quien comparte, en RVR1960, arma un devocional con Jonás 2:1 («Entonces oró Jonás…»); quien recibe
+    tiene RV1909: ve «Jonás 2:1 “Mas jehová había prevenido un gran pez…”». **Sin descargar nada:** un estudio de
+    Romanos 16:25-27 enviado desde RVR1960 y abierto con WEB (las dos de la semilla) muestra tres «…».
+  - **Sonda:** `S135-a1-landings`, pruebas 3a-3c (pack RV1909 de Pages, manifiesto `232bdf30…`):
+    `{"enviado":"Entonces oró Jonás…","recibido":"Mas jehová había prevenido un gran pez…"}`, y
+    `{"puntos":3,"rvr":true,"web":false}`; control 3b, con RVR1960.
+  - **Propuesta (sin escribir):** la tabla de correspondencias de `R9-503`, más la versión del que envía en el
+    paquete.
+
+- **`R9-539` (S135, `A45` / «Sobre este libro», «Cristo en este libro» — P3, fidelidad) — 🐛 la tarjeta pone entre «»,
+  con su referencia, palabras que el versículo no dice en ninguna versión de la app del idioma.** MEDIDO con sonda y
+  barrido en la 135 (agentes 2, 5 y 12, re-medido igual en el principal). Familia de `R9-527` y `R9-528` (las citas
+  de un texto curado).
+  - `about-book/[book].tsx:152-157` muestra `intro.christ` tal cual (`src/constants/book-intros.ts`). Las 14 líneas
+    (es: RVR1960, RV1909, SSE1569; en: WEB, KJV, BSB): `:947` Zac 9:9 «montado sobre asno» (las tres: «cabalgando
+    sobre un asno»); `:899` Sof 3:17 «se gozará sobre ti con cánticos» (une dos cláusulas); `:1145` y `:1156` 1 Co
+    2:2 «Cristo crucificado» / «Christ crucified» (el 2:2 dice «Jesucristo, y a éste crucificado»; la frase es del
+    1:23); `:886` Hab 2:4 «The righteous shall live by his faith» (WEB/BSB «will live», KJV «The just shall live»);
+    sin «…»: `:1021` y `:1032` Mc 10:45, `:1372` 2 Ti 1:10 (falta «and immortality»), `:766` Am 9:11 («David's
+    fallen tent»); `:522` Pr, «made unto us wisdom from God» (1 Co 1:30: mezcla de KJV y WEB); `:1396` Tit 2:11
+    «has appeared for salvation»; `:535` Ec «bajo el sol» (las tres dicen «debajo del sol», como el propio `theme`
+    de `:530`); `:51` Gn «su «sí» en Cristo (Gá 3:16)» (el «Sí» es de 2 Co 1:20; el caso más débil); y, en el
+    `context`, `:1166` 2 Co 12:7 «aguijón en la carne» (las tres: «en mi carne»).
+  - **Repro:** Biblia → un libro (Zacarías) → ⓘ (`chapter/[book].tsx:324`) → «Cristo en este libro».
+  - **Sondas:** `_scratch/S135-sondas-agente-2/S135-a2-citasSobreLibro.test.tsx.txt` (5/5; control Génesis 3:15
+    «simiente») y `_scratch/S135-sondas-agente-5/S135-a5-citasIntro2.test.tsx.txt` (5/5, contra las tres versiones
+    del idioma; control Job 19:25 literal). Barridos: `S135-a2-citasIntro.cjs.txt` (96 citas «(n:n)» del mismo
+    libro, ninguna referencia inexistente) y `S135-a5-citasTodas.cjs.txt` (63 citas «», 40 referencias de otro
+    libro: todas existen y dicen lo que se afirma). Los conteos de los barridos no casan entre sí (96 y 128
+    referencias según el regex): la lista de arriba es la que vale.
+  - Fuera del número, para Victor (dudosos, sin severizar): Judas v.24 «Aquel poderoso para guardaros…: Cristo»
+    (`:1603`; el v.25 dice «al único y sabio Dios, nuestro Salvador» en cinco versiones, BSB agrega «through Jesus
+    Christ»), y Malaquías 4:5 «Juan el Bautista» (`:968`; el versículo dice «Elías»; la identificación es del NT).
+  - **Propuesta (sin escribir):** solo texto: citar literal, quitar las comillas o poner «…».
+
+- **`R9-540` (S135, `A45` / «Sobre este libro», datos del libro — P3) — 🐛 tres afirmaciones de `book-intros` que el
+  propio texto de la app desmiente: 1 Reyes «termina con la caída de Israel (722) y el cautiverio en Babilonia
+  (586)», Filipenses «la palabra "gozo" aparece 16 veces», y dos rangos que dejan afuera el versículo citado.**
+  MEDIDO con sonda en la 135 (agente 12, re-medido igual en el principal). Familia de `R9-539`.
+  - `book-intros.ts:290` / `:301` (1 Reyes, `context`): el último versículo es 1 Re 22:53 (Ocozías) en las 6
+    versiones; Babilonia/Asiria aparece 0 veces en 1 Reyes (76-80 en 2 Reyes): la frase es de 1-2 Reyes como obra.
+    `:1238` / `:1249` (Filipenses, `context`): «gozo» 7/6/4 (RVR1960/RV1909/SSE1569), «joy» 5/6/5 (WEB/KJV/BSB);
+    el 16 sale solo contando la familia gozo/regocijar. `:1121` / `:1132` (Romanos, `christ`): «por la fe en Cristo
+    y su sangre (3:23-24)»: fe y sangre están en el 3:25 de las seis; `:1265` / `:1276` (Colosenses, `christ`):
+    «redención (1:15-20)» está en el 1:14 (P3 bajo, estos dos).
+  - **Repro:** Biblia → 1 Reyes → ⓘ → «Contexto» (`[book].tsx:149`); el `context` también se ve en un estudio
+    compartido (`study-shared/index.tsx:331`) y en la Mesa (Pendiente: medido de paso, por lectura).
+  - **Sonda:** `_scratch/S135-sondas-agente-12/S135-a12-sentidoIntro.test.tsx.txt` (7/7; control: Nehemías «52
+    días», Neh 6:15 en las 6). La paridad es/en de `author`, `date`, `keyVerses`, números y referencias: ✅ en los 66.
+  - **Propuesta (sin escribir):** solo texto («…termina con Ocozías; 2 Reyes continúa hasta el exilio»; quitar el
+    16; «(3:23-25)», «(1:14-20)»). De paso, `:118` «Las cuarenta años».
+
+- **`R9-541` (S135, `A45` / landings compartidos, la pila — P3) — 🐛 el mismo enlace tocado dos veces deja dos
+  landings idénticos en la pila, y sobra un atrás.** MEDIDO con sonda en la 135 (agente 4, re-medido igual en el
+  principal). Familia de `R9-502` y `R9-507` (un `replace` que deja otra copia); otro camino que el `d` repetido de
+  `R9-461` y que el atrás en frío de `R9-457`.
+  - Todo enlace compartido es https y entra por `together` (`+native-intent.tsx:28-37`, o el redirector
+    `web/o/index.html:176`), que hace `router.replace` al landing (`together/index.tsx:161-174`). Como la ruta
+    enfocada ya no es `together`, el NAVIGATE del enlace siguiente empuja otra `together`, que se reemplaza por un
+    landing nuevo aunque el `d` sea el mismo.
+  - **Repro:** tocar el enlace en el mensajero → se abre el landing → volver al mensajero con Inicio o Recientes
+    → tocar el mismo enlace: dos landings iguales; el primer atrás no cambia nada visible.
+  - **Sonda:** `_scratch/S135-sondas-agente-4/S135-a4-montado.test.tsx.txt` (5/5, `renderRouter` con el
+    `redirectSystemPath` real y el evento `url`): prueba 3 `{"copias":2}` (`[A, A]`); controles: B sobre A da
+    `[A, B]` con keys distintas (historial normal), del devocional al estudio `[A, S]`.
+  - Sin daño en los datos (los landings no guardan nada). **Propuesta (sin escribir):** no empujar el landing si
+    arriba ya está el mismo con el mismo `d` (o un `getId` por `d`).
+
+- **`R9-542` (S135, `A45` / landings compartidos, accesibilidad — P3) — 🐛 el `accessibilityLabel` fijo de la tarjeta
+  y de cada día del devocional compartido tapa lo que muestran: con lector de pantalla, la nota de quien comparte no
+  se oye.** MEDIDO con sonda en la 135 (agente 13, re-medido igual en el principal).
+  - Un `TouchableOpacity` agrupa a sus hijos en un foco y su `accessibilityLabel` reemplaza su texto:
+    `devotional-shared/index.tsx:273` (la tarjeta de hoy: el label es la cita; adentro, «Hoy», «Día N · fecha», el
+    versículo y la nota, `:278-292`) y `:324-327` (cada día: «Día N: cita»; adentro, el texto y la nota,
+    `:337-350`). **Por lectura, sin sonda:** `study-shared/index.tsx:354` (cada referencia cruzada tapa su texto),
+    y el aviso de conflictos y el de cambios perdidos de Ajustes (`settings.tsx:643`, `:613`: el label sin el
+    número que el botón muestra).
+  - **Repro:** con TalkBack, abrir un devocional compartido con notas (`makeCalBundle` admite `note`,
+    `bundle.ts:417-425`): se oye «Juan 3:16, botón»; la nota, lo único que escribió quien lo manda, no se oye.
+  - **Sonda:** `_scratch/S135-sondas-agente-13/S135-a13-rotulos.test.tsx.txt`, prueba 1a:
+    `{"cardLabel":"Juan 3:16","dentroCard":{"nota":true,…},"enLabel":{"cardNota":false,"rowNota":false}}`;
+    control 1b, la nota en pantalla. Lo que TalkBack lee de verdad es Modo C.
+  - P3 (el agente lo deja en P2 si se pesa a quien usa lector de pantalla: la nota le queda inalcanzable).
+    **Propuesta (sin escribir):** que el label incluya lo que se ve, o la cita como `accessibilityHint`.
+
+- **`R9-543` (S135, `A45` / estudio compartido, el idioma — P3 bajo) — 🐛 la introducción del libro en un estudio
+  compartido sigue el idioma de la VERSIÓN, sus rótulos el de la interfaz, y «Sobre este libro» la muestra en el de
+  la interfaz.** MEDIDO con sonda en la 135 (agente 13, re-medido igual en el principal). No es `R9-526` (el
+  nombre del libro del devocional, el sentido contrario).
+  - `study-shared/index.tsx:133` y `:213`: `getBookIntro(bookId, christLangForVersion(version))`; los rótulos
+    (`:325`, `:489`) salen de `t.prepTable`; `about-book/[book].tsx:50`, por la interfaz. El comentario de
+    `christConnections.ts:334-340` dice que también los rótulos siguen a la versión.
+  - **Repro:** interfaz en español, versión WEB → un estudio compartido de Romanos 8:28: «CONTEXTO / Introducción al
+    libro / Paul · c. AD 57 / …» con el contexto en inglés; en «Sobre este libro», la misma intro en español.
+  - **Sonda:** `S135-a13-rotulos`, pruebas 2a-2c: `{"rotuloEs":1,"contextoEn":1,"metaEn":1}`; control 2b, con
+    RVR1960, en español; about-book con WEB: `{"contextoEs":1}`. La Mesa (`prep/index.tsx:613`, `:1358`), gemela por
+    lectura (Pendiente).
+
+- **`R9-544` (S135, `A46` / Conflictos, la auditoría — P3) — 🐛 el registro de cada conflicto resuelto se guarda con el
+  id del documento: una resolución nueva sobre el mismo documento pisa la anterior, e Insights cuenta de menos.**
+  MEDIDO con sonda en la 135 (agente 3, re-medido igual en el principal). `R9-160` nombra la colección, no la pisada.
+  - `logResolvedConflict` (`SyncEngine.ts:3480-3501`) hace `.collection('users/<uid>/conflicts').doc(record.id).set(…)`
+    con `record.id = ${collection}__${docId}` (`:2316`, `:2385`); `fetchResolvedConflicts` (`:3523-3552`) y
+    `computeConflictAnalytics` cuentan un registro por documento, no por resolución.
+  - **Repro:** dos teléfonos con la misma cuenta editan el mismo resaltado, nota o favorito en días distintos; el
+    usuario resuelve los dos conflictos → Ajustes → «Ver estadísticas de conflictos» (`settings.tsx:671`): el total,
+    el reparto por elección, la actividad y el veredicto pierden la resolución anterior.
+  - **Sonda:** `_scratch/S135-sondas-agente-3/S135-a3-auditoria.test.ts.txt` (armada con `S135-a3-armar.cjs.txt`: el
+    arnés de `__tests__/SyncEngine.test.ts:1-597` + `S135-a3-cola.ts.txt`; el `SyncEngine` real): control, dos `set`
+    de auditoría `test__doc-x`; caso, `total en insights: 1` (keepMine 1, keepTheirs 0) donde hubo 2.
+  - **Segunda causa, del mismo síntoma (agente 10, re-medido igual):** el registro anida la entidad tres veces
+    (`localVersion`, `remoteVersion`, `resolvedValue`; `SyncEngine.ts:3472-3477`, `types.ts:188-217`) y ningún
+    lector usa las copias (`conflictAnalytics.ts:104-180` lee `choice`, `collection`, `differingFields`,
+    `resolvedAt`). Con una nota de más de ~349 000 caracteres ASCII (nada limita su largo: `NoteEditorModal.tsx:220-232`
+    no tiene `maxLength`), la nota cabe en su documento (360 251 B) y el registro no (1 080 717 B > 1 MiB). **Medido:**
+    el tamaño, con la fórmula publicada de Firestore (`_scratch/S135-sondas-agente-10/S135-a10-tamano.test.ts.txt`,
+    2 casos, controles verdes). **Simulado:** el rechazo del servidor (`INVALID_ARGUMENT`), que el `catch` de
+    `:3494-3500` traga con un `logger.warn`. **Sin medir:** que se puedan pegar ~350 000 caracteres en el aparato
+    (Modo C). Las reglas publicadas SÍ permiten la escritura y la lectura (GET del ruleset vigente, el mismo de la 133).
+  - P3: solo el tablero de estadísticas; los datos del usuario no se tocan. **Propuesta (sin escribir):** un id por
+    resolución (`${conflict.id}__${resolvedAt}`) y guardar solo lo que Insights lee. Ojo: el id por resolución, solo,
+    hace crecer la colección sin fin (no hay TTL ni limpieza; solo la borra `deleteAllCloudData`): va con el recorte.
+
+- **`R9-545` (S135, `A46` / Conflictos, la tarjeta — P3) — 🐛 la tarjeta del conflicto no dice de qué versículo es:
+  muestra el id interno y los valores en crudo (la categoría como clave inglesa, el color como hex).** MEDIDO con
+  sonda en la 135 (agentes 3 y 8, re-medido igual en el principal).
+  - `app/(tabs)/conflicts.tsx:286-352` pinta `item.docId` y `formatValue` (`:48-59`). Las tres colecciones que pueden
+    producir un conflicto (las demás no tienen campos materiales: `MemoryDeckContext.tsx:457-459`,
+    `reviewEvents.ts:84-86`): **Favoritos**, id `fav_<ms>_<azar>` (`FavoritesContext.tsx:307`), campos nota,
+    categoría (`promise`, aunque «Promesa» existe en `translations.es`), valoración, etiquetas; **Resaltados**, id
+    `${canonicalBook}:cap:vers` (`[chapter].tsx:1491`): «Romans:8:28» con la interfaz en español, y el color
+    «#FFF59D» contra «#90CAF9» (en los dos idiomas; los nombres ya existen: `HIGHLIGHT_COLOR_NAMES`,
+    `t.highlights.categories`); **Notas**, id `note_<ms>_<azar>` (`database/index.ts:2102`). Libro, capítulo y
+    versículo viajan en el registro y la tarjeta no los usa. El modal de «Combinar» tampoco dice de qué es.
+  - **Repro:** cambiar el color del mismo versículo en dos teléfonos (amarillo y azul) dentro de la ventana → Ajustes →
+    el aviso de conflictos (`settings.tsx:641`): elegir entre dos códigos hex, sin saber de qué versículo.
+  - **Sondas:** `_scratch/S135-sondas-agente-3/S135-a3-tarjeta.test.tsx.txt` (Favoritos: `idInterno: true, cita:
+false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-agente-8/S135-a8-tarjetas.test.tsx.txt`
+    (1 verde, el control; 2 rojas: `{"resaltadoId":true,"citaEnEspanol":false,"colorHex":true,"categoriaCruda":true,
+"notaIdInterno":true}`, y en inglés `{"colorHex":true}`), con los registros de `buildHighlightRemotePayload` y
+    `buildNoteRemotePayload` reales.
+  - **Propuesta (sin escribir):** un rótulo con la cita y el nombre visible del libro, una muestra del color, las
+    categorías traducidas. Un cambio de versión NO produce un conflicto sobre «Texto» (agente 11, medido: el texto
+    de una nota se fija al crearla).
+
+- **`R9-546` (S135, `A46` / Conflictos, «Combinar» — P3) — 🐛 «Combinar» parte en dos una colección cuyo nombre tiene
+  coma, aunque el usuario no toque ese cuadro.** MEDIDO con sonda en la 135 (agente 7, re-medido igual en el
+  principal). Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).
+  - `conflicts.tsx:50` une el arreglo con «, » y siembra el borrador (`:169`); al guardar, `:209-214` lo parte por
+    comas. El nombre de una colección admite comas (`collections.ts:46-49` solo recorta; `AddToCollectionSheet.tsx:190`
+    solo limita a 40).
+  - **Repro:** dos teléfonos con la misma cuenta; en uno, el versículo se agrega a «Fe, esperanza»; en el otro se edita
+    la nota del mismo favorito, dentro de la ventana → Conflictos → «Combinar» → escribir la nota → guardar: el
+    favorito queda en «Fe» y en «esperanza», en local y en la nube, y sale de «Fe, esperanza».
+  - **Sonda:** `_scratch/S135-sondas-agente-7/S135-a7-combinar.test.tsx.txt` (5/5), prueba 1a:
+    `{"borrador":["nota mía","Fe, esperanza"],"local":["Fe","esperanza"],"subido":["Fe","esperanza"]}`; control 1b,
+    «Promesas». Prueba 2, el «[]» (anotado en `R9-469`). Prueba 3, sin número: un campo que el motor agrega con el
+    modal abierto sale vacío (`:447`) y guardar conserva «lo mío» (`:205-206`), mientras un cuadro vacío de los de
+    siempre guarda `''` o `0`.
+
+- **`R9-547` (S135, `A46` / Conflictos, el borrador de «Combinar» — P3) — 🐛 el id y el borrador de «Combinar»
+  sobreviven a que el conflicto salga de la lista: si vuelve un conflicto con el mismo id, el modal se reabre solo
+  con el borrador viejo; tras un cambio de cuenta, lo escrito por la cuenta anterior se sube a la nube de la nueva.**
+  MEDIDO con sonda en la 135 la cara entre cuentas (agente 9, re-medido igual en el principal); la cara con la misma
+  cuenta, por lectura.
+  - `conflicts.tsx:85-86`: `mergingId` y `mergeDraft` son estado de una pestaña oculta que queda montada
+    (`(tabs)/_layout.tsx:241-247`); solo los limpia `closeMerge` (`:175`). Cuando el conflicto sale de la lista
+    (`dropConflict`, `SyncEngine.ts:2230`, o `stop()`, `:954`, `:973`), `mergingConflict` (`:137-140`) queda en `null`
+    y el modal se oculta (`:420`), pero el id y el borrador quedan; `applyMerge` (`:198`) resuelve en la sesión de
+    ese momento (la guarda de `R9-153` no salta: es la nueva).
+  - **Repro entre cuentas (cada paso posible, la cadena muy improbable):** Ana abre «Combinar» sobre un resaltado y
+    escribe en la nota → su sesión termina sin pasar por `closeMerge` (`stop()`, p. ej. la cuenta borrada desde otro
+    teléfono, el flujo de `R9-530`) → Beto entra en el mismo teléfono (`R9-23`: lo local queda) → la nube de Beto
+    trae el mismo versículo con `updatedAt` a menos de 30 s de la copia local (el paso improbable): el modal se
+    reabre con la nota de Ana → Beto guarda: la nota va a `users/<beto>/highlights/Romans:8:28`. **Con la misma
+    cuenta (por lectura, sin sonda):** el otro teléfono deja el resaltado igual a la copia local (`dropConflict`),
+    atrás a Ajustes; si vuelve un conflicto con ese id, el modal reaparece solo con el borrador viejo (el trabajo
+    del propio usuario).
+  - **Sonda:** `_scratch/S135-sondas-agente-9/S135-a9-pantalla.test.tsx.txt` (la cabeza de
+    `conflictsScreenCurrentLocal.test.tsx` + `S135-a9-pantalla-cola.tsx.txt`, armada con `S135-a9-armar.cjs.txt`):
+    `{"borradorEscrito":true,"modalOcultoSinLista":true,"reapareceConBorradorDeAna":true,"subidoABeto":[{"path":
+"users/uid-beto/highlights","note":"NOTA PRIVADA DE ANA escrita en Combinar"},…]}`; control, la pantalla montada ya
+    en la sesión de Beto no abre el modal.
+  - P3 por lo inalcanzable de la cadena; el DAÑO, si ocurre, es de privacidad entre cuentas (la severidad es de
+    Victor). **Propuesta (sin escribir):** limpiar `mergingId` y `mergeDraft` cuando `mergingConflict` pasa a `null`.
+
+- **`R9-548` (S135, `A46` / la migración al entrar — P3) — 🐛 «Tienes 1 cambios locales» / «You have 1 local
+  changes».** MEDIDO con sonda en la 135 (agente 13, re-medido igual en el principal), de paso: fuera de las 6
+  pantallas (`AuthContext`), en el bloque `t.conflicts`. Familia de `R9-488`, `R9-524`, `R9-531`.
+  - `AuthContext.tsx:784-787` aplica `t.conflicts.migrationBody` («Tienes {{count}} cambios locales…»,
+    `translations.ts:3961`, `:10508-10509`) sin clave singular; los vecinos del bloque (`badgeSingular`,
+    `droppedSingular`) la tienen.
+  - **Repro:** un solo favorito en un teléfono sin cuenta → entrar con una cuenta de Google ya registrada
+    (`total` = 1, `:443-448`, `:551-555`).
+  - **Sonda:** `_scratch/S135-sondas-agente-13/S135-a13-rotulos.test.tsx.txt`, prueba 3a:
+    `{"es":"Tienes 1 cambios locales en este","en":"You have 1 local changes on","ramaSingular":false}`.
+
+- **`R9-549` (S135, `A34` / Mi camino, el resumen del trimestre — P3 bajo) — 🐛 en la última hora del día, después del
+  atraso de hora, el resumen del trimestre cuenta un día de más y su ánimo incluye el registro del día anterior al
+  trimestre.** MEDIDO con sonda en la 135 (agente 6, re-medido igual en el principal), de paso desde `A45`: la fórmula
+  de `R9-172` en otra función. `detail/A34` no nombra `periodWindow`.
+  - `periodRecap.ts:94-104`: `days = floor((end - start) / DAY_MS) + 1`; `window.days` solo lo usa el ánimo
+    (`:188-192`; `monthMood` mira días de calendario hacia atrás, `feelingsLog.ts:167-179`). El resto filtra por ms.
+  - **Repro (`TZ=Europe/Madrid`):** registrar el ánimo el 30-sep → el 30-oct a las 23:30, Mi camino → «Tu año /
+    trimestre» → «Este trimestre» (`PeriodRecapModal.tsx:65-69`, `:132-137`): el ánimo «Paz», que no es del
+    trimestre; a las 22:30, no. Solo en el trimestre del atraso de hora (el día de menos de primavera cae sobre días
+    que la poda de 84 días, `R9-532`, ya borró).
+  - **Sonda:** `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, prueba 5:
+    `{"diasMalo":31,"diasBueno":30,"animoMalo":{"dominantFeelingId":"peace","daysLogged":1},"animoBueno":null}`. El TZ
+    se fija desde PowerShell (`$env:TZ`); con `America/Mexico_City` la precondición cae (sin cambio de hora desde
+    2022). **Propuesta (sin escribir):** contar días de calendario como `dailyLight.ts:18-22`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

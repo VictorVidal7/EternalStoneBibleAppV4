@@ -1,6 +1,21 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-10, fin de la sesión 134.** La 134 hizo el (dh) en un chat nuevo, en la terminal,
+> **Última actualización: 2026-11-10, fin de la sesión 135.** La 135 hizo el (di) en un chat nuevo, en la terminal,
+> **CON 13 agentes a pedido de Victor** (su mensaje propio pidió 3, y después dos veces «otros 5», por encima del
+> «SIN agentes» del mensaje pegado: 8 `fork` y 5 nuevos, en worktrees, ninguno cortado), Opus 5.5: **el Modo A P2,
+> la octava tanda, las últimas filas del Modo A.** `A45` 🐛 cerrada: `R9-536`..`R9-543` («Devocional · 1 días»; el
+> «Hoy» que no avanza; los landings alinean por número entre versiones; 14 citas no literales y tres datos falsos de
+> `book-intros`; el mismo enlace dos veces deja dos landings; el `accessibilityLabel` que tapa la nota; la intro del
+> estudio compartido mezcla idiomas). `A46` 🐛 cerrada: `R9-544`..`R9-548` (la auditoría pisada por id: Insights
+> cuenta de menos; la tarjeta sin cita; «Combinar» parte una colección con coma; el borrador de «Combinar» que
+> sobrevive al cambio de cuenta; «Tienes 1 cambios locales»). De paso, `R9-549` (`A34`, el trimestre tras el atraso
+> de hora). Todos P3, ninguno P0. La rama `docs/review-s135-a45-a46` (solo docs) va **sin mergear hasta el OK de
+> Victor**. Hay 549 hallazgos y ningún P0 abierto. **Lo siguiente lo decide Victor** (§4): el mensaje recomendado,
+> `B6`–`B10` (Modo B), está en `_scratch/S136-PROMPT.md`. La 134 ya está mergeada y pusheada (`main` = `origin/main` =
+> `e4474a8`, CI verde en el log, run `42770622085`, 3 jobs, 374/4693; corregido en la 135: sus docs decían «sin
+> mergear»).
+>
+> **Antes, al fin de la sesión 134 (2026-11-10):** la 134 hizo el (dh) en un chat nuevo, en la terminal,
 > SIN agentes, con Opus 5.5 `high`: **el Modo A P2, la séptima tanda.** `A43` 🐛 cerrada: `R9-531` (la tarjeta «Mi
 > semana» dice «1 versículos oídos» y pone los números sin separador; la tendencia emocional, «+1 días») y `R9-532`
 > (la tira de ánimo tiene 17 columnas y el registro guarda 84 días), P3. `A44` 🐛 cerrada: `R9-533` (P2: abrir una
@@ -595,14 +610,19 @@ sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. Y el (cx), la s
 sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la novena tanda, HECHO en la sesión 124. Y el (da), la décima tanda, HECHO en la sesión 125. Y el (db), la primera tanda del Modo A P2, HECHO en la sesión 126. Y el (dc), la segunda tanda, HECHO en la
 sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. Y el (dg), la sexta tanda,
 HECHO en la sesión 131. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7` y `B4`,
-fuera de la serie, a pedido de Victor). Y el (dh), la séptima tanda, HECHO en la sesión 134. **Lo siguiente es el
-(di), sin empezar.**
+fuera de la serie, a pedido de Victor). Y el (dh), la séptima tanda, HECHO en la sesión 134. Y el (di), la octava
+tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** **Lo siguiente es el (dj), sin empezar, y
+lo elige Victor.**
 
-**(di) Sesión 135: el Modo A P2, la octava tanda,** en un chat nuevo, en la terminal, con Opus 5.5 en `high`:
-`A45` (Landings compartidos + about-book + explore-all) y seguir con `A46` (Conflictos: `features/conflicts`,
-`(tabs)/conflicts.tsx`), por el orden del índice. Con ellas se terminan las filas del Modo A. El mensaje está en
-`_scratch/S135-PROMPT.md`, que manda sobre este archivo. Alternativa legítima, si Victor la prefiere: `B6`–`B10`
-(Modo B), en otra sesión.
+**(dj) Sesión 136, recomendado: `B6`–`B10` (Modo B, P1/P2)** en un chat nuevo, en la terminal: permisos Android,
+`npm outdated`, `expo-doctor`, deps sin usar, licencias (extendidas a `functions/` y `vercel/`). Baratas, sin
+entorno. El mensaje está en `_scratch/S136-PROMPT.md`, que manda sobre este archivo. Alternativas legítimas (§4): las
+7 filas C P0 (Modo C, con emulador) o una sesión de arreglos (`R9-410`..`R9-549` esperan su tanda).
+
+**(di) Sesión 135: el Modo A P2, la octava tanda — ya HECHO en la sesión 135** (en un chat nuevo, con 13 agentes a
+pedido de Victor: `A45` 🐛 cerrada, `R9-536`..`R9-543`; `A46` 🐛 cerrada, `R9-544`..`R9-548`; de paso `R9-549`;
+todos P3, ninguno P0; `detail/A45-landings-about-explore.md` y `detail/A46-conflictos.md`). El mensaje era
+`_scratch/S135-PROMPT.md`.
 
 **(dh) Sesión 134: el Modo A P2, la séptima tanda — ya HECHO en la sesión 134** (en un chat nuevo, SIN agentes:
 `A43` 🐛 cerrada, `R9-531`, `R9-532`; `A44` 🐛 cerrada, `R9-533` (P2), `R9-534`, `R9-535`; ninguno P0;
@@ -2332,17 +2352,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 134 (2026-11-10).**
+**Medido al cerrar la sesión 135 (2026-11-10).**
 
-- **La 133, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `bd3bfad` (solo docs; el
+- **La 134, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `e4474a8` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `42766266820`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 134: los docs de la
-  133 decían «sin mergear»).
-- **La rama de la 134, sin mergear a propósito y sin pushear:** `docs/review-s134-a43-a44` (solo docs: `A43`, `A44`
-  y `R9-531`..`R9-535`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 134 fue SIN agentes, en un chat nuevo. El checkpoint se escribió en un
-  worktree aparte (`../essb-docs-s134`, fuera del repo), quitado al terminar. Las sondas y el script de los packs,
-  en `_scratch/S134-*`; los 4 packs de Pages, en `%TEMP%/S134-packs`.
+  `42770622085`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 135: los docs de la
+  134 decían «sin mergear»).
+- **La rama de la 135, sin mergear a propósito y sin pushear:** `docs/review-s135-a45-a46` (solo docs: `A45`, `A46`
+  y `R9-536`..`R9-549`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. Los 13 agentes de la 135 trabajaron en worktrees bajo `.claude/worktrees/`, que se
+  borraron solos al terminar (sin cambios netos); el checkpoint se escribió en un worktree aparte
+  (`../essb-docs-s135`, fuera del repo), quitado al terminar. Reglas, informes y sondas, en `_scratch/S135*`
+  (`S135-sondas-agente-<N>/`); los 4 packs de Pages, en `%TEMP%/S135-packs`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2456,9 +2477,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 135: el mensaje (di), la octava tanda del Modo A P2** (`_scratch/S135-PROMPT.md`,
-con Opus 5.5 en `high`): `A45` (Landings compartidos + about-book + explore-all) y seguir con `A46` (Conflictos), por
-el orden del índice, sin mezclar modos; con ellas se terminan las filas del Modo A. La 134 (sin agentes, en un chat
+**Las filas del Modo A están TERMINADAS (la 135 cerró `A45` y `A46`: `R9-536`..`R9-549`, todos P3).** **Recomendado
+para la sesión 136, si Victor no elige otra cosa: el mensaje (dj), `B6`–`B10` (Modo B)** (`_scratch/S136-PROMPT.md`).
+Alternativas legítimas: las 7 filas C P0 (Modo C, con emulador) o una sesión de arreglos. La 134 (sin agentes, en un chat
 nuevo) cerró `A43` (`R9-531`, `R9-532`) y `A44` (`R9-533` P2, `R9-534`, `R9-535`), ninguno P0. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7`:
 `R9-529`; `B4`: `R9-530`; los dos P3). La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (`R9-527`) y `A42` (`R9-528`), P3, ninguno P0;
 la 130, `A39` y `A40` (`R9-524`..`R9-526`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
@@ -3500,6 +3521,17 @@ Alternativas legítimas:
   `bibleDB` con un adaptador (`getFirstAsync`, `getAllAsync`, `runAsync`, `execAsync`): la pantalla y el servicio
   reales, 5/5 a la primera (`_scratch/S134-comparar.test.tsx.txt`; los packs, con `_scratch/S134-packs.cjs.txt`).
   Y el `sed` sobre un detalle volvió a pasar (la 134 corrigió números de línea así): Edit, siempre.
+- **El cambio de hora se mide en una zona que lo tenga, con el TZ desde PowerShell; y una fila corta con agentes
+  necesita un reparto de ÁNGULOS, no de archivos (sesión 135, `R9-549`, `R9-547`).** México abolió el horario de
+  verano en 2022: con `TZ=America/Mexico_City` la precondición de la sonda del cambio de hora CAE (medido:
+  `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, «la zona tiene horario de verano», 3 rojas).
+  Usá `Europe/Madrid` o `America/New_York`, afirmá en la sonda que la zona cambia de offset en las fechas elegidas,
+  y fijá el TZ con `$env:TZ='Europe/Madrid'; node …S116-correr…` en PowerShell: desde Git Bash no le llega a jest
+  (`detail/S22:76`). Y con 13 agentes sobre dos filas, la primera tanda repartió archivos y las otras dos ángulos (el
+  landing montado, cada colección en la tarjeta, la cuenta que cambia, las reglas, el sentido de las citas): los
+  ángulos dieron 8 de los 14 hallazgos. Las sondas del motor se re-arman en el principal con el `armar` del agente y
+  se comparan con `cmp` antes de correr. Un estado que sobrevive en una pestaña oculta que queda montada (el
+  borrador de «Combinar») se mide con un cambio de cuenta en el medio (`R9-547`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3979,6 +4011,12 @@ Alternativas legítimas:
 - **La severidad de `R9-511` (sesión 129):** el devocional largo se comparte recortado y «Compartir» borra el
   borrador: se pierde texto escrito. Va como P2 (como `R9-498` y `R9-473`); ¿se sube? Y **`R9-522`**: ¿la línea de
   tiempo debe recordar el récord de racha de devoción más allá de los 400 días de retención del registro?
+- **Tres de la sesión 135:** la severidad de **`R9-547`** (va P3 porque la cadena entre cuentas es muy improbable;
+  el daño, si ocurre, es de privacidad: la nota de una cuenta en la nube de otra); la **retención de
+  `users/{uid}/conflicts`** (sin TTL ni limpieza, con tres copias del texto del usuario por registro: `R9-544`, sin
+  síntoma en la app); y los **dos dudosos de `book-intros`** (Judas v.24 «Aquel poderoso para guardaros…: Cristo»,
+  cuando el v.25 dice «al único y sabio Dios»; Malaquías 4:5 «Juan el Bautista», cuando el versículo dice «Elías»:
+  anotados en `R9-539`, sin severizar).
 - **`R9-268` (sesión 53):** a una cuenta que ya hizo su bulk push en este teléfono se le pregunta
   «¿Migrar?», y «Migrar» no sube nada. ¿No se le pregunta (y se le dice que los datos locales no se
   migran), o se migra solo lo que falta en su nube? Repetir el push entero no es una opción

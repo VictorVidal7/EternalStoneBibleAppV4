@@ -64,7 +64,7 @@
 - Dos escrituras sin esperar en `CustomPlansContext.tsx:90-114` pierden un plan (`save(B)`+`save(C)` en el mismo
   render, medido), pero no hay un llamador que las encadene: sin número.
 - El emoji partido en el tope, en Hermes (Modo C); la versificación entre emisor y receptor en
-  `devotional-shared`/`study-shared` (familia de `R9-503`); el doble toque en «Eliminar» y en las hojas modales
+  `devotional-shared`/`study-shared` (familia de `R9-503`; medida en la 135 como `R9-538`); el doble toque en «Eliminar» y en las hojas modales
   (Modo C); el atrás en el paso «rango» del selector (Modo C, P3); un segundo enlace con una invitación abierta (el
   «sin medir» de `A27`, Pendiente); el `replace` de `together/index.tsx:232`, `:241`; `R9-507` (R2) en otros
   consumidores de `getReadingPlanById` (`[chapter].tsx:801`, `together/index.tsx:141`, `:213`); el barrido de

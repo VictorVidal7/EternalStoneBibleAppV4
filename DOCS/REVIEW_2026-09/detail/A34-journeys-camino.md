@@ -58,6 +58,8 @@
 
 ## Sin medir
 
+- **Sesión 135 (de paso, desde `A45`):** `periodWindow` (`periodRecap.ts:94-104`) usa la fórmula de `R9-172`: el
+  resumen del trimestre cuenta un día de más tras el atraso de hora, medido como `R9-549`.
 - **Modo C:** doble toque en el chip «Parte del hilo» (`[routeId].tsx:223`, push a profecías) y en una tarjeta de
   la lista (`journeys/index.tsx:76`): familia de `R9-474`, depende de la animación de entrada.
 - El ánimo «del año» sale de los últimos 84 días como mucho (`FEELINGS_RETENTION_DAYS`): diseño; como rótulo, P3 a
