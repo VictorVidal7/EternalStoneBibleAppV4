@@ -1,6 +1,21 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-10, fin de la sesión 135.** La 135 hizo el (di) en un chat nuevo, en la terminal,
+> **Última actualización: 2026-11-10, fin de la sesión 136.** La 136 hizo el (dj) en un chat nuevo, en la terminal,
+> SIN agentes, Opus 5.5 (con el asesor Fable): **el Modo B P1/P2, `B6`–`B10`: con ellas se terminan las filas del
+> Modo B.** `B6` 🐛: `R9-550` (`assetlinks.json` declara solo el certificado de debug PÚBLICO de la plantilla de
+> Expo: el App Link no se verifica en una instalación de Play y cada enlace compartido pasa por el navegador) y
+> `R9-551` (el proyecto de Firebase de producción acepta ese mismo certificado como cliente OAuth; severidad, de
+> Victor, §8). `B7` ✅ (62 atrasados en la raíz, clasificados; nada bloquea la tienda). `B8` 🐛: `R9-552` (vc74 se
+> publicó con el splash de la plantilla: el `splash` de `app.json` ya no lo lee el SDK 57; corrige la premisa de
+> `R9-463`). `B9` 🐛: `R9-553` (cuatro módulos nativos sin import en el release, dos desde `devDependencies`). `B10`
+> 🐛: puede salir en una app de pago, pero `R9-554` (ningún aviso de terceros en la app) y, de paso, `R9-555` (las 19
+> familias de íconos en el AAB, la app usa 2). Todos P3, ninguno P0. La rama `docs/review-s136-b6-b10` (solo docs)
+> va **sin mergear hasta el OK de Victor**. Hay 555 hallazgos y ningún P0 abierto. **Lo siguiente lo decide Victor**
+> (§4): el mensaje recomendado, las 7 filas C P0 (Modo C, con emulador), está en `_scratch/S137-PROMPT.md`. La 135 ya
+> está mergeada y pusheada (`main` = `origin/main` = `df94dd5`, CI verde en el log, run `42866946428`, 3 jobs,
+> 374/4693; corregido en la 136: sus docs decían «sin mergear»).
+>
+> **Antes, al fin de la sesión 135 (2026-11-10):** la 135 hizo el (di) en un chat nuevo, en la terminal,
 > **CON 13 agentes a pedido de Victor** (su mensaje propio pidió 3, y después dos veces «otros 5», por encima del
 > «SIN agentes» del mensaje pegado: 8 `fork` y 5 nuevos, en worktrees, ninguno cortado), Opus 5.5: **el Modo A P2,
 > la octava tanda, las últimas filas del Modo A.** `A45` 🐛 cerrada: `R9-536`..`R9-543` («Devocional · 1 días»; el
@@ -9,8 +24,9 @@
 > estudio compartido mezcla idiomas). `A46` 🐛 cerrada: `R9-544`..`R9-548` (la auditoría pisada por id: Insights
 > cuenta de menos; la tarjeta sin cita; «Combinar» parte una colección con coma; el borrador de «Combinar» que
 > sobrevive al cambio de cuenta; «Tienes 1 cambios locales»). De paso, `R9-549` (`A34`, el trimestre tras el atraso
-> de hora). Todos P3, ninguno P0. La rama `docs/review-s135-a45-a46` (solo docs) va **sin mergear hasta el OK de
-> Victor**. Hay 549 hallazgos y ningún P0 abierto. **Lo siguiente lo decide Victor** (§4): el mensaje recomendado,
+> de hora). Todos P3, ninguno P0. La rama `docs/review-s135-a45-a46` (solo docs) se mergeó y pusheó con el OK de
+> Victor (`df94dd5`, CI verde, run `42866946428`; corregido en la 136: decía «sin mergear hasta el OK»). Hay 549
+> hallazgos y ningún P0 abierto. **Lo siguiente lo decide Victor** (§4): el mensaje recomendado,
 > `B6`–`B10` (Modo B), está en `_scratch/S136-PROMPT.md`. La 134 ya está mergeada y pusheada (`main` = `origin/main` =
 > `e4474a8`, CI verde en el log, run `42770622085`, 3 jobs, 374/4693; corregido en la 135: sus docs decían «sin
 > mergear»).
@@ -612,13 +628,17 @@ sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la 
 sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. Y el (dg), la sexta tanda,
 HECHO en la sesión 131. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7` y `B4`,
 fuera de la serie, a pedido de Victor). Y el (dh), la séptima tanda, HECHO en la sesión 134. Y el (di), la octava
-tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** **Lo siguiente es el (dj), sin empezar, y
-lo elige Victor.**
+tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** Y el (dj), `B6`–`B10`, HECHO en la sesión
+136: **las filas del Modo B están terminadas.** **Lo siguiente es el (dk), sin empezar, y lo elige Victor.**
 
-**(dj) Sesión 136, recomendado: `B6`–`B10` (Modo B, P1/P2)** en un chat nuevo, en la terminal: permisos Android,
-`npm outdated`, `expo-doctor`, deps sin usar, licencias (extendidas a `functions/` y `vercel/`). Baratas, sin
-entorno. El mensaje está en `_scratch/S136-PROMPT.md`, que manda sobre este archivo. Alternativas legítimas (§4): las
-7 filas C P0 (Modo C, con emulador) o una sesión de arreglos (`R9-410`..`R9-549` esperan su tanda).
+**(dk) Sesión 137, recomendado: las 7 filas C P0 (Modo C)** en un chat nuevo, en la terminal, con emulador: `C1a`,
+`C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a` (P0 antes que P1, charter §1.5). `C26a` necesita, como `C54` y `C55`,
+una cuenta de Google de PRUEBA (§6). El mensaje está en `_scratch/S137-PROMPT.md`, que manda sobre este archivo.
+Alternativa legítima (§4): una sesión de arreglos (`R9-410`..`R9-555` esperan su tanda).
+
+**(dj) Sesión 136: el Modo B P1/P2 — ya HECHO en la sesión 136** (en un chat nuevo, SIN agentes: `B6` 🐛, `R9-550`,
+`R9-551`; `B7` ✅; `B8` 🐛, `R9-552`; `B9` 🐛, `R9-553`; `B10` 🐛, `R9-554`, `R9-555`; todos P3, ninguno P0;
+`detail/B6-permisos-android.md` … `detail/B10-licencias.md`). El mensaje era `_scratch/S136-PROMPT.md`.
 
 **(di) Sesión 135: el Modo A P2, la octava tanda — ya HECHO en la sesión 135** (en un chat nuevo, con 13 agentes a
 pedido de Victor: `A45` 🐛 cerrada, `R9-536`..`R9-543`; `A46` 🐛 cerrada, `R9-544`..`R9-548`; de paso `R9-549`;
@@ -2353,18 +2373,18 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 135 (2026-11-10).**
+**Medido al cerrar la sesión 136 (2026-11-10).**
 
-- **La 134, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `e4474a8` (solo docs; el
+- **La 135, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `df94dd5` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `42770622085`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 135: los docs de la
-  134 decían «sin mergear»).
-- **La rama de la 135, sin mergear a propósito y sin pushear:** `docs/review-s135-a45-a46` (solo docs: `A45`, `A46`
-  y `R9-536`..`R9-549`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. Los 13 agentes de la 135 trabajaron en worktrees bajo `.claude/worktrees/`, que se
-  borraron solos al terminar (sin cambios netos); el checkpoint se escribió en un worktree aparte
-  (`../essb-docs-s135`, fuera del repo), quitado al terminar. Reglas, informes y sondas, en `_scratch/S135*`
-  (`S135-sondas-agente-<N>/`); los 4 packs de Pages, en `%TEMP%/S135-packs`.
+  `42866946428`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 136: los docs de la
+  135 decían «sin mergear»).
+- **La rama de la 136, sin mergear a propósito y sin pushear:** `docs/review-s136-b6-b10` (solo docs: `B6`–`B10`
+  y `R9-550`..`R9-555`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 136 fue sin agentes; el checkpoint se escribió en un worktree aparte
+  (`../essb-docs-s136`, fuera del repo, separado), quitado al terminar, y cada fila se commiteó en el principal con
+  `_scratch/S136-checkpoint.sh.txt` (parche del worktree → `git apply` → prettier → commit con el pre-commit).
+  Salidas y scripts, en `_scratch/S136-*`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2400,8 +2420,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 115: `C6`, `C15`, `C16`, `C39`, `C56`; `A13` en la 116; `A14`, `A15` y `A16` en la 117; `A17` y `A18` en la
 118; `A19` en la 119; `A20` y `A21` en la 120; `A22` y `A23` en la 121; `A24` y `A25` en la 122; `A26` y `A27`
 en la 123; `A28` y `A29` en la 124; `A30` y `A31` en la 125; `A33` en la 126; `A32` y `A34` en la 127; `A35` y
-`A36` en la 128; `A37` y `A38` en la 129; `A39` y `A40` en la 130; `A41` y `A42` en la 131; `A43` y `A44` en la 134).
-**Pendientes: 83** (entre ellas `C54` y `C55`, «sin medir» en la 115). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+`A36` en la 128; `A37` y `A38` en la 129; `A39` y `A40` en la 130; `A41` y `A42` en la 131; `A43` y `A44` en la 134;
+`A45` y `A46` en la 135; `B6` a `B10` en la 136: **62**, contadas en `INDEX.md` en la 136 — el Modo A y el Modo B,
+enteros). **Pendientes: 76** (66 del Modo C, entre ellas `C54` y `C55`, «sin medir» en la 115, y las 10 del Modo D). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2478,12 +2499,13 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Las filas del Modo A están TERMINADAS (la 135 cerró `A45` y `A46`: `R9-536`..`R9-549`, todos P3).** **Recomendado
-para la sesión 136, si Victor no elige otra cosa: el mensaje (dj), `B6`–`B10` (Modo B)** (`_scratch/S136-PROMPT.md`).
-Alternativas legítimas: las 7 filas C P0 (Modo C, con emulador) o una sesión de arreglos. La 134 (sin agentes, en un chat
+**Las filas del Modo A y del Modo B están TERMINADAS (la 136 cerró `B6`–`B10`: `R9-550`..`R9-555`, todos P3).**
+**Recomendado para la sesión 137, si Victor no elige otra cosa: el mensaje (dk), las 7 filas C P0 (Modo C, con
+emulador)** (`_scratch/S137-PROMPT.md`); `C26a` necesita una cuenta de Google de PRUEBA. Alternativa legítima: una
+sesión de arreglos (`R9-410`..`R9-555`). La 135 (13 agentes) cerró `A45` y `A46` (`R9-536`..`R9-549`). La 134 (sin agentes, en un chat
 nuevo) cerró `A43` (`R9-531`, `R9-532`) y `A44` (`R9-533` P2, `R9-534`, `R9-535`), ninguno P0. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7`:
 `R9-529`; `B4`: `R9-530`; los dos P3). La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (`R9-527`) y `A42` (`R9-528`), P3, ninguno P0;
-la 130, `A39` y `A40` (`R9-524`..`R9-526`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
+la 130, `A39` y `A40` (`R9-524`..`R9-526`). La nube no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
 **Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
@@ -3533,6 +3555,18 @@ Alternativas legítimas:
   ángulos dieron 8 de los 14 hallazgos. Las sondas del motor se re-arman en el principal con el `armar` del agente y
   se comparan con `cmp` antes de correr. Un estado que sobrevive en una pestaña oculta que queda montada (el
   borrador de «Combinar») se mide con un cambio de cuenta en el medio (`R9-547`).
+- **Lo que se publica se mide en el BUILD, no en `app.json`; y un certificado «propio» se compara con el de la
+  plantilla (sesión 136, `R9-550`..`R9-553`).** `android/` no está en git (CNG): la verdad es el manifiesto fusionado
+  (`android/app/build/intermediates/merged_manifests/release/…`), su origen por permiso
+  (`android/app/build/outputs/logs/manifest-merger-release-report.txt`) y el AAB
+  (`android/app/build/outputs/bundle/release/app-release.aab`: `unzip -l`, el bundle de Hermes con `grep -a -c`, las
+  `.so`, `BUNDLE-METADATA/…/dependencies.pb` para las librerías Maven). Antes, `git diff <commit del bump> HEAD --
+package.json package-lock.json` para saber si ese build es el de HEAD. Así salieron el splash de la plantilla (el
+  prebuild ignora el `splash` de arriba: `R9-552`) y dos nativos de `devDependencies` en el release (el autolinking
+  de RN no distingue: `R9-553`). Y una huella que figura en `assetlinks.json` o en Firebase se compara con
+  `node_modules/expo/template.tgz` (`package/android/app/debug.keystore`, contraseña `android`): `5E:8F:16…` /
+  `FA:C6:17…` es la clave PÚBLICA de todas las apps de Expo y RN (`R9-550`, `R9-551`). `keytool -printcert -jarfile`
+  no lee un APK firmado solo con v2/v3: usá `apksigner verify --print-certs` (build-tools del SDK).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -4018,6 +4052,11 @@ Alternativas legítimas:
   síntoma en la app); y los **dos dudosos de `book-intros`** (Judas v.24 «Aquel poderoso para guardaros…: Cristo»,
   cuando el v.25 dice «al único y sabio Dios»; Malaquías 4:5 «Juan el Bautista», cuando el versículo dice «Elías»:
   anotados en `R9-539`, sin severizar).
+- **Una de la sesión 136:** la severidad de **`R9-551`** (va P3 porque la cadena es muy improbable: una app falsa
+  con el paquete de la app, firmada con el keystore de debug PÚBLICO de la plantilla e instalada por fuera de Play,
+  que no convive con la real; el daño, si ocurre, es de privacidad: la sesión de Firebase del usuario, con sus notas
+  y su diario de oración). Y, ligado: si el desarrollo sigue usando ese keystore para el inicio de sesión en el
+  emulador, o se crea uno propio (la propuesta de `R9-551`).
 - **`R9-268` (sesión 53):** a una cuenta que ya hizo su bulk push en este teléfono se le pregunta
   «¿Migrar?», y «Migrar» no sube nada. ¿No se le pregunta (y se le dice que los datos locales no se
   migran), o se migra solo lo que falta en su nube? Repetir el push entero no es una opción
