@@ -4113,7 +4113,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Se ve en la tarjeta del inicio, en el widget y en la notificación diaria. La forma buena ya está
     en `dailyLight.ts:18-22`. Es la familia de `R9-63` y `R9-147`.
   - **Sesión 135 (agente 6, `A45`):** re-medido igual con `TZ=Europe/Madrid` (la profecía de las 00:30 del
-    25-oct es la de ayer: `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, prueba 2). Una
+    15-jul es la de ayer: `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, prueba 2). Una
     superficie más: los subtítulos «Hoy · …» de explore-all (`explore-all/index.tsx:117-125`). Las demás
     funciones «del día» de `src/` no usan la fórmula.
 
@@ -12524,7 +12524,7 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
   - **Sesión 135 (agente 7, `A46`), amplía:** con `tags: []` (el defecto de todo favorito,
     `FavoritesContext.tsx:285`), `formatValue([])` siembra «[]» y guardar crea la colección «[]» en los dos
     teléfonos (`_scratch/S135-sondas-agente-7/S135-a7-combinar.test.tsx.txt`, prueba 2:
-    `{"local":["[]"],"subido":["[]"]}`). Vaciar un puntaje guarda `0`. La coma dentro de un nombre es `R9-546`.
+    `{"local":["[]"],"subido":["[]"]}`). Vaciar un puntaje guarda `0` (por lectura). La coma dentro de un nombre es `R9-546`.
 
 - **`R9-470` (S125, `A30` / respaldo, progreso de lectura — P3) — 🐛 un respaldo con la clave `__proto__` en el
   progreso de lectura escribe en `Object.prototype` durante toda la sesión.** MEDIDO con sonda en la 125 (agente

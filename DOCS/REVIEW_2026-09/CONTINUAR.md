@@ -22,7 +22,8 @@
 > comparación guardada de otro pasaje muestra el versículo con ese número en el capítulo abierto), `R9-534` (el
 > análisis del versículo anterior queda en pantalla) y `R9-535` (la comparación alinea por número: con RV1909, Jonás
 > 2:1 pone el pez al lado de la oración, y la nota culpa al texto crítico), P3. Ninguno P0. La rama
-> `docs/review-s134-a43-a44` (solo docs) va **sin mergear hasta el OK de Victor**. Hay 535 hallazgos y ningún P0
+> `docs/review-s134-a43-a44` (solo docs) se mergeó y pusheó con el OK de Victor (`e4474a8`, CI verde, run
+> `42770622085`; corregido en la 135: decía «sin mergear hasta el OK»). Hay 535 hallazgos y ningún P0
 > abierto. **Lo siguiente:** `A45` y `A46` (el (di), `_scratch/S135-PROMPT.md`). La 133 ya está mergeada y pusheada (`main` = `origin/main` = `bd3bfad`, CI verde en el log, run
 > `42766266820`, 3 jobs, 374/4693; corregido en la 134: sus docs decían «sin mergear»).
 >
