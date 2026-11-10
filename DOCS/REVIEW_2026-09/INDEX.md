@@ -1,7 +1,6 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: las filas del Modo A están TERMINADAS (la 135 cerró `A45` y `A46`); lo que sigue lo decide
-> Victor: `B6`–`B10` (Modo B), las 7 filas C P0 (Modo C, con emulador) o una sesión de arreglos.** La 135 (con 13
+> **Frontera actual: el Modo B P1/P2, en la 136: `B6` 🐛 cerrada (`R9-550`, `R9-551`, P3, ninguno P0).** La 135 (con 13
 > agentes a pedido de Victor, en un chat nuevo) cerró `A45` (🐛): `R9-536`..`R9-543`, y `A46` (🐛): `R9-544`..`R9-548`;
 > de paso, `R9-549` (`A34`); todos P3, ninguno P0. La 134 (sin agentes, en un chat nuevo) cerró `A43` (🐛): `R9-531`, `R9-532`, y `A44` (🐛):
 > `R9-533`..`R9-535`; un P2, ninguno P0. La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
@@ -1672,9 +1671,18 @@
 >   («Tienes 1 cambios locales»). Ninguno P0 (`detail/A46-conflictos.md`).
 > - **De paso:** `R9-549` (`A34`, el resumen del trimestre cuenta un día de más tras el atraso de hora).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **549**. Rama `docs/review-s135-a45-a46` (solo docs), sin mergear hasta
-> el OK de Victor. **Con `A46` se terminan las filas del Modo A.** Lo que sigue lo decide Victor (§4 de
-> `CONTINUAR.md`): `B6`–`B10` (Modo B), las 7 filas C P0 (Modo C, con emulador) o una sesión de arreglos.
+> **No queda ningún P0 abierto.** Hallazgos: **549**. Rama `docs/review-s135-a45-a46` (solo docs), mergeada y
+> pusheada con el OK de Victor (`df94dd5`, CI verde en el log, run `42866946428`, 3 jobs, 374/4693; rama borrada tras
+> `git cherry`; corregido en la 136: decía «sin mergear»). **Con `A46` se terminan las filas del Modo A.**
+>
+> **Sesión 136 (2026-11-10): el Modo B P1/P2 (`B6`–`B10`)**, en un chat nuevo, en la terminal, SIN agentes, Opus 5.5.
+> Solo docs.
+>
+> - **`B6` 🐛 (cerrada):** P3 `R9-550` (`assetlinks.json` declara solo el certificado de debug público de la
+>   plantilla: el App Link no se verifica en una instalación de Play y cada enlace compartido pasa por el navegador)
+>   y `R9-551` (el proyecto de Firebase de producción acepta ese mismo certificado como cliente OAuth de Android).
+>   Ningún permiso restringido; los de almacenamiento hacen falta en Android 12 o menos. Ninguno P0
+>   (`detail/B6-permisos-android.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1854,7 +1862,7 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | B3  | Escaneo de secretos en el historial de git                 | P0        | ✅ OK     | `B3-secretos-historial`       |
 | B4  | Reglas de Firestore y Storage — ¿algún path abierto?       | P0        | ✅ OK     | `B4-reglas-firestore-storage` |
 | B5  | Seguridad de CI (`.github/workflows/ci.yml`)               | P0        | ✅ OK     | `B5-seguridad-ci`             |
-| B6  | Permisos Android, plugins, `google-services.json`          | P1        | PENDIENTE | —                             |
+| B6  | Permisos Android, plugins, `google-services.json`          | P1        | 🐛 BUG    | `B6-permisos-android`         |
 | B7  | `npm outdated` (~50) — clasificar seguro/fijado/major      | P1        | PENDIENTE | —                             |
 | B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`     | P1        | PENDIENTE | —                             |
 | B9  | Dependencias sin usar (estilo `depcheck`)                  | P2        | PENDIENTE | —                             |

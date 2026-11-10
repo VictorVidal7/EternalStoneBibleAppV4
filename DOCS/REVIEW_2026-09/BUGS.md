@@ -13689,6 +13689,40 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     se fija desde PowerShell (`$env:TZ`); con `America/Mexico_City` la precondición cae (sin cambio de hora desde
     2022). **Propuesta (sin escribir):** contar días de calendario como `dailyLight.ts:18-22`.
 
+- **`R9-550` (S136, `B6` / App Link de los enlaces compartidos — P3) — 🐛 `assetlinks.json` declara solo el
+  certificado de debug PÚBLICO de la plantilla de Expo: en una instalación de Play el App Link no se verifica nunca y
+  cada enlace compartido pasa por el navegador.** MEDIDO por archivos en la 136 (sin dispositivo).
+  - `web/.well-known/assetlinks.json:7-8` (y la copia servida en Pages, `Last-Modified` 2026-09-15): un solo
+    `sha256_cert_fingerprints`, `FA:C6:17:45…3B:9C`, el de `CN=Android Debug`, idéntico byte a byte al
+    `debug.keystore` de `node_modules/expo/template.tgz` (contraseña `android`: lo tiene cualquiera). Falta el de
+    subida (`A9:89:EC:46…`, medido en el AAB de vc74) y el de Play App Signing (`3ac22403…`, el registrado en Firebase
+    en la sesión 46; dato de la memoria).
+  - **Repro:** con la app de Play en Android 12 o más, tocar en WhatsApp una invitación
+    `https://eternalstonebible.github.io/o/#d=…` (`bundle.ts:492-496`; `app.json:62-73`, `autoVerify: true`): abre el
+    navegador, y `web/o/index.html:167-210` rebota a `eternalbible://features/together?d=…` o deja el botón. Lo que
+    prometió `9b75f5e7` (abrir la app «DIRECTLY, dropping the browser flash») solo pasa en un build de debug. Y el
+    dominio queda delegado a esa clave pública: una app con el paquete de la app firmada con ella verifica el enlace
+    (instalada por fuera de Play; no convive con la real).
+  - **Medida:** `_scratch/S136-B6-assetlinks.out.txt` (el archivo vivo, el certificado del AAB y del APK v3.0.4),
+    `S136-B6-keystore.out.txt` (la plantilla contra el prebuild), `S136-B6-sha-list.out.txt` (los 4 hashes de
+    Firebase). Sin medir: `adb shell pm get-app-links` en una instalación de Play. **Propuesta (sin escribir):**
+    reemplazar la huella de debug por la de Play App Signing y la de subida (despliegue de Pages, con el OK de
+    Victor). Detalle: `detail/B6-permisos-android.md`.
+
+- **`R9-551` (S136, `B6` / Firebase, cliente OAuth de Android — P3) — 🐛 el proyecto de Firebase de producción acepta
+  como cliente OAuth de Android el certificado de debug público de la plantilla.** MEDIDO en la 136 (GET a Firebase).
+  - `google-services.json:21`: `certificate_hash` `5e8f1606…f625`, el SHA-1 de ese mismo keystore; Firebase lo tiene
+    registrado junto al de subida (`399e…`) y al de Play (`422e…`, `3ac2…`): `_scratch/S136-B6-sha-list.out.txt`.
+  - **Camino:** Google Sign-In valida paquete + SHA-1 contra los clientes OAuth del proyecto. Una app con el paquete
+    `com.eternalstonebible.app` firmada con el keystore de la plantilla puede pedir el inicio de sesión contra el
+    proyecto real y, si el usuario elige su cuenta en el selector, obtener su sesión de Firebase: lee y escribe
+    `users/{uid}` (notas, diario de oración). La cadena es improbable (instalar por fuera de Play una app falsa, que
+    no convive con la real); el daño es de privacidad. **La severidad la decide Victor**, como `R9-547` (§8).
+  - `B2` vio el `certificate_hash` como «información pública», sin notar que es el de la plantilla; la memoria de la
+    44 lo llamó «keystore», como si fuera propio. **Propuesta (sin escribir):** un keystore de debug propio fuera de
+    git, registrar su SHA-1 en lugar de `5e8f…` (la consola de Firebase, con el OK de Victor) y volver a bajar
+    `google-services.json` (lista 1 de los 4 hashes). Detalle: `detail/B6-permisos-android.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
