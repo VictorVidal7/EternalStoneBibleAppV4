@@ -1,6 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo B P1/P2, en la 136: `B6` 🐛 cerrada (`R9-550`, `R9-551`, P3, ninguno P0), `B7` ✅, `B8` 🐛 (`R9-552`, P3), `B9` 🐛 (`R9-553`, P3).** La 135 (con 13
+> **Frontera actual: las filas del Modo A y del Modo B están TERMINADAS (la 136 cerró `B6`–`B10`: `R9-550`..`R9-555`,
+> todos P3, ninguno P0); lo que sigue lo decide Victor: las 7 filas C P0 (Modo C, con emulador) o una sesión de
+> arreglos.** La 136 (sin agentes, en un chat nuevo) cerró `B6` (🐛), `B7` (✅), `B8` (🐛), `B9` (🐛) y `B10` (🐛). La 135 (con 13
 > agentes a pedido de Victor, en un chat nuevo) cerró `A45` (🐛): `R9-536`..`R9-543`, y `A46` (🐛): `R9-544`..`R9-548`;
 > de paso, `R9-549` (`A34`); todos P3, ninguno P0. La 134 (sin agentes, en un chat nuevo) cerró `A43` (🐛): `R9-531`, `R9-532`, y `A44` (🐛):
 > `R9-533`..`R9-535`; un P2, ninguno P0. La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
@@ -1694,6 +1696,13 @@
 >   Glide, `expo-status-bar`, y `slider` y `clipboard` desde `devDependencies`; 1,4 MB de `.so` en arm64). `zod` y
 >   `@gorhom/bottom-sheet` sin uso pero fuera del bundle; los subproyectos, limpios. Ninguno P0
 >   (`detail/B9-dependencias-sin-usar.md`).
+> - **`B10` 🐛 (cerrada):** puede salir en una app de pago (nada copyleft en lo publicado), pero no cumple sus
+>   condiciones: P3 `R9-554` (ningún aviso de terceros en la app) y, de paso, `R9-555` (las 19 familias de íconos en
+>   el AAB, la app usa 2: 2,4 MB). Ninguno P0 (`detail/B10-licencias.md`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **555**. **Con `B10` se terminan las filas del Modo B.** Rama
+> `docs/review-s136-b6-b10` (solo docs), sin mergear hasta el OK de Victor. Lo que sigue lo decide Victor (§4 de
+> `CONTINUAR.md`): las 7 filas C P0 (Modo C, con emulador) o una sesión de arreglos.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1865,19 +1874,19 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 
 ## Modo B — Dependencias, vulnerabilidades, vigencia
 
-| #   | Área                                                       | Prioridad | Estado    | Detalle                       |
-| --- | ---------------------------------------------------------- | --------- | --------- | ----------------------------- |
-| B1  | `npm audit` — clasificar las 8 vulns (alcanzables? fix?)   | P0        | ✅ OK     | `B1-npm-audit`                |
-| B1b | `npm audit` en `functions/` y `vercel/` (proyectos aparte) | P0        | ⚠️ DUDA   | `B1b-npm-audit-subproyectos`  |
-| B2  | Escaneo de secretos en el árbol de trabajo                 | P0        | ✅ OK     | `B2-secretos-arbol`           |
-| B3  | Escaneo de secretos en el historial de git                 | P0        | ✅ OK     | `B3-secretos-historial`       |
-| B4  | Reglas de Firestore y Storage — ¿algún path abierto?       | P0        | ✅ OK     | `B4-reglas-firestore-storage` |
-| B5  | Seguridad de CI (`.github/workflows/ci.yml`)               | P0        | ✅ OK     | `B5-seguridad-ci`             |
-| B6  | Permisos Android, plugins, `google-services.json`          | P1        | 🐛 BUG    | `B6-permisos-android`         |
-| B7  | `npm outdated` (~50) — clasificar seguro/fijado/major      | P1        | ✅ OK     | `B7-npm-outdated`             |
-| B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`     | P1        | 🐛 BUG    | `B8-expo-sdk57-deprecadas`    |
-| B9  | Dependencias sin usar (estilo `depcheck`)                  | P2        | 🐛 BUG    | `B9-dependencias-sin-usar`    |
-| B10 | Licencias de dependencias vs. app comercial de pago        | P2        | PENDIENTE | —                             |
+| #   | Área                                                       | Prioridad | Estado  | Detalle                       |
+| --- | ---------------------------------------------------------- | --------- | ------- | ----------------------------- |
+| B1  | `npm audit` — clasificar las 8 vulns (alcanzables? fix?)   | P0        | ✅ OK   | `B1-npm-audit`                |
+| B1b | `npm audit` en `functions/` y `vercel/` (proyectos aparte) | P0        | ⚠️ DUDA | `B1b-npm-audit-subproyectos`  |
+| B2  | Escaneo de secretos en el árbol de trabajo                 | P0        | ✅ OK   | `B2-secretos-arbol`           |
+| B3  | Escaneo de secretos en el historial de git                 | P0        | ✅ OK   | `B3-secretos-historial`       |
+| B4  | Reglas de Firestore y Storage — ¿algún path abierto?       | P0        | ✅ OK   | `B4-reglas-firestore-storage` |
+| B5  | Seguridad de CI (`.github/workflows/ci.yml`)               | P0        | ✅ OK   | `B5-seguridad-ci`             |
+| B6  | Permisos Android, plugins, `google-services.json`          | P1        | 🐛 BUG  | `B6-permisos-android`         |
+| B7  | `npm outdated` (~50) — clasificar seguro/fijado/major      | P1        | ✅ OK   | `B7-npm-outdated`             |
+| B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`     | P1        | 🐛 BUG  | `B8-expo-sdk57-deprecadas`    |
+| B9  | Dependencias sin usar (estilo `depcheck`)                  | P2        | 🐛 BUG  | `B9-dependencias-sin-usar`    |
+| B10 | Licencias de dependencias vs. app comercial de pago        | P2        | 🐛 BUG  | `B10-licencias`               |
 
 ---
 

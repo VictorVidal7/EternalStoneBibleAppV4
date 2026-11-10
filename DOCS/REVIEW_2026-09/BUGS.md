@@ -13753,6 +13753,28 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Medida:** `_scratch/S136-B9-nativos.out.txt`, `S136-B9-raiz.out.txt`. **Propuesta (sin escribir):** quitar los
     cuatro, con build nativo y una pasada por las pantallas con `Image`. Detalle: `detail/B9-dependencias-sin-usar.md`.
 
+- **`R9-554` (S136, `B10` / licencias de terceros — P3) — 🐛 la app de pago no trae ningún aviso de terceros, y las
+  licencias de lo que publica lo piden.** MEDIDO por archivos en la 136.
+  - Lo que se publica puede salir en una app de pago (nada copyleft; el MPL-2.0 de `lightningcss` es de build; los
+    SDK de Google y Amazon se redistribuyen en apps). Pero no hay pantalla de licencias ni de créditos (`grep` en
+    `app/` y `src/`), el bundle es bytecode de Hermes (sin encabezados de licencia) y el AAB de vc74 solo trae algunos
+    `META-INF/androidx/*/LICENSE.txt`.
+  - **Camino (a la licencia):** cada copia distribuida incumple las condiciones de MIT, ISC y BSD (reproducir el
+    copyright y la licencia en la distribución binaria), de Apache-2.0 (la licencia y los `NOTICE`), y la atribución de
+    Entypo (CC BY-SA 4.0) y Font Awesome (OFL 1.1, sin aviso en sus metadatos), que van en el AAB (`R9-555`). Las 18
+    fuentes de texto sí cumplen: llevan el aviso OFL o Apache en sus metadatos.
+  - **Medida:** `_scratch/S136-B10-lic-_.out.txt` (y los de `functions/` y `vercel/`), `S136-B10-fuentes.out.txt`.
+    **Propuesta (sin escribir):** generar en el build la lista de licencias de lo publicado (JS de producción y
+    Maven) y mostrarla en Ajustes → Acerca de. Detalle: `detail/B10-licencias.md`.
+
+- **`R9-555` (S136, de paso desde `B10` para `B9` / fuentes de íconos — P3) — 🐛 el AAB lleva las 19 familias de
+  `@expo/vector-icons` y la app usa dos: 2,4 MB de fuentes que nunca se dibujan.** MEDIDO en el AAB de vc74.
+  - Las 19 suman 4 076 840 B; la app usa `Ionicons` y `MaterialCommunityIcons` (1300 y 11 menciones en `src/` y
+    `app/`); las otras 17, 2 379 456 B. 159 archivos importan desde la raíz (`from '@expo/vector-icons'`), que
+    re-exporta las 19 (`@expo/vector-icons/build/Icons.js`).
+  - **Medida:** `_scratch/S136-B10-iconos.out.txt`. **Propuesta (sin escribir):** importar
+    `@expo/vector-icons/Ionicons` y `/MaterialCommunityIcons` y medir el AAB. Detalle: `detail/B10-licencias.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
