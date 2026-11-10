@@ -13801,6 +13801,21 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     racha cortada), no tarjetas perdidas. Distinto de `R9-48` (el registro al cerrar sesión) y de `R9-29` (el
     import). Repro: `S137-a1-calificar-matar.sh.txt`. Detalle: `detail/C20a-memoria-srs.md`.
 
+- **`R9-557` (S137, `C26b` / respaldo: el aviso tras importar — P3) — 🐛 el diálogo bloqueante tras importar dice «Tu
+  copia se importó correctamente» aunque una sección haya fallado o no se haya restaurado NADA.** MEDIDO en el
+  emulador (dos caminos) y re-verificado por lectura.
+  - `DataSettings.tsx:139-158`: con `failedSections` no vacío va `toast.warning(importPartial)` y después, igual que
+    en el éxito, `setRestartNoticeVisible(true)` («Shown for a partial import too»); el diálogo (`:336-345`) usa un
+    solo texto, `importRestartMessage` (`translations.ts:4185-4186`). Y `parseBackupPayload`
+    (`BackupService.ts:689-703`) solo mira `formatVersion`, nunca `app.package`.
+  - **Medida:** un respaldo con las filas de notas inválidas (`failedSections:["notes"]` en logcat) y un JSON de otra
+    app con `formatVersion: 1` muestran los dos «Datos restaurados / Tu copia se importó correctamente»
+    (`_scratch/S137-sondas-agente-2/S137-a2-imp-parcial-3.xml.txt`, `S137-a2-imp-otraapp-v1-3.xml.txt`); en el
+    segundo no se escribió nada (`S137-a2-10-tras-otraapp-v1.rk.txt`). El aviso honesto (`importPartial`) es un
+    toast de 3 s que no se vio (ver «sin medir» del detalle).
+  - **Severidad:** P3: sin daño de datos (la sección fallida no se toca), pero el usuario cree restaurado lo que no
+    lo está. Distinto de `R9-141` (la prueba del aviso), `R9-27` y `R9-32`. Detalle: `detail/C26b-respaldo.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,

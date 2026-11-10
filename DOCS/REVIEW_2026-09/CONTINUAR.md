@@ -2373,18 +2373,20 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 136 (2026-11-10).**
+**Medido al cerrar la sesión 137 (2026-11-10), cortada por el límite de uso.**
 
-- **La 135, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `df94dd5` (solo docs; el
-  último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `42866946428`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 136: los docs de la
-  135 decían «sin mergear»).
-- **La rama de la 136, sin mergear a propósito y sin pushear:** `docs/review-s136-b6-b10` (solo docs: `B6`–`B10`
-  y `R9-550`..`R9-555`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 136 fue sin agentes; el checkpoint se escribió en un worktree aparte
-  (`../essb-docs-s136`, fuera del repo, separado), quitado al terminar, y cada fila se commiteó en el principal con
-  `_scratch/S136-checkpoint.sh.txt` (parche del worktree → `git apply` → prettier → commit con el pre-commit).
-  Salidas y scripts, en `_scratch/S136-*`.
+- **La 136, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `aab7ead` (solo docs). CI
+  verificado en el log: run `42880229051`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la
+  137: los docs de la 136 decían «sin mergear»).
+- **La rama de la 137, sin mergear a propósito y sin pushear:** `docs/review-s137-c-p0` (solo docs: `C1a` ✅, `C26b`
+  🐛, `C20a`/`C27a`/`C42a` EN CURSO, `C26a` «sin medir»; `R9-556`, `R9-557`). Se mergea en fast-forward con el OK de
+  Victor. Si ya se mergeó, `main` la incluye. **No se corrió `npm run validate`** (el corte llegó antes): correlo
+  con `NODE_ENV=development` antes del merge.
+- **Los worktrees:** el de docs (`../essb-docs-s137`, fuera del repo) puede seguir ahí: quitalo con
+  `git worktree remove`. Los de los 3 agentes se borraron solos. Checkpoint con `_scratch/S137-checkpoint.sh.txt`.
+  Salidas en `_scratch/S137-sondas-agente-{1,2,3}/`; las reglas de los agentes, en `_scratch/S137-agentes-reglas.md.txt`.
+- **El entorno de la 137:** el pagefile está FIJO en 8 GB y el commit total es ~40 GB (no ~52): con Metro entran
+  **2** emuladores, no 4 (con dos quedaron 7,7 GB libres). Cada agente de Modo C llegó cerca del tope de 200 turnos.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2498,6 +2500,12 @@ sea imposible de desasignar por sync**, así que cualquier omisión local se con
 divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz).
 
 ## 4. Por dónde seguir
+
+**Sesión 137 (Modo C P0, 3 agentes, cortada por el límite de uso):** `C1a` ✅; `C26b` 🐛 (`R9-557`, P3); `C20a`
+EN CURSO (`R9-556`, P3; falta el suelo restaurado, cuenta de prueba); `C27a` EN CURSO (el reset de la Biblia quedó a
+medio recargar; ¿se pierde KJV? sin re-verificar); `C42a` EN CURSO (casi todo sin medir); `C43a` PENDIENTE; `C26a`
+«sin medir» (cuenta de prueba). **Recomendado para la 138:** el mensaje `_scratch/S138-PROMPT.md` (seguir las filas C
+EN CURSO desde lo «sin medir» de cada detalle, y el control de toasts de `detail/C26b-respaldo.md`).
 
 **Las filas del Modo A y del Modo B están TERMINADAS (la 136 cerró `B6`–`B10`: `R9-550`..`R9-555`, todos P3).**
 **Recomendado para la sesión 137, si Victor no elige otra cosa: el mensaje (dk), las 7 filas C P0 (Modo C, con
