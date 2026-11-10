@@ -12429,6 +12429,9 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `#0a0d1a`; alto contraste, `#ffffff` y `#000000`. Control: claro, todos claros.
   - **Propuesta (sin escribir):** sostener el splash hasta leer, o arrancar con `useColorScheme()`. Detalle:
     `detail/A28-hooks.md`.
+  - **Nota de la 136 (`B8`, `R9-552`):** la premisa «el splash es oscuro (`app.json`: `#001122`)» de
+    `detail/A28-hooks.md` no se cumple en el build: vc74 lleva el splash de la plantilla (blanco). El cuadro blanco
+    sigue; lo que cambia es lo que hay antes. «Sostener el splash» pide instalar `expo-splash-screen`.
 
 - **`R9-464` (S124, `A29` / contexts, Favoritos — P2) — 🐛 con la pestaña Favoritos abierta, la app relee los
   favoritos de la base en un bucle sin fin.** MEDIDO con sonda en la 124 (agente 2, re-medido).
@@ -13722,6 +13725,20 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     44 lo llamó «keystore», como si fuera propio. **Propuesta (sin escribir):** un keystore de debug propio fuera de
     git, registrar su SHA-1 en lugar de `5e8f…` (la consola de Firebase, con el OK de Victor) y volver a bajar
     `google-services.json` (lista 1 de los 4 hashes). Detalle: `detail/B6-permisos-android.md`.
+
+- **`R9-552` (S136, `B8` / el splash — P3) — 🐛 el `splash` de `app.json` ya no lo lee el SDK 57 y vc74 se publicó
+  con el splash de la plantilla de Expo (una rejilla gris con círculos sobre blanco).** MEDIDO por archivos en la
+  136 (el aspecto en el aparato, sin medir).
+  - `app.json:44-48` (imagen `./assets/splash-icon.png`, fondo `#001122`): `expo-doctor` da «Additional property
+    "splash" is not allowed», y `expo-splash-screen` no está instalado. El prebuild del 2026-09-02 dejó los cinco
+    `splashscreen_logo.png` idénticos (sha256) a los de `node_modules/expo/template.tgz` y `splashscreen_background`
+    en `#FFFFFF`; `MainActivity` arranca con `Theme.App.SplashScreen`, cuyo `windowBackground` es ese PNG. El AAB de
+    vc74 lleva los mismos cinco (el mdpi, visto).
+  - **Repro:** arrancar en frío la app de Play en Android 7 a 11: la ventana inicial es el marcador de la plantilla.
+    En Android 12 o más, el sistema pone el ícono sobre el fondo por defecto del tema, no `#001122` (inferido).
+  - **Medida:** `_scratch/S136-B8-expo-doctor.out.txt`, `S136-B8-splash.out.txt`. **Propuesta (sin escribir):**
+    `expo-splash-screen` con su plugin (imagen, fondo, variante oscura) y sin el `splash` de arriba; es lo que
+    necesita también la propuesta de `R9-463`. Detalle: `detail/B8-expo-sdk57-deprecadas.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

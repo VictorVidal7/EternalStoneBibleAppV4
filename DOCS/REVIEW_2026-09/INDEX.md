@@ -1,6 +1,6 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo B P1/P2, en la 136: `B6` 🐛 cerrada (`R9-550`, `R9-551`, P3, ninguno P0), `B7` ✅.** La 135 (con 13
+> **Frontera actual: el Modo B P1/P2, en la 136: `B6` 🐛 cerrada (`R9-550`, `R9-551`, P3, ninguno P0), `B7` ✅, `B8` 🐛 (`R9-552`, P3).** La 135 (con 13
 > agentes a pedido de Victor, en un chat nuevo) cerró `A45` (🐛): `R9-536`..`R9-543`, y `A46` (🐛): `R9-544`..`R9-548`;
 > de paso, `R9-549` (`A34`); todos P3, ninguno P0. La 134 (sin agentes, en un chat nuevo) cerró `A43` (🐛): `R9-531`, `R9-532`, y `A44` (🐛):
 > `R9-533`..`R9-535`; un P2, ninguno P0. La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
@@ -1686,6 +1686,10 @@
 > - **`B7` ✅ (cerrada):** raíz 62 atrasados (37 fijados por el SDK 57 o por el repo, 18 major, 7 seguros),
 >   `functions/` 2, `vercel/` 3; ninguno bloquea la tienda ni el endpoint. Los que conviene subir van en grupos y
 >   piden un build nativo (`detail/B7-npm-outdated.md`).
+> - **`B8` 🐛 (cerrada):** P3 `R9-552` (el `splash` de `app.json` ya no lo lee el SDK 57: vc74 se publicó con el
+>   splash de la plantilla de Expo; corrige la premisa de `R9-463`). El `react@16` anidado no llega al bundle; 26 usos
+>   de APIs deprecadas, ninguno roto; las 33 `.so`, alineadas a 16 KB. Ninguno P0
+>   (`detail/B8-expo-sdk57-deprecadas.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1867,7 +1871,7 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | B5  | Seguridad de CI (`.github/workflows/ci.yml`)               | P0        | ✅ OK     | `B5-seguridad-ci`             |
 | B6  | Permisos Android, plugins, `google-services.json`          | P1        | 🐛 BUG    | `B6-permisos-android`         |
 | B7  | `npm outdated` (~50) — clasificar seguro/fijado/major      | P1        | ✅ OK     | `B7-npm-outdated`             |
-| B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`     | P1        | PENDIENTE | —                             |
+| B8  | Expo SDK 57 / RN 0.86: APIs deprecadas + `expo-doctor`     | P1        | 🐛 BUG    | `B8-expo-sdk57-deprecadas`    |
 | B9  | Dependencias sin usar (estilo `depcheck`)                  | P2        | PENDIENTE | —                             |
 | B10 | Licencias de dependencias vs. app comercial de pago        | P2        | PENDIENTE | —                             |
 
