@@ -13740,6 +13740,19 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `expo-splash-screen` con su plugin (imagen, fondo, variante oscura) y sin el `splash` de arriba; es lo que
     necesita también la propuesta de `R9-463`. Detalle: `detail/B8-expo-sdk57-deprecadas.md`.
 
+- **`R9-553` (S136, `B9` / dependencias nativas sin uso — P3) — 🐛 cuatro módulos nativos que nadie importa van en
+  el release: `expo-image` (con Glide), `expo-status-bar`, y `slider` y `clipboard`, que están en `devDependencies`
+  pero el autolinking de RN los enlaza igual.** MEDIDO por archivos en la 136.
+  - 0 imports en `src/`, `app/`, las pruebas y los plugins. `expo-image` y `expo-status-bar` nunca se importaron;
+    `@react-native-community/slider` y `@react-native-clipboard/clipboard` perdieron su último import en
+    `9c3446b6` (2026-05-17, «dead code»), y quedó la dependencia. `autolinking.json` lista los dos de dev, y el merge
+    del release incluye los cuatro, más Glide 5.0.5 y sus plugins (`expo-image/android/build.gradle:44-55`).
+  - **Camino:** el instalado y la descarga cargan código que no hace nada. En el AAB de vc74, solo las `.so`:
+    `libavif_android.so` (899 752 B), `libanimation-decoder-gif.so` (275 368 B) y `libreact_codegen_RNCSlider.so`
+    (237 048 B), 1,4 MB en arm64; el dex, sin medir.
+  - **Medida:** `_scratch/S136-B9-nativos.out.txt`, `S136-B9-raiz.out.txt`. **Propuesta (sin escribir):** quitar los
+    cuatro, con build nativo y una pasada por las pantallas con `Image`. Detalle: `detail/B9-dependencias-sin-usar.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
