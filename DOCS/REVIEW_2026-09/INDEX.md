@@ -1903,7 +1903,7 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 | C15  | Hoja de ofrenda — copy, apertura, compra                        | P0        | 🐛 BUG (P2)                 | `C15-hoja-ofrenda`      |
 | C16  | Gating free vs premium en toda la Mesa                          | P0        | ✅ OK                       | `C16-gating-mesa`       |
 | C20a | Memoria/SRS — integridad de datos y racha (floor restaurado)    | P0        | PENDIENTE                   | —                       |
-| C26a | Cuenta — login/logout Google, identidad                         | P0        | PENDIENTE                   | —                       |
+| C26a | Cuenta — login/logout Google, identidad                         | P0        | PENDIENTE (sin medir, S137) | `C26a-login-google`     |
 | C26b | Respaldar/restaurar (`BackupService`)                           | P0        | PENDIENTE                   | —                       |
 | C27a | Ajustes — borrar cuenta y reset de datos                        | P0        | PENDIENTE                   | —                       |
 | C39  | Donación — hoja, compra, restaurar                              | P0        | 🐛 BUG (P3)                 | `C39-donacion`          |
