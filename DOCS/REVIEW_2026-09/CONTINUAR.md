@@ -1,12 +1,25 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-09, fin de la sesión 132.** La 132 NO hizo el (dh): a pedido de Victor fue un
+> **Última actualización: 2026-11-09, fin de la sesión 133.** La 133 tampoco hizo el (dh): fue el **segundo piloto
+> de re-revisión con Fable 5.2** (modelo principal, esfuerzo `high`, sin agentes, en un chat nuevo), a ciegas sobre
+> `B4` (las reglas de Firestore y Storage, una fila cerrada en ✅ OK). Las reglas VIVAS se leyeron de nuevo con la
+> API de Rules (solo GET): **son las de septiembre** (el mismo ruleset `4c122e10`, del 2026-05-28; un solo release,
+> `cloud.firestore`; ninguno de Storage) y **no hay ningún path abierto**. Un nuevo, `R9-530` (P3: «Eliminar
+> cuenta» borra una foto de la nube y la regla deja que otro dispositivo de la misma cuenta siga escribiendo);
+> ningún P0, P1 ni P2 nuevo; tres notas a `R9-136`; `R9-136` visto a ciegas, `R9-25` no visto; la tabla y seis
+> «sin medir», en `detail/B4-reglas-firestore-storage.md` («Re-revisión piloto»). **El criterio que Victor fijó
+> antes de empezar (un nuevo P2 o mayor → seguir con `B2`, `B3`, `B5`, `A21` y `B1b`) no se cumple.** Cerrar la
+> re-revisión, y usar a Fable en las sesiones de arreglos, lo decide Victor: no propongas otro piloto. La rama de
+> la 133 (`docs/review-s133-piloto-b4`, solo docs) va **sin mergear hasta el OK de Victor**. Hay 530 hallazgos y
+> ningún P0 abierto. **Lo siguiente:** `A43` y `A44`, en la 134, con Opus (`_scratch/S134-PROMPT.md`).
+>
+> **Antes, al fin de la sesión 132 (2026-11-09):** la 132 NO hizo el (dh): a pedido de Victor fue un
 > **piloto de re-revisión con Fable 5.2** (modelo principal, esfuerzo `high`, sin agentes, en un chat nuevo), a
 > ciegas sobre `A7` (`BackupService.ts`). Un nuevo, `R9-529` (P3 bajo: el historial de búsqueda restaurado lo pisa
 > la primera búsqueda); ningún P0, P1 ni P2 nuevo; 6 de los hallazgos previos del área vistos a ciegas, 1 no visto
-> (`R9-29`); la tabla y cuatro «sin medir», en `detail/A7-backupservice.md` («Re-revisión piloto»). Si se sigue
-> re-revisando con Fable (los ✅ OK de `B2`–`B5`, `A21`, `B1b`, los «sin medir» de las P0, o las sesiones de
-> arreglos) lo decide Victor: no lo propongas de nuevo ni lo decidas. `A43` y `A44` pasan a la 133, sin tocar.
+> (`R9-29`); la tabla y cuatro «sin medir», en `detail/A7-backupservice.md` («Re-revisión piloto»). Ya está
+> mergeada y pusheada (`main` = `origin/main` = `308cb81`, CI verde en el log, run `42735434164`, 3 jobs,
+> 374/4693; corregido en la 133: sus docs decían «sin mergear», y que la 133 sería `A43` y `A44`).
 >
 > **Antes, al fin de la sesión 131 (2026-11-04):** la 131 hizo el (dg) en el MISMO chat que la 130 (lo
 > pidió Victor: «podrías continuar aquí?»), en la terminal, SIN agentes: **el Modo A P2, la sexta tanda.** Dos
@@ -569,13 +582,19 @@ sesión 118. Y el (cu), la cuarta tanda, HECHO en la sesión 119. Y el (cv), la 
 sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. Y el (cx), la séptima tanda, HECHO en la
 sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la novena tanda, HECHO en la sesión 124. Y el (da), la décima tanda, HECHO en la sesión 125. Y el (db), la primera tanda del Modo A P2, HECHO en la sesión 126. Y el (dc), la segunda tanda, HECHO en la
 sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. Y el (dg), la sexta tanda,
-HECHO en la sesión 131. La sesión 132 fue el piloto de re-revisión de `A7` con Fable 5.2 (fuera de la serie, a
-pedido de Victor). **Lo siguiente es el (dh), sin empezar.**
+HECHO en la sesión 131. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7` y `B4`,
+fuera de la serie, a pedido de Victor). **Lo siguiente es el (dh), sin empezar.**
 
-**(dh) Sesión 133: el Modo A P2, la séptima tanda,** en un chat nuevo, en la terminal: `A43` (Reading insights,
-`reading-insights/index.tsx` 1730 L) y seguir con `A44` (Comparación de versiones, `VersionComparisonScreen` 2141
-L), por el orden del índice. El mensaje está en `_scratch/S133-PROMPT.md`, que manda sobre este archivo.
-Alternativa legítima, si Victor la prefiere: `B6`–`B10` (Modo B), en otra sesión.
+**(dh) Sesión 134: el Modo A P2, la séptima tanda,** en un chat nuevo, en la terminal, con Opus 5.5 en `high`
+(`/model opus` al empezar): `A43` (Reading insights, `reading-insights/index.tsx` 1730 L) y seguir con `A44`
+(Comparación de versiones, `VersionComparisonScreen` 2141 L), por el orden del índice. El mensaje está en
+`_scratch/S134-PROMPT.md`, que manda sobre este archivo. Alternativa legítima, si Victor la prefiere: `B6`–`B10`
+(Modo B), en otra sesión.
+
+**Segundo piloto, sesión 133 — ya HECHO** (en un chat nuevo, SIN agentes, Fable 5.2 de modelo principal: `B4`
+re-revisada a ciegas sobre las reglas VIVAS, leídas con la API de Rules; las reglas no cambiaron desde septiembre,
+ningún path abierto; `R9-530`, P3; notas a `R9-136`; `detail/B4-reglas-firestore-storage.md`, sección «Re-revisión
+piloto»). El criterio (un nuevo P2 o mayor) no se cumple. El mensaje era `_scratch/S133-PROMPT.md`.
 
 **Piloto, sesión 132 — ya HECHO** (en un chat nuevo, SIN agentes, Fable 5.2 de modelo principal: `A7` re-revisada a
 ciegas; `R9-529`, P3 bajo; `detail/A7-backupservice.md`, sección «Re-revisión piloto»). No había mensaje propio:
@@ -2296,16 +2315,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 132 (2026-11-09).**
+**Medido al cerrar la sesión 133 (2026-11-09).**
 
-- **La 131, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `741251d` (solo docs; el
+- **La 132, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `308cb81` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41936210876`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 132: los docs de la
-  131 decían «sin mergear»).
-- **La rama de la 132, sin mergear a propósito y sin pushear:** `docs/review-s132-piloto-a7` (solo docs: el
-  piloto de `A7` y `R9-529`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 132 fue SIN agentes, en un chat nuevo. El checkpoint se escribió en un
-  worktree aparte (`../essb-docs-s132`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S132-*`.
+  `42735434164`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 133: los docs de la
+  132 decían «sin mergear»).
+- **La rama de la 133, sin mergear a propósito y sin pushear:** `docs/review-s133-piloto-b4` (solo docs: el
+  piloto de `B4` y `R9-530`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 133 fue SIN agentes, en un chat nuevo. El checkpoint se escribió en un
+  worktree aparte (`../essb-docs-s133`, fuera del repo), quitado al terminar. Las reglas leídas y el script, en
+  `_scratch/S133-*`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -2419,9 +2439,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
-**Recomendado para la sesión 132: el mensaje (dh), la séptima tanda del Modo A P2** (`_scratch/S132-PROMPT.md`):
-`A43` (Reading insights) y seguir con `A44` (Comparación de versiones), por el orden del índice, sin mezclar
-modos. La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (`R9-527`) y `A42` (`R9-528`), P3, ninguno P0;
+**Recomendado para la sesión 134: el mensaje (dh), la séptima tanda del Modo A P2** (`_scratch/S134-PROMPT.md`,
+con Opus 5.5 en `high`): `A43` (Reading insights) y seguir con `A44` (Comparación de versiones), por el orden del
+índice, sin mezclar modos. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7`:
+`R9-529`; `B4`: `R9-530`; los dos P3). La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (`R9-527`) y `A42` (`R9-528`), P3, ninguno P0;
 la 130, `A39` y `A40` (`R9-524`..`R9-526`). `B6`–`B10` (Modo B) van en otra sesión. La nube no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
@@ -3443,6 +3464,14 @@ Alternativas legítimas:
   memoria, también las pantallas de pestaña que quedan montadas (`search.tsx` y `@bible_search_history`): la sonda
   de `_scratch/S132-historialRespaldo.test.tsx.txt` junta los mocks de la pantalla (`S117-buscarPantalla`) con los
   del respaldo (`__tests__/backupRestoreSignal.test.ts`).
+- **Para saber qué reglas hay en producción, LISTÁ los releases; y una regla que solo mira el token se cruza con
+  cada flujo que cambia la cuenta (sesión 133, piloto de `B4`, `R9-530`).** `GET …/projects/<id>/releases` da
+  todos de una vez: el de Firestore se llama `cloud.firestore` (o `cloud.firestore/<base>`), y los de Storage,
+  `firebase.storage/<bucket>`; pedir `releases/firebase.storage` da 404 haya o no haya Storage. La lista de
+  `rulesets` da el historial con fechas (sin autor). El script es `_scratch/S133-reglas.cjs.txt`: refresca el
+  token en memoria, no lo imprime ni lo guarda. Y la regla `request.auth.uid == uid` no sabe si la cuenta se está
+  borrando, se cerró en otro lado o se enlazó recién: en una fila de reglas, por cada flujo que cambia la cuenta
+  (borrar, cerrar sesión, enlazar) preguntá qué puede escribir OTRO dispositivo con el token que ya tiene.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

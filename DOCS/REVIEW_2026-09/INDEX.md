@@ -1,7 +1,9 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 133: `A43` (Reading insights) y `A44`
-> (Comparación de versiones) y siguientes.** La 132 fue un piloto de re-revisión de `A7` con Fable 5.2 (a pedido de
+> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 134: `A43` (Reading insights) y `A44`
+> (Comparación de versiones) y siguientes.** La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
+> (las reglas de Firestore y Storage): las reglas vivas no cambiaron desde septiembre, ningún path abierto, un
+> nuevo, `R9-530` (P3), ninguno P0; con el criterio fijado (un nuevo P2 o mayor), no se cumple. La 132 fue el primer piloto, sobre `A7` (a pedido de
 > Victor): un nuevo, `R9-529` (P3 bajo), ninguno P0. La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (🐛):
 > `R9-527`, y `A42` (🐛): `R9-528`; P3, ninguno P0. La 130 (sin agentes, en un chat nuevo) cerró `A39` (🐛, con
 > `R9-524`) y `A40` (🐛): `R9-525`, `R9-526`; P3, ninguno P0. La 129 (con 8 agentes
@@ -1616,9 +1618,24 @@
 >   previos del área, 6 vistos a ciegas, 1 no visto (`R9-29`). Cuatro «sin medir». La tabla, en
 >   `detail/A7-backupservice.md` («Re-revisión piloto»).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **529**. Rama `docs/review-s132-piloto-a7` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A43` y `A44` (la 133, `_scratch/S133-PROMPT.md`); si se sigue
-> re-revisando con Fable, lo decide Victor.
+> **No queda ningún P0 abierto.** Hallazgos: **529**. Rama `docs/review-s132-piloto-a7` (solo docs), mergeada y
+> pusheada con el OK de Victor (`308cb81`, CI verde en el log, run `42735434164`, 3 jobs, 374/4693; corregido en la
+> 133: decía «sin mergear», y que la 133 sería `A43` y `A44`).
+>
+> **Sesión 133 (2026-11-09): segundo piloto de re-revisión con Fable 5.2, sobre `B4`** (las reglas de Firestore y
+> Storage, una fila cerrada en ✅ OK), en un chat nuevo, en la terminal, SIN agentes, esfuerzo `high`. Solo docs.
+>
+> - **`B4` ✅ (sigue en OK):** las reglas VIVAS se leyeron de nuevo con la API de Rules (solo GET). Son las de
+>   septiembre: el mismo ruleset (`4c122e10`, del 2026-05-28), el mismo texto; un solo release (`cloud.firestore`),
+>   ninguno de Storage. Ningún path abierto. Un nuevo, P3: `R9-530` («Eliminar cuenta» borra una foto de la nube y
+>   la regla deja que otro dispositivo de la misma cuenta siga escribiendo). Ningún P0, P1 ni P2 nuevo. Tres notas
+>   a `R9-136`. De lo previo del área: `R9-136` visto a ciegas, `R9-25` no visto. Seis «sin medir». La tabla, en
+>   `detail/B4-reglas-firestore-storage.md` («Re-revisión piloto»).
+> - **El criterio** (fijado por Victor antes de empezar: un nuevo P2 o mayor → seguir con `B2`, `B3`, `B5`, `A21` y
+>   `B1b`): **no se cumple.** La decisión de cerrar la re-revisión es de Victor.
+>
+> **No queda ningún P0 abierto.** Hallazgos: **530**. Rama `docs/review-s133-piloto-b4` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A43` y `A44` (la 134, con Opus, `_scratch/S134-PROMPT.md`).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**

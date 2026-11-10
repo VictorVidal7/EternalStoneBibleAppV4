@@ -13299,6 +13299,43 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Propuesta (sin escribir):** que la pantalla escuche `subscribeBackupRestored` y re-lea la clave, como los
     cuatro providers.
 
+- **`R9-530` (S133, piloto de re-revisión de `B4` / reglas de Firestore / borrado de cuenta — P3) — 🐛 «Eliminar
+  cuenta» borra una foto de la nube, y la regla deja que otro dispositivo de la misma cuenta siga escribiendo
+  después: lo que escribe queda en Firestore sin dueño, y ningún flujo lo borra.** Por lectura de la regla viva y
+  del código; la petición está evaluada a mano, la mitad que depende del token de una cuenta ya borrada queda «sin
+  medir» (no se prueba contra producción, y el emulador no está instalado).
+  - **La regla** (ruleset `4c122e10`, el único `match`, `/users/{uid}/{collection=**}`): permite leer y escribir
+    si `request.auth != null` y `request.auth.uid == uid`. Solo mira el token: no puede saber que la cuenta se
+    está borrando, ni que ya se borró.
+  - **El borrado es una foto, no una marca:** `deleteAllCloudData` hace, por colección, un `get()` y borra lo que
+    ese `get()` trajo (`deleteAccountData.ts:52-58`). `deleteAccount` detiene el motor de ESTE teléfono
+    (`AuthContext.tsx:693`), y entre el borrado de la nube (`:697`) y el `deleteUser` (`:707`) puede haber una
+    re-autenticación interactiva con Google, sin plazo (`:719-726`).
+  - **La petición, antes del `deleteUser`** (no depende de nada sin medir): Ana tiene la app abierta en el teléfono
+    y en la tableta, con su cuenta de Google. En el teléfono toca «Eliminar cuenta». En la tableta, el motor sigue
+    vivo y sube una nota: `pushOne` hace `set` con `{merge: true}` sobre `users/<uid de Ana>/notes/<id>`
+    (`SyncEngine.ts:3914-3929`). La regla: el path casa con `/users/{uid}/{collection=**}` (`uid` = el de Ana,
+    `collection` = `notes/<id>`); `request.auth != null` es verdadero; `request.auth.uid == uid` es verdadero →
+    PERMITE. Si el `get()` de `notes` del teléfono ya había vuelto, ese doc no está en su foto: el teléfono borra
+    la cuenta y la nota queda.
+  - **La misma petición, después del `deleteUser`** («sin medir»): el ID token que la tableta ya tenía vence hasta
+    una hora después. Según la documentación de Firebase, borrar al usuario revoca el refresh token, no los ID
+    tokens ya emitidos, y las reglas no ven la revocación. La regla da lo mismo que arriba. No hace falta que Ana
+    edite nada: al pasar la app a segundo plano, `maybeWriteMemoryStatsSummary` hace `set` sobre
+    `users/<uid>/memoryStats/summary` (`MemoryDeckContext.tsx:384-388`, `memoryStatsSync.ts:201-242`; el uid sale
+    del motor, que en la tableta sigue arrancado).
+  - **Lo que queda:** documentos bajo un `uid` que ya no existe. Ningún cliente puede leerlos ni borrarlos (si Ana
+    vuelve a entrar con la misma cuenta de Google, Firebase le da un uid nuevo); solo se ven desde la consola. El
+    diálogo promete «Se borrará tu contenido en la nube (favoritos, notas, resaltados, tarjetas de memoria e
+    historial de repasos)» (`translations.ts:3892-3893`).
+  - P3: hacen falta dos dispositivos con la sesión abierta y una escritura en la ventana; el residuo es de la
+    propia persona y nadie más lo alcanza. Vecinos: `R9-25` (el costo de ese mismo borrado) y `R9-26`.
+  - **Propuesta (sin escribir, y es decisión de diseño):** las reglas solas no lo cierran sin dejar una marca.
+    Opciones: (a) que `deleteAccount` escriba primero una marca (`users/{uid}/meta/deleted`) y la regla niegue las
+    escrituras con `!exists(...)`, a costa de un `get` facturado por escritura y de una marca que sobrevive; (b) una
+    limpieza del lado del servidor al borrarse el usuario (necesita Blaze, o un cron en Vercel con el Admin SDK);
+    (c) aceptarlo y decirlo. Va con `R9-4`: cualquier cambio de reglas pide tenerlas en el repo.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -13390,6 +13427,23 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   **Antes de aplicar la mitigación barata**, que es añadir a la regla
   `request.auth.token.firebase.sign_in_provider != 'anonymous'`, comprobar que NINGUNA escritura
   de la app ocurre como anónima. Lo sólido es App Check con Play Integrity.
+
+  **⚠️ Sesión 133 (piloto de re-revisión de `B4`, visto a ciegas): tres notas, la severidad no cambia.**
+  - **La comprobación pedida, por lectura: hoy ningún acceso a Firestore ocurre como anónimo.** Las cinco entradas
+    pasan por `getFirestore()` y todas dependen de una sesión no anónima: el motor arranca solo con
+    `user && !user.isAnonymous` (`SyncEngineContext.tsx:93`), y con él `seedMemoryStatsFloorIfFresh` (`:103`);
+    `maybeWriteMemoryStatsSummary` toma el uid del motor (`memoryStatsSync.ts:204`); la migración de marcadores
+    recibe `migrationUid` (`app/_layout.tsx:160`); y «Eliminar cuenta» solo se dibuja con sesión no anónima
+    (`settings.tsx:540`, el botón en `:777`). Sin medir: qué `sign_in_provider` lleva el token en el instante
+    posterior a `linkWithCredential` (si siguiera diciendo `anonymous` hasta el refresco, la primera subida tras
+    enlazar daría `permission-denied`).
+  - **Excluir `anonymous` no lo cierra:** una cuenta de Google es gratis y pasa la misma regla. La regla no
+    consulta `request.resource`: ni tamaño, ni campos, ni nombre de colección.
+  - **Dos variantes que no se reinician a medianoche o no escriben** (sin medir; no se prueba contra producción):
+    con documentos de ~1 MiB, unas 1 000 escrituras (el 5 % de la cuota diaria) llenan el GiB de almacenamiento
+    del plan Spark, y eso no se cura con el reinicio diario sino borrando a mano desde la consola; y 50 000 `get`
+    de documentos que no existen, bajo el propio `users/{uid}/`, agotan la cuota de LECTURAS sin escribir nada.
+    Las mitigaciones son las mismas (App Check; y en la regla, un tope de tamaño y la lista de colecciones).
 
 - **`R9-137` (S21, prueba de sync) — 🐛 el dedupe por uid de `upsertQueueEntry` (pieza de
   `R9-22`) no lo vigila ninguna prueba.** CONFIRMADO por revert y sonda. Quitar
