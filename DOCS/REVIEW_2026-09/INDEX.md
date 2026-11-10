@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 134: `A43` (Reading insights) y `A44`
-> (Comparación de versiones) y siguientes.** La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
+> **Frontera actual: el Modo A P2 por el orden del índice: `A45` (Landings compartidos + about-book + explore-all) y
+> `A46` (Conflictos).** La 134 (sin agentes, en un chat nuevo) cerró `A43` (🐛): `R9-531`, `R9-532`, y `A44` (🐛):
+> `R9-533`..`R9-535`; un P2, ninguno P0. La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
 > (las reglas de Firestore y Storage): las reglas vivas no cambiaron desde septiembre, ningún path abierto, un
 > nuevo, `R9-530` (P3), ninguno P0; con el criterio fijado (un nuevo P2 o mayor), no se cumple. La 132 fue el primer piloto, sobre `A7` (a pedido de
 > Victor): un nuevo, `R9-529` (P3 bajo), ninguno P0. La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (🐛):
@@ -1634,8 +1635,23 @@
 > - **El criterio** (fijado por Victor antes de empezar: un nuevo P2 o mayor → seguir con `B2`, `B3`, `B5`, `A21` y
 >   `B1b`): **no se cumple.** La decisión de cerrar la re-revisión es de Victor.
 >
-> **No queda ningún P0 abierto.** Hallazgos: **530**. Rama `docs/review-s133-piloto-b4` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A43` y `A44` (la 134, con Opus, `_scratch/S134-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **530**. Rama `docs/review-s133-piloto-b4` (solo docs), mergeada y
+> pusheada con el OK de Victor (`bd3bfad`, CI verde en el log, run `42766266820`, 3 jobs, 374/4693; rama borrada tras
+> `git cherry`; corregido en la 134: decía «sin mergear»).
+>
+> **Sesión 134 (2026-11-10): el Modo A P2, la séptima tanda (`A43`, `A44`)**, en un chat nuevo, en la terminal, SIN
+> agentes, Opus 5.5 `high`. Solo docs.
+>
+> - **`A43` 🐛 (cerrada):** P3 `R9-531` (la tarjeta «Mi semana» dice «1 versículos oídos» y pone los números sin
+>   separador; la tendencia emocional, «+1 días») y P3 `R9-532` (la tira de ánimo tiene 17 columnas y el registro
+>   guarda 84 días: 4 o 5 semanas siempre vacías). Ninguno P0 (`detail/A43-reading-insights.md`).
+> - **`A44` 🐛 (cerrada):** P2 `R9-533` (abrir una comparación guardada de otro pasaje muestra el versículo con ese
+>   número en el capítulo abierto), P3 `R9-534` (el análisis del versículo anterior queda en pantalla) y P3 `R9-535`
+>   (la comparación alinea por número: con RV1909, Jonás 2:1 pone el pez al lado de la oración; la nota culpa al
+>   texto crítico). Ninguno P0 (`detail/A44-comparacion-versiones.md`).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **535**. Rama `docs/review-s134-a43-a44` (solo docs), sin mergear hasta
+> el OK de Victor. **Lo siguiente:** `A45` (Landings compartidos + about-book + explore-all) y `A46` (Conflictos).
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**
@@ -1798,8 +1814,8 @@ Verificado contra `git log` el 2026-09-03 (`main` = `origin/main` = `f9d6b27`).
 | A40 | Devocional, Daily Light, guiada, sentimientos, temas               | P2        | 🐛 BUG    | `A40-devocional-luz-guiada`      |
 | A41 | Teología y diccionario (`features/theology`, `dictionary`)         | P2        | 🐛 BUG    | `A41-teologia-diccionario`       |
 | A42 | Sermon-notes y share-faith                                         | P2        | 🐛 BUG    | `A42-sermones-share-faith`       |
-| A43 | Reading insights (`reading-insights/index.tsx`, 1730 L)            | P2        | PENDIENTE | —                                |
-| A44 | Comparación de versiones (`VersionComparisonScreen`, 2141 L)       | P2        | PENDIENTE | —                                |
+| A43 | Reading insights (`reading-insights/index.tsx`, 1730 L)            | P2        | 🐛 BUG    | `A43-reading-insights`           |
+| A44 | Comparación de versiones (`VersionComparisonScreen`, 2141 L)       | P2        | 🐛 BUG    | `A44-comparacion-versiones`      |
 | A45 | Landings compartidos + about-book + explore-all                    | P2        | PENDIENTE | —                                |
 | A46 | Conflictos (`features/conflicts`, `(tabs)/conflicts.tsx`)          | P2        | PENDIENTE | —                                |
 

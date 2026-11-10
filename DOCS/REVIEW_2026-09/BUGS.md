@@ -13336,6 +13336,98 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     limpieza del lado del servidor al borrarse el usuario (necesita Blaze, o un cron en Vercel con el Admin SDK);
     (c) aceptarlo y decirlo. Va con `R9-4`: cualquier cambio de reglas pide tenerlas en el repo.
 
+- **`R9-531` (S134, `A43` / Mi lectura, la semana y el ánimo — P3) — 🐛 la tarjeta «Mi semana en la Palabra» que se
+  comparte dice «1 versículos oídos» y pone los números sin separador de miles; la tendencia emocional dice «+1
+  días».** MEDIDO con sonda en la 134. Familia de `R9-488` y `R9-524`, en otra pantalla.
+  - `WeeklyRecapModal.tsx:81-91` arma «{{n}} versículos leídos» y «{{n}} versículos oídos» con `String(n)`
+    (`translations.ts:416-418`, `:6970-6972`): sin singular y sin separador, donde la pantalla pone «2,424» con
+    `num` (`index.tsx:119-123`). La tendencia emocional, en pantalla (`index.tsx:891-895`) y en su imagen
+    (`MoodImageModal.tsx:286-289`), usa «+{{n}} días» / «−{{n}} días» (`translations.ts:335-336`, `:6893-6894`). Los
+    modales hermanos de la misma carpeta ya tienen el singular (`ChallengeImageModal.tsx:71-79`,
+    `ConstancyImageModal.tsx:89-91`, `HighlightsImageModal.tsx:71-74`).
+  - **Repro:** oír un solo versículo en la semana (el contador suma de a uno, `AudioListeningTracker.tsx:65`) → Mi
+    lectura → «Compartir mi semana»: «1 versículos oídos». Con la UI en inglés y una semana de 2.424 versículos
+    (la del QA de Fable, área 44): la pantalla dice «2,424», la imagen «2424 verses read». Un sentimiento registrado
+    un día más que el mes anterior: «+1 días». «1 versículos leídos» no se alcanza (el lector suma el capítulo
+    entero, `[chapter].tsx:784-786`).
+  - **Sonda:** `_scratch/S134-a43.test.tsx.txt`, pruebas 1-3 (los dos modales reales con el diccionario real):
+    `{"leidos":true,"oidos":true}`, `{"crudo":true,"pantalla":"2,424"}`, `{"mas":true,"menos":true}`; control: con
+    2, «2 verses heard».
+  - **Propuesta (sin escribir):** claves `…One` como los hermanos y `toLocaleString` con el idioma de la UI.
+
+- **`R9-532` (S134, `A43` / Mi lectura, la tira de ánimo — P3) — 🐛 la tira de ánimo bajo el heatmap tiene 17
+  columnas y el registro de ánimo guarda 84 días: quien registra su ánimo todos los días ve siempre 4 o 5 semanas
+  «sin registro» a la izquierda.** MEDIDO con sonda en la 134. Familia de `R9-522` (otra poda que esconde historia).
+  - `recordFeeling` poda lo anterior a 84 días (`feelingsLog.ts:29`, `:68-82`); el heatmap tiene `HEATMAP_WEEKS = 17`
+    columnas (`history.ts:31`, 113-119 días), y la tira pone un punto por columna (`index.tsx:187-198`) con
+    `moodForDateKeys`: las columnas más viejas quedan siempre vacías (el punto hueco, el mismo de una semana sin
+    registro: `index.tsx:144-147`, «Null feeling = no check-in that week»), y la etiqueta de accesibilidad dice «13 de 17 semanas con un registro». El comentario de
+    `feelingsLog.ts:123-125` («retention 84d = the heatmap's 12-week window») es falso desde el Sprint 80 (17
+    semanas desde el 45).
+  - **Repro:** registrar el ánimo en Inicio cada día durante cuatro meses → Mi lectura → la tira bajo el heatmap: las
+    4 primeras semanas, vacías.
+  - **Sonda:** `_scratch/S134-a43.test.tsx.txt`, pruebas 4-5 (130 días por `recordFeeling` real y el heatmap real
+    de `buildReadingInsights`, troceado como la pantalla): `{"columnas":17,"llenas":13,"vaciasALaIzquierda":4,
+"a11y":"Ánimo por semana: 13 de 17 semanas con un registro"}`; control, el mismo registro sin podar: 17 de 17.
+  - P3: la historia vieja ya no existe (la poda es de diseño); lo que miente es la tira. **Propuesta (sin escribir):**
+    retener 119 días (17 semanas) o pintar la tira solo sobre las columnas que la retención cubre.
+
+- **`R9-533` (S134, `A44` / Comparación de versiones, las guardadas — P2) — 🐛 abrir una comparación guardada de
+  otro pasaje muestra el versículo con el mismo número en el capítulo que está abierto.** MEDIDO con sonda en la 134.
+  - `handleLoadComparison` (`VersionComparisonScreen.tsx:528-598`) restaura las versiones y los versículos de lo
+    guardado, pero no `comp.book` ni `comp.chapter`: `book` y `chapter` son props de la ruta (`:73-75`). La lista
+    muestra la referencia guardada (`:1343`) y el aviso dice «Cargada: …» (`:587-592`).
+  - **Repro:** comparar Romanos 8:28 (desde el lector) → «Guardar comparación» → otro día, Inicio → la tarjeta de
+    Comparar versiones (sin parámetros: Juan 3:16, `version-comparison.tsx:13-17`) → «Comparaciones guardadas» →
+    tocar la de Romanos: se ve Juan 3:28 («Vosotros mismos me sois testigos…»), con la cabecera en Juan 3. Si el
+    capítulo abierto es más corto, el versículo se recorta al último. Una guardada solo se reabre bien desde el mismo
+    capítulo.
+  - **Sonda:** `_scratch/S134-comparar.test.tsx.txt`, pruebas 1-2 (la pantalla y el servicio reales sobre
+    `node:sqlite` con la semilla): desde Juan 3, `{"vioJuan":true,"romanos":false,"toast":["Cargada: Rom 8:28"]}`;
+    control, la misma guardada desde Romanos 8: Romanos 8:28.
+  - P2: la función de guardar y reabrir no hace lo que promete fuera del capítulo en que se guardó, y lo que muestra
+    es otro texto bíblico bajo el nombre de la guardada (las notas de la guardada hablan de Romanos). Sin pérdida: lo
+    guardado sigue en la base. **Propuesta (sin escribir):** que cargar una de otro pasaje navegue a la ruta con sus
+    parámetros (`router.replace` con `book`, `chapter`, `verse`), y que la versión se restaure después del remontaje.
+
+- **`R9-534` (S134, `A44` / Comparación de versiones, el análisis — P3) — 🐛 si el versículo nuevo queda con menos de
+  dos versiones, la tarjeta de análisis sigue mostrando la del anterior.** MEDIDO con sonda en la 134.
+  - `loadComparison` (`VersionComparisonScreen.tsx:427-441`) pone `analysis` solo cuando hay dos versiones o más, y
+    no la limpia en el otro caso; la tarjeta («Análisis», el porcentaje de similitud, las palabras comunes y únicas,
+    las observaciones) se pinta con `analysis &&` (`:1003-1006`), y el resaltado de diferencias marca el texto nuevo
+    con las `commonWords` del anterior (`:975`).
+  - **Repro:** comparar KJV y BSB en Mateo 17:20 → flecha al 17:21 (BSB lo omite, el caso que la nota de `:253-258`
+    describe): queda el texto de KJV, la nota de BSB y el análisis del 17:20. Lo mismo con RV1909 en los capítulos
+    de otra versificación (`R9-535`).
+  - **Sonda:** `_scratch/S134-comparar.test.tsx.txt`, prueba 3 (packs publicados): RVR1960 + RV1909 en Jonás 1:16,
+    análisis al 85 %; flecha al 1:17 (RV1909 no tiene fila): `{"analisisSigue":true,"mismoPct":true}`.
+    `analyzeComparison` lanza con menos de dos versiones (`VersionComparison.ts:373-375`), así que todo análisis que
+    se ve con una sola es viejo por construcción.
+  - **Propuesta (sin escribir):** `setAnalysis(null)` en la rama de menos de dos versiones (y al empezar la carga).
+
+- **`R9-535` (S134, `A44` / Comparación de versiones, versificación — P3, fidelidad) — 🐛 la comparación alinea las
+  versiones por número: con RV1909 en Jonás 2:1 pone el pez al lado de la oración, y donde a una versión le falta el
+  número dice «omitido en el texto crítico».** MEDIDO con sonda y sobre los packs publicados en la 134. Familia de
+  `R9-503` (allí, referencias fijas del contenido; aquí, cualquier versículo que el lector compare).
+  - `compareVerse` (`VersionComparison.ts:265-337`) pide el mismo capítulo y versículo a cada versión y descarta en
+    silencio la que no tiene fila (`:326-328`). La pantalla explica toda ausencia como una omisión del texto crítico
+    (`VersionComparisonScreen.tsx:253-288`, «Este versículo no aparece en {{version}} (omitido en el texto
+    crítico)», `translations.ts:5207-5208`).
+  - **Medido en los packs de Pages** (sha de `packs/versions.json` `232bdf30…`, `_scratch/S130-versif.cjs.txt`):
+    RV1909 Jonás 1 tiene 16 versículos y su 2:1 es «Mas jehová había prevenido un gran pez…» (el 1:17 de las
+    demás); WEB no tiene Romanos 16:25 (Ro 16 llega al 24); SSE1569 no tiene Salmos 13:6 (llega al 5). Según
+    `R9-503`, RV1909 difiere en 12 capítulos, SSE1569 en 4 y WEB en 1.
+  - **Repro:** descargar RV1909 → Comparar → RVR1960 + RV1909 en Jonás 2:1: «Entonces oró Jonás…» al lado de «Mas
+    jehová había prevenido un gran pez…», como el mismo versículo, con un análisis («30 %», diferencias
+    significativas) que mide dos versículos distintos. En 1:17, RV1909 desaparece con la nota del texto crítico,
+    que es falsa: el versículo está, con otro número.
+  - **Sonda:** `_scratch/S134-comparar.test.tsx.txt`, pruebas 3-5: la nota en 1:17 (`"notaTextoCritico":true`), el
+    pez en 2:1 (`{"pez":true,"oracion":true,"pct":"30"}`); control, RVR1960 + SSE1569 en 2:1: la misma oración en
+    las dos. Por lectura, la Mesa compara un pasaje entero con el mismo servicio (`prep/index.tsx:790-803`,
+    `compareVerseRange`).
+  - **Propuesta (sin escribir):** una tabla de correspondencias por versión (la de `R9-503`) aplicada en
+    `compareVerse`, o, como mínimo, que la nota distinga «otra numeración» de «omitido» para RV1909, SSE1569 y WEB.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
