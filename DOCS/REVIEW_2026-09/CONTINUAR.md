@@ -21,8 +21,9 @@
 > «sin medir», en `detail/B4-reglas-firestore-storage.md` («Re-revisión piloto»). **El criterio que Victor fijó
 > antes de empezar (un nuevo P2 o mayor → seguir con `B2`, `B3`, `B5`, `A21` y `B1b`) no se cumple.** Cerrar la
 > re-revisión, y usar a Fable en las sesiones de arreglos, lo decide Victor: no propongas otro piloto. La rama de
-> la 133 (`docs/review-s133-piloto-b4`, solo docs) va **sin mergear hasta el OK de Victor**. Hay 530 hallazgos y
-> ningún P0 abierto. **Lo siguiente:** `A43` y `A44`, en la 134, con Opus (`_scratch/S134-PROMPT.md`).
+> la 133 (`docs/review-s133-piloto-b4`, solo docs) ya está mergeada y pusheada (`main` = `origin/main` = `bd3bfad`,
+> CI verde en el log, run `42766266820`, 3 jobs, 374/4693; corregido en la 134: decía «sin mergear»). Hay 530
+> hallazgos y ningún P0 abierto. **Lo siguiente:** `A43` y `A44`, en la 134, con Opus (`_scratch/S134-PROMPT.md`).
 >
 > **Antes, al fin de la sesión 132 (2026-11-09):** la 132 NO hizo el (dh): a pedido de Victor fue un
 > **piloto de re-revisión con Fable 5.2** (modelo principal, esfuerzo `high`, sin agentes, en un chat nuevo), a

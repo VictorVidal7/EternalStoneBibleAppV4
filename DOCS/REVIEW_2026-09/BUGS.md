@@ -13397,7 +13397,8 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     las observaciones) se pinta con `analysis &&` (`:1003-1006`), y el resaltado de diferencias marca el texto nuevo
     con las `commonWords` del anterior (`:975`).
   - **Repro:** comparar KJV y BSB en Mateo 17:20 → flecha al 17:21 (BSB lo omite, el caso que la nota de `:253-258`
-    describe): queda el texto de KJV, la nota de BSB y el análisis del 17:20. Lo mismo con RV1909 en los capítulos
+    describe; medido: el pack BSB publicado no tiene fila, `_scratch/S134-fila.cjs.txt`, así que entra por la misma
+    rama que la sonda): queda el texto de KJV, la nota de BSB y el análisis del 17:20. Lo mismo con RV1909 en los capítulos
     de otra versificación (`R9-535`).
   - **Sonda:** `_scratch/S134-comparar.test.tsx.txt`, prueba 3 (packs publicados): RVR1960 + RV1909 en Jonás 1:16,
     análisis al 85 %; flecha al 1:17 (RV1909 no tiene fila): `{"analisisSigue":true,"mismoPct":true}`.
@@ -13415,7 +13416,9 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     crítico)», `translations.ts:5207-5208`).
   - **Medido en los packs de Pages** (sha de `packs/versions.json` `232bdf30…`, `_scratch/S130-versif.cjs.txt`):
     RV1909 Jonás 1 tiene 16 versículos y su 2:1 es «Mas jehová había prevenido un gran pez…» (el 1:17 de las
-    demás); WEB no tiene Romanos 16:25 (Ro 16 llega al 24); SSE1569 no tiene Salmos 13:6 (llega al 5). Según
+    demás); WEB no tiene Romanos 16:25 (Ro 16 llega al 24: la doxología está en su 14:24-26); SSE1569 no tiene
+    Salmos 13:6 (llega al 5). **Sin descargar nada:** RVR1960 + WEB, las dos de la semilla, en Romanos 16:25: WEB
+    desaparece con la nota del texto crítico (por la misma rama que la prueba 3), en toda instalación. Según
     `R9-503`, RV1909 difiere en 12 capítulos, SSE1569 en 4 y WEB en 1.
   - **Repro:** descargar RV1909 → Comparar → RVR1960 + RV1909 en Jonás 2:1: «Entonces oró Jonás…» al lado de «Mas
     jehová había prevenido un gran pez…», como el mismo versículo, con un análisis («30 %», diferencias

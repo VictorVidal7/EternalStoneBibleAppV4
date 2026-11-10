@@ -64,7 +64,11 @@
 - `CompareImageModal`, más allá de los rótulos; un `chapter` no numérico por un enlace (`version-comparison.tsx:15`,
   `NaN`).
 
-**Cruce con las vecinas (§5, sesión 116):** `R9-535` es la familia de `R9-503` (`A36`, `A41`, `A42`): la Mesa compara
-un pasaje entero con el mismo servicio (`prep/index.tsx:790-803`, `compareVerseRange`), por lectura el mismo
-defecto (de `A32`, ya cerrada: su tanda). `R9-534` y `R9-535` se ven juntos en Jonás 1:17. De `A43` no queda nada que
-pase por aquí. `A45` sigue.
+**Cruce con las vecinas (§5, sesión 116):** leídas las secciones «Sin medir» de `A24`, `A32`, `A36` y `A40`.
+`R9-535` es la familia de `R9-503` (`A36`, `A41`, `A42`; los cuatro «sin medir» de `A36` son referencias fijas, no
+esta pantalla) y de la versificación entre el que manda y el que recibe un devocional (`A40`, en el Pendiente de
+Victor). La Mesa compara un pasaje entero con el mismo servicio (`prep/index.tsx:790-803`, `compareVerseRange`),
+por lectura el mismo defecto; `A32` midió de la Mesa solo «Comparar versiones» al volver de Ajustes (`R9-480`), no la
+versificación: queda para su tanda. De `A24`, el `bookLang` de ~25 pantallas (sin decidir) no toca la comparación,
+que localiza la cabecera por la UI. `R9-534` y `R9-535` se ven juntos en Jonás 1:17. De `A43` no queda nada que pase
+por aquí. `A45` sigue.

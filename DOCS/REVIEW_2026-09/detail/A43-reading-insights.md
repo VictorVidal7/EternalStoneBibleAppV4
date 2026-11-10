@@ -67,7 +67,11 @@
 - Lo que se oye con la pantalla abierta (el mini reproductor sigue sonando): la escucha no se recarga sin un cambio
   del progreso; por lectura, la cifra queda vieja hasta volver a entrar.
 
-**Cruce con las vecinas (§5, sesión 116):** `R9-531` es la familia de `R9-488` (`A34`) y `R9-524` (`A39`); `R9-532`, la
-de `R9-522` (`A39`, otra poda que esconde historia). `R9-63` (`A11`) sigue siendo el único defecto de día de esta
-carpeta. De `A39` (la línea de tiempo, que esta pantalla abre) no queda ningún «sin medir» que pase por aquí. `A44`
-sigue.
+**Cruce con las vecinas (§5, sesión 116):** leídas las secciones «Sin medir» de `A11`, `A34`, `A39` y `A40`.
+`R9-531` es la familia de `R9-488` (`A34`) y `R9-524` (`A39`). `R9-532` es la de `R9-522` (`A39`, otra poda que
+esconde historia) y la hermana de un «sin medir» de `A34`: el ánimo «del año» de «Tu camino» sale de los últimos 84
+días como mucho (`FEELINGS_RETENTION_DAYS`), anotado allí como diseño; aquí la misma retención deja columnas vacías
+que se leen «sin registro». El «pendiente» de `A34` sobre las plantillas premium del recap al perder el premium
+(`useShareImage.ts:72-77`, el hueco de `R9-443`) vale igual para `WeeklyRecapModal` y `MoodImageModal`: sigue sin
+medir. `R9-63` (`A11`) sigue siendo el único defecto de día de esta carpeta. De `A39` (la línea de tiempo, que esta
+pantalla abre) y de `A40` (los sentimientos), ningún «sin medir» pasa por esta pantalla. `A44` sigue.
