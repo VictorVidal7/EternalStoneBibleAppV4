@@ -1,6 +1,14 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-04, fin de la sesión 131.** La 131 hizo el (dg) en el MISMO chat que la 130 (lo
+> **Última actualización: 2026-11-09, fin de la sesión 132.** La 132 NO hizo el (dh): a pedido de Victor fue un
+> **piloto de re-revisión con Fable 5.2** (modelo principal, esfuerzo `high`, sin agentes, en un chat nuevo), a
+> ciegas sobre `A7` (`BackupService.ts`). Un nuevo, `R9-529` (P3 bajo: el historial de búsqueda restaurado lo pisa
+> la primera búsqueda); ningún P0, P1 ni P2 nuevo; 6 de los hallazgos previos del área vistos a ciegas, 1 no visto
+> (`R9-29`); la tabla y cuatro «sin medir», en `detail/A7-backupservice.md` («Re-revisión piloto»). Si se sigue
+> re-revisando con Fable (los ✅ OK de `B2`–`B5`, `A21`, `B1b`, los «sin medir» de las P0, o las sesiones de
+> arreglos) lo decide Victor: no lo propongas de nuevo ni lo decidas. `A43` y `A44` pasan a la 133, sin tocar.
+>
+> **Antes, al fin de la sesión 131 (2026-11-04):** la 131 hizo el (dg) en el MISMO chat que la 130 (lo
 > pidió Victor: «podrías continuar aquí?»), en la terminal, SIN agentes: **el Modo A P2, la sexta tanda.** Dos
 > nuevos, `R9-527` y `R9-528` (P3), ninguno P0: `A41` 🐛 cerrada (la cita del Salmo 90:2 en inglés, en Teología, no
 > es la de ninguna versión que trae la app) y `A42` 🐛 cerrada (al volver del editor de una nota de sermón o de un
@@ -561,12 +569,17 @@ sesión 118. Y el (cu), la cuarta tanda, HECHO en la sesión 119. Y el (cv), la 
 sesión 120. Y el (cw), la sexta tanda, HECHO en la sesión 121. Y el (cx), la séptima tanda, HECHO en la
 sesión 122. Y el (cy), la octava tanda, HECHO en la sesión 123. Y el (cz), la novena tanda, HECHO en la sesión 124. Y el (da), la décima tanda, HECHO en la sesión 125. Y el (db), la primera tanda del Modo A P2, HECHO en la sesión 126. Y el (dc), la segunda tanda, HECHO en la
 sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la cuarta tanda, HECHO en la sesión 129. Y el (df), la quinta tanda, HECHO en la sesión 130. Y el (dg), la sexta tanda,
-HECHO en la sesión 131. **Lo siguiente es el (dh).**
+HECHO en la sesión 131. La sesión 132 fue el piloto de re-revisión de `A7` con Fable 5.2 (fuera de la serie, a
+pedido de Victor). **Lo siguiente es el (dh), sin empezar.**
 
-**(dh) Sesión 132: el Modo A P2, la séptima tanda,** en un chat nuevo, en la terminal: `A43` (Reading insights,
+**(dh) Sesión 133: el Modo A P2, la séptima tanda,** en un chat nuevo, en la terminal: `A43` (Reading insights,
 `reading-insights/index.tsx` 1730 L) y seguir con `A44` (Comparación de versiones, `VersionComparisonScreen` 2141
-L), por el orden del índice. El mensaje está en `_scratch/S132-PROMPT.md`, que manda sobre este archivo.
+L), por el orden del índice. El mensaje está en `_scratch/S133-PROMPT.md`, que manda sobre este archivo.
 Alternativa legítima, si Victor la prefiere: `B6`–`B10` (Modo B), en otra sesión.
+
+**Piloto, sesión 132 — ya HECHO** (en un chat nuevo, SIN agentes, Fable 5.2 de modelo principal: `A7` re-revisada a
+ciegas; `R9-529`, P3 bajo; `detail/A7-backupservice.md`, sección «Re-revisión piloto»). No había mensaje propio:
+Victor lo pidió sobre `_scratch/S132-PROMPT.md`.
 
 **(dg) Sesión 131: el Modo A P2, la sexta tanda — ya HECHO en la sesión 131** (en el mismo chat que la 130, SIN
 agentes, a pedido de Victor: `A41` 🐛 cerrada, `R9-527`; `A42` 🐛 cerrada, `R9-528`; P3, ninguno P0;
@@ -2283,16 +2296,16 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 131 (2026-11-04).**
+**Medido al cerrar la sesión 132 (2026-11-09).**
 
-- **La 130, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `60cc41e` (solo docs; el
+- **La 131, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `741251d` (solo docs; el
   último código era `f3bee15`, solo pruebas; `src/` en `f13db80`). CI verificado en el log: run
-  `41931041248`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 131: los docs de la
-  130 decían «sin mergear»).
-- **La rama de la 131, sin mergear a propósito y sin pushear:** `docs/review-s131-a41-a42` (solo docs: el
-  ledger de `A41` y `A42`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. La 131 fue SIN agentes, en el mismo chat que la 130. El checkpoint se escribió en un
-  worktree aparte (`../essb-docs-s131`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S131-*`.
+  `41936210876`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 132: los docs de la
+  131 decían «sin mergear»).
+- **La rama de la 132, sin mergear a propósito y sin pushear:** `docs/review-s132-piloto-a7` (solo docs: el
+  piloto de `A7` y `R9-529`). Se mergea en fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** ninguno. La 132 fue SIN agentes, en un chat nuevo. El checkpoint se escribió en un
+  worktree aparte (`../essb-docs-s132`, fuera del repo), quitado al terminar. Las sondas, en `_scratch/S132-*`.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
 
 Las demás ramas locales, en total 11 contando `main` (sin las de la 113):
@@ -3422,6 +3435,14 @@ Alternativas legítimas:
   texto curado se barren todas con un script (`_scratch/S131-citasTeologia.cjs.txt`: entre comillas, normalizadas,
   un versículo o dos seguidos): la de Sal 90:2 era la KJV modernizada, que no está en KJV, WEB ni BSB. Un mock de
   `@expo/vector-icons` con solo `Ionicons` rompe `MarkdownFormatToolbar`: mockearlo vacío si no interviene.
+- **Antes de re-revisar una fila cerrada, medí cuánto cambió su archivo; y el arreglo que recarga «los providers»
+  deja las pantallas (sesión 132, piloto de `A7`, `R9-529`).** `git diff --shortstat <commit del detalle> HEAD --
+<archivo>`: `BackupService.ts` tenía +295/−102 y servía para medir la revisión; `SyncEngine.ts`, +2761, habría
+  medido los arreglos. La pasada va a ciegas (el detalle se lee al final) y cada candidato se busca en `BUGS.md`
+  por su clave. Y cuando un arreglo re-hidrata por una señal, listá TODO lo que escribe la clave entera desde
+  memoria, también las pantallas de pestaña que quedan montadas (`search.tsx` y `@bible_search_history`): la sonda
+  de `_scratch/S132-historialRespaldo.test.tsx.txt` junta los mocks de la pantalla (`S117-buscarPantalla`) con los
+  del respaldo (`__tests__/backupRestoreSignal.test.ts`).
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

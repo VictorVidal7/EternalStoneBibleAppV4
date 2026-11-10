@@ -1,7 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 132: `A43` (Reading insights) y `A44`
-> (Comparación de versiones) y siguientes.** La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (🐛):
+> **Frontera actual: el Modo A P2 por el orden del índice, la sesión 133: `A43` (Reading insights) y `A44`
+> (Comparación de versiones) y siguientes.** La 132 fue un piloto de re-revisión de `A7` con Fable 5.2 (a pedido de
+> Victor): un nuevo, `R9-529` (P3 bajo), ninguno P0. La 131 (sin agentes, en el mismo chat que la 130) cerró `A41` (🐛):
 > `R9-527`, y `A42` (🐛): `R9-528`; P3, ninguno P0. La 130 (sin agentes, en un chat nuevo) cerró `A39` (🐛, con
 > `R9-524`) y `A40` (🐛): `R9-525`, `R9-526`; P3, ninguno P0. La 129 (con 8 agentes
 > a pedido de Victor, en el mismo chat que la 128) cerró `A37` (🐛): `R9-506`..`R9-514`, y `A38` (🐛):
@@ -1603,9 +1604,21 @@
 >   de menos de 700 ms, la lista muestra el texto viejo; el dato se guarda); nota a `R9-525` (métodos y objeciones,
 >   la carga única de la versión) y, para `R9-503`, Job 38:4 sin defecto (`detail/A42-sermones-share-faith.md`).
 >
-> **No queda ningún P0 abierto.** Hallazgos: **528**. Rama `docs/review-s131-a41-a42` (solo docs), sin mergear
-> hasta el OK de Victor. **Lo siguiente:** `A43` (Reading insights) y `A44` (Comparación de versiones) por el orden
-> del índice (la 132, `_scratch/S132-PROMPT.md`).
+> **No queda ningún P0 abierto.** Hallazgos: **528**. Rama `docs/review-s131-a41-a42` (solo docs), mergeada y
+> pusheada con el OK de Victor (`741251d`, CI verde en el log, run `41936210876`, 374/4693; corregido en la 132).
+> **Lo siguiente:** `A43` (Reading insights) y `A44` (Comparación de versiones) por el orden del índice.
+>
+> **Sesión 132 (2026-11-09): piloto de re-revisión con Fable 5.2, sobre `A7`** (lo pidió Victor en lugar de `A43` y
+> `A44`), en un chat nuevo, en la terminal, SIN agentes, esfuerzo `high`. Solo docs.
+>
+> - **`A7` 🐛 (sigue cerrada):** pasada a ciegas sobre `BackupService.ts` (1719 L). Un nuevo, P3 bajo: `R9-529` (el
+>   historial de búsqueda restaurado lo pisa la primera búsqueda). Ningún P0, P1 ni P2 nuevo. De los hallazgos
+>   previos del área, 6 vistos a ciegas, 1 no visto (`R9-29`). Cuatro «sin medir». La tabla, en
+>   `detail/A7-backupservice.md` («Re-revisión piloto»).
+>
+> **No queda ningún P0 abierto.** Hallazgos: **529**. Rama `docs/review-s132-piloto-a7` (solo docs), sin mergear
+> hasta el OK de Victor. **Lo siguiente:** `A43` y `A44` (la 133, `_scratch/S133-PROMPT.md`); si se sigue
+> re-revisando con Fable, lo decide Victor.
 
 Charter completo: [`REVIEW_PROMPT.md`](REVIEW_PROMPT.md). Este archivo es lo único
 que hay que leer al reanudar. **Para arrancar un chat nuevo:**

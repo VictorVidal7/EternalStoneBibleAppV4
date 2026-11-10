@@ -13281,6 +13281,24 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Propuesta (sin escribir):** que `getAllSermonNotes` espere la cola (`await writeQueue`) y que el editor haga
     `flush` al perder el foco, no solo al desmontarse.
 
+- **`R9-529` (S132, piloto de re-revisión de `A7` / respaldo / búsqueda — P3 bajo) — 🐛 el historial de búsqueda
+  que el respaldo restaura lo pisa la primera búsqueda, si la pestaña Buscar ya estaba montada.** MEDIDO con sonda
+  en la 132. Vecino de `R9-28` y `R9-284`: su arreglo recarga cuatro providers con la señal del respaldo
+  (`subscribeBackupRestored`), y `app/(tabs)/search.tsx` no es ninguno de ellos.
+  - **Camino:** abrir Buscar (la pestaña queda montada) → Ajustes → Datos → Importar copia → cerrar el aviso de
+    «cerrá y volvé a abrir» con su botón → buscar algo con resultados.
+  - `search.tsx:374-392` hidrata `searchHistory` solo al montar; `recordSearch` (`:402-414`) escribe
+    `[nueva, ...lo que tiene en memoria]` entero sobre `@bible_search_history`, que `importBackup` acababa de
+    escribir (`BackupService.ts:1348-1355`).
+  - **Sonda:** `_scratch/S132-historialRespaldo.test.tsx.txt` (`importBackup` real y la pantalla real): en disco
+    `["viejo uno","viejo dos"]`, el respaldo trae `["gracia","fe viva","pacto"]`; tras importar, el disco tiene lo
+    restaurado y `restoredSections` dice `searchHistory`; tras buscar «amor» queda
+    `["amor","viejo uno","viejo dos"]`. CONTROL (la pantalla montada después del import, lo que pasa al reiniciar):
+    `["amor","gracia","fe viva","pacto"]`. 1 rojo (el defecto), 1 verde (el control).
+  - P3 bajo: el historial es una comodidad, el aviso pide reiniciar y con reiniciar no pasa.
+  - **Propuesta (sin escribir):** que la pantalla escuche `subscribeBackupRestored` y re-lea la clave, como los
+    cuatro providers.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,

@@ -271,3 +271,58 @@ un destino permanente.
    se marcaron solo las que son contenido escrito por el usuario y sin copia en la nube.
 5. **`R9-31` caso 1:** no se pudo confirmar sin ejecutar si el listener emite realmente
    durante la ventana del import.
+
+---
+
+## Re-revisión piloto con Fable 5.2 (sesión 132, 2026-11-09)
+
+**Para qué:** medir si vale la pena volver a revisar con Fable 5.2 lo ya revisado. Se eligió `A7` porque
+`BackupService.ts` casi no cambió desde su revisión (7 commits, +295/−102, 1719 L); `SyncEngine.ts` (`A4`) pasó de
+1378 a 3989 L en 85 commits, y re-revisarlo mediría los arreglos, no la revisión.
+
+**Cómo:** Fable 5.2 de modelo principal, esfuerzo `high`, sin agentes. A ciegas: este archivo no se leyó hasta
+terminar la pasada; cada candidato se buscó en `BUGS.md` por su clave. Se leyó `BackupService.ts` entero,
+`AchievementService.restoreBackup` y sus getters, `DataSettings.performImport`, y los dueños de cada clave que el
+respaldo espeja.
+
+**Resultado:**
+
+| Hallazgo previo                                           | En la pasada a ciegas                        |
+| --------------------------------------------------------- | -------------------------------------------- |
+| `R9-27`, `R9-49` (secciones degradadas)                   | arreglados; el arreglo se leyó y cierra      |
+| `R9-28` (nada se recarga tras importar)                   | arreglado en 4 providers; queda `R9-529`     |
+| `R9-29` (una escritura a Firestore por entidad)           | **no visto** (se leyó el push, no su costo)  |
+| `R9-30` (contenido que el respaldo omite)                 | visto                                        |
+| `R9-31` (transacción no exclusiva; borrados sin propagar) | visto, las dos mitades                       |
+| `R9-32` (el archivo queda en caché)                       | visto y descartado por menor                 |
+| `R9-126` (push con `updatedAt` viejo)                     | visto                                        |
+| `R9-129` (`getAllReviewEvents` se traga su error)         | visto                                        |
+| `R9-145` (`book_name` sin canonizar)                      | visto                                        |
+| `R9-131`, `R9-140` (pruebas)                              | fuera de alcance (no se leyeron las pruebas) |
+
+- **Nuevo: 1, `R9-529` (P3 bajo)**, el historial de búsqueda restaurado que pisa la primera búsqueda.
+- **Nuevos P0, P1 o P2: ninguno.**
+- **Descartados con evidencia:** la fila semilla de `reading_progress` existe (`database/index.ts:762-768`);
+  `canonicalizeProgressMap(null)` da `{}`; `@reader_side_by_side` es `'1'`/`'0'` en los dos lados; las tablas de
+  subrayados y logros existen antes de Ajustes (`ServicesContext.tsx:94-103`) y `user_achievements` se siembra en
+  `initialize`; `UNIQUE(verse_id)` está desde el primer commit de `HighlightService` (`0c6f5a68`), así que un
+  respaldo real no trae duplicados; los getters de los cuatro logs no tienen `LIMIT`; las etiquetas de
+  `degradedSections` del export coinciden una a una con las que consulta el import; el puntero de SQLite sigue
+  vivo (lo escribe `[chapter].tsx:960`, lo lee Home `:503`).
+
+**Sin medir (candidatos, esperan su tanda):**
+
+1. El selector de archivos filtra por `application/json` (`BackupService.ts:1713-1716`): un `.json` recibido por
+   una app de mensajería puede llegar con otro tipo MIME y no dejarse elegir. Es de dispositivo (Modo C).
+2. Un logro que el respaldo no trae (respaldo de una versión anterior de la app) queda desbloqueado, pero sus
+   puntos se pierden: `restoreBackup` reemplaza `total_points` y solo toca los ids del archivo
+   (`AchievementService.ts:1083-1119`).
+3. `current_streak` se restaura tal cual y solo se recalcula al arrancar (`recomputeReadingStreak`): una racha
+   vieja puede verse hasta reiniciar.
+4. La clave `lastReadPosition` de AsyncStorage (`ReadingProgressContext.tsx:227-266`): no se siguieron sus
+   llamadores; si alimenta algo visible, no viaja en el respaldo (clase de `R9-30`).
+
+**Lectura del piloto:** el criterio fijado antes de empezar era «al menos un hallazgo nuevo y real → seguir». Se
+cumple en la letra (uno), pero es del nivel más bajo y de una familia conocida. La cobertura de `A7` era buena.
+Salvedad: `A7` se revisó en septiembre, antes de las reglas de la §5 de `CONTINUAR.md` (sesiones 116 en adelante);
+el piloto no separa modelo de protocolo. La decisión de seguir o no es de Victor.
