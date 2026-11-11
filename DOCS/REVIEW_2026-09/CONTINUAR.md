@@ -2442,8 +2442,8 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
   `02ee73e`: `7d4a511f`, `a6a0ef13`, `e8700067`; cada uno toca un archivo de `src/` y agrega su prueba) y
   `docs/review-s140-fix` (solo docs, apilada sobre la punta de la primera: un solo fast-forward cubre las dos). Se
   mergean con el OK de Victor; después, las dos se borran tras `git cherry`. Si ya se mergearon, `main` las incluye.
-  `npm run validate` (`NODE_ENV=development`, sin emuladores, Metro ni worktrees vivos): ver
-  `_scratch/S140-validate.out.txt` (los totales ya no son 374/4693: hay tres suites nuevas).
+  `npm run validate` (`NODE_ENV=development`, sin emuladores, Metro ni worktrees vivos): verde, **377/4709** (tres
+  suites y 16 pruebas nuevas; las mismas 70 advertencias de eslint que la 139; `_scratch/S140-validate.out.txt`).
 - **Los worktrees:** ninguno. El de docs (`../essb-docs-s140`, checkpoint con `_scratch/S140-checkpoint.sh.txt`) se
   quitó antes del validate. Herramientas de la 140: `_scratch/S140-rev.sh.txt` (el revert por pieza: `save`, revert
   con Edit, `run`), con sus salidas `S140-<pieza>.revdiff.txt` y `S140-<pieza>.rev.out.txt`. Las de la 139 (UI del
