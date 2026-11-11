@@ -5,7 +5,8 @@
 > techo de 2 emuladores; ninguno cortado), Opus 5.5 con el asesor Fable 5.2. Cerró `C27a` 🐛 (`R9-558` P2, `R9-559`
 > P3), `C42a` 🐛 (`R9-561` P2; persistencia ✅; `R9-57` medido en vivo) y `C43a` 🐛 (`R9-562` P2, `R9-563` P3;
 > persistencia ✅; los arreglos de `R9-44` y `R9-50` se sostienen), y midió el control de toasts de `C26b`, que pasa a
-> P2 con `R9-560`. Ninguno P0. Hay 563 hallazgos y ningún P0 abierto. La rama `docs/review-s138-c-p0` (solo docs) va
+> P2 con `R9-560`. Ninguno P0, salvo lo que Victor decida sobre `R9-562` (P2 propuesto; P1 o P0 los pone él, §8). Hay
+> 563 hallazgos y ningún P0 abierto con esa salvedad. La rama `docs/review-s138-c-p0` (solo docs) va
 > **sin mergear hasta el OK de Victor**. El Modo C P0 queda hecho salvo lo que espera una cuenta de Google de PRUEBA
 > (`C26a`, `C54`, `C55`, el suelo de `C20a`, «Borrar cuenta» de `C27a`). **Lo siguiente lo decide Victor** (§4): el
 > mensaje recomendado, las filas C P1 de datos y núcleo, está en `_scratch/S139-PROMPT.md`. La 137 ya está mergeada y
@@ -2529,7 +2530,8 @@ el lector nativo pinta en blanco un capítulo sin filas); `C26b` pasa a 🐛 P2 
 «Datos» se dibujan DETRÁS del modal: medido con ráfagas de capturas y con la separación); `C42a` 🐛 (`R9-561` P2: la
 hoja de nota queda tapada por el teclado; persistencia ✅; `R9-57` medido en vivo: gana el `Modal`); `C43a` 🐛
 (`R9-562` P2: la ✕ del selector de colores borra el subrayado con su nota sin confirmar; `R9-563` P3; persistencia ✅,
-los arreglos de `R9-44` y `R9-50` se sostienen en vivo). Ninguno P0. **Con eso, el Modo C P0 queda hecho salvo lo
+los arreglos de `R9-44` y `R9-50` se sostienen en vivo). Ninguno P0, salvo lo que Victor decida sobre `R9-562` (§8).
+**Con eso, el Modo C P0 queda hecho salvo lo
 que espera una cuenta de Google de PRUEBA:** `C26a`, `C54`, `C55`, el suelo restaurado de `C20a` (que sigue EN CURSO)
 y «Borrar cuenta»/«Cerrar sesión» de `C27a`. **Recomendado para la 139, si Victor no elige otra cosa:** el mensaje
 `_scratch/S139-PROMPT.md` (las filas C P1 de datos y núcleo, con emulador). Alternativas: agregar la cuenta de prueba
@@ -2551,8 +2553,8 @@ nuevo) cerró `A43` (`R9-531`, `R9-532`) y `A44` (`R9-533` P2, `R9-534`, `R9-535
 la 130, `A39` y `A40` (`R9-524`..`R9-526`). La nube no es una opción. Lo de abajo es el menú de siempre para después.
 
 **~~Recomendado: el Modo C P0 de dinero y gating~~ HECHO en la 115** (`detail/C15-hoja-ofrenda.md` y vecinos).
-**Quedan 9 filas C P0:** `C1a`, `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a`, y `C54`/`C55` («sin medir»).
-`C26a` (login de Google), `C54` y `C55` necesitan **una cuenta de Google de PRUEBA** que Victor agregue a una
+**Quedan, tras la 138, 4 filas C P0:** `C20a` (EN CURSO: el suelo restaurado) y `C26a`, `C54`, `C55` («sin medir»).
+Las cuatro (y «Borrar cuenta»/«Cerrar sesión» de `C27a`) necesitan **una cuenta de Google de PRUEBA** que Victor agregue a una
 instancia de solo lectura (la del AVD es la suya y ya tiene la ofrenda): ver §6, «Modo C».
 
 **~~Recomendado: terminar `A12`~~ HECHO en la 114** (`detail/A12-superficies-crash.md`).
@@ -4094,8 +4096,10 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
 ## 8. Decisiones abiertas para Victor (no son bugs)
 
 - **La severidad de `R9-562` (sesión 138):** la ✕ del selector de colores del lector borra el subrayado con su nota
-  y su categoría, sin confirmar ni deshacer. Está en P2 porque media un gesto de quitar; si la nota del subrayado se
-  trata como cualquier texto escrito por el usuario (como en `R9-44`, P0 en la 6), sube a P1.
+  y su categoría, sin confirmar ni deshacer (medido dos veces y re-verificado). Está en P2 PROPUESTO porque media un
+  gesto de quitar; pero la regla dice P0 para la pérdida irrecuperable de datos del usuario, y `R9-44` (el mismo dato,
+  el mismo selector) fue P0 en la 6. **P2, P1 o P0: lo decide Victor.** Hasta entonces, «ningún P0 abierto» vale con
+  esa salvedad.
 
 - **El tope de cuota del piso de no asentados (`R9-39`, sesión 24):** mientras un conflicto siga
   sin resolver, cada enganche de esa colección vuelve a leer desde su piso. ¿Se le pone un tope,

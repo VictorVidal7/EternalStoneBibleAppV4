@@ -13897,12 +13897,15 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     120 px del gris en el selector.
   - **Medida:** galería → Edit → categoría + nota → Save (fila con `note`) → lector → tocar el versículo → Highlight →
     ✕: la fila ya no está; volver a subrayar crea otra con `note: null` (`_scratch/S138-sondas-agente-3/`, caminos 18
-    y 19: `S138-a3-64`, `-65`, `-67`, `-68`, `-70`). La papelera de la galería sí confirma, pero «Remove this
-    highlight?» no nombra la nota (`highlights.tsx:673-682`).
-  - **Severidad:** P2: texto escrito por el usuario, irrecuperable, por un toque cuyo propósito visible es el color. Es
-    la clase de `R9-44` por la otra puerta, la que el arreglo de la 7 no cubre. Si la nota del subrayado se trata como
-    cualquier dato del usuario, sube a P1 (lo decide Victor, §8). Con cuenta, `queueDelete` lleva el borrado a la nube
-    (sin medir). Detalle: `detail/C43a-subrayados.md`.
+    y 19: `S138-a3-64`, `-65`, `-67`, `-68`, `-70`). Re-verificado a mano por el orquestador: Marcos 2:5 con
+    `note: "S138A3-nota5-777"` (`S138-a3-62-corte-color-v3.db.txt`) ya no está tras la ✕ (`S138-a3-65-*.db.txt`), y 2:3
+    con su nota (`S138-a3-67-*.db.txt`) tampoco (`S138-a3-70-*.db.txt`). La papelera de la galería sí confirma, pero
+    «Remove this highlight?» no nombra la nota (`highlights.tsx:673-682`).
+  - **Severidad: P2 PROPUESTO; si es P1 o P0 lo decide Victor (§8).** Texto escrito por el usuario, irrecuperable, por
+    un toque cuyo propósito visible es el color: es la clase de `R9-44` (P0 en la 6, el mismo dato `highlights.note` y
+    el mismo selector) por la otra puerta, la que el arreglo de la 7 no cubre. Lo que lo deja abajo de P0 es que media
+    un gesto de quitar. Con cuenta, `queueDelete` lleva el borrado a la nube (sin medir). Detalle:
+    `detail/C43a-subrayados.md`.
 
 - **`R9-563` (S138, `C43a` / la hoja de edición del subrayado — P3) — 🐛 el atrás de Android descarta sin avisar el
   borrador de la nota y la categoría.** MEDIDO en el emulador; la forma de `R9-57` (lector) y `R9-499` (oración) en otra

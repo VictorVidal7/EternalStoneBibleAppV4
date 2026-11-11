@@ -67,7 +67,7 @@ dice que «the CALLER refreshes the version registry».
   `refreshInstalledVersions`. Con KJV elegida, el lector pide una versión sin filas, y Gestionar versiones la
   muestra «Instalada». Se corrige al reiniciar (y ahí manda `R9-424`). Lo que ve el lector con 0 versículos
   es una página en blanco sin mensaje (`detail/A13-lector-capitulo.md`, «Sin medir»): juntos, un camino de
-  la app hasta ella. Sin sonda.
+  la app hasta ella. Sin sonda. **Medido en la 138 (`C27a`): es `R9-558`** (`detail/C27a-ajustes-reset.md`).
 - **Dos descargas de pack a la vez comparten el alias `pack`** (P2, por lectura, baja probabilidad).
   `ManageVersionsSection.tsx:96-127` no deshabilita las otras filas mientras una descarga;
   `importVersionPack` (`index.ts:1809-1841`) hace `DETACH` tragándose el error y `ATTACH ? AS pack` fuera de

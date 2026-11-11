@@ -66,7 +66,8 @@ coincide (`:1344`). Su único escritor es `:1345`, y nada lo limpia.
   `.web.tsx` muestra el error o `t.bible.couldNotLoadChapters` (`[chapter].web.tsx:278-284`); el nativo deja la
   página en blanco, sin mensaje ni reintento (no hay rama de render para `verses.length === 0`). **Un camino
   de llegada lo trae `A14`** (el candidato «Resetear datos de la Biblia» con una versión descargada elegida,
-  `detail/A14-base-de-datos.md`): los dos juntos dan una página en blanco hasta reiniciar. Sin sonda.
+  `detail/A14-base-de-datos.md`): los dos juntos dan una página en blanco hasta reiniciar. Sin sonda. **Medido en
+  la 138 (`C27a`): es `R9-559`** (`detail/C27a-ajustes-reset.md`).
 - **`handleFavoriteSelected`** (`:1660-1680`): `await addFavorite` en bucle sin `try`; un fallo a mitad deja
   marcados solo los primeros. Va con las promesas flotantes de `detail/A12-superficies-crash.md` (hilo 2).
 - Si los subrayados fallan al cargar, queda pintado el mapa del capítulo anterior (por lectura).

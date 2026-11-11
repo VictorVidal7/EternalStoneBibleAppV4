@@ -1,6 +1,6 @@
 # C43a — Subrayados: persistencia (Modo C, sesión 138)
 
-**Estado: 🐛 BUG (P2) — `R9-562` (P2) y `R9-563` (P3); la hoja de edición tapada por el teclado suma a `R9-561`. La
+**Estado: 🐛 BUG (P2) — `R9-562` (P2 propuesto; P1 o P0 lo decide Victor, §8 de `CONTINUAR.md`) y `R9-563` (P3); la hoja de edición tapada por el teclado suma a `R9-561`. La
 persistencia: ✅ OK, y los arreglos de `R9-44` y `R9-50` se sostienen en vivo.** Agente 3, `emulator-5554` (segunda
 ola, tras `pm clear`), APK debug vc73, Metro sobre `6e81d56`, en inglés, WEB, cuenta anónima, **FREE** (leído dos
 veces; los subrayados no tienen gating: `highlights.tsx` no usa `isPremium`). Evidencia:
