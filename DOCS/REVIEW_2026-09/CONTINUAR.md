@@ -2415,7 +2415,7 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
   137 ya estaba en `main` (`6e81d56`, run `42952085435`).
 - **La rama de la 139, sin mergear a propósito y sin pushear:** `docs/review-s139-c-p1` (solo docs). Se mergea en
   fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`,
-  sin emuladores, Metro ni worktrees vivos): ver `_scratch/S139-validate.out.txt`.
+  sin emuladores, Metro ni worktrees vivos): verde, 374/4693 (`_scratch/S139-validate.out.txt`).
 - **Los worktrees:** ninguno. El de docs (`../essb-docs-s139`, checkpoint con `_scratch/S139-checkpoint.sh.txt`) se
   quitó antes del validate. Salidas de la 139 en `_scratch/S139-sondas/`, con las herramientas `_scratch/S139-ui.sh.txt`
   (UI, lectura de `bible.db` y RKStorage, frío, ráfaga, `seq`), `_scratch/S139-leer.cjs.txt` y `_scratch/S139-pix.cjs.txt`
