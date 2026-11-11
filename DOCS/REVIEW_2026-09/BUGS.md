@@ -13977,16 +13977,20 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   «sin tilde», «bible.tsx:9»).
   - `app/(tabs)/bible.tsx:94-98`, `src/features/memory/MemoryVersePickerSheet.tsx:101-109` y
     `src/features/study/SermonVersePickerSheet.tsx:104-112` (este, por lectura): `toLowerCase().includes(q)` sobre
-    `name` y `nameEn`, sin plegar tildes. Las búsquedas de notas, subrayados y versículos sí pliegan
-    (`foldDiacritics`, `src/lib/search/highlightMatches.ts`).
+    `name` y `nameEn`, sin plegar tildes. Las otras búsquedas sí pliegan: la de notas (medido en `C42b`:
+    `genesis`, `condenacion`), la de subrayados (por lectura: `highlightGallery.ts:63` usa `matchesNoteQuery`) y la
+    de versículos (medido en la 117: «corazon», «nino»), todas con `foldDiacritics`
+    (`src/lib/search/highlightMatches.ts`).
   - **Alcance, contado sobre `src/constants/bible.ts`:** 17 libros no se encuentran escritos sin tilde (el nombre
     inglés no los rescata): Éxodo, Levítico, Números, Josué, 1 y 2 Crónicas, Nehemías, Eclesiastés, Isaías,
     Jeremías, Abdías, Jonás, Sofonías, Zacarías, Malaquías, Gálatas y Filemón. «genesis» sí, por «Genesis».
   - **Medida:** Memoria: `exodo` y `levitico`, ningún libro; `xodo` → Éxodo, `nesis` → Génesis
     (`_scratch/S139-sondas/S139-mq-*.xml.txt`). Biblia: `exodo` e `isaias` → «No se encontraron resultados»; `xodo` →
     Éxodo (`S139-bib-*.xml.txt`). P2 y no P3: es la navegación del núcleo para el público principal, que en el
-    teclado del teléfono suele escribir sin tildes, y el vacío parece decir que el libro no existe; la lista
-    desplazable sigue ahí. Detalle: `detail/C20b-memoria-mazo.md`.
+    teclado del teléfono suele escribir sin tildes. Por el código, los prefijos coinciden con el nombre inglés
+    (`exo` → «Exodus», `isai` → «Isaiah»): el libro aparece mientras se escribe y desaparece en la última letra
+    («exodo», «isaias», «levitico»), y la lista queda vacía. La lista desplazable sigue ahí. Detalle:
+    `detail/C20b-memoria-mazo.md`.
   - **Arreglo propuesto (sin escribir):** el `foldDiacritics` de las otras búsquedas, en los tres filtros.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando

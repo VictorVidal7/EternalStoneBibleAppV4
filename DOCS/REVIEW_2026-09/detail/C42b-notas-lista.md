@@ -48,8 +48,10 @@ texto, `updated_at` nuevo. «Recientes» pasa de Salmos-Romanos-Juan-Génesis a 
 
 ## Observaciones sin numerar
 
-- Un GUARDAR no entró: el teclado había vuelto a salir y el toque escribió un espacio en la nota. Es la cara de
-  `R9-561` (la hoja tapada por el teclado), sin número nuevo.
+- Dos toques a GUARDAR (Romanos 8:1) no guardaron. El primero, sin efecto visible y **sin causa establecida**: el
+  dump siguiente da el texto sin cambios, y el log de Metro entre 14:18:56 y 14:20:32 no tiene ningún error (solo el
+  aviso de las voces de TTS). El segundo escribió un espacio en la nota: el teclado había vuelto a abrirse (la cara
+  de `R9-561`). El tercero, con `mInputShown=false`, guardó. Sin número: no se reprodujo.
 - «Antiguas» ordena por `updated_at`, no por `created_at` (`noteFilter.ts`, documentado y probado en
   `__tests__/noteFilter.test.ts`): una nota vieja editada hoy baja al final. Es de diseño.
 - Entorno: Play actualizó WebView y mató la app una vez (`am_kill … due to installPackageLI`), como en la 115.

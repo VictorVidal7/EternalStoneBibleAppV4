@@ -37,6 +37,9 @@ Visto en cada apertura del editor (también en la 137, `S137-a3-10b-toast.png`).
 
 ## Observaciones sin numerar (no buscadas a fondo; fuera de la fila)
 
+> **Sesión 139 (`detail/C42b-notas-lista.md`):** el chip tras un número, medido y descartado (regla deliberada de
+> `linkifyReferences`); el re-guardado al tocar el chip, medido: es `R9-564`.
+
 - Un crash NATIVO en uno de ~20 arranques en frío: `SIGSEGV` en `MountingCoordinator::pullTransaction` (hilo
   `mqt_v_js`; `S138-a2-crash-nativo.logcat.txt`). APK debug x86_64 con dos emuladores: puede ser del entorno. No
   está en `BUGS.md`.

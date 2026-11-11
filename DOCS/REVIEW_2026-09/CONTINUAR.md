@@ -658,12 +658,17 @@ HECHO en la sesión 131. Las sesiones 132 y 133 fueron los dos pilotos de re-rev
 fuera de la serie, a pedido de Victor). Y el (dh), la séptima tanda, HECHO en la sesión 134. Y el (di), la octava
 tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** Y el (dj), `B6`–`B10`, HECHO en la sesión
 136: **las filas del Modo B están terminadas.** Y el (dk), las filas C P0, HECHO en las sesiones 137 y 138 salvo lo
-que espera una cuenta de Google de PRUEBA. **Lo siguiente es el (dl), sin empezar, y lo elige Victor.**
+que espera una cuenta de Google de PRUEBA. Y el (dl), las filas C P1 de datos y núcleo, HECHO a medias en la sesión
+139 (`C42b`, `C43b`, `C20b`, `C7`; quedan `C17` y `C23`). **Lo siguiente es el (dm), sin empezar, y lo elige
+Victor.**
 
-**(dl) Sesión 139, recomendado: las filas C P1 de datos y núcleo (Modo C)** en un chat nuevo, en la terminal, con
-emulador (2 como techo). El mensaje está en `_scratch/S139-PROMPT.md`, que manda sobre este archivo. Alternativas
-(§4): la cuenta de prueba y las filas de cuenta (`C26a`, `C54`, `C55`, el resto de `C20a` y `C27a`), o una sesión de
-arreglos (`R9-410`..`R9-563`).
+**(dm) Sesión 140, recomendado: `C17` y `C23` (Modo C), y después las C P1 que siguen (`C18`, `C21`)** en un chat
+nuevo, en la terminal, con emulador (2 como techo; la 139 hizo 4 filas con uno, sin agentes). El mensaje está en
+`_scratch/S140-PROMPT.md`, que manda sobre este archivo. Alternativas (§4): la cuenta de prueba y las filas de cuenta
+(`C26a`, `C54`, `C55`, el resto de `C20a` y `C27a`), o una sesión de arreglos (`R9-410`..`R9-568`).
+
+**(dl) Sesión 139 — HECHO a medias en la sesión 139: las filas C P1 de datos y núcleo (Modo C).** `C42b` 🐛, `C43b`
+🐛, `C20b` 🐛, `C7` ✅ (`R9-564`..`R9-568`); `C17` y `C23` pasan al (dm). El mensaje fue `_scratch/S139-PROMPT.md`.
 
 **(dk) Sesión 137 — HECHO en las sesiones 137 y 138: las 7 filas C P0 (Modo C)** en un chat nuevo, en la terminal, con emulador: `C1a`,
 `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a` (P0 antes que P1, charter §1.5). `C26a` necesita, como `C54` y `C55`,
