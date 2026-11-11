@@ -567,18 +567,29 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
                 return;
               }
               logger.info('Reached end of chapter');
-              if (freshSleepTimer.mode === 'end-of-chapter') {
+              // An end-of-chapter sleep timer is consumed HERE, and it is the
+              // engine that honours it: the chapter-end signal below is not
+              // raised at all (R9-425). Raising it and letting the advancer
+              // decide does not work — the timer is cancelled in this same
+              // callback, so by the time AudioChapterAdvancer reads the mode it
+              // is already null and continuous playback rolled on, chapter
+              // after chapter, with no timer left.
+              const stoppedBySleepTimer =
+                freshSleepTimer.mode === 'end-of-chapter';
+              if (stoppedBySleepTimer) {
                 cancelSleepTimer();
               }
-              // Stop here; bump chapterEndCount so AudioChapterAdvancer can pick
-              // up continuous playback into the next chapter (Sprint 72). If
-              // continuous is off (or a end-of-chapter timer fired) the advancer
+              // Stop here; otherwise bump chapterEndCount so
+              // AudioChapterAdvancer can pick up continuous playback into the
+              // next chapter (Sprint 72). If continuous is off the advancer
               // ignores the bump and the player simply stays stopped.
               const finalState = {
                 ...freshState,
                 isPlaying: false,
                 isPaused: false,
-                chapterEndCount: freshState.chapterEndCount + 1,
+                chapterEndCount: stoppedBySleepTimer
+                  ? freshState.chapterEndCount
+                  : freshState.chapterEndCount + 1,
               };
               stateRef.current = finalState;
               setState(finalState);
