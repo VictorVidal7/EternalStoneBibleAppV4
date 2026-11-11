@@ -1,14 +1,21 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
 > **Frontera actual: la fase de ARREGLOS, con Fable 5.2 como modelo principal (decisión de Victor del 2026-11-11,
-> `CONTINUAR.md` §7). La 140 hizo la tanda 1, los tres P1 abiertos: `R9-424`, `R9-425` y `R9-427` ✅ ARREGLADOS
-> (`7d4a511f`, `a6a0ef13`, `e8700067`, rama `fix/s140-p1`), cada uno con su prueba vista FALLAR sin el arreglo; un
-> nuevo por lectura, `R9-569` (P3). No queda ningún P0 ni P1 abierto; hay 569 hallazgos. Lo siguiente: la 141 revisa
-> el diff de la 140, con emulador (`_scratch/S141-PROMPT.md`); después, las tandas de P2 propuestas en
-> `CONTINUAR.md` §4 (datos y sync primero) y los P3. Al terminar la fase: Opus 5.5 principal con Fable de asesor, y
-> las filas C P1 que faltan (`C17`, `C23`, con `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). El Modo C P0 sigue hecho
-> salvo lo que espera una cuenta de Google de PRUEBA (`C26a`, `C54`, `C55`, el suelo de `C20a`, que sigue EN CURSO, y
-> «Borrar cuenta» de `C27a`).** Detalle: `detail/S140-arreglos-p1.md`. Antes, la frontera eran las filas C P1 de datos
+> `CONTINUAR.md` §7). La 141 revisó el diff de la 140 (los tres P1), con emulador, jest y lectura: los tres arreglos
+> se sostienen en lo que arreglan (`R9-424` y `R9-425`, verificados EN VIVO con su control), y salieron cuatro
+> hallazgos nuevos, todos P3: `R9-570` (una REGRESIÓN del arreglo de `R9-424`: con el pack elegido ausente, cada
+> frío duplica los recordatorios del versículo del día), `R9-571` (la ✕ del reproductor no lo pliega: el estado roto
+> de `R9-427` no se alcanza en vivo, ni antes ni después del arreglo), `R9-572` (la prueba de `R9-427` usa un
+> `hidePlayer` simulado) y `R9-573` («al final del libro» sobre una lista no vence). `R9-569` quedó refutado en su
+> consecuencia. No hay ningún P0 ni P1 abierto; hay 573 hallazgos. Lo siguiente: la 142, los arreglos de lo que
+> encontró la 141 y la tanda 2 de P2 (`_scratch/S142-PROMPT.md`); después, las demás tandas de `CONTINUAR.md` §4 y
+> los P3. Al terminar la fase: Opus 5.5 principal con Fable de asesor, y las filas C P1 que faltan (`C17`, `C23`,
+> con `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). El Modo C P0 sigue hecho salvo lo que espera una cuenta de Google
+> de PRUEBA (`C26a`, `C54`, `C55`, el suelo de `C20a`, que sigue EN CURSO, y «Borrar cuenta» de `C27a`).** Detalle:
+> `detail/S141-revision-del-diff-s140.md`. Antes, la 140 hizo la tanda 1, los tres P1 abiertos: `R9-424`, `R9-425`
+> y `R9-427` ✅ ARREGLADOS (`7d4a511f`, `a6a0ef13`, `e8700067`), cada uno con su prueba vista FALLAR sin el arreglo;
+> `R9-569` nuevo (P3, por lectura); mergeada y pusheada (`main` = `origin/main` = `177029af`, CI verde en el log, run
+> `43070499798`, 377/4709). Detalle: `detail/S140-arreglos-p1.md`. Antes, la frontera eran las filas C P1 de datos
 > y núcleo, por la mitad (quedan `C17` y `C23`). La 139 (sin agentes, en un chat nuevo) cerró `C42b` (🐛): `R9-564`, `R9-565`; `C43b` (🐛): `R9-566`, `R9-567`;
 > `C20b` (🐛): `R9-568` P2 (los buscadores de libros no encuentran 17 libros escritos sin tilde), y «1 capítulos»
 > suma a `R9-524`; `C7` (✅). Ninguno P0. Antes, la frontera era el Modo C P0. La 138 (3 agentes a pedido de Victor,

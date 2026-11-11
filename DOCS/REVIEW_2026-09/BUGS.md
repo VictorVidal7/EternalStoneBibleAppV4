@@ -3771,6 +3771,14 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
       la versión sin filas desde el `getItem` hasta que responde la base (antes duraba un render); por lectura,
       para ver en vivo en la 141. (3) El agravante de las siete pantallas se cura solo en el caso de esta
       entrada (la elegida y la clave vuelven a coincidir). Detalle: `detail/S140-arreglos-p1.md`.
+  - **Sesión 141 (revisión del diff): se sostiene EN VIVO.** KJV descargada y elegida, frío directo al lector, dos
+    veces: KJV; el control sin la guarda da WEB (el orden real del arranque es el del bug: la base responde entre
+    0,6 y 1,2 s después del `getItem`). Las siete pantallas que leen la clave directo, en KJV. El espejo, RV1909,
+    dos fríos. **La ventana del costo 2, medida:** con el pack ausente el lector pide el capítulo en la versión sin
+    filas (~0,8 s en blanco, `R9-559`) y se recupera solo al caer a WEB. **Una regresión chica: `R9-570`** (en ese
+    estado, cada frío duplica los recordatorios del versículo del día). El costo 1 cambia de razón (`R9-569`, cuya
+    consecuencia quedó refutada): lo que impide escribir la clave es la lectura que falla, no la lista parcial.
+    Detalle: `detail/S141-revision-del-diff-s140.md`.
 
 - **`R9-425` (S116, `A15` / temporizador de sueño y avance de capítulo — P1) — 🐛 el temporizador «al final
   del capítulo» no para: la narración pasa al capítulo siguiente, y el temporizador ya no existe.** MEDIDO con
@@ -3802,6 +3810,14 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
       `AudioPlayerContext.tsx:543-553`): con «repetir versículo» el capítulo no termina y el temporizador no
       vence. La rama `end-of-chapter` de `shouldAdvanceChapter` queda como defensa. Verificado con jest y por
       lectura (el emulador no tiene voces de TTS). Detalle: `detail/S140-arreglos-p1.md`.
+  - **Sesión 141 (revisión del diff): se sostiene, EN VIVO y con sus vecinos.** En vivo (el TTS del emulador
+    dispara sus callbacks): Salmo 117 con «End of chapter» termina y no carga nada en 28 s; el control, sin
+    temporizador, pasa a Salmos 118. Con jest, 9 vecinos (`_scratch/S141-425-vecinos.test.tsx.txt`): el temporizador
+    puesto durante el último versículo, la lista en repetición, el bucle de memorización, Apocalipsis 22, la pausa
+    con un `onDone` tardío: todos paran y consumen el temporizador. Con el temporizador y el `onDone` en el mismo
+    tick para gracias a la rama `end-of-chapter` de `shouldAdvanceChapter`: no es decorativa. `R9-426` no empeoró.
+    Un vecino que ya existía: `R9-573` («al final del libro» sobre una lista). Detalle:
+    `detail/S141-revision-del-diff-s140.md`.
 
 - **`R9-427` (S117, `A15` / reproductor flotante — P1) — 🐛 tras cerrar el reproductor con la ✕, el siguiente
   audio de la sesión lo abre roto: se ve la vista expandida, sus botones no responden, y los del reproductor
@@ -3840,6 +3856,13 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
       resorte en el plegado y la expansión normales. Para ver en vivo en la 141 (el emulador no tiene voces de
       TTS: ver si el reproductor llega a mostrarse). El espejo no tiene camino en la app hoy (nadie fuera del
       reproductor llama a `expand`). Detalle: `detail/S140-arreglos-p1.md`.
+  - **Sesión 141 (revisión del diff): el estado roto NO se alcanza en vivo, ni antes ni después del arreglo.** En
+    el emulador, expandir → ✕ → reproducir de nuevo: el reproductor vuelve **expandido**, coherente y usable, con el
+    efecto y sin él (control), porque el `hidePlayer` real deja `isExpanded` en `true` (`R9-571`); el par
+    `isExpanded = false` con `expandProgress = 1` salía de un contexto simulado, en la sonda de la 117 y en la
+    prueba de la 140 (`R9-572`). El efecto es inocuo hoy (sin tirón, medido por video cuadro a cuadro: la misma
+    trayectoria con y sin él) y pasa a hacer falta el día que `R9-571` se arregle. La severidad escrita no se toca;
+    el daño real en vivo es el de `R9-571`. Detalle: `detail/S141-revision-del-diff-s140.md`.
 
 ---
 
@@ -13891,6 +13914,11 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     responde la base, y recién ahí cae a WEB (por lectura). La red sigue sin escribir la clave, a propósito
     (`R9-569`). Para su tanda: que `performResetData` refresque el registro, qué hace con la elegida, y si el
     diálogo avisa o el reset conserva los packs (texto en los dos idiomas).
+  - **Sesión 141:** re-medido de paso (el reset se llevó KJV y RV1909; la clave quedó en `RV1909` y en el frío la
+    elegida cayó a RVR1960). Con el pack ausente y la clave apuntándolo, cada frío tiene ahora la ventana de
+    `R9-424` (~1 a 2 s) y, con el recordatorio activo, `R9-570`. Para su tanda: la red puede escribir la clave
+    cuando la base **respondió** y el pack no está (no cuando la lectura falló): cura las siete pantallas y
+    `R9-570` de una vez. La decisión es de esa tanda.
 
 - **`R9-559` (S138, `C27a` / lector nativo con 0 versículos — P3) — 🐛 el lector pinta una página en blanco, sin
   mensaje ni reintento, cuando el capítulo no tiene filas.** MEDIDO en el emulador por el camino de `R9-558` (John 4 y
@@ -13903,6 +13931,9 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `S138-a1-35-r2-gen1.png`); el logcat dice «Query result: 0 verses found». El único aviso es el LogBox de debug.
   - **Severidad:** P3: hoy solo se llega por `R9-558` (o una lectura fallida); el usuario no sabe si es la app o la
     versión. Detalle: `detail/C27a-ajustes-reset.md`.
+  - **Sesión 141:** desde el arreglo de `R9-424` se ve además ~0,8 s en cada frío directo al lector con el pack
+    elegido ausente (medido: «0 verses found» y, al responder la base, la recarga en WEB con 36 versículos). Pasa
+    solo; no cambia la severidad.
 
 - **`R9-560` (S138, `C26b` / los toasts del modal «Datos» — P2) — 🐛 cada toast del respaldo (exportar, importar,
   resetear) se dibuja DETRÁS del modal «Datos» y no se ve: un import roto no muestra nada, y el aviso honesto de un
@@ -14058,6 +14089,68 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Severidad:** P3: pide un arranque por el camino de respaldo, y no persiste nada. Que el orden real lo
     permita, sin medir. **Arreglo propuesto (sin escribir):** volver a leer el registro cuando `initializeApp`
     termina (y tras el reset, con `R9-558`). Detalle: `detail/S140-arreglos-p1.md`.
+  - **Sesión 141: la lectura parcial es real, y su consecuencia, REFUTADA.** Medido en el emulador (reset cortado
+    al terminar RVR1960, y frío): la lectura devuelve `{"totalVerses":31102,"versions":["RVR1960"]}`, siempre, no
+    por carrera. Pero `installedVersions` (`constants/bible.ts:67-74`) devuelve SIEMPRE las empaquetadas, y una
+    descargada no puede faltar de una lectura que respondió: las disponibles siguen siendo las dos, y nadie pierde
+    WEB. **Sin daño.** Lo que sí impide que la red escriba la clave es la lectura que falla (el `finally`). Queda
+    como nota de `R9-558`. Detalle: `detail/S141-revision-del-diff-s140.md`.
+
+- **`R9-570` (S141, revisión del diff de la 140 / arreglo de `R9-424` / recordatorios — P3) — 🐛 REGRESIÓN: con el
+  pack elegido ausente, cada arranque en frío duplica los recordatorios del versículo del día.** MEDIDO en el
+  emulador (tres fríos y dos controles).
+  - `app/_layout.tsx:180-198` reprograma los recordatorios cada vez que cambia `selectedVersion.id`. Desde el
+    arreglo de `R9-424`, con el pack ausente la elegida es la versión sin filas hasta que responde la base (~1 a
+    2 s) y recién ahí cae a la empaquetada: el efecto corre dos veces, y `scheduleDailyVerseNotifications`
+    (`NotificationService.ts:243-317`: cancelar, y 14 días con un `await` por día) no se serializa.
+  - **Medida:** recordatorio activo, KJV quitada con la clave en KJV: dos «Daily verse notifications scheduled» que
+    terminan a la vez y **26 alarmas** (`dumpsys alarm`, dos por hora de disparo); en el almacén, 13 con el cuerpo
+    genérico («Open the app to read today's verse», la corrida sin filas) y 13 con el texto. Controles: sin la
+    guarda de `R9-424`, 13 con texto; con el pack presente, 13 con texto.
+  - **La raíz ya existía:** dos cambios de versión seguidos en Ajustes (a 1 s) dejan también 26, una tanda por
+    versión; eso se cura en el arranque siguiente. Lo del pack ausente se repite en cada frío, hasta que el usuario
+    elige una versión a mano. Los otros cinco recordatorios del mismo efecto, por lectura, sin medir.
+  - **Severidad:** P3: pide el estado de `R9-558` (o quitar la versión elegida) y el recordatorio activo; dos
+    notificaciones por mañana, sin pérdida de datos. **Arreglo propuesto (sin escribir):** serializar la
+    reprogramación; y, con `R9-558`, que la red escriba la clave cuando la base respondió. Detalle:
+    `detail/S141-revision-del-diff-s140.md`.
+
+- **`R9-571` (S141, revisión del diff de la 140 / reproductor flotante / `R9-427` — P3) — 🐛 la ✕ del reproductor no
+  lo pliega: el siguiente audio lo abre expandido.** MEDIDO en el emulador (tres veces) y con sonda (el proveedor
+  real).
+  - `AudioPlayerContext.tsx:903-911`: `hidePlayer` encola `setState(prev => ({...prev, isExpanded: false}))` y en
+    el mismo tick llama a `stop()` (`:704-722`), que hace `setState(nextState)` con un objeto armado desde
+    `stateRef.current`. El ref se renueva en un efecto (`:226-228`) y todavía dice `isExpanded: true`: el objeto
+    pisa al updater.
+  - **Medida:** `_scratch/S141-427-hideReal.test.tsx.txt`: expandir → `hidePlayer` →
+    `{"isExpanded":true,"isVisible":false}`; control (plegar antes): `false`. En vivo, el log dice lo mismo y el
+    panel vuelve a 248, tapando un tercio del lector. Es por esto que el estado roto de `R9-427` no se alcanza.
+  - **Severidad:** P3: se pliega con el chevron. **Arreglo propuesto (sin escribir):** plegar después de `stop()`,
+    o que `stop()` use un updater; con eso, el efecto de `R9-427` pasa a ser necesario. La misma forma (un updater
+    seguido de un objeto armado desde el ref), en `pause` y en el `onDone`, sin medir. Detalle:
+    `detail/S141-revision-del-diff-s140.md`.
+
+- **`R9-572` (S141, revisión del diff de la 140 / pruebas / `R9-427` — P3) — 🐛 la prueba de `R9-427` mide un
+  `hidePlayer` que no existe.** MEDIDO (la prueba, leída; el real, con sonda y en vivo).
+  - `__tests__/miniAudioPlayerCloseResetsExpand.test.tsx:44-146` reemplaza el contexto por un store cuyo
+    `hidePlayer` (`:113-119`) pone `isExpanded = false`; el real lo deja en `true` (`R9-571`). El caso principal
+    («expandir → ✕ → mostrar: 64, plegado») fija algo que la app no hace: en vivo da 248, con y sin el efecto.
+  - **Consecuencia:** la prueba vigila el contrato del efecto (falla sin él), no el recorrido del usuario; el día
+    que `R9-571` se arregle no lo va a notar. **Propuesta (sin escribir):** un caso con el `AudioPlayerProvider`
+    real debajo. Detalle: `detail/S141-revision-del-diff-s140.md`.
+
+- **`R9-573` (S141, revisión del diff de la 140 / temporizador de sueño / vecino de `R9-425` — P3) — 🐛 «al final
+  del libro» sobre una lista no vence: con repetición narra sin fin, y sin ella queda armado.** MEDIDO con sonda.
+  Ya existía; no es del diff.
+  - `SleepTimerModal` ofrece «End of book» con cualquier cola. En una lista, `shouldAdvanceChapter` sale por
+    `queueMode === 'playlist'` antes de que el avanzador mire el temporizador, y la rama de repetición del motor
+    (`AudioPlayerContext.tsx:560-568`) solo cede ante «al final del capítulo».
+  - **Medida** (`_scratch/S141-425-vecinos.test.tsx.txt`, casos D y D0): con repetición, tras el último versículo
+    vuelve al primero con el temporizador `end-of-book` activo; sin repetición la lista termina y el temporizador
+    sigue armado (la luna encendida): vence en el próximo fin de libro que se escuche.
+  - **Severidad:** P3: pide una lista y elegir un «libro» que la lista no tiene. **Propuesta (sin escribir):** en
+    una lista, tratarlo como «al final de la lista», o no ofrecerlo. Detalle:
+    `detail/S141-revision-del-diff-s140.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
