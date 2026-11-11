@@ -2467,9 +2467,10 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 - **La rama de la 141, sin mergear a propósito y sin pushear:** `docs/review-s141-diff-s140` (solo docs, sobre
   `177029af`). Se mergea con el OK de Victor (fast-forward y push); después se borra tras `git cherry`. Si ya se
   mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`, sin emuladores, Metro ni worktrees vivos):
-  ver la salida en `_scratch/S141-validate.out.txt`.
+  verde, **377/4709** (igual que la 140: la 141 no tocó código; las mismas 70 advertencias de eslint;
+  `_scratch/S141-validate.out.txt`).
 - **Los worktrees:** ninguno. El de docs (`../essb-docs-s141`, checkpoint con `_scratch/S141-checkpoint.sh.txt`) se
-  quita antes del validate. Herramientas de la 141 (emulador): `_scratch/S141-ui.sh.txt` (la de la 139, con las
+  quitó antes del validate. Herramientas de la 141 (emulador): `_scratch/S141-ui.sh.txt` (la de la 139, con las
   salidas en `S141-sondas/`), `S141-427-flujo.sh.txt`, `S141-427-video.sh.txt` + `S141-427-pastilla.cjs.txt` (la
   trayectoria del reproductor por video), `S141-reset-cortado.sh.txt` (deja la base a medio recargar) y
   `S141-store.cjs.txt` (las notificaciones programadas, por cuerpo). Sondas de jest: `S141-425-vecinos.test.tsx.txt`
