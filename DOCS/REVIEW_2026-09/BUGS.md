@@ -13816,6 +13816,40 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Severidad:** P3: sin daño de datos (la sección fallida no se toca), pero el usuario cree restaurado lo que no
     lo está. Distinto de `R9-141` (la prueba del aviso), `R9-27` y `R9-32`. Detalle: `detail/C26b-respaldo.md`.
 
+- **`R9-558` (S138, `C27a` / «Resetear datos de la Biblia» — P2) — 🐛 el reset borra en silencio las versiones
+  descargadas y deja la app apuntando a una versión sin texto.** MEDIDO en el emulador (tres veces, dos en el mismo
+  proceso y una con dos fríos) y re-verificado por lectura. Era el candidato sin medir de `detail/A14-base-de-datos.md`
+  («no refresca el registro de versiones»).
+  - `DataSettings.tsx:72-87` (`performResetData`) llama a `resetBibleData` (`data-loader.ts:144-166`: borra la bandera
+    de TODAS las `BIBLE_VERSIONS`, `:151`, y `DELETE FROM verses`/`verses_fts`, `:157-158`) y a `initializeBibleData`
+    (`:14-43`: recarga solo RVR1960 y WEB), sin `refreshInstalledVersions` ni `setVersion`. El diálogo
+    (`translations.ts:4153-4154` es / `:10698-10699` en) promete «borra y vuelve a cargar los 62.000+ versículos» y no
+    dice que las versiones descargadas se pierden.
+  - **Medida:** con KJV descargada y elegida, tras el reset y en el mismo proceso, KJV = 0 filas, sin bandera,
+    `@bible_version` = `KJV` (`_scratch/S138-sondas-agente-1/S138-a1-17-tras-reset.rk.txt`). Gestionar versiones dice
+    «Installed», el lector pinta en blanco cada capítulo nuevo (`R9-559`) y la búsqueda no encuentra nada. Tras el frío,
+    el lector cae a WEB (la red de seguridad de `useBibleVersion.tsx:93-105`), KJV aparece como «Download» sin aviso y
+    la clave sigue en `KJV`: el modo estudio (`study.tsx:155-158`, lee la clave directo) muestra «(text not available)»
+    en dos fríos seguidos (`S138-a1-48-r3-estudio.png`). Control: elegir WEB a mano escribe la clave y el estudio muestra
+    el texto (`S138-a1-58-control-web.rk.txt`).
+  - **Severidad:** P2: volver a bajar KJV la deja bien (31 102 filas, medido), y los datos del usuario no dependen de
+    `verses.id`; pero sin red el usuario se queda sin su versión, y nada le dice qué pasó. Comparte con `R9-424` que la
+    red de seguridad no escribe la clave (y las siete pantallas que la leen directo ya no muestran otra versión sino
+    ninguna), pero el arreglo de `R9-424` no lo cura: acá KJV falta de verdad. Distinto de `R9-24` (que cita el mismo
+    reset por el diálogo de borrar cuenta). Detalle: `detail/C27a-ajustes-reset.md`.
+
+- **`R9-559` (S138, `C27a` / lector nativo con 0 versículos — P3) — 🐛 el lector pinta una página en blanco, sin
+  mensaje ni reintento, cuando el capítulo no tiene filas.** MEDIDO en el emulador por el camino de `R9-558` (John 4 y
+  Genesis 1 en KJV sin filas, dos veces) y re-verificado por lectura. Era el «sin medir» de
+  `detail/A13-lector-capitulo.md`.
+  - `app/(tabs)/verse/[book]/[chapter].tsx:1952-1962` solo tiene la rama de carga (`!bookInfo || loading`) y `:2492`
+    hace `verses.map(...)` sin rama para `verses.length === 0`; el `.web.tsx` sí avisa (`[chapter].web.tsx:278-284`,
+    `t.bible.couldNotLoadChapters`).
+  - **Medida:** cabecera y barra, cuerpo vacío, 0 nodos «Verse» en el dump (`S138-a1-19-lector-j4.png`,
+    `S138-a1-35-r2-gen1.png`); el logcat dice «Query result: 0 verses found». El único aviso es el LogBox de debug.
+  - **Severidad:** P3: hoy solo se llega por `R9-558` (o una lectura fallida); el usuario no sabe si es la app o la
+    versión. Detalle: `detail/C27a-ajustes-reset.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,

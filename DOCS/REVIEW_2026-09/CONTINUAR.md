@@ -2373,18 +2373,17 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al cerrar la sesión 137 (2026-11-10), cortada por el límite de uso.**
+**Medido al empezar la sesión 138 (2026-11-10).**
 
-- **La 136, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `aab7ead` (solo docs). CI
-  verificado en el log: run `42880229051`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la
-  137: los docs de la 136 decían «sin mergear»).
-- **La rama de la 137, sin mergear a propósito y sin pushear:** `docs/review-s137-c-p0` (solo docs: `C1a` ✅, `C26b`
-  🐛, `C20a`/`C27a`/`C42a` EN CURSO, `C26a` «sin medir»; `R9-556`, `R9-557`). Se mergea en fast-forward con el OK de
-  Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`, sin emuladores vivos):
-  verde, 374/4693 (`_scratch/S137-validate.out.txt`).
-- **Los worktrees:** ninguno. El de docs (`../essb-docs-s137`) se quitó tras el reset; los de los 3 agentes se
-  borraron solos. Checkpoint con `_scratch/S137-checkpoint.sh.txt`.
-  Salidas en `_scratch/S137-sondas-agente-{1,2,3}/`; las reglas de los agentes, en `_scratch/S137-agentes-reglas.md.txt`.
+- **La 137, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `6e81d56` (solo docs: `C1a` ✅,
+  `C26b` 🐛, `C20a`/`C27a`/`C42a` EN CURSO, `C26a` «sin medir»; `R9-556`, `R9-557`). CI verificado en el log: run
+  `42952085435`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 138: los docs de la 137
+  decían «sin mergear»). La 136 ya estaba en `main` (`aab7ead`, run `42880229051`).
+- **La rama de la 138, sin mergear a propósito y sin pushear:** `docs/review-s138-c-p0` (solo docs). Se mergea en
+  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
+- **Los worktrees:** el de docs de la 138 (`../essb-docs-s138`, checkpoint con `_scratch/S138-checkpoint.sh.txt`)
+  y los de los agentes, que se borran solos. Salidas en `_scratch/S138-sondas-agente-{1,2,3}/`; las reglas de los
+  agentes, en `_scratch/S138-agentes-reglas.md.txt` (la 137: `_scratch/S137-*`).
 - **El entorno de la 137:** el pagefile está FIJO en 8 GB y el commit total es ~40 GB (no ~52): con Metro entran
   **2** emuladores, no 4 (con dos quedaron 7,7 GB libres). Cada agente de Modo C llegó cerca del tope de 200 turnos.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
