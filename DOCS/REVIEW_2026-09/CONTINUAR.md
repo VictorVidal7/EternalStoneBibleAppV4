@@ -2380,10 +2380,10 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
   137: los docs de la 136 decían «sin mergear»).
 - **La rama de la 137, sin mergear a propósito y sin pushear:** `docs/review-s137-c-p0` (solo docs: `C1a` ✅, `C26b`
   🐛, `C20a`/`C27a`/`C42a` EN CURSO, `C26a` «sin medir»; `R9-556`, `R9-557`). Se mergea en fast-forward con el OK de
-  Victor. Si ya se mergeó, `main` la incluye. **No se corrió `npm run validate`** (el corte llegó antes): correlo
-  con `NODE_ENV=development` antes del merge.
-- **Los worktrees:** el de docs (`../essb-docs-s137`, fuera del repo) puede seguir ahí: quitalo con
-  `git worktree remove`. Los de los 3 agentes se borraron solos. Checkpoint con `_scratch/S137-checkpoint.sh.txt`.
+  Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`, sin emuladores vivos):
+  verde, 374/4693 (`_scratch/S137-validate.out.txt`).
+- **Los worktrees:** ninguno. El de docs (`../essb-docs-s137`) se quitó tras el reset; los de los 3 agentes se
+  borraron solos. Checkpoint con `_scratch/S137-checkpoint.sh.txt`.
   Salidas en `_scratch/S137-sondas-agente-{1,2,3}/`; las reglas de los agentes, en `_scratch/S137-agentes-reglas.md.txt`.
 - **El entorno de la 137:** el pagefile está FIJO en 8 GB y el commit total es ~40 GB (no ~52): con Metro entran
   **2** emuladores, no 4 (con dos quedaron 7,7 GB libres). Cada agente de Modo C llegó cerca del tope de 200 turnos.
