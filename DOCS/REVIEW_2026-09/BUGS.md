@@ -13941,6 +13941,32 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     miente (`S139-cabecera-mezclada.png`, `S139-cab3.xml.txt`, `S139-n3b.db.txt`). Detalle:
     `detail/C42b-notas-lista.md`.
 
+- **`R9-566` (S139, `C43b` / el filtro de color de la galería de subrayados — P3) — 🐛 las muestras de color del
+  filtro no tienen nombre ni estado para el lector de pantalla: son botones mudos que solo se distinguen por el
+  color.** MEDIDO en el emulador (el árbol de accesibilidad; buscado en `BUGS.md`: «filterSwatch», «swatch», «sin
+  etiqueta», «TalkBack»).
+  - `app/(tabs)/highlights.tsx:280-294` (`TouchableOpacity` sin `accessibilityLabel`, `accessibilityRole` ni
+    `accessibilityState`; el elegido se marca solo con el borde). La cabecera de grupo del modo «Por color»
+    (`:442-452`) es una muestra y un número. El selector del lector sí nombra cada color
+    (`app/(tabs)/verse/[book]/[chapter].tsx:3157-3167`, `t.verse.highlightColorNames`): la asimetría confirma el
+    olvido.
+  - **Medida:** con los 8 colores en uso, el dump da 8 `ViewGroup` `clickable="true"` con `content-desc=""` y sin texto
+    en `y=650-758` (`_scratch/S139-sondas/S139-gal1.xml.txt`); el de «Resaltar en amarillo»… en el lector
+    (`S139-pick4.xml.txt`). Lo que TalkBack dice de verdad, sin medir. Detalle: `detail/C43b-subrayados-galeria.md`.
+  - **Arreglo propuesto (sin escribir):** la etiqueta del lector (`highlightColorNames`) con `accessibilityRole` y
+    `accessibilityState={{selected}}`, y el nombre del color en la cabecera de grupo.
+
+- **`R9-567` (S139, `C43b` / el atrás del lector con un versículo seleccionado — P3) — 🐛 con la barra de acciones o el
+  selector de colores abiertos, el atrás de Android no cierra la selección: sale del lector.** MEDIDO en el emulador
+  (era un «sin medir» de `C43a`; buscado en `BUGS.md`: «useBackHandlerStep», «selección», «barra de acciones»).
+  - `app/(tabs)/verse/[book]/[chapter].tsx:1287-1296`: el único `useBackHandlerStep` del lector consume el atrás solo
+    para la pila de saltos; la selección (`selectedVerses`, `:262`) y el selector no lo consultan. La convención de la
+    app es que el atrás cierre primero un paso interno.
+  - **Medida:** galería → Génesis 2 (enlace) → tocar el versículo 2 → Resaltar (selector abierto, «1 versículo») →
+    atrás: la galería («Mis Resaltados»); otro atrás: Notas (`S139-at1.xml.txt`, `S139-at2.xml.txt`,
+    `S139-at3.xml.txt`). No se pierde ningún dato: se pierde la selección y el lugar de lectura. Detalle:
+    `detail/C43b-subrayados-galeria.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,

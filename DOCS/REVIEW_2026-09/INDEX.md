@@ -1901,79 +1901,79 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 (re-priorizada según §2 de este charter, que usa otro criterio que julio).
 `C55`–`C66` = features construidas después de julio 2026.
 
-| #    | Área                                                            | Prioridad | Estado                      | Detalle                 |
-| ---- | --------------------------------------------------------------- | --------- | --------------------------- | ----------------------- |
-| C1a  | Mesa — persistencia y autoguardado de notas                     | P0        | ✅ OK                       | `C1a-mesa-persistencia` |
-| C6   | Mesa — historial de preparaciones (premium)                     | P0        | 🐛 BUG (P3)                 | `C6-historial-mesa`     |
-| C15  | Hoja de ofrenda — copy, apertura, compra                        | P0        | 🐛 BUG (P2)                 | `C15-hoja-ofrenda`      |
-| C16  | Gating free vs premium en toda la Mesa                          | P0        | ✅ OK                       | `C16-gating-mesa`       |
-| C20a | Memoria/SRS — integridad de datos y racha (floor restaurado)    | P0        | EN CURSO (🐛 P3)            | `C20a-memoria-srs`      |
-| C26a | Cuenta — login/logout Google, identidad                         | P0        | PENDIENTE (sin medir, S137) | `C26a-login-google`     |
-| C26b | Respaldar/restaurar (`BackupService`)                           | P0        | 🐛 BUG (P2)                 | `C26b-respaldo`         |
-| C27a | Ajustes — borrar cuenta y reset de datos                        | P0        | 🐛 BUG (P2)                 | `C27a-ajustes-reset`    |
-| C39  | Donación — hoja, compra, restaurar                              | P0        | 🐛 BUG (P3)                 | `C39-donacion`          |
-| C42a | Notas de versículo — persistencia                               | P0        | 🐛 BUG (P2)                 | `C42a-notas-versiculo`  |
-| C43a | Subrayados — persistencia                                       | P0        | 🐛 BUG (P2)                 | `C43a-subrayados`       |
-| C54  | Resolución de conflictos de sync                                | P0        | PENDIENTE (sin medir, S115) | `C54-conflictos-sync`   |
-| C55  | Canje de gift-code (redención real)                             | P0        | PENDIENTE (sin medir, S115) | `C55-canje-gift-code`   |
-| C56  | Gating premium FUERA de la Mesa (quiz, word-study, audio, etc.) | P0        | 🐛 BUG (P2)                 | `C56-gating-fuera-mesa` |
-| C2   | Mesa — palabras clave idioma original (premium)                 | P1        | PENDIENTE                   | —                       |
-| C3   | Mesa — comparar versiones (premium)                             | P1        | PENDIENTE                   | —                       |
-| C5   | Mesa — exportar a PDF (premium) + nombre de archivo             | P1        | PENDIENTE                   | —                       |
-| C7   | Series — crear, agregar, reordenar, renombrar, borrar           | P1        | PENDIENTE                   | —                       |
-| C17  | Lectura de la Biblia (capítulo, versículo, versión)             | P1        | PENDIENTE                   | —                       |
-| C18  | Lector inmersivo (auto-scroll gratis; "Escuchar" premium)       | P1        | PENDIENTE                   | —                       |
-| C19  | Audio (velocidad, scrubbing, resume, cold-start, sleep, voz)    | P1        | PENDIENTE                   | —                       |
-| C20b | Memoria — mazo, práctica, metas, insights                       | P1        | PENDIENTE                   | —                       |
-| C21  | Quiz bíblico (categorías, contrarreloj, añadir a mazo, stats)   | P1        | PENDIENTE                   | —                       |
-| C22  | Word study / idiomas originales (interlineal, morfología)       | P1        | PENDIENTE                   | —                       |
-| C23  | Búsqueda (texto + "ir a referencia")                            | P1        | PENDIENTE                   | —                       |
-| C24  | Personalización (temas de lectura/color, tipografías)           | P1        | PENDIENTE                   | —                       |
-| C25  | Compartir (plantillas, texturas, presets, tarjeta, enlace)      | P1        | PENDIENTE                   | —                       |
-| C27b | Ajustes — resto (notificaciones, recordatorios, reset)          | P1        | PENDIENTE                   | —                       |
-| C28  | Home (verso del día, continuar, check-in, reorg post-julio)     | P1        | PENDIENTE                   | —                       |
-| C29  | Logros / gamificación (badges, títulos, fade de categorías)     | P1        | PENDIENTE                   | —                       |
-| C38  | Onboarding (primer arranque)                                    | P1        | PENDIENTE                   | —                       |
-| C40  | Accesibilidad (texto grande, alto contraste, keep-awake)        | P1        | PENDIENTE                   | —                       |
-| C42b | Notas — lista, búsqueda, edición                                | P1        | 🐛 BUG (P3)                 | `C42b-notas-lista`      |
-| C43b | Subrayados — colores y galería                                  | P1        | PENDIENTE                   | —                       |
-| C57  | Glosas hebreas A3/A4 en word study (incl. A4-chico posicional)  | P1        | PENDIENTE                   | —                       |
-| C58  | Toggle red-letter RVR1960 en el lector                          | P1        | PENDIENTE                   | —                       |
-| C4   | Mesa — copiar bosquejo (Markdown) + compartir estudio           | P2        | PENDIENTE                   | —                       |
-| C8   | Series — fecha por pasaje                                       | P2        | PENDIENTE                   | —                       |
-| C9   | Series — vista "Por fecha"                                      | P2        | PENDIENTE                   | —                       |
-| C10  | Series — exportar la serie completa a PDF                       | P2        | PENDIENTE                   | —                       |
-| C11  | Series — banner "adjuntar pasaje"                               | P2        | PENDIENTE                   | —                       |
-| C12  | Modo púlpito — tarjeta (conteo, estimación, stepper WPM)        | P2        | PENDIENTE                   | —                       |
-| C13  | Modo púlpito — pantalla (secciones, reloj, A-/A+, keep-awake)   | P2        | PENDIENTE                   | —                       |
-| C14  | Púlpito — accesible SIN notas                                   | P2        | PENDIENTE                   | —                       |
-| C30  | Referencias cruzadas / constelación / cadena de referencias     | P2        | PENDIENTE                   | —                       |
-| C31  | Temas topicales, sentimientos, Daily Light, devocional          | P2        | PENDIENTE                   | —                       |
-| C32  | Profecías (hilo profético, quiz, mapa)                          | P2        | PENDIENTE                   | —                       |
-| C33  | Recorridos bíblicos / Journeys                                  | P2        | PENDIENTE                   | —                       |
-| C34  | Niños (historias, quiz, plan)                                   | P2        | PENDIENTE                   | —                       |
-| C35  | Oración (companion, orar la Escritura, ACTS, lectio)            | P2        | PENDIENTE                   | —                       |
-| C36  | Planes de lectura / plan builder / Juntos (grupos)              | P2        | PENDIENTE                   | —                       |
-| C37  | Widgets                                                         | P2        | PENDIENTE                   | —                       |
-| C41  | Favoritos (tab corazón; entrada a Colecciones)                  | P2        | PENDIENTE                   | —                       |
-| C44  | "Mi lectura" / Reading insights (heatmap, racha, libro)         | P2        | PENDIENTE                   | —                       |
-| C45  | Marcadores / Bookmarks                                          | P2        | PENDIENTE                   | —                       |
-| C46  | Colecciones de versículos                                       | P2        | PENDIENTE                   | —                       |
-| C47  | Datos bíblicos / Facts                                          | P2        | PENDIENTE                   | —                       |
-| C48  | Línea de tiempo bíblica (distinta de Journeys)                  | P2        | PENDIENTE                   | —                       |
-| C49  | Devoción guiada (check-in → verso → lectio → memorizar)         | P2        | PENDIENTE                   | —                       |
-| C50  | "Tu camino" recap estilo Wrapped                                | P2        | PENDIENTE                   | —                       |
-| C51  | "Sobre este libro" standalone (fuera de la Mesa)                | P2        | PENDIENTE                   | —                       |
-| C52  | Landing de estudio/devocional compartido (recibir `?d=`)        | P2        | PENDIENTE                   | —                       |
-| C53  | Comparación de versiones standalone                             | P2        | PENDIENTE                   | —                       |
-| C59  | Hub de Teología                                                 | P2        | PENDIENTE                   | —                       |
-| C60  | Diccionario — entradas de doble vista (ELECCIÓN, SEGURIDAD)     | P2        | PENDIENTE                   | —                       |
-| C61  | Las 8 guías de feature narradas                                 | P2        | PENDIENTE                   | —                       |
-| C62  | Sermon-notes                                                    | P2        | PENDIENTE                   | —                       |
-| C63  | Comparte tu fe — Parte 2                                        | P2        | PENDIENTE                   | —                       |
-| C64  | Foto propia en compartir (permisos de galería/cámara)           | P2        | PENDIENTE                   | —                       |
-| C65  | Consolidación de notificaciones (6 tarjetas → 1 modal)          | P2        | PENDIENTE                   | —                       |
-| C66  | Modal "Tips y guías"                                            | P2        | PENDIENTE                   | —                       |
+| #    | Área                                                            | Prioridad | Estado                      | Detalle                   |
+| ---- | --------------------------------------------------------------- | --------- | --------------------------- | ------------------------- |
+| C1a  | Mesa — persistencia y autoguardado de notas                     | P0        | ✅ OK                       | `C1a-mesa-persistencia`   |
+| C6   | Mesa — historial de preparaciones (premium)                     | P0        | 🐛 BUG (P3)                 | `C6-historial-mesa`       |
+| C15  | Hoja de ofrenda — copy, apertura, compra                        | P0        | 🐛 BUG (P2)                 | `C15-hoja-ofrenda`        |
+| C16  | Gating free vs premium en toda la Mesa                          | P0        | ✅ OK                       | `C16-gating-mesa`         |
+| C20a | Memoria/SRS — integridad de datos y racha (floor restaurado)    | P0        | EN CURSO (🐛 P3)            | `C20a-memoria-srs`        |
+| C26a | Cuenta — login/logout Google, identidad                         | P0        | PENDIENTE (sin medir, S137) | `C26a-login-google`       |
+| C26b | Respaldar/restaurar (`BackupService`)                           | P0        | 🐛 BUG (P2)                 | `C26b-respaldo`           |
+| C27a | Ajustes — borrar cuenta y reset de datos                        | P0        | 🐛 BUG (P2)                 | `C27a-ajustes-reset`      |
+| C39  | Donación — hoja, compra, restaurar                              | P0        | 🐛 BUG (P3)                 | `C39-donacion`            |
+| C42a | Notas de versículo — persistencia                               | P0        | 🐛 BUG (P2)                 | `C42a-notas-versiculo`    |
+| C43a | Subrayados — persistencia                                       | P0        | 🐛 BUG (P2)                 | `C43a-subrayados`         |
+| C54  | Resolución de conflictos de sync                                | P0        | PENDIENTE (sin medir, S115) | `C54-conflictos-sync`     |
+| C55  | Canje de gift-code (redención real)                             | P0        | PENDIENTE (sin medir, S115) | `C55-canje-gift-code`     |
+| C56  | Gating premium FUERA de la Mesa (quiz, word-study, audio, etc.) | P0        | 🐛 BUG (P2)                 | `C56-gating-fuera-mesa`   |
+| C2   | Mesa — palabras clave idioma original (premium)                 | P1        | PENDIENTE                   | —                         |
+| C3   | Mesa — comparar versiones (premium)                             | P1        | PENDIENTE                   | —                         |
+| C5   | Mesa — exportar a PDF (premium) + nombre de archivo             | P1        | PENDIENTE                   | —                         |
+| C7   | Series — crear, agregar, reordenar, renombrar, borrar           | P1        | PENDIENTE                   | —                         |
+| C17  | Lectura de la Biblia (capítulo, versículo, versión)             | P1        | PENDIENTE                   | —                         |
+| C18  | Lector inmersivo (auto-scroll gratis; "Escuchar" premium)       | P1        | PENDIENTE                   | —                         |
+| C19  | Audio (velocidad, scrubbing, resume, cold-start, sleep, voz)    | P1        | PENDIENTE                   | —                         |
+| C20b | Memoria — mazo, práctica, metas, insights                       | P1        | PENDIENTE                   | —                         |
+| C21  | Quiz bíblico (categorías, contrarreloj, añadir a mazo, stats)   | P1        | PENDIENTE                   | —                         |
+| C22  | Word study / idiomas originales (interlineal, morfología)       | P1        | PENDIENTE                   | —                         |
+| C23  | Búsqueda (texto + "ir a referencia")                            | P1        | PENDIENTE                   | —                         |
+| C24  | Personalización (temas de lectura/color, tipografías)           | P1        | PENDIENTE                   | —                         |
+| C25  | Compartir (plantillas, texturas, presets, tarjeta, enlace)      | P1        | PENDIENTE                   | —                         |
+| C27b | Ajustes — resto (notificaciones, recordatorios, reset)          | P1        | PENDIENTE                   | —                         |
+| C28  | Home (verso del día, continuar, check-in, reorg post-julio)     | P1        | PENDIENTE                   | —                         |
+| C29  | Logros / gamificación (badges, títulos, fade de categorías)     | P1        | PENDIENTE                   | —                         |
+| C38  | Onboarding (primer arranque)                                    | P1        | PENDIENTE                   | —                         |
+| C40  | Accesibilidad (texto grande, alto contraste, keep-awake)        | P1        | PENDIENTE                   | —                         |
+| C42b | Notas — lista, búsqueda, edición                                | P1        | 🐛 BUG (P3)                 | `C42b-notas-lista`        |
+| C43b | Subrayados — colores y galería                                  | P1        | 🐛 BUG (P3)                 | `C43b-subrayados-galeria` |
+| C57  | Glosas hebreas A3/A4 en word study (incl. A4-chico posicional)  | P1        | PENDIENTE                   | —                         |
+| C58  | Toggle red-letter RVR1960 en el lector                          | P1        | PENDIENTE                   | —                         |
+| C4   | Mesa — copiar bosquejo (Markdown) + compartir estudio           | P2        | PENDIENTE                   | —                         |
+| C8   | Series — fecha por pasaje                                       | P2        | PENDIENTE                   | —                         |
+| C9   | Series — vista "Por fecha"                                      | P2        | PENDIENTE                   | —                         |
+| C10  | Series — exportar la serie completa a PDF                       | P2        | PENDIENTE                   | —                         |
+| C11  | Series — banner "adjuntar pasaje"                               | P2        | PENDIENTE                   | —                         |
+| C12  | Modo púlpito — tarjeta (conteo, estimación, stepper WPM)        | P2        | PENDIENTE                   | —                         |
+| C13  | Modo púlpito — pantalla (secciones, reloj, A-/A+, keep-awake)   | P2        | PENDIENTE                   | —                         |
+| C14  | Púlpito — accesible SIN notas                                   | P2        | PENDIENTE                   | —                         |
+| C30  | Referencias cruzadas / constelación / cadena de referencias     | P2        | PENDIENTE                   | —                         |
+| C31  | Temas topicales, sentimientos, Daily Light, devocional          | P2        | PENDIENTE                   | —                         |
+| C32  | Profecías (hilo profético, quiz, mapa)                          | P2        | PENDIENTE                   | —                         |
+| C33  | Recorridos bíblicos / Journeys                                  | P2        | PENDIENTE                   | —                         |
+| C34  | Niños (historias, quiz, plan)                                   | P2        | PENDIENTE                   | —                         |
+| C35  | Oración (companion, orar la Escritura, ACTS, lectio)            | P2        | PENDIENTE                   | —                         |
+| C36  | Planes de lectura / plan builder / Juntos (grupos)              | P2        | PENDIENTE                   | —                         |
+| C37  | Widgets                                                         | P2        | PENDIENTE                   | —                         |
+| C41  | Favoritos (tab corazón; entrada a Colecciones)                  | P2        | PENDIENTE                   | —                         |
+| C44  | "Mi lectura" / Reading insights (heatmap, racha, libro)         | P2        | PENDIENTE                   | —                         |
+| C45  | Marcadores / Bookmarks                                          | P2        | PENDIENTE                   | —                         |
+| C46  | Colecciones de versículos                                       | P2        | PENDIENTE                   | —                         |
+| C47  | Datos bíblicos / Facts                                          | P2        | PENDIENTE                   | —                         |
+| C48  | Línea de tiempo bíblica (distinta de Journeys)                  | P2        | PENDIENTE                   | —                         |
+| C49  | Devoción guiada (check-in → verso → lectio → memorizar)         | P2        | PENDIENTE                   | —                         |
+| C50  | "Tu camino" recap estilo Wrapped                                | P2        | PENDIENTE                   | —                         |
+| C51  | "Sobre este libro" standalone (fuera de la Mesa)                | P2        | PENDIENTE                   | —                         |
+| C52  | Landing de estudio/devocional compartido (recibir `?d=`)        | P2        | PENDIENTE                   | —                         |
+| C53  | Comparación de versiones standalone                             | P2        | PENDIENTE                   | —                         |
+| C59  | Hub de Teología                                                 | P2        | PENDIENTE                   | —                         |
+| C60  | Diccionario — entradas de doble vista (ELECCIÓN, SEGURIDAD)     | P2        | PENDIENTE                   | —                         |
+| C61  | Las 8 guías de feature narradas                                 | P2        | PENDIENTE                   | —                         |
+| C62  | Sermon-notes                                                    | P2        | PENDIENTE                   | —                         |
+| C63  | Comparte tu fe — Parte 2                                        | P2        | PENDIENTE                   | —                         |
+| C64  | Foto propia en compartir (permisos de galería/cámara)           | P2        | PENDIENTE                   | —                         |
+| C65  | Consolidación de notificaciones (6 tarjetas → 1 modal)          | P2        | PENDIENTE                   | —                         |
+| C66  | Modal "Tips y guías"                                            | P2        | PENDIENTE                   | —                         |
 
 ---
 
