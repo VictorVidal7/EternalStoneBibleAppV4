@@ -6,8 +6,9 @@
 > P3), `C42a` 🐛 (`R9-561` P2; persistencia ✅; `R9-57` medido en vivo) y `C43a` 🐛 (`R9-562` P2, `R9-563` P3;
 > persistencia ✅; los arreglos de `R9-44` y `R9-50` se sostienen), y midió el control de toasts de `C26b`, que pasa a
 > P2 con `R9-560`. Ninguno P0, salvo lo que Victor decida sobre `R9-562` (P2 propuesto; P1 o P0 los pone él, §8). Hay
-> 563 hallazgos y ningún P0 abierto con esa salvedad. La rama `docs/review-s138-c-p0` (solo docs) va
-> **sin mergear hasta el OK de Victor**. El Modo C P0 queda hecho salvo lo que espera una cuenta de Google de PRUEBA
+> 563 hallazgos y ningún P0 abierto con esa salvedad. La rama `docs/review-s138-c-p0` (solo docs) se mergeó
+> y pusheó con el OK de Victor (`main` = `origin/main` = `dd3568f`, CI verde en el log, run `43033747901`, 3 jobs,
+> 374/4693; corregido en la 139: decía «sin mergear»). El Modo C P0 queda hecho salvo lo que espera una cuenta de Google de PRUEBA
 > (`C26a`, `C54`, `C55`, el suelo de `C20a`, «Borrar cuenta» de `C27a`). **Lo siguiente lo decide Victor** (§4): el
 > mensaje recomendado, las filas C P1 de datos y núcleo, está en `_scratch/S139-PROMPT.md`. La 137 ya está mergeada y
 > pusheada (`main` = `origin/main` = `6e81d56`, CI verde en el log, run `42952085435`, 3 jobs, 374/4693; corregido en
@@ -2393,15 +2394,14 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al empezar la sesión 138 (2026-11-10).**
+**Medido al empezar la sesión 139 (2026-11-11).**
 
-- **La 137, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `6e81d56` (solo docs: `C1a` ✅,
-  `C26b` 🐛, `C20a`/`C27a`/`C42a` EN CURSO, `C26a` «sin medir»; `R9-556`, `R9-557`). CI verificado en el log: run
-  `42952085435`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 138: los docs de la 137
-  decían «sin mergear»). La 136 ya estaba en `main` (`aab7ead`, run `42880229051`).
-- **La rama de la 138, sin mergear a propósito y sin pushear:** `docs/review-s138-c-p0` (solo docs). Se mergea en
-  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`,
-  sin emuladores, Metro ni worktrees vivos): verde, 374/4693 (`_scratch/S138-validate.out.txt`).
+- **La 138, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `dd3568f` (solo docs: `C27a`,
+  `C42a`, `C43a` 🐛, `C26b` pasa a P2; `R9-558`..`R9-563`). CI verificado en el log: run `43033747901`, 3 jobs,
+  374/4693. Su rama se borró tras `git cherry` (corregido en la 139: los docs de la 138 decían «sin mergear»). La
+  137 ya estaba en `main` (`6e81d56`, run `42952085435`).
+- **La rama de la 139, sin mergear a propósito y sin pushear:** `docs/review-s139-c-p1` (solo docs). Se mergea en
+  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
 - **Los worktrees:** ninguno. El de docs (`../essb-docs-s138`, checkpoint con `_scratch/S138-checkpoint.sh.txt`) se
   quitó antes del validate; el del agente 2 quedó registrado tras terminar (sin commits) y se quitó a mano; los otros
   se borraron solos. Salidas en `_scratch/S138-sondas-agente-{1,2,3}/`; las reglas de los
