@@ -1,6 +1,20 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-11, fin de la sesión 139.** La 139 siguió el (dl), las filas C P1 de datos y núcleo
+> **Última actualización: 2026-11-11, fin de la sesión 140.** La 140 fue la PRIMERA de la fase de ARREGLOS, en un chat
+> nuevo, en la terminal, **sin agentes**, con **Fable 5.2 como modelo principal** (decisión de Victor del 2026-11-11,
+> §7). Hizo la tanda 1, los tres P1 abiertos, un commit por hallazgo en `fix/s140-p1`, cada uno con su prueba de
+> regresión vista FALLAR sin el arreglo: `R9-424` (`7d4a511f`: la red de seguridad de `useBibleVersion` espera la
+> primera respuesta de la base, y la versión descargada elegida sobrevive al frío), `R9-425` (`a6a0ef13`: el motor
+> honra el temporizador «al final del capítulo» y no sube la señal de fin de capítulo) y `R9-427` (`e8700067`:
+> `expandProgress` sigue a `isExpanded`, y el reproductor cerrado con la ✕ vuelve plegado). `R9-558` no comparte la
+> raíz con `R9-424` y espera su tanda. Un nuevo por lectura, `R9-569` (P3: el registro de versiones se lee una sola
+> vez, a la par de la recarga de arranque). No queda ningún P0 ni P1 abierto. Hay 569 hallazgos. Sin verificación en
+> vivo: va en la 141, que revisa este diff (`_scratch/S141-PROMPT.md`). Las ramas `fix/s140-p1` y
+> `docs/review-s140-fix` (apilada sobre la primera) van **sin mergear hasta el OK de Victor**. La 139 ya está
+> mergeada y pusheada (`main` = `origin/main` = `02ee73e`, CI verde en el log, run `43045636372`, 374/4693; corregido
+> en la 140). Las tandas siguientes, propuestas en la §4.
+>
+> **Antes, al fin de la sesión 139 (2026-11-11):** La 139 siguió el (dl), las filas C P1 de datos y núcleo
 > con emulador, en un chat nuevo, en la terminal, **sin agentes**, Opus 5.5 con el asesor Fable 5.2, un emulador de
 > solo lectura. Cerró `C42b` 🐛 (`R9-564` P3: tocar un chip de referencia vuelve a guardar la nota sin cambios y la
 > sube en «Recientes»; `R9-565` P3: con la hoja de nota abierta, un enlace a otro libro deja una cabecera mezclada),
@@ -659,13 +673,19 @@ fuera de la serie, a pedido de Victor). Y el (dh), la séptima tanda, HECHO en l
 tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** Y el (dj), `B6`–`B10`, HECHO en la sesión
 136: **las filas del Modo B están terminadas.** Y el (dk), las filas C P0, HECHO en las sesiones 137 y 138 salvo lo
 que espera una cuenta de Google de PRUEBA. Y el (dl), las filas C P1 de datos y núcleo, HECHO a medias en la sesión
-139 (`C42b`, `C43b`, `C20b`, `C7`; quedan `C17` y `C23`). **Lo siguiente es el (dm), sin empezar, y lo elige
-Victor.**
+139 (`C42b`, `C43b`, `C20b`, `C7`; quedan `C17` y `C23`). Victor eligió otra cosa para la 140: la fase de ARREGLOS,
+con Fable 5.2 como principal (§7). Y el (dm), la tanda 1 de arreglos (los tres P1), HECHO en la sesión 140. **Lo
+siguiente es el (dn), sin empezar.**
 
-**(dm) Sesión 140, recomendado: `C17` y `C23` (Modo C), y después las C P1 que siguen (`C18`, `C21`)** en un chat
-nuevo, en la terminal, con emulador (2 como techo; la 139 hizo 4 filas con uno, sin agentes). El mensaje está en
-`_scratch/S140-PROMPT.md`, que manda sobre este archivo. Alternativas (§4): la cuenta de prueba y las filas de cuenta
-(`C26a`, `C54`, `C55`, el resto de `C20a` y `C27a`), o una sesión de arreglos (`R9-410`..`R9-568`).
+**(dn) Sesión 141: la revisión del diff de la 140** (`main..fix/s140-p1`: `7d4a511f`, `a6a0ef13`, `e8700067`), en un
+chat nuevo, en la terminal, con Fable 5.2 como principal y con emulador para lo que se pueda ver en vivo (`R9-424`
+entero; el reproductor de `R9-427` si llega a mostrarse sin voces de TTS; `R9-425` con jest y por lectura). El mensaje
+está en `_scratch/S141-PROMPT.md`, que manda sobre este archivo. Después, las tandas de P2 de la §4.
+
+**(dm) Sesión 140 — HECHO en la sesión 140: la tanda 1 de la fase de arreglos, los tres P1** (`R9-424`, `R9-425`,
+`R9-427`), sin agentes, con Fable 5.2 como principal; `R9-569` nuevo (P3, por lectura). El mensaje lo pegó Victor en
+el chat (no era el `_scratch/S140-PROMPT.md` de la 139, que pedía `C17` y `C23`: esas filas esperan el fin de la fase
+de arreglos, con `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). Detalle: `detail/S140-arreglos-p1.md`.
 
 **(dl) Sesión 139 — HECHO a medias en la sesión 139: las filas C P1 de datos y núcleo (Modo C).** `C42b` 🐛, `C43b`
 🐛, `C20b` 🐛, `C7` ✅ (`R9-564`..`R9-568`); `C17` y `C23` pasan al (dm). El mensaje fue `_scratch/S139-PROMPT.md`.
@@ -2412,19 +2432,23 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
 
 ## 2. Estado esperado de git
 
-**Medido al empezar la sesión 139 (2026-11-11).**
+**Medido al empezar la sesión 140 (2026-11-11).**
 
-- **La 138, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `dd3568f` (solo docs: `C27a`,
-  `C42a`, `C43a` 🐛, `C26b` pasa a P2; `R9-558`..`R9-563`). CI verificado en el log: run `43033747901`, 3 jobs,
-  374/4693. Su rama se borró tras `git cherry` (corregido en la 139: los docs de la 138 decían «sin mergear»). La
-  137 ya estaba en `main` (`6e81d56`, run `42952085435`).
-- **La rama de la 139, sin mergear a propósito y sin pushear:** `docs/review-s139-c-p1` (solo docs). Se mergea en
-  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`,
-  sin emuladores, Metro ni worktrees vivos): verde, 374/4693 (`_scratch/S139-validate.out.txt`).
-- **Los worktrees:** ninguno. El de docs (`../essb-docs-s139`, checkpoint con `_scratch/S139-checkpoint.sh.txt`) se
-  quitó antes del validate. Salidas de la 139 en `_scratch/S139-sondas/`, con las herramientas `_scratch/S139-ui.sh.txt`
-  (UI, lectura de `bible.db` y RKStorage, frío, ráfaga, `seq`), `_scratch/S139-leer.cjs.txt` y `_scratch/S139-pix.cjs.txt`
-  (el color de un píxel de una captura). Las reglas de agentes de la 138: `_scratch/S138-agentes-reglas.md.txt`.
+- **La 139, mergeada y pusheada con el OK de Victor:** `main` = `origin/main` = `02ee73e` (solo docs: `C42b`,
+  `C43b`, `C20b` 🐛, `C7` ✅; `R9-564`..`R9-568`). CI verificado en el log: run `43045636372`, 374/4693. Su rama se
+  borró (corregido en la 140: los docs de la 139 decían «sin mergear»). La 138 ya estaba en `main` (`dd3568f`, run
+  `43033747901`).
+- **Las ramas de la 140, sin mergear a propósito y sin pushear:** `fix/s140-p1` (tres commits de arreglo sobre
+  `02ee73e`: `7d4a511f`, `a6a0ef13`, `e8700067`; cada uno toca un archivo de `src/` y agrega su prueba) y
+  `docs/review-s140-fix` (solo docs, apilada sobre la punta de la primera: un solo fast-forward cubre las dos). Se
+  mergean con el OK de Victor; después, las dos se borran tras `git cherry`. Si ya se mergearon, `main` las incluye.
+  `npm run validate` (`NODE_ENV=development`, sin emuladores, Metro ni worktrees vivos): ver
+  `_scratch/S140-validate.out.txt` (los totales ya no son 374/4693: hay tres suites nuevas).
+- **Los worktrees:** ninguno. El de docs (`../essb-docs-s140`, checkpoint con `_scratch/S140-checkpoint.sh.txt`) se
+  quitó antes del validate. Herramientas de la 140: `_scratch/S140-rev.sh.txt` (el revert por pieza: `save`, revert
+  con Edit, `run`), con sus salidas `S140-<pieza>.revdiff.txt` y `S140-<pieza>.rev.out.txt`. Las de la 139 (UI del
+  emulador): `_scratch/S139-ui.sh.txt`, `_scratch/S139-leer.cjs.txt` y `_scratch/S139-pix.cjs.txt`. Las reglas de
+  agentes de la 138: `_scratch/S138-agentes-reglas.md.txt`.
 - **El entorno de la 137:** el pagefile está FIJO en 8 GB y el commit total es ~40 GB (no ~52): con Metro entran
   **2** emuladores, no 4 (con dos quedaron 7,7 GB libres). Cada agente de Modo C llegó cerca del tope de 200 turnos.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
@@ -2542,6 +2566,56 @@ sea imposible de desasignar por sync**, así que cualquier omisión local se con
 divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz).
 
 ## 4. Por dónde seguir
+
+**Sesión 140 (la PRIMERA de la fase de ARREGLOS, sin agentes, Fable 5.2 como principal):** la tanda 1, los tres P1:
+`R9-424`, `R9-425` y `R9-427` ✅ ARREGLADOS (`7d4a511f`, `a6a0ef13`, `e8700067`), cada uno con su prueba vista FALLAR
+sin el arreglo; `R9-569` nuevo (P3, por lectura). No queda ningún P0 ni P1 abierto. **Lo siguiente: la 141, la
+revisión del diff de la 140 (`_scratch/S141-PROMPT.md`), con emulador para lo que se pueda ver en vivo.** Detalle:
+`detail/S140-arreglos-p1.md`.
+
+**Las tandas siguientes de la fase de arreglos (PROPUESTA de la 140; el orden lo decide Victor).** Los 45 P2 de
+`R9-410`..`R9-568`, agrupados por raíz o por área, datos y sync primero; después los P3. Cada tanda de arreglos lleva
+detrás su revisión de diff. Agrupados por el título y las primeras líneas de cada entrada: la raíz se confirma al
+leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit.
+
+- **Tanda 2 — datos locales: lecturas que fallan y pisan, respaldo y reset (7).** `R9-413`, `R9-414` y `R9-421` (una
+  lectura que rechaza al montar deja los valores por defecto y la escritura siguiente los vuelca al disco;
+  `sepiaGrandfathered` es del mismo store); `R9-411` y `R9-410` (`importBackup` escribe sin validar la forma: un
+  respaldo roto tira Home o el tema en cada arranque); `R9-560` (los toasts del respaldo, detrás del modal «Datos»);
+  `R9-558` (el reset de la Biblia pierde las versiones descargadas; con `R9-569` y `R9-559`, P3, que son del mismo
+  camino: pide decidir qué promete el diálogo, en los dos idiomas).
+- **Tanda 3 — sync, y texto del usuario que se pierde sin aviso (7).** `R9-518` (la migración de marcadores duplica
+  favoritos en la cuenta); `R9-415` (`saveEditor` de resaltados sin `try`); `R9-473` (un solo debounce para todas las
+  secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);
+  `R9-511` (el devocional recortado, y «Compartir» borra el borrador); `R9-562` (la ✕ del selector de colores borra
+  el subrayado con su nota: **su severidad es una decisión abierta de Victor, §8**).
+- **Tanda 4 — planes propios y Juntos (5).** `R9-507`, `R9-508` y `R9-509` (el constructor: el plan viejo tras
+  guardar, la vista previa que no es lo que se guarda, el renombre que rearma los días y mueve el progreso);
+  `R9-512` y `R9-506` (invitar con la duración elegida; pegar el mensaje entero).
+- **Tanda 5 — audio, y la versión elegida que no llega a todos lados (7).** `R9-426` (los huecos del audio: el vecino
+  de `R9-425`) y `R9-423` (la voz sigue en la versión anterior); `R9-430` (la búsqueda con los resultados de la
+  versión anterior); `R9-436` (el estudio de palabra en RVR1960 con la interfaz en inglés); `R9-533` (la comparación
+  guardada de otro pasaje); `R9-475` y `R9-496` (gemelos: «Memorizar» duplica la carta con una versión en español).
+  De paso, las siete pantallas que leen `@bible_version` directo (`R9-525`, P3; el agravante de `R9-424`).
+- **Tanda 6 — búsqueda (4).** `R9-428` («fe» no busca), `R9-429` («Probar otra búsqueda»), `R9-431` (el resaltado no
+  sigue lo que encontró la búsqueda) y `R9-568` (los buscadores de libros sin tilde: `foldDiacritics` en tres
+  filtros).
+- **Tanda 7 — carreras y estado viejo en pantalla (6).** `R9-435` y `R9-476` (gemelos: el pack de originales termina
+  de bajar sobre otro versículo u otro pasaje); `R9-432` (el quiz al cambiar de categoría); `R9-437` y `R9-438` (Home:
+  el corazón del versículo del día, «Continuar leyendo»); `R9-464` (Favoritos relee la base en bucle).
+- **Tanda 8 — robustez: crash y navegación (4).** `R9-412` (un solo boundary nativo, y «Reintentar» en bucle);
+  `R9-417` (en release, las promesas rechazadas no llegan a Crashlytics); `R9-467` (una colección con «%» en el
+  nombre tira la app); `R9-457` (un enlace compartido abierto en frío queda sin nada debajo).
+- **Tanda 9 — interfaz visible (4).** `R9-418` (la hoja de ofrenda se sale por arriba), `R9-454` (los toasts
+  ilegibles en oscuro y en alto contraste), `R9-561` (la hoja de nota bajo el teclado) y `R9-450` (el PDF «Guía de
+  discusión», solo en español). Se ven en el emulador: su revisión de diff, con capturas.
+- **Fuera de las tandas (1):** `R9-477` (el pack de originales descarta 235 palabras): el arreglo del build es
+  código, pero republicarlo toca Pages y pide el OK de Victor aparte.
+- **Después, los P3** (103 de `R9-410`..`R9-568`, más `R9-569`): por área, en el mismo orden (datos y sync, audio y
+  versión, búsqueda, pantallas, interfaz y accesibilidad), y al final los de pruebas, docs y dependencias. Varios caen
+  solos con su tanda P2 (`R9-559` y `R9-569` con la 2; `R9-525` con la 5; lo que suma a `R9-524` es una sola raíz).
+- **Al terminar la fase:** Opus 5.5 como principal con Fable de asesor, y las filas C P1 que faltan (`C17`, `C23`:
+  `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). Las filas de cuenta siguen esperando la cuenta de Google de PRUEBA.
 
 **Sesión 139 (filas C P1 de datos y núcleo, SIN agentes, en un chat nuevo; un emulador):** `C42b` 🐛 (`R9-564`,
 `R9-565`, P3), `C43b` 🐛 (`R9-566`, `R9-567`, P3), `C20b` 🐛 (`R9-568` P2; «1 capítulos» suma a `R9-524`), `C7` ✅.
@@ -3820,6 +3894,21 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   estaba catalogado como «media, se auto-repara en el siguiente arranque»; en realidad
   anulaba el arreglo de `R9-9` entero (la revocación llegaba y la lectura de caché la
   pisaba). Arreglar el P0 solo no le habría cambiado nada a ningún usuario.
+- **Un mock de fábrica puede dejar la prueba verde con y sin el arreglo (sesión 140, `R9-427`).** El mock de
+  Reanimated crea un `useSharedValue` nuevo en cada render y su `interpolate` devuelve `undefined`: un valor animado
+  que sobrevive de más no existe bajo jest. La prueba les da su semántica real (un `useRef`, una interpolación
+  lineal), y aun así los estilos animados solo se recalculan al renderizar: tras un efecto que mueve el valor hay que
+  volver a pintar antes de medir. Lo que el mock no puede mostrar (un resorte, un tirón) se escribe como «sin prueba
+  que lo distinga» y va a la verificación en vivo.
+- **Antes de hacer que una red de seguridad escriba, mirá contra qué lectura corre (sesión 140, `R9-424`,
+  `R9-569`).** La caída a una versión empaquetada no se guarda, y parecía un defecto (la clave queda apuntando a una
+  versión ausente). Pero la lectura del arranque corre a la par de la recarga de `initializeBibleData`: guardada, una
+  lista parcial quedaría como la elección del usuario. El arreglo esperó la respuesta y dejó la escritura afuera,
+  como costo conocido con su número.
+- **El arreglo va donde el dato todavía es cierto, no donde la entrada lo propuso (sesión 140, `R9-425`).** La
+  propuesta era que el aviso de fin de capítulo llevara el modo del temporizador hasta el avanzador. El motor ya lo
+  tenía fresco en el mismo callback, tres líneas debajo de otra rama que decide con él, y el avanzador es el único
+  lector de la señal: no subirla fue una línea. Antes de seguir la propuesta, buscá quién más lee lo que vas a tocar.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
 
 ## 6. Hechos duros que ya no hay que volver a averiguar
@@ -3927,6 +4016,19 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   `toISOString().split('T')[0]` disfrazado de local.
 
 ## 7. Decisiones de Victor que NO hay que volver a preguntarle
+
+- **La fase de ARREGLOS va con Fable 5.2 como modelo principal, decidido por Victor el 2026-11-11 (al empezar la
+  sesión 140).** Toda la fase, con sus revisiones de diff, va con Fable 5.2 como principal. Al terminarla se vuelve a
+  Opus 5.5 como principal con Fable de asesor, y a las filas C P1 que faltan (`C17`, `C23`), con
+  `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`.
+  - **Empieza en la 140** (la tanda 1, los tres P1: `detail/S140-arreglos-p1.md`); la 141 revisa su diff, también con
+    Fable como principal y con emulador. El orden de las tandas siguientes está PROPUESTO en la §4 y lo decide Victor.
+  - **Si se sigue re-revisando con Fable lo decide Victor:** no se propone. Los pilotos de re-revisión fueron la 132
+    y la 133 (`A7`, `B4`), fuera de la serie.
+  - **Los agentes los pide Victor:** si no los pide, la sesión va sin agentes. La nube sigue sin ser una opción.
+  - **En una tanda de arreglos:** un commit por hallazgo, cada prueba vista FALLAR sin el arreglo (revert, correr,
+    restaurar, `diff` del revert), el vecino cubierto o escrito como costo conocido, y lo nuevo que aparezca se
+    registra y no se arregla salvo que sea la raíz común. La verificación en vivo va en la sesión que revisa el diff.
 
 - **El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112, decidido por Victor el 2026-10-27
   (tras la 111).** La 112 fue la última vuelta de revisión de `__tests__/prepAccount.test.ts` y

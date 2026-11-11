@@ -1,9 +1,15 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: las filas C P1 de datos y núcleo van por la mitad: quedan `C17` y `C23`
-> (`_scratch/S140-PROMPT.md`); el Modo C P0 sigue hecho salvo lo que espera una cuenta de Google de PRUEBA (`C26a`,
-> `C54`, `C55`, el suelo de `C20a`, que sigue EN CURSO, y «Borrar cuenta» de `C27a`). Lo que sigue lo decide Victor.**
-> La 139 (sin agentes, en un chat nuevo) cerró `C42b` (🐛): `R9-564`, `R9-565`; `C43b` (🐛): `R9-566`, `R9-567`;
+> **Frontera actual: la fase de ARREGLOS, con Fable 5.2 como modelo principal (decisión de Victor del 2026-11-11,
+> `CONTINUAR.md` §7). La 140 hizo la tanda 1, los tres P1 abiertos: `R9-424`, `R9-425` y `R9-427` ✅ ARREGLADOS
+> (`7d4a511f`, `a6a0ef13`, `e8700067`, rama `fix/s140-p1`), cada uno con su prueba vista FALLAR sin el arreglo; un
+> nuevo por lectura, `R9-569` (P3). No queda ningún P0 ni P1 abierto; hay 569 hallazgos. Lo siguiente: la 141 revisa
+> el diff de la 140, con emulador (`_scratch/S141-PROMPT.md`); después, las tandas de P2 propuestas en
+> `CONTINUAR.md` §4 (datos y sync primero) y los P3. Al terminar la fase: Opus 5.5 principal con Fable de asesor, y
+> las filas C P1 que faltan (`C17`, `C23`, con `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). El Modo C P0 sigue hecho
+> salvo lo que espera una cuenta de Google de PRUEBA (`C26a`, `C54`, `C55`, el suelo de `C20a`, que sigue EN CURSO, y
+> «Borrar cuenta» de `C27a`).** Detalle: `detail/S140-arreglos-p1.md`. Antes, la frontera eran las filas C P1 de datos
+> y núcleo, por la mitad (quedan `C17` y `C23`). La 139 (sin agentes, en un chat nuevo) cerró `C42b` (🐛): `R9-564`, `R9-565`; `C43b` (🐛): `R9-566`, `R9-567`;
 > `C20b` (🐛): `R9-568` P2 (los buscadores de libros no encuentran 17 libros escritos sin tilde), y «1 capítulos»
 > suma a `R9-524`; `C7` (✅). Ninguno P0. Antes, la frontera era el Modo C P0. La 138 (3 agentes a pedido de Victor,
 > en un chat nuevo) cerró `C27a` (🐛): `R9-558` P2, `R9-559`; `C42a` (🐛): `R9-561` P2; `C43a` (🐛): `R9-562` P2,

@@ -3755,6 +3755,22 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     la base antes, termina en KJV. Que el arranque real tenga el primer orden es por lectura.
   - **Propuesta (sin escribir):** que la red de seguridad espere la primera respuesta de
     `refreshInstalledVersions` (una bandera `installedKnown`). Detalle: `detail/A14-base-de-datos.md`.
+  - **✅ ARREGLADO en la sesión 140** (`7d4a511f`, rama `fix/s140-p1`): la red de seguridad espera la primera
+    respuesta de `refreshInstalledVersions` (`installedKnown`, que se marca en el `finally`, después de los ids:
+    una base que falla sigue cayendo a una empaquetada, como antes). Prueba:
+    `__tests__/bibleVersionColdStart.test.tsx` (el proveedor real, 6 casos: KJV/`en` y su espejo RV1909/`es`, el
+    control con la base primero, la red con el pack ausente, la base que falla, sin versión guardada). **Vista
+    FALLAR por pieza** (`_scratch/S140-424-guarda.revdiff.txt`, `S140-424-finally.revdiff.txt`): sin la guarda,
+    KJV → WEB y RV1909 → RVR1960; sin el `finally`, la base que falla deja KJV.
+    - **`R9-558` no comparte la raíz** (acá la red corría antes de tiempo; allá el reset borra los packs y nadie
+      refresca el registro): espera su tanda.
+    - **Costos conocidos:** (1) la red sigue SIN escribir `@bible_version`, a propósito: la lectura del arranque
+      corre a la par de la recarga de `initializeBibleData`, y una lista parcial quedaría como la elección del
+      usuario (`R9-569`); con el pack ausente de verdad (borrado, o el estado de `R9-558`), las siete pantallas
+      que leen la clave directo siguen como antes. (2) Ventana nueva: con el pack ausente, `selectedVersion` es
+      la versión sin filas desde el `getItem` hasta que responde la base (antes duraba un render); por lectura,
+      para ver en vivo en la 141. (3) El agravante de las siete pantallas se cura solo en el caso de esta
+      entrada (la elegida y la clave vuelven a coincidir). Detalle: `detail/S140-arreglos-p1.md`.
 
 - **`R9-425` (S116, `A15` / temporizador de sueño y avance de capítulo — P1) — 🐛 el temporizador «al final
   del capítulo» no para: la narración pasa al capítulo siguiente, y el temporizador ya no existe.** MEDIDO con
@@ -3772,6 +3788,20 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     `modo=null`. La única prueba previa es la de la función pura, que sí devuelve `false`.
   - **Propuesta (sin escribir):** que el avanzador decida con el modo con el que terminó el capítulo (que el
     aviso lo lleve), no con el de después de cancelarlo. Detalle: `detail/A15-audio-tts.md`.
+  - **✅ ARREGLADO en la sesión 140** (`a6a0ef13`, rama `fix/s140-p1`), por otro camino que la propuesta: lo
+    honra el motor. Si lo que paró el capítulo fue el temporizador «al final del capítulo», el `onDone` no sube
+    `chapterEndCount` (el avanzador es su único lector, buscado en `app/` y `src/`); el comentario que decía lo
+    contrario, corregido. Prueba: `__tests__/audioSleepTimerEndOfChapter.test.tsx` (el proveedor y el avanzador
+    reales, 6 casos: sin temporizador avanza; «al final del capítulo» para, no carga nada y el temporizador queda
+    consumido; el capítulo siguiente a un temporizador consumido avanza; los espejos de «al final del libro», a
+    mitad de libro y en el último capítulo; el avance continuo apagado). **Vista FALLAR**
+    (`_scratch/S140-425-senal.revdiff.txt`): con la señal subida siempre, `getChapter` se llama 1 vez (carga
+    Juan 4).
+    - **Vecinos, sin tocar:** los huecos de `R9-426` (lo parado entre dos versículos o dos capítulos vuelve a
+      sonar; su tanda), y el bucle de memorización, que va antes que el fin de capítulo (por lectura,
+      `AudioPlayerContext.tsx:543-553`): con «repetir versículo» el capítulo no termina y el temporizador no
+      vence. La rama `end-of-chapter` de `shouldAdvanceChapter` queda como defensa. Verificado con jest y por
+      lectura (el emulador no tiene voces de TTS). Detalle: `detail/S140-arreglos-p1.md`.
 
 - **`R9-427` (S117, `A15` / reproductor flotante — P1) — 🐛 tras cerrar el reproductor con la ✕, el siguiente
   audio de la sesión lo abre roto: se ve la vista expandida, sus botones no responden, y los del reproductor
@@ -3797,6 +3827,19 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - **Propuesta (sin escribir):** que el reproductor lleve `expandProgress` a `isExpanded` cuando cambie
     (un efecto), o que `hidePlayer` se haga desde un manejador local que también lo baje a 0. Detalle:
     `detail/A15-audio-tts.md`.
+  - **✅ ARREGLADO en la sesión 140** (`e8700067`, rama `fix/s140-p1`): un efecto de `MiniAudioPlayer` hace que
+    `expandProgress` siga a `state.isExpanded`, lo cambie quien lo cambie. Oculto, lo asigna directo (y pone
+    `translateY` en 0); visible, con el mismo resorte que ya lanzan los manejadores (Reanimated 4.5.1 continúa
+    un resorte disparado dos veces al mismo destino: `spring.ts`, `isTriggeredTwice`, por lectura). Prueba:
+    `__tests__/miniAudioPlayerCloseResetsExpand.test.tsx` (el componente real, 4 casos: expandir → ✕ → mostrar
+    vuelve plegado y el botón de expandir responde; el control del chevron; el espejo, el estado se expande sin
+    el botón local; oculto estando expandido vuelve expandido). **Vista FALLAR** sin el efecto
+    (`_scratch/S140-427-efecto.revdiff.txt`): altura 248, plegado opacidad 0, expandido opacidad 1 (y el espejo:
+    64 con la vista expandida invisible).
+    - **Sin prueba que las distinga** (el `withSpring` de jest es instantáneo): la rama «oculto» y el doble
+      resorte en el plegado y la expansión normales. Para ver en vivo en la 141 (el emulador no tiene voces de
+      TTS: ver si el reproductor llega a mostrarse). El espejo no tiene camino en la app hoy (nadie fuera del
+      reproductor llama a `expand`). Detalle: `detail/S140-arreglos-p1.md`.
 
 ---
 
@@ -13843,6 +13886,11 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     red de seguridad no escribe la clave (y las siete pantallas que la leen directo ya no muestran otra versión sino
     ninguna), pero el arreglo de `R9-424` no lo cura: acá KJV falta de verdad. Distinto de `R9-24` (que cita el mismo
     reset por el diálogo de borrar cuenta). Detalle: `detail/C27a-ajustes-reset.md`.
+  - **Sesión 140 (arreglo de `R9-424`, `7d4a511f`):** leído antes de diseñar; no comparte la raíz y sigue ABIERTO.
+    Tras el arreglo, este camino queda igual salvo un punto: tras el frío, la elegida es KJV (sin filas) hasta que
+    responde la base, y recién ahí cae a WEB (por lectura). La red sigue sin escribir la clave, a propósito
+    (`R9-569`). Para su tanda: que `performResetData` refresque el registro, qué hace con la elegida, y si el
+    diálogo avisa o el reset conserva los packs (texto en los dos idiomas).
 
 - **`R9-559` (S138, `C27a` / lector nativo con 0 versículos — P3) — 🐛 el lector pinta una página en blanco, sin
   mensaje ni reintento, cuando el capítulo no tiene filas.** MEDIDO en el emulador por el camino de `R9-558` (John 4 y
@@ -13992,6 +14040,24 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     («exodo», «isaias», «levitico»), y la lista queda vacía. La lista desplazable sigue ahí. Detalle:
     `detail/C20b-memoria-mazo.md`.
   - **Arreglo propuesto (sin escribir):** el `foldDiacritics` de las otras búsquedas, en los tres filtros.
+
+- **`R9-569` (S140, arreglo de `R9-424` / registro de versiones — P3) — 🐛 el registro de versiones se lee una sola
+  vez, al montar, a la par de la recarga de arranque: si esa lectura cae a mitad de una recarga, la lista queda
+  parcial toda la sesión.** POR LECTURA, sin sonda (apareció al decidir si la red de seguridad debía escribir la
+  clave).
+  - `useBibleVersion.tsx:81-83` llama a `refreshInstalledVersions` al montar el proveedor
+    (`app/_layout.tsx:432`), mientras `initializeApp` corre `initializeBibleData` (`data-loader.ts:14-43`). En un
+    arranque normal la base sembrada ya tiene las dos empaquetadas y no pasa nada. En el camino de respaldo (la
+    copia del sembrado falló, o un reset cortado: la 137 dejó uno «a medio recargar»), RVR1960 y WEB se cargan
+    desde JS, una tras otra: un `DISTINCT version` en ese rato da `['RVR1960']`, o nada. Nadie vuelve a leer
+    al terminar (solo Gestionar versiones, tras descargar o quitar).
+  - **Consecuencia (por lectura):** con una lista parcial no vacía, WEB no está entre las disponibles esa sesión:
+    quien la eligió ve RVR1960, y los selectores no la ofrecen. Con la lista vacía quedan las empaquetadas (la
+    guarda `length > 0`). Se cura en el arranque siguiente. Por esto el arreglo de `R9-424` NO escribe la clave
+    desde la red: una lista parcial quedaría como la elección del usuario.
+  - **Severidad:** P3: pide un arranque por el camino de respaldo, y no persiste nada. Que el orden real lo
+    permita, sin medir. **Arreglo propuesto (sin escribir):** volver a leer el registro cuando `initializeApp`
+    termina (y tras el reset, con `R9-558`). Detalle: `detail/S140-arreglos-p1.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
