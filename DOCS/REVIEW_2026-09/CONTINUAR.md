@@ -1,6 +1,19 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-10, fin de la sesión 138.** La 138 siguió el (dk), el Modo C P0 con emulador, en un
+> **Última actualización: 2026-11-11, fin de la sesión 139.** La 139 siguió el (dl), las filas C P1 de datos y núcleo
+> con emulador, en un chat nuevo, en la terminal, **sin agentes**, Opus 5.5 con el asesor Fable 5.2, un emulador de
+> solo lectura. Cerró `C42b` 🐛 (`R9-564` P3: tocar un chip de referencia vuelve a guardar la nota sin cambios y la
+> sube en «Recientes»; `R9-565` P3: con la hoja de nota abierta, un enlace a otro libro deja una cabecera mezclada),
+> `C43b` 🐛 (`R9-566` P3: las muestras del filtro de color de la galería no tienen nombre para el lector de pantalla;
+> `R9-567` P3: con un versículo seleccionado, el atrás sale del lector), `C20b` 🐛 (`R9-568` P2: los buscadores de
+> libros de la pestaña Biblia y de Memoria no encuentran 17 libros escritos sin tilde; «1 capítulos» suma a
+> `R9-524`) y `C7` ✅. De paso, las dos observaciones de `C42a`: el chip tras un número, descartado (regla deliberada);
+> el re-guardado, `R9-564`. Ninguno P0. Hay 568 hallazgos. Quedan `C17` y `C23` (PENDIENTE, sin empezar). La rama
+> `docs/review-s139-c-p1` (solo docs) va **sin mergear hasta el OK de Victor**. **Lo siguiente lo decide Victor**
+> (§4): el mensaje recomendado está en `_scratch/S140-PROMPT.md`. La 138 ya está mergeada y pusheada (`main` =
+> `origin/main` = `dd3568f`, CI verde en el log, run `43033747901`, 3 jobs, 374/4693; corregido en la 139).
+>
+> **Antes, al fin de la sesión 138 (2026-11-10):** La 138 siguió el (dk), el Modo C P0 con emulador, en un
 > chat nuevo, en la terminal, **con 3 agentes a pedido de Victor** (nuevos, en worktrees, el 3.º en segunda ola por el
 > techo de 2 emuladores; ninguno cortado), Opus 5.5 con el asesor Fable 5.2. Cerró `C27a` 🐛 (`R9-558` P2, `R9-559`
 > P3), `C42a` 🐛 (`R9-561` P2; persistencia ✅; `R9-57` medido en vivo) y `C43a` 🐛 (`R9-562` P2, `R9-563` P3;
@@ -2401,11 +2414,12 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
   374/4693. Su rama se borró tras `git cherry` (corregido en la 139: los docs de la 138 decían «sin mergear»). La
   137 ya estaba en `main` (`6e81d56`, run `42952085435`).
 - **La rama de la 139, sin mergear a propósito y sin pushear:** `docs/review-s139-c-p1` (solo docs). Se mergea en
-  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** ninguno. El de docs (`../essb-docs-s138`, checkpoint con `_scratch/S138-checkpoint.sh.txt`) se
-  quitó antes del validate; el del agente 2 quedó registrado tras terminar (sin commits) y se quitó a mano; los otros
-  se borraron solos. Salidas en `_scratch/S138-sondas-agente-{1,2,3}/`; las reglas de los
-  agentes, en `_scratch/S138-agentes-reglas.md.txt` (la 137: `_scratch/S137-*`).
+  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`,
+  sin emuladores, Metro ni worktrees vivos): ver `_scratch/S139-validate.out.txt`.
+- **Los worktrees:** ninguno. El de docs (`../essb-docs-s139`, checkpoint con `_scratch/S139-checkpoint.sh.txt`) se
+  quitó antes del validate. Salidas de la 139 en `_scratch/S139-sondas/`, con las herramientas `_scratch/S139-ui.sh.txt`
+  (UI, lectura de `bible.db` y RKStorage, frío, ráfaga, `seq`), `_scratch/S139-leer.cjs.txt` y `_scratch/S139-pix.cjs.txt`
+  (el color de un píxel de una captura). Las reglas de agentes de la 138: `_scratch/S138-agentes-reglas.md.txt`.
 - **El entorno de la 137:** el pagefile está FIJO en 8 GB y el commit total es ~40 GB (no ~52): con Metro entran
   **2** emuladores, no 4 (con dos quedaron 7,7 GB libres). Cada agente de Modo C llegó cerca del tope de 200 turnos.
 - En el remoto quedan `main` y `audio/tts-caps-hyphen`.
@@ -2523,6 +2537,16 @@ sea imposible de desasignar por sync**, así que cualquier omisión local se con
 divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz).
 
 ## 4. Por dónde seguir
+
+**Sesión 139 (filas C P1 de datos y núcleo, SIN agentes, en un chat nuevo; un emulador):** `C42b` 🐛 (`R9-564`,
+`R9-565`, P3), `C43b` 🐛 (`R9-566`, `R9-567`, P3), `C20b` 🐛 (`R9-568` P2; «1 capítulos» suma a `R9-524`), `C7` ✅.
+Ninguno P0. **Quedan, de ese alcance, `C17` (Lectura: capítulo, versículo, versión; con `R9-424`, `R9-558`,
+`R9-565`, `R9-567` y `R9-568` ya escritos, que tocan el lector y la pestaña Biblia) y `C23` (Búsqueda; BUG-6 de Fable,
+«ir a referencia», y `R9-428`..`R9-431` de `A16`: buscar la clave antes).** **Recomendado para la 140, si Victor no elige otra cosa:**
+el mensaje `_scratch/S140-PROMPT.md` (`C17` y `C23`, y después las C P1 que siguen en el índice: `C18`, `C19`, `C21`,
+`C22`). Alternativas: la cuenta de Google de PRUEBA (las filas de cuenta) o una sesión de arreglos
+(`R9-410`..`R9-568`). Pistas sin numerar para filas futuras: «Lee 500 versículos» tras ~188 versículos distintos
+(`C29`, ver `detail/C20b-memoria-mazo.md`) y campos sin etiqueta en la Mesa (`C40`, ver `detail/C7-series.md`).
 
 **Sesión 138 (Modo C P0, 3 agentes a pedido de Victor, en un chat nuevo; sin cortes):** `C27a` 🐛 (`R9-558` P2: el
 reset de la Biblia borra en silencio las versiones descargadas y deja `@bible_version` en una sin filas; `R9-559` P3:
@@ -3626,6 +3650,15 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   Con la caché de Metro caliente, tardó de 26 s a 253 s; en la 137 se comió al agente 3. El script de espera
   (`_scratch/S138-esperar.sh.txt`) borra el dump local antes de cada `pull` (si no, un dump fallido lee el viejo) y
   exige texto visible; en el Home animado `uiautomator dump` falla y agota el tope: ahí, captura.
+- **Ninguna «r» repetida en un texto sintético, aunque no vayan seguidas (sesión 139).** «Serie esperanza» tecleado
+  con `adb input text` recargó el JS (mismo pid, servicios reiniciados en el log de Metro): las dos «r» caen dentro de
+  la ventana del doble R de React Native, también con el foco en un campo. La recarga apaga el toggle de dev como un
+  frío. Y antes de tocar un botón al pie de una hoja, `dumpsys input_method | grep mInputShown`: con el teclado
+  vuelto a abrir, el toque escribió un espacio en la nota en vez de guardar (`R9-561`).
+- **Una sesión sin agentes rinde con UNA herramienta que junte pasos (sesión 139).** `_scratch/S139-ui.sh.txt seq
+<n> <filtro> t=X,Y x=TEXTO k=KEY s=SEG w=…` hace varios toques y termina en un solo dump filtrado (el filtro es una
+  subcadena, no una expresión regular; para varias, `| grep -E`). Un color pintado se mide sin abrir la imagen:
+  `node _scratch/S139-pix.cjs.txt <captura> x,y`. Con eso, 4 filas en ~230 llamadas, con un emulador.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio

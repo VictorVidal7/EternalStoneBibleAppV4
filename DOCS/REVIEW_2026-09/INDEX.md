@@ -1,8 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: el Modo C P0 está hecho salvo lo que espera una cuenta de Google de PRUEBA (`C26a`, `C54`, `C55`,
-> el suelo de `C20a`, que sigue EN CURSO, y «Borrar cuenta» de `C27a`); lo que sigue lo decide Victor: las filas C P1
-> (`_scratch/S139-PROMPT.md`), la cuenta de prueba, o una sesión de arreglos.** La 138 (3 agentes a pedido de Victor,
+> **Frontera actual: las filas C P1 de datos y núcleo van por la mitad: quedan `C17` y `C23`
+> (`_scratch/S140-PROMPT.md`); el Modo C P0 sigue hecho salvo lo que espera una cuenta de Google de PRUEBA (`C26a`,
+> `C54`, `C55`, el suelo de `C20a`, que sigue EN CURSO, y «Borrar cuenta» de `C27a`). Lo que sigue lo decide Victor.**
+> La 139 (sin agentes, en un chat nuevo) cerró `C42b` (🐛): `R9-564`, `R9-565`; `C43b` (🐛): `R9-566`, `R9-567`;
+> `C20b` (🐛): `R9-568` P2 (los buscadores de libros no encuentran 17 libros escritos sin tilde), y «1 capítulos»
+> suma a `R9-524`; `C7` (✅). Ninguno P0. Antes, la frontera era el Modo C P0. La 138 (3 agentes a pedido de Victor,
 > en un chat nuevo) cerró `C27a` (🐛): `R9-558` P2, `R9-559`; `C42a` (🐛): `R9-561` P2; `C43a` (🐛): `R9-562` P2,
 > `R9-563`; y el control de toasts de `C26b` (🐛, pasa a P2): `R9-560`. Ninguno P0, salvo lo que Victor decida sobre
 > `R9-562` (P2 propuesto). La 137 (3 agentes, cortada por el
