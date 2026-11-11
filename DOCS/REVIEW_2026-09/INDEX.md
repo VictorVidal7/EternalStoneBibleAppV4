@@ -1924,7 +1924,7 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 | C17  | Lectura de la Biblia (capítulo, versículo, versión)             | P1        | PENDIENTE                   | —                         |
 | C18  | Lector inmersivo (auto-scroll gratis; "Escuchar" premium)       | P1        | PENDIENTE                   | —                         |
 | C19  | Audio (velocidad, scrubbing, resume, cold-start, sleep, voz)    | P1        | PENDIENTE                   | —                         |
-| C20b | Memoria — mazo, práctica, metas, insights                       | P1        | PENDIENTE                   | —                         |
+| C20b | Memoria — mazo, práctica, metas, insights                       | P1        | 🐛 BUG (P2)                 | `C20b-memoria-mazo`       |
 | C21  | Quiz bíblico (categorías, contrarreloj, añadir a mazo, stats)   | P1        | PENDIENTE                   | —                         |
 | C22  | Word study / idiomas originales (interlineal, morfología)       | P1        | PENDIENTE                   | —                         |
 | C23  | Búsqueda (texto + "ir a referencia")                            | P1        | PENDIENTE                   | —                         |

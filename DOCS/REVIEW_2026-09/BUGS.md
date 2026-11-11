@@ -13224,6 +13224,10 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
   - **El mismo rótulo en `A40` (por lectura):** «Mis devocionales» dice «1 días · Comienza el…» para un devocional
     de un solo día, que el constructor permite (`devotional/index.tsx:395-400`, con `translations.ts:5703` y
     `:12241`).
+  - **Sesión 139 (`C20b`, medido en el emulador):** el selector de «Agregar versículo» de Memoria dice «1 capítulos»
+    en 2 Juan y 3 Juan (`src/features/memory/MemoryVersePickerSheet.tsx:321`, `{item.chapters} {tb.chapters}`); el
+    de Notas de sermón, igual por lectura (`SermonVersePickerSheet.tsx:329`). La pestaña Biblia sí elige el singular
+    (`app/(tabs)/bible.tsx:498`). Detalle: `detail/C20b-memoria-mazo.md`.
 
 - **`R9-525` (S130, `A40` / temas, sentimientos, Luz diaria — P3) — 🐛 con la versión cambiada con la pantalla
   abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la
@@ -13966,6 +13970,24 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     atrás: la galería («Mis Resaltados»); otro atrás: Notas (`S139-at1.xml.txt`, `S139-at2.xml.txt`,
     `S139-at3.xml.txt`). No se pierde ningún dato: se pierde la selección y el lugar de lectura. Detalle:
     `detail/C43b-subrayados-galeria.md`.
+
+- **`R9-568` (S139, `C20b` / los buscadores de libros — P2) — 🐛 escribir un libro sin tilde no lo encuentra: «exodo»
+  e «isaias» dan «No se encontraron resultados» en la pestaña Biblia, y nada en «Agregar versículo» de Memoria.**
+  MEDIDO en el emulador (buscado en `BUGS.md`: «MemoryVersePickerSheet», «SermonVersePickerSheet», «Buscar libro»,
+  «sin tilde», «bible.tsx:9»).
+  - `app/(tabs)/bible.tsx:94-98`, `src/features/memory/MemoryVersePickerSheet.tsx:101-109` y
+    `src/features/study/SermonVersePickerSheet.tsx:104-112` (este, por lectura): `toLowerCase().includes(q)` sobre
+    `name` y `nameEn`, sin plegar tildes. Las búsquedas de notas, subrayados y versículos sí pliegan
+    (`foldDiacritics`, `src/lib/search/highlightMatches.ts`).
+  - **Alcance, contado sobre `src/constants/bible.ts`:** 17 libros no se encuentran escritos sin tilde (el nombre
+    inglés no los rescata): Éxodo, Levítico, Números, Josué, 1 y 2 Crónicas, Nehemías, Eclesiastés, Isaías,
+    Jeremías, Abdías, Jonás, Sofonías, Zacarías, Malaquías, Gálatas y Filemón. «genesis» sí, por «Genesis».
+  - **Medida:** Memoria: `exodo` y `levitico`, ningún libro; `xodo` → Éxodo, `nesis` → Génesis
+    (`_scratch/S139-sondas/S139-mq-*.xml.txt`). Biblia: `exodo` e `isaias` → «No se encontraron resultados»; `xodo` →
+    Éxodo (`S139-bib-*.xml.txt`). P2 y no P3: es la navegación del núcleo para el público principal, que en el
+    teclado del teléfono suele escribir sin tildes, y el vacío parece decir que el libro no existe; la lista
+    desplazable sigue ahí. Detalle: `detail/C20b-memoria-mazo.md`.
+  - **Arreglo propuesto (sin escribir):** el `foldDiacritics` de las otras búsquedas, en los tres filtros.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
