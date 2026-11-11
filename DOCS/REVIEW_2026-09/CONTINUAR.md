@@ -1,6 +1,19 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-10, fin de la sesión 136.** La 136 hizo el (dj) en un chat nuevo, en la terminal,
+> **Última actualización: 2026-11-10, fin de la sesión 138.** La 138 siguió el (dk), el Modo C P0 con emulador, en un
+> chat nuevo, en la terminal, **con 3 agentes a pedido de Victor** (nuevos, en worktrees, el 3.º en segunda ola por el
+> techo de 2 emuladores; ninguno cortado), Opus 5.5 con el asesor Fable 5.2. Cerró `C27a` 🐛 (`R9-558` P2, `R9-559`
+> P3), `C42a` 🐛 (`R9-561` P2; persistencia ✅; `R9-57` medido en vivo) y `C43a` 🐛 (`R9-562` P2, `R9-563` P3;
+> persistencia ✅; los arreglos de `R9-44` y `R9-50` se sostienen), y midió el control de toasts de `C26b`, que pasa a
+> P2 con `R9-560`. Ninguno P0. Hay 563 hallazgos y ningún P0 abierto. La rama `docs/review-s138-c-p0` (solo docs) va
+> **sin mergear hasta el OK de Victor**. El Modo C P0 queda hecho salvo lo que espera una cuenta de Google de PRUEBA
+> (`C26a`, `C54`, `C55`, el suelo de `C20a`, «Borrar cuenta» de `C27a`). **Lo siguiente lo decide Victor** (§4): el
+> mensaje recomendado, las filas C P1 de datos y núcleo, está en `_scratch/S139-PROMPT.md`. La 137 ya está mergeada y
+> pusheada (`main` = `origin/main` = `6e81d56`, CI verde en el log, run `42952085435`, 3 jobs, 374/4693; corregido en
+> la 138: sus docs decían «sin mergear»). La 137 (3 agentes, cortada por el límite de uso) cerró `C1a` ✅ y `C26b` 🐛
+> (`R9-557`), con `R9-556` en `C20a`.
+>
+> **Antes, al fin de la sesión 136 (2026-11-10):** La 136 hizo el (dj) en un chat nuevo, en la terminal,
 > SIN agentes, Opus 5.5 (con el asesor Fable): **el Modo B P1/P2, `B6`–`B10`: con ellas se terminan las filas del
 > Modo B.** `B6` 🐛: `R9-550` (`assetlinks.json` declara solo el certificado de debug PÚBLICO de la plantilla de
 > Expo: el App Link no se verifica en una instalación de Play y cada enlace compartido pasa por el navegador) y
@@ -629,9 +642,15 @@ sesión 127. Y el (dd), la tercera tanda, HECHO en la sesión 128. Y el (de), la
 HECHO en la sesión 131. Las sesiones 132 y 133 fueron los dos pilotos de re-revisión con Fable 5.2 (`A7` y `B4`,
 fuera de la serie, a pedido de Victor). Y el (dh), la séptima tanda, HECHO en la sesión 134. Y el (di), la octava
 tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** Y el (dj), `B6`–`B10`, HECHO en la sesión
-136: **las filas del Modo B están terminadas.** **Lo siguiente es el (dk), sin empezar, y lo elige Victor.**
+136: **las filas del Modo B están terminadas.** Y el (dk), las filas C P0, HECHO en las sesiones 137 y 138 salvo lo
+que espera una cuenta de Google de PRUEBA. **Lo siguiente es el (dl), sin empezar, y lo elige Victor.**
 
-**(dk) Sesión 137, recomendado: las 7 filas C P0 (Modo C)** en un chat nuevo, en la terminal, con emulador: `C1a`,
+**(dl) Sesión 139, recomendado: las filas C P1 de datos y núcleo (Modo C)** en un chat nuevo, en la terminal, con
+emulador (2 como techo). El mensaje está en `_scratch/S139-PROMPT.md`, que manda sobre este archivo. Alternativas
+(§4): la cuenta de prueba y las filas de cuenta (`C26a`, `C54`, `C55`, el resto de `C20a` y `C27a`), o una sesión de
+arreglos (`R9-410`..`R9-563`).
+
+**(dk) Sesión 137 — HECHO en las sesiones 137 y 138: las 7 filas C P0 (Modo C)** en un chat nuevo, en la terminal, con emulador: `C1a`,
 `C20a`, `C26a`, `C26b`, `C27a`, `C42a`, `C43a` (P0 antes que P1, charter §1.5). `C26a` necesita, como `C54` y `C55`,
 una cuenta de Google de PRUEBA (§6). El mensaje está en `_scratch/S137-PROMPT.md`, que manda sobre este archivo.
 Alternativa legítima (§4): una sesión de arreglos (`R9-410`..`R9-555` esperan su tanda).
@@ -2423,7 +2442,9 @@ las sesiones 4-5, que nunca se habían commiteado, más todo lo de `A8`–`A11`)
 en la 123; `A28` y `A29` en la 124; `A30` y `A31` en la 125; `A33` en la 126; `A32` y `A34` en la 127; `A35` y
 `A36` en la 128; `A37` y `A38` en la 129; `A39` y `A40` en la 130; `A41` y `A42` en la 131; `A43` y `A44` en la 134;
 `A45` y `A46` en la 135; `B6` a `B10` en la 136: **62**, contadas en `INDEX.md` en la 136 — el Modo A y el Modo B,
-enteros). **Pendientes: 76** (66 del Modo C, entre ellas `C54` y `C55`, «sin medir» en la 115, y las 10 del Modo D). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
+enteros; `C1a` y `C26b` en la 137; `C27a`, `C42a` y `C43a` en la 138: **67**, contadas en `INDEX.md` en la 138).
+**Pendientes: 71** (61 del Modo C, entre ellas `C20a` EN CURSO y `C26a`, `C54` y `C55` «sin medir», que esperan una
+cuenta de Google de PRUEBA, y las 10 del Modo D). Esto cuenta filas REVISADAS; los arreglos no mueven ninguna fila, porque
 arreglar no es revisar — mueven el conteo de P0 ABIERTOS de la sección P0 de `BUGS.md`, que
 tras la sesión 21 son **5** (`R9-36`, `R9-38`, `R9-39`, `R9-124`, `R9-125`). **No re-derives ese número contando
 arreglos** — ver la nota al principio de esa sección.
@@ -2499,6 +2520,19 @@ sea imposible de desasignar por sync**, así que cualquier omisión local se con
 divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz).
 
 ## 4. Por dónde seguir
+
+**Sesión 138 (Modo C P0, 3 agentes a pedido de Victor, en un chat nuevo; sin cortes):** `C27a` 🐛 (`R9-558` P2: el
+reset de la Biblia borra en silencio las versiones descargadas y deja `@bible_version` en una sin filas; `R9-559` P3:
+el lector nativo pinta en blanco un capítulo sin filas); `C26b` pasa a 🐛 P2 con `R9-560` (los toasts del modal
+«Datos» se dibujan DETRÁS del modal: medido con ráfagas de capturas y con la separación); `C42a` 🐛 (`R9-561` P2: la
+hoja de nota queda tapada por el teclado; persistencia ✅; `R9-57` medido en vivo: gana el `Modal`); `C43a` 🐛
+(`R9-562` P2: la ✕ del selector de colores borra el subrayado con su nota sin confirmar; `R9-563` P3; persistencia ✅,
+los arreglos de `R9-44` y `R9-50` se sostienen en vivo). Ninguno P0. **Con eso, el Modo C P0 queda hecho salvo lo
+que espera una cuenta de Google de PRUEBA:** `C26a`, `C54`, `C55`, el suelo restaurado de `C20a` (que sigue EN CURSO)
+y «Borrar cuenta»/«Cerrar sesión» de `C27a`. **Recomendado para la 139, si Victor no elige otra cosa:** el mensaje
+`_scratch/S139-PROMPT.md` (las filas C P1 de datos y núcleo, con emulador). Alternativas: agregar la cuenta de prueba
+a un emulador y hacer las filas de cuenta (`C26a`, `C54`, `C55`, el resto de `C20a` y `C27a`), o una sesión de
+arreglos (`R9-410`..`R9-563`).
 
 **Sesión 137 (Modo C P0, 3 agentes, cortada por el límite de uso):** `C1a` ✅; `C26b` 🐛 (`R9-557`, P3); `C20a`
 EN CURSO (`R9-556`, P3; falta el suelo restaurado, cuenta de prueba); `C27a` EN CURSO (el reset de la Biblia quedó a
@@ -3574,6 +3608,20 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   `node_modules/expo/template.tgz` (`package/android/app/debug.keystore`, contraseña `android`): `5E:8F:16…` /
   `FA:C6:17…` es la clave PÚBLICA de todas las apps de Expo y RN (`R9-550`, `R9-551`). `keytool -printcert -jarfile`
   no lee un APK firmado solo con v2/v3: usá `apksigner verify --print-certs` (build-tools del SDK).
+- **Un toast se mide con una ráfaga de capturas arrancada ANTES del toque (sesión 138, `R9-560`).** El toast aparece
+  ~0,7-1,0 s después del toque y dura ~3 s: `tapdump` (toque → dump, que espera el idle → captura) llega tarde, y por
+  eso la 137 no vio ninguno, ni fuera ni dentro de un modal. Una ráfaga de 14 capturas en segundo plano antes del
+  toque (cada ~0,4 s), con los brazos de fuera y de dentro en la MISMA instancia, y la separación: cerrar el modal a
+  ~1 s y ver si el toast aparece detrás. Los dos agentes que midieron toasts así coincidieron.
+- **Ningún agente crea ni borra carpetas dentro del repo ni de su worktree (sesión 138).** El watcher de Metro
+  recorre todo el repo, incluidos `.claude/worktrees/`, y una carpeta temporal creada y borrada al toque lo tiró
+  (ENOENT en `watch`) con dos agentes midiendo. Las copias transitorias (`bible.db`, RKStorage), en `/c/tmp/s138-a<N>/`,
+  fuera del repo. Y en debug, dos «r» seguidas tecleadas con `adb input text` recargan el JS (la doble R de React
+  Native): los textos sintéticos, sin «rr».
+- **Antes de lanzar a un agente de Modo C, el orquestador lleva su emulador hasta pasar «Preparing...» (sesión 138).**
+  Con la caché de Metro caliente, tardó de 26 s a 253 s; en la 137 se comió al agente 3. El script de espera
+  (`_scratch/S138-esperar.sh.txt`) borra el dump local antes de cada `pull` (si no, un dump fallido lee el viejo) y
+  exige texto visible; en el Home animado `uiautomator dump` falla y agota el tope: ahí, captura.
 - **Solo revisar y reportar. NO se toca código de la app.** Lo único que se escribe es el
   ledger. Las mejoras del Modo D se **redactan**, no se aplican.
 - **Un mensaje de Victor a mitad de turno va al frente AHORA**, antes de seguir tu propio
@@ -3734,6 +3782,13 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
 
 ## 6. Hechos duros que ya no hay que volver a averiguar
 
+- **Modo C, lo que cambió en las sesiones 137 y 138:** el pagefile es FIJO de 8 GB y el commit total ~40 GB: con
+  Metro entran **2** emuladores (25,1 GB libres antes del primero, 17,3 antes del segundo); el 3.er agente va en
+  segunda ola sobre el emulador que se libera, con `pm clear` hecho por el orquestador. **Tras el `pm clear` de la 138,
+  la instancia del agente 3 arrancó FREE** (Ajustes → Extras: «Unlock with premium»), no premium como en la 115 y la
+  137; la del agente 2 midió en premium: leé el estado en Ajustes → Extras antes de medir algo con gating. La base
+  `bible.db` va en modo journal (sin `-wal`); la copia por `run-as cat` vale entera. La recarga tras el reset de la
+  Biblia tarda 6-17 s con Metro en caché (los 8+ min de la 137 eran el primer empaquetado).
 - **Modo C: lo que costó la sesión 115** (el entorno entero, en `detail/C15-hoja-ofrenda.md`):
   - **El techo de emuladores es la memoria COMPROMETIDA, no la libre:** cada instancia de `Pixel_9_Pro`
     compromete ~6,4 GB (con `-memory 1536` también) y el total es ~52 GB. **4 a la vez como máximo** (con
@@ -4035,6 +4090,10 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   re-verificación del `⛔` de arriba: fue un intercambio consciente, no un olvido.
 
 ## 8. Decisiones abiertas para Victor (no son bugs)
+
+- **La severidad de `R9-562` (sesión 138):** la ✕ del selector de colores del lector borra el subrayado con su nota
+  y su categoría, sin confirmar ni deshacer. Está en P2 porque media un gesto de quitar; si la nota del subrayado se
+  trata como cualquier texto escrito por el usuario (como en `R9-44`, P0 en la 6), sube a P1.
 
 - **El tope de cuota del piso de no asentados (`R9-39`, sesión 24):** mientras un conflicto siga
   sin resolver, cada enganche de esa colección vuelve a leer desde su piso. ¿Se le pone un tope,

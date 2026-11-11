@@ -1,8 +1,12 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: las filas del Modo A y del Modo B están TERMINADAS (la 136 cerró `B6`–`B10`: `R9-550`..`R9-555`,
-> todos P3, ninguno P0); lo que sigue lo decide Victor: las 7 filas C P0 (Modo C, con emulador) o una sesión de
-> arreglos.** La 136 (sin agentes, en un chat nuevo) cerró `B6` (🐛), `B7` (✅), `B8` (🐛), `B9` (🐛) y `B10` (🐛). La 135 (con 13
+> **Frontera actual: el Modo C P0 está hecho salvo lo que espera una cuenta de Google de PRUEBA (`C26a`, `C54`, `C55`,
+> el suelo de `C20a`, que sigue EN CURSO, y «Borrar cuenta» de `C27a`); lo que sigue lo decide Victor: las filas C P1
+> (`_scratch/S139-PROMPT.md`), la cuenta de prueba, o una sesión de arreglos.** La 138 (3 agentes a pedido de Victor,
+> en un chat nuevo) cerró `C27a` (🐛): `R9-558` P2, `R9-559`; `C42a` (🐛): `R9-561` P2; `C43a` (🐛): `R9-562` P2,
+> `R9-563`; y el control de toasts de `C26b` (🐛, pasa a P2): `R9-560`. Ninguno P0. La 137 (3 agentes, cortada por el
+> límite) cerró `C1a` (✅) y `C26b` (🐛): `R9-557`; `R9-556` en `C20a`. Antes, la frontera era: las filas del Modo A y
+> del Modo B TERMINADAS (la 136 cerró `B6`–`B10`: `R9-550`..`R9-555`, todos P3, ninguno P0). La 136 (sin agentes, en un chat nuevo) cerró `B6` (🐛), `B7` (✅), `B8` (🐛), `B9` (🐛) y `B10` (🐛). La 135 (con 13
 > agentes a pedido de Victor, en un chat nuevo) cerró `A45` (🐛): `R9-536`..`R9-543`, y `A46` (🐛): `R9-544`..`R9-548`;
 > de paso, `R9-549` (`A34`); todos P3, ninguno P0. La 134 (sin agentes, en un chat nuevo) cerró `A43` (🐛): `R9-531`, `R9-532`, y `A44` (🐛):
 > `R9-533`..`R9-535`; un P2, ninguno P0. La 133 fue el segundo piloto de re-revisión con Fable 5.2, sobre `B4`
