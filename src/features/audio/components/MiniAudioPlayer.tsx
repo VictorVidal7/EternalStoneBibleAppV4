@@ -177,6 +177,25 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
   const collapsedTranslateX = useSharedValue(0);
   const reduceMotion = useReducedMotion();
 
+  // `expandProgress` FOLLOWS `state.isExpanded`, whoever changed it (R9-427).
+  // The handlers below also start the spring themselves (so it begins on the
+  // tap, not a render later; re-issuing the same spring is seamless), but the
+  // close button goes through the context's `hidePlayer`, which collapses the
+  // state without touching this value. This component stays mounted while
+  // hidden, so the value survived at 1 and the next audio opened the panel at
+  // expanded height showing the expanded view, with touches routed by
+  // `isExpanded = false`: dead buttons, and the collapsed ones invisible on top.
+  // While hidden there is nothing to animate: snap, and drop any drag offset.
+  useEffect(() => {
+    const target = state.isExpanded ? 1 : 0;
+    if (!isVisible) {
+      expandProgress.value = target;
+      translateY.value = 0;
+      return;
+    }
+    expandProgress.value = withSpring(target, SPRING_CONFIGS.snappy);
+  }, [state.isExpanded, isVisible, expandProgress, translateY]);
+
   // Ref to prevent accidental taps during animation
   const isAnimatingRef = useRef(false);
 
