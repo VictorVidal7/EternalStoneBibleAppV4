@@ -1935,7 +1935,7 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 | C29  | Logros / gamificación (badges, títulos, fade de categorías)     | P1        | PENDIENTE                   | —                       |
 | C38  | Onboarding (primer arranque)                                    | P1        | PENDIENTE                   | —                       |
 | C40  | Accesibilidad (texto grande, alto contraste, keep-awake)        | P1        | PENDIENTE                   | —                       |
-| C42b | Notas — lista, búsqueda, edición                                | P1        | PENDIENTE                   | —                       |
+| C42b | Notas — lista, búsqueda, edición                                | P1        | 🐛 BUG (P3)                 | `C42b-notas-lista`      |
 | C43b | Subrayados — colores y galería                                  | P1        | PENDIENTE                   | —                       |
 | C57  | Glosas hebreas A3/A4 en word study (incl. A4-chico posicional)  | P1        | PENDIENTE                   | —                       |
 | C58  | Toggle red-letter RVR1960 en el lector                          | P1        | PENDIENTE                   | —                       |

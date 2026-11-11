@@ -13916,6 +13916,31 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Medida:** el primer atrás cierra el teclado; el segundo cierra la hoja sin preguntar (gana el `Modal`: la galería
     no navega); al reabrir, la nota guardada sin lo tecleado. Detalle: `detail/C43a-subrayados.md`.
 
+- **`R9-564` (S139, `C42b` / el chip de referencia de la hoja de nota — P3) — 🐛 tocar un chip vuelve a guardar la
+  nota aunque no cambió: `updated_at` nuevo, la nota salta al primer lugar de «Recientes».** MEDIDO en el emulador
+  (era una observación sin numerar de `C42a`; buscado en `BUGS.md`: «NoteEditorModal», «handleOpenReference»,
+  «updated_at»).
+  - `src/components/reading/NoteEditorModal.tsx:145-156` (`handleOpenReference` llama a `onSave()` siempre, antes de
+    saltar) → `app/(tabs)/verse/[book]/[chapter].tsx:1048-1104` (`saveNote` no compara con la nota guardada:
+    `updateNote`, `queueWrite`, cierra la hoja y saca el toast «Nota guardada»). La lista ordena y fecha por
+    `updatedAt` (`app/(tabs)/notes.tsx:130`, `:279`).
+  - **Medida:** misma `id` y texto; `updated_at` 14:17:30 → 14:24:35 tras el toque; «Recientes» pasa de
+    Salmos-Romanos-Juan-Génesis a Génesis-Salmos-Romanos-Juan (`_scratch/S139-sondas/S139-chip-despues.db.txt`,
+    `S139-rec2.xml.txt`). Con cuenta, cada toque sube una escritura (sin medir). Detalle: `detail/C42b-notas-lista.md`.
+  - **Arreglo propuesto (sin escribir):** guardar solo si el borrador difiere de lo guardado (o del valor con que se
+    abrió la hoja).
+
+- **`R9-565` (S139, `C42b` / la cabecera de la hoja de nota — P3) — 🐛 con la hoja de nota abierta, un enlace a otro
+  libro deja la hoja abierta con una referencia mezclada: el libro nuevo con el capítulo y versículo viejos.** MEDIDO
+  en el emulador (buscado en `BUGS.md`: «localizedBookName», «verseReference», «selectedVerseForNote»).
+  - `app/(tabs)/verse/[book]/[chapter].tsx:3596-3602`: la cabecera usa `localizedBookName` (el libro de la RUTA,
+    `:225-229`) con `selectedVerseForNote.chapter`/`.verse`; `saveNote` guarda en `selectedVerseForNote.book`.
+  - **Camino:** hoja de la nota de Romanos 8:1 abierta → llega `eternalbible://verse/Psalms/23?verse=1` (una
+    notificación, un enlace compartido) → el lector cambia debajo y la hoja sigue abierta con «Salmos 8:1», el
+    versículo citado de Romanos y el texto escrito. GUARDAR guarda en Romanos 8:1: el dato es correcto, la cabecera
+    miente (`S139-cabecera-mezclada.png`, `S139-cab3.xml.txt`, `S139-n3b.db.txt`). Detalle:
+    `detail/C42b-notas-lista.md`.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
