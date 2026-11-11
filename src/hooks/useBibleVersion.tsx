@@ -46,6 +46,10 @@ export function BibleVersionProvider({children}: {children: ReactNode}) {
   // runs while the DB seeds, still shows the shipped versions).
   const [installedVersionIds, setInstalledVersionIds] =
     useState<string[]>(BUNDLED_IDS);
+  // Whether the DB has answered at least once (R9-424). Until it has,
+  // `installedVersionIds` is only the bundled placeholder above, NOT a fact
+  // about the DB — so nothing may conclude "that version isn't installed" yet.
+  const [installedKnown, setInstalledKnown] = useState(false);
 
   // The catalog filtered to what's installed — what every picker should offer.
   const availableVersions = useMemo(
@@ -65,6 +69,12 @@ export function BibleVersionProvider({children}: {children: ReactNode}) {
       }
     } catch {
       // Keep the bundled defaults.
+    } finally {
+      // After the ids (same batch), and ALSO when the read failed: a DB that
+      // can't answer must not leave a rowless downloaded version selected for
+      // the whole session — the safety net below then falls back to a bundled
+      // one, exactly as it did before R9-424.
+      setInstalledKnown(true);
     }
   }, []);
 
@@ -90,7 +100,18 @@ export function BibleVersionProvider({children}: {children: ReactNode}) {
   // Safety net: if the selected version isn't installed (a 'WEB' id saved from
   // the old buggy state, or a pack the user later deleted), fall back to a
   // bundled version of the same language, then of the UI language.
+  //
+  // It waits for the DB's first answer (R9-424). The saved id comes back from a
+  // single AsyncStorage read, long before `refreshInstalledVersions` (DB init +
+  // two queries); judging it against the bundled placeholder threw away a
+  // downloaded version (KJV, RV1909…) on every cold start, and since
+  // `hasExplicitChoice` was already true nothing put it back.
+  //
+  // The fallback is deliberately NOT persisted: this read races the startup
+  // re-seed (`initializeBibleData`), so a partial list could otherwise replace
+  // the user's saved choice for good.
   useEffect(() => {
+    if (!installedKnown) return;
     if (availableVersions.some(v => v.id === selectedVersion.id)) return;
     const fallback =
       availableVersions.find(v => v.language === selectedVersion.language) ??
@@ -98,6 +119,7 @@ export function BibleVersionProvider({children}: {children: ReactNode}) {
       availableVersions[0];
     if (fallback) setSelectedVersion(fallback);
   }, [
+    installedKnown,
     availableVersions,
     selectedVersion.id,
     selectedVersion.language,
@@ -109,7 +131,7 @@ export function BibleVersionProvider({children}: {children: ReactNode}) {
       const savedVersionId = await AsyncStorage.getItem(VERSION_STORAGE_KEY);
       if (savedVersionId) {
         // Restore from the full catalog; the safety-net effect above corrects it
-        // if that version turns out not to be installed.
+        // if that version turns out not to be installed (once the DB answers).
         const version = BIBLE_VERSIONS.find(v => v.id === savedVersionId);
         if (version) {
           setSelectedVersion(version);
