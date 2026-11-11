@@ -2399,9 +2399,11 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
   `42952085435`, 3 jobs, 374/4693. Su rama se borró tras `git cherry` (corregido en la 138: los docs de la 137
   decían «sin mergear»). La 136 ya estaba en `main` (`aab7ead`, run `42880229051`).
 - **La rama de la 138, sin mergear a propósito y sin pushear:** `docs/review-s138-c-p0` (solo docs). Se mergea en
-  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye.
-- **Los worktrees:** el de docs de la 138 (`../essb-docs-s138`, checkpoint con `_scratch/S138-checkpoint.sh.txt`)
-  y los de los agentes, que se borran solos. Salidas en `_scratch/S138-sondas-agente-{1,2,3}/`; las reglas de los
+  fast-forward con el OK de Victor. Si ya se mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`,
+  sin emuladores, Metro ni worktrees vivos): verde, 374/4693 (`_scratch/S138-validate.out.txt`).
+- **Los worktrees:** ninguno. El de docs (`../essb-docs-s138`, checkpoint con `_scratch/S138-checkpoint.sh.txt`) se
+  quitó antes del validate; el del agente 2 quedó registrado tras terminar (sin commits) y se quitó a mano; los otros
+  se borraron solos. Salidas en `_scratch/S138-sondas-agente-{1,2,3}/`; las reglas de los
   agentes, en `_scratch/S138-agentes-reglas.md.txt` (la 137: `_scratch/S137-*`).
 - **El entorno de la 137:** el pagefile está FIJO en 8 GB y el commit total es ~40 GB (no ~52): con Metro entran
   **2** emuladores, no 4 (con dos quedaron 7,7 GB libres). Cada agente de Modo C llegó cerca del tope de 200 turnos.
