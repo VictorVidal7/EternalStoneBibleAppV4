@@ -1920,7 +1920,7 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 | C2   | Mesa — palabras clave idioma original (premium)                 | P1        | PENDIENTE                   | —                         |
 | C3   | Mesa — comparar versiones (premium)                             | P1        | PENDIENTE                   | —                         |
 | C5   | Mesa — exportar a PDF (premium) + nombre de archivo             | P1        | PENDIENTE                   | —                         |
-| C7   | Series — crear, agregar, reordenar, renombrar, borrar           | P1        | PENDIENTE                   | —                         |
+| C7   | Series — crear, agregar, reordenar, renombrar, borrar           | P1        | ✅ OK                       | `C7-series`               |
 | C17  | Lectura de la Biblia (capítulo, versículo, versión)             | P1        | PENDIENTE                   | —                         |
 | C18  | Lector inmersivo (auto-scroll gratis; "Escuchar" premium)       | P1        | PENDIENTE                   | —                         |
 | C19  | Audio (velocidad, scrubbing, resume, cold-start, sleep, voz)    | P1        | PENDIENTE                   | —                         |
