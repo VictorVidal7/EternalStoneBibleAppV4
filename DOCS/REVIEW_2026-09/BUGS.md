@@ -13883,6 +13883,35 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Severidad:** P2: el usuario escribe sin ver lo que escribe, y para guardar tiene que cerrar el teclado, y un
     segundo atrás ya descarta el borrador (`R9-57`). Sin medir en versiones de Android anteriores a la 16 (borde a
     borde). Detalle: `detail/C42a-notas-versiculo.md`.
+  - **La misma raíz en otra hoja (`C43a`, medido):** la hoja de edición del subrayado en la galería
+    (`app/(tabs)/highlights.tsx:553-663`, `Modal` transparente sin `KeyboardAvoidingView`): el teclado tapa el campo de
+    nota y Cancel/Save (`_scratch/S138-sondas-agente-3/S138-a3-16-tecleado.png`). Detalle: `detail/C43a-subrayados.md`.
+
+- **`R9-562` (S138, `C43a` / la ✕ del selector de colores del lector — P2) — 🐛 quitar el color con la ✕ borra el
+  subrayado CON su nota y su categoría al primer toque, sin confirmación ni deshacer, y el lector no muestra que ese
+  versículo tenga nota.** MEDIDO en el emulador (dos veces) y re-verificado por lectura; no estaba en `BUGS.md` ni en
+  `detail/`.
+  - `app/(tabs)/verse/[book]/[chapter].tsx:3170-3176` (la ✕ llama a `handleApplyHighlight(null)`) → `:1492-1502` (lee
+    la fila solo para el payload de la lápida, `removeHighlight`, `queueDelete`) → `HighlightService.ts:172-173`
+    (`DELETE FROM highlights WHERE verse_id = ?`). La nota vive en `highlights.note`: se va con la fila. La ✕ está a
+    120 px del gris en el selector.
+  - **Medida:** galería → Edit → categoría + nota → Save (fila con `note`) → lector → tocar el versículo → Highlight →
+    ✕: la fila ya no está; volver a subrayar crea otra con `note: null` (`_scratch/S138-sondas-agente-3/`, caminos 18
+    y 19: `S138-a3-64`, `-65`, `-67`, `-68`, `-70`). La papelera de la galería sí confirma, pero «Remove this
+    highlight?» no nombra la nota (`highlights.tsx:673-682`).
+  - **Severidad:** P2: texto escrito por el usuario, irrecuperable, por un toque cuyo propósito visible es el color. Es
+    la clase de `R9-44` por la otra puerta, la que el arreglo de la 7 no cubre. Si la nota del subrayado se trata como
+    cualquier dato del usuario, sube a P1 (lo decide Victor, §8). Con cuenta, `queueDelete` lleva el borrado a la nube
+    (sin medir). Detalle: `detail/C43a-subrayados.md`.
+
+- **`R9-563` (S138, `C43a` / la hoja de edición del subrayado — P3) — 🐛 el atrás de Android descarta sin avisar el
+  borrador de la nota y la categoría.** MEDIDO en el emulador; la forma de `R9-57` (lector) y `R9-499` (oración) en otra
+  pantalla.
+  - `app/(tabs)/highlights.tsx:557` (`onRequestClose={() => setEditing(null)}`, medido) y `:634` (Cancel, por
+    lectura); el borrador vive solo en `noteDraft`/`categoryDraft`, que `openEditor` (`:181-185`) re-siembra desde la
+    fila.
+  - **Medida:** el primer atrás cierra el teclado; el segundo cierra la hoja sin preguntar (gana el `Modal`: la galería
+    no navega); al reabrir, la nota guardada sin lo tecleado. Detalle: `detail/C43a-subrayados.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

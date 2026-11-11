@@ -1908,7 +1908,7 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 | C27a | Ajustes — borrar cuenta y reset de datos                        | P0        | 🐛 BUG (P2)                 | `C27a-ajustes-reset`    |
 | C39  | Donación — hoja, compra, restaurar                              | P0        | 🐛 BUG (P3)                 | `C39-donacion`          |
 | C42a | Notas de versículo — persistencia                               | P0        | 🐛 BUG (P2)                 | `C42a-notas-versiculo`  |
-| C43a | Subrayados — persistencia                                       | P0        | PENDIENTE                   | —                       |
+| C43a | Subrayados — persistencia                                       | P0        | 🐛 BUG (P2)                 | `C43a-subrayados`       |
 | C54  | Resolución de conflictos de sync                                | P0        | PENDIENTE (sin medir, S115) | `C54-conflictos-sync`   |
 | C55  | Canje de gift-code (redención real)                             | P0        | PENDIENTE (sin medir, S115) | `C55-canje-gift-code`   |
 | C56  | Gating premium FUERA de la Mesa (quiz, word-study, audio, etc.) | P0        | 🐛 BUG (P2)                 | `C56-gating-fuera-mesa` |
