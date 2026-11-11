@@ -13815,6 +13815,8 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     toast de 3 s que no se vio (ver «sin medir» del detalle).
   - **Severidad:** P3: sin daño de datos (la sección fallida no se toca), pero el usuario cree restaurado lo que no
     lo está. Distinto de `R9-141` (la prueba del aviso), `R9-27` y `R9-32`. Detalle: `detail/C26b-respaldo.md`.
+  - **Sesión 138:** el toast de `importPartial` no se ve nunca: queda detrás del modal «Datos» (`R9-560`, medido). Lo
+    único visible tras un import parcial es este diálogo de éxito.
 
 - **`R9-558` (S138, `C27a` / «Resetear datos de la Biblia» — P2) — 🐛 el reset borra en silencio las versiones
   descargadas y deja la app apuntando a una versión sin texto.** MEDIDO en el emulador (tres veces, dos en el mismo
@@ -13849,6 +13851,38 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `S138-a1-35-r2-gen1.png`); el logcat dice «Query result: 0 verses found». El único aviso es el LogBox de debug.
   - **Severidad:** P3: hoy solo se llega por `R9-558` (o una lectura fallida); el usuario no sabe si es la app o la
     versión. Detalle: `detail/C27a-ajustes-reset.md`.
+
+- **`R9-560` (S138, `C26b` / los toasts del modal «Datos» — P2) — 🐛 cada toast del respaldo (exportar, importar,
+  resetear) se dibuja DETRÁS del modal «Datos» y no se ve: un import roto no muestra nada, y el aviso honesto de un
+  import parcial queda tapado.** MEDIDO en el emulador (dos agentes, con ráfagas de capturas) y re-verificado por el
+  orquestador (código y captura).
+  - `ToastContext.tsx:114-135`: el toast es un `View` hermano en la ventana principal, sin `Modal` (el comentario de
+    `:118-126` acepta el caso como raro, detrás de «OfferingSheet, ImageShareModal»). `DataSettings.tsx:288-311`: un
+    `Modal` opaco a pantalla completa, otra ventana de Android, que contiene todas las acciones del respaldo
+    (`actionsContent`, `:170`, `:308`): sus toasts salen siempre con el modal abierto.
+  - **Medida:** fuera de los modales el toast se ve 3 de 3 veces (copiar, crear y editar una nota). Dentro, importar un
+    JSON malformado desde Descargas: 0 de 14 capturas con toast, dos veces (logcat `Backup import failed … not valid
+JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece en Ajustes y se va a ~3,9 s de
+    confirmar: estaba montado detrás (`_scratch/S138-sondas-agente-2/S138-a2-t5-imp-y-cerrar-r10.png`). El éxito del
+    reset (`:81`) tampoco se ve: 16 capturas idénticas durante ~4,5 s (`S138-sondas-agente-1`, reset 2). Por lectura,
+    el mismo camino: `:83`, `:104`, `:107`, `:123`, `:152`, `:154`.
+  - **Severidad:** P2: sin daño de datos, pero es el único canal de error del flujo de respaldo (zona P0): un import
+    roto se confirma («Esto reemplazará tus datos…») y no pasa nada visible, y en un import parcial lo único que se ve
+    es el diálogo de `R9-557` («se importó correctamente»), porque el aviso de `importPartial` está tapado. Suma a
+    `R9-557`, `R9-27` y `R9-32`; ninguno nombra la capa del toast. Detalle: `detail/C26b-respaldo.md`.
+
+- **`R9-561` (S138, `C42a` / la hoja de nota y el teclado — P2) — 🐛 con el teclado abierto, la hoja de nota no sube:
+  el campo y «GUARDAR NOTA» quedan debajo del teclado desde que se abre.** MEDIDO en el emulador (Android 16) y
+  re-verificado por lectura; no estaba en `BUGS.md` (buscado: «NoteEditorModal», «KeyboardAvoiding», «teclado»).
+  - `src/components/reading/NoteEditorModal.tsx:165-169` (`Modal` `transparent`, `animationType="slide"`), `:311-322`
+    (la hoja pegada abajo, `minHeight: 450`): sin `KeyboardAvoidingView`, y el campo tiene `autoFocus` (`:230`), así
+    que el teclado abre con la hoja. Las hojas hermanas sí lo manejan (`AddToCollectionSheet.tsx`, `RedeemCodeSheet.tsx`).
+  - **Medida:** con el teclado abierto, el dump da el campo en `640,2166` y GUARDAR en `640,2656`, con el teclado desde
+    y≈1850; sin teclado, las mismas coordenadas: la hoja no se movió (`S138-sondas-agente-2/S138-a2-07.xml.txt`,
+    `S138-a2-08.xml.txt`, `S138-a2-07-editor.png`). Visto en cada apertura del editor en la 137 y en la 138.
+  - **Severidad:** P2: el usuario escribe sin ver lo que escribe, y para guardar tiene que cerrar el teclado, y un
+    segundo atrás ya descarta el borrador (`R9-57`). Sin medir en versiones de Android anteriores a la 16 (borde a
+    borde). Detalle: `detail/C42a-notas-versiculo.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -14868,6 +14902,11 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   (`:1287-1296`), que no consulta `noteModalVisible`; si perdiera, el atrás además navegaría de
   capítulo. Requiere Modo C. Detalle: `detail/A8-notas-subrayados.md`.
   **⚠️ Sesión 22 (lectura): se sostiene en P2.** El `useBackHandlerStep` del lector solo consume el atrás después de un salto por referencia (`:1288-1289`), y en Android el atrás llega al `Modal` como `onRequestClose`. Lo esperable es que gane el `Modal`, pero sigue sin verificarse en dispositivo.
+  **Sesión 138 (`C42a`, medido en el emulador; no se re-severiza):** vaciar el campo o dejar solo espacios deja
+  GUARDAR en `enabled="false"`; el primer atrás cierra el teclado y el segundo cierra el editor y descarta el borrador
+  sin avisar, con la pila de saltos vacía y armada. **La duda abierta, cerrada: gana el `Modal`** (el lector no navega
+  y la pila no se consume). El borrador tampoco sobrevive a `force-stop` ni a HOME + `force-stop`. Detalle:
+  `detail/C42a-notas-versiculo.md`.
 - **`R9-58` (A9, Mesa) — 🐛 matar la app (o cerrar la pestaña en web) pierde hasta 700 ms de
   tecleo: `use-debounce` expone `flushOnExit` y no se usa.** Severidad **baja**.
   `prep/index.tsx:1024-1042`. **El resto de los caminos de salida están bien** y se auditaron

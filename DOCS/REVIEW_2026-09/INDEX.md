@@ -1904,10 +1904,10 @@ Filas `C1`–`C54` = la descomposición ya probada de `DOCS/QA_REVISION_FABLE.md
 | C16  | Gating free vs premium en toda la Mesa                          | P0        | ✅ OK                       | `C16-gating-mesa`       |
 | C20a | Memoria/SRS — integridad de datos y racha (floor restaurado)    | P0        | EN CURSO (🐛 P3)            | `C20a-memoria-srs`      |
 | C26a | Cuenta — login/logout Google, identidad                         | P0        | PENDIENTE (sin medir, S137) | `C26a-login-google`     |
-| C26b | Respaldar/restaurar (`BackupService`)                           | P0        | 🐛 BUG (P3)                 | `C26b-respaldo`         |
+| C26b | Respaldar/restaurar (`BackupService`)                           | P0        | 🐛 BUG (P2)                 | `C26b-respaldo`         |
 | C27a | Ajustes — borrar cuenta y reset de datos                        | P0        | 🐛 BUG (P2)                 | `C27a-ajustes-reset`    |
 | C39  | Donación — hoja, compra, restaurar                              | P0        | 🐛 BUG (P3)                 | `C39-donacion`          |
-| C42a | Notas de versículo — persistencia                               | P0        | EN CURSO                    | `C42a-notas-versiculo`  |
+| C42a | Notas de versículo — persistencia                               | P0        | 🐛 BUG (P2)                 | `C42a-notas-versiculo`  |
 | C43a | Subrayados — persistencia                                       | P0        | PENDIENTE                   | —                       |
 | C54  | Resolución de conflictos de sync                                | P0        | PENDIENTE (sin medir, S115) | `C54-conflictos-sync`   |
 | C55  | Canje de gift-code (redención real)                             | P0        | PENDIENTE (sin medir, S115) | `C55-canje-gift-code`   |
