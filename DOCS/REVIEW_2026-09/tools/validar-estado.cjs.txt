@@ -1,0 +1,107 @@
+// Valida ../ESTADO.tsv contra ../BUGS.md, e imprime el conteo por severidad y la lista de abiertos.
+// uso (desde cualquier lado): node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt [--corto] [otro dir]
+//   - cada `R9-N` de BUGS.md tiene su fila, y cada fila su entrada (ERROR si no; sale con 1);
+//   - AVISO si la fila dice una cosa y la entrada otra: la severidad, o el estado contra la marca de cierre
+//     (`✅ ARREGLADO|CERRADO|RESUELTO|IMPLEMENTADO|ACEPTADO|DECIDIDO|PUBLICADO`, sin «EN PARTE», o el titulo tachado);
+//   - con --corto no imprime la lista de abiertos.
+// Nacio en la sesion 142; vive aqui desde la 143. Lleva `.txt` para que eslint, prettier y jest no lo tomen.
+const fs = require('fs');
+const path = require('path');
+const args = process.argv.slice(2);
+const dir = args.find(a => !a.startsWith('--')) || path.resolve(__dirname, '..');
+const corto = args.includes('--corto');
+if (!dir) { console.error('uso: node S142-validar-estado.cjs.txt <dir de REVIEW_2026-09> [--corto]'); process.exit(1); }
+const CAB = /^- \*\*(?:~~)?`R9-(\d+)`/;
+const MARCA = /✅ (ARREGLADO|CERRADO|RESUELTO|IMPLEMENTADO|ACEPTADO|DECIDIDO|PUBLICADO)(?! EN PARTE)/;
+const ESTADOS = ['abierto', 'sin-verificar', 'arreglado', 'aceptado', 'no-aplica'];
+const CERRADOS = new Set(['arreglado', 'aceptado', 'no-aplica']);
+
+// --- BUGS.md
+const L = fs.readFileSync(path.join(dir, 'BUGS.md'), 'utf8').split(/\r?\n/);
+const E = new Map();
+const repetidas = [];
+let cur = null, seccion = '?';
+const cierra = i => { if (cur) { cur.fin = i; if (E.has(cur.id)) repetidas.push(cur.id); E.set(cur.id, cur); cur = null; } };
+for (let i = 0; i < L.length; i++) {
+  if (/^## /.test(L[i])) {
+    cierra(i);
+    const s = /^## (P[0-3]) /.exec(L[i]);
+    seccion = s ? s[1] : 'otra';
+    continue;
+  }
+  const m = CAB.exec(L[i]);
+  if (m) { cierra(i); cur = {id: +m[1], ini: i, seccion}; }
+}
+cierra(L.length);
+for (const e of E.values()) {
+  const body = L.slice(e.ini, e.fin);
+  const head = body.slice(0, 4).join(' ');
+  const a = head.indexOf('(');
+  let par = '';
+  if (a >= 0) {
+    let d = 0, tick = false;
+    for (let i = a; i < head.length; i++) {
+      const c = head[i];
+      if (c === '`') tick = !tick;
+      if (tick) continue;
+      if (c === '(') d++;
+      if (c === ')') { d--; if (d === 0) { par = head.slice(a + 1, i); break; } }
+    }
+  }
+  const sv = /—\s*(P[0-3])\b/.exec(par);
+  e.sev = sv ? sv[1] : e.seccion === 'otra' ? 'aviso' : e.seccion;
+  e.cerrado = body.some(x => MARCA.test(x)) || /^- \*\*~~/.test(L[e.ini]);
+}
+
+// --- ESTADO.tsv
+const T = fs.readFileSync(path.join(dir, 'ESTADO.tsv'), 'utf8').split(/\r?\n/).filter(Boolean);
+const errores = [], avisos = [];
+const COLS = ['id', 'severidad', 'área', 'estado', 'cierre', 'evidencia'];
+if (T[0] !== COLS.join('\t')) errores.push('la cabecera no es: ' + COLS.join(' | '));
+const F = new Map();
+for (let i = 1; i < T.length; i++) {
+  const c = T[i].split('\t');
+  if (c.length !== COLS.length) { errores.push('fila ' + (i + 1) + ': ' + c.length + ' columnas'); continue; }
+  const m = /^R9-(\d+)$/.exec(c[0]);
+  if (!m) { errores.push('fila ' + (i + 1) + ': id raro «' + c[0] + '»'); continue; }
+  if (F.has(+m[1])) errores.push('fila repetida: ' + c[0]);
+  F.set(+m[1], {id: +m[1], sev: c[1], area: c[2], estado: c[3], cierre: c[4], evidencia: c[5]});
+}
+for (const id of repetidas) errores.push('entrada repetida en BUGS.md: R9-' + id);
+for (const id of E.keys()) if (!F.has(id)) errores.push('sin fila en ESTADO.tsv: R9-' + id);
+for (const id of F.keys()) if (!E.has(id)) errores.push('fila sin entrada en BUGS.md: R9-' + id);
+for (const f of F.values()) {
+  const e = E.get(f.id);
+  if (!ESTADOS.includes(f.estado)) { errores.push('R9-' + f.id + ': estado raro «' + f.estado + '»'); continue; }
+  if (!e) continue;
+  if (f.sev !== e.sev) avisos.push('R9-' + f.id + ': la fila dice ' + f.sev + ' y la entrada ' + e.sev);
+  if (CERRADOS.has(f.estado) && !e.cerrado) avisos.push('R9-' + f.id + ': la fila dice «' + f.estado + '» y la entrada no tiene marca de cierre');
+  if (!CERRADOS.has(f.estado) && e.cerrado) avisos.push('R9-' + f.id + ': la fila dice «' + f.estado + '» y la entrada tiene marca de cierre');
+  if (f.estado === 'arreglado' && !f.cierre) avisos.push('R9-' + f.id + ': «arreglado» sin sha ni sesión en `cierre`');
+  if (!f.evidencia) avisos.push('R9-' + f.id + ': sin evidencia');
+}
+
+// --- salida
+const filas = [...F.values()].sort((a, b) => a.id - b.id);
+const SEVS = ['P0', 'P1', 'P2', 'P3', 'aviso'];
+console.log('hallazgos en BUGS.md: ' + E.size + '; filas en ESTADO.tsv: ' + F.size);
+console.log('');
+console.log(['sev', ...ESTADOS, 'total'].map(x => x.padEnd(14)).join(''));
+for (const sv of SEVS) {
+  const g = filas.filter(f => f.sev === sv);
+  if (!g.length) continue;
+  console.log([sv, ...ESTADOS.map(s => g.filter(f => f.estado === s).length), g.length].map(x => String(x).padEnd(14)).join(''));
+}
+console.log(['total', ...ESTADOS.map(s => filas.filter(f => f.estado === s).length), filas.length].map(x => String(x).padEnd(14)).join(''));
+if (!corto) {
+  for (const est of ['abierto', 'sin-verificar']) {
+    const g = filas.filter(f => f.estado === est);
+    console.log('\n' + est.toUpperCase() + ' (' + g.length + '):');
+    for (const sv of SEVS) for (const f of g.filter(x => x.sev === sv)) console.log('  ' + sv + '  R9-' + String(f.id).padEnd(4) + ' ' + f.area.slice(0, 90));
+  }
+}
+console.log('');
+for (const a of avisos) console.log('AVISO  ' + a);
+for (const e of errores) console.log('ERROR  ' + e);
+console.log('avisos: ' + avisos.length + '; errores: ' + errores.length);
+process.exit(errores.length ? 1 : 0);

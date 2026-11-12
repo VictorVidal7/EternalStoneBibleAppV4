@@ -1,0 +1,160 @@
+# Veredictos de la conciliacion (sesion 142, 2026-11-12): id|estado|cierre|evidencia. Las lineas de codigo son las de a0147da0.
+# Los lee estado.cjs.txt para las entradas de BUGS.md sin marca de cierre entera. Al arreglar un hallazgo no se toca
+# este archivo: se pone la marca en su entrada y se regenera el TSV (la marca manda sobre un veredicto «abierto»).
+126|abierto||`src/lib/sync/SyncEngine.ts:78`, `:997` y `:3586` siguen tratando el push con reloj viejo como riesgo vivo (lo evitan, no lo cierran); ningún commit lo arregla, y la entrada lo sigue hasta la sesión 49
+127|abierto||`src/lib/sync/SyncEngine.ts:779` (`skipNextBulkPush`, booleano de instancia sin uid) y `src/context/AuthContext.tsx:694` (`deleteAccount` lo arma); la entrada dice qué puertas se cerraron y cuáles no
+128|abierto||`src/lib/sync/adapters/notes.ts:115-121` (`catch` → `logger.error`, sin relanzar) y `adapters/highlights.ts:120`, `:134`
+129|abierto||`src/lib/memory/reviewEventStore.ts:90-96` (`catch` → `return []`)
+131|abierto||por lectura (el revert no se repitió): ninguna prueba nombra `R9-131`; `__tests__/achievementServiceRestoreBackup.test.ts` no tiene `degraded`, y `strict` solo aparece en `backupDegradedSections.test.ts:183-194`, que prueba el getter y no la llamada del export
+107|abierto||`__tests__/ciNodeVersion.test.ts:263` (el mismo regex `/^-?\s*run:\s*(.*)$/`; sin parser YAML)
+87|arreglado|bd4d5202|commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; la entrada dice «Arreglado»
+88|arreglado|15bdd382|commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+89|arreglado|15bdd382|commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+82|arreglado|70ebb628|commit `fix(ci): R9-82`; la entrada dice «Arreglado»
+83|arreglado|3333d486|commit `fix(packs): R9-83`; la entrada dice «Arreglado»
+16|abierto||`src/lib/offering/offeringService.ts:343-348` (`restore()`: el `catch` devuelve `{unlocked: false}`); verificado también en la 141
+17|abierto||`src/lib/offering/offeringService.ts:313` (`purchaseUnlock` devuelve `{status: 'success'}` sin mirar el entitlement); verificado también en la 141
+18|abierto||`grep -i pending` en `src/lib/offering/offeringService.ts` y `src/components/donation/DonationSheet.tsx`: 0
+19|abierto||`alreadyOwned` tiene un solo consumidor: `src/components/offering/OfferingSheet.tsx:125`; `DonationSheet.tsx`, 0
+24|abierto||`src/i18n/translations.ts:3893` sigue mandando a «Resetear Datos de la Biblia» para borrar lo del dispositivo
+25|abierto||`src/lib/sync/deleteAccountData.ts:55` (`.get()` sin `limit()`) y `:56` (`Promise.allSettled` de todos los deletes)
+29|abierto||`src/services/BackupService.ts:1078-1084` (un `queueWrite('reviewEvents', …)` por evento importado)
+30|abierto||`src/services/BackupService.ts:119-120`: las `KEYS` solo traen `@prep_notes` y `@prep_series`
+37|abierto||`src/lib/sync/SyncEngine.ts:1590` (la guarda `unsubs.has`) y `:1696` (el `unsubs.set`), con el `await` del cursor en medio
+40|abierto||verificado en la 141: ningún `fetch` del catálogo de versiones tiene timeout (`grep AbortController src/lib/bible`: 0)
+41|abierto||`app/(tabs)/verse/[book]/[chapter].tsx:719-722`: `readerIsDark` sigue enumerando `night` y `high-contrast`, sin `crepusculo`
+51|abierto||verificado en la 141: la tabla `notes` no tiene restricción por versículo
+52|abierto||`src/features/study/prepNotesStore.ts:83-88` (`writeQueue…catch(log)` y `return writeQueue`: resuelve siempre)
+54|abierto||`src/context/ReadingPlanProgressContext.tsx:222-257` (`toggleDay` no toca `READ_CHAPTERS_KEY`; solo lo escriben `:302` y `:463`)
+144|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-144` (`git grep -w`: 0)
+145|abierto||`src/lib/sync/adapters/notes.ts`: `grep canonical` da 0 (el `book_name` remoto se escribe tal cual)
+146|abierto||`git grep -w R9-146` en el código: 0; que el progreso sobreviva al borrado es decisión documentada (`CustomPlansContext.tsx:46`), su efecto al re-crear no se decidió
+147|abierto||`app/features/memory/insights.tsx:828-831` (`weekdayShort` suma `offset * DAY_MS`)
+148|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-148`
+149|abierto||hueco de prueba, por lectura: `scripts/build-web-packs.js:290` sigue sin prueba que lo nombre (`git grep -w R9-149`: 0)
+150|abierto||`app/(tabs)/verse/[book]/[chapter].web.tsx:132-133` (`redLetterReady` sin mirar la versión de los `verses`); `git grep -w R9-150`: 0
+151|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-151`
+152|abierto||`__tests__/buildWebPacks.test.js:45` (el `beforeAll` de archivo, sin `try`)
+155|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-155`
+156|abierto||grupo de docs y comentarios: al menos el ítem 1 sigue (`src/lib/sync/SyncEngine.ts:530`, «was not measured»); los demás ítems no se re-midieron
+158|abierto||espera decisión de Victor (lo dice la cabecera): `src/context/AuthContext.tsx:104-107` (`getLocalStoreOwner`: `catch` → `null`, falla abierta)
+159|abierto||42 suites de `__tests__` siguen con `useRouter: () => ({` (objeto nuevo por render)
+163|abierto||`src/lib/sync/SyncEngine.ts:2481` (`loadCursor`: `this.cursors.set` tras el `await`, sin mirar la sesión)
+164|abierto||parcial: la mitad «en vivo» se cerró con `R9-124` (`34de18f`, sesión 26); la entrada dice «sigue ABIERTO» para la app cerrada y los huérfanos de un `deleteAccount` fallido (`BUGS.md:4102-4108`)
+165|abierto||sin arreglo en git ni en el código (`git grep -w R9-165`: 0); no re-medido
+167|abierto||sin arreglo en git ni en el código (`git grep -w R9-167`: 0); no re-medido
+168|abierto||`app/features/prep/index.tsx:628` y `:675` (el ref se asigna en la microtarea de la lectura); sin arreglo en git
+169|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-169` (los `await flushDrafts()` de `index.tsx:1018`, `:1038`)
+170|abierto||sin arreglo en git; es del entorno de build (versión de SQLite), no re-medido
+171|abierto||`__tests__/readingInsights.test.ts:9-12` (el «hoy» escrito a mano y el comentario de UTC+12)
+172|abierto||`src/constants/daily-verses.ts:262-266` (`getDayOfYear` resta `new Date(año, 0, 0)`)
+173|abierto||decidido y sin hacer: la decisión delegada en la sesión 25 (`BUGS.md:4192-4194`) fue extender la opción (b); ningún commit ni el código nombran `R9-173`
+177|sin-verificar||pide emulador: «sin medir en nativo» (la lectura del `removed` en el hilo único de RNFirebase); el mock lo modela (`__tests__/SyncEngine.test.ts:75`); conocido por Victor, no se toca
+198|abierto||sin arreglo en git ni en `src` (solo lo cita `__tests__/SyncEngine.test.ts:6756`); no re-medido
+201|abierto||sin arreglo en git ni en el código (`git grep -w R9-201`: 0); no re-medido; depende del orden sin medir en RNFB (`R9-177`)
+202|abierto||sin arreglo en git ni en el código (`git grep -w R9-202`: 0); no re-medido
+203|abierto||sin arreglo en git ni en el código (`git grep -w R9-203`: 0); no re-medido
+205|abierto||sin arreglo en git ni en el código (`git grep -w R9-205`: 0); no re-medido
+211|abierto||sin arreglo en git ni en el código (`git grep -w R9-211`: 0); `R9-209` (`275b5dff`) no tocó la rama `deleted`; no re-medido
+213|abierto||sin arreglo en git ni en el código (`git grep -w R9-213`: 0); no re-medido
+227|aceptado|sesión 38|`BUGS.md:5602`: «Decidido en la sesión 38: coste aceptado, sin código»
+229|arreglado|e9d6e893|tres marcas ✅ en la entrada: `89911425` (sesión 38), `e9d6e893` (sesión 40) y `1a77b78a` (sesión 42)
+234|arreglado|859480fb|`BUGS.md:5733`: «✅ Cerrado en la sesión 42 (`859480f`)»; commit `fix(sync): R9-234`
+235|arreglado|ea182dcb|por lectura (la sonda no se repitió): el `if (!this.uid) return;` de `queueWrite` ya no está (`src/lib/sync/SyncEngine.ts:1012-1025`); sin sesión, `enqueue` encola para la cuenta dueña del almacén (`:1052`…, `R9-38`, sesión 53)
+236|arreglado|f83a7f8|`BUGS.md:5819`: «✅ Cerrado en la sesión 40 (`f83a7f8`)»
+237|arreglado|d57807b|`BUGS.md:5864`: «✅ Cerrado en la sesión 40 (`d57807b`)»
+238|arreglado|bfd0a57|`BUGS.md:5895`: «✅ Cerrado en la sesión 40 (`bfd0a57`)»
+239|arreglado|04f27e7|`BUGS.md:5926`: «✅ Cerrado en la sesión 40 (`04f27e7`)»
+240|sin-verificar||pide emulador: la cabecera dice «SIN MEDIR EN NATIVO» (el orden entre la copia ajena y la respuesta del `set` en RNFirebase); conocido por Victor, no se toca
+241|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-241` (el contrato de `firestore.ts`)
+242|arreglado|7c8c0fa|`BUGS.md:6020`: «✅ Cerrado en la sesión 42 (`7c8c0fa`)»
+243|arreglado|fc93ef6|`BUGS.md:6062`: «✅ Cerrado en la sesión 42 (`fc93ef6`)»
+244|arreglado|ae39cd8|`BUGS.md:6118`: «✅ Cerrado en la sesión 42 (`ae39cd8`)»
+245|arreglado|dd6c015|`BUGS.md:6158`: «✅ Cerrado en la sesión 44 (`dd6c015`)»
+246|arreglado|3e35415|`BUGS.md:6221`: «✅ Cerrado en la sesión 44 (`3e35415` y `1400cb9`)»
+247|arreglado|bba4ab0|`BUGS.md:6273`: «✅ Cerrado en la sesión 44 (`bba4ab0`)»
+248|arreglado|4134635|`BUGS.md:6330`: «✅ Cerrado en la sesión 44 (`4134635`)»
+249|arreglado|d200ed1|`BUGS.md:6372`: «✅ Cerrado en la sesión 44 (`d200ed1`)»
+250|arreglado|c429604|`BUGS.md:6399`: «✅ Cerrado en la sesión 44 (`c429604`): solo el comentario»
+251|arreglado|a79dcbe|`BUGS.md:6438`: «✅ Cerrado en la sesión 46 (`a79dcbe`)»
+252|aceptado|5a2c377|`BUGS.md:6481`: «✅ Cerrado en la sesión 46 por decisión de Victor: ACEPTADO (`5a2c377`, solo un comentario)»
+253|arreglado|05e089e|`BUGS.md:6503`: «✅ Cerrado en la sesión 48 (`05e089e`, solo el comentario)»
+259|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-259`
+268|abierto||es decisión de producto (lo dice la entrada); sin commit ni mención en el código
+284|abierto||el código lo nombra como límite vigente: `src/lib/backup/restoreSignal.ts:76` y `src/services/BackupService.ts:1633` (solo el mazo retiene)
+285|abierto||`app/features/memory/index.tsx:145-147` (`newCount` filtra con `hasCard`, que mira el estado)
+296|abierto||parcial: el gancho existe (`9d3f489`, `538b1bc`; decisión de Victor del 2026-10-07 en `BUGS.md:7854`); el caso `durante` «sigue ABIERTO» (`BUGS.md:7870-7878`); es del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+297|abierto||sin commit; la entrada lo sostiene en la sesión 84; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+299|abierto||hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+300|abierto||hueco de prueba sin commit; «Sesión 94: se sostiene»; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+301|abierto||hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+304|abierto||sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+305|abierto||sin commit (prueba frágil por reloj en `prepSeriesDetailScreen.test.tsx`); del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+308|abierto||hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md:4104`)
+330|abierto|pendiente por decisión|`BUGS.md:9184`: «Decidido (2026-10-13, tras la 95): queda PENDIENTE»; no se revisa ni se propone salvo que Victor lo pida (§7 de `CONTINUAR.md`)
+401|aceptado|decisión 2026-10-27|costo conocido («queda como costo conocido, junto con `R9-401`..`R9-405`»): `CONTINUAR.md:4104-4114`
+402|aceptado|decisión 2026-10-27|costo conocido: `CONTINUAR.md:4104-4114`
+403|aceptado|decisión 2026-10-27|costo conocido: `CONTINUAR.md:4104-4114`
+404|aceptado|decisión 2026-10-27|costo conocido: `CONTINUAR.md:4104-4114`
+405|aceptado|decisión 2026-10-27|costo conocido: `CONTINUAR.md:4104-4114`
+409|aceptado|decisión 2026-10-27|de la 112, sin daño medido: «lo que encuentre queda como costo conocido» (`CONTINUAR.md:4111-4113`)
+132|abierto||`src/lib/sync/adapters/highlights.ts:85-91` (`getLocal`: `catch` → `return null`); `src/lib/sync/SyncEngine.ts:3340` lo nombra como lectura fallida posible
+133|arreglado|57cab837|dos marcas ✅ en la entrada: favoritos con `R9-210` (`682f852`, sesión 34) y el mazo (`57cab83`, sesión 61); el bulk push de favoritos sigue aparte, en `R9-214`
+134|abierto||`src/lib/memory/memoryStatsSync.ts:82-84` (`getReviewLogOwner`: `catch` → `return null`, falla abierta)
+135|abierto||`src/lib/offering/offeringService.ts:225` (`linkUser`: `if (!configured || !uid) return;`); plausible, por lectura
+136|abierto||bloqueante antes del lanzamiento (lo dice la entrada): sin App Check en `src` ni `app` (`grep -i appcheck`: 0) y sin `firestore.rules` versionado
+137|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-137`
+138|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-138`
+139|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-139`
+140|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-140`
+141|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-141`
+142|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-142`
+110|abierto||`scripts/build-web-packs.js:948` (`filesNotPinnedBy(out, previous)` sin su propio `try`, dentro del `catch` de FIRST FILE)
+111|abierto||`scripts/build-web-packs.js:510-524` (`filesNotPinnedBy` recorre todo `.json`, sin excluir el manifiesto)
+112|abierto||sin arreglo en git ni en el código (`git grep -w R9-112`: 0); los mensajes de FIRST FILE siguen en `scripts/build-web-packs.js:940-960`
+113|abierto||`scripts/build-web-packs.js:907` (el preflight sigue con `openSync(destination, 'r+')`)
+114|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-114`
+116|abierto||por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
+117|abierto||`subscribeBackupRestored` tiene 4 suscriptores en `src/context` (mazo, preferencias, progreso del plan, progreso); `FavoritesContext.tsx` no está
+118|abierto||espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
+119|abierto||decisión de producto de Victor (de quién es el premium); el docstring sigue: `src/context/AuthContext.tsx:369` («never revoked on sign-out»)
+120|abierto||grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
+121|abierto||grupo de P3 de la compuerta de CI; sin commit ni mención en el código; no re-medidos uno por uno
+122|abierto||parcial: el punto 4 se arregló con `R9-153` (`a7d688e`, sesión 24); los puntos 1 a 3 siguen (por ejemplo, el comentario de `src/context/PremiumContext.tsx:72-73`)
+123|abierto||docs rancios de la revisión («sin corregir una por una»); los absorbe la sesión de adelgazar docs
+90|arreglado|15bdd382|commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+91|arreglado|15bdd382|commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+92|arreglado|5359a771|commit `test(web): R9-92`; la entrada dice «Arreglado»
+93|arreglado|bd4d5202|commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; la entrada dice «Arreglado»
+94|arreglado|15bdd382|commit `fix(ci): R9-88..R9-91 + R9-94`; `.github/workflows/ci.yml:104`
+95|arreglado|bd4d5202|commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; la entrada dice «Arreglado»
+96|arreglado|bd4d5202|commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; `scripts/build-web-packs.js:982`
+84|arreglado|f62552f5|commit `fix(packs): R9-84 + R9-85`; la entrada dice «Arreglado»
+85|arreglado|f62552f5|commit `fix(packs): R9-84 + R9-85`; la entrada dice «Arreglado»
+86|arreglado|8a91c5cc|commit `test(web): R9-86`; la entrada dice «Arreglado»
+12|abierto||mejora (💡): `grep writeBatch src`: 0
+20|abierto||mejora (💡): `vercel/gift-code-redeem/api/redeem.ts` no valida la forma del código antes de `verifyIdToken` (ningún `test(`/`match(` sobre `code`)
+21|abierto||mejora (💡): `vercel/gift-code-redeem/api/redeem.ts:207` (el fallo del marcado va a `console.error` y la respuesta sigue)
+26|abierto||mejora (💡): `src/context/AuthContext.tsx:707` (`deleteUser`) y `:760` (`triggeredAnonymousRef.current = false` después)
+31|abierto||mejora (💡): `src/services/BackupService.ts:1419` (`withTransactionAsync`, no la exclusiva)
+32|abierto||mejora (💡): `src/services/BackupService.ts:655` (`shareAsync`; `grep deleteAsync`: 0, el archivo de caché no se limpia)
+2|abierto||mejora (💡): `.gitignore:48` sigue en `.env*.local`; `git check-ignore .env` no casa
+3|abierto||mejora (💡): `git ls-files .yarn` sigue trayendo `yarn-3.6.4.cjs` y el plugin
+4|abierto||mejora (💡): no hay `firestore.rules` versionado (`git ls-files` solo trae `firebase.json`)
+5|abierto||`.github/workflows/ci.yml:100-102` (`npm audit` con `continue-on-error: true`)
+6|abierto||mejora (💡): `ci.yml` sin bloque `permissions:`; `:76` usa `codecov/codecov-action@v4` (tag mutable)
+8|abierto||mejora (💡): `functions/package.json` y `vercel/gift-code-redeem/package.json` sin `overrides`
+42|abierto||decisión de diseño (💡): `app/(tabs)/verse/[book]/[chapter].tsx:2595` (`left: -(fontSizes.sm + spacing['0.5'])`)
+43|abierto||`app/features/prep/index.tsx:3185` (`sectionCard` sin `gap`); `compareVerseBlock` (`:3424`) tiene `marginBottom` y `gap` propios, sin `marginTop`: no re-medido en pantalla
+53|abierto||sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
+55|abierto||`src/context/ReadingPlanProgressContext.tsx:270-279` (`migratePlanProgress` copia `completedDays` sin recortar)
+56|abierto||`app/(tabs)/notes.tsx:276` (`localizeBook(item.book)` junto al texto congelado)
+57|abierto||`app/(tabs)/verse/[book]/[chapter].tsx:1049` (`saveNote` corta con `!noteText.trim()`; sin borrado desde el lector)
+58|abierto||`grep flushOnExit` en `app` y `src`: 0
+60|abierto||`src/services/BackupService.ts`: 0 menciones de `@memory_daily_goal`, `@memory_weekly_target` ni `@memory_celebrated_milestones`
+61|abierto||`resetDeck` sigue sin llamadores fuera de `MemoryDeckContext`
+62|abierto||`src/lib/memory/goalStore.ts:72` (`merged.slice(-MAX_CELEBRATED)`, con `MAX_CELEBRATED = 60` en `:22`)
+63|abierto||`src/features/reading-insights/weeklyRecap.ts:86` (`listeningDateKey(now - i * MS_PER_DAY)`)
+64|abierto||`src/context/ReadingPlanProgressContext.tsx:278-279` (`delete next[fromId]` incondicional)
+1|abierto||no es un bug: es la advertencia permanente de que `npm audit fix --force` rompería la app (regla fija de cada sesión); `npm audit` no se volvió a correr
+347|abierto|parcial: 54bb2f3|parcial: la marca de su entrada dice «✅ ARREGLADO EN PARTE en la sesión 99» (`54bb2f3`); siguen sin caso la lectura de series, ilustraciones y autoevaluación, y exportar; conocido por Victor, no se toca; es del ciclo de las pruebas de la Mesa, cerrado

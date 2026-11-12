@@ -1,0 +1,170 @@
+// Genera ESTADO.tsv (una fila por hallazgo de BUGS.md) y agrega las marcas de cierre que falten.
+// uso (desde cualquier lado): node DOCS/REVIEW_2026-09/tools/estado.cjs.txt [stats|tsv|marcas]
+//   stats  : diagnostico (no escribe nada); es el modo por defecto
+//   tsv    : escribe ../ESTADO.tsv
+//   marcas : agrega en ../BUGS.md una linea de marca a las entradas que un veredicto cerro y no la tienen
+// La fuente es la marca de la entrada (`✅ ARREGLADO`, etc.; «EN PARTE» no cierra). Las entradas sin marca toman
+// su estado de los veredictos (tools/veredictos-*.txt: id|estado|cierre|evidencia; `#` es comentario); sin
+// veredicto, quedan «abierto». Nacio en la sesion 142 (la conciliacion); vive aqui desde la 143.
+// Lleva `.txt` para que eslint, prettier y jest no lo tomen.
+const fs = require('fs');
+const path = require('path');
+const modo = process.argv[2] || 'stats';
+const dir = path.resolve(__dirname, '..');
+const scratch = __dirname;
+const BUGS = path.join(dir, 'BUGS.md');
+const CAB = /^- \*\*(?:~~)?`R9-(\d+)`/;
+const MARCA = /✅ (ARREGLADO|CERRADO|RESUELTO|IMPLEMENTADO|ACEPTADO|DECIDIDO|PUBLICADO)(?! EN PARTE)/;
+
+function leer() {
+  const L = fs.readFileSync(BUGS, 'utf8').split(/\r?\n/);
+  const E = [];
+  let cur = null, seccion = '?';
+  for (let i = 0; i < L.length; i++) {
+    const l = L[i];
+    if (/^## /.test(l)) {
+      if (cur) { cur.fin = i; E.push(cur); cur = null; }
+      const s = /^## (P[0-3]) /.exec(l);
+      seccion = s ? s[1] : 'otra';
+      continue;
+    }
+    const m = CAB.exec(l);
+    if (m) {
+      if (cur) { cur.fin = i; E.push(cur); }
+      cur = {id: +m[1], ini: i, seccion};
+    }
+  }
+  if (cur) { cur.fin = L.length; E.push(cur); }
+  for (const e of E) {
+    const body = L.slice(e.ini, e.fin);
+    const head = body.slice(0, 4).join(' ');
+    // el parentesis de la cabecera: (S21, `SyncEngine` / respaldo — P3)
+    const a = head.indexOf('(');
+    let par = '';
+    if (a >= 0) {
+      let d = 0, tick = false;
+      for (let i = a; i < head.length; i++) {
+        const c = head[i];
+        if (c === '`') tick = !tick;
+        if (tick) continue;
+        if (c === '(') d++;
+        if (c === ')') { d--; if (d === 0) { par = head.slice(a + 1, i); break; } }
+      }
+    }
+    const sv = /—\s*(P[0-3])\b/.exec(par);
+    e.sev = sv ? sv[1] : e.seccion === 'otra' ? 'aviso' : e.seccion;
+    let area = par.replace(/\s*—\s*P[0-3]\b.*$/, '');
+    area = area.replace(/^[⬇⬆]️?[^;]*;\s*/, '');
+    const origen = /^(S\d+|[ABC]\d+\w*|campo)\s*,\s*/.exec(area);
+    e.origen = origen ? origen[1] : '';
+    if (origen) area = area.slice(origen[0].length);
+    e.area = area.replace(/`/g, '').replace(/\s+/g, ' ').trim() || '?';
+    e.tachado = /^- \*\*~~/.test(L[e.ini]);
+    e.marcaLinea = -1;
+    for (let i = 0; i < body.length; i++) if (MARCA.test(body[i])) { e.marcaLinea = i; break; }
+    e.cerrado = e.marcaLinea >= 0 || e.tachado;
+    if (e.marcaLinea >= 0) {
+      const t = body.slice(e.marcaLinea, e.marcaLinea + 3).join(' ').replace(/\s+/g, ' ');
+      const desde = t.slice(t.search(MARCA));
+      e.tipo = MARCA.exec(desde)[1];
+      e.marcaTxt = desde.replace(/\*\*/g, '').slice(0, 150).trim();
+      const sha = /`([0-9a-f]{7,40})`/.exec(desde.slice(0, 260));
+      const ses = /sesi[oó]n (\d+)/i.exec(desde.slice(0, 260));
+      const fecha = /\b(20\d\d-\d\d-\d\d)\b/.exec(desde.slice(0, 260));
+      e.cierre = sha ? sha[1] : ses ? 'sesión ' + ses[1] : fecha ? fecha[1] : '';
+    }
+    e.reabre = /sigue ABIERT|SIGUE ABIERT|queda ABIERT|REABIERT|Sigue ABIERT/.test(body.join(' '));
+    e.sub = body.some(x => /^ {2}- /.test(x));
+    e.titulo = L[e.ini].replace(/^- \*\*/, '').slice(0, 110);
+  }
+  return {L, E};
+}
+
+function veredictos() {
+  const V = {};
+  for (const f of fs.readdirSync(scratch).filter(x => /^veredictos-.*\.txt$/.test(x)).sort()) {
+    for (const l of fs.readFileSync(path.join(scratch, f), 'utf8').split(/\r?\n/).filter(l => l && !l.startsWith('#'))) {
+      const q = l.split('|');
+      const p = q.length >= 4 ? [q[0], q[1], q[2], q.slice(3).join('|')] : q; // la evidencia puede traer `||`
+      if (p.length !== 4) throw new Error(f + ': linea con ' + p.length + ' campos: ' + l.slice(0, 60));
+      if (V[+p[0]]) throw new Error('veredicto repetido: R9-' + p[0]);
+      if (!/^(abierto|arreglado|no-aplica|aceptado|sin-verificar)$/.test(p[1])) throw new Error('estado raro: ' + l.slice(0, 60));
+      V[+p[0]] = {estado: p[1], cierre: p[2], evidencia: p[3]};
+    }
+  }
+  return V;
+}
+const limpia = s => s
+  .replace(/`BUGS\.md:\d+(?:-\d+)?`: /g, 'su entrada: ')
+  .replace(/`BUGS\.md:\d+(?:-\d+)?`/g, 'su entrada')
+  .replace(/`CONTINUAR\.md:\d+(?:-\d+)?`/g, '`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»)')
+  .replace(/[\t\r\n]+/g, ' ');
+
+const {L, E} = leer();
+const V = veredictos();
+const cuenta = (xs, k) => xs.reduce((a, x) => ((a[k(x)] = (a[k(x)] || 0) + 1), a), {});
+
+function fila(e) {
+  const v = V[e.id];
+  if (v && !e.cerrado) return {estado: v.estado, cierre: v.cierre, evidencia: limpia(v.evidencia), origen: 'conciliación'};
+  if (v && e.cerrado && (v.estado === 'arreglado' || v.estado === 'aceptado')) {
+    // la marca ya esta (la agrego `marcas`): manda el veredicto, que trae la evidencia
+    return {estado: v.estado, cierre: v.cierre, evidencia: limpia(v.evidencia), origen: 'conciliación'};
+  }
+  // un veredicto «abierto» sobre una entrada que DESPUES recibio su marca: manda la marca (se arreglo luego)
+  if (e.marcaLinea >= 0) {
+    const est = e.tipo === 'ACEPTADO' || e.tipo === 'DECIDIDO' ? 'aceptado' : 'arreglado';
+    return {estado: est, cierre: e.cierre, evidencia: 'marca de su entrada: «' + e.marcaTxt.replace(/[\t]+/g, ' ') + '»', origen: 'marca'};
+  }
+  if (e.tachado) return {estado: 'no-aplica', cierre: '', evidencia: 'entrada tachada en `BUGS.md`', origen: 'marca'};
+  return {estado: 'abierto', cierre: '', evidencia: 'sin marca de cierre en su entrada' + (e.id >= 410 ? ' (en las tandas de arreglos)' : ''), origen: 'clasificador'};
+}
+
+if (modo === 'stats') {
+  console.log('entradas: ' + E.length + '; veredictos: ' + Object.keys(V).length);
+  const ids = new Set(E.map(e => e.id));
+  console.log('ids repetidos en BUGS.md: ' + (E.length - ids.size));
+  console.log('veredictos sin entrada: ' + Object.keys(V).filter(k => !ids.has(+k)).join(' '));
+  const sinV = E.filter(e => !e.cerrado && e.id < 410 && !V[e.id]);
+  console.log('viejas sin marca y SIN veredicto: ' + sinV.map(e => 'R9-' + e.id + ' [' + e.seccion + '] ' + e.titulo).join('\n   '));
+  console.log('veredicto sobre entrada ya marcada: ' + E.filter(e => e.cerrado && V[e.id]).map(e => 'R9-' + e.id).join(' '));
+  console.log('tipos de marca: ' + JSON.stringify(cuenta(E.filter(e => e.marcaLinea >= 0), e => e.tipo)));
+  console.log('tachadas: ' + E.filter(e => e.tachado).map(e => 'R9-' + e.id + (e.marcaLinea >= 0 ? '' : '(sin marca)')).join(' '));
+  console.log('marcadas con «sigue ABIERTO/REABIERTO» en el cuerpo: ' + E.filter(e => e.cerrado && e.reabre).map(e => 'R9-' + e.id).join(' '));
+  console.log('marcadas sin sha ni sesion: ' + E.filter(e => e.marcaLinea >= 0 && !e.cierre).map(e => 'R9-' + e.id).join(' '));
+  console.log('severidad (entrada) distinta de la seccion: ' + E.filter(e => e.sev !== e.seccion).length);
+  console.log('areas «?»: ' + E.filter(e => e.area === '?').map(e => 'R9-' + e.id).join(' '));
+  console.log('muestra de areas: ' + [5, 60, 200, 330, 420, 500, 560, 573].map(i => { const e = E.find(x => x.id === i); return e ? 'R9-' + i + '=' + e.sev + '|' + e.origen + '|' + e.area : ''; }).join('\n   '));
+  const F = E.map(e => Object.assign({e}, fila(e)));
+  console.log('por estado: ' + JSON.stringify(cuenta(F, f => f.estado)));
+  for (const sv of ['P0', 'P1', 'P2', 'P3', 'otra']) console.log('  ' + sv + ': ' + JSON.stringify(cuenta(F.filter(f => f.e.sev === sv), f => f.estado)));
+}
+
+if (modo === 'marcas') {
+  const out = L.slice();
+  const ins = [];
+  for (const e of E) {
+    const v = V[e.id];
+    if (!v || e.cerrado) continue;
+    if (v.estado !== 'arreglado' && v.estado !== 'aceptado') continue;
+    let last = e.fin - 1;
+    while (last > e.ini && (out[last].trim() === '' || out[last].trim() === '---')) last--;
+    const pal = v.estado === 'arreglado' ? 'ARREGLADO' : 'ACEPTADO';
+    const ref = /^[0-9a-f]{7,40}$/.test(v.cierre) ? '`' + v.cierre + '`' : v.cierre;
+    const txt = '**✅ ' + pal + '** (' + ref + ') — marca agregada en la conciliación (sesión 142).';
+    ins.push({at: last + 1, lines: e.sub ? ['  - ' + txt] : ['', '  ' + txt], id: e.id});
+  }
+  ins.sort((a, b) => b.at - a.at);
+  for (const x of ins) out.splice(x.at, 0, ...x.lines);
+  fs.writeFileSync(BUGS, out.join('\n'));
+  console.log('marcas agregadas: ' + ins.length + ' (' + ins.map(x => 'R9-' + x.id).reverse().join(' ') + ')');
+}
+
+if (modo === 'tsv') {
+  const rows = E.slice().sort((a, b) => a.id - b.id).map(e => {
+    const f = fila(e);
+    return ['R9-' + e.id, e.sev, e.area, f.estado, f.cierre, f.evidencia].map(x => String(x).replace(/[\t\r\n]+/g, ' ')).join('\t');
+  });
+  fs.writeFileSync(path.join(dir, 'ESTADO.tsv'), ['id\tseveridad\tárea\testado\tcierre\tevidencia'].concat(rows).join('\n') + '\n');
+  console.log('ESTADO.tsv: ' + rows.length + ' filas');
+}
