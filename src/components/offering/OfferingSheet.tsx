@@ -135,6 +135,14 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
           title: t.offering.notActivatedTitle,
           message: t.offering.notActivatedMessage,
         });
+      } else if (outcome.status === 'pending') {
+        // R9-18 — the payment is under way (cash/transfer): not a failure,
+        // and above all not something to ask the reader to repeat.
+        setState({
+          kind: 'notice',
+          title: t.offering.pendingTitle,
+          message: t.offering.pendingMessage,
+        });
       } else if (outcome.status === 'alreadyOwned') {
         // The store already has a record of this entitlement (e.g. a
         // reinstall or a previous purchase that hasn't synced locally

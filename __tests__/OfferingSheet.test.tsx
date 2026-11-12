@@ -6,7 +6,7 @@
  * actual load → purchase/restore → entitlement-sync chain, not a stubbed one.
  */
 
-import {render, waitFor, fireEvent} from '@testing-library/react-native';
+import {render, waitFor, fireEvent, act} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';
@@ -357,6 +357,57 @@ describe('OfferingSheet', () => {
       expect(
         await findByLabelText('Restaurar mi ofrenda anterior'),
       ).toBeTruthy();
+    });
+  });
+
+  describe('R9-18 — el pago pendiente (OXXO, SPEI)', () => {
+    const es = require('../src/i18n/translations').translations.es;
+
+    it('avisa que quedó pendiente; ni «Inténtalo de nuevo» ni los montos', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockRejectedValueOnce({
+        code: '20',
+        message: 'The payment is pending.',
+      });
+
+      const {findByText, findByLabelText, queryByText} = renderSheet();
+      fireEvent.press(await findByLabelText('$0.99'));
+
+      expect(await findByText(es.offering.pendingTitle)).toBeTruthy();
+      expect(await findByText(es.offering.pendingMessage)).toBeTruthy();
+      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(queryByText('$0.99')).toBeNull();
+      expect(queryByText('Gracias por sembrar en esta obra')).toBeNull();
+    });
+
+    it('cuando el pago se confirma con la hoja cerrada, al reabrir dice «desbloqueado»', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockRejectedValueOnce({code: '20'});
+
+      const tree = (visible: boolean) => (
+        <PremiumProvider>
+          <OfferingSheet visible={visible} onClose={jest.fn()} />
+        </PremiumProvider>
+      );
+      const {findByText, findByLabelText, rerender} = render(tree(true));
+      fireEvent.press(await findByLabelText('$0.99'));
+      expect(await findByText(es.offering.pendingTitle)).toBeTruthy();
+
+      rerender(tree(false));
+      // La tienda confirma el pago: el SDK avisa por su listener.
+      await act(async () => {
+        mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+      });
+      rerender(tree(true));
+      expect(await findByText('Extras desbloqueados')).toBeTruthy();
     });
   });
 

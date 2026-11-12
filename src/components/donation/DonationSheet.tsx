@@ -52,7 +52,13 @@ type SheetState =
   | {kind: 'unavailable'}
   | {kind: 'available'; products: PurchasesStoreProduct[]}
   | {kind: 'purchasing'}
-  | {kind: 'success'};
+  | {kind: 'success'}
+  // The store has the giver's money (or is about to) but the gift is not
+  // settled yet. Shown IN the sheet, with its own close button, never as a
+  // toast over the amount picker: the picker is an invitation to pay again,
+  // which is the one thing this state must not suggest. Mirrors
+  // OfferingSheet's 'notice'.
+  | {kind: 'notice'; title: string; message: string};
 
 export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
   const {colors} = useTheme();
@@ -90,6 +96,14 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
       } else if (outcome.status === 'cancelled') {
         // Silence, no guilt — just return to the amount picker.
         await load();
+      } else if (outcome.status === 'pending') {
+        // R9-18 — the payment is under way (cash/transfer): not a failure,
+        // and above all not something to ask the giver to repeat.
+        setState({
+          kind: 'notice',
+          title: t.donation.pendingTitle,
+          message: t.donation.pendingMessage,
+        });
       } else {
         toast.error(t.donation.purchaseError);
         await load();
@@ -173,6 +187,43 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
                 scaleRole="compact"
                 style={[styles.verseRef, {color: colors.textTertiary}]}>
                 {t.donation.thankYouVerseRef}
+              </AppText>
+              <TouchableOpacity
+                style={[styles.doneButton, {backgroundColor: colors.primary}]}
+                onPress={handleClose}
+                accessibilityRole="button"
+                accessibilityLabel={t.donation.close}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.doneText, {color: colors.onPrimary}]}>
+                  {t.donation.close}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {state.kind === 'notice' && (
+            <View style={styles.centerState}>
+              <View
+                style={[
+                  styles.badge,
+                  {backgroundColor: colors.primary + '22'},
+                ]}>
+                <Ionicons
+                  name="time-outline"
+                  size={28}
+                  color={colors.primary}
+                />
+              </View>
+              <AppText
+                scaleRole="display"
+                style={[styles.title, {color: colors.text}]}>
+                {state.title}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[styles.message, {color: colors.textSecondary}]}>
+                {state.message}
               </AppText>
               <TouchableOpacity
                 style={[styles.doneButton, {backgroundColor: colors.primary}]}

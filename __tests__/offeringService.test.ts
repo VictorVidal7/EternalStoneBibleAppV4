@@ -303,6 +303,68 @@ describe('offeringService', () => {
       expect(outcome).toEqual({status: 'alreadyOwned'});
     });
 
+    describe('R9-18 — el pago pendiente no es un fallo', () => {
+      it('purchaseUnlock: PAYMENT_PENDING_ERROR es pending, no error', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.purchasePackage.mockRejectedValueOnce({
+          code: '20',
+          message: 'The payment is pending.',
+        });
+        const outcome = await purchaseUnlock({
+          identifier: 'ofrenda_extras_1',
+        } as never);
+        expect(outcome).toEqual({status: 'pending'});
+        expect(getLastKnownEntitlement()).toBe(false);
+      });
+
+      it('purchaseDonation: PAYMENT_PENDING_ERROR es pending, no error', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({
+          code: '20',
+          message: 'The payment is pending.',
+        });
+        const outcome = await purchaseDonation({
+          identifier: 'donacion_1',
+        } as never);
+        expect(outcome).toEqual({status: 'pending'});
+      });
+
+      it.each([
+        ['STORE_PROBLEM_ERROR', '2'],
+        ['PURCHASE_NOT_ALLOWED_ERROR', '3'],
+        ['RECEIPT_ALREADY_IN_USE_ERROR', '7'],
+        ['NETWORK_ERROR', '10'],
+        ['OFFLINE_CONNECTION_ERROR', '35'],
+      ])('%s sigue siendo error', async (_name, code) => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.purchasePackage.mockRejectedValueOnce({code});
+        const outcome = await purchaseUnlock({
+          identifier: 'ofrenda_extras_1',
+        } as never);
+        expect(outcome.status).toBe('error');
+      });
+
+      it('los codigos del mock son los del SDK real', () => {
+        // El mock es la frontera: si su '20' no fuera el del SDK, las
+        // pruebas de arriba pasarian y en el dispositivo no se reconoceria.
+        const real = jest.requireActual(
+          '@revenuecat/purchases-typescript-internal',
+        ).PURCHASES_ERROR_CODE;
+        const mocked = (
+          Purchases as unknown as {
+            PURCHASES_ERROR_CODE: Record<string, string>;
+          }
+        ).PURCHASES_ERROR_CODE;
+        expect(real.PAYMENT_PENDING_ERROR).toBe('20');
+        for (const name of Object.keys(mocked)) {
+          expect([name, mocked[name]]).toEqual([name, real[name]]);
+        }
+      });
+    });
+
     it('reports a generic error for any other failure', async () => {
       __setApiKeyForTests('test-key');
       await initialize();

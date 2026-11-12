@@ -4518,6 +4518,9 @@ export const translations = {
       restoreSuccess: 'Extras restaurados. ¡Gracias por tu ofrenda!',
       purchasing: 'Procesando…',
       purchaseError: 'No se pudo completar la ofrenda. Inténtalo de nuevo.',
+      pendingTitle: 'Pago pendiente',
+      pendingMessage:
+        'Tu pago quedó pendiente de confirmación. Los extras se activarán cuando se confirme; no hace falta volver a pagar.',
       notActivatedTitle: 'Tu ofrenda ya está registrada',
       notActivatedMessage:
         'La tienda ya registró tu ofrenda, pero los extras todavía no se activaron aquí. No hace falta volver a pagar: toca «Restaurar mi ofrenda anterior» más tarde.',
@@ -4546,6 +4549,9 @@ export const translations = {
         'Esta donación no es deducible de impuestos. Sostiene el desarrollo y el ministerio de esta app.',
       purchasing: 'Procesando…',
       purchaseError: 'No se pudo completar la donación. Inténtalo de nuevo.',
+      pendingTitle: 'Pago pendiente',
+      pendingMessage:
+        'Tu donación quedó pendiente de confirmación. No hace falta volver a pagar.',
       thankYouTitle: 'Gracias por tu generosidad',
       thankYouMessage: 'Dios ve lo que se da desde el corazón.',
       thankYouVerse:
@@ -11066,6 +11072,9 @@ export const translations = {
       restoreSuccess: 'Extras restored. Thank you for your offering!',
       purchasing: 'Processing…',
       purchaseError: "The offering couldn't be completed. Please try again.",
+      pendingTitle: 'Payment pending',
+      pendingMessage:
+        "Your payment is awaiting confirmation. The extras will unlock once it's confirmed; there's no need to pay again.",
       notActivatedTitle: 'Your offering is already on record',
       notActivatedMessage:
         "The store has already recorded your offering, but the extras haven't unlocked here yet. There's no need to pay again: tap “Restore my previous offering” later.",
@@ -11094,6 +11103,9 @@ export const translations = {
         "This donation is not tax-deductible. It sustains this app's development and ministry.",
       purchasing: 'Processing…',
       purchaseError: "The donation couldn't be completed. Please try again.",
+      pendingTitle: 'Payment pending',
+      pendingMessage:
+        "Your donation is awaiting confirmation. There's no need to pay again.",
       thankYouTitle: 'Thank you for your generosity',
       thankYouMessage: 'God sees what is given from the heart.',
       thankYouVerse:

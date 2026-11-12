@@ -151,6 +151,51 @@ describe('DonationSheet', () => {
     expect(await findByText('$9.99')).toBeTruthy();
   });
 
+  describe('R9-18 — el pago pendiente (OXXO, SPEI)', () => {
+    const es = require('../src/i18n/translations').translations.es;
+
+    it('avisa que quedó pendiente; ni «Inténtalo de nuevo» ni los montos', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setProducts(fakeProducts);
+      mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({
+        code: '20',
+        message: 'The payment is pending.',
+      });
+
+      const {findByText, findByLabelText, queryByText} = renderSheet();
+      fireEvent.press(await findByLabelText('$4.99'));
+
+      expect(await findByText(es.donation.pendingTitle)).toBeTruthy();
+      expect(await findByText(es.donation.pendingMessage)).toBeTruthy();
+      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(queryByText('$4.99')).toBeNull();
+      // Todavia no se dio nada: no se agradece.
+      expect(queryByText('Gracias por tu generosidad')).toBeNull();
+      expect(colorOf(await findByText('Cerrar'))).toBe(mockColors.onPrimary);
+    });
+
+    it('al cerrar y reabrir vuelve a los montos', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setProducts(fakeProducts);
+      mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '20'});
+
+      const onClose = jest.fn();
+      const {findByText, findByLabelText, rerender} = render(
+        <DonationSheet visible onClose={onClose} />,
+      );
+      fireEvent.press(await findByLabelText('$4.99'));
+      expect(await findByText(es.donation.pendingTitle)).toBeTruthy();
+
+      fireEvent.press(await findByLabelText('Cerrar'));
+      expect(onClose).toHaveBeenCalledTimes(1);
+      rerender(<DonationSheet visible={false} onClose={onClose} />);
+      rerender(<DonationSheet visible onClose={onClose} />);
+      expect(await findByLabelText('$4.99')).toBeTruthy();
+    });
+  });
+
   it('lets the same amount be given again right after a successful donation and close', async () => {
     __setApiKeyForTests('test-key');
     await initialize();

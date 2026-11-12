@@ -37,6 +37,7 @@ const Purchases = {
   PURCHASES_ERROR_CODE: {
     PURCHASE_CANCELLED_ERROR: '1',
     PRODUCT_ALREADY_PURCHASED_ERROR: '6',
+    PAYMENT_PENDING_ERROR: '20',
   },
 
   // --- Test helpers, not part of the real SDK ---

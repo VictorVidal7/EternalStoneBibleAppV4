@@ -58,6 +58,8 @@ export type PurchaseOutcome =
   | {status: 'alreadyOwned'}
   /** The store charged, but the entitlement is not active (R9-17). */
   | {status: 'notActivated'}
+  /** The payment was started and is awaiting confirmation (R9-18). */
+  | {status: 'pending'}
   | {status: 'error'; message: string};
 
 /**
@@ -93,6 +95,7 @@ type PurchasesStatic = {
   PURCHASES_ERROR_CODE: {
     PURCHASE_CANCELLED_ERROR: string;
     PRODUCT_ALREADY_PURCHASED_ERROR: string;
+    PAYMENT_PENDING_ERROR?: string;
   };
 };
 
@@ -290,18 +293,24 @@ function outcomeFromError(err: unknown): PurchaseOutcome {
   // `code` matching PURCHASE_CANCELLED_ERROR is RevenueCat's recommended
   // check; `userCancelled` is its older, now-deprecated equivalent — kept
   // as a fallback in case a store/platform only reports the boolean.
-  const Purchases = getPurchases();
+  const codes = getPurchases()?.PURCHASES_ERROR_CODE;
+  // Never `undefined === undefined`: an error without a code, compared with
+  // a constant this SDK version does not have, must stay a plain error.
+  const is = (known: string | undefined): boolean =>
+    code !== undefined && known !== undefined && code === known;
   const cancelled =
     (err as {userCancelled?: boolean})?.userCancelled === true ||
-    (Purchases &&
-      code === Purchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR);
+    is(codes?.PURCHASE_CANCELLED_ERROR);
   if (cancelled) return {status: 'cancelled'};
-  if (
-    Purchases &&
-    code === Purchases.PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR
-  ) {
+  if (is(codes?.PRODUCT_ALREADY_PURCHASED_ERROR)) {
     return {status: 'alreadyOwned'};
   }
+  // R9-18 — a payment that is PENDING (cash at a convenience store, a bank
+  // transfer: OXXO and SPEI in this app's main market) is reported by the
+  // SDK as a rejection, but it is not a failure: the payment is under way.
+  // It used to fall through to the generic error below, and both sheets
+  // asked the reader to «try again» — to repeat a payment already started.
+  if (is(codes?.PAYMENT_PENDING_ERROR)) return {status: 'pending'};
   return {
     status: 'error',
     message: err instanceof Error ? err.message : String(err),
