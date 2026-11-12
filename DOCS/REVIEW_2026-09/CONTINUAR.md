@@ -27,7 +27,7 @@ Dónde está cada cosa:
 - `BUGS.md`: las entradas. Es la fuente: la marca `✅ ARREGLADO` va en la entrada, y el TSV se regenera.
 - `detail/`: un detalle por fila o por sesión.
 - `INDEX.md`: el ledger de las filas (Modos A a D).
-- `REGLAS.md`: las 278 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
+- `REGLAS.md`: las 282 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
 - `historial/`: lo que la 143 sacó de este archivo y de `INDEX.md`, movido tal cual. No rige: es registro.
 - `REVIEW_PROMPT.md`: el charter.
 
@@ -159,6 +159,12 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   145: es el mismo servicio, y así los dos diffs de dinero se cierran seguidos. Con el `AuthProvider` y el
   servicio reales; la matriz: cerrar sesión con y sin premium, otra cuenta en el mismo aparato, el canje de un
   código siendo anónimo, el arranque en frío, y «Eliminar cuenta» (se mide; no está decidido).
+  **Hecha en la sesión 146** (`detail/S146-arreglos-premium.md`), sin medir en vivo; su revisión es la 147, y la V2
+  pasa a la 148. `R9-119`, arreglado. **`R9-135`, EN PARTE, y sigue abierto:** entró el reintento de un `logIn` que
+  falla al cambiar de cuenta; la raíz (enlazar al terminar `initialize()`) y el enlace tras pasar de anónimo a
+  Google NO entraron, y esperan la medición con la cuenta de Google de prueba (§7). Con ella entraron `R9-574`,
+  `R9-579` y `R9-578`; `R9-575`, `R9-576` y `R9-577` (P3) siguen abiertos. «Eliminar cuenta» quedó medido y pasa
+  a la tanda V4.
 - **Tanda V2 — sync que pierde en silencio (4 P1).** `R9-128` (un apply remoto que falla y el cursor avanza), con
   `R9-132` (P2, la misma forma en subrayados); `R9-37` (el listener huérfano); `R9-127` (el `skipNextBulkPush` sin
   uid); y `R9-126` (el push con reloj viejo), que es de diseño: se mide y se propone antes de escribirlo, y si no
@@ -241,8 +247,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 
 ## 5. Reglas que ya costaron caro: el resumen
 
-Las 278 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
-cual en la 143, y tres de la 145). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
+Las 282 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
+cual en la 143, tres de la 145 y cuatro de la 146). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
 tema:
 
 - **Alcance y permisos.** Se hace lo que pide el mensaje de la sesión y nada más. Un mensaje de Victor a mitad de
@@ -417,6 +423,32 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     terminar, y un `logIn` que falló se reintenta. Con su reproducción, su prueba vista fallar y su revisión.
   - **A medir en esa tanda, sin decidir:** qué queda en RevenueCat tras «Eliminar cuenta» (con la regla, el
     aparato seguiría con el uid borrado como dueño). Si la V1b no lo cierra, va con la tanda V4 (cuenta).
+    **Medido en la 146:** el aparato sigue con los extras y RevenueCat sigue respondiendo por el uid borrado,
+    también tras un arranque en frío; el cliente con ese uid sigue existiendo en RevenueCat. Va con la V4.
+  - **La regla, reescrita en la sesión 146 (decidido por Claude por delegación, 2026-11-12; Victor puede
+    cambiarlo): el ENLACE automático (el `logIn` de RevenueCat) nunca lo dispara un anónimo; una RESTAURACIÓN no es
+    un enlace, y vale para cualquiera, anónimo incluido.** Por qué: una restauración solo trae lo que es de la
+    cuenta de la TIENDA del aparato, y quien la pide tiene esa cuenta en la mano; es la única manera de recuperar
+    los extras para quien nunca inició sesión, y negársela sería quitárselo a quien pagó. Valen igual los tres
+    caminos que restauran (el enlace, «ya comprado» en la ofrenda y «ya comprado» en la donación). Lo que la regla
+    no puede prometer: que restaurar en un aparato no se lo saque a otro; eso lo decide el ajuste de
+    transferencias del panel de RevenueCat, sin medir.
+  - **`R9-579`, decidido con lo anterior:** la restauración de «ya comprado» en la donación se conserva; cuando es
+    ella la que desbloquea los extras, la hoja lo dice (`offering.restoreSuccess`).
+  - **Solo se commitea lo que es seguro con los DOS supuestos sobre RevenueCat (decidido por Claude por delegación
+    de Victor, 2026-11-12, al cerrar la 145: «lo dejo a tu mejor consideración»; Victor puede cambiarlo).** Lo que
+    no está medido: qué hace `logIn(uid)` con las compras hechas bajo el id anónimo de RevenueCat (las une al uid,
+    o responde sin ellas). Si con el supuesto malo una pieza le quita los extras a quien pagó, esa pieza no se
+    commitea: queda escrita y medida en el detalle, y su entrada sigue abierta. Por qué: es el mismo criterio de
+    la decisión de arriba (el error que no se acepta es quitárselo a quien pagó); el daño de `R9-135` es bajo (el
+    premium lo pagó alguien en ese aparato) y el del supuesto malo es alto (le pasa, al actualizar, a cada persona
+    que ya dio la ofrenda); y el estado de hoy tras un arranque en frío, RevenueCat en su id anónimo, es el que
+    tienen todos los que ya pagaron.
+  - **Qué quedó esperando la medición con la cuenta de Google de prueba (sesión 146):** enlazar al terminar
+    `initialize()` a la cuenta que llegó antes (la raíz de `R9-135`), y enlazar tras pasar de anónimo a Google con
+    `linkWithCredential`. Hasta entonces, «la cuenta lo lleva a otros aparatos» no se cumple para quien compró con
+    RevenueCat en su id anónimo: en el otro aparato hay que restaurar. Las dos piezas, su matriz con los dos
+    supuestos y qué hay que medir: `detail/S146-arreglos-premium.md` §6.
 - **Los textos de dinero de la sesión 144 quedan como están** (Victor, 2026-11-12, los dejó a consideración de
   Claude). Están en los dos idiomas en `detail/S144-arreglos-dinero.md` §8, y la 145 los revisa.
 - **La fase de ARREGLOS va con Fable 5.2 como modelo principal, decidido por Victor el 2026-11-11 (al empezar la

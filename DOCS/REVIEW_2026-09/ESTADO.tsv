@@ -117,7 +117,7 @@ R9-115	P2	SyncEngine	arreglado	e97cd95	marca de su entrada: «✅ ARREGLADO en l
 R9-116	P2	prueba de respaldo	abierto		por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
 R9-117	P2	favoritos / respaldo	abierto		`subscribeBackupRestored` tiene 4 suscriptores en `src/context` (mazo, preferencias, progreso del plan, progreso); `FavoritesContext.tsx` no está
 R9-118	P2	CI	abierto		espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
-R9-119	P2	premium	abierto		decidido el 2026-11-12 por delegación de Victor (`CONTINUAR.md` §7: no se pierde al cerrar sesión; un anónimo no le cambia el dueño a RevenueCat); falta hacerlo, en la tanda V1b; los dos docstrings se corrigieron en la sesión 144 (`919ee006`) y la conducta quedó igual
+R9-119	P2	premium	arreglado	3190815b	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`3190815b`): `AuthContext` ya no llama a `linkUser` para un usuario anónimo (tampoco en el primer arranque); cerrar sesi»
 R9-120	P3	build de packs	abierto		grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
 R9-121	P3	compuerta de CI	abierto		grupo de P3 de la compuerta de CI; sin commit ni mención en el código; no re-medidos uno por uno
 R9-122	P3	dinero y sync	abierto		parcial: el punto 4 se arregló con `R9-153` (`a7d688e`, sesión 24); los puntos 1 a 3 siguen (por ejemplo, el comentario de `src/context/PremiumContext.tsx:72-73`)
@@ -572,9 +572,9 @@ R9-570	P3	revisión del diff de la 140 / arreglo de R9-424 / recordatorios	abier
 R9-571	P3	revisión del diff de la 140 / reproductor flotante / R9-427	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-572	P3	revisión del diff de la 140 / pruebas / R9-427	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-573	P3	revisión del diff de la 140 / temporizador de sueño / vecino de R9-425	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-574	P2	revisión del diff de la 144 / hoja de ofrenda / vecino de R9-17 y R9-16	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-574	P2	revisión del diff de la 144 / hoja de ofrenda / vecino de R9-17 y R9-16	arreglado	593107eb	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`593107eb`): `restore()` tiene una cuarta respuesta, `'notActivated'` (la tienda respondió, la cuenta tiene una ofrenda»
 R9-575	P3	revisión del diff de la 144 / las dos hojas / vecino de R9-17 y R9-18	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-576	P3	revisión del diff de la 144 / las dos hojas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-577	P3	revisión del diff de la 144 / hoja de ofrenda / vecino de R9-17 y R9-18	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-578	P3	revisión del diff de la 144 / pruebas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-579	P3	revisión del diff de la 144 / hoja de donación / vecino de R9-19	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-578	P3	revisión del diff de la 144 / pruebas	arreglado	14dea172	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`14dea172`, solo pruebas): la guarda tiene tres pruebas, con la constante quitada del mock (con la guarda revertida caen»
+R9-579	P3	revisión del diff de la 144 / hoja de donación / vecino de R9-19	arreglado	55adac79	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`55adac79`): decidido con la V1b (`CONTINUAR.md` §7): la restauración se conserva, porque una restauración vale para qui»

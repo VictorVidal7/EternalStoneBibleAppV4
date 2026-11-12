@@ -1263,4 +1263,24 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   `postTransactionAndConsumeIfNeeded` en ese camino. El AAR está en la caché de Gradle
   (`~/.gradle/caches/modules-2/files-2.1/com.revenuecat.purchases/`): se saca `classes.jar` con `unzip` y se busca
   el nombre con `grep -a -o` sobre la clase. Es lectura: no reemplaza al dispositivo.
+- **Un arreglo que deja quieto un estado convierte en camino principal el fallo que ese estado tapaba (sesión 146,
+  `R9-119` y `R9-135`).** Mientras el anónimo que nacía al cerrar sesión se enlazaba a RevenueCat, el `logIn`
+  fallido de la cuenta siguiente casi no se veía: el anónimo ya había pisado a la cuenta anterior. Al quitar ese
+  enlace, RevenueCat se queda en la cuenta que salió, y la que entra con un `logIn` fallido ve los extras de la
+  otra en cada arranque. Lo mostró la matriz corrida ENTRE commit y commit, no al final: cuando un arreglo quita
+  una llamada, preguntá qué otro fallo dependía de que esa llamada lo tapara.
+- **Una pieza que llama al SDK para quien hoy no se llama se mide con los dos supuestos del backend, y la guarda se
+  corta por lo que el cliente SÍ puede saber (sesión 146, `R9-135`).** Qué hace `logIn` con las compras del id
+  anónimo lo decide el backend de RevenueCat, y el mock no modela clientes. La sonda sí, con un interruptor (une;
+  no une): lo que da igual en los dos entra, y lo que no, queda escrito y medido como propuesta. El reintento
+  entró porque se acotó a un dato del cliente (`isAnonymous()`: RevenueCat está en el id de OTRA cuenta), donde
+  el supuesto no interviene.
+- **Una lista del SDK trae más de lo que el nombre de la propuesta sugiere (sesión 146, `R9-574`).** La entrada
+  proponía mirar `nonSubscriptionTransactions` para saber si la cuenta tiene una ofrenda. Esa lista trae también
+  las donaciones: tal cual, a quien solo donó se le habría dicho «Tu ofrenda ya está registrada». Antes de usar
+  una lista del SDK, leé su tipo y preguntá qué más vende la app que caiga ahí.
+- **Un `mockRejectedValueOnce` que no se consume lo hereda la prueba siguiente (sesión 146).** `mockClear` (lo que
+  hace el `__reset()` del mock del SDK) no vacía la cola de `Once`. Con una pieza revertida, una prueba dejó un
+  rechazo sin consumir y las tres que seguían cayeron en cascada. Al leer por qué cae cada prueba de un revert,
+  mirá primero cuál es la primera que cae.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

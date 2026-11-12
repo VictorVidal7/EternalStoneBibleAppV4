@@ -14244,6 +14244,12 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     pendiente, que no figura en el `CustomerInfo`, un `restoreNotFound` que no niegue: «No encontramos una ofrenda
     confirmada en esta cuenta. Si tu pago sigue pendiente, los extras se activarán cuando se confirme.» Detalle:
     `detail/S145-revision-del-diff-s144.md`.
+  - **✅ ARREGLADO en la sesión 146** (`593107eb`): `restore()` tiene una cuarta respuesta, `'notActivated'` (la
+    tienda respondió, la cuenta tiene una ofrenda y la entitlement no está activa), y con ella «Restaurar» pinta el
+    mismo aviso que mandó ahí. La lista del `CustomerInfo` (`nonSubscriptionTransactions`) trae también las
+    donaciones: el arreglo las deja afuera, que la propuesta no lo decía. `offering.restoreNotFound`, en los dos
+    idiomas, ya no niega un pago pendiente. Seis piezas revertidas, todas caen; el botón, tocado en el mismo estado
+    en los dos idiomas. Sin medir en vivo. Detalle: `detail/S146-arreglos-premium.md` §2.
 
 - **`R9-575` (S145, revisión del diff de la 144 / las dos hojas / vecino de `R9-17` y `R9-18` — P3) — 🐛 si la
   hoja se cierra con la compra en vuelo, el aviso se pierde: ni «Pago pendiente» ni «Tu ofrenda ya está
@@ -14301,6 +14307,10 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     aviso, al cerrar y reabrir, el monto se puede tocar. Las otras dos de `R9-19` sí caen sin la llamada.
   - **Propuesta (sin escribir):** una prueba de la guarda que le quite la constante al mock, y renombrar la otra
     por lo que mide. Detalle: `detail/S145-revision-del-diff-s144.md`.
+  - **✅ ARREGLADO en la sesión 146** (`14dea172`, solo pruebas): la guarda tiene tres pruebas, con la constante
+    quitada del mock (con la guarda revertida caen dos; la tercera es control), y «liquidada…» se llama ahora por
+    lo que mide, con un comentario que dice que el mock no modela un consumible trabado. Detalle:
+    `detail/S146-arreglos-premium.md` §7.
 
 - **`R9-579` (S145, revisión del diff de la 144 / hoja de donación / vecino de `R9-19` — P3) — 🐛 «ya comprado» en
   la donación restaura la OFRENDA en silencio: los extras se desbloquean sin ningún mensaje, y la restauración
@@ -14318,6 +14328,12 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     anónimo nunca le cambia el dueño a RevenueCat») no vale para una restauración. **Propuesta (sin escribir):**
     decidirlo junto con la V1b; si se conserva, avisar con `restoreSuccess` cuando la restauración trae la
     ofrenda. Detalle: `detail/S145-revision-del-diff-s144.md`.
+  - **✅ ARREGLADO en la sesión 146** (`55adac79`): decidido con la V1b (`CONTINUAR.md` §7): la restauración se
+    conserva, porque una restauración vale para quien tiene la cuenta de la tienda, anónimo incluido; lo que se
+    arregla es el silencio. Cuando es ella la que desbloquea los extras, la hoja lo dice con el toast
+    `offering.restoreSuccess`; si ya estaban activos, o la cuenta no tiene la ofrenda, no dice nada. Dos piezas
+    revertidas, las dos caen. Sin medir en vivo (si el toast se ve con la hoja abierta sigue en la lista). Detalle:
+    `detail/S146-arreglos-premium.md` §7.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -14406,6 +14422,15 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   de `R9-119` (`CONTINUAR.md` §8): se arregla después de ella. `detail/S144-arreglos-dinero.md`.
   **Decidido el 2026-11-12 (`CONTINUAR.md` §7):** se arregla en la tanda V1b, con la regla de `R9-119`. El enlace
   de una CUENTA que llegó antes de `initialize()`, o cuyo `logIn` falló, se reintenta; el de un anónimo, no existe.
+  **✅ ARREGLADO EN PARTE en la sesión 146** (`b48c430b`); **la entrada sigue abierta.** Entró lo que no depende de
+  nada sin medir: un `logIn` que falla con RevenueCat en el id de OTRA cuenta queda anotado en disco y se
+  reintenta al terminar `initialize()` (si esa cuenta sigue en sesión) y antes de comprar o restaurar. Hacía falta
+  ya: con `R9-119` arreglado, RevenueCat se queda en la cuenta que salió, y este pasó a ser el camino principal.
+  **No entró la raíz** (enlazar al terminar `initialize()` a toda cuenta que llegó antes), ni enlazar tras pasar de
+  anónimo a Google: las dos llaman a `logIn` para quien hoy no se llama, y con el supuesto «`logIn` no une las
+  compras del id anónimo» le quitan los extras a quien pagó, en su propio aparato (medido con la sonda, los dos
+  supuestos). Están escritas y medidas en `detail/S146-arreglos-premium.md` §6, y esperan la medición con la
+  cuenta de Google de prueba.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige
@@ -14671,6 +14696,16 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   al cerrar sesión en el aparato, y la cuenta lo lleva a otros aparatos. La regla: un usuario anónimo nunca le
   cambia el dueño a RevenueCat. Falta hacerlo: es la tanda V1b (`CONTINUAR.md` §4), y con ella los dos comentarios
   vuelven a cambiar. La entrada no se cierra hasta entonces.
+
+  **✅ ARREGLADO en la sesión 146** (`3190815b`): `AuthContext` ya no llama a `linkUser` para un usuario anónimo
+  (tampoco en el primer arranque); cerrar sesión deja a RevenueCat en la cuenta que salió, y los extras siguen en
+  el aparato, también tras un arranque en frío. Otra cuenta en el mismo aparato ve lo suyo; el canje de un código
+  siendo anónimo sigue desbloqueando. Los dos comentarios dicen lo que hace el código nuevo. Con el `AuthProvider`
+  y el servicio reales; la guarda revertida, caen cuatro. La regla quedó reescrita en `CONTINUAR.md` §7 (el enlace
+  automático nunca lo dispara un anónimo; una restauración vale para cualquiera). **Lo que NO quedó hecho de la
+  decisión:** «la cuenta lo lleva a otros aparatos» sigue sin cumplirse para quien compró con RevenueCat en su id
+  anónimo; depende de las dos piezas de `R9-135` que esperan la medición en vivo. Sin medir en vivo. Detalle:
+  `detail/S146-arreglos-premium.md` §4.
 
 - **`R9-120` (S19, build de packs — P3, agrupado).** Todo medido con el `main()` real:
   1. La prueba legacy de `R9-98` no demuestra que el normalizador corrió, aunque su comentario diga

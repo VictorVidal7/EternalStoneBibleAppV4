@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 145, 2026-11-12): la fase de ARREGLOS, con la tanda V1 (dinero) hecha y revisada.** Qué queda
-> abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt` (de `ESTADO.tsv`); al cierre de
-> la 145 eran 276 de 579: ningún P0, 16 P1, 93 P2, 166 P3 y un aviso. Sigue la tanda V1b, con `R9-574` primero, en
-> la sesión 146, y la V2 en la 147 (`CONTINUAR.md` §4). Los arreglos de dinero están sin medir en vivo, y con ellos
-> del Modo C faltan `C17` y `C23` (P1) y lo que espera una cuenta de Google de prueba (`C26a`, `C54`, `C55`…).
+> **Frontera (sesión 146, 2026-11-12): la fase de ARREGLOS, con la tanda V1b (de quién es el premium) hecha y sin
+> revisar.** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre
+> de la 146 eran 272 de 579: ningún P0, 16 P1, 91 P2, 164 P3 y un aviso. Sigue la revisión de su diff en la 147, y
+> la V2 en la 148 (`CONTINUAR.md` §4). `R9-135` sigue abierto: dos piezas esperan la medición con la cuenta de
+> Google de prueba (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -303,3 +303,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   aviso manda a «Restaurar», y «Restaurar» dice «No encontramos una ofrenda anterior») y `R9-575` a `R9-579` (P3);
   tres cosas que la decisión de `R9-119` no cubre, para la V1b. Sin medir en vivo. Detalle:
   `detail/S145-revision-del-diff-s144.md`.
+- **Sesión 146 — 2026-11-12.** Arreglos: `R9-574` (P2) y la tanda V1b. Arreglados `R9-574`, `R9-119`, `R9-579` y
+  `R9-578`; `R9-135`, en parte (el reintento de un `logIn` que falla al cambiar de cuenta) y sigue abierto: la
+  raíz y el enlace tras pasar de anónimo a Google no entraron, porque con uno de los dos supuestos sobre
+  RevenueCat le quitan los extras a quien pagó; quedaron escritas y medidas, esperando la cuenta de Google de
+  prueba. La regla de `R9-119`, reescrita (una restauración vale para cualquiera). Sin medir en vivo. Detalle:
+  `detail/S146-arreglos-premium.md`.
