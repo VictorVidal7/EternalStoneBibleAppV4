@@ -160,6 +160,10 @@ import {
   ENTITLEMENT_CACHE_KEY,
   getCachedEntitlement,
 } from '../src/lib/offering/entitlementCache';
+import {
+  getPendingLinkUid,
+  setPendingLinkUid,
+} from '../src/lib/offering/pendingLink';
 
 // Spy on the real logger — the lazy Crashlytics require returns null
 // in jest (no native binding), so logger calls are effectively no-ops
@@ -1520,5 +1524,98 @@ describe('R9-119 — un anonimo nunca le cambia el dueno a RevenueCat', () => {
 
     expect(sdk.logIn.mock.calls).toEqual([['uid-beto']]);
     expect(getLastKnownEntitlement()).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-135 — el vecino que abre R9-119: RevenueCat queda quieto en la cuenta que
+// salio, y si el logIn de la que ENTRA falla, esta veria los extras de la
+// anterior en cada arranque. El AuthProvider y el servicio reales.
+// ---------------------------------------------------------------------------
+describe('R9-135 — el logIn de la cuenta que entra falla', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    __setAppUserID: (id: string) => void;
+    __reset: () => void;
+  };
+  const active = {
+    entitlements: {
+      active: {[ENTITLEMENT_ID]: {identifier: ENTITLEMENT_ID}},
+      all: {},
+    },
+  };
+
+  beforeEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    await setPendingLinkUid(null);
+    setOfferingApiKey('test-key');
+    await initializeOffering();
+  });
+  afterEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+  });
+
+  const settle = async () => {
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  };
+
+  it('la sesion sigue viendo los extras de la anterior, y el arranque siguiente lo corrige', async () => {
+    const {ref, onReady} = captureAuthApi();
+    const first = render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    mockCurrentUser = {uid: 'uid-ana', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(getLastKnownEntitlement()).toBe(true));
+    sdk.__setAppUserID('uid-ana');
+
+    await act(async () => {
+      await ref.current!.signOut();
+    });
+    mockCurrentUser = null;
+    flushListenerWith(null);
+    mockCurrentUser = {uid: 'anon-nuevo', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+
+    // Beto inicia sesion sin red: su logIn falla.
+    sdk.logIn.mockRejectedValueOnce({code: '10', message: 'network'});
+    mockCurrentUser = {uid: 'uid-beto', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+    expect(sdk.logIn.mock.calls).toEqual([['uid-ana'], ['uid-beto']]);
+    expect(getLastKnownEntitlement()).toBe(true);
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto');
+
+    // El arranque siguiente: Firebase avisa la sesion de Beto ANTES de
+    // initialize(), y el SDK sigue en la cuenta de Ana.
+    first.unmount();
+    resetOffering();
+    sdk.logIn.mockClear();
+    setOfferingApiKey('test-key');
+    render(
+      <AuthProvider>
+        <Probe onReady={() => {}} />
+      </AuthProvider>,
+    );
+    flushListenerWith(mockCurrentUser);
+    await initializeOffering();
+    await settle();
+
+    expect(sdk.logIn.mock.calls).toEqual([['uid-beto']]);
+    expect(getLastKnownEntitlement()).toBe(false);
+    await expect(getCachedEntitlement()).resolves.toBe(false);
+    await expect(getPendingLinkUid()).resolves.toBeNull();
   });
 });

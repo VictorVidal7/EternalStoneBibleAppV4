@@ -27,6 +27,10 @@ import {
   ENTITLEMENT_CACHE_KEY,
   getCachedEntitlement,
 } from '../src/lib/offering/entitlementCache';
+import {
+  getPendingLinkUid,
+  setPendingLinkUid,
+} from '../src/lib/offering/pendingLink';
 
 const mockPurchases = Purchases as unknown as {
   configure: jest.Mock;
@@ -667,6 +671,177 @@ describe('R9-105 — la linea exacta de R9-9 con el modulo RECIEN CARGADO', () =
       // del reembolso.
       await expect(cache.getCachedEntitlement()).resolves.toBe(false);
       expect(seen).toEqual([false]);
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-135 — el logIn que falla al CAMBIAR de cuenta se reintenta. El mock del
+// SDK no modela clientes: solo sabe en que id esta (ver __mocks__).
+// ---------------------------------------------------------------------------
+describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    isAnonymous: jest.Mock;
+    purchasePackage: jest.Mock;
+    restorePurchases: jest.Mock;
+    __reset: () => void;
+  };
+  const active = {
+    entitlements: {
+      active: {[ENTITLEMENT_ID]: {identifier: ENTITLEMENT_ID}},
+      all: {},
+    },
+  };
+  const pkg = {identifier: 'o1'} as never;
+  const offline = {code: '10', message: 'network'};
+
+  beforeEach(async () => {
+    __resetForTests();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    await setPendingLinkUid(null);
+    __setApiKeyForTests('test-key');
+    await initialize();
+  });
+
+  /** Ana (con la ofrenda) esta enlazada; entra Beto y su logIn falla. */
+  async function betoFailsAfterAna(): Promise<void> {
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    await linkUser('ana');
+    // El mock responde con Once sin pasar por su implementacion: se dice a
+    // mano que el SDK quedo en la cuenta de Ana.
+    (
+      Purchases as unknown as {__setAppUserID: (id: string) => void}
+    ).__setAppUserID('ana');
+    expect(getLastKnownEntitlement()).toBe(true);
+    sdk.logIn.mockRejectedValueOnce(offline);
+    await linkUser('beto');
+    expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto']]);
+    // Mientras no se pueda preguntar por Beto, se sigue viendo lo de Ana.
+    expect(getLastKnownEntitlement()).toBe(true);
+  }
+
+  /** Un proceso nuevo: el servicio arranca de cero; el SDK y el disco no. */
+  async function nextProcess(earlyUid: string | null): Promise<void> {
+    __resetForTests();
+    sdk.logIn.mockClear();
+    __setApiKeyForTests('test-key');
+    // El orden del arranque en frio: AuthContext llama antes de initialize().
+    await linkUser(earlyUid);
+    await initialize();
+  }
+
+  it('queda anotado en disco y se reintenta antes de una compra', async () => {
+    await betoFailsAfterAna();
+    await expect(getPendingLinkUid()).resolves.toBe('beto');
+
+    sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+    await expect(purchaseUnlock(pkg)).resolves.toEqual({status: 'success'});
+
+    expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto'], ['beto']]);
+    expect(sdk.logIn.mock.invocationCallOrder[2]).toBeLessThan(
+      sdk.purchasePackage.mock.invocationCallOrder[0],
+    );
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+  });
+
+  it('se reintenta antes de restaurar, y lo que se ve pasa a ser lo de la cuenta que entro', async () => {
+    await betoFailsAfterAna();
+
+    await expect(restore()).resolves.toEqual({status: 'notFound'});
+
+    expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto'], ['beto']]);
+    expect(sdk.logIn.mock.invocationCallOrder[2]).toBeLessThan(
+      sdk.restorePurchases.mock.invocationCallOrder[0],
+    );
+    expect(getLastKnownEntitlement()).toBe(false);
+  });
+
+  it('en el arranque siguiente, con esa cuenta en sesion, se reintenta al terminar initialize()', async () => {
+    await betoFailsAfterAna();
+
+    await nextProcess('beto');
+
+    expect(sdk.logIn.mock.calls).toEqual([['beto']]);
+    expect(getLastKnownEntitlement()).toBe(false);
+    await expect(getCachedEntitlement()).resolves.toBe(false);
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+
+    // Y ya no queda nada que reintentar en los arranques que siguen.
+    await nextProcess('beto');
+    expect(sdk.logIn).not.toHaveBeenCalled();
+  });
+
+  it('si el reintento del arranque vuelve a fallar, sigue pendiente', async () => {
+    await betoFailsAfterAna();
+    sdk.logIn.mockRejectedValueOnce(offline);
+
+    await nextProcess('beto');
+
+    expect(sdk.logIn.mock.calls).toEqual([['beto']]);
+    await expect(getPendingLinkUid()).resolves.toBe('beto');
+    await nextProcess('beto');
+    expect(sdk.logIn.mock.calls).toEqual([['beto']]);
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+  });
+
+  it.each([
+    ['nadie (cerro sesion)', null],
+    ['otra cuenta', 'carla'],
+  ])(
+    'en el arranque siguiente con %s en sesion NO se reintenta',
+    async (_label, early) => {
+      await betoFailsAfterAna();
+
+      await nextProcess(early);
+
+      expect(sdk.logIn).not.toHaveBeenCalled();
+      await expect(getPendingLinkUid()).resolves.toBe('beto');
+    },
+  );
+
+  it('un logIn que sale bien borra el pendiente: ya no hay nada que reintentar', async () => {
+    await betoFailsAfterAna();
+
+    await linkUser('carla');
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+    sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+    await purchaseUnlock(pkg);
+
+    expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto'], ['carla']]);
+  });
+
+  describe('lo que NO se reintenta (espera la medicion en vivo)', () => {
+    it('un logIn que falla con RevenueCat en su id ANONIMO no queda pendiente', async () => {
+      sdk.logIn.mockRejectedValueOnce(offline);
+      await linkUser('ana');
+
+      await expect(getPendingLinkUid()).resolves.toBeNull();
+      sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+      await purchaseUnlock(pkg);
+      await restore();
+      expect(sdk.logIn.mock.calls).toEqual([['ana']]);
+
+      await nextProcess('ana');
+      expect(sdk.logIn).not.toHaveBeenCalled();
+    });
+
+    it('una cuenta que llega antes de initialize() sin nada pendiente NO se enlaza al terminar', async () => {
+      await nextProcess('ana');
+
+      expect(sdk.logIn).not.toHaveBeenCalled();
+      expect(sdk.isAnonymous).not.toHaveBeenCalled();
+    });
+
+    it('si el SDK no sabe decir si esta en un id anonimo, no se anota nada', async () => {
+      sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+      await linkUser('ana');
+      sdk.isAnonymous.mockRejectedValueOnce(new Error('no configurado'));
+      sdk.logIn.mockRejectedValueOnce(offline);
+      await linkUser('beto');
+
+      await expect(getPendingLinkUid()).resolves.toBeNull();
     });
   });
 });

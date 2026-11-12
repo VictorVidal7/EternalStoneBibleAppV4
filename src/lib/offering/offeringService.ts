@@ -22,6 +22,7 @@
 
 import {logger} from '@lib/utils/logger';
 import {setCachedEntitlement} from './entitlementCache';
+import {getPendingLinkUid, setPendingLinkUid} from './pendingLink';
 import type {
   CustomerInfo,
   PurchasesPackage,
@@ -94,6 +95,7 @@ type PurchasesStatic = {
   ) => Promise<{customerInfo: CustomerInfo}>;
   restorePurchases: () => Promise<CustomerInfo>;
   logIn: (uid: string) => Promise<{customerInfo: CustomerInfo}>;
+  isAnonymous?: () => Promise<boolean>;
   invalidateCustomerInfoCache: () => Promise<void>;
   canMakePayments: () => Promise<boolean>;
   setLogHandler: (handler: (level: string, message: string) => void) => void;
@@ -121,11 +123,20 @@ export function __resetForTests(): void {
   _purchases = undefined;
   configured = false;
   lastKnownUnlocked = null;
+  earlyUid = null;
+  pendingUid = null;
   listeners.clear();
   apiKey = '';
 }
 
 let configured = false;
+/**
+ * The account AuthContext asked to link before initialize() had configured
+ * the SDK (every cold start). Only remembered: see initialize().
+ */
+let earlyUid: string | null = null;
+/** An account change whose logIn has not gone through yet (R9-135). */
+let pendingUid: string | null = null;
 /**
  * R9-9 — `null` means "RevenueCat has not answered yet in this process", and
  * that is NOT the same as "not unlocked". This used to be a plain `boolean`
@@ -225,6 +236,14 @@ export async function initialize(): Promise<void> {
     });
     const info = await Purchases.getCustomerInfo();
     await handleCustomerInfo(info);
+    // R9-135 — an account change that could not be completed in an earlier
+    // process is retried here, and only if that account is still the one
+    // in session. Any other early uid is left alone (see linkUser).
+    const stored = await getPendingLinkUid();
+    if (stored !== null && stored === earlyUid) {
+      pendingUid = stored;
+      await retryPendingLink(Purchases);
+    }
   } catch (err) {
     logger.error('offeringService: initialize failed', err as Error, {
       component: 'offeringService',
@@ -255,23 +274,81 @@ export async function isBillingAvailable(): Promise<boolean> {
  * that uid. RevenueCat's logOut is never called, so after a sign-out
  * RevenueCat keeps answering for the last uid linked here.
  *
- * It is a silent no-op until initialize() has configured the SDK — which,
- * on a cold start, is after AuthContext's first call (R9-135, open).
+ * Until initialize() has configured the SDK — which, on a cold start, is
+ * after AuthContext's first call — it does not log in: it only remembers
+ * the uid (R9-135, open: that account is not linked on a cold start).
  */
 export async function linkUser(uid: string | null): Promise<void> {
-  if (!configured || !uid) return;
+  if (!uid) return;
+  if (!configured) {
+    earlyUid = uid;
+    return;
+  }
   const Purchases = getPurchases();
   if (!Purchases) return;
+  await logInAs(Purchases, uid);
+}
+
+async function logInAs(Purchases: PurchasesStatic, uid: string): Promise<void> {
+  let customerInfo: CustomerInfo;
   try {
-    const {customerInfo} = await Purchases.logIn(uid);
-    await handleCustomerInfo(customerInfo);
+    ({customerInfo} = await Purchases.logIn(uid));
   } catch (err) {
     logger.warn('offeringService: linkUser failed', {
       component: 'offeringService',
       action: 'linkUser',
       error: err,
     });
+    await notePendingLink(Purchases, uid);
+    return;
   }
+  try {
+    // RevenueCat answers for `uid` now: nothing is left to retry.
+    pendingUid = null;
+    await setPendingLinkUid(null);
+    await handleCustomerInfo(customerInfo);
+  } catch (err) {
+    logger.warn('offeringService: syncing after linkUser failed', {
+      component: 'offeringService',
+      action: 'linkUser',
+      error: err,
+    });
+  }
+}
+
+/**
+ * R9-135 — a logIn that failed while RevenueCat was answering for ANOTHER
+ * account is noted, in memory and on disk, and retried: at the end of the
+ * next initialize(), and before a purchase or a restore. Without it the
+ * account that came in kept the extras of the one that left, on every later
+ * start, and its purchases went to the other customer.
+ *
+ * A logIn that failed while RevenueCat was on its own anonymous id is NOT
+ * noted. That is the state every cold start leaves (see linkUser), and what
+ * a logIn does with the purchases made under the anonymous id has not been
+ * measured on a device: retrying it here would make that call for people it
+ * is not made for today.
+ */
+async function notePendingLink(
+  Purchases: PurchasesStatic,
+  uid: string,
+): Promise<void> {
+  try {
+    if (!Purchases.isAnonymous || (await Purchases.isAnonymous())) return;
+    pendingUid = uid;
+    await setPendingLinkUid(uid);
+  } catch (err) {
+    logger.warn('offeringService: noting the pending link failed', {
+      component: 'offeringService',
+      action: 'linkUser',
+      error: err,
+    });
+  }
+}
+
+async function retryPendingLink(Purchases: PurchasesStatic): Promise<void> {
+  if (pendingUid === null) return;
+  await logInAs(Purchases, pendingUid);
 }
 
 /** The 3 one-time "ofrenda" unlock packages, all granting the same entitlement. */
@@ -364,6 +441,9 @@ export async function purchaseUnlock(
   if (!configured || !Purchases) {
     return {status: 'error', message: 'Offering system not initialized'};
   }
+  // R9-135 — before a purchase is written to a customer, the account
+  // change that is still pending gets one more try.
+  await retryPendingLink(Purchases);
   let customerInfo: CustomerInfo;
   try {
     ({customerInfo} = await Purchases.purchasePackage(pkg));
@@ -428,6 +508,9 @@ export async function purchaseDonation(
 export async function restore(): Promise<RestoreOutcome> {
   const Purchases = getPurchases();
   if (!configured || !Purchases) return {status: 'error'};
+  // R9-135 — a restore hands the purchases to the current customer: the
+  // account change that is still pending gets one more try first.
+  await retryPendingLink(Purchases);
   try {
     const info = await Purchases.restorePurchases();
     await handleCustomerInfo(info);

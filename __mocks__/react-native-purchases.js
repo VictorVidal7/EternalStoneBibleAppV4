@@ -17,6 +17,13 @@ const emptyCustomerInfo = () => ({
   nonSubscriptionTransactions: [],
 });
 let customerInfo = emptyCustomerInfo();
+// The SDK's own user. This mock does NOT model customers: logIn() answers
+// with the one global customerInfo, whoever the uid is. It only tracks WHICH
+// id the SDK is on, so isAnonymous() can tell an account change (R9-135)
+// from the first link of an anonymous id. What the real backend does with
+// the purchases of an anonymous id on logIn is not modelled here.
+const ANONYMOUS_ID = '$RCAnonymousID:mock';
+let appUserID = ANONYMOUS_ID;
 let customerInfoListeners = [];
 let offeringsResponse = {all: {}};
 let productsResponse = [];
@@ -39,7 +46,14 @@ const Purchases = {
   purchasePackage: jest.fn(() => Promise.resolve({customerInfo})),
   purchaseStoreProduct: jest.fn(() => Promise.resolve({customerInfo})),
   restorePurchases: jest.fn(() => Promise.resolve(customerInfo)),
-  logIn: jest.fn(() => Promise.resolve({customerInfo})),
+  logIn: jest.fn(uid => {
+    appUserID = uid;
+    return Promise.resolve({customerInfo});
+  }),
+  getAppUserID: jest.fn(() => Promise.resolve(appUserID)),
+  isAnonymous: jest.fn(() =>
+    Promise.resolve(appUserID.startsWith('$RCAnonymousID:')),
+  ),
   invalidateCustomerInfoCache: jest.fn(() => Promise.resolve()),
   canMakePayments: jest.fn(() => Promise.resolve(true)),
   setLogHandler: jest.fn(),
@@ -54,6 +68,10 @@ const Purchases = {
     customerInfo = info;
     notifyListeners();
   },
+  /** The id the SDK is on; survives a "process restart" of the service. */
+  __setAppUserID(id) {
+    appUserID = id;
+  },
   __setOfferings(offerings) {
     offeringsResponse = offerings;
   },
@@ -65,6 +83,7 @@ const Purchases = {
   },
   __reset() {
     customerInfo = emptyCustomerInfo();
+    appUserID = ANONYMOUS_ID;
     customerInfoListeners = [];
     offeringsResponse = {all: {}};
     productsResponse = [];
