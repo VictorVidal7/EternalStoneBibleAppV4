@@ -220,6 +220,60 @@ describe('DonationSheet', () => {
       expect(queryByText('Gracias por tu generosidad')).toBeNull();
     });
 
+    describe('R9-579 — esa restauracion trae tambien la ofrenda', () => {
+      const withExtras = {
+        entitlements: {active: {extras: {identifier: 'extras'}}, all: {}},
+      };
+
+      it('si es ella la que desbloquea los extras, lo dice; el aviso de la donacion sigue', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.__setProducts(fakeProducts);
+        mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '6'});
+        mockPurchases.restorePurchases.mockResolvedValueOnce(withExtras);
+
+        const {findByText, findByLabelText} = renderSheet();
+        fireEvent.press(await findByLabelText('$4.99'));
+
+        expect(await findByText(es.donation.inProgressTitle)).toBeTruthy();
+        expect(mockToast.success).toHaveBeenCalledTimes(1);
+        expect(mockToast.success).toHaveBeenCalledWith(
+          es.offering.restoreSuccess,
+        );
+      });
+
+      it('si los extras ya estaban activos, no anuncia nada', async () => {
+        __setApiKeyForTests('test-key');
+        (
+          mockPurchases as unknown as {__setCustomerInfo: (i: unknown) => void}
+        ).__setCustomerInfo(withExtras);
+        await initialize();
+        mockPurchases.__setProducts(fakeProducts);
+        mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '6'});
+
+        const {findByText, findByLabelText} = renderSheet();
+        fireEvent.press(await findByLabelText('$4.99'));
+
+        expect(await findByText(es.donation.inProgressTitle)).toBeTruthy();
+        expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+        expect(mockToast.success).not.toHaveBeenCalled();
+      });
+
+      it('si la cuenta no tiene la ofrenda, no anuncia nada', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.__setProducts(fakeProducts);
+        mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '6'});
+
+        const {findByText, findByLabelText} = renderSheet();
+        fireEvent.press(await findByLabelText('$4.99'));
+
+        expect(await findByText(es.donation.inProgressTitle)).toBeTruthy();
+        expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+        expect(mockToast.success).not.toHaveBeenCalled();
+      });
+    });
+
     it('si liquidarla falla (sin red), el aviso es el mismo y nada revienta', async () => {
       __setApiKeyForTests('test-key');
       await initialize();

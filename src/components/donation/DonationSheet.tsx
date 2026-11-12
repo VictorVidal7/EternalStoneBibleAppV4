@@ -35,6 +35,7 @@ import {
   getDonationProducts,
   purchaseDonation,
   restore as restorePurchases,
+  getLastKnownEntitlement,
 } from '@lib/offering/offeringService';
 import {
   borderRadius,
@@ -117,7 +118,15 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
         // stuck one, so it is attempted here, best-effort. The notice is
         // the same whether or not it worked, because what it says is true
         // either way: the store has their gift, and they need not pay again.
-        await restorePurchases();
+        //
+        // R9-579 — that restore brings back everything the store account
+        // holds, the OFFERING included. It used to unlock the extras without
+        // a word; when it is this restore that unlocked them, say so.
+        const hadExtras = getLastKnownEntitlement();
+        const restored = await restorePurchases();
+        if (!hadExtras && restored.status === 'restored') {
+          toast.success(t.offering.restoreSuccess);
+        }
         setState({
           kind: 'notice',
           title: t.donation.inProgressTitle,
