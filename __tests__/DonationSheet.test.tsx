@@ -59,6 +59,7 @@ jest.mock('../src/lib/haptics', () => ({
 
 const mockPurchases = Purchases as unknown as {
   purchaseStoreProduct: jest.Mock;
+  restorePurchases: jest.Mock;
   __setProducts: (products: unknown) => void;
   __reset: () => void;
 };
@@ -193,6 +194,68 @@ describe('DonationSheet', () => {
       rerender(<DonationSheet visible={false} onClose={onClose} />);
       rerender(<DonationSheet visible onClose={onClose} />);
       expect(await findByLabelText('$4.99')).toBeTruthy();
+    });
+  });
+
+  describe('R9-19 — «ya comprado»: la tienda todavía tiene una donación de ese monto', () => {
+    const es = require('../src/i18n/translations').translations.es;
+
+    it('intenta liquidarla y avisa en la hoja; no dice «Inténtalo de nuevo»', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setProducts(fakeProducts);
+      mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({
+        code: '6',
+        message: 'This product is already active for the user.',
+      });
+
+      const {findByText, findByLabelText, queryByText} = renderSheet();
+      fireEvent.press(await findByLabelText('$4.99'));
+
+      expect(await findByText(es.donation.inProgressTitle)).toBeTruthy();
+      expect(await findByText(es.donation.inProgressMessage)).toBeTruthy();
+      expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(queryByText('$4.99')).toBeNull();
+      expect(queryByText('Gracias por tu generosidad')).toBeNull();
+    });
+
+    it('si liquidarla falla (sin red), el aviso es el mismo y nada revienta', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setProducts(fakeProducts);
+      mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '6'});
+      mockPurchases.restorePurchases.mockRejectedValueOnce({
+        code: '10',
+        message: 'network',
+      });
+
+      const {findByText, findByLabelText} = renderSheet();
+      fireEvent.press(await findByLabelText('$4.99'));
+
+      expect(await findByText(es.donation.inProgressTitle)).toBeTruthy();
+      expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+      expect(mockToast.error).not.toHaveBeenCalled();
+    });
+
+    it('liquidada, el mismo monto se puede volver a dar tras cerrar y reabrir', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setProducts(fakeProducts);
+      mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '6'});
+
+      const onClose = jest.fn();
+      const {findByText, findByLabelText, rerender} = render(
+        <DonationSheet visible onClose={onClose} />,
+      );
+      fireEvent.press(await findByLabelText('$4.99'));
+      expect(await findByText(es.donation.inProgressTitle)).toBeTruthy();
+
+      fireEvent.press(await findByLabelText('Cerrar'));
+      rerender(<DonationSheet visible={false} onClose={onClose} />);
+      rerender(<DonationSheet visible onClose={onClose} />);
+      fireEvent.press(await findByLabelText('$4.99'));
+      expect(await findByText('Gracias por tu generosidad')).toBeTruthy();
     });
   });
 

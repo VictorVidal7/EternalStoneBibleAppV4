@@ -365,6 +365,16 @@ describe('offeringService', () => {
       });
     });
 
+    it('R9-19 — purchaseDonation tambien reporta alreadyOwned (PRODUCT_ALREADY_PURCHASED_ERROR)', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({code: '6'});
+      const outcome = await purchaseDonation({
+        identifier: 'donacion_1',
+      } as never);
+      expect(outcome).toEqual({status: 'alreadyOwned'});
+    });
+
     it('reports a generic error for any other failure', async () => {
       __setApiKeyForTests('test-key');
       await initialize();

@@ -34,6 +34,7 @@ import {
   isBillingAvailable,
   getDonationProducts,
   purchaseDonation,
+  restore as restorePurchases,
 } from '@lib/offering/offeringService';
 import {
   borderRadius,
@@ -103,6 +104,24 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
           kind: 'notice',
           title: t.donation.pendingTitle,
           message: t.donation.pendingMessage,
+        });
+      } else if (outcome.status === 'alreadyOwned') {
+        // R9-19 — the store refuses because it still HOLDS a donation of
+        // this amount: one whose receipt never got settled, or one whose
+        // payment is still pending. It is not a failure, and retrying can
+        // never work while the store holds it — this used to fall to the
+        // generic «Inténtalo de nuevo», for that amount, every time, on a
+        // sheet with no restore link (only OfferingSheet handled it).
+        //
+        // Re-posting the store's purchases is what lets RevenueCat settle a
+        // stuck one, so it is attempted here, best-effort. The notice is
+        // the same whether or not it worked, because what it says is true
+        // either way: the store has their gift, and they need not pay again.
+        await restorePurchases();
+        setState({
+          kind: 'notice',
+          title: t.donation.inProgressTitle,
+          message: t.donation.inProgressMessage,
         });
       } else {
         toast.error(t.donation.purchaseError);

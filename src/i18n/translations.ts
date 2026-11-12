@@ -4552,6 +4552,9 @@ export const translations = {
       pendingTitle: 'Pago pendiente',
       pendingMessage:
         'Tu donación quedó pendiente de confirmación. No hace falta volver a pagar.',
+      inProgressTitle: 'Donación en proceso',
+      inProgressMessage:
+        'La tienda ya tiene una donación tuya de este monto que todavía no termina de registrarse. No hace falta volver a pagar; podrás dar de nuevo cuando termine.',
       thankYouTitle: 'Gracias por tu generosidad',
       thankYouMessage: 'Dios ve lo que se da desde el corazón.',
       thankYouVerse:
@@ -11106,6 +11109,9 @@ export const translations = {
       pendingTitle: 'Payment pending',
       pendingMessage:
         "Your donation is awaiting confirmation. There's no need to pay again.",
+      inProgressTitle: 'Donation in progress',
+      inProgressMessage:
+        "The store already has a donation of this amount from you that hasn't finished registering. There's no need to pay again; you can give again once it does.",
       thankYouTitle: 'Thank you for your generosity',
       thankYouMessage: 'God sees what is given from the heart.',
       thankYouVerse:
