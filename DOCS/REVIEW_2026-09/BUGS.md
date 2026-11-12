@@ -3522,6 +3522,11 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   un restore correcto sin compras, y `OfferingSheet.tsx:147-158` lo mapea a «No encontramos
   una ofrenda anterior en esta cuenta.». A quien **ya pagó** y restaura con mala señal se le
   afirma que su compra no existe. Dos tests **congelan la confusión** como esperada.
+  **✅ ARREGLADO en la sesión 144** (`cff16883`): `restore()` devuelve `'restored'`, `'notFound'` o `'error'`, y
+  `'notFound'` solo lo puede decir la tienda; la hoja muestra un texto nuevo (`offering.restoreError`) cuando no se
+  pudo preguntar, también en el camino `alreadyOwned`. Reproducido con el servicio real (los 10 rechazos de la
+  matriz daban `restoreNotFound`); 7 pruebas vistas caer con la pieza revertida. Sin medir en vivo.
+  `detail/S144-arreglos-dinero.md`.
 
 - **`R9-17` (A2, dinero) — 🐛 `purchaseUnlock` declara `success` sin comprobar que el
   entitlement quedó activo: cobrado, agradecido y bloqueado.** `offeringService.ts:292-298`
@@ -3529,6 +3534,13 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   sobre el mismo dato. Si el `CustomerInfo` no trae aún `extras` (mapping mal configurado en
   el dashboard, propagación lenta), Play cobra, la hoja dice «Gracias por sembrar en esta
   obra» y **todo sigue bloqueado**, sin ruta de auto-reparación.
+  **✅ ARREGLADO en la sesión 144** (`7425f258`): `'success'` quiere decir «la entitlement está activa». Resuelta la
+  llamada a la tienda (ya se cobró), el servicio mira la entitlement, relee una vez saltando la caché del SDK y, si
+  no está, responde el estado nuevo `'notActivated'`; nada después del cobro puede responder `'error'`. La hoja
+  pinta un aviso propio (`offering.notActivatedTitle` y `notActivatedMessage`), sin los montos a la vista, que manda
+  a «Restaurar mi ofrenda anterior». El mismo aviso reemplaza a «Inténtalo de nuevo» en el vecino `alreadyOwned`
+  cuando la tienda responde la restauración sin entitlement. 6 pruebas vistas caer, cada pieza revertida por
+  separado. Sin medir en vivo. `detail/S144-arreglos-dinero.md`.
 
 - **`R9-18` (A2, dinero) — 🐛 no se contempla el pago PENDIENTE: a quien paga en efectivo
   (OXXO/SPEI) se le dice que la ofrenda falló.** `offeringService.ts:261-282` solo mapea 2
@@ -3536,6 +3548,13 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   ventanilla termina en transacción **pendiente**: hoy se le muestra «No se pudo completar
   la ofrenda. Inténtalo de nuevo.» y se le pide repetir un pago que sí está en curso.
   Igual en `DonationSheet:93-96`.
+  **✅ ARREGLADO en la sesión 144** (`b4d305b5`): `PAYMENT_PENDING_ERROR` (`'20'`, comprobado contra el enum del
+  SDK real) da el estado nuevo `'pending'` en `purchaseUnlock` y en `purchaseDonation`, y las dos hojas pintan un
+  aviso propio, sin toast y sin los montos (`offering.pendingTitle`/`pendingMessage` y
+  `donation.pendingTitle`/`pendingMessage`; el texto, decidido por Claude por delegación de Victor del
+  2026-11-12). Los otros cinco códigos de la matriz siguen siendo `'error'`. 6 pruebas vistas caer sin el mapeo, y 2
+  por hoja sin su rama. Sin medir en vivo: que el SDK entregue el pendiente como rechazo `'20'` y que la
+  entitlement llegue sola al confirmarse sale de su documentación. `detail/S144-arreglos-dinero.md`.
 
 - **`R9-19` (A2, dinero) — 🐛 `DonationSheet` nunca maneja `alreadyOwned`.** Verificado:
   `grep` de `alreadyOwned` sobre `src/`+`app/` da **un solo** consumidor
@@ -3543,6 +3562,12 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   una donación no se liquida, cada reintento de **ese importe** cae al `else` con «No se
   pudo completar la donación», **para siempre**, y esta hoja **no tiene enlace de
   restaurar**: el tier queda muerto tras haber cobrado una vez.
+  **✅ ARREGLADO en la sesión 144** (`c629b9d8`): ante `alreadyOwned`, `DonationSheet` vuelve a publicar las compras
+  de la tienda (`restore()`, al mejor esfuerzo: es lo que le permite a RevenueCat liquidar la trabada) y pinta un
+  aviso propio, sin toast y sin los montos (`donation.inProgressTitle` e `inProgressMessage`), el mismo haya
+  servido o no la liquidación. 3 pruebas vistas caer con la rama revertida. Sin medir en vivo: el «para siempre»
+  de esta entrada y que `restorePurchases` consuma en Android un consumible sin liquidar no se midieron en un
+  dispositivo. `detail/S144-arreglos-dinero.md`.
 
 - **`R9-24` (A3, copy) — 🐛 el diálogo de "Eliminar cuenta" manda al usuario a un botón que
   NO borra sus datos.** `translations.ts:3888-3889` (es) / `:10416-10417` (en) dicen que use
@@ -14266,6 +14291,13 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   de Google que ya tiene la ofrenda, una instalación nueva publica la compra bajo ese `$RCAnonymousID` al
   arrancar, y tras una restauración (la de `C15`, camino `alreadyOwned`) cada instalación nueva sale premium sola
   (`detail/C15-hoja-ofrenda.md`).
+  **⚠️ Sesión 144: REPRODUCE con el servicio real, y NO se arregló.** Sonda (`_scratch/S144-sonda.test.tsx.txt`, el
+  SDK simulado solo en su frontera): `linkUser('uid')` antes de `initialize()` deja `logIn = []`; con Ana premium y
+  el `logIn('beto')` fallando, Beto queda premium en ese proceso y en el arranque siguiente (`logIn = []`,
+  `premium = true`). No entró en la tanda V1 porque el arreglo de raíz (recordar el uid y enlazarlo al terminar
+  `initialize()`) hace real el enlace del arranque en frío para TODOS los usuarios, y con eso cambia de quién es el
+  premium: hoy RevenueCat queda en su id anónimo tras un arranque en frío (sesión 115). Esa es la decisión abierta
+  de `R9-119` (`CONTINUAR.md` §8): se arregla después de ella. `detail/S144-arreglos-dinero.md`.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige
@@ -14521,6 +14553,11 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **Quién es dueño del premium (la cuenta o el dispositivo) es decisión de producto de Victor.** Lo
   que hoy sí es un defecto es que el comentario miente.
+
+  **⚠️ Sesión 144 (`919ee006`): los dos comentarios, corregidos; la conducta, igual.** El docstring de `linkUser`
+  y el comentario de `AuthContext.tsx` dicen ahora lo que hace el código (el anónimo que nace tras cerrar sesión
+  se enlaza, y los extras se bloquean hasta que quien pagó vuelve a entrar). La entrada no se cierra: falta la
+  decisión de Victor (`CONTINUAR.md` §8), y de ella depende también `R9-135`.
 
 - **`R9-120` (S19, build de packs — P3, agrupado).** Todo medido con el `main()` real:
   1. La prueba legacy de `R9-98` no demuestra que el normalizador corrió, aunque su comentario diga

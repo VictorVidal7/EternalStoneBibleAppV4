@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 143, 2026-11-12): la fase de ARREGLOS.** Qué queda abierto se pregunta con
-> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt` (de `ESTADO.tsv`); al cierre de la 142 eran 274 de 573:
-> ningún P0, 20 P1, 92 P2, 161 P3 y un aviso. El orden de las tandas está en `CONTINUAR.md` §4. De las filas: los
-> Modos A y B, terminados; del Modo C faltan `C17` y `C23` (P1) y lo que espera una cuenta de Google de prueba
-> (`C26a`, `C54`, `C55`, el suelo de `C20a` y «Borrar cuenta» de `C27a`).
+> **Frontera (sesión 144, 2026-11-12): la fase de ARREGLOS, con la tanda V1 (dinero) hecha.** Qué queda abierto se
+> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt` (de `ESTADO.tsv`); al cierre de la 144 eran
+> 270 de 573: ningún P0, 16 P1, 92 P2, 161 P3 y un aviso. Sigue la revisión del diff de la 144 (la 145) y la tanda
+> V2 (`CONTINUAR.md` §4). Los arreglos de dinero están sin medir en vivo, y con ellos del Modo C faltan `C17` y
+> `C23` (P1) y lo que espera una cuenta de Google de prueba (`C26a`, `C54`, `C55`, `C20a` y `C27a`).
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -294,3 +294,6 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   marcas de cierre en `BUGS.md`. Detalle: `detail/S142-conciliacion.md`.
 - **Sesión 143 — 2026-11-12.** Solo docs: `INDEX.md` y `CONTINUAR.md` adelgazados, `REGLAS.md`, `RECETAS.md`,
   `historial/` y `tools/`; el orden de las tandas con los P1 viejos. Detalle: `detail/S143-adelgazar.md`.
+- **Sesión 144 — 2026-11-12.** Arreglos, la tanda V1 (dinero): `R9-16`, `R9-17`, `R9-18` y `R9-19`, cada uno
+  reproducido con el servicio real y con su prueba vista fallar; `R9-135` reproduce y espera la decisión de
+  `R9-119`. Sin medir en vivo. Detalle: `detail/S144-arreglos-dinero.md`.

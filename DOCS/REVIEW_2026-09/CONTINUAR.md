@@ -151,6 +151,8 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   como fallo) y `R9-19` (`DonationSheet` sin `alreadyOwned`). Con ellos, del mismo servicio: `R9-135` (P2). Va
   primero porque le pasa a quien paga, y porque es un solo archivo de servicio y dos hojas. Su revisión de diff va
   aparte. `R9-119` no entra: de quién es el premium sigue en la §8; solo se corrige el docstring que miente.
+  **Hecha en la sesión 144** (`detail/S144-arreglos-dinero.md`), sin medir en vivo; su revisión es la 145.
+  `R9-135` reproduce y no entró: su arreglo cambia de quién es el premium, y espera esa decisión (§8).
 - **Tanda V2 — sync que pierde en silencio (4 P1).** `R9-128` (un apply remoto que falla y el cursor avanza), con
   `R9-132` (P2, la misma forma en subrayados); `R9-37` (el listener huérfano); `R9-127` (el `skipNextBulkPush` sin
   uid); y `R9-126` (el push con reloj viejo), que es de diseño: se mide y se propone antes de escribirlo, y si no
@@ -648,9 +650,14 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   falta el mismo pasaje en las dos Mesas. Se arregla primero en la 55.
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
-- **Cuatro que dejó a la vista la conciliación (sesión 142); las tandas de la §4 no las deciden:**
+- **Cuatro que dejó a la vista la conciliación (sesión 142), y una de la 144; las tandas de la §4 no las deciden:**
   - **`R9-119`, de quién es el premium:** hoy cerrar sesión se lo quita a quien pagó, hasta que vuelve a entrar.
-    ¿Es de la cuenta o del aparato? La tanda V1 solo corrige el docstring que dice lo contrario.
+    ¿Es de la cuenta o del aparato? La tanda V1 solo corrige el docstring que dice lo contrario. De esta decisión
+    depende además `R9-135` (sesión 144): enlazar de verdad el usuario en el arranque en frío cambia quién se
+    queda con el premium al iniciar o cerrar sesión, así que se arregla después de decidir.
+  - **Los textos de dinero de la sesión 144:** el del pago pendiente lo delegó Victor; los de «no se pudo
+    comprobar», «tu ofrenda ya está registrada» y «donación en proceso» los pedían sus arreglos y los decidió
+    Claude. Están citados, en los dos idiomas, en `detail/S144-arreglos-dinero.md` §8: Victor puede cambiarlos.
   - **`R9-24`, borrar lo que hay en el aparato:** no existe ninguna acción que borre el contenido local. La tanda
     V4 corrige el texto del diálogo de «Eliminar cuenta»; ¿se agrega además esa acción?
   - **`R9-118`, Codecov:** el step sale verde sin haber recibido nada nunca. ¿Se le da un token (un secreto) o se

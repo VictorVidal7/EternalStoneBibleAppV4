@@ -14,10 +14,10 @@ R9-12	P2	SyncEngine	abierto		mejora (💡): `grep writeBatch src`: 0
 R9-13	P0	web	arreglado	2026-09-03	marca de su entrada: «✅ RESUELTO 2026-09-03 el "¿está en producción?": NO, y por 5 días. El último deploy de Firebase Hosting es del 2026-08-13T04:39Z (consultado por la AP»
 R9-14	P0	web	arreglado	sesión 12	marca de su entrada: «✅ ARREGLADO en la sesión 12 — la mitad estructural, que es la que tenía la severidad. Se tomó la opción (b) del detalle, no la (a): un `ErrorBoundary`»
 R9-15	P1	tests	arreglado	sesión 12	marca de su entrada: «✅ ARREGLADO en la sesión 12, y arreglado antes que `R9-13` a propósito, para ver el crash de producción aparecer en la compuerta: con la redirección p»
-R9-16	P1	dinero	abierto		`src/lib/offering/offeringService.ts:343-348` (`restore()`: el `catch` devuelve `{unlocked: false}`); verificado también en la 141
-R9-17	P1	dinero	abierto		`src/lib/offering/offeringService.ts:313` (`purchaseUnlock` devuelve `{status: 'success'}` sin mirar el entitlement); verificado también en la 141
-R9-18	P1	dinero	abierto		`grep -i pending` en `src/lib/offering/offeringService.ts` y `src/components/donation/DonationSheet.tsx`: 0
-R9-19	P1	dinero	abierto		`alreadyOwned` tiene un solo consumidor: `src/components/offering/OfferingSheet.tsx:125`; `DonationSheet.tsx`, 0
+R9-16	P1	dinero	arreglado	cff16883	marca de su entrada: «✅ ARREGLADO en la sesión 144 (`cff16883`): `restore()` devuelve `'restored'`, `'notFound'` o `'error'`, y `'notFound'` solo lo puede decir la tienda;»
+R9-17	P1	dinero	arreglado	7425f258	marca de su entrada: «✅ ARREGLADO en la sesión 144 (`7425f258`): `'success'` quiere decir «la entitlement está activa». Resuelta la llamada a la tienda (ya se cobró), el se»
+R9-18	P1	dinero	arreglado	b4d305b5	marca de su entrada: «✅ ARREGLADO en la sesión 144 (`b4d305b5`): `PAYMENT_PENDING_ERROR` (`'20'`, comprobado contra el enum del SDK real) da el estado nuevo `'pending'` en»
+R9-19	P1	dinero	arreglado	c629b9d8	marca de su entrada: «✅ ARREGLADO en la sesión 144 (`c629b9d8`): ante `alreadyOwned`, `DonationSheet` vuelve a publicar las compras de la tienda (`restore()`, al mejor esfu»
 R9-20	P2	backend	abierto		mejora (💡): `vercel/gift-code-redeem/api/redeem.ts` no valida la forma del código antes de `verifyIdToken` (ningún `test(`/`match(` sobre `code`)
 R9-21	P2	backend	abierto		mejora (💡): `vercel/gift-code-redeem/api/redeem.ts:207` (el fallo del marcado va a `console.error` y la respuesta sigue)
 R9-22	P0	sync	arreglado	a9785be	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo inclu»
@@ -117,7 +117,7 @@ R9-115	P2	SyncEngine	arreglado	e97cd95	marca de su entrada: «✅ ARREGLADO en l
 R9-116	P2	prueba de respaldo	abierto		por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
 R9-117	P2	favoritos / respaldo	abierto		`subscribeBackupRestored` tiene 4 suscriptores en `src/context` (mazo, preferencias, progreso del plan, progreso); `FavoritesContext.tsx` no está
 R9-118	P2	CI	abierto		espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
-R9-119	P2	premium	abierto		decisión de producto de Victor (de quién es el premium); el docstring sigue: `src/context/AuthContext.tsx:369` («never revoked on sign-out»)
+R9-119	P2	premium	abierto		decisión de producto de Victor (de quién es el premium); los dos docstrings se corrigieron en la sesión 144 (`919ee006`) y la conducta quedó igual
 R9-120	P3	build de packs	abierto		grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
 R9-121	P3	compuerta de CI	abierto		grupo de P3 de la compuerta de CI; sin commit ni mención en el código; no re-medidos uno por uno
 R9-122	P3	dinero y sync	abierto		parcial: el punto 4 se arregló con `R9-153` (`a7d688e`, sesión 24); los puntos 1 a 3 siguen (por ejemplo, el comentario de `src/context/PremiumContext.tsx:72-73`)
@@ -133,7 +133,7 @@ R9-131	P1	prueba de respaldo	abierto		por lectura (el revert no se repitió): ni
 R9-132	P2	adaptadores de sync	abierto		`src/lib/sync/adapters/highlights.ts:85-91` (`getLocal`: `catch` → `return null`); `src/lib/sync/SyncEngine.ts:3340` lo nombra como lectura fallida posible
 R9-133	P2	favoritos / sync	arreglado	57cab837	dos marcas ✅ en la entrada: favoritos con `R9-210` (`682f852`, sesión 34) y el mazo (`57cab83`, sesión 61); el bulk push de favoritos sigue aparte, en `R9-214`
 R9-134	P2	memoria / identidad	abierto		`src/lib/memory/memoryStatsSync.ts:82-84` (`getReviewLogOwner`: `catch` → `return null`, falla abierta)
-R9-135	P2	premium	abierto		`src/lib/offering/offeringService.ts:225` (`linkUser`: `if (!configured || !uid) return;`); plausible, por lectura
+R9-135	P2	premium	abierto		`linkUser` en `src/lib/offering/offeringService.ts` (`if (!configured || !uid) return;`); reproduce con el servicio real (sesión 144, `_scratch/S144-sonda.test.tsx.txt`); su arreglo espera la decisión de `R9-119`
 R9-136	P2	reglas Firestore	abierto		bloqueante antes del lanzamiento (lo dice la entrada): sin App Check en `src` ni `app` (`grep -i appcheck`: 0) y sin `firestore.rules` versionado
 R9-137	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-137`
 R9-138	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-138`

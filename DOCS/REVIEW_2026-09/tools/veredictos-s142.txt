@@ -101,7 +101,7 @@
 132|abierto||`src/lib/sync/adapters/highlights.ts:85-91` (`getLocal`: `catch` → `return null`); `src/lib/sync/SyncEngine.ts:3340` lo nombra como lectura fallida posible
 133|arreglado|57cab837|dos marcas ✅ en la entrada: favoritos con `R9-210` (`682f852`, sesión 34) y el mazo (`57cab83`, sesión 61); el bulk push de favoritos sigue aparte, en `R9-214`
 134|abierto||`src/lib/memory/memoryStatsSync.ts:82-84` (`getReviewLogOwner`: `catch` → `return null`, falla abierta)
-135|abierto||`src/lib/offering/offeringService.ts:225` (`linkUser`: `if (!configured || !uid) return;`); plausible, por lectura
+135|abierto||`linkUser` en `src/lib/offering/offeringService.ts` (`if (!configured || !uid) return;`); reproduce con el servicio real (sesión 144, `_scratch/S144-sonda.test.tsx.txt`); su arreglo espera la decisión de `R9-119`
 136|abierto||bloqueante antes del lanzamiento (lo dice la entrada): sin App Check en `src` ni `app` (`grep -i appcheck`: 0) y sin `firestore.rules` versionado
 137|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-137`
 138|abierto||hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-138`
@@ -117,7 +117,7 @@
 116|abierto||por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
 117|abierto||`subscribeBackupRestored` tiene 4 suscriptores en `src/context` (mazo, preferencias, progreso del plan, progreso); `FavoritesContext.tsx` no está
 118|abierto||espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
-119|abierto||decisión de producto de Victor (de quién es el premium); el docstring sigue: `src/context/AuthContext.tsx:369` («never revoked on sign-out»)
+119|abierto||decisión de producto de Victor (de quién es el premium); los dos docstrings se corrigieron en la sesión 144 (`919ee006`) y la conducta quedó igual
 120|abierto||grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
 121|abierto||grupo de P3 de la compuerta de CI; sin commit ni mención en el código; no re-medidos uno por uno
 122|abierto||parcial: el punto 4 se arregló con `R9-153` (`a7d688e`, sesión 24); los puntos 1 a 3 siguen (por ejemplo, el comentario de `src/context/PremiumContext.tsx:72-73`)
