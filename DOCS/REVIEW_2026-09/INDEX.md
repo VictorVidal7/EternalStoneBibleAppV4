@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 144, 2026-11-12): la fase de ARREGLOS, con la tanda V1 (dinero) hecha.** Qué queda abierto se
-> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt` (de `ESTADO.tsv`); al cierre de la 144 eran
-> 270 de 573: ningún P0, 16 P1, 92 P2, 161 P3 y un aviso. Sigue la revisión del diff de la 144 (la 145) y la tanda
-> V2 (`CONTINUAR.md` §4). Los arreglos de dinero están sin medir en vivo, y con ellos del Modo C faltan `C17` y
-> `C23` (P1) y lo que espera una cuenta de Google de prueba (`C26a`, `C54`, `C55`, `C20a` y `C27a`).
+> **Frontera (sesión 145, 2026-11-12): la fase de ARREGLOS, con la tanda V1 (dinero) hecha y revisada.** Qué queda
+> abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt` (de `ESTADO.tsv`); al cierre de
+> la 145 eran 276 de 579: ningún P0, 16 P1, 93 P2, 166 P3 y un aviso. Sigue la tanda V1b, con `R9-574` primero, en
+> la sesión 146, y la V2 en la 147 (`CONTINUAR.md` §4). Los arreglos de dinero están sin medir en vivo, y con ellos
+> del Modo C faltan `C17` y `C23` (P1) y lo que espera una cuenta de Google de prueba (`C26a`, `C54`, `C55`…).
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -298,3 +298,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   reproducido con el servicio real y con su prueba vista fallar; `R9-135` reproduce y espera la decisión de
   `R9-119`. Sin medir en vivo. Detalle: `detail/S144-arreglos-dinero.md`. Tras el cierre, `R9-119` quedó decidido
   por delegación (`CONTINUAR.md` §7): se hace en la tanda V1b, con `R9-135`.
+- **Sesión 145 — 2026-11-12.** La revisión del diff de la 144 (no se tocó la app): los cuatro arreglos se
+  sostienen (14 reverts por pieza y la matriz corrida de nuevo, idéntica); seis hallazgos nuevos, `R9-574` (P2: el
+  aviso manda a «Restaurar», y «Restaurar» dice «No encontramos una ofrenda anterior») y `R9-575` a `R9-579` (P3);
+  tres cosas que la decisión de `R9-119` no cubre, para la V1b. Sin medir en vivo. Detalle:
+  `detail/S145-revision-del-diff-s144.md`.

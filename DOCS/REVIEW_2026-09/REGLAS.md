@@ -1251,4 +1251,16 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
 - **Una sonda de código puede romper lo que mide (sesión 141).** Un `useAnimatedReaction` con `runOnJS` dentro del
   reproductor dejó sus botones sin responder, y parecía el arreglo. Ante un síntoma nuevo con una sonda puesta,
   primero el archivo original.
+- **Un aviso que manda a otra acción se mide siguiendo esa acción en el mismo estado (sesión 145, `R9-574`).** El
+  aviso de `R9-17` manda a «Restaurar mi ofrenda anterior», y «Restaurar», en ese estado, responde «No encontramos
+  una ofrenda anterior». Cada arreglo era correcto por separado, y la prueba del texto solo miraba que el aviso
+  nombrara el enlace. Cuando un texto nuevo nombra un botón, la sonda toca ese botón sin cambiar nada más.
+- **En la revisión de un diff las piezas se cortan más finas que en el arreglo (sesión 145, `R9-578`).** La 144
+  revirtió una pieza por hallazgo y todas caían. Cortando cada rama, cada llamada y cada guarda por separado
+  aparecieron una guarda sin prueba (72 de 72 pasan sin ella) y una prueba que pasa sin la llamada que nombra.
+- **Una conducta del SDK no se cita de memoria: se lee en la versión instalada (sesión 145).** La memoria decía
+  que `restorePurchases` no consume; las clases compiladas de `purchases-android` 10.16.1 nombran
+  `postTransactionAndConsumeIfNeeded` en ese camino. El AAR está en la caché de Gradle
+  (`~/.gradle/caches/modules-2/files-2.1/com.revenuecat.purchases/`): se saca `classes.jar` con `unzip` y se busca
+  el nombre con `grep -a -o` sobre la clase. Es lectura: no reemplaza al dispositivo.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

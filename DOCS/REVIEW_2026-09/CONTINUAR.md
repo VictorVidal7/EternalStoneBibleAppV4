@@ -27,7 +27,7 @@ Dónde está cada cosa:
 - `BUGS.md`: las entradas. Es la fuente: la marca `✅ ARREGLADO` va en la entrada, y el TSV se regenera.
 - `detail/`: un detalle por fila o por sesión.
 - `INDEX.md`: el ledger de las filas (Modos A a D).
-- `REGLAS.md`: las 275 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
+- `REGLAS.md`: las 278 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
 - `historial/`: lo que la 143 sacó de este archivo y de `INDEX.md`, movido tal cual. No rige: es registro.
 - `REVIEW_PROMPT.md`: el charter.
 
@@ -241,8 +241,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 
 ## 5. Reglas que ya costaron caro: el resumen
 
-Las 275 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (movidas tal cual
-en la 143). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
+Las 278 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
+cual en la 143, y tres de la 145). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
 tema:
 
 - **Alcance y permisos.** Se hace lo que pide el mensaje de la sesión y nada más. Un mensaje de Victor a mitad de

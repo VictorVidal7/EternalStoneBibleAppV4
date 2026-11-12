@@ -3527,6 +3527,8 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   pudo preguntar, también en el camino `alreadyOwned`. Reproducido con el servicio real (los 10 rechazos de la
   matriz daban `restoreNotFound`); 7 pruebas vistas caer con la pieza revertida. Sin medir en vivo.
   `detail/S144-arreglos-dinero.md`.
+  **Sesión 145 (revisión del diff):** se sostiene; las 7 caen otra vez, y la hoja está cubierta por separado del
+  servicio. Un vecino: `R9-574`. `detail/S145-revision-del-diff-s144.md`.
 
 - **`R9-17` (A2, dinero) — 🐛 `purchaseUnlock` declara `success` sin comprobar que el
   entitlement quedó activo: cobrado, agradecido y bloqueado.** `offeringService.ts:292-298`
@@ -3541,6 +3543,8 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   a «Restaurar mi ofrenda anterior». El mismo aviso reemplaza a «Inténtalo de nuevo» en el vecino `alreadyOwned`
   cuando la tienda responde la restauración sin entitlement. 6 pruebas vistas caer, cada pieza revertida por
   separado. Sin medir en vivo. `detail/S144-arreglos-dinero.md`.
+  **Sesión 145 (revisión del diff):** se sostiene; caen otra vez, y también sin la relectura y sin la rama de la
+  hoja. Vecinos: `R9-574` (P2), `R9-575` y `R9-577`. `detail/S145-revision-del-diff-s144.md`.
 
 - **`R9-18` (A2, dinero) — 🐛 no se contempla el pago PENDIENTE: a quien paga en efectivo
   (OXXO/SPEI) se le dice que la ofrenda falló.** `offeringService.ts:261-282` solo mapea 2
@@ -3555,6 +3559,8 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   2026-11-12). Los otros cinco códigos de la matriz siguen siendo `'error'`. 6 pruebas vistas caer sin el mapeo, y 2
   por hoja sin su rama. Sin medir en vivo: que el SDK entregue el pendiente como rechazo `'20'` y que la
   entitlement llegue sola al confirmarse sale de su documentación. `detail/S144-arreglos-dinero.md`.
+  **Sesión 145 (revisión del diff):** se sostiene; caen otra vez, y el `'20'` del mock es el del paquete instalado
+  (forzado con `'21'`). Vecinos: `R9-575`, `R9-576` y `R9-578`. `detail/S145-revision-del-diff-s144.md`.
 
 - **`R9-19` (A2, dinero) — 🐛 `DonationSheet` nunca maneja `alreadyOwned`.** Verificado:
   `grep` de `alreadyOwned` sobre `src/`+`app/` da **un solo** consumidor
@@ -3568,6 +3574,8 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   servido o no la liquidación. 3 pruebas vistas caer con la rama revertida. Sin medir en vivo: el «para siempre»
   de esta entrada y que `restorePurchases` consuma en Android un consumible sin liquidar no se midieron en un
   dispositivo. `detail/S144-arreglos-dinero.md`.
+  **Sesión 145 (revisión del diff):** se sostiene; las 3 caen otra vez. Vecinos: `R9-578` (una de las tres no
+  mide la liquidación) y `R9-579`. `detail/S145-revision-del-diff-s144.md`.
 
 - **`R9-24` (A3, copy) — 🐛 el diálogo de "Eliminar cuenta" manda al usuario a un botón que
   NO borra sus datos.** `translations.ts:3888-3889` (es) / `:10416-10417` (en) dicen que use
@@ -14212,6 +14220,104 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Severidad:** P3: pide una lista y elegir un «libro» que la lista no tiene. **Propuesta (sin escribir):** en
     una lista, tratarlo como «al final de la lista», o no ofrecerlo. Detalle:
     `detail/S141-revision-del-diff-s140.md`.
+
+- **`R9-574` (S145, revisión del diff de la 144 / hoja de ofrenda / vecino de `R9-17` y `R9-16` — P2) — 🐛 el aviso
+  de «sin activar» manda a «Restaurar mi ofrenda anterior», y «Restaurar», en ese mismo estado, responde «No
+  encontramos una ofrenda anterior en esta cuenta».** MEDIDO con sonda (el servicio, la hoja y el
+  `PremiumProvider` reales; el SDK simulado en su frontera). Sin medir en vivo.
+  - El arreglo de `R9-17` pinta `offering.notActivatedMessage`: «La tienda ya registró tu ofrenda, pero los extras
+    todavía no se activaron aquí. No hace falta volver a pagar: toca «Restaurar mi ofrenda anterior» más tarde.»
+    El arreglo de `R9-16` garantiza que `notFound` solo lo diga la tienda. Pero «la tienda respondió sin
+    entitlement» no es «no hay compra»: en el estado de `R9-17` la tienda responde, la compra existe y la
+    entitlement no está. `restore()` (`offeringService.ts:409-423`) da `notFound`, y `handleRestore`
+    (`OfferingSheet.tsx:187-190`), el toast `restoreNotFound`.
+  - **Medida** (`_scratch/S145-sonda.test.tsx.txt`, bloque F; `_scratch/S145-matriz.txt`): (1) compra resuelta
+    sin entitlement → el aviso; cerrar; reabrir; «Restaurar» → `info: No encontramos una ofrenda anterior en esta
+cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya comprado», y la tienda responde sin
+    entitlement → el aviso de «ya está registrada» → reabrir → «Restaurar» → el mismo texto.
+  - **Severidad:** P2. Es el daño de `R9-16` (a quien pagó se le afirma que su compra no existe) por el camino
+    que el aviso mismo indica. No es P1 porque pide antes el estado de `R9-17` (un producto sin su entitlement en
+    el panel, o una foto vieja) o un pago pendiente, y los dos dependen de conducta del SDK sin medir.
+  - **Propuesta (sin escribir):** que `restore()` distinga «la tienda respondió y la cuenta tiene una ofrenda sin
+    entitlement» (el `CustomerInfo` trae las compras: `allPurchasedProductIdentifiers` o
+    `nonSubscriptionTransactions`) y responda `notActivated`, con el mismo aviso en vez del toast; y para el
+    pendiente, que no figura en el `CustomerInfo`, un `restoreNotFound` que no niegue: «No encontramos una ofrenda
+    confirmada en esta cuenta. Si tu pago sigue pendiente, los extras se activarán cuando se confirme.» Detalle:
+    `detail/S145-revision-del-diff-s144.md`.
+
+- **`R9-575` (S145, revisión del diff de la 144 / las dos hojas / vecino de `R9-17` y `R9-18` — P3) — 🐛 si la
+  hoja se cierra con la compra en vuelo, el aviso se pierde: ni «Pago pendiente» ni «Tu ofrenda ya está
+  registrada» se ven nunca, y al reabrir están los montos.** MEDIDO con sonda. Sin medir en vivo.
+  - Los avisos nuevos viven en el estado local de la hoja (`kind: 'notice'`). Con `purchasing` a la vista, el
+    fondo y el botón atrás cierran la hoja (`OfferingSheet.tsx:259-265`, `DonationSheet.tsx:160-166`); el
+    resultado llega después, escribe el aviso en una hoja que no se ve, y al reabrir el efecto de `visible`
+    llama a `load()` y lo reemplaza por los montos (`OfferingSheet.tsx:109-117`, `DonationSheet.tsx:85-87`).
+  - **Medida** (bloque B): ofrenda, llega pendiente o cobrado sin activar → sin toast; reabierta: los montos, sin
+    mensaje. Donación, llega pendiente o «ya comprado» → igual. Con la ofrenda activa, al reabrir dice «Extras
+    desbloqueados» (bien). El agradecimiento también se pierde así; eso ya pasaba antes del diff.
+  - **Severidad:** P3. La ventana es la que va del cierre del diálogo de Play a la respuesta del SDK (la
+    publicación del recibo); cuánto dura en un dispositivo no está medido. Tiene salida: tocar el monto otra vez
+    cae en `alreadyOwned`. **Propuesta (sin escribir):** no cerrar la hoja mientras hay una compra en vuelo, o
+    conservar el aviso hasta que se lea. Detalle: `detail/S145-revision-del-diff-s144.md`.
+
+- **`R9-576` (S145, revisión del diff de la 144 / las dos hojas — P3) — 🐛 dos toques en el mismo cuadro lanzan dos
+  compras, y el resultado que llega segundo pisa el aviso del primero.** MEDIDO con sonda. La falta de guarda ya
+  existía; lo nuevo es lo que pisa. Sin medir en vivo.
+  - `handlePurchase` no tiene guarda de «en vuelo»: confía en que `setState({kind: 'purchasing'})` saque los
+    montos de la pantalla (`OfferingSheet.tsx:119-123`, `DonationSheet.tsx:89-93`). Dos toques antes de ese
+    re-render dan dos llamadas, y cada una termina en su propio `setState` o en `toast.error` y `load()`.
+  - **Medida** (bloque A): `compras = 2` en las dos hojas. Ofrenda, pendiente y después un error: el toast de
+    «Inténtalo de nuevo» y los montos (el aviso, pisado). Ofrenda activa y después un error: los montos con
+    `premium = true`. Donación hecha y después un error: «No se pudo completar la donación. Inténtalo de nuevo.» y
+    los montos. Dos donaciones resueltas: dos cobros en el mock. Con un re-render entre los toques, una sola
+    compra.
+  - **Severidad:** P3. Pide dos toques dentro de un cuadro; que el SDK rechace la segunda (`'15'`) y en qué orden
+    llegan no está medido. **Propuesta (sin escribir):** una guarda con `useRef` al entrar a `handlePurchase` y a
+    `handleRestore`. Detalle: `detail/S145-revision-del-diff-s144.md`.
+
+- **`R9-577` (S145, revisión del diff de la 144 / hoja de ofrenda / vecino de `R9-17` y `R9-18` — P3) — 🐛 la hoja
+  no reacciona a la entitlement que llega con ella abierta: el aviso sigue diciendo «los extras todavía no se
+  activaron aquí» con los extras ya activos, y con los montos a la vista se puede volver a tocar uno.** MEDIDO
+  con sonda (es el punto 4 que la 144 dejó escrito). Sin medir en vivo.
+  - El efecto de carga depende solo de `visible` a propósito (`OfferingSheet.tsx:100-117`, el `loadRef`), para
+    que el cambio de `isPremium` no pise la pantalla de gracias. El aviso heredó eso.
+  - **Medida** (bloque C): con «Pago pendiente» o «Tu ofrenda ya está registrada» a la vista, el listener trae la
+    entitlement → `premium = true` y la hoja no cambia hasta «Cerrar»; reabierta, «Extras desbloqueados». Con los
+    montos a la vista → siguen ahí con `premium = true`, y un toque lanza una compra más (lo segundo ya pasaba
+    antes del diff).
+  - **Severidad:** P3: un texto que deja de ser cierto mientras se lee, y se corrige al cerrar. **Propuesta (sin
+    escribir):** con `isPremium` en `true` y el estado en `notice` o `available`, pasar a `alreadyUnlocked`.
+    Detalle: `detail/S145-revision-del-diff-s144.md`.
+
+- **`R9-578` (S145, revisión del diff de la 144 / pruebas — P3) — 🐛 la guarda de `outcomeFromError` contra
+  `undefined === undefined` no tiene prueba, y «liquidada, el mismo monto se puede volver a dar» no mide la
+  liquidación.** MEDIDO con reverts por pieza.
+  - **La guarda** (`offeringService.ts:312-313`): revertida a `code === known`, las 72 pruebas de las tres suites
+    pasan. La sonda (bloque I) muestra que sí hace falta: con un SDK sin `PAYMENT_PENDING_ERROR` y un `Error` sin
+    código, el servicio responde `error` con la guarda y `pending` sin ella. El informe de la 144 la menciona («de
+    paso») sin decir que no tiene prueba.
+  - **«Liquidada…»** (`__tests__/DonationSheet.test.tsx:241`): pasa sin la llamada a `restore()`
+    (`DonationSheet.tsx:120`). El mock no modela un consumible trabado; lo que la prueba mide es que tras el
+    aviso, al cerrar y reabrir, el monto se puede tocar. Las otras dos de `R9-19` sí caen sin la llamada.
+  - **Propuesta (sin escribir):** una prueba de la guarda que le quite la constante al mock, y renombrar la otra
+    por lo que mide. Detalle: `detail/S145-revision-del-diff-s144.md`.
+
+- **`R9-579` (S145, revisión del diff de la 144 / hoja de donación / vecino de `R9-19` — P3) — 🐛 «ya comprado» en
+  la donación restaura la OFRENDA en silencio: los extras se desbloquean sin ningún mensaje, y la restauración
+  mueve el derecho al usuario que RevenueCat tenga en ese momento.** MEDIDO con sonda (la primera mitad). El
+  informe de la 144 lo declara «un efecto lateral, a propósito»; lo que no dice es lo que ve el usuario ni a quién
+  le queda el derecho.
+  - `DonationSheet.tsx:120` llama a `restore()`, que es `restorePurchases` entero: trae todo lo que tenga la
+    cuenta de la tienda, la ofrenda incluida.
+  - **Medida** (bloque E): con la cuenta de la tienda dueña de la ofrenda, antes `premium = false`; tras tocar el
+    monto, la hoja dice «Donación en proceso», sin toast, y `premium = true` en el servicio y en la caché.
+  - **Lo que ya se sabía del dispositivo** (`detail/C15-hoja-ofrenda.md`): la restauración le da `extras` al
+    usuario activo, anónimo incluido; si lo transfiere o lo comparte depende del ajuste del panel de RevenueCat.
+    Hasta la 144 solo la hoja de ofrenda restauraba; ahora también un toque en una donación.
+  - **Severidad:** P3: a favor del usuario en el caso común. Importa para la tanda V1b: la regla de `R9-119` («un
+    anónimo nunca le cambia el dueño a RevenueCat») no vale para una restauración. **Propuesta (sin escribir):**
+    decidirlo junto con la V1b; si se conserva, avisar con `restoreSuccess` cuando la restauración trae la
+    ofrenda. Detalle: `detail/S145-revision-del-diff-s144.md`.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
