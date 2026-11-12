@@ -159,8 +159,9 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
           await load();
         } else {
           // R9-17 — the store says this offering is already theirs and it
-          // answered the restore, yet the entitlement is not active (a
-          // payment still pending, or the same cause as 'notActivated').
+          // answered the restore, yet the entitlement is not active
+          // ('notFound': a payment still pending; 'notActivated': the
+          // purchase is on the account without its entitlement).
           // This used to say «Inténtalo de nuevo» about something the
           // store already holds.
           setState({
@@ -184,8 +185,18 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
     if (restored.status === 'restored') {
       toast.success(t.offering.restoreSuccess);
       setState({kind: 'success'});
+    } else if (restored.status === 'notActivated') {
+      // R9-574 — the store answered and the offering IS on the account, but
+      // the entitlement is not active: the same notice that sent the reader
+      // here, never «No encontramos una ofrenda».
+      setState({
+        kind: 'notice',
+        title: t.offering.notActivatedTitle,
+        message: t.offering.notActivatedMessage,
+      });
     } else if (restored.status === 'notFound') {
-      // Only the store itself may say "no previous offering" (R9-16).
+      // Only the store itself may say "no offering on this account" (R9-16),
+      // and even then a payment still pending is not denied (R9-574).
       toast.info(t.offering.restoreNotFound);
       await load();
     } else {

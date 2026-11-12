@@ -4512,7 +4512,8 @@ export const translations = {
         'Esta ofrenda no es deducible de impuestos. Sostiene el desarrollo y el ministerio de esta app.',
       restoreLink: 'Restaurar mi ofrenda anterior',
       restoring: 'Restaurando…',
-      restoreNotFound: 'No encontramos una ofrenda anterior en esta cuenta.',
+      restoreNotFound:
+        'No encontramos una ofrenda confirmada en esta cuenta. Si tu pago sigue pendiente, los extras se activarán cuando se confirme.',
       restoreError:
         'No pudimos comprobar si hay una ofrenda anterior. Revisa tu conexión e inténtalo de nuevo.',
       restoreSuccess: 'Extras restaurados. ¡Gracias por tu ofrenda!',
@@ -11069,7 +11070,8 @@ export const translations = {
         'This offering is not tax-deductible. It sustains the development and ministry of this app.',
       restoreLink: 'Restore my previous offering',
       restoring: 'Restoring…',
-      restoreNotFound: "We couldn't find a previous offering on this account.",
+      restoreNotFound:
+        "We couldn't find a confirmed offering on this account. If your payment is still pending, the extras will unlock once it's confirmed.",
       restoreError:
         "We couldn't check for a previous offering. Check your connection and try again.",
       restoreSuccess: 'Extras restored. Thank you for your offering!',

@@ -63,11 +63,16 @@ export type PurchaseOutcome =
   | {status: 'error'; message: string};
 
 /**
- * `'notFound'` = the store answered, and there is no previous offering.
- * `'error'` = the store could not be asked. Never collapse the two (R9-16).
+ * `'notFound'` = the store answered, and the account holds no offering.
+ * `'notActivated'` = the store answered, the account DOES hold an offering,
+ * and the entitlement is not active (R9-574). `'error'` = the store could
+ * not be asked. Never collapse any two of them (R9-16).
  */
 export type RestoreOutcome =
-  {status: 'restored'} | {status: 'notFound'} | {status: 'error'};
+  | {status: 'restored'}
+  | {status: 'notActivated'}
+  | {status: 'notFound'}
+  | {status: 'error'};
 
 type PurchasesStatic = {
   configure: (config: {apiKey: string; appUserID?: string}) => void;
@@ -141,6 +146,19 @@ const listeners = new Set<EntitlementListener>();
 
 function isEntitlementActive(info: CustomerInfo): boolean {
   return Boolean(info.entitlements.active[ENTITLEMENT_ID]);
+}
+
+/**
+ * R9-574 — whether the store account behind `info` holds an offering,
+ * whatever the entitlement says. The app sells two families of one-time
+ * products, and both show up in `nonSubscriptionTransactions`: a donation is
+ * not an offering, so those ids are left out. A payment that is still
+ * pending is not in the CustomerInfo at all.
+ */
+function hasOfferingPurchase(info: CustomerInfo): boolean {
+  const donationIds: readonly string[] = DONATION_PRODUCT_IDS;
+  const transactions = info.nonSubscriptionTransactions ?? [];
+  return transactions.some(tx => !donationIds.includes(tx.productIdentifier));
 }
 
 async function handleCustomerInfo(info: CustomerInfo): Promise<void> {
@@ -405,6 +423,13 @@ export async function purchaseDonation(
  * cuenta». Someone who HAD paid and restored on a bad connection was told
  * their purchase did not exist. `'notFound'` is now only ever said by the
  * store itself; everything else is `'error'`.
+ *
+ * R9-574 — and "the store answered without the entitlement" is not "there is
+ * no offering" either. The notice of R9-17 sends the reader to «Restaurar mi
+ * ofrenda anterior»; in that very state the store answers, the purchase is
+ * on the account and the entitlement is not, and this used to say
+ * `'notFound'` — «No encontramos una ofrenda anterior», to someone the
+ * store had charged. That case is `'notActivated'`.
  */
 export async function restore(): Promise<RestoreOutcome> {
   const Purchases = getPurchases();
@@ -412,7 +437,8 @@ export async function restore(): Promise<RestoreOutcome> {
   try {
     const info = await Purchases.restorePurchases();
     await handleCustomerInfo(info);
-    return {status: isEntitlementActive(info) ? 'restored' : 'notFound'};
+    if (isEntitlementActive(info)) return {status: 'restored'};
+    return {status: hasOfferingPurchase(info) ? 'notActivated' : 'notFound'};
   } catch (err) {
     logger.warn('offeringService: restore failed', {
       component: 'offeringService',

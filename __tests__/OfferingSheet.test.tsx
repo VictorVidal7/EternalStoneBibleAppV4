@@ -360,6 +360,128 @@ describe('OfferingSheet', () => {
     });
   });
 
+  describe('R9-574 — el aviso manda a «Restaurar»: se toca «Restaurar» en ese mismo estado', () => {
+    const all = require('../src/i18n/translations').translations;
+    const es = all.es;
+    // Lo que la tienda responde de verdad tras un cobro sin entitlement: la
+    // compra figura en la cuenta y la entitlement no esta.
+    const purchasedNoEntitlementInfo = {
+      ...noEntitlementInfo,
+      nonSubscriptionTransactions: [
+        {
+          transactionIdentifier: 'tx-1',
+          productIdentifier: 'ofrenda_extras_1',
+          purchaseDate: '2026-11-12T00:00:00Z',
+        },
+      ],
+    };
+    const tree = (visible: boolean, onClose = jest.fn()) => (
+      <PremiumProvider>
+        <OfferingSheet visible={visible} onClose={onClose} />
+      </PremiumProvider>
+    );
+
+    it('cobrado sin activar → cerrar → reabrir → «Restaurar»: el mismo aviso, nunca «No encontramos»', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockResolvedValueOnce({
+        customerInfo: purchasedNoEntitlementInfo,
+      });
+      mockPurchases.restorePurchases.mockResolvedValueOnce(
+        purchasedNoEntitlementInfo,
+      );
+
+      const {findByText, findByLabelText, queryByText, rerender} = render(
+        tree(true),
+      );
+      fireEvent.press(await findByLabelText('$0.99'));
+      expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+      fireEvent.press(await findByLabelText('Cerrar'));
+      rerender(tree(false));
+      rerender(tree(true));
+
+      fireEvent.press(await findByLabelText(es.offering.restoreLink));
+
+      expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+      expect(await findByText(es.offering.notActivatedMessage)).toBeTruthy();
+      expect(queryByText('$0.99')).toBeNull();
+      expect(mockToast.info).not.toHaveBeenCalled();
+      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(mockToast.success).not.toHaveBeenCalled();
+    });
+
+    it('pendiente → «ya comprado» → el aviso → reabrir → «Restaurar»: el toast no niega un pago pendiente', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      // Un pago pendiente no figura en la cuenta: la tienda responde vacio.
+      mockPurchases.purchasePackage.mockRejectedValueOnce({code: '6'});
+      mockPurchases.restorePurchases
+        .mockResolvedValueOnce(noEntitlementInfo)
+        .mockResolvedValueOnce(noEntitlementInfo);
+
+      const {findByText, findByLabelText, rerender} = render(tree(true));
+      fireEvent.press(await findByLabelText('$0.99'));
+      expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+      fireEvent.press(await findByLabelText('Cerrar'));
+      rerender(tree(false));
+      rerender(tree(true));
+
+      fireEvent.press(await findByLabelText(es.offering.restoreLink));
+
+      await waitFor(() =>
+        expect(mockToast.info).toHaveBeenCalledWith(
+          es.offering.restoreNotFound,
+        ),
+      );
+      expect(await findByLabelText('$0.99')).toBeTruthy();
+      expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(2);
+    });
+
+    it('«No encontramos» ya no afirma que no hay ofrenda: nombra el pago pendiente, en los dos idiomas', () => {
+      expect(all.es.offering.restoreNotFound).toContain('pendiente');
+      expect(all.es.offering.restoreNotFound).toContain('confirmada');
+      expect(all.es.offering.restoreNotFound).not.toContain('anterior');
+      expect(all.en.offering.restoreNotFound).toContain('pending');
+      expect(all.en.offering.restoreNotFound).toContain('confirmed');
+      expect(all.en.offering.restoreNotFound).not.toContain('previous');
+    });
+
+    it('con solo donaciones en la cuenta, «Restaurar» sigue siendo el toast y los montos', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.restorePurchases.mockResolvedValueOnce({
+        ...noEntitlementInfo,
+        nonSubscriptionTransactions: [
+          {
+            transactionIdentifier: 'tx-d',
+            productIdentifier: 'donacion_1',
+            purchaseDate: '2026-11-12T00:00:00Z',
+          },
+        ],
+      });
+
+      const {findByLabelText, queryByText} = render(tree(true));
+      fireEvent.press(await findByLabelText(es.offering.restoreLink));
+
+      await waitFor(() =>
+        expect(mockToast.info).toHaveBeenCalledWith(
+          es.offering.restoreNotFound,
+        ),
+      );
+      expect(await findByLabelText('$0.99')).toBeTruthy();
+      expect(queryByText(es.offering.notActivatedTitle)).toBeNull();
+    });
+  });
+
   describe('R9-18 — el pago pendiente (OXXO, SPEI)', () => {
     const es = require('../src/i18n/translations').translations.es;
 

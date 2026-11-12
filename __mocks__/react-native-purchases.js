@@ -7,7 +7,16 @@
  * SDK's normal async API.
  */
 
-let customerInfo = {entitlements: {active: {}, all: {}}};
+// The real CustomerInfo always carries the purchase lists; a test that needs
+// "an offering on the account without its entitlement" (R9-574) says so with
+// __setCustomerInfo / mockResolvedValueOnce and a nonSubscriptionTransactions
+// entry: {transactionIdentifier, productIdentifier, purchaseDate}.
+const emptyCustomerInfo = () => ({
+  entitlements: {active: {}, all: {}},
+  allPurchasedProductIdentifiers: [],
+  nonSubscriptionTransactions: [],
+});
+let customerInfo = emptyCustomerInfo();
 let customerInfoListeners = [];
 let offeringsResponse = {all: {}};
 let productsResponse = [];
@@ -55,7 +64,7 @@ const Purchases = {
     return customerInfoListeners.length;
   },
   __reset() {
-    customerInfo = {entitlements: {active: {}, all: {}}};
+    customerInfo = emptyCustomerInfo();
     customerInfoListeners = [];
     offeringsResponse = {all: {}};
     productsResponse = [];

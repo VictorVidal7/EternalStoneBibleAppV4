@@ -437,6 +437,66 @@ describe('offeringService', () => {
       await expect(restore()).resolves.toEqual({status: 'notFound'});
     });
 
+    describe('R9-574 — «la tienda respondio sin entitlement» no es «no hay compra»', () => {
+      const tx = (productIdentifier: string) => ({
+        transactionIdentifier: 'tx-' + productIdentifier,
+        productIdentifier,
+        purchaseDate: '2026-11-12T00:00:00Z',
+      });
+
+      it('la cuenta tiene una ofrenda y la entitlement no esta: notActivated, nunca notFound', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.restorePurchases.mockResolvedValueOnce({
+          ...noEntitlementInfo,
+          nonSubscriptionTransactions: [tx('ofrenda_extras_1')],
+        });
+        await expect(restore()).resolves.toEqual({status: 'notActivated'});
+        await expect(getCachedEntitlement()).resolves.toBe(false);
+      });
+
+      it('una donacion no es una ofrenda: con solo donaciones sigue siendo notFound', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.restorePurchases.mockResolvedValueOnce({
+          ...noEntitlementInfo,
+          nonSubscriptionTransactions: [tx('donacion_1'), tx('donacion_4')],
+        });
+        await expect(restore()).resolves.toEqual({status: 'notFound'});
+      });
+
+      it('una ofrenda entre donaciones: notActivated', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.restorePurchases.mockResolvedValueOnce({
+          ...noEntitlementInfo,
+          nonSubscriptionTransactions: [
+            tx('donacion_2'),
+            tx('ofrenda_extras_3'),
+          ],
+        });
+        await expect(restore()).resolves.toEqual({status: 'notActivated'});
+      });
+
+      it('con la entitlement activa es restored, tenga o no la transaccion', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.restorePurchases.mockResolvedValueOnce({
+          ...activeEntitlementInfo,
+          nonSubscriptionTransactions: [tx('ofrenda_extras_1')],
+        });
+        await expect(restore()).resolves.toEqual({status: 'restored'});
+      });
+
+      it('una respuesta sin la lista de transacciones es notFound, no un error', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        // `noEntitlementInfo` no trae `nonSubscriptionTransactions`.
+        mockPurchases.restorePurchases.mockResolvedValueOnce(noEntitlementInfo);
+        await expect(restore()).resolves.toEqual({status: 'notFound'});
+      });
+    });
+
     it.each([
       ['an Error', new Error('offline')],
       ['NETWORK_ERROR', {code: '10', message: 'network'}],
