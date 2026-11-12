@@ -3258,6 +3258,8 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
   control de `--allow-shrink` sin base, que es el único sitio donde el manifiesto está
   garantizadamente ausente de antemano. Detalle: `detail/S17-revision-del-diff.md`.
 
+  **✅ ARREGLADO** (`bd4d5202`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-88` (S17, CI) — 🐛 `engines.node: ">=22"` es FALSO, y la compuerta PROHIBÍA corregirlo.**
   `node:sqlite` llegó en 22.5 detrás de `--experimental-sqlite` y se **desbanderó en 22.13.0**
   (nodejs/node#55890). **Medido con binarios reales:** 22.5.1…22.12.0 lanzan
@@ -3269,6 +3271,8 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
   el piso?», así que `">=22.13.0"` y `">=24"` FALLABAN. **Arreglado:** `MINIMUM_NODE = '22.13.0'`,
   comparación de versiones enteras, y la prueba exige que el piso declarado **alcance**. Un major
   pelado igual al del piso se rechaza a propósito. Detalle: `detail/S17-revision-del-diff.md`.
+
+  **✅ ARREGLADO** (`15bdd382`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-89` (S17, CI) — 🐛 la compuerta del pin de Node veía UNA forma de escribirlo, y su piso
   exigía tres.** El regex era `/node-version:\s*'([^']+)'/g`: solo comillas **simples**, y
@@ -3284,6 +3288,8 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
   `.github/workflows/`, **correlacionando** cada job que corre node/npm con su pin, comparando
   versiones enteras, y **reportando** toda forma que no sabe leer (disciplina de `R9-67`).
   Detalle: `detail/S17-revision-del-diff.md`.
+
+  **✅ ARREGLADO** (`15bdd382`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-82` (S16, CI) — 🐛 la compuerta de los packs NUNCA corrió en CI, y `main` llevaba un día
   en ROJO.** `scripts/build-web-packs.js` requiere `node:sqlite`, que no existe antes de Node 22;
@@ -3302,6 +3308,8 @@ node:sqlite`. Verde en local, rojo en CI en **cuatro pushes seguidos a `main`**
   control en la dirección contraria). Detalle: `detail/S16-revision-del-diff.md`.
   **⚠️ Sesión 22:** con Node 20, `buildWebPacks` da cero aserciones, no «solo los casos que necesitan BD» (`R9-152`).
 
+  **✅ ARREGLADO** (`70ebb628`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-83` (S16, build de packs) — 🐛 una base AUSENTE no pedía ninguna palanca.** `R9-77` para la
   corrida cuando el manifiesto no fija ni una de las entradas que emite; **una base que no existe
   fija estrictamente menos** y salía gratis por el `return` temprano de `!previous`. **Probado de
@@ -3316,6 +3324,8 @@ node:sqlite`. Verde en local, rojo en CI en **cuatro pushes seguidos a `main`**
   como salida, mensaje que nombra el manifiesto que no encontró, y el mundo de pruebas de `main()`
   pasa a tener baseline (antes su control de «corrida limpia» era un control del vacío). Detalle:
   `detail/S16-revision-del-diff.md`.
+
+  **✅ ARREGLADO** (`3333d486`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-77` (S15, build de packs) — 🐛 una base que no fija NADA se reportaba como éxito.**
   `readPreviousManifest` exige un array `packs` con un argumento explícito —sin él «_every
@@ -5603,6 +5613,7 @@ pending.remoteVersion.updatedAt`.
     (`_scratch/S38-A6cola-R226.out.txt`, `descarte a`): «d mio 3 contra d mio 2» en el proceso nuevo,
     igual. La entrada descartada era el único disco del sello, y no hay otro lugar donde escribirlo
     sin pisar la tabla ilegible (`R9-208`). El texto de `R9-217` se corrigió (arriba).
+  - **✅ ACEPTADO** (sesión 38) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-228` (S37, pruebas / AsyncStorage — P3) — 🐛 la prueba de `R9-215` solo cae con un orden que
   AsyncStorage nativo no produce.** MEDIDO en el mock (A3 y A7; sondas `_scratch/S37-A3-fifo.body.txt`
@@ -5657,6 +5668,7 @@ pending.remoteVersion.updatedAt`.
     `setImmediate`), pero el comentario de la prueba debería decir que solo 60 es el bucle.
   - **✅ El comentario, en la sesión 42** (`1a77b78`): dice que solo 60 lecturas son el bucle, y que
     0, 2 o 4 son otros defectos con sus pruebas.
+  - **✅ ARREGLADO** (`e9d6e893`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-230` (S37, `SyncEngine` / comentario — P3) — 🐛 `R9-219` cerró solo uno de los dos textos que
   nombraba: la regla de `R9-190` sigue sin la excepción.** MEDIDO (A4).
@@ -5770,6 +5782,7 @@ pending.remoteVersion.updatedAt`.
       respaldo con ese reloj trae mis datos. Es el límite por diseño de `R9-239`; sin daño nuevo.
     - **La retirada de la lectura anota la copia leída** (la del otro), y bien. **La de la llegada**
       (`R9-243`) anota la copia que trae el `removed`, a menudo mía: `R9-250`, sin daño construible.
+  - **✅ ARREGLADO** (`859480fb`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-235` (S38, `SyncEngine` / cola — P3) — 🐛 una edición de la misma cuenta hecha entre `stop()` y
   `start()` no entra en la cola: local y nube quedan distintos, en silencio.** MEDIDO en el mock
@@ -5787,6 +5800,7 @@ pending.remoteVersion.updatedAt`.
     dura lo que Firebase Auth tarda en rehidratar, mientras se monta la primera pantalla. Una edición
     del usuario ahí es improbable; una escritura automática del arranque, si la hay, caería en ella.
     Sin medir en el teléfono.
+  - **✅ ARREGLADO** (`ea182dcb`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-236` (S38, `SyncEngine` / guardas — P3) — 🐛 cuatro guardas viejas que la 38 dejó sin
   ninguna prueba que las vea.** MEDIDO (la matriz entera, `_scratch/S38-matriz-s38-0b84a7e.out.txt`;
@@ -5837,6 +5851,7 @@ pending.remoteVersion.updatedAt`.
     mismos datos (el SDK no levanta nada; el mock sí, ver `R9-244`). Con R2 entre medias, `R9-223`
     retira ese `own`. Las otras sueltas de sellos y relojes son `settle` (al procesar: `Fsettle`),
     `retireOwn` (al llegar, o al procesar la lectura: `R9-243`) y la resolución (en el momento).
+  - **✅ ARREGLADO** (`f83a7f8`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-237` (S39, `SyncEngine` / conflictos — P3) — 🐛 de la 38: el respaldo que el otro restaura con
   una escritura MÍA más vieja del mismo proceso (W0, después de subir W1) pasa por «mía», porque
@@ -5871,6 +5886,7 @@ pending.remoteVersion.updatedAt`.
       solo del veredicto de la llegada (`ownArrived`); antes lo cubría también la lista. En el
       teléfono ese veredicto vale (leído: ver `R9-241`), y el orden de LLEGADA entre ese eco y un ack
       posterior es la pregunta de `R9-240`.
+  - **✅ ARREGLADO** (`d57807b`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-238` (S39, `SyncEngine` / conflictos — P3) — 🐛 la retirada de relojes de la 38 (`R9-220`,
   `R9-223`, `R9-224`) solo ocurre en el callback de `onSnapshot`. Una copia ajena que el motor ve
@@ -5911,6 +5927,7 @@ pending.remoteVersion.updatedAt`.
     `removed`: los otros `get()` del motor leen `reviewEvents` y `conflicts`.
   - **Nota de la sesión 42:** desde `R9-243`, un `removed` sin nada en vuelo retira al llegar, y la
     retirada de la lectura se queda sin una prueba que la vea sola (`S40-R238`, de 2 a 0): `R9-246`.
+  - **✅ ARREGLADO** (`bfd0a57`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-239` (S39, `SyncEngine` / conflictos — P3) — 🐛 `R9-224` sigue abierto para el respaldo
   DIRECTO: con el doc en conflicto subo W2 y W3, y el otro restaura W2 sin escribir nada antes. La
@@ -5943,6 +5960,7 @@ pending.remoteVersion.updatedAt`.
       pero la prueba de `R9-218` perdería su discriminador (su sello sembrado está en el mismo doc
       que el nuevo). Va con `R9-234`.
   - **Nota de la sesión 41:** lo que queda (la unión de `rereadOwn`) se midió como `R9-234` (`S41-6`).
+  - **✅ ARREGLADO** (`04f27e7`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-240` (S39, `SyncEngine` / premisa de `noteArrived` — P3) — ❓ SIN MEDIR EN NATIVO: la premisa
   de `24a61bc` («una escritura en vuelo está encima de la vista del SDK, así que ninguna copia del
@@ -6038,6 +6056,7 @@ pending.remoteVersion.updatedAt`.
     entrada después del ack de otra (`isOwnCopy`, `retireOwn`, el pliegue de `upsertQueueEntry`,
     `persistQueue`): una edición nueva pliega [W1] y el reloj de W2, que nunca llegó a la nube; sin
     efecto.
+  - **✅ ARREGLADO** (`7c8c0fa`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-243` (S41, `SyncEngine` / conflictos — P3) — 🐛 `R9-238` sigue abierto con la cadena de lotes
   ocupada: la retirada de la lectura corre al PROCESAR el `removed`, y el respaldo con W3 LLEGA antes.
@@ -6097,6 +6116,7 @@ pending.remoteVersion.updatedAt`.
     - **¿Un `removed` del otro con mi escritura en vuelo? No, por lectura:** la vista lleva mi
       payload completo encima; una escritura del otro con un campo de una versión más nueva sale
       como `modified`. El puente, sin medir (`R9-240`).
+  - **✅ ARREGLADO** (`fc93ef6`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-244` (S41, pruebas / `R9-160` — P3) — 🐛 la prueba «el eco de una edición propia durante el
   conflicto» entrega dos copias que el SDK no levanta, y el eco tardío de verdad, en conflicto, no
@@ -6120,6 +6140,7 @@ pending.remoteVersion.updatedAt`.
     y espera, y los acks pasan. Decidido: los dos `fire(edit1)` se quitan (son copias que el SDK no
     levanta, y el eco real lo entrega el mock al subir). Cae con `Q41llegada` por «su versión»
     (pasa a L1), y ya no con `Q41sello` (`_scratch/S42-rev244-*.out.txt`).
+  - **✅ ARREGLADO** (`ae39cd8`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-245` (S42, `SyncEngine` / respaldo propio rechazado — P3) — 🐛 cuando el servidor RECHAZA mi
   propio respaldo (escrito bajo el piso), la reversión trae mi copia anterior: con el doc en
@@ -6189,6 +6210,7 @@ pending.remoteVersion.updatedAt`.
     queda cualquier escritura descartada (`R9-33`). La prueba usa de control el respaldo aceptado a
     la primera, y ese control no cambia con `R245` (`_scratch/S44-rev245-R245.out.txt`: solo cae
     `rechazo`). Lo que su control da por esperado («lo suyo» se pierde al reiniciar) es `R9-252`.
+  - **✅ ARREGLADO** (`dd6c015`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-246` (S42, `SyncEngine` / guardas — P3) — 🐛 dos guardas sin una prueba que las vea solas
   después de la 42: la retirada de la lectura de un `removed` (`R9-238`) y la guarda de memoria de la
@@ -6241,6 +6263,7 @@ pending.remoteVersion.updatedAt`.
     (`persistQueue` vuelve sin escribir), si falló, o si la tabla de esta colección no se pudo leer
     en ese proceso (no se escribe). El comentario de la prueba («murió antes de escribir la
     retirada de la llegada») podría decir eso. **Lo dice desde la sesión 46** (`e57fa16`).
+  - **✅ ARREGLADO** (`3e35415`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-247` (S43, `SyncEngine` / conflictos — P3) — 🐛 la excepción de `R9-243` para la reversión de
   un rechazo exime también la escritura del otro que esa reversión TRAE: si R2 (bajo el piso) llegó
@@ -6308,6 +6331,7 @@ pending.remoteVersion.updatedAt`.
       entró otra cuenta, una entrega tardía lee su `uid`. La conclusión vale igual: ninguna
       anotación de esa cuenta tiene el reloj de ese payload. **Lo dice desde la sesión 46**
       (`70f8b71`).
+  - **✅ ARREGLADO** (`bba4ab0`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-248` (S43, `SyncEngine` / conflictos — P3) — 🐛 cuando el rechazo DESCARTA la escritura
   (`MAX_RETRY_ATTEMPTS`), su reversión llega «no mía» (la entrada ya salió de la cola) y retira al
@@ -6351,6 +6375,7 @@ pending.remoteVersion.updatedAt`.
       mismo (es mío) o un `removed` que trae ese payload, que en la 43 no retiraba nada al llegar y
       hoy retira si todos mis relojes están sobre el piso. Queda el otro con el mismo milisegundo,
       el límite de siempre de `isOwnCopy`.
+  - **✅ ARREGLADO** (`4134635`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-249` (S43, `SyncEngine` / cola — P3) — 🐛 lo que queda de `R9-242`: su arreglo corre solo con
   `isCurrent()`. Si un `stop()` corta la sesión con la subida reemplazada en vuelo y el servidor la
@@ -6380,6 +6405,7 @@ pending.remoteVersion.updatedAt`.
     tabla de sellos sin leer, ese `persistQueue` primero la relee y escribe al volver: la ventana
     es una lectura de AsyncStorage, la misma que tiene el `splice` de al lado (`R9-104`). Las
     entradas son por `uid`, y la otra cuenta no toca las aparcadas.
+  - **✅ ARREGLADO** (`d200ed1`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-250` (S43, `SyncEngine` / comentario — P3) — 🐛 `ownRetired` dice guardar «the clocks of the
   copies that retired this device's own stamps», y la relectura conserva los sellos de un doc si la
@@ -6400,6 +6426,7 @@ pending.remoteVersion.updatedAt`.
     midió un orden con daño, así que lo que se anota no cambió. El comentario de `ownRetired` dice
     qué copia anota cada retirada, por qué no se construyó daño, y que la reversión que retira al
     llegar (`R9-247`) lo hace solo con la tabla leída, así que no anota nada.
+  - **✅ ARREGLADO** (`c429604`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-251` (S44, `SyncEngine` / guardas — P3) — 🐛 la guarda `ownUnread` del arreglo de `R9-247`
   no tiene una prueba que la vea decidir: con la tabla de sellos sin leer, la reversión de un
@@ -6453,6 +6480,7 @@ pending.remoteVersion.updatedAt`.
     - **Leído:** sus controles del orden son contadores de lecturas de la tabla. Si la relectura
       empezara antes de la reversión, `lecturas` daría 2 en `rechazo` y la aserción caería. Y la
       puerta garantiza que la relectura procese después de las dos retiradas.
+  - **✅ ARREGLADO** (`a79dcbe`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-252` (S45, `SyncEngine` / conflictos — P3) — 🐛 una escritura mía del doc que sube mientras
   su conflicto espera pisa «lo suyo» en la nube. El conflicto sigue en la sesión, pero tras reiniciar
@@ -6486,6 +6514,7 @@ pending.remoteVersion.updatedAt`.
     lo dice. Las pruebas de `R9-245` y `R9-248` ya lo esperan así.
   - **Nota de la sesión 47:** el comentario no dice la verdad entera para un respaldo restaurado
     sobre el piso: ver `R9-253`.
+  - **✅ ACEPTADO** (`5a2c377`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-253` (S47, `SyncEngine` / comentario — P3) — 🐛 el comentario de `R9-252` dice que un
   respaldo restaurado ya asentó el conflicto en la sesión («a restored backup settled it already,
@@ -6505,6 +6534,7 @@ pending.remoteVersion.updatedAt`.
     `R9-190`), y que uno sobre el piso es como una edición. Sobre la base nueva
     (`_scratch/S48-SyncEngine-final.ts.txt`), las piezas aplican y la prueba de `R9-251` sigue
     cayendo con `R247unread`.
+  - **✅ ARREGLADO** (`05e089e`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-254` (S50, `SyncEngine` / cola — P3) — 🐛 con la lectura de la hidratación fallando, una
   edición hecha durante esa lectura sale de memoria, y si la relectura también falla se pierde.**
@@ -11523,6 +11553,7 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3 bajo: verde falso ante una regresión construida, condicionada por base.
   - **Arreglo (hipótesis), sin medir (del agente 1):** una fila por lectura de cada base (seis más), o una
     que haga fallar las lecturas de todas las bases de la unión.
+  - **✅ ACEPTADO** (decisión 2026-10-27) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-402` (S111, pruebas / Mesa / `R9-399` — P3 bajo) — 🐛 el control del turno ocupado de `R9-399` lee
   el gancho de `prepAccount.ts` y cae ante tres cambios buenos de ese gancho o de la etiqueta de la
@@ -11541,6 +11572,7 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     espere (la regla de la 88). Con la lectura del dueño de la migración dentro de un turno
     (`migraLeeDuenoEnTurno112`), `R9-370` pasa con `mueveSinTurno370`; pero ese cambio solo ya tumba `R9-320`
     (78/79, `leido: []`): no es un verde falso de `prep`. Sin daño.
+  - **✅ ACEPTADO** (decisión 2026-10-27) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-403` (S111, pruebas / Mesa / `R9-388`, `R9-394` — P3 bajo) — 🐛 el «de quién» de la escritura por
   la función que escribe la base tiene tres costos: deja de ver en los 4 casos de `R9-345` una clave
@@ -11575,6 +11607,7 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
       que llega antes de la lectura final (`notasLanza0x112`, 73/79; con una vuelta o más, 79/79).
     - Sin medir (por lectura): una escritura por `mergeItem` (el mock pasa `setItem` por `multiSet`) no
       tendría dueño. Y la escritura que sale del turno no la ve D1: `R9-408`.
+  - **✅ ACEPTADO** (decisión 2026-10-27) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-404` (S111, pruebas / respaldo / `R9-389`, `R9-395` — P3 bajo) — 🐛 el respaldo contado por la clave
   que escribe y nadie lee tiene cuatro costos: un ajeno que pide la clave y no la lee, o la lee tarde, la
@@ -11610,6 +11643,7 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
       `respaldoNotasTrasSeries` sigue cayendo en los 6.
     - Sin medir (por lectura): con una cuenta devuelta durante el respaldo, el `joinPrep` de `prepMultiSet`
       relee la clave restaurada; ningún caso de `R9-345`/`R9-369` lo arma.
+  - **✅ ACEPTADO** (decisión 2026-10-27) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-405` (S111, pruebas / respaldo / `R9-292`, `R9-275`, `R9-396` — P3 bajo) — 🐛 una devolución que
   espera un temporizador real tras su unión (un cambio bueno) tumba `R9-292` y `R9-275`.** MEDIDO en la
@@ -11624,6 +11658,7 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
   - P3 bajo: un rojo ante un cambio bueno.
   - **Arreglo (hipótesis), sin medir:** el de `R9-396` (sin tope en vueltas mientras la devolución sigue,
     con un guarda en tiempo), en las dos.
+  - **✅ ACEPTADO** (decisión 2026-10-27) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-406` (S112, pruebas / Mesa / `R9-393`, `R9-351` — P3) — 🐛 sin dueño y sin devoluciones, ningún
   caso de `R9-344` termina con el último estado distinto del primero: tomar la cuenta del PRIMERO de varios
@@ -11762,6 +11797,7 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     esperado lo dice). Sin pieza.
   - **¿Lo abrió la 111?** Sí (`56c7d33`, `9cd06d0`).
   - P3 bajo: frases de las pruebas, sin daño.
+  - **✅ ACEPTADO** (decisión 2026-10-27) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-410` (S114, `A12` hilo 1 / tema y respaldo — P2) — 🐛 `ThemeProvider` lanza POR ENCIMA del
   `ErrorBoundary` con un `@app_color_theme` que es un nombre del prototipo, y el import de respaldo lo
@@ -14204,6 +14240,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Pruebas: 3**, en `__tests__/memoryDeckDisk.test.tsx`. `espera` tumba 2 y `ref` 1.
   - Las pruebas de `R9-264` y `R9-28` siguen verdes con cada arreglo. Sigue abierto el bulk push de
     favoritos (`R9-214`).
+  - **✅ ARREGLADO** (`57cab837`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-134` (S21, memoria / identidad) — 🐛 la guarda de dueño de `R9-48` falla ABIERTA si no
   puede leer el marcador.** CONFIRMADO con sonda. `getReviewLogOwner` (`memoryStatsSync.ts:79-86`)
@@ -14607,6 +14644,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **8 scripts más** (`rebuild-seed.js` incluido, que construye el seed nativo). **Arreglado:** se
   deriva sobre `scripts/` con los comentarios quitados, y se exige `>= 2`.
 
+  **✅ ARREGLADO** (`15bdd382`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-91` (S17, pruebas) — 🐛 cinco suites seguían AFIRMANDO que CI fija Node 20.**
   `databaseMigrations`, `sanitizeFtsQuery`, `insertVersesBatchedSql`, `hebrewGlossEs`,
   `quizVerseLookup`. No son notas de color: son la **justificación documentada** de por qué
@@ -14615,6 +14654,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **Arreglado:** las cinco frases a pasado con el piso real, **más el detector**, que deriva los
   pines reales del workflow y falla si alguna suite afirma en presente un pin que no existe.
   Visto fallar devolviendo una de las cinco a presente.
+
+  **✅ ARREGLADO** (`15bdd382`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-92` (S17, compuerta de providers) — 🐛 el escáner de layouts no veía
   `_layout.native.tsx`, y no lo decía.** `R9-86` hizo que los layouts se BUSCARAN —correcto— y
@@ -14628,6 +14669,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   se **ejecutaba** para esa fila — la lección de la 16 una iteración de bucle más abajo.
   **Arreglado:** el walker parsea el sufijo de plataforma; `.ios`/`.android` se **reportan**.
 
+  **✅ ARREGLADO** (`5359a771`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-93` (S17, build de packs) — 🐛 el mensaje FIRST FILE decía COHERENTE sobre un directorio
   que puede estar MEZCLADO.** `R9-84` cerró «dice MIXED sin haber movido nada»; su reemplazo
   afirma «_It is coherent - one run, whole - and its sha256 are still the ones the manifest
@@ -14637,6 +14680,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   palabra por palabra** el aviso correcto del paso anterior. **Arreglado:** se comprueba (el
   manifiesto ya está en mano), y `null` («no pude comprobar») y `[]` («comprobado, cuadra») son
   respuestas **distintas** a propósito.
+
+  **✅ ARREGLADO** (`bd4d5202`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-100` (S18, compuerta de CI) — 🐛 `jobs: # comentario` ciega un archivo entero, y el piso
   era un conteo global.** `/^jobs:\s*$/` rechazaba el comentario, `inJobs` no se encendía y el
@@ -14669,6 +14714,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   57). **Arreglado:** instalar antes, con la caché que el job ya tiene. Medido: 0 `MISSING`.
   _(Distinto de `R9-5`, que dice que el job no puede fallar; eso presupone que el paso mide algo.)_
 
+  **✅ ARREGLADO** (`15bdd382`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-95` (S17, build de packs) — 🐛 el `finally` de `main()` podía DESTRUIR el motivo del
   aborto.** Un `throw` desde un `finally` **reemplaza** la excepción del `try`, así que una
   corrida donde la compuerta hizo su trabajo —cazar un encogimiento, negarse a publicar— podía
@@ -14679,6 +14726,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   9,5 MB de `.sqlite` recién escritos es la misma causa que motivó `R9-81`. **Arreglado:** la
   excepción original se conserva y el problema de limpieza se **añade**.
 
+  **✅ ARREGLADO** (`bd4d5202`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-96` (S17, build de packs) — 🐛 la escritura del manifiesto era la ÚNICA operación sin
   mensaje.** Y es el único fallo donde «los archivos de `out` son de una corrida anterior» es
   **falso** y «el manifiesto no se tocó» es el problema en vez del consuelo: los cuatro renames ya
@@ -14686,6 +14735,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   los anteriores. Publicar desde ahí sube packs cuyo sha256 el manifiesto contradice — y ese
   sha256 es la única señal que `data-loader.web.ts` usa para notar un pack nuevo. **Alcanzabilidad
   baja** (solo lectura, bloqueo, disco lleno); se arregla por la asimetría de disciplina.
+
+  **✅ ARREGLADO** (`bd4d5202`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-84` (S16, build de packs) — 🐛 el mensaje decía que el directorio estaba MEZCLADO sin
   haber movido nada.** El error que `R9-81` escribe cuando un rename falla es una **aserción sobre
@@ -14697,6 +14748,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   carrera que el propio `R9-81` admite no cerrar, cuando el bloqueo cae sobre el primer archivo.
   **Arreglado:** dos estados, dos mensajes. Detalle: `detail/S16-revision-del-diff.md`.
 
+  **✅ ARREGLADO** (`f62552f5`) — marca agregada en la conciliación (sesión 142).
+
 - **`R9-85` (S16, prueba de packs) — 🐛 el mock de `renameSync` se llamaba a sí mismo, así que la
   prueba del caso «a medias» solo veía el caso «no se movió nada».** La prueba de `R9-81` hacía
   `return jest.requireActual('fs').renameSync(from, to)` dentro del propio mock — y
@@ -14707,6 +14760,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   escribir la prueba de `R9-84`. **Arreglado:** capturar el `renameSync` real antes de espiar y
   exigir que el mensaje NOMBRE los archivos (una movida, tres no).
   Detalle: `detail/S16-revision-del-diff.md`.
+
+  **✅ ARREGLADO** (`f62552f5`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-86` (S16, compuerta de providers) — 🐛 el control de `R9-80` probaba una COPIA del arreglo,
   y el escáner solo abría 2 de los 4 layouts.** «counts a provider that is only MENTIONED as not
@@ -14722,6 +14777,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   layouts se **buscan** en vez de enumerarse, con la resolución de metro bien puesta (un layout
   anidado sin hermano `.web` es parte del árbol web también). Sin cambio de comportamiento hoy;
   la diferencia es que ahora está derivado. Detalle: `detail/S16-revision-del-diff.md`.
+
+  **✅ ARREGLADO** (`8a91c5cc`) — marca agregada en la conciliación (sesión 142).
 
 - **`R9-79` (S15, paridad web/nativo) — 🐛 el contrato compartido no tiene por qué vivir en el
   hermano nativo.** `R9-76` amplió el discriminador de «el nativo lo EXPORTA» a «...o lo declara

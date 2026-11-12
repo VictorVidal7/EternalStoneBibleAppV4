@@ -1,14 +1,23 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera actual: la fase de ARREGLOS, con Fable 5.2 como modelo principal (decisión de Victor del 2026-11-11,
-> `CONTINUAR.md` §7). La 141 revisó el diff de la 140 (los tres P1), con emulador, jest y lectura: los tres arreglos
+> **Frontera actual (sesión 142, 2026-11-12): los hallazgos viejos, conciliados; solo docs.** `ESTADO.tsv` trae el
+> estado de los 573: **274 abiertos (ningún P0, 20 P1, 92 P2, 161 P3 y el aviso `R9-1`)**, 2 sin verificar, 285
+> arreglados y 12 aceptados. De los abiertos, 113 son de `R9-1`..`R9-409` (los 20 P1; cuatro de dinero,
+> `R9-16`..`R9-19`) y estaban fuera de las tandas. Lo siguiente: la 143, solo docs para adelgazar
+> (`_scratch/S143-PROMPT.md`); después, los arreglos (`_scratch/S14X-PROMPT-arreglos.md`). Detalle:
+> `detail/S142-conciliacion.md`.
+>
+> **Antes, la frontera de la 141: la fase de ARREGLOS, con Fable 5.2 como modelo principal (decisión de Victor del
+> 2026-11-11, `CONTINUAR.md` §7). La 141 revisó el diff de la 140 (los tres P1), con emulador, jest y lectura: los tres arreglos
 > se sostienen en lo que arreglan (`R9-424` y `R9-425`, verificados EN VIVO con su control), y salieron cuatro
 > hallazgos nuevos, todos P3: `R9-570` (una REGRESIÓN del arreglo de `R9-424`: con el pack elegido ausente, cada
 > frío duplica los recordatorios del versículo del día), `R9-571` (la ✕ del reproductor no lo pliega: el estado roto
 > de `R9-427` no se alcanza en vivo, ni antes ni después del arreglo), `R9-572` (la prueba de `R9-427` usa un
 > `hidePlayer` simulado) y `R9-573` («al final del libro» sobre una lista no vence). `R9-569` quedó refutado en su
-> consecuencia. No hay ningún P0 ni P1 abierto; hay 573 hallazgos. Lo siguiente: la 142, los arreglos de lo que
-> encontró la 141 y la tanda 2 de P2 (`_scratch/S142-PROMPT.md`); después, las demás tandas de `CONTINUAR.md` §4 y
+> consecuencia. No hay ningún P0 ni P1 abierto de `R9-410` en adelante (corregido en la 142: hay 20 P1 viejos
+> abiertos); hay 573 hallazgos. La 141 está mergeada y pusheada (`a0147da0`). Los arreglos de lo que encontró la 141
+> y la tanda 2 de P2 no fueron la 142 (corregido en la 142): van después de la 143
+> (`_scratch/S14X-PROMPT-arreglos.md`); después, las demás tandas de `CONTINUAR.md` §4 y
 > los P3. Al terminar la fase: Opus 5.5 principal con Fable de asesor, y las filas C P1 que faltan (`C17`, `C23`,
 > con `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). El Modo C P0 sigue hecho salvo lo que espera una cuenta de Google
 > de PRUEBA (`C26a`, `C54`, `C55`, el suelo de `C20a`, que sigue EN CURSO, y «Borrar cuenta» de `C27a`).** Detalle:

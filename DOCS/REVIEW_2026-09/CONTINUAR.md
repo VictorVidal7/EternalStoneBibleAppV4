@@ -1,6 +1,19 @@
 # ▶️ Continuar la revisión profunda 2026-09 — prompt para un chat NUEVO
 
-> **Última actualización: 2026-11-11, fin de la sesión 141.** La 141 revisó el diff de la 140 (`02ee73e..e8700067`,
+> **Última actualización: 2026-11-12, fin de la sesión 142.** La 142 fue la CONCILIACIÓN de los hallazgos viejos
+> (solo docs, sin agentes ni emulador, Fable 5.2 como principal; no se arregló nada). Las 157 entradas de
+> `R9-1`..`R9-409` sin marca de cierre entera se miraron contra el código de `a0147da0` y contra git: **113 siguen
+> abiertas (20 P1, 47 P2, 45 P3 y el aviso `R9-1`)**, 2 piden emulador (`R9-177`, `R9-240`) y 42 estaban cerradas
+> (34 arregladas y 8 aceptadas: se les agregó la marca en `BUGS.md`). Con las 161 de `R9-410` en adelante, **hay 274
+> abiertos de 573: ningún P0, 20 P1 (todos viejos; cuatro de dinero: `R9-16`..`R9-19`), 92 P2 y 161 P3.** El estado
+> por hallazgo ya es legible por máquina: `ESTADO.tsv`, con su validador
+> (`_scratch/S142-validar-estado.cjs.txt`). «No hay ningún P0 ni P1 abierto», más abajo, valía solo para `R9-410`
+> en adelante. La rama `docs/review-s142-conciliacion` (solo docs) va sin mergear hasta el OK de Victor. Lo
+> siguiente, en el orden aprobado por Victor el 2026-11-11: la 143, una sesión de solo docs para adelgazar
+> `INDEX.md`, `CONTINUAR.md` y la memoria (`_scratch/S143-PROMPT.md`); después, los arreglos
+> (`_scratch/S14X-PROMPT-arreglos.md`). Detalle: `detail/S142-conciliacion.md`.
+>
+> **Antes, al fin de la sesión 141 (2026-11-11):** La 141 revisó el diff de la 140 (`02ee73e..e8700067`,
 > los tres P1), en un chat nuevo, en la terminal, **sin agentes**, con **Fable 5.2 como modelo principal**, con un
 > emulador de solo lectura, jest y lectura. Los tres arreglos se sostienen en lo que arreglan: `R9-424` EN VIVO (KJV
 > y RV1909 sobreviven a dos fríos; sin la guarda, WEB; las siete pantallas, en la misma versión) y `R9-425` EN VIVO
@@ -11,11 +24,12 @@
 > roto de `R9-427` **no se alcanza en vivo**, ni antes ni después del arreglo), `R9-572` (la prueba de `R9-427` usa
 > un `hidePlayer` simulado que hace lo que el real no hace) y `R9-573` («al final del libro» sobre una lista no
 > vence; ya existía). `R9-569` quedó **refutado en su consecuencia** (la lectura parcial es real y no daña:
-> `installedVersions` devuelve siempre las empaquetadas). No hay ningún P0 ni P1 abierto. Hay 573 hallazgos. La rama
-> `docs/review-s141-diff-s140` (solo docs) va **sin mergear hasta el OK de Victor**. La 140 ya está mergeada y
-> pusheada (`main` = `origin/main` = `177029af`, CI verde en el log, run `43070499798`, 3 jobs, 377/4709; sus dos
-> ramas, borradas tras `git cherry`; corregido en la 141). Lo siguiente: la 142 (`_scratch/S142-PROMPT.md`), los
-> arreglos de lo que encontró la 141 y la tanda 2 de P2. Detalle: `detail/S141-revision-del-diff-s140.md`.
+> `installedVersions` devuelve siempre las empaquetadas). No hay ningún P0 ni P1 abierto **de `R9-410` en adelante**
+> (corregido en la 142: hay 20 P1 viejos abiertos). Hay 573 hallazgos. La 141 está **mergeada y pusheada** (`main` =
+> `origin/main` = `a0147da0`, CI verde en el log, run `43080364617`, 377/4709; corregido en la 142: aquí decía «sin
+> mergear»). La 140 ya estaba mergeada y pusheada (`177029af`, run `43070499798`, 3 jobs, 377/4709; sus dos ramas,
+> borradas tras `git cherry`). Lo siguiente no fueron los arreglos (corregido en la 142): Victor aprobó el
+> 2026-11-11 que la 142 fuera la conciliación. Detalle: `detail/S141-revision-del-diff-s140.md`.
 >
 > **Antes, al fin de la sesión 140 (2026-11-11):** La 140 fue la PRIMERA de la fase de ARREGLOS, en un chat
 > nuevo, en la terminal, **sin agentes**, con **Fable 5.2 como modelo principal** (decisión de Victor del 2026-11-11,
@@ -693,15 +707,28 @@ tanda, HECHO en la sesión 135: **las filas del Modo A están terminadas.** Y el
 que espera una cuenta de Google de PRUEBA. Y el (dl), las filas C P1 de datos y núcleo, HECHO a medias en la sesión
 139 (`C42b`, `C43b`, `C20b`, `C7`; quedan `C17` y `C23`). Victor eligió otra cosa para la 140: la fase de ARREGLOS,
 con Fable 5.2 como principal (§7). Y el (dm), la tanda 1 de arreglos (los tres P1), HECHO en la sesión 140. Y el
-(dn), la revisión del diff de la 140, HECHO en la sesión 141. **Lo siguiente es el (do), sin empezar.**
+(dn), la revisión del diff de la 140, HECHO en la sesión 141. Y el (do), la conciliación de los hallazgos viejos,
+HECHO en la sesión 142. **Lo siguiente es el (dp), sin empezar.**
 
-**(do) Sesión 142: los arreglos de lo que encontró la 141, y la tanda 2 de P2**, en un chat nuevo, en la terminal,
+**(dp) Sesión 143: solo docs, para adelgazar** `INDEX.md`, `CONTINUAR.md` y la memoria, con la hoja de recetas y el
+arranque liviano (puntos 6, 9 y 10 de `_scratch/S141-PROPUESTA-optimizacion.md`), y para decidir el lugar definitivo
+de los dos scripts de `ESTADO.tsv`. El mensaje está en `_scratch/S143-PROMPT.md`, que manda sobre este archivo.
+
+**(do) Sesión 142 — HECHO en la sesión 142: la conciliación de los hallazgos viejos** (solo docs, sin agentes ni
+emulador, Fable 5.2 como principal): de las 157 entradas viejas sin marca entera, 113 siguen abiertas (20 P1), 2
+piden emulador y 42 estaban cerradas (marca agregada); `ESTADO.tsv` y su validador. El mensaje fue
+`_scratch/S142-PROMPT-conciliacion.md`. Detalle: `detail/S142-conciliacion.md`.
+
+**(dq) Después de la 143: los arreglos de lo que encontró la 141, y la tanda 2 de P2** (aquí figuraba como «(do)
+Sesión 142»; corregido en la 142: el orden aprobado por Victor el 2026-11-11 puso antes la conciliación y la sesión
+de solo docs). El orden de las tandas, con los 113 viejos abiertos a la vista, lo decide Victor. En un chat nuevo,
+en la terminal,
 con Fable 5.2 como principal, sin agentes. Primero los cuatro P3 de la 141, cada uno con su prueba vista fallar:
 `R9-570` (serializar la reprogramación de los recordatorios), `R9-571` + `R9-572` (que la ✕ pliegue de verdad, y un
 caso de la prueba con el `AudioPlayerProvider` real) y `R9-573` (el temporizador «al final del libro» en una lista).
 Después la tanda 2 de la §4 (datos locales), con la nota de `R9-558`: la red de `useBibleVersion` puede escribir la
 clave cuando la base respondió y el pack no está, no cuando la lectura falló. El mensaje está en
-`_scratch/S142-PROMPT.md`, que manda sobre este archivo. Detrás, su revisión de diff.
+`_scratch/S14X-PROMPT-arreglos.md`, que manda sobre este archivo. Detrás, su revisión de diff.
 
 **(dn) Sesión 141 — HECHO en la sesión 141: la revisión del diff de la 140** (`02ee73e..e8700067`), con Fable 5.2
 como principal, sin agentes, con un emulador: los tres arreglos se sostienen; `R9-570`..`R9-573` nuevos (P3);
@@ -2464,9 +2491,12 @@ Eso es todo. Lo de abajo es para el chat que lo lea.
   arreglo de `fix/s140-p1`, `7d4a511f`, `a6a0ef13`, `e8700067`, más los docs de `docs/review-s140-fix`). CI
   verificado en el log: run `43070499798`, 3 jobs, 377/4709. Las dos ramas se borraron tras `git cherry` (corregido
   en la 141: los docs de la 140 decían «sin mergear»). La 139 ya estaba en `main` (`02ee73e`, run `43045636372`).
-- **La rama de la 141, sin mergear a propósito y sin pushear:** `docs/review-s141-diff-s140` (solo docs, sobre
-  `177029af`). Se mergea con el OK de Victor (fast-forward y push); después se borra tras `git cherry`. Si ya se
-  mergeó, `main` la incluye. `npm run validate` (`NODE_ENV=development`, sin emuladores, Metro ni worktrees vivos):
+- **La rama de la 142, sin mergear a propósito y sin pushear:** `docs/review-s142-conciliacion` (solo docs, sobre
+  `a0147da0`). Se mergea con el OK de Victor (fast-forward y push); después se borra tras `git cherry`. Si ya se
+  mergeó, `main` la incluye.
+- **La 141 está mergeada y pusheada** (corregido en la 142: aquí decía «sin mergear»): `main` = `origin/main` =
+  `a0147da0`, CI verde en el log, run `43080364617`, 377/4709; su rama `docs/review-s141-diff-s140` (solo docs,
+  sobre `177029af`), borrada. `npm run validate` (`NODE_ENV=development`, sin emuladores, Metro ni worktrees vivos):
   verde, **377/4709** (igual que la 140: la 141 no tocó código; las mismas 70 advertencias de eslint;
   `_scratch/S141-validate.out.txt`).
 - **Los worktrees:** ninguno. El de docs (`../essb-docs-s141`, checkpoint con `_scratch/S141-checkpoint.sh.txt`) se
@@ -2595,13 +2625,21 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
+**Sesión 142 (la conciliación de los hallazgos viejos; solo docs):** el conteo real, de `ESTADO.tsv`: **274 abiertos
+de 573 (ningún P0, 20 P1, 92 P2, 161 P3 y el aviso `R9-1`)**, 2 sin verificar (`R9-177`, `R9-240`: piden emulador),
+285 arreglados y 12 aceptados. De los abiertos, **113 son viejos** (`R9-1`..`R9-409`: los 20 P1, 47 P2, 45 P3 y el
+aviso) y no están en las tandas de abajo, que cubren solo `R9-410` en adelante (161: 45 P2 y 116 P3). Los 20 P1, con
+los de dinero arriba (`R9-16`..`R9-19`), están en `detail/S142-conciliacion.md` §3. Dónde entran en las tandas lo
+decide Victor. **Lo siguiente: la 143, solo docs (`_scratch/S143-PROMPT.md`); después, los arreglos
+(`_scratch/S14X-PROMPT-arreglos.md`).**
+
 **Sesión 141 (la revisión del diff de la 140, sin agentes, Fable 5.2 como principal, un emulador):** los tres
 arreglos se sostienen (`R9-424` y `R9-425`, EN VIVO con su control). Cuatro hallazgos nuevos, P3: `R9-570` (una
 regresión del arreglo de `R9-424`: con el pack ausente, cada frío duplica los recordatorios del versículo del día),
 `R9-571` (la ✕ del reproductor no lo pliega; el estado roto de `R9-427` no se alcanza en vivo), `R9-572` (la prueba
 de `R9-427` usa un `hidePlayer` simulado) y `R9-573` («al final del libro» sobre una lista no vence). `R9-569`,
-refutado en su consecuencia. **Lo siguiente: la 142 (`_scratch/S142-PROMPT.md`): los arreglos de esos cuatro, y la
-tanda 2 de P2.** Detalle: `detail/S141-revision-del-diff-s140.md`.
+refutado en su consecuencia. Los arreglos de esos cuatro y la tanda 2 de P2 van después de la 143 (corregido en la
+142: aquí decía que eran la 142). Detalle: `detail/S141-revision-del-diff-s140.md`.
 
 **Sesión 140 (la PRIMERA de la fase de ARREGLOS, sin agentes, Fable 5.2 como principal):** la tanda 1, los tres P1:
 `R9-424`, `R9-425` y `R9-427` ✅ ARREGLADOS (`7d4a511f`, `a6a0ef13`, `e8700067`), cada uno con su prueba vista FALLAR

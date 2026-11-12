@@ -1,0 +1,574 @@
+id	severidad	área	estado	cierre	evidencia
+R9-1	aviso	remediación de vulns	abierto		no es un bug: es la advertencia permanente de que `npm audit fix --force` rompería la app (regla fija de cada sesión); `npm audit` no se volvió a correr
+R9-2	P2	.gitignore	abierto		mejora (💡): `.gitignore:48` sigue en `.env*.local`; `git check-ignore .env` no casa
+R9-3	P2	limpieza	abierto		mejora (💡): `git ls-files .yarn` sigue trayendo `yarn-3.6.4.cjs` y el plugin
+R9-4	P2	proceso	abierto		mejora (💡): no hay `firestore.rules` versionado (`git ls-files` solo trae `firebase.json`)
+R9-5	P2	CI	abierto		`.github/workflows/ci.yml:100-102` (`npm audit` con `continue-on-error: true`)
+R9-6	P2	CI	abierto		mejora (💡): `ci.yml` sin bloque `permissions:`; `:76` usa `codecov/codecov-action@v4` (tag mutable)
+R9-7	P2	functions/	arreglado	2026-09-03	marca de su entrada: «✅ RESUELTO 2026-09-03. Era: código no desplegado que duplica la lógica de dinero, y `firebase.json` todavía lo declara. Severidad baja-media (mantenim»
+R9-8	P2	subproyectos	abierto		mejora (💡): `functions/package.json` y `vercel/gift-code-redeem/package.json` sin `overrides`
+R9-9	P0	entitlements	arreglado	bb3b25b	marca de su entrada: «✅ ARREGLADO en la sesión 10 (`bb3b25b`), por la opción (c): `lastKnownUnlocked` pasa a `boolean | null`, con `null` = «RevenueCat todavía no ha contes»
+R9-10	P0	PremiumContext	arreglado	bb3b25b	marca de su entrada: «✅ ARREGLADO en la sesión 10 (`bb3b25b`), exactamente ese arreglo. Su severidad era más alta de lo que decía esta entrada: no solo «se auto-repara en e»
+R9-11	P0	A5/A4, SyncEngine	arreglado	261c053	marca de su entrada: «✅ ARREGLADO en la sesión 11 (`261c053`), y la identidad salió exacta y gratis, sin necesidad de `seq` ni de `queuedAt`: `items` viene de `this.queue.f»
+R9-12	P2	SyncEngine	abierto		mejora (💡): `grep writeBatch src`: 0
+R9-13	P0	web	arreglado	2026-09-03	marca de su entrada: «✅ RESUELTO 2026-09-03 el "¿está en producción?": NO, y por 5 días. El último deploy de Firebase Hosting es del 2026-08-13T04:39Z (consultado por la AP»
+R9-14	P0	web	arreglado	sesión 12	marca de su entrada: «✅ ARREGLADO en la sesión 12 — la mitad estructural, que es la que tenía la severidad. Se tomó la opción (b) del detalle, no la (a): un `ErrorBoundary`»
+R9-15	P1	tests	arreglado	sesión 12	marca de su entrada: «✅ ARREGLADO en la sesión 12, y arreglado antes que `R9-13` a propósito, para ver el crash de producción aparecer en la compuerta: con la redirección p»
+R9-16	P1	dinero	abierto		`src/lib/offering/offeringService.ts:343-348` (`restore()`: el `catch` devuelve `{unlocked: false}`); verificado también en la 141
+R9-17	P1	dinero	abierto		`src/lib/offering/offeringService.ts:313` (`purchaseUnlock` devuelve `{status: 'success'}` sin mirar el entitlement); verificado también en la 141
+R9-18	P1	dinero	abierto		`grep -i pending` en `src/lib/offering/offeringService.ts` y `src/components/donation/DonationSheet.tsx`: 0
+R9-19	P1	dinero	abierto		`alreadyOwned` tiene un solo consumidor: `src/components/offering/OfferingSheet.tsx:125`; `DonationSheet.tsx`, 0
+R9-20	P2	backend	abierto		mejora (💡): `vercel/gift-code-redeem/api/redeem.ts` no valida la forma del código antes de `verifyIdToken` (ningún `test(`/`match(` sobre `code`)
+R9-21	P2	backend	abierto		mejora (💡): `vercel/gift-code-redeem/api/redeem.ts:207` (el fallo del marcado va a `console.error` y la respuesta sigue)
+R9-22	P0	sync	arreglado	a9785be	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo inclu»
+R9-23	P0	identidad	arreglado	e75eca3	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`e75eca3`): exactamente ese arreglo. `@local_store_owner_uid` se reclama en cada inicio de sesión no-anónimo, y la rama de»
+R9-24	P1	copy	abierto		`src/i18n/translations.ts:3893` sigue mandando a «Resetear Datos de la Biblia» para borrar lo del dispositivo
+R9-25	P1	cuota	abierto		`src/lib/sync/deleteAccountData.ts:55` (`.get()` sin `limit()`) y `:56` (`Promise.allSettled` de todos los deletes)
+R9-26	P2	auth	abierto		mejora (💡): `src/context/AuthContext.tsx:707` (`deleteUser`) y `:760` (`triggeredAnonymousRef.current = false` después)
+R9-27	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `degradedSections` viaja ahora DENTRO del archivo (`payload.meta.degradedSections`, aditivo dentro del formato»
+R9-28	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que s»
+R9-29	P1	cuota	abierto		`src/services/BackupService.ts:1078-1084` (un `queueWrite('reviewEvents', …)` por evento importado)
+R9-30	P1	respaldo	abierto		`src/services/BackupService.ts:119-120`: las `KEYS` solo traen `@prep_notes` y `@prep_series`
+R9-31	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:1419` (`withTransactionAsync`, no la exclusiva)
+R9-32	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:655` (`shareAsync`; `grep deleteAsync`: 0, el archivo de caché no se limpia)
+R9-33	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO»
+R9-34	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`): la rama de error hace el spread de la entrada viva de la cola, no del snapshot `item`. Cayó del mismo cambio q»
+R9-35	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`): `advanceCursor` topa en `Date.now()`, así que el envenenamiento ya no puede ocurrir; y `loadCursor` descarta u»
+R9-36	P0	conflictos	arreglado	6440ca0	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`6440ca0`): - `keepMine` relee lo local al resolver (`adapter.getLocal`) y sube eso re-sellado. Falla con error si la ses»
+R9-37	P1	SyncEngine	abierto		`src/lib/sync/SyncEngine.ts:1590` (la guarda `unsubs.has`) y `:1696` (el `unsubs.set`), con el `await` del cursor en medio
+R9-38	P0	SyncEngine	arreglado	ea182dc	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`ea182dc`, rama `fix/s53-r59-r38`). El cómo, decidido midiendo: - Sin sesión, `queueWrite`/`queueDelete` encolan la entra»
+R9-39	P0	conflictos	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`9c425a8`, junto con `R9-106`): - Hay un conjunto «no asentado» (conflictos pendientes y docs saltados por `R9-46`) por c»
+R9-40	P1	catálogo de versiones	abierto		verificado en la 141: ningún `fetch` del catálogo de versiones tiene timeout (`grep AbortController src/lib/bible`: 0)
+R9-41	P1	lector	abierto		`app/(tabs)/verse/[book]/[chapter].tsx:719-722`: `readerIsDark` sigue enumerando `night` y `high-contrast`, sin `crepusculo`
+R9-42	P2	lector	abierto		decisión de diseño (💡): `app/(tabs)/verse/[book]/[chapter].tsx:2595` (`left: -(fontSizes.sm + spacing['0.5'])`)
+R9-43	P2	Mesa	abierto		`app/features/prep/index.tsx:3185` (`sectionCard` sin `gap`); `compareVerseBlock` (`:3424`) tiene `marginBottom` y `gap` propios, sin `marginTop`: no re-medido en pantalla
+R9-44	P0	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): si el versículo ya tiene subrayado, recolorear es un `UPDATE` de solo color en vez de un `addHighlight` de 5 a»
+R9-45	P0	sync	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `queueWrite` —y el bulk push inicial— ponen ahora `deleted: false` / `deletedAt: null` explícitos. Era el únic»
+R9-46	P0	sync	arreglado	b3d73e1	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`b3d73e1`): `findNoteById` inicializa primero (idempotente, coalesce llamadas concurrentes) y deja propagar un fallo real»
+R9-47	P0	Mesa	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `load()` tiene id de ejecución monótono y el re-lectura estrecha del `useFocusEffect` tiene cleanup, así que u»
+R9-48	P0	identidad	arreglado	67af8c9	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`67af8c9`): marca `@review_log_owner_uid`, en vez de scopear la tabla. Un log sin dueño lo reclama quien escribe primero;»
+R9-49	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): los 4 getters aceptan `{strict: true}`, que solo usa el export — los llamadores de UI siguen degradando a `[]`»
+R9-50	P1	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `updateHighlight` pasa a ser tri-estado (`undefined` = no tocar, `null` = borrar) y devuelve la entidad escrit»
+R9-51	P1	notas	abierto		verificado en la 141: la tabla `notes` no tiene restricción por versículo
+R9-52	P1	Mesa	abierto		`src/features/study/prepNotesStore.ts:83-88` (`writeQueue…catch(log)` y `return writeQueue`: resuelve siempre)
+R9-53	P2	respaldo	abierto		sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
+R9-54	P1	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:222-257` (`toggleDay` no toca `READ_CHAPTERS_KEY`; solo lo escriben `:302` y `:463`)
+R9-55	P2	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:270-279` (`migratePlanProgress` copia `completedDays` sin recortar)
+R9-56	P2	notas	abierto		`app/(tabs)/notes.tsx:276` (`localizeBook(item.book)` junto al texto congelado)
+R9-57	P2	lector	abierto		`app/(tabs)/verse/[book]/[chapter].tsx:1049` (`saveNote` corta con `!noteText.trim()`; sin borrado desde el lector)
+R9-58	P2	Mesa	abierto		`grep flushOnExit` en `app` y `src`: 0
+R9-59	P2	privacidad local	aceptado	sesión 51	marca de su entrada: «✅ DECIDIDO por Victor el 2026-10-03 (tras la sesión 51): la opción (b). La Mesa se guarda por cuenta, y cerrar sesión no borra nada. Progreso y logros»
+R9-60	P2	respaldo	abierto		`src/services/BackupService.ts`: 0 menciones de `@memory_daily_goal`, `@memory_weekly_target` ni `@memory_celebrated_milestones`
+R9-61	P2	recuperación	abierto		`resetDeck` sigue sin llamadores fuera de `MemoryDeckContext`
+R9-62	P2	hitos	abierto		`src/lib/memory/goalStore.ts:72` (`merged.slice(-MAX_CELEBRATED)`, con `MAX_CELEBRATED = 60` en `:22`)
+R9-63	P2	recap	abierto		`src/features/reading-insights/weeklyRecap.ts:86` (`listeningDateKey(now - i * MS_PER_DAY)`)
+R9-64	P2	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:278-279` (`delete next[fromId]` incondicional)
+R9-65	P1	sync	arreglado	261c053	marca de su entrada: «✅ ARREGLADO en la sesión 11 (`261c053`): exactamente esa línea, con la rama de conflicto reordenada para que se lea como lo que es (o frena el cursor,»
+R9-66	P1	build de packs	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: dos pisos, uno antes de abrir la base y otro después del bucle (`spanCount === 0`), y el script pasa a ser requerible par»
+R9-67	P1	tests	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: parsea con `ts.createSourceFile`, que no type-checkea, no resuelve módulos y no ejecuta una línea — conserva entera la ra»
+R9-68	P2	web	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: el NOMBRE del provider tiene que estar en `WEB_UNMOUNTED_PROVIDERS`, los siete que `app/_layout.web.tsx` deja fuera a pro»
+R9-69	P2	lector web	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: `redLetterLoaded: boolean` pasa a `redLetterLoadedFor: string | null` y la prontitud se deriva en render (`redLetterLoade»
+R9-70	P2	paridad web/nativo	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: los tres importan el tipo del hermano nativo (type-only, borrado en compilación, sin auto-import en runtime) — el patrón»
+R9-71	P2	lector web	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: el fallo deja la versión sin asentar y suelta la entrada en vuelo, así que el siguiente que pregunte reintenta; los reint»
+R9-72	P1	build de packs	arreglado	sesión 14	marca de su entrada: «✅ ARREGLADO en la sesión 14: todo se construye en un directorio de escenario dentro de `out` (mismo volumen, porque un `rename` entre volúmenes falla»
+R9-73	P1	build de packs	arreglado	sesión 14	marca de su entrada: «✅ ARREGLADO en la sesión 14: la ausencia se lee de las listas PREVIAS, que es el único sitio donde sigue visible, con `--allow-shrink` como la misma v»
+R9-74	P2	build de packs	arreglado	sesión 14	marca de su entrada: «✅ ARREGLADO en la sesión 14: distingue `ENOENT` de todo lo demás (un baseline ilegible aborta, con la instrucción de restaurarlo), exige un `packs` ar»
+R9-75	P2	web	arreglado	sesión 14	marca de su entrada: «✅ ARREGLADO en la sesión 14: los dos layouts están en disco, así que la diferencia es derivable. Dos pruebas: que toda la diferencia nativo-menos-web»
+R9-76	P2	paridad web/nativo	arreglado	sesión 14	marca de su entrada: «✅ ARREGLADO en la sesión 14: un nombre `…ContextValue` cuenta como contrato compartido exporte el nativo o no — ese sufijo no es una convención casual»
+R9-77	P1	build de packs	arreglado	sesión 15	marca de su entrada: «✅ ARREGLADO en la sesión 15: `baselineComparisonCounts` cuenta lo que la base FIJA; si la corrida emite entradas de una categoría y la base no fija ni»
+R9-78	P1	letra roja web	arreglado	sesión 15	marca de su entrada: «✅ ARREGLADO en la sesión 15: las tres listas se comparan por valor —ids en las tres direcciones y nombres de archivo entre las dos que los llevan— en»
+R9-79	P2	paridad web/nativo	arreglado	sesión 15	marca de su entrada: «✅ ARREGLADO en la sesión 15: para un `…ContextValue` la regla es incondicional, un archivo `.web` no declara uno y punto; todo otro nombre sigue neces»
+R9-80	P2	web	arreglado	sesión 15	marca de su entrada: «✅ ARREGLADO en la sesión 15: recorre el ÁRBOL DE SINTAXIS, como el escáner de paridad después de `R9-67`, así que los comentarios y los literales de c»
+R9-81	P2	build de packs	arreglado	sesión 15	marca de su entrada: «✅ ARREGLADO en la sesión 15: se comprueba que TODOS los destinos son reemplazables antes de mover el primero —lo que cubre la causa realista entera co»
+R9-82	P1	CI	arreglado	70ebb628	commit `fix(ci): R9-82`; la entrada dice «Arreglado»
+R9-83	P1	build de packs	arreglado	3333d486	commit `fix(packs): R9-83`; la entrada dice «Arreglado»
+R9-84	P2	build de packs	arreglado	f62552f5	commit `fix(packs): R9-84 + R9-85`; la entrada dice «Arreglado»
+R9-85	P2	prueba de packs	arreglado	f62552f5	commit `fix(packs): R9-84 + R9-85`; la entrada dice «Arreglado»
+R9-86	P2	compuerta de providers	arreglado	8a91c5cc	commit `test(web): R9-86`; la entrada dice «Arreglado»
+R9-87	P1	prueba de packs	arreglado	bd4d5202	commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; la entrada dice «Arreglado»
+R9-88	P1	CI	arreglado	15bdd382	commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+R9-89	P1	CI	arreglado	15bdd382	commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+R9-90	P2	CI	arreglado	15bdd382	commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+R9-91	P2	pruebas	arreglado	15bdd382	commit `fix(ci): R9-88..R9-91 + R9-94`; la entrada dice «Arreglado»
+R9-92	P2	compuerta de providers	arreglado	5359a771	commit `test(web): R9-92`; la entrada dice «Arreglado»
+R9-93	P2	build de packs	arreglado	bd4d5202	commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; la entrada dice «Arreglado»
+R9-94	P2	CI	arreglado	15bdd382	commit `fix(ci): R9-88..R9-91 + R9-94`; `.github/workflows/ci.yml:104`
+R9-95	P2	build de packs	arreglado	bd4d5202	commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; la entrada dice «Arreglado»
+R9-96	P2	build de packs	arreglado	bd4d5202	commit `fix(packs): R9-87 + R9-93 + R9-95 + R9-96`; `scripts/build-web-packs.js:982`
+R9-97	P1	build de packs	arreglado	2a442dd	marca de su entrada: «✅ ARREGLADO (`2a442dd`): el bucle va en las dos direcciones y nombra lo que falta. Detalle: `detail/S18-revision-del-diff.md`. ⚠️ Sesión 19: en el `ou»
+R9-98	P1	build de packs	arreglado	2a442dd	marca de su entrada: «✅ ARREGLADO (`2a442dd`): las dos listas por sus normalizadores. ⚠️ Sesión 19: el vecino sigue abierto — un error de E/S en el mismo `catch` (`R9-110`)»
+R9-99	P1	compuerta de CI	arreglado	f477c19	marca de su entrada: «✅ ARREGLADO (`f477c19`): manda la COLUMNA, y una línea en el nivel de job que no se pueda nombrar se REPORTA y limpia `job`. ⚠️ Sesión 19: la otra mit»
+R9-100	P2	compuerta de CI	arreglado	f477c19	marca de su entrada: «✅ ARREGLADO (`f477c19`): el comentario se quita en toda línea y el piso pasa a ser por archivo (`scan.jobs.length > 0`). ⚠️ Sesión 19: el piso por arc»
+R9-101	P2	compuerta de CI	arreglado	f477c19	marca de su entrada: «✅ ARREGLADO (`f477c19`): `nodePinClaims` como función sobre TEXTO con cuatro sondas (incluido el control en pasado), aplanado de continuaciones, piso»
+R9-102	P0	favoritos / sync	arreglado	00f69c4	marca de su entrada: «✅ ARREGLADO en la sesión 20 (`00f69c4`): el payload sale de la fila recién escrita (`bibleDB.getFavoriteById`), no del estado de React, que tampoco ve»
+R9-103	P0	SyncEngine	arreglado	7aafc9c	marca de su entrada: «✅ ARREGLADO en la sesión 20 (`7aafc9c`): `suppressedDocs` por (colección, id), con profundidad. Un apply de OTRO doc ya no suprime (vista fallar); el»
+R9-104	P1	SyncEngine	arreglado	cfa7c1c	marca de su entrada: «✅ ARREGLADO en la sesión 20 (`cfa7c1c`), para las dos ramas de verdad: - una sesión de flush: `stop()` la incrementa y suelta el candado; - el flush v»
+R9-105	P1	prueba de dinero	arreglado	8ea93b6	marca de su entrada: «✅ ARREGLADO en la sesión 20 (`8ea93b6`). La prueba usa `jest.isolateModulesAsync`, sin reset ni clave de prueba, y lleva un control de que el SDK se c»
+R9-106	P1	SyncEngine	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`9c425a8`), junto con `R9-39`: ver allí.»
+R9-107	P1	compuerta de CI	abierto		`__tests__/ciNodeVersion.test.ts:263` (el mismo regex `/^-?\s*run:\s*(.*)$/`; sin parser YAML)
+R9-108	P1	build de packs	arreglado	b8e812c	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`b8e812c`): el «Done.» enumera los packs y nombra el manifiesto como ÚLTIMO paso, con su ruta y el nombre con que se publ»
+R9-109	P1	lector web	arreglado	d2b1cc7	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`d2b1cc7`, `44a5d15` y `0631557`): - El lector web hashea los bytes antes de importar (`sha256Hex`, en JS puro: unos 200»
+R9-110	P2	build de packs	abierto		`scripts/build-web-packs.js:948` (`filesNotPinnedBy(out, previous)` sin su propio `try`, dentro del `catch` de FIRST FILE)
+R9-111	P2	build de packs	abierto		`scripts/build-web-packs.js:510-524` (`filesNotPinnedBy` recorre todo `.json`, sin excluir el manifiesto)
+R9-112	P2	build de packs	abierto		sin arreglo en git ni en el código (`git grep -w R9-112`: 0); los mensajes de FIRST FILE siguen en `scripts/build-web-packs.js:940-960`
+R9-113	P2	build de packs	abierto		`scripts/build-web-packs.js:907` (el preflight sigue con `openSync(destination, 'r+')`)
+R9-114	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-114`
+R9-115	P2	SyncEngine	arreglado	e97cd95	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`e97cd95`, con `R9-254`): la hidratación une lo escrito durante su lectura (la más nueva gana, con los relojes de la viej»
+R9-116	P2	prueba de respaldo	abierto		por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
+R9-117	P2	favoritos / respaldo	abierto		`subscribeBackupRestored` tiene 4 suscriptores en `src/context` (mazo, preferencias, progreso del plan, progreso); `FavoritesContext.tsx` no está
+R9-118	P2	CI	abierto		espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
+R9-119	P2	premium	abierto		decisión de producto de Victor (de quién es el premium); el docstring sigue: `src/context/AuthContext.tsx:369` («never revoked on sign-out»)
+R9-120	P3	build de packs	abierto		grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
+R9-121	P3	compuerta de CI	abierto		grupo de P3 de la compuerta de CI; sin commit ni mención en el código; no re-medidos uno por uno
+R9-122	P3	dinero y sync	abierto		parcial: el punto 4 se arregló con `R9-153` (`a7d688e`, sesión 24); los puntos 1 a 3 siguen (por ejemplo, el comentario de `src/context/PremiumContext.tsx:72-73`)
+R9-123	P3	docs de la revisión	abierto		docs rancios de la revisión («sin corregir una por una»); los absorbe la sesión de adelgazar docs
+R9-124	P0	SyncEngine	arreglado	34de18f	marca de su entrada: «✅ ARREGLADO en la sesión 26 (`34de18f`, rama `fix/review-s26-removed`): - ante un `removed`, `getDoc` FUERA de `withLocalWriteSuppressed`, con `isCurr»
+R9-125	P0	identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`, hecho en la nube y revisado en local): `signInWithGoogle` lee el dueño previo ANTES de bifurcar, y la rama sin»
+R9-126	P1	SyncEngine / respaldo	abierto		`src/lib/sync/SyncEngine.ts:78`, `:997` y `:3586` siguen tratando el push con reloj viejo como riesgo vivo (lo evitan, no lo cierran); ningún commit lo arregla, y la entrada lo sigue hasta la sesión 49
+R9-127	P1	SyncEngine / auth	abierto		`src/lib/sync/SyncEngine.ts:779` (`skipNextBulkPush`, booleano de instancia sin uid) y `src/context/AuthContext.tsx:694` (`deleteAccount` lo arma); la entrada dice qué puertas se cerraron y cuáles no
+R9-128	P1	adaptadores de sync	abierto		`src/lib/sync/adapters/notes.ts:115-121` (`catch` → `logger.error`, sin relanzar) y `adapters/highlights.ts:120`, `:134`
+R9-129	P1	respaldo / memoria	abierto		`src/lib/memory/reviewEventStore.ts:90-96` (`catch` → `return []`)
+R9-130	P1	prueba de identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`): el `claimLocalStore` del camino directo lo vigila ahora una prueba que pasa por las tres ramas. Quitado, caen»
+R9-131	P1	prueba de respaldo	abierto		por lectura (el revert no se repitió): ninguna prueba nombra `R9-131`; `__tests__/achievementServiceRestoreBackup.test.ts` no tiene `degraded`, y `strict` solo aparece en `backupDegradedSections.test.ts:183-194`, que prueba el getter y no la llamada del export
+R9-132	P2	adaptadores de sync	abierto		`src/lib/sync/adapters/highlights.ts:85-91` (`getLocal`: `catch` → `return null`); `src/lib/sync/SyncEngine.ts:3340` lo nombra como lectura fallida posible
+R9-133	P2	favoritos / sync	arreglado	57cab837	dos marcas ✅ en la entrada: favoritos con `R9-210` (`682f852`, sesión 34) y el mazo (`57cab83`, sesión 61); el bulk push de favoritos sigue aparte, en `R9-214`
+R9-134	P2	memoria / identidad	abierto		`src/lib/memory/memoryStatsSync.ts:82-84` (`getReviewLogOwner`: `catch` → `return null`, falla abierta)
+R9-135	P2	premium	abierto		`src/lib/offering/offeringService.ts:225` (`linkUser`: `if (!configured || !uid) return;`); plausible, por lectura
+R9-136	P2	reglas Firestore	abierto		bloqueante antes del lanzamiento (lo dice la entrada): sin App Check en `src` ni `app` (`grep -i appcheck`: 0) y sin `firestore.rules` versionado
+R9-137	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-137`
+R9-138	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-138`
+R9-139	P2	prueba de respaldo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-139`
+R9-140	P2	prueba de rachas	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-140`
+R9-141	P2	prueba de respaldo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-141`
+R9-142	P3	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-142`
+R9-143	P1	Mesa	arreglado	03ad214	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`03ad214`, `92cfc16`): los dos botones pasan por `flushDrafts`, con las dos guardas de `handleNoteBlur`. - Revert por pie»
+R9-144	P2	compuerta de paridad web/nativo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-144` (`git grep -w`: 0)
+R9-145	P3	notas	abierto		`src/lib/sync/adapters/notes.ts`: `grep canonical` da 0 (el `book_name` remoto se escribe tal cual)
+R9-146	P3	planes	abierto		`git grep -w R9-146` en el código: 0; que el progreso sobreviva al borrado es decisión documentada (`CustomPlansContext.tsx:46`), su efecto al re-crear no se decidió
+R9-147	P3	memoria	abierto		`app/features/memory/insights.tsx:828-831` (`weekdayShort` suma `offset * DAY_MS`)
+R9-148	P3	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-148`
+R9-149	P3	build de packs	abierto		hueco de prueba, por lectura: `scripts/build-web-packs.js:290` sigue sin prueba que lo nombre (`git grep -w R9-149`: 0)
+R9-150	P3	lector web	abierto		`app/(tabs)/verse/[book]/[chapter].web.tsx:132-133` (`redLetterReady` sin mirar la versión de los `verses`); `git grep -w R9-150`: 0
+R9-151	P3	build de packs	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-151`
+R9-152	P3	compuerta de packs	abierto		`__tests__/buildWebPacks.test.js:45` (el `beforeAll` de archivo, sin `try`)
+R9-153	P1	SyncEngine / cuentas	arreglado	a7d688e	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`a7d688e`): `handleSnapshot` tiene la sesión del flush. Al volver de cada `await` después de un `stop()`, el lote corta s»
+R9-154	P3	prueba de sync	arreglado	42f6afb	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`42f6afb`): hay pruebas para `keepTheirs`, para `merge` y para la profundidad, y cada una cae con su sitio revertido. El»
+R9-155	P3	prueba de favoritos	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-155`
+R9-156	P3	docs y comentarios de la 20	abierto		grupo de docs y comentarios: al menos el ítem 1 sigue (`src/lib/sync/SyncEngine.ts:530`, «was not measured»); los demás ítems no se re-midieron
+R9-157	P2	compuerta local / jest	arreglado	03d45ad	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`03d45ad`, `dc8db54`, `f80a2c6`, `b59a3ab` y `3a23e76`): - `jest.config.js` fija `process.env.NODE_ENV = 'test'`; - la co»
+R9-158	P2	identidad	abierto		espera decisión de Victor (lo dice la cabecera): `src/context/AuthContext.tsx:104-107` (`getLocalStoreOwner`: `catch` → `null`, falla abierta)
+R9-159	P3	arnés de pruebas	abierto		42 suites de `__tests__` siguen con `useRouter: () => ({` (objeto nuevo por render)
+R9-160	P0	SyncEngine / conflictos — regresión de 6440ca0	arreglado	9a7c2c7	marca de su entrada: «✅ ARREGLADO en la sesión 25 (`9a7c2c7`; lo hizo la nube y se revisó en local): - Mientras el conflicto espera, el doc no toma nada de la nube. Lo que»
+R9-161	P1	SyncEngine / conflictos	arreglado	cf6e7f0	marca de su entrada: «✅ ARREGLADO en la sesión 25 (`cf6e7f0`, junto con `R9-160`, que cubre el caso de R2): - El motor marca un conflicto cuando ESTE teléfono escribe su do»
+R9-162	P2	prueba de sync	arreglado	542603b	marca de su entrada: «✅ ARREGLADO en la sesión 25 (`542603b`, solo pruebas): dos pruebas hacen caer el `stop()` durante el APPLY de un lote. Sin la guarda caen las 2 (medid»
+R9-163	P2	SyncEngine / cuentas	abierto		`src/lib/sync/SyncEngine.ts:2481` (`loadCursor`: `this.cursors.set` tras el `await`, sin mirar la sesión)
+R9-164	P2	SyncEngine / cuota	abierto		parcial: la mitad «en vivo» se cerró con `R9-124` (`34de18f`, sesión 26); la entrada dice «sigue ABIERTO» para la app cerrada y los huérfanos de un `deleteAccount` fallido (su entrada)
+R9-165	P3	SyncEngine / cuota	abierto		sin arreglo en git ni en el código (`git grep -w R9-165`: 0); no re-medido
+R9-166	P0	identidad	arreglado	cf7c715	marca de su entrada: «✅ ARREGLADO en la sesión 25 (`cf7c715`; lo hizo la nube y se revisó en local): la rama del link pregunta ANTES de enlazar, como las otras dos ramas lo»
+R9-167	P2	Mesa	abierto		sin arreglo en git ni en el código (`git grep -w R9-167`: 0); no re-medido
+R9-168	P3	Mesa	abierto		`app/features/prep/index.tsx:628` y `:675` (el ref se asigna en la microtarea de la lectura); sin arreglo en git
+R9-169	P3	prueba de la Mesa	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-169` (los `await flushDrafts()` de `index.tsx:1018`, `:1038`)
+R9-170	P3	build de packs	abierto		sin arreglo en git; es del entorno de build (versión de SQLite), no re-medido
+R9-171	P3	compuerta local	abierto		`__tests__/readingInsights.test.ts:9-12` (el «hoy» escrito a mano y el comentario de UTC+12)
+R9-172	P3	contenido diario	abierto		`src/constants/daily-verses.ts:262-266` (`getDayOfYear` resta `new Date(año, 0, 0)`)
+R9-173	P3	lector web	abierto		decidido y sin hacer: la decisión delegada en la sesión 25 (su entrada) fue extender la opción (b); ningún commit ni el código nombran `R9-173`
+R9-174	P3	SyncEngine / conflictos	arreglado	36cf5be	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`36cf5be`, rama `fix/s32-r192-r193-y-s31`): `+Npend` (en la rama `pending`, una copia es «suya» solo si su reloj difiere»
+R9-175	P2	SyncEngine / cursor	arreglado	c163659	marca de su entrada: «✅ ARREGLADO en la sesión 28 (`c163659`, rama `fix/s28-sync-r9175-r9181`). Una cadena de promesas por colección en el MOTOR (`enqueueSnapshot`). Medido»
+R9-176	P3	SyncEngine / R9-124	arreglado	53e79fa	marca de su entrada: «✅ ARREGLADO en la sesión 28 (`53e79fa`), junto con `R9-178`, con esa guarda: el doc se suelta y decide el eco. Dos afirmaciones de esta entrada eran f»
+R9-177	P3	SyncEngine / RNFirebase	sin-verificar		pide emulador: «sin medir en nativo» (la lectura del `removed` en el hilo único de RNFirebase); el mock lo modela (`__tests__/SyncEngine.test.ts:75`); conocido por Victor, no se toca
+R9-178	P3	SyncEngine / conflictos	arreglado	53e79fa	marca de su entrada: «✅ ARREGLADO en la sesión 28 (`53e79fa`) con la guarda de `R9-176` (`hasQueuedWrite`), NO con `heldBefore`. Medido por A3: `heldBefore` hace que N2 dej»
+R9-179	P3	prueba de sync	arreglado	d093a4e	marca de su entrada: «✅ ARREGLADO en la sesión 28: - el mock (`d093a4e`): entrega el eco propio, la reversión de un rechazo y la re-entrega al enganchar, y modela el ejecut»
+R9-180	P3	prueba de sync	arreglado	d093a4e	marca de su entrada: «✅ ARREGLADO en la sesión 28: R3 pasó a `Date.now() + HOUR` en el commit del mock (`d093a4e`), y la prueba nueva (`363056e`) vigila la guarda donde el»
+R9-181	P3	SyncEngine / conflictos	aceptado	sesión 27	marca de su entrada: «✅ DECIDIDO (sesión 27, delegado por Victor: «a tu mejor criterio»): la (b), acotada a los docs con la marca. Se quita `remoteTs > localTs` de la rama»
+R9-182	P2	SyncEngine / cola	arreglado	5dac31e	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`5dac31e`, rama `fix/s30-sync-r9185-r9188`), medido por el agente A1 y re-medido por el orquestador. La hipótesis literal»
+R9-183	P3	SyncEngine / cursor	arreglado	7c7a6ec	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`7c7a6ec`), con la hipótesis de la 28 medida otra vez por A1: el avance va por `enqueueSnapshot` y dentro mira `isCurrent»
+R9-184	P2	SyncEngine / cola	arreglado	560fe5c	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`560fe5c`), medido por A1 con el mock final (sube W1 y después W2, conflicto publicado `w2 / w1`): el flush salta la entr»
+R9-185	P3	SyncEngine / conflictos	arreglado	24900f1	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`24900f1`) con H1. La prueba de la Q5a cae con la guarda de la 28 y también sin mover la marca a la copia leída; el `sett»
+R9-186	P3	SyncEngine / conflictos	arreglado	52a420c	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`52a420c`). Medido antes de elegir: retenerlo sin releer (V1) deja la marca y el piso clavados para siempre y el conflict»
+R9-187	P3	SyncEngine / guardas	arreglado	20ef1f9	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`20ef1f9`). Se quitó el `throw` de `pushOne` y se quedó la ruta con `item.uid`, que sigue siendo cierta aunque alguien me»
+R9-188	P3	pruebas y ledger de sync	arreglado	3c09a0f	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`3c09a0f`; `45d2f41` para el comentario del reloj). La prueba de `R9-161` volvió a su forma original, con un comentario q»
+R9-189	P3	SyncEngine / cola	arreglado	a431d10	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`a431d10`, rama `fix/s32-r192-r193-y-s31`): `+W` de la extensión de S31-A3 (la entrada de W2 lleva el reloj de W1 en `Pen»
+R9-190	P2	SyncEngine / conflictos	arreglado	5c44cec	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`5c44cec`, rama `fix/s30-sync-r9185-r9188`) con las piezas P1, P1q, P4 y P5 de la hipótesis HX de A2: H1 retiene solo si»
+R9-191	P3	SyncEngine / conflictos	arreglado	395a448	marca de su entrada: «✅ ARREGLADO en la sesión 30 (`395a448`) con la pieza P6 de A2: ilegible la lista, el enganche relee todos los conflictos retenidos. 1 prueba; la pieza»
+R9-192	P2	SyncEngine / conflictos	arreglado	b58a158	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`b58a158`, rama `fix/s32-r192-r193-y-s31`): P2 (`refreshTheirs` en la guarda) y P3, sin el `fromRead ||` de la marca. Tab»
+R9-193	P2	SyncEngine / conflictos	arreglado	22d33e2	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`22d33e2`, rama `fix/s32-r192-r193-y-s31`): el diseño unificado de S31-A3 tal cual, juntado con P3 de `R9-192`. Las 18 pi»
+R9-194	P3	SyncEngine / conflictos	arreglado	e7d7fb8	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`e7d7fb8`, rama `fix/s32-r192-r193-y-s31`): `+Y`, con comentario. 2 pruebas: el caso, y una de mecanismo (la entrada nuev»
+R9-195	P3	SyncEngine / conflictos	arreglado	49f3ca5	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`49f3ca5`, rama `fix/s32-r192-r193-y-s31`): H1c (con la lista de conflictos ilegible, un doc de la de releer se carga com»
+R9-196	P3	SyncEngine / conflictos	arreglado	6b630e3	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`6b630e3`, rama `fix/s32-r192-r193-y-s31`). Con los sellos de `R9-193`, la sonda B2 ya no da fantasma: la guarda de `hand»
+R9-197	P3	SyncEngine / conflictos	arreglado	b15e899	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`b15e899`, rama `fix/s32-r192-r193-y-s31`): H3 adaptado, sin `fromRead` (la rama retenida registra la copia por `remoteTs»
+R9-198	P3	SyncEngine / arranque	abierto		sin arreglo en git ni en `src` (solo lo cita `__tests__/SyncEngine.test.ts:6756`); no re-medido
+R9-199	P2	SyncEngine / conflictos	arreglado	b036eff	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`b036eff`, rama `fix/s32-r192-r193-y-s31`): H5 (`noteOwnWrite` en la rama de éxito del `flush`, junto a `noteOwnAcked`).»
+R9-200	P3	pruebas de SyncEngine	arreglado	2f2f9f6	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`2f2f9f6`, rama `fix/s32-r192-r193-y-s31`): la prueba deja W2 en espera (un rechazo), afirma lo publicado desde el reinic»
+R9-201	P3	SyncEngine / cola	abierto		sin arreglo en git ni en el código (`git grep -w R9-201`: 0); no re-medido; depende del orden sin medir en RNFB (`R9-177`)
+R9-202	P3	SyncEngine / cola	abierto		sin arreglo en git ni en el código (`git grep -w R9-202`: 0); no re-medido
+R9-203	P3	SyncEngine / cola	abierto		sin arreglo en git ni en el código (`git grep -w R9-203`: 0); no re-medido
+R9-204	P3	SyncEngine / conflictos	arreglado	d85fe19	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`d85fe19`, rama `fix/s32-r192-r193-y-s31`): C4 (keepMine re-sella la fila local bajo `withLocalWriteSuppressed` antes del»
+R9-205	P3	SyncEngine / cola	abierto		sin arreglo en git ni en el código (`git grep -w R9-205`: 0); no re-medido
+R9-206	P3	SyncEngine / conflictos	arreglado	bbe855e	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`bbe855e`, rama `fix/s32-r192-r193-y-s31`): quitado, con la variable, por la regla 37. Sumarlo de vuelta da 0; sin la ram»
+R9-207	P3	SyncEngine / cola	arreglado	4a36f22	marca de su entrada: «✅ ARREGLADO en la sesión 34 (`4a36f22`, rama `fix/s34-r207-r210`). DECISIÓN (delegada por Victor al orquestador, «a tu mejor criterio»): `isOwnCopy` l»
+R9-208	P3	SyncEngine / conflictos	arreglado	b7e3c0f	marca de su entrada: «✅ ARREGLADO en la sesión 34 (`b7e3c0f`). S34-A1 midió las dos hipótesis sobre la misma sonda, con 9 variantes: - no escribir la tabla mueve el fantasm»
+R9-209	P3	SyncEngine / conflictos	arreglado	275b5df	marca de su entrada: «✅ ARREGLADO en la sesión 34 (`275b5df`): la hipótesis, medida con la sonda `NULL`. `borra` da `[["lo mio","lo suyo"]]` y keepTheirs deja «lo suyo» en»
+R9-210	P3	favoritos / conflictos	arreglado	682f852	marca de su entrada: «✅ ARREGLADO en la sesión 34 (`682f852`). S34-A3 midió con el provider, el adaptador y el motor reales: - el ref adelantado en los 6 sitios que escribe»
+R9-211	P3	SyncEngine / conflictos	abierto		sin arreglo en git ni en el código (`git grep -w R9-211`: 0); `R9-209` (`275b5dff`) no tocó la rama `deleted`; no re-medido
+R9-212	P2	SyncEngine / cola	arreglado	024bef8	marca de su entrada: «✅ ARREGLADO en la sesión 49 (`024bef8`, rama `fix/s49-arreglos`). La hipótesis, medida y con una salida. Mientras `getItem` de la cola falla (`queueUn»
+R9-213	P3	SyncEngine / conflictos	abierto		sin arreglo en git ni en el código (`git grep -w R9-213`: 0); no re-medido
+R9-214	P3	favoritos / sync	arreglado	d3e45a7	marca de su entrada: «✅ ARREGLADO en la sesión 49 (`d3e45a7`, rama `fix/s49-arreglos`): la hipótesis, sin `catch`, como `getLocal` (los dos que la llaman registran el fallo»
+R9-215	P3	SyncEngine / cola	arreglado	8c7658c	marca de su entrada: «✅ ARREGLADO en la sesión 36 (`8c7658c`, rama `fix/s36-r215-r219`). La hipótesis, medida: `ownRereading` anota la sesión que pidió la relectura (un `Ma»
+R9-216	P3	SyncEngine / conflictos	arreglado	2bfbcf8	marca de su entrada: «✅ ARREGLADO en la sesión 36 (`2bfbcf8`). La hipótesis, medida y precisada: `noteEcho`, justo antes de `applyRemoteChange`, anota la copia cuya entrega»
+R9-217	P3	SyncEngine / conflictos	arreglado	31cc55a	marca de su entrada: «✅ ARREGLADO en la sesión 36 (`31cc55a`). La hipótesis, medida: la entrada nueva de un doc que es conflicto de esta sesión (`isConflictDoc`) lleva tamb»
+R9-218	P3	SyncEngine / conflictos	arreglado	f785702	marca de su entrada: «✅ ARREGLADO en la sesión 36 (`f785702`). La hipótesis, medida: la relectura fallida anota su tabla en `ownGaveUp`, y la escritura deja de esperar solo»
+R9-219	P3	SyncEngine / comentario	arreglado	0970726	marca de su entrada: «✅ ARREGLADO en la sesión 36 (`0970726`): el comentario dice por qué `remoteTs === heldAt` sigue sin hacer falta en los dos casos (la copia del otro y»
+R9-220	P3	SyncEngine / conflictos	arreglado	24a61bc	marca de su entrada: «✅ ARREGLADO en la sesión 38 (`24a61bc`, junto con `R9-222`). La hipótesis de A1 (el eco anotado deja de valer cuando el doc entrega después una copia»
+R9-221	P3	pruebas / mock de Firestore	arreglado	0681c6e	marca de su entrada: «✅ ARREGLADO en la sesión 38 (`0681c6e`). Una copia nueva por entrega (en `deliver`) y por lectura (en el `get()`), clonada UNA vez: dentro de una entr»
+R9-222	P3	SyncEngine / conflictos	arreglado	24a61bc	marca de su entrada: «✅ ARREGLADO en la sesión 38 (`24a61bc`, junto con `R9-220`: ver allí). Las tres rutas, con las sondas de A2 (`_scratch/S38-H2-sondas.out.txt`): (a) `s»
+R9-223	P3	SyncEngine / conflictos	arreglado	af4f367	marca de su entrada: «✅ ARREGLADO en la sesión 38 (`af4f367`). La sonda de A5 encolaba L2 DESPUÉS de la copia del otro, y con `24a61bc` L2 ya no lleva el reloj de W1: pasa»
+R9-224	P3	SyncEngine / conflictos	arreglado	697f61c	marca de su entrada: «✅ ARREGLADO en la sesión 38 (`697f61c`). `noteArrived` llama a `forgetOwnStamps` cuando llega una copia ajena, y escribe la cola con la tabla. Las 8 l»
+R9-225	P3	SyncEngine / memoria	arreglado	24a61bc	marca de su entrada: «✅ CERRADO por construcción en la sesión 38 (`24a61bc`): `recentEchoed` se quitó. Lo que queda es `ownArrived`, un `WeakSet` con los objetos de cada en»
+R9-226	P3	SyncEngine / conflictos	arreglado	82f3f20	marca de su entrada: «✅ ARREGLADO en la sesión 38 (`82f3f20`). La decisión (medida): la guarda por cuenta. `ownStampsUid` guarda de qué cuenta es el mapa de cada colección»
+R9-227	P3	SyncEngine / conflictos	aceptado	sesión 38	su entrada: «Decidido en la sesión 38: coste aceptado, sin código»
+R9-228	P3	pruebas / AsyncStorage	arreglado	742c874	marca de su entrada: «✅ CERRADO en la sesión 38 (`742c874`, textos). Decisión: la guarda de `R9-215` se queda (no cuesta nada, y el mock la necesita), y la del `delete` no»
+R9-229	P3	pruebas / R9-218	arreglado	e9d6e893	tres marcas ✅ en la entrada: `89911425` (sesión 38), `e9d6e893` (sesión 40) y `1a77b78a` (sesión 42)
+R9-230	P3	SyncEngine / comentario	arreglado	495a1e1	marca de su entrada: «✅ CERRADO en la sesión 38 (`495a1e1`): la regla de `R9-190` dice la excepción de `R9-219` (el texto que propuso A4).»
+R9-231	P3	pruebas / R9-218	arreglado	117e5a4	marca de su entrada: «✅ CERRADO en la sesión 38 (`117e5a4`): el comentario de la prueba dice que solo mira doc-b, y que el sello de Wa no llega a disco con el arreglo ni si»
+R9-232	P3	pruebas / R9-216	arreglado	24a61bc	marca de su entrada: «✅ CERRADO sin cambio en la sesión 38: la prueba de la memoria se quitó con `recentEchoed` (`24a61bc`), y `noteEcho` con ella.»
+R9-233	P3	SyncEngine / comentario	arreglado	0b84a7e	marca de su entrada: «✅ CERRADO en la sesión 38 (`0b84a7e`): `PendingWrite.own` (`types.ts`) dice que lleva los relojes que reemplazó y el último que el servidor tomó, hast»
+R9-234	P3	SyncEngine / conflictos	arreglado	859480fb	su entrada: «✅ Cerrado en la sesión 42 (`859480f`)»; commit `fix(sync): R9-234`
+R9-235	P3	SyncEngine / cola	arreglado	ea182dcb	por lectura (la sonda no se repitió): el `if (!this.uid) return;` de `queueWrite` ya no está (`src/lib/sync/SyncEngine.ts:1012-1025`); sin sesión, `enqueue` encola para la cuenta dueña del almacén (`:1052`…, `R9-38`, sesión 53)
+R9-236	P3	SyncEngine / guardas	arreglado	f83a7f8	su entrada: «✅ Cerrado en la sesión 40 (`f83a7f8`)»
+R9-237	P3	SyncEngine / conflictos	arreglado	d57807b	su entrada: «✅ Cerrado en la sesión 40 (`d57807b`)»
+R9-238	P3	SyncEngine / conflictos	arreglado	bfd0a57	su entrada: «✅ Cerrado en la sesión 40 (`bfd0a57`)»
+R9-239	P3	SyncEngine / conflictos	arreglado	04f27e7	su entrada: «✅ Cerrado en la sesión 40 (`04f27e7`)»
+R9-240	P3	SyncEngine / premisa de noteArrived	sin-verificar		pide emulador: la cabecera dice «SIN MEDIR EN NATIVO» (el orden entre la copia ajena y la respuesta del `set` en RNFirebase); conocido por Victor, no se toca
+R9-241	P3	pruebas / contrato de firestore.ts	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-241` (el contrato de `firestore.ts`)
+R9-242	P3	SyncEngine / cola	arreglado	7c8c0fa	su entrada: «✅ Cerrado en la sesión 42 (`7c8c0fa`)»
+R9-243	P3	SyncEngine / conflictos	arreglado	fc93ef6	su entrada: «✅ Cerrado en la sesión 42 (`fc93ef6`)»
+R9-244	P3	pruebas / R9-160	arreglado	ae39cd8	su entrada: «✅ Cerrado en la sesión 42 (`ae39cd8`)»
+R9-245	P3	SyncEngine / respaldo propio rechazado	arreglado	dd6c015	su entrada: «✅ Cerrado en la sesión 44 (`dd6c015`)»
+R9-246	P3	SyncEngine / guardas	arreglado	3e35415	su entrada: «✅ Cerrado en la sesión 44 (`3e35415` y `1400cb9`)»
+R9-247	P3	SyncEngine / conflictos	arreglado	bba4ab0	su entrada: «✅ Cerrado en la sesión 44 (`bba4ab0`)»
+R9-248	P3	SyncEngine / conflictos	arreglado	4134635	su entrada: «✅ Cerrado en la sesión 44 (`4134635`)»
+R9-249	P3	SyncEngine / cola	arreglado	d200ed1	su entrada: «✅ Cerrado en la sesión 44 (`d200ed1`)»
+R9-250	P3	SyncEngine / comentario	arreglado	c429604	su entrada: «✅ Cerrado en la sesión 44 (`c429604`): solo el comentario»
+R9-251	P3	SyncEngine / guardas	arreglado	a79dcbe	su entrada: «✅ Cerrado en la sesión 46 (`a79dcbe`)»
+R9-252	P3	SyncEngine / conflictos	aceptado	5a2c377	su entrada: «✅ Cerrado en la sesión 46 por decisión de Victor: ACEPTADO (`5a2c377`, solo un comentario)»
+R9-253	P3	SyncEngine / comentario	arreglado	05e089e	su entrada: «✅ Cerrado en la sesión 48 (`05e089e`, solo el comentario)»
+R9-254	P3	SyncEngine / cola	arreglado	e97cd95	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`e97cd95`, rama `fix/s51-arreglos-s50`), con `R9-115`. En vez de hacer esperar a `queueWrite`, `persistQueue` no escribe»
+R9-255	P3	SyncEngine / cola	aceptado	6d834c5	marca de su entrada: «✅ ACEPTADO en la sesión 51 (`6d834c5`, solo el comentario de `queueUnread`), con el porqué escrito donde ocurre (como `R9-252`). - La variante sin red»
+R9-256	P2	SyncEngine / borrados	arreglado	88fb219	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`88fb219`, rama `fix/s51-arreglos-s50`). Sin copia local y con una lápida de esta cuenta en cola, la copia que llega se c»
+R9-257	P3	favoritos / sync	arreglado	ec5bc70	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`ec5bc70`, rama `fix/s51-arreglos-s50`), con un cambio sobre la hipótesis. Omitir el flag haría que el `start()` siguient»
+R9-258	P3	SyncEngine / comentarios de R9-212	arreglado	6d834c5	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`6d834c5`, solo comentarios). Cada afirmación nueva tiene su medición. `queueUnread`: la relectura que se rinde puede ser»
+R9-259	P3	SyncEngine / guardas	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-259`
+R9-260	P3	SyncEngine / cola	arreglado	6b768eb	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`6b768eb`): una sola lectura de hidratación, la pida quien la pida (`queueHydrating`, como `rereadQueue`); es `H260once`.»
+R9-261	P3	SyncEngine / cola	aceptado	3f73e50	marca de su entrada: «✅ ACEPTADO en la sesión 53 (`3f73e50`), con el argumento de `R9-255`: la ventana es la primera lectura de la cola del proceso (una de AsyncStorage, de»
+R9-262	P3	SyncEngine / borrados	arreglado	c633eb8	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`c633eb8`): la guarda retiene la copia (`false`, como un doc no aplicado) en vez de asentarla; es `H261hold`. Prueba nuev»
+R9-263	P3	sync / bulk push	arreglado	c685b63	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`c685b63`): con el flag ilegible no se hace nada esta vez, como con la lista. El flag es un valor chico (ningún fallo det»
+R9-264	P3	memoria / sync	arreglado	420c49c	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`420c49c`): `pullAllLocal` espera a la carga del mazo (`deckLoad`), que deja puesto el ref, y lanza si la lectura del dis»
+R9-265	P3	sync / migración	arreglado	849141b	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`849141b`): `exportLocalData` lista la colección que no pudo leer como `unread` (cuenta 0), y las dos preguntas (la del d»
+R9-266	P3	SyncEngine / comentarios de la 51	arreglado	f3bb0e5	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`f3bb0e5`): la guarda de `R9-256` dice que compara por reloj, como LWW, y que su propia prueba es el otro con el reloj at»
+R9-267	P2	memoria	arreglado	d69c529	marca de su entrada: «✅ ARREGLADO en la sesión 61 (`d69c529`, sobre `R9-277`). Antes, MEDIDO con el provider real (`_scratch/S61-sonda.test.tsx.txt`, `S61-sonda-hoy.out.txt»
+R9-268	P3	identidad / migración	abierto		es decisión de producto (lo dice la entrada); sin commit ni mención en el código
+R9-269	P1	Mesa / R9-59	arreglado	4d0cae7	marca de su entrada: «✅ ARREGLADO en la sesión 55 (`4d0cae7`, rama `fix/s55-arreglos-s54`), con el cómo en `prepAccount.ts`. La unión no pierde ninguna entrada: lo que el d»
+R9-270	P2	identidad / R9-38	arreglado	1152965	marca de su entrada: «✅ ARREGLADO en la sesión 55 (`1152965`): `AuthContext` reclama el almacén en cada estado de auth con una cuenta de Google (la sesión restaurada ya pas»
+R9-271	P3	SyncEngine / R9-38	arreglado	96f78c4	marca de su entrada: «✅ ARREGLADO en la sesión 55 (`96f78c4`): sin sesión, la hidratación fallida pide la relectura, como `start()` (esa relectura no rinde nada: la rendici»
+R9-272	P3	pruebas de R9-193	arreglado	50f209d	marca de su entrada: «✅ ARREGLADO en la sesión 55 (`50f209d`): el comentario dice lo medido. Las piezas de `S53-rev193` siguen tumbándolas igual (A, la segunda; B, las dos)»
+R9-273	P3	Mesa / R9-269	arreglado	831c7e4	marca de su entrada: «✅ ARREGLADO en la sesión 57 (`831c7e4`, rama `fix/s57-arreglos-s56`): `prepAccount` exporta `prepTurn`, y el `multiSet` final de `importBackup` va den»
+R9-274	P3	Mesa / R9-59	arreglado	3be46d3	marca de su entrada: «✅ ARREGLADO en la sesión 57 (`3be46d3`), con otro momento para la nota: DESPUÉS de `deleteUser`, no antes. Antes, el arranque siguiente tendría que ad»
+R9-275	P3	Mesa / R9-59	arreglado	37ba5f7	marca de su entrada: «✅ ARREGLADO en la sesión 59 (`37ba5f7`, rama `fix/s59-arreglos-s58`), con la hipótesis corregida para los stores: unir después borraba secciones (la e»
+R9-276	P3	Mesa / R9-274	arreglado	fb7696f	marca de su entrada: «✅ ARREGLADO en la sesión 59 (`fb7696f`): la nota guarda una lista; sus lecturas y escrituras van de a una en su propio turno (no en el de la Mesa, par»
+R9-277	P3	memoria	arreglado	6d87069	marca de su entrada: «✅ ARREGLADO en la sesión 61 (`6d87069`): `edit` anota cada cambio mientras hay una carga sin terminar (`unsaved`), y la lectura lo pone encima de lo l»
+R9-278	P3	memoria / respaldo	arreglado	01eee54	marca de su entrada: «✅ ARREGLADO en la sesión 63 para el mazo (`01eee54`, con `R9-281`). `importBackup` emite `emitBackupRestoring()` justo antes del `multiSet` (después d»
+R9-279	P3	memoria / R9-277	arreglado	6ed063c	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`6ed063c`), con la hipótesis, medida antes por el agente 1 (`_scratch/S63-agente-1.md`, 35 casos). - Si no hay carga que»
+R9-280	P3	memoria / R9-267	arreglado	07b6c56	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`07b6c56`): la rama que falla renderiza, y el efecto relee lo editado; si esa lectura también falla, se rinde como antes.»
+R9-281	P3	memoria / R9-267 / respaldo	arreglado	01eee54	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`01eee54`, con `R9-278`): al aviso de inicio, el mazo sube `loadSeq`, y la recarga pasa a ser la carga más nueva desde qu»
+R9-282	P3	memoria / sync	arreglado	a95a68b	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`a95a68b`), con la hipótesis: mientras ninguna carga leyó el disco, el borrado se anota igual; la lectura lo aplica, y tr»
+R9-283	P3	pruebas / comentarios de la 61	arreglado	1c82327	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`1c82327`, primero). - Toda operación de `@memory_deck` en `memoryDeckDisk.test.tsx` pasa por un modelo del ejecutor seri»
+R9-284	P3	progreso / preferencias / respaldo	abierto		el código lo nombra como límite vigente: `src/lib/backup/restoreSignal.ts:76` y `src/services/BackupService.ts:1633` (solo el mazo retiene)
+R9-285	P3	memoria / pantalla	abierto		`app/features/memory/index.tsx:145-147` (`newCount` filtra con `hasCard`, que mira el estado)
+R9-286	P3	comentarios de la 63 / memoria / respaldo	arreglado	2b05f4d	marca de su entrada: «✅ ARREGLADO en la sesión 65 (`2b05f4d`). Los siete comentarios, como la hipótesis: - el orden, con los dos casos, en `restoreSignal.ts` (que dice adem»
+R9-287	P3	pruebas / respaldo / memoria	arreglado	8c168fb	marca de su entrada: «✅ ARREGLADO en la sesión 67 (`8c168fb`, solo una prueba). En `backupRestoreSignal.test.ts`, «con la Mesa en su turno, avisa antes de esperarlo»: un `p»
+R9-288	P3	comentarios de la 65 / memoria / respaldo	arreglado	c847d8c	marca de su entrada: «✅ ARREGLADO en la sesión 67 (`c847d8c`, solo comentarios). No como la hipótesis: «la siguiente lectura» tampoco se sostiene, porque una carga vieja en»
+R9-289	P3	pruebas / respaldo	arreglado	e96e8e6	marca de su entrada: «✅ ARREGLADO en la sesión 69 (`e96e8e6`, solo la prueba). Un spy sobre `prepMultiSet` (restaurado en cuanto se lee el conteo, antes de abrir la puerta)»
+R9-290	P3	pruebas / respaldo / Mesa	arreglado	82bdc07	marca de su entrada: «✅ ARREGLADO en la sesión 71 (`82bdc07`, solo la prueba). El mock de `muere` cuenta los `multiSet` colgados; un control, `colgadas` (0, 0 y 1 en `antes»
+R9-291	P3	pruebas / respaldo / Mesa	arreglado	b5164d7	marca de su entrada: «✅ ARREGLADO en la sesión 71 (`b5164d7`, solo la prueba). Un spy sobre `prepMultiSet` por caso (restaurado en cuanto se lee el conteo, y en el `finally»
+R9-292	P3	pruebas / respaldo / Mesa	arreglado	38a98da	marca de su entrada: «✅ ARREGLADO en la sesión 73 (`38a98da`, `abe6099`, `9c43e22`; solo la prueba), junto con `R9-293` y `R9-294`. Prueba nueva en `backupPrepTurn.test.ts`»
+R9-293	P3	pruebas / respaldo / Mesa	arreglado	38a98da	marca de su entrada: «✅ ARREGLADO en la sesión 73 (`38a98da`, con `R9-292`): la prueba nueva cae con `sinColaLento25` y `sinColaLento60` en `escribioConElRespaldoRetenido:»
+R9-294	P3	pruebas / respaldo / Mesa	arreglado	38a98da	marca de su entrada: «✅ ARREGLADO en la sesión 73 (`38a98da`, con `R9-292`): `turnoSoloGone` cae en los tres casos de la prueba nueva, y `devolucionFuera` (solo la devoluci»
+R9-295	P3	pruebas / respaldo / Mesa	arreglado	cfaa004	marca de su entrada: «✅ ARREGLADO en la sesión 73 (`cfaa004`, solo la prueba). `colgadas` guarda los pasajes de cada escritura colgada de la Mesa «sin cuenta», leídos al te»
+R9-296	P3	pruebas / respaldo / Mesa	abierto		parcial: el gancho existe (`9d3f489`, `538b1bc`; decisión de Victor del 2026-10-07 en su entrada); el caso `durante` «sigue ABIERTO» (su entrada); es del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-297	P3	pruebas / respaldo / Mesa	abierto		sin commit; la entrada lo sostiene en la sesión 84; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-298	P3	pruebas / respaldo / Mesa	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3084a4c`, solo la prueba). En `prepAccount.test.ts`, la forma de `goneEnCola`: una escritura de series retiene el turno,»
+R9-299	P3	pruebas / respaldo / Mesa	abierto		hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-300	P3	pruebas / respaldo / Mesa	abierto		hueco de prueba sin commit; «Sesión 94: se sostiene»; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-301	P3	pruebas / respaldo / Mesa	abierto		hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-302	P3	pruebas / respaldo	arreglado	a808c29	marca de su entrada: «✅ ARREGLADO en la sesión 75 (`a808c29`, solo la prueba), con la forma `f287`: la función del store marca `dentro`, la prueba espera esa marca hasta 40»
+R9-303	P3	pruebas / respaldo	arreglado	125736b	marca de su entrada: «✅ ARREGLADO en la sesión 75 (`125736b`, solo la prueba). La prueba de `R9-287` tiene dos casos (`it.each`): `antes` (como en `a808c29`) y `durante`: e»
+R9-304	P3	pruebas / respaldo	abierto		sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-305	P3	pruebas / Mesa	abierto		sin commit (prueba frágil por reloj en `prepSeriesDetailScreen.test.tsx`); del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-306	P3	pruebas / respaldo	arreglado	a7a1feb	marca de su entrada: «✅ ARREGLADO en la sesión 77 (`a7a1feb`, solo la prueba), sobre el arreglo de `R9-307`. Un tercer caso, `pedido antes`: 1. el store se pide con la clav»
+R9-307	P3	pruebas / respaldo	arreglado	41c75fc	marca de su entrada: «✅ ARREGLADO en la sesión 77 (`41c75fc`, solo la prueba), con `puertaAlFinal` (el mismo texto), y el comentario de `respaldoEnSqlite`: «CONTROL: el res»
+R9-308	P3	pruebas / respaldo / Mesa	abierto		hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-309	P3	pruebas / respaldo / Mesa	arreglado	dc63e01	marca de su entrada: «✅ ARREGLADO en la sesión 79 (`dc63e01`, solo la prueba). Un cuarto caso en la prueba de `R9-292`, `pedidaAntes`, con el store real: `savePrepNote` se»
+R9-310	P3	pruebas / Mesa	arreglado	4f882ab	marca de su entrada: «✅ ARREGLADO en la sesión 79 (`4f882ab`, solo la prueba). Una prueba en `prepAccount.test.ts` («la Mesa de antes»): con la Mesa de antes sembrada, `pre»
+R9-311	P3	pruebas / respaldo	arreglado	82de81f	marca de su entrada: «✅ ARREGLADO en la sesión 81 (`82de81f`, solo la prueba). `otraPedidaAntes` cuenta solo los `prepWrite` que reciben la promesa retenida, y la espera te»
+R9-312	P3	pruebas / Mesa	arreglado	e23b150	marca de su entrada: «✅ ARREGLADO en la sesión 81 (`e23b150`, solo la prueba). La escritura guarda la clave que recibe (`recibida: '@prep_notes:ana'`) y lo que lee en ella»
+R9-313	P3	pruebas / respaldo / Mesa	arreglado	dcc7bfa	marca de su entrada: «✅ ARREGLADO en la sesión 81 (`dcc7bfa`, solo la prueba). Un quinto caso, `devolucionPedidaAntes`: `pedidaAntes` con la cuenta borrada, y la clave del»
+R9-314	P3	pruebas / Mesa	arreglado	505b79b	marca de su entrada: «✅ ARREGLADO en la sesión 83 (`505b79b`, solo la prueba). Dos pruebas en `prepAccount.test.ts`: una lectura pedida antes del primer estado de auth ve l»
+R9-315	P3	pruebas / respaldo	arreglado	50b5442	marca de su entrada: «✅ ARREGLADO en la sesión 83 (`50b5442`, solo la prueba): `arregloPendiente`, con su comentario. - Medido (`_scratch/S83-sonda.cjs.txt`, `prep`): `clav»
+R9-316	P3	pruebas / respaldo	arreglado	7b146a5	marca de su entrada: «✅ ARREGLADO en la sesión 83 (`7b146a5`, solo la prueba). Un ayudante, `devolverConTope`: la devolución con tope de 1000 vueltas, y pasado el tope, una»
+R9-317	P3	pruebas / Mesa	arreglado	7b4a79c	marca de su entrada: «✅ ARREGLADO en la sesión 85 (`7b4a79c`, solo la prueba). En las tres pruebas, relojes falsos desde antes de pedir la lectura (`relojesFalsos`), y `una»
+R9-318	P3	pruebas / respaldo	arreglado	b1519ae	marca de su entrada: «✅ ARREGLADO en la sesión 85 (`b1519ae`, solo la prueba). Una foto de las claves que `prepWrite` recibió antes del respaldo, tras la misma última vuelt»
+R9-319	P3	pruebas / respaldo	arreglado	9d3f489	marca de su entrada: «✅ ARREGLADO en la sesión 87 (`9d3f489`, prueba y gancho). El gancho de `R9-296`: `oneAtATime` anota cada pedido en un `Set` al pedir el turno y lo qui»
+R9-320	P3	pruebas / respaldo	arreglado	538b1bc	marca de su entrada: «✅ ARREGLADO en la sesión 89 (`538b1bc`, prueba y gancho). Es `porClave` con un argumento: `oneAtATime` recibe una etiqueta (`prepWrite` le pasa la cla»
+R9-321	P3	pruebas / comentario	arreglado	3bccafd	marca de su entrada: «✅ ARREGLADO en la sesión 91 (`3bccafd`, solo comentarios en `prepAccount.ts`). El del `Set` dice ahora que cada pedido lleva la clave que pidió (`prep»
+R9-322	P3	comentario	arreglado	8dd8c92	marca de su entrada: «✅ ARREGLADO en la sesión 93 (`8dd8c92`, solo comentarios en `prepAccount.ts:96-104`). Dice ahora: «A write goes to the account of that key even if it»
+R9-323	P3	pruebas / Mesa	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3084a4c`, solo las pruebas). Las dos de `pruebaR323` en `prepAccount.test.ts`, con un gancho con nombre: el pedido de `g»
+R9-324	P3	comentario	arreglado	3b47ff8	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3b47ff8`, comentarios y una prueba). Seis frases, no cinco (la sexta, en `prepWrite`, es `R9-332`): la cabecera dice «th»
+R9-325	P3	pruebas / Mesa	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3084a4c`, solo la prueba): `cuatroStores` en `prepAccount.test.ts`, con el control `pedida: '@prep_series:ana'`. Cae con»
+R9-326	P3	pruebas / Mesa	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3084a4c`, solo la prueba), con el control `sinCuenta: [P]` (la Mesa de Ana se devolvió). Cae con `cualquierDevuelta`.»
+R9-327	P3	pruebas / respaldo	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95, la prueba (`3084a4c`, rehecha en `f02c798`), en `backupPrepTurn.test.ts`. Cae con `devuelveFueraDelTurno` (se pierde `obs»
+R9-328	P3	pruebas / respaldo	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3084a4c`, solo las pruebas), en `prepAccount.test.ts` (llaman a `prepMultiSet` directo, sin `importBackup`). Controles d»
+R9-329	P3	pruebas / Mesa	arreglado	3084a4c	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3084a4c`, solo la prueba), con el control `fallidas: [['@prep_release_pending=["ana"]']]` (falló la nota). Cae con `nota»
+R9-330	P3	Mesa / R9-269	abierto	pendiente por decisión	su entrada: «Decidido (2026-10-13, tras la 95): queda PENDIENTE»; no se revisa ni se propone salvo que Victor lo pida (§7 de `CONTINUAR.md`)
+R9-331	P3	Mesa / R9-314	arreglado	77418b4	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`77418b4`, completado en `f02c798`). `setPrepAccount` guarda el trabajo del primer estado (`firstWork`), y todo estado lo»
+R9-332	P3	comentario	arreglado	3b47ff8	marca de su entrada: «✅ ARREGLADO en la sesión 95 (`3b47ff8`, con `R9-324`): «from `prepKey`: see there when it is taken». Solo comentarios.»
+R9-333	P3	pruebas / Mesa	arreglado	1b299a9	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`1b299a9`, diseño del agente 9): en el caso `termina`, el mock anota lo que la unión escribía en la «sin cuenta» (`union»
+R9-334	P3	pruebas / respaldo	arreglado	dd1a7b6	marca de su entrada: «✅ ARREGLADO en la sesión 97 (`dd1a7b6`, corregido en `12cc4b4`). El pedido de `prepMultiSet` lleva una etiqueta con las claves que escribe (`restoreAs»
+R9-335	P3	pruebas / Mesa	arreglado	dd1a7b6	marca de su entrada: «✅ ARREGLADO en la sesión 97 (`dd1a7b6`). Las dos (y la nueva de `R9-337`) esperan una hora de reloj falso y mil vueltas, como las de `R9-317`. Caen co»
+R9-336	P3	Mesa / R9-331	arreglado	dd1a7b6	marca de su entrada: «✅ ARREGLADO en la sesión 97, con pruebas y sin cambiar el código (`dd1a7b6`, `307b654`, corregido en `12cc4b4` y `5ee4460`). Se eligió la prueba y no»
+R9-337	P3	comentario / pruebas / Mesa	arreglado	dd1a7b6	marca de su entrada: «✅ ARREGLADO en la sesión 97 (`dd1a7b6` la prueba, `307b654` la frase). `prepKey` dice «with the account signed in when it is done: that of the last au»
+R9-338	P3	comentario de prueba	arreglado	307b654	marca de su entrada: «✅ ARREGLADO en la sesión 97 (`307b654`). El comentario dice «la de la cuenta de cuando termina el trabajo de ese estado (ver `prepKey`) … aquí no lleg»
+R9-339	P3	comentario de prueba	arreglado	307b654	marca de su entrada: «✅ ARREGLADO en la sesión 97 (`307b654`, completado en `12cc4b4`). La cabecera dice «lo restaurado se escribe bajo el uid borrado y se devuelve en el m»
+R9-340	P3	pruebas / Mesa	arreglado	54bb2f3	marca de su entrada: «✅ ARREGLADO en la sesión 99, sin código de producción (`54bb2f3`). Cada prueba de `prepAccount.test.ts` tiene sus propios módulos y su propio almacén:»
+R9-341	P3	comentario	arreglado	12cc4b4	marca de su entrada: «✅ ARREGLADO en la sesión 97 (`12cc4b4`, solo el comentario): «Before, they were counted among the asks with nothing said, where the joins and the rest»
+R9-342	P3	pruebas / respaldo	arreglado	54bb2f3	marca de su entrada: «✅ ARREGLADO en la sesión 99 (`54bb2f3`). La etiqueta del respaldo lleva un número por cada arreglo `pairs` (`restore <n> <claves>`, de un `WeakMap`; n»
+R9-343	P3	pruebas / Mesa	arreglado	54bb2f3	marca de su entrada: «✅ ARREGLADO en la sesión 99, más allá de la hipótesis (`54bb2f3`, `5aa5c96`). Los dos casos, y además uno por cada parte del trabajo del primer estado»
+R9-344	P3	pruebas / Mesa	arreglado	54bb2f3	marca de su entrada: «✅ ARREGLADO en la sesión 99, con más que la hipótesis (`54bb2f3`). La prueba nueva no retiene la unión de la devolución (como `S98a1 trasMigrar`) sino»
+R9-345	P3	comentario / pruebas / Mesa	arreglado	54bb2f3	marca de su entrada: «✅ ARREGLADO en la sesión 99 (`54bb2f3`). - La oración de `prepKey` (la del agente 7): «Asked once the first auth state's work is done, it is taken at»
+R9-346	P3	pruebas / Mesa / R9-336	arreglado	54bb2f3	marca de su entrada: «✅ ARREGLADO en la sesión 99 (`54bb2f3`, `5aa5c96`): 13 casos en una tabla (ver `R9-343`). Cada `sale<Parte>` cae en su caso (re-medido en el principal»
+R9-347	P3	pruebas / Mesa / respaldo / R9-345	abierto	parcial: 54bb2f3	parcial: la marca de su entrada dice «✅ ARREGLADO EN PARTE en la sesión 99» (`54bb2f3`); siguen sin caso la lectura de series, ilustraciones y autoevaluación, y exportar; conocido por Victor, no se toca; es del ciclo de las pruebas de la Mesa, cerrado
+R9-348	P3	pruebas / Mesa / R9-336	arreglado	ac1a7a5	marca de su entrada: «✅ ARREGLADO en la sesión 101 (`ac1a7a5`): la falla va desde la `n`-ésima llamada en adelante, armada solo durante el trabajo (`correr(conFalla)`), y `»
+R9-349	P3	pruebas / Mesa / respaldo / R9-347	arreglado	ac1a7a5	marca de su entrada: «✅ ARREGLADO en la sesión 101 (`ac1a7a5`, `9336ddc`, `44927a5`): `prepKey`, espiado en la instancia de la prueba, anota lo que pide cada llamador (los»
+R9-350	P3	pruebas / R9-340	arreglado	ac1a7a5	marca de su entrada: «✅ ARREGLADO en la sesión 101 (`ac1a7a5`): `viejoAlEmpezar: false`. Caen en ese control `abre340_0`, `abre340_1` y `drena340`; `abre340_3` pasa; `sinAi»
+R9-351	P3	pruebas / Mesa / R9-337, R9-344	arreglado	ac1a7a5	marca de su entrada: «✅ ARREGLADO en la sesión 101 (`ac1a7a5`): cuatro casos más, con dos estados durante la última parte, distintos entre sí y del primero (nulo→ana→beto,»
+R9-352	P3	comentario / Mesa	arreglado	ac1a7a5	marca de su entrada: «✅ ARREGLADO en la sesión 101 (`ac1a7a5`): la primera frase, quitada entera (sin la razón no decía nada que importara); la cabecera dice «Without it (n»
+R9-353	P3	pruebas / Mesa / R9-345	arreglado	1121ec9	marca de su entrada: «✅ ARREGLADO en la sesión 103 (`1121ec9`, diseño del agente 3): en la escritura y el respaldo, un `it.each` de 4 casos (un estado; nulo y beto tras los»
+R9-354	P3	pruebas / Mesa / R9-349	arreglado	28fa337	marca de su entrada: «✅ ARREGLADO en la sesión 103 (`28fa337`, diseño del agente 4): `vigilarClaves` espía también `prepWrite` en la instancia de la prueba, y la de la escr»
+R9-355	P3	pruebas / Mesa / R9-351	arreglado	8e80f5b	marca de su entrada: «✅ ARREGLADO en la sesión 103 (`8e80f5b`, diseño del agente 1): seis casos más en la de `R9-344`: ana→beto→ana y nulo→ana→nulo, y nulo→ana→beto→nulo, c»
+R9-356	P3	pruebas / Mesa / R9-337, R9-351	arreglado	e552e3b	marca de su entrada: «✅ ARREGLADO en la sesión 103 (`e552e3b`, diseño del agente 2): en las dos pruebas, los estados llegan de a uno, con una vuelta después de cada uno. `c»
+R9-357	P3	pruebas / Mesa / R9-348	arreglado	c53c5e8	marca de su entrada: «✅ ARREGLADO en la sesión 103 (`c53c5e8`, diseño del agente 5): una prueba nueva con todo método del mock fallando en toda clave durante el trabajo (no»
+R9-358	P3	pruebas / respaldo / R9-349	arreglado	28fa337	marca de su entrada: «✅ ARREGLADO en la sesión 103 (`28fa337`, diseño del agente 4): al abrir, `alAbrir: {notas: true, resueltas: []}`, y `pedidasAlFinal` ordenada. `respal»
+R9-359	P3	pruebas / Mesa / R9-331, R9-348	arreglado	1b299a9	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`1b299a9`, `fce7950`; diseño del agente 6): leído en el mock, `getItem(k)` hace `multiGet([k])`. Un ayudante `lecturas()»
+R9-360	P3	pruebas / Mesa / R9-357	arreglado	1b299a9	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`1b299a9`; diseños de los agentes 1 y 2, unidos por el orquestador): las dos esperas corren `tiempoYVueltas()` (mil vuel»
+R9-361	P3	pruebas / Mesa / R9-356	arreglado	1b299a9	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`1b299a9`, `fce7950`; diseño del agente 2): `tiempoYVueltas()` tras cada estado en las de `R9-337` y `R9-344`, y también»
+R9-362	P3	pruebas / respaldo / R9-353	arreglado	fce7950	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`fce7950`, diseño del agente 3): una serie de antes en la «sin cuenta» (la migración la mueve con P) y una en el respald»
+R9-363	P3	pruebas / Mesa y respaldo / R9-354, R9-358	arreglado	1b299a9	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`1b299a9` la escritura, diseño del agente 4; `fce7950` el respaldo, del agente 5): cada espía cuenta solo los pedidos de»
+R9-364	P3	pruebas / respaldo / R9-354	arreglado	fce7950	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`fce7950`, diseño del agente 5): `prepMultiSet` espiado en la instancia de la prueba (sin implementación propia): ningun»
+R9-365	P3	pruebas / respaldo / R9-358	arreglado	fce7950	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`fce7950`, diseño del agente 5): al abrir, `{pidio, resueltas: [], escritas: []}` (alguna pedida, sin fijar cuál ni en q»
+R9-366	P3	pruebas / Mesa / R9-354	arreglado	1b299a9	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`1b299a9`, `fce7950`; diseños de los agentes 4 y 5): lo «al abrir» se lee después del bucle de `despues` (con la hora de»
+R9-367	P3	pruebas / Mesa / R9-357	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, diseño del agente 3): la tabla devuelve y compara `claves`, las `@prep*` que quedan con datos al final (una M»
+R9-368	P3	pruebas / Mesa / R9-357	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, diseño del agente 4): la tabla lee que el aviso de su paso está (`expect.arrayContaining`), de una copia de `»
+R9-369	P3	pruebas / Mesa y respaldo / R9-345	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, `1e9e809`, diseño del agente 5): la escritura y el respaldo de `R9-345` llevan `parte: 'devolucion'`, con la»
+R9-370	P3	Mesa / migración / R9-337	arreglado	a0323d7	marca de su entrada: «✅ IMPLEMENTADO en la sesión 107 (`a0323d7`), opción (a), con el diseño «c» del agente 2: sin dueño registrado, `finishRelease` mueve la Mesa de antes»
+R9-371	P3	pruebas / Mesa / R9-363	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, diseño del agente 6), con `R9-378`: una llamada a `prepWrite` es del store si su clave es la misma promesa qu»
+R9-372	P3	pruebas / respaldo / R9-340	arreglado	fce7950	marca de su entrada: «✅ ARREGLADO en la sesión 105 (`fce7950`, diseño del agente 10): el `beforeEach` de `R9-340` (módulos y almacén propios por prueba). `colgadaBpt` pasa»
+R9-373	P3	pruebas / Mesa / R9-360, R9-361	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, diseño del agente 9; `27d598b`): la frase de `tiempoYVueltas` escribe los cortes. En cadena: con eslabones de»
+R9-374	P3	pruebas / Mesa / R9-357, R9-360	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, diseño v2 del agente 10): `vueltasYReloj(listo)` da vueltas hasta que el trabajo termina, y cada mil sin term»
+R9-375	P3	pruebas / respaldo / R9-372	arreglado	1e9e809	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`1e9e809`, diseño del agente 8): un `mockSqlite` nuevo en cada `beforeEach`, tras `jest.resetModules()`, y la fábrica to»
+R9-376	P3	pruebas / respaldo / R9-364, R9-371	arreglado	1e9e809	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`1e9e809`, diseño del agente 7): la espera de Cata sale con al menos un pedido contado y ninguno pendiente, o con el res»
+R9-377	P3	pruebas / respaldo / R9-363, R9-371	arreglado	1e9e809	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`1e9e809`, diseño del agente 7): cuenta el pedido de quien llama a `prepKey` (el primer marco fuera de la prueba y de `n»
+R9-378	P3	pruebas / Mesa / R9-349, R9-365	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, con `R9-371`): `pedidas` como conjunto de `"<base>: pendiente|resuelta"`, sin cantidad. `notasPideDosVeces` c»
+R9-379	P3	pruebas / Mesa / R9-366	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, diseño del agente 11): el esperado de los 6 casos con estados compara `antesDeAbrir` y `pedidasAlFinal`. `lec»
+R9-380	P3	pruebas / Mesa / R9-359	arreglado	a0323d7	marca de su entrada: «✅ ARREGLADO en la sesión 107 (`a0323d7`, `1e9e809`, diseño del agente 12): `lecturas()` también retiene y falla la marca en `getAllKeys` (mirar si est»
+R9-381	P3	pruebas / Mesa / R9-371, R9-378	arreglado	bd9ee9f	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`bd9ee9f`, el diseño «B» del agente 5): un pedido a `prepKey` es del store de su base solo si el archivo del store está»
+R9-382	P3	pruebas / respaldo / R9-377	arreglado	4839952	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`4839952`, diseño del agente 6): cada pedido devuelve su propia clave (un `String` envuelto), y es del respaldo si se pi»
+R9-383	P3	pruebas / Mesa / R9-370, R9-343	arreglado	0e1c7b5	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`0e1c7b5`, diseño del agente 2): `primerEstadoConFalla` acepta la cuenta de los dos estados, y la tabla suma cinco filas»
+R9-384	P3	pruebas / Mesa / R9-344, R9-370	arreglado	1d6d3a4	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`1d6d3a4`, diseño del agente 3): cuatro casos sin dueño en la de `R9-344`, con dos devoluciones pendientes (nulo→ana, an»
+R9-385	P3	Mesa / R9-370	arreglado	f13db80	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`f13db80`, diseño del agente 1): las cabeceras dicen que la Mesa de antes va a la cuenta de cuando le llega el turno a l»
+R9-386	P3	pruebas / Mesa / R9-378, R9-371	arreglado	bd9ee9f	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`bd9ee9f`, diseño del agente 4): en cuanto lo pedido resolvió (a lo sumo cien mil vueltas, o los stores terminados), lle»
+R9-387	P3	pruebas / Mesa / R9-373, R9-374	arreglado	f13db80	marca de su entrada: «✅ ARREGLADO en la sesión 109 (`f13db80`, diseño del agente 1): la frase de `tiempoYVueltas` pierde la causa (qué cambio de las pruebas bajó el corte s»
+R9-388	P3	pruebas / Mesa / R9-381, R9-371	arreglado	23f9b2d	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`23f9b2d`, el diseño D1 del agente 3, junto con `R9-394`): `vigilarClaves` ya no lee la pila al pedir ni marca la clave»
+R9-389	P3	pruebas / respaldo / R9-382, R9-377	arreglado	56c7d33	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`56c7d33`, el diseño D' del agente 4, junto con `R9-390`, `R9-395` y `R9-397`): el espía devuelve la cadena. Un pedido e»
+R9-390	P3	pruebas / respaldo / R9-389, R9-382	arreglado	56c7d33	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`56c7d33`, con `R9-389`): en el principal, sobre la punta, `restauraSaltaSeriesSinCuenta110A5` cae (75/79, los 4 casos q»
+R9-391	P3	pruebas / Mesa / R9-383, R9-343	arreglado	25ce228	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`25ce228`, diseño del agente 1, junto con `R9-392` y `R9-398`): una fila sin dueño con `ana` hace fallar la lectura de l»
+R9-392	P3	pruebas / Mesa / R9-383, R9-370	arreglado	25ce228	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`25ce228`): las cinco filas sin dueño con `ana` siembran también series, ilustraciones y autoevaluación en la Mesa de an»
+R9-393	P3	pruebas / Mesa / R9-384, R9-351, R9-355	arreglado	9cd06d0	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`9cd06d0`, diseño del agente 2): sin dueño y sin devoluciones, el caso retiene la escritura de la marca de la mudanza (l»
+R9-394	P3	pruebas / Mesa / R9-388, R9-381	arreglado	23f9b2d	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`23f9b2d`, con `R9-388`): sin pila, no hay corte por `Error.stackTraceLimit` (`pilaLimiteA3x5`, 79/79), y un ajeno que n»
+R9-395	P3	pruebas / respaldo / R9-382, R9-377	arreglado	56c7d33	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`56c7d33`, con `R9-389`), sin un caso sin series (el Pendiente): el export lee las claves que pide, y una clave leída tr»
+R9-396	P3	pruebas / Mesa y respaldo / R9-386, R9-364	arreglado	4020b19	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`4020b19`, diseño del agente 5): en las dos pruebas, mientras el trabajo del primer estado sigue (`primero.then(fin, fin»
+R9-397	P3	pruebas / respaldo / R9-376, R9-382	arreglado	56c7d33	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`56c7d33`): la frase dice que «resolvió» es que hubo algún pedido a `prepKey`, de quien sea, y ninguno está pendiente; s»
+R9-398	P3	pruebas / Mesa / R9-383	arreglado	25ce228	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`25ce228`): la frase dice que falla «la nota y la unión de la mudanza, que falla en su primera lectura, así que la marca»
+R9-399	P3	pruebas / Mesa / R9-385, R9-370	arreglado	9cd06d0	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`9cd06d0`, con `R9-393`): en la de `R9-370`, `retener: 'TURNO'`: un `prepWrite` ajeno con clave literal (`@prep_illustra»
+R9-400	P3	pruebas / Mesa / R9-387	arreglado	4020b19	marca de su entrada: «✅ ARREGLADO en la sesión 111 (`4020b19`): la frase dice «un corte en vueltas, no en tiempo»: el temporizador siguiente se adelanta cada mil vueltas, s»
+R9-401	P3	pruebas / Mesa / R9-391, R9-392	aceptado	decisión 2026-10-27	costo conocido («queda como costo conocido, junto con `R9-401`..`R9-405`»): `CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»)
+R9-402	P3	pruebas / Mesa / R9-399	aceptado	decisión 2026-10-27	costo conocido: `CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»)
+R9-403	P3	pruebas / Mesa / R9-388, R9-394	aceptado	decisión 2026-10-27	costo conocido: `CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»)
+R9-404	P3	pruebas / respaldo / R9-389, R9-395	aceptado	decisión 2026-10-27	costo conocido: `CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»)
+R9-405	P3	pruebas / respaldo / R9-292, R9-275, R9-396	aceptado	decisión 2026-10-27	costo conocido: `CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»)
+R9-406	P3	pruebas / Mesa / R9-393, R9-351	arreglado	1f6acd4	marca de su entrada: «✅ ARREGLADO en la sesión 113 (`1f6acd4`, diseño del agente 1): en la de `R9-344`, los casos `nuloAnaBetoSinDuenoNiDevoluciones` y `anaBetoNuloSinDueno»
+R9-407	P3	pruebas / Mesa / R9-392, R9-383	arreglado	e503b87	marca de su entrada: «✅ ARREGLADO en la sesión 113, por los dos caminos que nombraba la hipótesis: - `e503b87` (diseño del agente 2): en «la Mesa de antes», `sembrarCuatro(»
+R9-408	P3	pruebas / Mesa / R9-269, R9-292, R9-403	arreglado	9011b19	marca de su entrada: «✅ ARREGLADO en la sesión 113, una prueba por store, cada una con el espejo (la cuenta que sale en la ventana, con `releasePrepAccount`): - Series (`90»
+R9-409	P3	pruebas / respaldo y Mesa / R9-404, R9-393, R9-364	aceptado	decisión 2026-10-27	de la 112, sin daño medido: «lo que encuentre queda como costo conocido» (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-410	P2	A12 hilo 1 / tema y respaldo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-411	P2	A12 hilo 1 / respaldo y planes / R9-30	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-412	P2	A12 hilo 3 / ErrorBoundary nativo / R9-14	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-413	P2	A12 hilo 2 / preferencias del lector / R9-267, R9-28	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-414	P2	A12 hilo 2 / progreso de lectura y de planes / R9-267, R9-284	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-415	P2	A12 hilo 2 / resaltados / R9-50	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-416	P3	A12 hilo 2 / compartir	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-417	P2	A12 hilo 2 / runtime, observabilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-418	P2	C15 / hoja de ofrenda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-419	P3	C39 / Play Console, fuera del repo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-420	P3	C39 / donación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-421	P2	C56 / preferencias del lector / R9-413	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-422	P3	C6 / Mesa / R9-143	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-423	P2	A13 / lector y audio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-424	P1	A14 / registro de versiones / useBibleVersion (fila A28)	arreglado	7d4a511f	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`7d4a511f`, rama `fix/s140-p1`): la red de seguridad espera la primera respuesta de `refreshInstalledVersions` (`install»
+R9-425	P1	A15 / temporizador de sueño y avance de capítulo	arreglado	a6a0ef13	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`a6a0ef13`, rama `fix/s140-p1`), por otro camino que la propuesta: lo honra el motor. Si lo que paró el capítulo fue el»
+R9-426	P2	A15 / continuaciones programadas del audio / R9-425	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-427	P1	A15 / reproductor flotante	arreglado	e8700067	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`e8700067`, rama `fix/s140-p1`): un efecto de `MiniAudioPlayer` hace que `expandProgress` siga a `state.isExpanded`, lo»
+R9-428	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-429	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-430	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-431	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-432	P2	A17 / quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-433	P3	A17 / quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-434	P3	A18 / estudio de palabra	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-435	P2	A18 / idiomas originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-436	P2	A18 / estudio de palabra	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-437	P2	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-438	P2	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-439	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-440	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-441	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-442	P3	A22 / Compartir	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-443	P3	A22 / Compartir	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-444	P3	A23 / logros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-445	P3	A23 / insignias	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-446	P3	A23 / logros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-447	P3	A23 / logros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-448	P3	A23 / insignias	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-449	P3	A24 / i18n, planes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-450	P2	A24 / i18n, Mesa	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-451	P3	A24 / i18n, widget	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-452	P3	A24 / i18n, fechas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-453	P3	A24 / i18n, Comparación de versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-454	P2	A25 / theming, avisos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-455	P3	A25 / theming, insignias	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-456	P3	A25 / theming, Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-457	P2	A26 / navegación, enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-458	P3	A26 / navegación, lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-459	P3	A26 / navegación, Niños	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-460	P3	A27 / deep links	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-461	P3	A27 / deep links, enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-462	P3	A28 / hooks, Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-463	P3	A28 / hooks, tema	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-464	P2	A29 / contexts, Favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-465	P3	A29 / contexts, lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-466	P3	A29 / contexts, favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-467	P2	A30 / params, colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-468	P3	A30 / cuenta, Google	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-469	P3	A30 / sync, Conflictos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-470	P3	A30 / respaldo, progreso de lectura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-471	P3	A30 / rutas, Widgets	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-472	P3	A31 / bundle	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-473	P2	A32 / Mesa, notas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-474	P3	A32 / Mesa, navegación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-475	P2	A33 / Profecías, mazo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-476	P2	A32 / Mesa, originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-477	P2	A32 / originales, el pack	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-478	P3	A32 / Mesa, versión	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-479	P3	A32 / Mesa, buscar por tema	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-480	P3	A32 / Mesa, comparar versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-481	P3	A32 / Mesa, navegación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-482	P3	A32 / Mesa, ilustraciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-483	P3	A32 / Mesa, originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-484	P3	A32 / originales, morfología	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-485	P3	A32 / originales, el pack	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-486	P3	A34 / Journeys	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-487	P3	A34 / «Tu camino»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-488	P3	A34 / «Tu camino» y recap por período	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-489	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-490	P3	A35 / Niños, datos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-491	P3	A35 / Niños, quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-492	P3	A35 / Niños, quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-493	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-494	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-495	P3	A35 / Niños, el plan	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-496	P2	A36 / lectio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-497	P2	A36 / diario de oración	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-498	P2	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-499	P3	A36 / diario de oración	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-500	P3	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-501	P3	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-502	P3	A36 / ACTS y diario	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-503	P3	A36 / orar la Escritura, packs	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-504	P3	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-505	P3	A36 / recordatorios de oración	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-506	P2	A37 / Juntos, unirse	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-507	P2	A37 / planes propios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-508	P2	A37 / constructor y paquete	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-509	P2	A37 / constructor	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-510	P3	A37 / constructor	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-511	P2	A37 / Juntos, devocional y estudio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-512	P2	A37 / Juntos, invitar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-513	P3	A37 / Juntos, importar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-514	P3	A37 / planes propios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-515	P3	A38 / widget nativo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-516	P3	A38 / widget nativo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-517	P3	A38 / widget nativo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-518	P2	A39 / marcadores retirados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-519	P3	A39 / colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-520	P3	A39 / favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-521	P3	A39 / Datos bíblicos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-522	P3	A39 / línea de tiempo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-523	P3	A39 / Datos bíblicos, contenido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-524	P3	A39 / colecciones y línea de tiempo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-525	P3	A40 / temas, sentimientos, Luz diaria	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-526	P3	A40 / devocional compartido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-527	P3	A41 / Teología, contenido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-528	P3	A42 / notas de sermón y testimonios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-529	P3	piloto de re-revisión de A7 / respaldo / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-530	P3	piloto de re-revisión de B4 / reglas de Firestore / borrado de cuenta	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-531	P3	A43 / Mi lectura, la semana y el ánimo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-532	P3	A43 / Mi lectura, la tira de ánimo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-533	P2	A44 / Comparación de versiones, las guardadas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-534	P3	A44 / Comparación de versiones, el análisis	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-535	P3	A44 / Comparación de versiones, versificación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-536	P3	A45 / devocional compartido, la cabecera	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-537	P3	A45 / devocional compartido y explore-all, el día	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-538	P3	A45 / landings compartidos, versificación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-539	P3	A45 / «Sobre este libro», «Cristo en este libro»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-540	P3	A45 / «Sobre este libro», datos del libro	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-541	P3	A45 / landings compartidos, la pila	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-542	P3	A45 / landings compartidos, accesibilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-543	P3	A45 / estudio compartido, el idioma	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-544	P3	A46 / Conflictos, la auditoría	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-545	P3	A46 / Conflictos, la tarjeta	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-546	P3	A46 / Conflictos, «Combinar»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-547	P3	A46 / Conflictos, el borrador de «Combinar»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-548	P3	A46 / la migración al entrar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-549	P3	A34 / Mi camino, el resumen del trimestre	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-550	P3	B6 / App Link de los enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-551	P3	B6 / Firebase, cliente OAuth de Android	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-552	P3	B8 / el splash	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-553	P3	B9 / dependencias nativas sin uso	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-554	P3	B10 / licencias de terceros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-555	P3	de paso desde B10 para B9 / fuentes de íconos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-556	P3	C20a / Memoria: el mazo y el registro de repasos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-557	P3	C26b / respaldo: el aviso tras importar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-558	P2	C27a / «Resetear datos de la Biblia»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-559	P3	C27a / lector nativo con 0 versículos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-560	P2	C26b / los toasts del modal «Datos»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-561	P2	C42a / la hoja de nota y el teclado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-562	P2	C43a / la ✕ del selector de colores del lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-563	P3	C43a / la hoja de edición del subrayado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-564	P3	C42b / el chip de referencia de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-565	P3	C42b / la cabecera de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-566	P3	C43b / el filtro de color de la galería de subrayados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-567	P3	C43b / el atrás del lector con un versículo seleccionado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-568	P2	C20b / los buscadores de libros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-569	P3	arreglo de R9-424 / registro de versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-570	P3	revisión del diff de la 140 / arreglo de R9-424 / recordatorios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-571	P3	revisión del diff de la 140 / reproductor flotante / R9-427	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-572	P3	revisión del diff de la 140 / pruebas / R9-427	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-573	P3	revisión del diff de la 140 / temporizador de sueño / vecino de R9-425	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
