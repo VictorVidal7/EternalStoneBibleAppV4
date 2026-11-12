@@ -4518,6 +4518,9 @@ export const translations = {
       restoreSuccess: 'Extras restaurados. ¡Gracias por tu ofrenda!',
       purchasing: 'Procesando…',
       purchaseError: 'No se pudo completar la ofrenda. Inténtalo de nuevo.',
+      notActivatedTitle: 'Tu ofrenda ya está registrada',
+      notActivatedMessage:
+        'La tienda ya registró tu ofrenda, pero los extras todavía no se activaron aquí. No hace falta volver a pagar: toca «Restaurar mi ofrenda anterior» más tarde.',
       thankYouTitle: 'Gracias por sembrar en esta obra',
       thankYouMessage:
         'La app completa sigue siendo gratuita — este extra es solo un regalo adicional. Que Dios te bendiga.',
@@ -11063,6 +11066,9 @@ export const translations = {
       restoreSuccess: 'Extras restored. Thank you for your offering!',
       purchasing: 'Processing…',
       purchaseError: "The offering couldn't be completed. Please try again.",
+      notActivatedTitle: 'Your offering is already on record',
+      notActivatedMessage:
+        "The store has already recorded your offering, but the extras haven't unlocked here yet. There's no need to pay again: tap “Restore my previous offering” later.",
       thankYouTitle: 'Thank you for sowing into this work',
       thankYouMessage:
         'The full app stays free — this extra is just an added gift. God bless you.',

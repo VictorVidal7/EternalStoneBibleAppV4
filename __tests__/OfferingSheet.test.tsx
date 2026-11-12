@@ -278,6 +278,88 @@ describe('OfferingSheet', () => {
     });
   });
 
+  describe('R9-17 — cobrado y sin entitlement', () => {
+    const es = require('../src/i18n/translations').translations.es;
+
+    it('no da las gracias ni pide repetir: avisa en la hoja, sin los montos a la vista', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockResolvedValueOnce({
+        customerInfo: noEntitlementInfo,
+      });
+
+      const {findByText, findByLabelText, queryByText} = renderSheet();
+      fireEvent.press(await findByLabelText('$0.99'));
+
+      expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+      expect(await findByText(es.offering.notActivatedMessage)).toBeTruthy();
+      expect(queryByText('Gracias por sembrar en esta obra')).toBeNull();
+      // Los montos invitan a pagar otra vez: no se muestran junto al aviso.
+      expect(queryByText('$0.99')).toBeNull();
+      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(colorOf(await findByText('Cerrar'))).toBe(mockColors.onPrimary);
+    });
+
+    it('el aviso nombra el enlace de restaurar con su texto exacto, en los dos idiomas', () => {
+      const all = require('../src/i18n/translations').translations;
+      for (const lang of ['es', 'en'] as const) {
+        expect(all[lang].offering.notActivatedMessage).toContain(
+          all[lang].offering.restoreLink,
+        );
+      }
+    });
+
+    it('«ya comprado» y la tienda responde sin entitlement: el mismo aviso, no «Inténtalo de nuevo»', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockRejectedValueOnce({code: '6'});
+      mockPurchases.restorePurchases.mockResolvedValueOnce(noEntitlementInfo);
+
+      const {findByText, findByLabelText, queryByText} = renderSheet();
+      fireEvent.press(await findByLabelText('$0.99'));
+
+      expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+      expect(queryByText('$0.99')).toBeNull();
+      expect(mockToast.error).not.toHaveBeenCalled();
+    });
+
+    it('al cerrar y reabrir vuelve a los montos, con el enlace de restaurar', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockResolvedValueOnce({
+        customerInfo: noEntitlementInfo,
+      });
+
+      const onClose = jest.fn();
+      const tree = (visible: boolean) => (
+        <PremiumProvider>
+          <OfferingSheet visible={visible} onClose={onClose} />
+        </PremiumProvider>
+      );
+      const {findByText, findByLabelText, rerender} = render(tree(true));
+      fireEvent.press(await findByLabelText('$0.99'));
+      expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+
+      fireEvent.press(await findByLabelText('Cerrar'));
+      expect(onClose).toHaveBeenCalledTimes(1);
+      rerender(tree(false));
+      rerender(tree(true));
+      expect(await findByLabelText('$0.99')).toBeTruthy();
+      expect(
+        await findByLabelText('Restaurar mi ofrenda anterior'),
+      ).toBeTruthy();
+    });
+  });
+
   it('shows the already-unlocked state instead of tiers when isPremium is true', async () => {
     // R9-9 — «ya desbloqueado» tiene que venir de la entitlement REAL. Estas
     // dos pruebas sembraban solo un 'true' viejo en la cache y pasaban porque

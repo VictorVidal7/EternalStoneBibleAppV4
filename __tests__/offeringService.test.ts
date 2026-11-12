@@ -197,6 +197,80 @@ describe('offeringService', () => {
       expect(getLastKnownEntitlement()).toBe(true);
     });
 
+    describe('R9-17 — success quiere decir «la entitlement esta activa»', () => {
+      it('cobrado pero sin entitlement: notActivated, nunca success', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.purchasePackage.mockResolvedValueOnce({
+          customerInfo: noEntitlementInfo,
+        });
+        const outcome = await purchaseUnlock({
+          identifier: 'ofrenda_extras_1',
+        } as never);
+        expect(outcome).toEqual({status: 'notActivated'});
+        expect(getLastKnownEntitlement()).toBe(false);
+        await expect(getCachedEntitlement()).resolves.toBe(false);
+      });
+
+      it('relee UNA vez saltando la cache del SDK: si ahi ya esta activa, success', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.getCustomerInfo.mockClear();
+        mockPurchases.purchasePackage.mockResolvedValueOnce({
+          customerInfo: noEntitlementInfo,
+        });
+        // El SDK ya tiene la entitlement; la foto que devolvio la compra, no.
+        mockPurchases.getCustomerInfo.mockResolvedValueOnce(
+          activeEntitlementInfo,
+        );
+        const outcome = await purchaseUnlock({
+          identifier: 'ofrenda_extras_1',
+        } as never);
+        expect(outcome).toEqual({status: 'success'});
+        expect(getLastKnownEntitlement()).toBe(true);
+        await expect(getCachedEntitlement()).resolves.toBe(true);
+        expect(mockPurchases.getCustomerInfo).toHaveBeenCalledTimes(1);
+        expect(
+          mockPurchases.invalidateCustomerInfoCache.mock.invocationCallOrder[0],
+        ).toBeLessThan(
+          mockPurchases.getCustomerInfo.mock.invocationCallOrder[0],
+        );
+      });
+
+      it('si la relectura falla, sigue siendo notActivated: tras cobrar no se dice error', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.purchasePackage.mockResolvedValueOnce({
+          customerInfo: noEntitlementInfo,
+        });
+        mockPurchases.getCustomerInfo.mockRejectedValueOnce({
+          code: '10',
+          message: 'network',
+        });
+        const outcome = await purchaseUnlock({
+          identifier: 'ofrenda_extras_1',
+        } as never);
+        expect(outcome).toEqual({status: 'notActivated'});
+      });
+
+      it('con la entitlement en la respuesta de la compra no relee nada', async () => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.getCustomerInfo.mockClear();
+        mockPurchases.purchasePackage.mockResolvedValueOnce({
+          customerInfo: activeEntitlementInfo,
+        });
+        const outcome = await purchaseUnlock({
+          identifier: 'ofrenda_extras_1',
+        } as never);
+        expect(outcome).toEqual({status: 'success'});
+        expect(mockPurchases.getCustomerInfo).not.toHaveBeenCalled();
+        expect(
+          mockPurchases.invalidateCustomerInfoCache,
+        ).not.toHaveBeenCalled();
+      });
+    });
+
     it('reports cancelled when the store reports PURCHASE_CANCELLED_ERROR', async () => {
       __setApiKeyForTests('test-key');
       await initialize();

@@ -58,7 +58,12 @@ type SheetState =
   | {kind: 'available'; packages: PurchasesPackage[]}
   | {kind: 'purchasing'}
   | {kind: 'restoring'}
-  | {kind: 'success'};
+  | {kind: 'success'}
+  // The store has the reader's money (or is about to) but there is nothing
+  // to celebrate yet. Shown IN the sheet, with its own close button, never
+  // as a toast over the tier picker: the picker is an invitation to pay
+  // again, which is the one thing this state must not suggest.
+  | {kind: 'notice'; title: string; message: string};
 
 export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
   const {colors} = useTheme();
@@ -122,6 +127,14 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
       } else if (outcome.status === 'cancelled') {
         // Silence, no guilt — just return to the tier picker.
         await load();
+      } else if (outcome.status === 'notActivated') {
+        // R9-17 — charged, but the entitlement is not active: neither
+        // «Gracias» (everything is still locked) nor «Inténtalo de nuevo».
+        setState({
+          kind: 'notice',
+          title: t.offering.notActivatedTitle,
+          message: t.offering.notActivatedMessage,
+        });
       } else if (outcome.status === 'alreadyOwned') {
         // The store already has a record of this entitlement (e.g. a
         // reinstall or a previous purchase that hasn't synced locally
@@ -137,8 +150,16 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
           toast.error(t.offering.restoreError);
           await load();
         } else {
-          toast.error(t.offering.purchaseError);
-          await load();
+          // R9-17 — the store says this offering is already theirs and it
+          // answered the restore, yet the entitlement is not active (a
+          // payment still pending, or the same cause as 'notActivated').
+          // This used to say «Inténtalo de nuevo» about something the
+          // store already holds.
+          setState({
+            kind: 'notice',
+            title: t.offering.notActivatedTitle,
+            message: t.offering.notActivatedMessage,
+          });
         }
       } else {
         toast.error(t.offering.purchaseError);
@@ -303,6 +324,43 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                 scaleRole="compact"
                 style={[styles.message, {color: colors.textSecondary}]}>
                 {t.offering.thankYouMessage}
+              </AppText>
+              <TouchableOpacity
+                style={[styles.doneButton, {backgroundColor: colors.primary}]}
+                onPress={handleClose}
+                accessibilityRole="button"
+                accessibilityLabel={t.offering.close}>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.doneText, {color: colors.onPrimary}]}>
+                  {t.offering.close}
+                </AppText>
+              </TouchableOpacity>
+            </View>
+          )}
+
+          {state.kind === 'notice' && (
+            <View style={styles.centerState}>
+              <View
+                style={[
+                  styles.badge,
+                  {backgroundColor: colors.primary + '22'},
+                ]}>
+                <Ionicons
+                  name="time-outline"
+                  size={28}
+                  color={colors.primary}
+                />
+              </View>
+              <AppText
+                scaleRole="display"
+                style={[styles.title, {color: colors.text}]}>
+                {state.title}
+              </AppText>
+              <AppText
+                scaleRole="compact"
+                style={[styles.message, {color: colors.textSecondary}]}>
+                {state.message}
               </AppText>
               <TouchableOpacity
                 style={[styles.doneButton, {backgroundColor: colors.primary}]}

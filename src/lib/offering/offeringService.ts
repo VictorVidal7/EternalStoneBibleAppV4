@@ -56,6 +56,8 @@ export type PurchaseOutcome =
   | {status: 'success'}
   | {status: 'cancelled'}
   | {status: 'alreadyOwned'}
+  /** The store charged, but the entitlement is not active (R9-17). */
+  | {status: 'notActivated'}
   | {status: 'error'; message: string};
 
 /**
@@ -306,7 +308,21 @@ function outcomeFromError(err: unknown): PurchaseOutcome {
   };
 }
 
-/** Purchases one of the unlock-tier packages. All three grant the same entitlement. */
+/**
+ * Purchases one of the unlock-tier packages. All three grant the same entitlement.
+ *
+ * R9-17 — `'success'` means the entitlement IS active, not "the store call
+ * resolved". This used to return `'success'` without looking at the
+ * `CustomerInfo` it had just been handed (while `restore()` did look, at the
+ * same data): if the entitlement was not on it — a product not attached to
+ * the entitlement in the dashboard, a stale snapshot — the store charged, the
+ * sheet said «Gracias por sembrar en esta obra» and everything stayed locked.
+ *
+ * Only the store call itself may answer `'error'`/`'cancelled'`. Once it has
+ * resolved the reader HAS been charged, so nothing after it may tell them to
+ * try again: it re-reads once (bypassing the SDK's cache) and, if the
+ * entitlement still is not there, answers `'notActivated'`.
+ */
 export async function purchaseUnlock(
   pkg: PurchasesPackage,
 ): Promise<PurchaseOutcome> {
@@ -314,13 +330,31 @@ export async function purchaseUnlock(
   if (!configured || !Purchases) {
     return {status: 'error', message: 'Offering system not initialized'};
   }
+  let customerInfo: CustomerInfo;
   try {
-    const {customerInfo} = await Purchases.purchasePackage(pkg);
-    await handleCustomerInfo(customerInfo);
-    return {status: 'success'};
+    ({customerInfo} = await Purchases.purchasePackage(pkg));
   } catch (err) {
     return outcomeFromError(err);
   }
+  try {
+    await handleCustomerInfo(customerInfo);
+    if (isEntitlementActive(customerInfo)) return {status: 'success'};
+    await Purchases.invalidateCustomerInfoCache();
+    const fresh = await Purchases.getCustomerInfo();
+    await handleCustomerInfo(fresh);
+    if (isEntitlementActive(fresh)) return {status: 'success'};
+  } catch (err) {
+    logger.warn('offeringService: confirming the entitlement failed', {
+      component: 'offeringService',
+      action: 'purchaseUnlock',
+      error: err,
+    });
+  }
+  logger.warn('offeringService: purchase resolved without the entitlement', {
+    component: 'offeringService',
+    action: 'purchaseUnlock',
+  });
+  return {status: 'notActivated'};
 }
 
 /** Purchases one donation tier (consumable, no entitlement granted). */
