@@ -14298,6 +14298,8 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   `initialize()`) hace real el enlace del arranque en frío para TODOS los usuarios, y con eso cambia de quién es el
   premium: hoy RevenueCat queda en su id anónimo tras un arranque en frío (sesión 115). Esa es la decisión abierta
   de `R9-119` (`CONTINUAR.md` §8): se arregla después de ella. `detail/S144-arreglos-dinero.md`.
+  **Decidido el 2026-11-12 (`CONTINUAR.md` §7):** se arregla en la tanda V1b, con la regla de `R9-119`. El enlace
+  de una CUENTA que llegó antes de `initialize()`, o cuyo `logIn` falló, se reintenta; el de un anónimo, no existe.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige
@@ -14558,6 +14560,11 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   y el comentario de `AuthContext.tsx` dicen ahora lo que hace el código (el anónimo que nace tras cerrar sesión
   se enlaza, y los extras se bloquean hasta que quien pagó vuelve a entrar). La entrada no se cierra: falta la
   decisión de Victor (`CONTINUAR.md` §8), y de ella depende también `R9-135`.
+
+  **Decidido el 2026-11-12, por Claude y por delegación de Victor (`CONTINUAR.md` §7):** el premium no se pierde
+  al cerrar sesión en el aparato, y la cuenta lo lleva a otros aparatos. La regla: un usuario anónimo nunca le
+  cambia el dueño a RevenueCat. Falta hacerlo: es la tanda V1b (`CONTINUAR.md` §4), y con ella los dos comentarios
+  vuelven a cambiar. La entrada no se cierra hasta entonces.
 
 - **`R9-120` (S19, build de packs — P3, agrupado).** Todo medido con el `main()` real:
   1. La prueba legacy de `R9-98` no demuestra que el normalizador corrió, aunque su comentario diga

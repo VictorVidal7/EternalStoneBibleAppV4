@@ -165,3 +165,26 @@ otros tres los pedían sus arreglos y también los decidió Claude: **Victor pue
 Los docs de esta sesión van en `docs/review-s144-fix`, apilada sobre `fix/s144-dinero`. El `validate` entero se
 corre al cerrar, con el worktree quitado. La revisión de este diff es la sesión 145
 (`_scratch/S145-PROMPT.md`).
+
+## 11. Después del cierre: de quién es el premium (`R9-119`), decidido
+
+Con la 144 ya mergeada, Victor dejó a consideración de Claude las dos cosas que esperaban su respuesta
+(2026-11-12: «lo dejo a tu mejor consideración»). No se tocó código.
+
+- **Los textos de dinero quedan como están** (§8). La 145 los revisa.
+- **El premium no se pierde al cerrar sesión en el aparato, y la cuenta lo lleva a otros aparatos.** La regla: un
+  usuario anónimo nunca le cambia el dueño a RevenueCat; solo lo cambia una cuenta que inició sesión. El porqué,
+  lo que no cambia y lo que se acepta están en `CONTINUAR.md` §7.
+- **Lo que se comprobó en el código antes de decidir** (por lectura, sin sonda: la tanda V1b lo mide):
+  - De anónimo a Google se usa `linkWithCredential` y el uid se conserva; solo si esa cuenta de Google ya tenía
+    usuario se cae a `signInWithCredential`, con otro uid.
+  - El canje de un código vale para cualquier `currentUser`, anónimo incluido; el backend concede al uid que
+    canjea, y `giftCodeService` llama él mismo a `linkUser(uid)`. Por eso la regla se aplica al enlace AUTOMÁTICO
+    de `AuthContext`, no a `linkUser`: si `linkUser` rechazara anónimos, un código canjeado sin cuenta no
+    desbloquearía nada.
+  - `AuthContext` ya distingue al anónimo (`isAnonymous`) y ya lo trata como «sin dueño» para la Mesa y para el
+    almacén local.
+- **Una consecuencia aceptada:** un aparato donde quien dio la ofrenda inició sesión una vez se queda con los
+  extras tras cerrar sesión, aunque la compra sea de otro aparato.
+- **Sin decidir, a medir en la V1b:** qué queda en RevenueCat tras «Eliminar cuenta».
+- **Se hace en la tanda V1b** (`CONTINUAR.md` §4; sesión 146), con `R9-135`.

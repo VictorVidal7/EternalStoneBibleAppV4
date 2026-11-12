@@ -296,4 +296,5 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `historial/` y `tools/`; el orden de las tandas con los P1 viejos. Detalle: `detail/S143-adelgazar.md`.
 - **Sesión 144 — 2026-11-12.** Arreglos, la tanda V1 (dinero): `R9-16`, `R9-17`, `R9-18` y `R9-19`, cada uno
   reproducido con el servicio real y con su prueba vista fallar; `R9-135` reproduce y espera la decisión de
-  `R9-119`. Sin medir en vivo. Detalle: `detail/S144-arreglos-dinero.md`.
+  `R9-119`. Sin medir en vivo. Detalle: `detail/S144-arreglos-dinero.md`. Tras el cierre, `R9-119` quedó decidido
+  por delegación (`CONTINUAR.md` §7): se hace en la tanda V1b, con `R9-135`.

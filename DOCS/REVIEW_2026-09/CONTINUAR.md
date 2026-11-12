@@ -152,7 +152,13 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   primero porque le pasa a quien paga, y porque es un solo archivo de servicio y dos hojas. Su revisión de diff va
   aparte. `R9-119` no entra: de quién es el premium sigue en la §8; solo se corrige el docstring que miente.
   **Hecha en la sesión 144** (`detail/S144-arreglos-dinero.md`), sin medir en vivo; su revisión es la 145.
-  `R9-135` reproduce y no entró: su arreglo cambia de quién es el premium, y espera esa decisión (§8).
+  `R9-135` reproduce y no entró: su arreglo cambia de quién es el premium.
+- **Tanda V1b — de quién es el premium (2 P2, decididos en la §7).** `R9-119` (el anónimo que nace tras cerrar
+  sesión ya no se enlaza a RevenueCat) y `R9-135` (el enlace de una cuenta que llegó antes de `initialize()`, o
+  cuyo `logIn` falló, se reintenta). Va en la sesión 146, antes de la V2, junto con lo que deje la revisión de la
+  145: es el mismo servicio, y así los dos diffs de dinero se cierran seguidos. Con el `AuthProvider` y el
+  servicio reales; la matriz: cerrar sesión con y sin premium, otra cuenta en el mismo aparato, el canje de un
+  código siendo anónimo, el arranque en frío, y «Eliminar cuenta» (se mide; no está decidido).
 - **Tanda V2 — sync que pierde en silencio (4 P1).** `R9-128` (un apply remoto que falla y el cursor avanza), con
   `R9-132` (P2, la misma forma en subrayados); `R9-37` (el listener huérfano); `R9-127` (el `skipNextBulkPush` sin
   uid); y `R9-126` (el push con reloj viejo), que es de diseño: se mide y se propone antes de escribirlo, y si no
@@ -389,6 +395,30 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
 
 ## 7. Decisiones de Victor que NO hay que volver a preguntarle
 
+- **El premium es de quien dio la ofrenda: en el aparato donde estuvo, no se pierde al cerrar sesión, y la cuenta
+  lo lleva a otros aparatos (`R9-119`; decidido por Claude el 2026-11-12, por delegación de Victor: «lo dejo a tu
+  mejor consideración»; Victor puede cambiarlo).** La regla, en una línea: **un usuario anónimo nunca le cambia el
+  dueño a RevenueCat; solo lo cambia una cuenta que inició sesión.**
+  - **Por qué.** Es lo que la app ya prometía: «la ofrenda desbloquea premium PARA SIEMPRE» (abajo), y los dos
+    docstrings originales decían que al cerrar sesión la ofrenda «stays unlocked on this device»; lo que falla es
+    el código, no la intención. La compra es de la cuenta de la tienda del aparato, no de la cuenta de la app. Y es
+    el patrón que la app ya usa: el anónimo no es dueño de nada (`setPrepAccount` y `claimLocalStore`, solo con
+    cuenta).
+  - **Lo que no cambia.** Iniciar sesión en otro aparato trae el premium. Iniciar sesión con OTRA cuenta en el
+    mismo aparato muestra lo de esa cuenta. Un código de regalo se concede al uid que lo canjea, anónimo o no, y
+    `giftCodeService` lo sigue enlazando él mismo.
+  - **Lo que se acepta.** Un aparato donde quien dio la ofrenda inició sesión una vez se queda con los extras tras
+    cerrar sesión, aunque la compra se haya hecho en otro. Es una ofrenda voluntaria y la app completa es
+    gratuita; el error que NO se acepta es el contrario, quitárselo a quien pagó. La alternativa exacta (cerrar la
+    sesión de RevenueCat y restaurar en silencio desde la tienda) depende de la configuración de transferencias
+    del panel de RevenueCat y puede quitarle el premium a quien paga y tiene dos aparatos.
+  - **Cómo se hace: la tanda V1b (§4).** `AuthContext` deja de enlazar al anónimo que nace tras cerrar sesión, y
+    `R9-135` se arregla con la misma regla: el uid de una cuenta que llegó antes de `initialize()` se enlaza al
+    terminar, y un `logIn` que falló se reintenta. Con su reproducción, su prueba vista fallar y su revisión.
+  - **A medir en esa tanda, sin decidir:** qué queda en RevenueCat tras «Eliminar cuenta» (con la regla, el
+    aparato seguiría con el uid borrado como dueño). Si la V1b no lo cierra, va con la tanda V4 (cuenta).
+- **Los textos de dinero de la sesión 144 quedan como están** (Victor, 2026-11-12, los dejó a consideración de
+  Claude). Están en los dos idiomas en `detail/S144-arreglos-dinero.md` §8, y la 145 los revisa.
 - **La fase de ARREGLOS va con Fable 5.2 como modelo principal, decidido por Victor el 2026-11-11 (al empezar la
   sesión 140).** Toda la fase, con sus revisiones de diff, va con Fable 5.2 como principal. Al terminarla se vuelve a
   Opus 5.5 como principal con Fable de asesor, y a las filas C P1 que faltan (`C17`, `C23`), con
@@ -650,14 +680,8 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   falta el mismo pasaje en las dos Mesas. Se arregla primero en la 55.
 - **El anzuelo de inicio de sesión** promete sincronizar "tus datos" cuando la racha, el
   progreso y los logros no viajan. ¿Se califica el copy?
-- **Cuatro que dejó a la vista la conciliación (sesión 142), y una de la 144; las tandas de la §4 no las deciden:**
-  - **`R9-119`, de quién es el premium:** hoy cerrar sesión se lo quita a quien pagó, hasta que vuelve a entrar.
-    ¿Es de la cuenta o del aparato? La tanda V1 solo corrige el docstring que dice lo contrario. De esta decisión
-    depende además `R9-135` (sesión 144): enlazar de verdad el usuario en el arranque en frío cambia quién se
-    queda con el premium al iniciar o cerrar sesión, así que se arregla después de decidir.
-  - **Los textos de dinero de la sesión 144:** el del pago pendiente lo delegó Victor; los de «no se pudo
-    comprobar», «tu ofrenda ya está registrada» y «donación en proceso» los pedían sus arreglos y los decidió
-    Claude. Están citados, en los dos idiomas, en `detail/S144-arreglos-dinero.md` §8: Victor puede cambiarlos.
+- **Tres que dejó a la vista la conciliación (sesión 142); las tandas de la §4 no las deciden** (la cuarta,
+  `R9-119`, de quién es el premium, y los textos de dinero de la 144 ya están decididos: §7):
   - **`R9-24`, borrar lo que hay en el aparato:** no existe ninguna acción que borre el contenido local. La tanda
     V4 corrige el texto del diálogo de «Eliminar cuenta»; ¿se agrega además esa acción?
   - **`R9-118`, Codecov:** el step sale verde sin haber recibido nada nunca. ¿Se le da un token (un secreto) o se
