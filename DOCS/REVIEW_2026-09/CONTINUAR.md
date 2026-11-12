@@ -8,7 +8,8 @@
 > abiertos de 573: ningún P0, 20 P1 (todos viejos; cuatro de dinero: `R9-16`..`R9-19`), 92 P2 y 161 P3.** El estado
 > por hallazgo ya es legible por máquina: `ESTADO.tsv`, con su validador
 > (`_scratch/S142-validar-estado.cjs.txt`). «No hay ningún P0 ni P1 abierto», más abajo, valía solo para `R9-410`
-> en adelante. La rama `docs/review-s142-conciliacion` (solo docs) va sin mergear hasta el OK de Victor. Lo
+> en adelante. La rama `docs/review-s142-conciliacion` (solo docs) se mergea con el OK de Victor (si ya se mergeó,
+> `main` la incluye); `npm run validate`, verde, 377/4709 (`_scratch/S142-validate.out.txt`). Lo
 > siguiente, en el orden aprobado por Victor el 2026-11-11: la 143, una sesión de solo docs para adelgazar
 > `INDEX.md`, `CONTINUAR.md` y la memoria (`_scratch/S143-PROMPT.md`); después, los arreglos
 > (`_scratch/S14X-PROMPT-arreglos.md`). Detalle: `detail/S142-conciliacion.md`.
