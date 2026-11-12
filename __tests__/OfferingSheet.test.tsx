@@ -228,6 +228,56 @@ describe('OfferingSheet', () => {
     expect(await findByText('$0.99')).toBeTruthy();
   });
 
+  describe('R9-16 — restaurar sin poder preguntarle a la tienda', () => {
+    const es = require('../src/i18n/translations').translations.es;
+
+    it('dice que no se pudo comprobar, NO que no hay una ofrenda anterior', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.restorePurchases.mockRejectedValueOnce({
+        code: '10',
+        message: 'network',
+      });
+
+      const {findByText, findByLabelText} = renderSheet();
+      fireEvent.press(await findByLabelText('Restaurar mi ofrenda anterior'));
+
+      await waitFor(() =>
+        expect(mockToast.error).toHaveBeenCalledWith(es.offering.restoreError),
+      );
+      // A quien ya pago no se le afirma que su compra no existe.
+      expect(mockToast.info).not.toHaveBeenCalled();
+      expect(await findByText('$0.99')).toBeTruthy();
+    });
+
+    it('«ya comprado» + restaurar sin red: tampoco dice «inténtalo de nuevo» a secas', async () => {
+      __setApiKeyForTests('test-key');
+      await initialize();
+      mockPurchases.__setOfferings({
+        all: {default: {availablePackages: fakePackages}},
+      });
+      mockPurchases.purchasePackage.mockRejectedValueOnce({code: '6'});
+      mockPurchases.restorePurchases.mockRejectedValueOnce({
+        code: '10',
+        message: 'network',
+      });
+
+      const {findByText, findByLabelText} = renderSheet();
+      fireEvent.press(await findByLabelText('$0.99'));
+
+      await waitFor(() =>
+        expect(mockToast.error).toHaveBeenCalledWith(es.offering.restoreError),
+      );
+      expect(mockToast.error).not.toHaveBeenCalledWith(
+        es.offering.purchaseError,
+      );
+      expect(await findByText('$0.99')).toBeTruthy();
+    });
+  });
+
   it('shows the already-unlocked state instead of tiers when isPremium is true', async () => {
     // R9-9 — «ya desbloqueado» tiene que venir de la entitlement REAL. Estas
     // dos pruebas sembraban solo un 'true' viejo en la cache y pasaban porque

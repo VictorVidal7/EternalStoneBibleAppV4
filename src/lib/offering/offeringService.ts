@@ -58,6 +58,13 @@ export type PurchaseOutcome =
   | {status: 'alreadyOwned'}
   | {status: 'error'; message: string};
 
+/**
+ * `'notFound'` = the store answered, and there is no previous offering.
+ * `'error'` = the store could not be asked. Never collapse the two (R9-16).
+ */
+export type RestoreOutcome =
+  {status: 'restored'} | {status: 'notFound'} | {status: 'error'};
+
 type PurchasesStatic = {
   configure: (config: {apiKey: string; appUserID?: string}) => void;
   addCustomerInfoUpdateListener: (cb: (info: CustomerInfo) => void) => void;
@@ -332,20 +339,30 @@ export async function purchaseDonation(
   }
 }
 
-/** Restores a previous offering on a new install / device, via the store account. */
-export async function restore(): Promise<{unlocked: boolean}> {
+/**
+ * Restores a previous offering on a new install / device, via the store account.
+ *
+ * R9-16 — three answers, not two. This used to return `{unlocked: false}`
+ * both when the store answered "no previous offering" and when the store
+ * could not be asked at all (no network, store problem, not configured), and
+ * the sheet turned both into «No encontramos una ofrenda anterior en esta
+ * cuenta». Someone who HAD paid and restored on a bad connection was told
+ * their purchase did not exist. `'notFound'` is now only ever said by the
+ * store itself; everything else is `'error'`.
+ */
+export async function restore(): Promise<RestoreOutcome> {
   const Purchases = getPurchases();
-  if (!configured || !Purchases) return {unlocked: false};
+  if (!configured || !Purchases) return {status: 'error'};
   try {
     const info = await Purchases.restorePurchases();
     await handleCustomerInfo(info);
-    return {unlocked: isEntitlementActive(info)};
+    return {status: isEntitlementActive(info) ? 'restored' : 'notFound'};
   } catch (err) {
     logger.warn('offeringService: restore failed', {
       component: 'offeringService',
       error: err,
     });
-    return {unlocked: false};
+    return {status: 'error'};
   }
 }
 

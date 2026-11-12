@@ -4513,6 +4513,8 @@ export const translations = {
       restoreLink: 'Restaurar mi ofrenda anterior',
       restoring: 'Restaurando…',
       restoreNotFound: 'No encontramos una ofrenda anterior en esta cuenta.',
+      restoreError:
+        'No pudimos comprobar si hay una ofrenda anterior. Revisa tu conexión e inténtalo de nuevo.',
       restoreSuccess: 'Extras restaurados. ¡Gracias por tu ofrenda!',
       purchasing: 'Procesando…',
       purchaseError: 'No se pudo completar la ofrenda. Inténtalo de nuevo.',
@@ -11056,6 +11058,8 @@ export const translations = {
       restoreLink: 'Restore my previous offering',
       restoring: 'Restoring…',
       restoreNotFound: "We couldn't find a previous offering on this account.",
+      restoreError:
+        "We couldn't check for a previous offering. Check your connection and try again.",
       restoreSuccess: 'Extras restored. Thank you for your offering!',
       purchasing: 'Processing…',
       purchaseError: "The offering couldn't be completed. Please try again.",

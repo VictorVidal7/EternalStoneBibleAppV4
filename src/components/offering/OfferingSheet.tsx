@@ -127,11 +127,15 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
         // reinstall or a previous purchase that hasn't synced locally
         // yet) — restore it directly instead of surfacing a scary
         // generic error for something that isn't a failure.
-        const {unlocked} = await restoreOffering();
-        if (unlocked) {
+        const restored = await restoreOffering();
+        if (restored.status === 'restored') {
           haptics.success();
           toast.success(t.offering.restoreSuccess);
           setState({kind: 'success'});
+        } else if (restored.status === 'error') {
+          // R9-16 — the store could not be asked: say that, not "failed".
+          toast.error(t.offering.restoreError);
+          await load();
         } else {
           toast.error(t.offering.purchaseError);
           await load();
@@ -147,12 +151,16 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
   const handleRestore = useCallback(async () => {
     haptics.tap();
     setState({kind: 'restoring'});
-    const {unlocked} = await restoreOffering();
-    if (unlocked) {
+    const restored = await restoreOffering();
+    if (restored.status === 'restored') {
       toast.success(t.offering.restoreSuccess);
       setState({kind: 'success'});
-    } else {
+    } else if (restored.status === 'notFound') {
+      // Only the store itself may say "no previous offering" (R9-16).
       toast.info(t.offering.restoreNotFound);
+      await load();
+    } else {
+      toast.error(t.offering.restoreError);
       await load();
     }
   }, [load, t, toast]);

@@ -266,8 +266,12 @@ describe('offeringService', () => {
   });
 
   describe('restore', () => {
-    it('returns unlocked: false when not configured', async () => {
-      await expect(restore()).resolves.toEqual({unlocked: false});
+    // R9-16 — estas tres pruebas fijaban `{unlocked: false}` para «la tienda
+    // dijo que no hay compra», para «no se pudo preguntar» y para «sin
+    // configurar»: la confusion, congelada como esperada. Ahora son tres
+    // respuestas, y `notFound` solo la puede dar la tienda.
+    it('reports error (never notFound) when not configured', async () => {
+      await expect(restore()).resolves.toEqual({status: 'error'});
     });
 
     it('restores a previous unlock and syncs the cache', async () => {
@@ -276,18 +280,31 @@ describe('offeringService', () => {
       mockPurchases.restorePurchases.mockResolvedValueOnce(
         activeEntitlementInfo,
       );
-      await expect(restore()).resolves.toEqual({unlocked: true});
+      await expect(restore()).resolves.toEqual({status: 'restored'});
       await expect(getCachedEntitlement()).resolves.toBe(true);
     });
 
-    it('resolves unlocked: false (not throw) when the store call fails', async () => {
+    it('reports notFound only when the store ANSWERED with no entitlement', async () => {
       __setApiKeyForTests('test-key');
       await initialize();
-      mockPurchases.restorePurchases.mockRejectedValueOnce(
-        new Error('offline'),
-      );
-      await expect(restore()).resolves.toEqual({unlocked: false});
+      mockPurchases.restorePurchases.mockResolvedValueOnce(noEntitlementInfo);
+      await expect(restore()).resolves.toEqual({status: 'notFound'});
     });
+
+    it.each([
+      ['an Error', new Error('offline')],
+      ['NETWORK_ERROR', {code: '10', message: 'network'}],
+      ['OFFLINE_CONNECTION_ERROR', {code: '35', message: 'offline'}],
+      ['STORE_PROBLEM_ERROR', {code: '2', message: 'store problem'}],
+    ])(
+      'R9-16 — resolves error (not throw, and NOT notFound) when the store call fails with %s',
+      async (_label, rejection) => {
+        __setApiKeyForTests('test-key');
+        await initialize();
+        mockPurchases.restorePurchases.mockRejectedValueOnce(rejection);
+        await expect(restore()).resolves.toEqual({status: 'error'});
+      },
+    );
   });
 
   describe('refreshEntitlement', () => {
