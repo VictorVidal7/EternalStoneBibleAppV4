@@ -351,6 +351,61 @@ describe('offeringService', () => {
         expect(outcome.status).toBe('error');
       });
 
+      // R9-578 — la guarda de outcomeFromError contra `undefined ===
+      // undefined`: un SDK sin la constante y un error sin codigo.
+      describe('con un SDK que no trae PAYMENT_PENDING_ERROR', () => {
+        const codes = (
+          Purchases as unknown as {
+            PURCHASES_ERROR_CODE: Record<string, string | undefined>;
+          }
+        ).PURCHASES_ERROR_CODE;
+        let saved: string | undefined;
+        beforeEach(() => {
+          saved = codes.PAYMENT_PENDING_ERROR;
+          delete codes.PAYMENT_PENDING_ERROR;
+        });
+        afterEach(() => {
+          codes.PAYMENT_PENDING_ERROR = saved;
+        });
+
+        it('purchaseUnlock: un error SIN codigo sigue siendo error, no pending', async () => {
+          __setApiKeyForTests('test-key');
+          await initialize();
+          mockPurchases.purchasePackage.mockRejectedValueOnce(
+            new Error('boom'),
+          );
+          await expect(purchaseUnlock({} as never)).resolves.toEqual({
+            status: 'error',
+            message: 'boom',
+          });
+        });
+
+        it('purchaseDonation: un error SIN codigo sigue siendo error, no pending', async () => {
+          __setApiKeyForTests('test-key');
+          await initialize();
+          mockPurchases.purchaseStoreProduct.mockRejectedValueOnce(
+            new Error('boom'),
+          );
+          await expect(purchaseDonation({} as never)).resolves.toEqual({
+            status: 'error',
+            message: 'boom',
+          });
+        });
+
+        it('y un error CON el codigo 20 tampoco es pending: ese SDK no lo conoce', async () => {
+          __setApiKeyForTests('test-key');
+          await initialize();
+          mockPurchases.purchasePackage.mockRejectedValueOnce({
+            code: '20',
+            message: 'pending',
+          });
+          await expect(purchaseUnlock({} as never)).resolves.toEqual({
+            status: 'error',
+            message: '[object Object]',
+          });
+        });
+      });
+
       it('los codigos del mock son los del SDK real', () => {
         // El mock es la frontera: si su '20' no fuera el del SDK, las
         // pruebas de arriba pasarian y en el dispositivo no se reconoceria.

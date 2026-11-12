@@ -292,7 +292,10 @@ describe('DonationSheet', () => {
       expect(mockToast.error).not.toHaveBeenCalled();
     });
 
-    it('liquidada, el mismo monto se puede volver a dar tras cerrar y reabrir', async () => {
+    // R9-578 — el mock no modela un consumible trabado: esto NO mide que la
+    // restauracion lo liquide (eso es del SDK real), solo que el aviso no
+    // deja la hoja trabada. Pasa con y sin la llamada a restore().
+    it('tras el aviso, al cerrar y reabrir el mismo monto se puede volver a tocar', async () => {
       __setApiKeyForTests('test-key');
       await initialize();
       mockPurchases.__setProducts(fakeProducts);
