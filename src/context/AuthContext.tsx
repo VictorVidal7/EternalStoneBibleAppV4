@@ -366,8 +366,14 @@ export function AuthProvider({children}: AuthProviderProps) {
 
       // Associates this device's offering entitlement with the stable
       // Firebase uid (anonymous or signed-in) for cross-device persistence.
-      // Best-effort and non-blocking — never awaited, never revoked on
-      // sign-out (see offeringService.linkUser's docstring).
+      // Best-effort and non-blocking — never awaited.
+      //
+      // R9-119 — this used to say «never revoked on sign-out». It is: the
+      // anonymous user created right below after a sign-out is linked here
+      // too, RevenueCat answers for THAT uid with no purchases, and the
+      // extras lock until the buyer signs back in. Who owns the offering
+      // (the account or the device) is an open product decision; see
+      // offeringService.linkUser's docstring.
       if (next?.uid) {
         linkOfferingUser(next.uid).catch(() => {});
       }

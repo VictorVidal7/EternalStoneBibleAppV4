@@ -230,8 +230,21 @@ export async function isBillingAvailable(): Promise<boolean> {
 /**
  * Associates the current device's purchases with a stable app user id
  * (the Firebase uid — anonymous or signed-in, see AuthContext). Best-effort
- * and safe to call repeatedly; never call the corresponding logOut on
- * sign-out, so an offering already given stays unlocked on this device.
+ * and safe to call repeatedly.
+ *
+ * R9-119 — this comment used to say «never call the corresponding logOut on
+ * sign-out, so an offering already given stays unlocked on this device».
+ * The first half holds (RevenueCat's logOut is never called); the conclusion
+ * does not. AuthContext signs a new anonymous user in right after a
+ * sign-out and links THAT uid here; RevenueCat answers for it with a
+ * customer that has no purchases, and handleCustomerInfo() locks the extras
+ * until the buyer signs back in (measured with the real AuthProvider and
+ * this service). Whether the offering belongs to the account or to the
+ * device is an open product decision: this only describes what the code
+ * does today.
+ *
+ * It is also a silent no-op until initialize() has configured the SDK —
+ * which, on a cold start, is after AuthContext's first call (R9-135, open).
  */
 export async function linkUser(uid: string | null): Promise<void> {
   if (!configured || !uid) return;
