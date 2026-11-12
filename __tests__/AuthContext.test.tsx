@@ -147,6 +147,19 @@ import {
   __resetPrepAccountForTests,
   prepKey,
 } from '../src/features/study/prepAccount';
+import Purchases from 'react-native-purchases';
+import * as SecureStore from 'expo-secure-store';
+import {
+  ENTITLEMENT_ID,
+  getLastKnownEntitlement,
+  initialize as initializeOffering,
+  __resetForTests as resetOffering,
+  __setApiKeyForTests as setOfferingApiKey,
+} from '../src/lib/offering/offeringService';
+import {
+  ENTITLEMENT_CACHE_KEY,
+  getCachedEntitlement,
+} from '../src/lib/offering/entitlementCache';
 
 // Spy on the real logger — the lazy Crashlytics require returns null
 // in jest (no native binding), so logger calls are effectively no-ops
@@ -1392,5 +1405,120 @@ describe('R9-59 — la Mesa por cuenta, desde AuthProvider', () => {
       deAna: await AsyncStorage.getItem('@prep_notes:ana-uid'),
       sinCuenta: (await AsyncStorage.getItem('@prep_notes')) !== null,
     }).toEqual({deAna: null, sinCuenta: true});
+  });
+});
+
+// ---------------------------------------------------------------------------
+// De quien es el premium (R9-119). El AuthProvider y el offeringService REALES;
+// react-native-purchases simulado en su frontera (__mocks__).
+// ---------------------------------------------------------------------------
+describe('R9-119 — un anonimo nunca le cambia el dueno a RevenueCat', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    __reset: () => void;
+  };
+  const active = {
+    entitlements: {
+      active: {[ENTITLEMENT_ID]: {identifier: ENTITLEMENT_ID}},
+      all: {},
+    },
+  };
+
+  beforeEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    setOfferingApiKey('test-key');
+    await initializeOffering();
+  });
+  afterEach(() => {
+    // Las demas pruebas de este archivo corren con el servicio sin configurar.
+    resetOffering();
+    sdk.__reset();
+  });
+
+  const settle = async () => {
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  };
+
+  async function anaSignedInWithPremium() {
+    const captured = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={captured.onReady} />
+      </AuthProvider>,
+    );
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    mockCurrentUser = {uid: 'uid-ana', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(getLastKnownEntitlement()).toBe(true));
+    return captured.ref;
+  }
+
+  async function signOutAndBecomeAnonymous(ref: {current: AuthApi | null}) {
+    await act(async () => {
+      await ref.current!.signOut();
+    });
+    mockCurrentUser = null;
+    flushListenerWith(null);
+    mockCurrentUser = {uid: 'anon-nuevo', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+  }
+
+  it('el anonimo que nace tras cerrar sesion no se enlaza: los extras siguen en el aparato', async () => {
+    const ref = await anaSignedInWithPremium();
+    await signOutAndBecomeAnonymous(ref);
+
+    expect(mockSignInAnonymously).toHaveBeenCalledTimes(1);
+    expect(sdk.logIn.mock.calls).toEqual([['uid-ana']]);
+    expect(getLastKnownEntitlement()).toBe(true);
+    await expect(getCachedEntitlement()).resolves.toBe(true);
+  });
+
+  it('el anonimo de un primer arranque tampoco se enlaza', async () => {
+    render(
+      <AuthProvider>
+        <Probe onReady={() => {}} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {uid: 'anon-primero', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+
+    expect(sdk.logIn).not.toHaveBeenCalled();
+  });
+
+  it('otra cuenta en el mismo aparato muestra lo de esa cuenta', async () => {
+    const ref = await anaSignedInWithPremium();
+    await signOutAndBecomeAnonymous(ref);
+
+    // Beto inicia sesion: RevenueCat responde por el, que no dio la ofrenda.
+    mockCurrentUser = {uid: 'uid-beto', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(getLastKnownEntitlement()).toBe(false));
+
+    expect(sdk.logIn.mock.calls).toEqual([['uid-ana'], ['uid-beto']]);
+    await expect(getCachedEntitlement()).resolves.toBe(false);
+  });
+
+  it('una cuenta sin la ofrenda que cierra sesion sigue sin ella', async () => {
+    const captured = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={captured.onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {uid: 'uid-beto', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(sdk.logIn).toHaveBeenCalledWith('uid-beto'));
+    await signOutAndBecomeAnonymous(captured.ref);
+
+    expect(sdk.logIn.mock.calls).toEqual([['uid-beto']]);
+    expect(getLastKnownEntitlement()).toBe(false);
   });
 });
