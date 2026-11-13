@@ -369,8 +369,13 @@ async function notePendingLink(
   Purchases: PurchasesStatic,
   uid: string,
 ): Promise<void> {
+  // R9-581 — a rejection can arrive after a later logIn was asked for (and
+  // perhaps went through): then this uid is no longer the one RevenueCat
+  // should be on, and noting it would send the next purchase to it. Checked
+  // after the await, so a logIn asked for meanwhile counts too.
   try {
     if (!Purchases.isAnonymous || (await Purchases.isAnonymous())) return;
+    if (requestedUid !== uid) return;
     pendingUid = uid;
     await setPendingLinkUid(uid);
   } catch (err) {

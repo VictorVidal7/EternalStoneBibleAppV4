@@ -973,3 +973,55 @@ describe('R9-580 — linkUpgradedUser', () => {
     expect(sdk.logIn.mock.calls).toEqual([['anon-nuevo'], ['anon-nuevo']]);
   });
 });
+
+// ---------------------------------------------------------------------------
+// R9-581 — un rechazo de logIn que llega DESPUES de que otro logIn ya se pidio
+// no anota nada: la nota lleva el orden del pedido.
+// ---------------------------------------------------------------------------
+describe('R9-581 — un rechazo tardio no anota a una cuenta que ya no es la ultima', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    __setAppUserID: (id: string) => void;
+    __reset: () => void;
+  };
+
+  beforeEach(async () => {
+    __resetForTests();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+    __setApiKeyForTests('test-key');
+    await initialize();
+  });
+  afterEach(async () => {
+    __resetForTests();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+  });
+
+  it('beto en vuelo; carla entra y resuelve; despues rechaza beto: nada pendiente, y la compra no hace logIn', async () => {
+    sdk.__setAppUserID('ana');
+    let rejectBeto!: (e: unknown) => void;
+    sdk.logIn.mockImplementationOnce(
+      () =>
+        new Promise((_res, rej) => {
+          rejectBeto = rej;
+        }),
+    );
+    const beto = linkUser('beto');
+    await linkUser('carla');
+    sdk.__setAppUserID('carla');
+    rejectBeto({code: '10', message: 'network'});
+    await beto;
+
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+    await purchaseUnlock({identifier: 'o1'} as never);
+    expect(sdk.logIn.mock.calls).toEqual([['beto'], ['carla']]);
+  });
+
+  it('control: el rechazo del ultimo pedido si se anota', async () => {
+    sdk.__setAppUserID('ana');
+    sdk.logIn.mockRejectedValueOnce({code: '10', message: 'network'});
+    await linkUser('beto');
+    await expect(getPendingLinkUid()).resolves.toBe('beto');
+  });
+});
