@@ -2,11 +2,11 @@
 
 > **Sesión 148 (2026-11-13).** En un chat nuevo, en la terminal, sin agentes, con **Opus 5.5 como principal y Fable
 > 5.2 de asesor**, esfuerzo `high`. Rama `fix/s148-premium`, un commit por hallazgo. **Sin emulador: nada de esto
-> está medido en vivo.** La tanda V2 no empezó: pasa a la 149 (el asesor fijó el corte en ~65 llamadas para la
-> Parte 1).
+> está medido en vivo.** La tanda V2 no empezó (el asesor fijó el corte en ~65 llamadas para la Parte 1): la 149
+> revisa este diff, y la V2 va después de `R9-582` y `R9-584`.
 >
 > **Resultado.** Arreglados `R9-580` (P2, `e8d67dc2`), `R9-581` (P3, `04c60aad`) y `R9-583` (P3, `0d64352e`, solo
-> comentarios). `R9-582` y `R9-584` siguen abiertos, para la 149 antes de la V2. Lo commiteado da igual con los dos
+> comentarios). `R9-582` y `R9-584` siguen abiertos: van después de la revisión de este diff (la 149), antes de la V2. Lo commiteado da igual con los dos
 > supuestos sobre RevenueCat (`CONTINUAR.md` §7).
 
 ## 1. Cómo se midió
@@ -71,7 +71,13 @@ Los cinco textos, corregidos: el docstring de `linkUser` (no hay canje siendo an
 leaves» (falso), `hasOfferingPurchase` (el pago pendiente, sin medir) y `giftCodeService.ts` (ya no es un no-op).
 Solo comentarios: sin prueba que ver fallar.
 
-## 5. Lo que queda, para la 149 antes de la V2
+## 5. Lo que queda: después de la 149 (la revisión de este diff), antes de la V2
+
+Lo que la 149 tiene que mirar con nombre propio: `requestedUid` lo escribe `logInAs`, así que un reintento también
+cuenta como «último pedido» (un pendiente viejo de X, el `logIn` de carla en vuelo, una compra reintenta X y sale
+bien, carla rechaza tarde: por lectura, carla ya no se anota, y antes de `04c60aad` sí; depende de `R9-582`); y el
+docstring de `earlyUid`, que sigue diciendo que solo lo pide `AuthContext` (la quinta viñeta de `R9-583`). La
+guarda `!Purchases?.isAnonymous` de `linkUpgradedUser` quedó sin prueba.
 
 - **`R9-582`** (cerrar sesión y «Eliminar cuenta» borran el pendiente; el reintento antes de comprar o restaurar
   mira la sesión). Pide que el servicio sepa quién está en sesión: es más que una línea, con su matriz (A1, A2a, A2b,
