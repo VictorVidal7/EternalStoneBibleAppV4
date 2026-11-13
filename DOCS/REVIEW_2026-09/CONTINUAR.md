@@ -27,7 +27,7 @@ Dónde está cada cosa:
 - `BUGS.md`: las entradas. Es la fuente: la marca `✅ ARREGLADO` va en la entrada, y el TSV se regenera.
 - `detail/`: un detalle por fila o por sesión.
 - `INDEX.md`: el ledger de las filas (Modos A a D).
-- `REGLAS.md`: las 282 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
+- `REGLAS.md`: las 286 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
 - `historial/`: lo que la 143 sacó de este archivo y de `INDEX.md`, movido tal cual. No rige: es registro.
 - `REVIEW_PROMPT.md`: el charter.
 
@@ -165,6 +165,12 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   Google NO entraron, y esperan la medición con la cuenta de Google de prueba (§7). Con ella entraron `R9-574`,
   `R9-579` y `R9-578`; `R9-575`, `R9-576` y `R9-577` (P3) siguen abiertos. «Eliminar cuenta» quedó medido y pasa
   a la tanda V4.
+- **Lo que dejó la revisión de la 147: `R9-580` (P2) va PRIMERO en la 148, antes de la V2.** Es una regresión de
+  `R9-119`: la compra de una cuenta nueva nacida del anónimo tras un cierre de sesión queda en la cuenta que
+  salió. Su arreglo es la segunda pieza pendiente de `R9-135`, acotada (enlazar tras el `linkWithCredential` solo
+  si RevenueCat no está en un `$RCAnonymousID`): da igual con los dos supuestos y no espera la cuenta de prueba.
+  Con él, del mismo archivo: `R9-581`, `R9-582`, `R9-583` y las pruebas de `R9-584` (P3).
+  `detail/S147-revision-del-diff-s146.md`.
 - **Tanda V2 — sync que pierde en silencio (4 P1).** `R9-128` (un apply remoto que falla y el cursor avanza), con
   `R9-132` (P2, la misma forma en subrayados); `R9-37` (el listener huérfano); `R9-127` (el `skipNextBulkPush` sin
   uid); y `R9-126` (el push con reloj viejo), que es de diseño: se mide y se propone antes de escribirlo, y si no
@@ -247,8 +253,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 
 ## 5. Reglas que ya costaron caro: el resumen
 
-Las 282 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
-cual en la 143, tres de la 145 y cuatro de la 146). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
+Las 286 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
+cual en la 143, tres de la 145, cuatro de la 146 y cuatro de la 147). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
 tema:
 
 - **Alcance y permisos.** Se hace lo que pide el mensaje de la sesión y nada más. Un mensaje de Victor a mitad de
@@ -411,13 +417,17 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     el patrón que la app ya usa: el anónimo no es dueño de nada (`setPrepAccount` y `claimLocalStore`, solo con
     cuenta).
   - **Lo que no cambia.** Iniciar sesión en otro aparato trae el premium. Iniciar sesión con OTRA cuenta en el
-    mismo aparato muestra lo de esa cuenta. Un código de regalo se concede al uid que lo canjea, anónimo o no, y
-    `giftCodeService` lo sigue enlazando él mismo.
+    mismo aparato muestra lo de esa cuenta. Un código de regalo se concede al uid de la CUENTA que lo canjea, y
+    `giftCodeService` lo sigue enlazando él mismo. **Un anónimo no puede canjear** (corregido en la 147): el
+    servidor rechaza el token anónimo y la hoja solo existe con cuenta (`R9-583`).
   - **Lo que se acepta.** Un aparato donde quien dio la ofrenda inició sesión una vez se queda con los extras tras
     cerrar sesión, aunque la compra se haya hecho en otro. Es una ofrenda voluntaria y la app completa es
     gratuita; el error que NO se acepta es el contrario, quitárselo a quien pagó. La alternativa exacta (cerrar la
     sesión de RevenueCat y restaurar en silencio desde la tienda) depende de la configuración de transferencias
     del panel de RevenueCat y puede quitarle el premium a quien paga y tiene dos aparatos.
+  - **Lo que también se acepta, escrito en la 147:** con RevenueCat quieto en la cuenta que salió, lo que un
+    anónimo compre después queda en el cliente de esa cuenta (el anónimo no es dueño de nada). Lo que NO se
+    acepta es que le pase a una cuenta NUEVA creada por link: es `R9-580`.
   - **Cómo se hace: la tanda V1b (§4).** `AuthContext` deja de enlazar al anónimo que nace tras cerrar sesión, y
     `R9-135` se arregla con la misma regla: el uid de una cuenta que llegó antes de `initialize()` se enlaza al
     terminar, y un `logIn` que falló se reintenta. Con su reproducción, su prueba vista fallar y su revisión.
@@ -459,6 +469,8 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     Fable como principal y con emulador. El orden de las tandas siguientes está PROPUESTO en la §4 y lo decide Victor.
   - **Si se sigue re-revisando con Fable lo decide Victor:** no se propone. Los pilotos de re-revisión fueron la 132
     y la 133 (`A7`, `B4`), fuera de la serie.
+  - **Desde la sesión 148, Opus 5.5 como principal mientras Victor no tenga margen de Fable (Victor, 2026-11-13:
+    «ya tendría que usar Opus 5.5 porque ya no tengo casi margen»).** Cuando vuelva el margen, lo decide él.
   - **Los agentes los pide Victor:** si no los pide, la sesión va sin agentes. La nube sigue sin ser una opción.
   - **En una tanda de arreglos:** un commit por hallazgo, cada prueba vista FALLAR sin el arreglo (revert, correr,
     restaurar, `diff` del revert), el vecino cubierto o escrito como costo conocido, y lo nuevo que aparezca se

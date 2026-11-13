@@ -1283,4 +1283,16 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   hace el `__reset()` del mock del SDK) no vacía la cola de `Once`. Con una pieza revertida, una prueba dejó un
   rechazo sin consumir y las tres que seguían cayeron en cascada. Al leer por qué cae cada prueba de un revert,
   mirá primero cuál es la primera que cae.
+- **Un arreglo que deja quieto a un dueño pregunta de quién queda lo que se haga DESPUÉS (sesión 147, `R9-580`).**
+  `R9-119` dejó a RevenueCat en la cuenta que salió. Una cuenta nueva creada con `linkWithCredential` no pasa por
+  el listener, y su compra quedó a nombre de la otra. Por cada camino que crea o cambia un usuario sin pasar por
+  el lugar del arreglo, una fila en la matriz.
+- **Una guarda que se apoya en una palabra del SDK se corta por la definición del SDK, leída (sesión 147,
+  `R9-583`).** «Anónimo» para `Purchases.isAnonymous()` es un `$RCAnonymousID`; para la app es un usuario anónimo
+  de Firebase. El docstring decía «otra cuenta», y entraban la misma cuenta y un uid anónimo de Firebase.
+- **Antes de simular un backend, leé qué rechaza el real (sesión 147, `R9-583`).** El `fetch` simulado del canje
+  concedía a cualquier token; el servidor rechaza el anónimo. Dos filas de la matriz, una decisión y un docstring
+  hablaban de un camino que la app no tiene.
+- **Lo que anota el `catch` de una llamada asíncrona puede llegar después de que otra ya ganó (sesión 147,
+  `R9-581`).** Una nota de «pendiente» lleva el orden del pedido: se anota solo si sigue siendo el último.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

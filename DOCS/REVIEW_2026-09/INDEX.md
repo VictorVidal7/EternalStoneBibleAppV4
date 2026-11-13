@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 146, 2026-11-12): la fase de ARREGLOS, con la tanda V1b (de quién es el premium) hecha y sin
-> revisar.** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre
-> de la 146 eran 272 de 579: ningún P0, 16 P1, 91 P2, 164 P3 y un aviso. Sigue la revisión de su diff en la 147, y
-> la V2 en la 148 (`CONTINUAR.md` §4). `R9-135` sigue abierto: dos piezas esperan la medición con la cuenta de
-> Google de prueba (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 147, 2026-11-13): la fase de ARREGLOS, con la tanda V1b revisada.** Qué queda abierto se
+> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 147 eran 281 de 588:
+> ningún P0, 16 P1, 92 P2, 172 P3 y un aviso. Sigue `R9-580` (P2, regresión de `R9-119`) en la 148, y después la
+> V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -309,3 +309,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   RevenueCat le quitan los extras a quien pagó; quedaron escritas y medidas, esperando la cuenta de Google de
   prueba. La regla de `R9-119`, reescrita (una restauración vale para cualquiera). Sin medir en vivo. Detalle:
   `detail/S146-arreglos-premium.md`.
+- **Sesión 147 — 2026-11-13.** La revisión del diff de la 146 (no se tocó la app), con 2 agentes pedidos por
+  Victor: los cinco arreglos se sostienen (21 piezas y las dos matrices, idénticas; lo commiteado da igual con los
+  dos supuestos). Nueve hallazgos nuevos: `R9-580` (P2: la compra de una cuenta nueva creada por link tras un
+  cierre de sesión queda en la cuenta que salió; regresión de `R9-119`) y `R9-581` a `R9-588` (P3). El canje
+  siendo anónimo no existe: corregido en `CONTINUAR.md` §7. Sin medir en vivo. Detalle:
+  `detail/S147-revision-del-diff-s146.md`.

@@ -14335,6 +14335,116 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     revertidas, las dos caen. Sin medir en vivo (si el toast se ve con la hoja abierta sigue en la lista). Detalle:
     `detail/S146-arreglos-premium.md` §7.
 
+- **`R9-580` (S147, revisión del diff de la 146 / premium / regresión de `R9-119` — P2) — 🐛 la compra de una
+  cuenta NUEVA nacida del anónimo tras el cierre de sesión de otra queda en el cliente de RevenueCat de la cuenta
+  que salió.** MEDIDO con sonda (el `AuthProvider` y el servicio reales; fila 6c, corrida por el agente 2 y de
+  nuevo por el orquestador). Sin medir en vivo.
+  - `AuthContext.tsx:372` ya no enlaza al anónimo que nace tras cerrar sesión (`3190815b`), y
+    `AuthContext.tsx:482` (`linkWithCredential`, sin evento) no llama a `linkOfferingUser`: RevenueCat sigue en la
+    cuenta anterior, y la cuenta nueva compra ahí.
+  - **Medida** (`_scratch/S147-a2-matriz-ext-despues-U.txt`, fila 6c; igual con N): `tok1→ana`; en otro aparato la
+    cuenta nueva `premium=false` y ana `premium=true`. En `ee262bf5` era al revés (`tok1→anon2`). Si la cuenta
+    nueva cierra sesión y vuelve a entrar en el mismo aparato, `logIn`: sin extras hasta «Restaurar».
+  - **Severidad:** P2. Es una regresión del diff y es dinero registrado a nombre de otra cuenta: el mismo daño por
+    el que la 146 metió el reintento de `R9-135`. No es P1: pide cerrar sesión, crear una cuenta nueva por link y
+    comprar; los extras se ven en el aparato; «Restaurar» lo recupera con la misma cuenta de la tienda. **Depende
+    de que Firebase no avise tras `linkWithCredential` (sin medir): si avisa, es la fila 6e y no hay daño.**
+  - **Propuesta (sin escribir):** la segunda pieza pendiente de `R9-135`, acotada con la guarda del reintento:
+    enlazar tras el `linkWithCredential` solo si RevenueCat no está en un `$RCAnonymousID`. Así da igual con los
+    dos supuestos y no espera la cuenta de prueba. Detalle: `detail/S147-revision-del-diff-s146.md`.
+
+- **`R9-581` (S147, revisión del diff de la 146 / premium / vecino de `R9-135` — P3) — 🐛 un rechazo de `logIn`
+  que llega tarde anota a una cuenta que ya no es la de la sesión, y la compra de la cuenta en sesión va a la
+  otra.** MEDIDO con sonda propia (el servicio real; bloque B de `_scratch/S147-sonda-propia.out.txt`) y con la
+  del agente 2 (fila B2, con el `AuthProvider` real).
+  - `notePendingLink` (`offeringService.ts`) anota el uid que falló sin mirar si otro `logIn` ya dejó a
+    RevenueCat en otra cuenta. Con `logIn(beto)` en vuelo, beto sale, carla entra y su `logIn` resuelve, y después
+    llega el rechazo de beto: `disco=beto` con `rc=carla`. La compra de carla hace `logIn(beto)` antes de cobrar,
+    queda en beto, y los arranques siguientes no lo corrigen.
+  - **Severidad:** P3: pide dos cuentas cambiando dentro de la ventana de un pedido que falla tarde, y que el SDK
+    no serialice los `logIn` (sin leer). **Propuesta (sin escribir):** anotar solo si ese uid es el último pedido
+    a `linkUser`. Detalle: `detail/S147-revision-del-diff-s146.md`.
+
+- **`R9-582` (S147, revisión del diff de la 146 / premium / vecino de `R9-135` — P3) — 🐛 el reintento antes de
+  comprar o restaurar no mira quién está en sesión; el del arranque sí.** MEDIDO con sonda (filas A1, A2a, A2b, F
+  y 6d del agente 2; bloque A de la sonda propia).
+  - Con la cuenta anotada ya fuera, o eliminada, una compra o un «Restaurar» del anónimo en el mismo proceso hace
+    `logIn` de esa cuenta: un enlace con un anónimo en sesión, contra la letra de la regla de `R9-119`. En A2b el
+    aparato pierde en ese toque los extras que mostraba; en F, RevenueCat entra a un uid borrado. Tras un arranque
+    en frío pasa lo contrario: no reintenta y la compra va a la cuenta de antes. El pendiente no vence en disco.
+  - `AuthContext` no le avisa al servicio de un cierre de sesión ni de «Eliminar cuenta».
+  - **Severidad:** P3: el resultado en el mismo proceso es el del camino sin fallo (RevenueCat en la última cuenta
+    que entró). **Propuesta (sin escribir):** que el servicio sepa quién está en sesión y reintente solo para esa
+    cuenta, y que cerrar sesión o eliminar la cuenta borren el pendiente. Detalle:
+    `detail/S147-revision-del-diff-s146.md`.
+
+- **`R9-583` (S147, revisión del diff de la 146 / comentarios y docs — P3) — 🐛 cinco textos dicen más, o
+  distinto, de lo que hace el código.** Por lectura, con el SDK leído y dos sondas.
+  - **«Canje siendo anónimo» no existe.** El servidor rechaza el token anónimo
+    (`vercel/gift-code-redeem/api/redeem.ts:146-152`, `functions/src/index.ts:191-197`) y la hoja solo existe con
+    cuenta (`app/(tabs)/settings.tsx:541`). Lo afirmaban el docstring de `linkUser` («anonymous or not»),
+    `CONTINUAR.md` §7 (corregido en la 147), la marca de `R9-119` y el detalle de la 146; las filas 4 y 4b de su
+    matriz miden un camino que la app no tiene (el `fetch` simulado concede a cualquier token).
+  - **«ANOTHER account»** (`notePendingLink` y la cabecera de `pendingLink.ts`): la guarda real es «un id que no
+    es `$RCAnonymousID`» (`IdentityManager.currentUserIsAnonymous`, leído en el AAR 10.16.1). Entra la MISMA
+    cuenta (bloque D de la sonda propia) y un uid anónimo de Firebase enlazado por un build anterior a `3190815b`
+    (bloque C, fila G1).
+  - **«That is the state every cold start leaves»** (`notePendingLink`): el SDK recuerda su usuario; un arranque
+    en frío deja a RevenueCat donde estaba.
+  - **«A payment that is still pending is not in the CustomerInfo at all»** (`hasOfferingPurchase`): afirma como
+    hecho algo sin medir.
+  - **`giftCodeService.ts:187-189`** («linkUser silently no-ops while `!configured`») quedó viejo: ahora recuerda
+    el uid; y `earlyUid` no lo escribe solo `AuthContext`.
+  - **Propuesta (sin escribir):** corregir los cinco con el arreglo de `R9-580`. Detalle:
+    `detail/S147-revision-del-diff-s146.md` §6.
+
+- **`R9-584` (S147, revisión del diff de la 146 / pruebas — P3) — 🐛 guardas del diff sin prueba, tres expects que
+  pasan con y sin el arreglo, y dos cascadas sin declarar.** MEDIDO con reverts por pieza (agente 1,
+  `_scratch/S147-a1-informe.md.txt`; los tres expects, sin re-verificar por el orquestador).
+  - **Sin prueba, y hacen falta:** el segundo `try/catch` de `logInAs` y el orden borrar/procesar; los `try/catch`
+    de `pendingLink.ts`, que no tiene pruebas propias ni con el almacenamiento fallando; `notActivated` en «ya
+    comprado» de la hoja; el lugar del reintento en `initialize()`.
+  - **Pasan con y sin el reintento:** `offeringService.test.ts:813`, `:822-823` y `AuthContext.test.tsx:1617-1618`
+    («…el arranque siguiente lo corrige»): el mock responde con un solo `customerInfo` global vacío. La forma que
+    sí lo mide está en `_scratch/S147-a1-sonda.test.ts.txt`.
+  - **El mock:** ninguna de 196 pruebas depende de que su `logIn` cambie el id; `:892-900` mide un
+    `isAnonymous()` que rechaza, no un SDK sin el método.
+  - **Las cascadas:** la de `135e` y `135i` está también en `135a` y `135j`; las cuentas de 8 y 7 del detalle de la
+    146 incluyen una prueba que no cae por la razón escrita.
+  - **Propuesta (sin escribir):** las pruebas que faltan, con el arreglo de `R9-580`. Detalle:
+    `detail/S147-revision-del-diff-s146.md` §2.
+
+- **`R9-585` (S147, revisión del diff de la 146 / ofrenda / vecino de `R9-574` — P3) — 🐛 «Restaurar» toma por
+  ofrenda cualquier compra que no sea una donación.** MEDIDO con sonda (la hoja y el servicio reales;
+  `_scratch/S147-matriz574-extra.txt`, filas 8, 10 y 10b, en los dos idiomas).
+  - `hasOfferingPurchase` filtra por la negativa. Con una sola transacción de un producto ajeno, o sin
+    `productIdentifier`: «Tu ofrenda ya está registrada». Hoy Play no vende otra cosa (por el repo; la consola,
+    sin medir). Tras un reembolso, si RevenueCat conserva la transacción, diría «No hace falta volver a pagar»
+    (sin medir).
+  - **Severidad:** P3. **Propuesta (sin escribir):** un filtro positivo, con los ids de los paquetes de la oferta.
+
+- **`R9-586` (S147, revisión del diff de la 146 / donación / vecino de `R9-579` — P3) — 🐛 el toast «Extras
+  restaurados» sale aunque los extras ya se veían.** MEDIDO con sonda (fila 13 de
+  `_scratch/S147-matriz574-extra.txt`).
+  - La guarda (`DonationSheet.tsx:125`, `getLastKnownEntitlement()`) mira lo que RevenueCat dijo en este proceso,
+    no lo que el usuario ve. Con la caché en `true` y `getCustomerInfo` fallando en el arranque: `PREMIUM=true`,
+    y la donación «ya comprado» anuncia la restauración.
+  - **Severidad:** P3. **Propuesta (sin escribir):** comparar con `usePremium()`.
+
+- **`R9-587` (S147, revisión del diff de la 146 / premium / anterior al diff — P3) — 🐛 si `linkUser` llega con el
+  `getCustomerInfo()` del arranque en vuelo, la respuesta vieja llega después y pisa la de la cuenta que entró.**
+  MEDIDO con sonda propia (bloque F) y con la del agente 2 (fila E1).
+  - `initialize()` pone `configured = true` antes de esperar `getCustomerInfo()`. Una cuenta que llega en ese
+    hueco hace `logIn` directo; la respuesta del usuario anterior llega después y gana: `rc=beto` con los extras
+    de ana durante ese proceso. El arranque siguiente lo corrige. Es el mismo camino en `ee262bf5`; `3190815b` lo
+    hizo visible (antes RevenueCat quedaba en el anónimo, sin extras).
+  - **Severidad:** P3: depende del orden real del SDK (sin medir) y dura un proceso.
+
+- **`R9-588` (S147, revisión del diff de la 146 / pruebas / fuera del diff — P3) — 🐛 `R9-38 — deleteAccount › la
+cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDIDO por el agente 1
+  (`_scratch/S147-a1-random.out.txt`), sin re-verificar por el orquestador: con `--randomize` cae en 7 de 8
+  semillas (`AuthContext.test.tsx:1200`), y ya caía en `ee262bf5` (4 de 6). En el orden del archivo pasa.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -14431,6 +14541,14 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   compras del id anónimo» le quitan los extras a quien pagó, en su propio aparato (medido con la sonda, los dos
   supuestos). Están escritas y medidas en `detail/S146-arreglos-premium.md` §6, y esperan la medición con la
   cuenta de Google de prueba.
+  **⚠️ Sesión 147 (revisión del diff de la 146): el reintento se sostiene, con tres vecinos nuevos (`R9-580`,
+  `R9-581`, `R9-582`).** Dos cosas que suman a esta entrada. (i) El canje de un código con cuenta cuyo `logIn`
+  falla con RevenueCat en su id anónimo dice `success` y no da extras; no lo recuperan el arranque en frío,
+  «Restaurar» (`notFound`) ni un segundo canje (`already_redeemed`): solo cerrar sesión y volver a entrar. Es
+  idéntico en `ee262bf5`, y lo cierra la raíz que espera la medición. (ii) Las filas que ya dependían del supuesto
+  antes del diff son cuatro y no dos: 6b, 8, 5d (la cuenta llega con el SDK ya configurado) y C1 (el `linkUser`
+  del canje). La segunda pieza pendiente se puede partir: la mitad que arregla `R9-580` no espera la medición.
+  `detail/S147-revision-del-diff-s146.md`.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige
