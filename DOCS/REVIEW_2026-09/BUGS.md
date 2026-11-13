@@ -14352,6 +14352,11 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   - **Propuesta (sin escribir):** la segunda pieza pendiente de `R9-135`, acotada con la guarda del reintento:
     enlazar tras el `linkWithCredential` solo si RevenueCat no está en un `$RCAnonymousID`. Así da igual con los
     dos supuestos y no espera la cuenta de prueba. Detalle: `detail/S147-revision-del-diff-s146.md`.
+  - **✅ ARREGLADO en la sesión 148** (`e8d67dc2`): tras un `linkWithCredential` que salió bien, `AuthContext`
+    llama a `linkUpgradedUser`, que enlaza solo si RevenueCat no está en un `$RCAnonymousID` (y no repite el
+    `logIn` si el último pedido ya es ese uid). Con las dos sondas: cambian solo 6c y 6d, iguales con U y con N; 6,
+    6b, 8, 5d, C1 y 6e, byte a byte iguales; cuatro filas nuevas (6f a 6i). Pruebas vistas fallar con cada una de
+    las cinco piezas revertidas. Sin medir en vivo. `detail/S148-arreglos-r9-580.md`.
 
 - **`R9-581` (S147, revisión del diff de la 146 / premium / vecino de `R9-135` — P3) — 🐛 un rechazo de `logIn`
   que llega tarde anota a una cuenta que ya no es la de la sesión, y la compra de la cuenta en sesión va a la
@@ -14364,6 +14369,9 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   - **Severidad:** P3: pide dos cuentas cambiando dentro de la ventana de un pedido que falla tarde, y que el SDK
     no serialice los `logIn` (sin leer). **Propuesta (sin escribir):** anotar solo si ese uid es el último pedido
     a `linkUser`. Detalle: `detail/S147-revision-del-diff-s146.md`.
+  - **✅ ARREGLADO en la sesión 148** (`04c60aad`): `notePendingLink` anota solo si el uid sigue siendo el último
+    `logIn` pedido, mirado después del `await` de `isAnonymous()`. Cambia solo la fila B2, igual con U y con N. La
+    prueba, vista fallar con la guarda revertida. `detail/S148-arreglos-r9-580.md`.
 
 - **`R9-582` (S147, revisión del diff de la 146 / premium / vecino de `R9-135` — P3) — 🐛 el reintento antes de
   comprar o restaurar no mira quién está en sesión; el del arranque sí.** MEDIDO con sonda (filas A1, A2a, A2b, F
@@ -14397,6 +14405,8 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     el uid; y `earlyUid` no lo escribe solo `AuthContext`.
   - **Propuesta (sin escribir):** corregir los cinco con el arreglo de `R9-580`. Detalle:
     `detail/S147-revision-del-diff-s146.md` §6.
+  - **✅ ARREGLADO en la sesión 148** (`0d64352e`, solo comentarios): los cinco textos dicen lo que hace el código.
+    `detail/S148-arreglos-r9-580.md`.
 
 - **`R9-584` (S147, revisión del diff de la 146 / pruebas — P3) — 🐛 guardas del diff sin prueba, tres expects que
   pasan con y sin el arreglo, y dos cascadas sin declarar.** MEDIDO con reverts por pieza (agente 1,
@@ -14549,6 +14559,10 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   antes del diff son cuatro y no dos: 6b, 8, 5d (la cuenta llega con el SDK ya configurado) y C1 (el `linkUser`
   del canje). La segunda pieza pendiente se puede partir: la mitad que arregla `R9-580` no espera la medición.
   `detail/S147-revision-del-diff-s146.md`.
+  **Sesión 148:** entró la mitad de la segunda pieza que no espera la medición (`R9-580`, `e8d67dc2`): tras el
+  `linkWithCredential`, se enlaza solo si RevenueCat no está en un `$RCAnonymousID`. La otra mitad (desde un id
+  anónimo) y la raíz siguen esperando la cuenta de prueba; la fila 6i (el link con el servicio sin configurar) es
+  ese resto. `detail/S148-arreglos-r9-580.md`.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige

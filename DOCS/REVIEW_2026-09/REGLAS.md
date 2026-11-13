@@ -1295,4 +1295,8 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   hablaban de un camino que la app no tiene.
 - **Lo que anota el `catch` de una llamada asíncrona puede llegar después de que otra ya ganó (sesión 147,
   `R9-581`).** Una nota de «pendiente» lleva el orden del pedido: se anota solo si sigue siendo el último.
+- **Una llamada nueva en un camino que un evento también puede cubrir se corre contra la fila con el evento
+  (sesión 148, `R9-580`).** El enlace tras `linkWithCredential` se escribió para el caso sin evento; con el evento,
+  el listener ya había pedido el mismo `logIn` y la fila 6b ganó uno doble. No movía dueños, pero era una fila que
+  no podía cambiar: se cortó con el último uid pedido.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

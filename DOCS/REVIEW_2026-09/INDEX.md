@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 147, 2026-11-13): la fase de ARREGLOS, con la tanda V1b revisada.** Qué queda abierto se
-> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 147 eran 281 de 588:
-> ningún P0, 16 P1, 92 P2, 172 P3 y un aviso. Sigue `R9-580` (P2, regresión de `R9-119`) en la 148, y después la
-> V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
-> (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 148, 2026-11-13): la fase de ARREGLOS, con `R9-580` arreglado.** Qué queda abierto se pregunta
+> con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 148 eran 278 de 588: ningún P0, 16 P1,
+> 91 P2, 170 P3 y un aviso. Sigue la revisión del diff de la 148 en la 149; después, `R9-582`, `R9-584` y la V2
+> (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba (`CONTINUAR.md`
+> §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -315,3 +315,7 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   cierre de sesión queda en la cuenta que salió; regresión de `R9-119`) y `R9-581` a `R9-588` (P3). El canje
   siendo anónimo no existe: corregido en `CONTINUAR.md` §7. Sin medir en vivo. Detalle:
   `detail/S147-revision-del-diff-s146.md`.
+- **Sesión 148 — 2026-11-13.** Arreglos, con Opus 5.5 de principal y Fable de asesor: `R9-580` (P2: la cuenta creada
+  por link tras un cierre de sesión se enlaza si RevenueCat no está en un id anónimo), `R9-581` y `R9-583` (P3).
+  Lo commiteado da igual con los dos supuestos. La 149 revisa este diff; `R9-582`, `R9-584` y la V2 van después. Sin medir en vivo.
+  Detalle: `detail/S148-arreglos-r9-580.md`.
