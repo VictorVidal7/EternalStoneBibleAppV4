@@ -1,6 +1,7 @@
 /**
- * The account whose RevenueCat logIn failed while RevenueCat was still
- * answering for ANOTHER account (R9-135). Kept on disk so the retry survives
+ * The account whose RevenueCat logIn failed while RevenueCat was on an id
+ * that is not one of its own `$RCAnonymousID` ids (R9-135; usually the
+ * account that left). Kept on disk so the retry survives
  * the process: see offeringService's notePendingLink / initialize.
  *
  * Same store as the entitlement cache (expo-secure-store), same rule: a

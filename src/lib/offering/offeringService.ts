@@ -166,8 +166,9 @@ function isEntitlementActive(info: CustomerInfo): boolean {
  * R9-574 — whether the store account behind `info` holds an offering,
  * whatever the entitlement says. The app sells two families of one-time
  * products, and both show up in `nonSubscriptionTransactions`: a donation is
- * not an offering, so those ids are left out. A payment that is still
- * pending is not in the CustomerInfo at all.
+ * not an offering, so those ids are left out. Whether a payment that is
+ * still pending shows up in the CustomerInfo has not been measured on a
+ * device.
  */
 function hasOfferingPurchase(info: CustomerInfo): boolean {
   const donationIds: readonly string[] = DONATION_PRODUCT_IDS;
@@ -272,10 +273,13 @@ export async function isBillingAvailable(): Promise<boolean> {
  * Best-effort and safe to call repeatedly.
  *
  * R9-119 — two callers. AuthContext calls it for an account that signed in,
- * never for an anonymous user. giftCodeService calls it for whoever redeemed
- * a code, anonymous or not, because the server granted the entitlement to
- * that uid. RevenueCat's logOut is never called, so after a sign-out
- * RevenueCat keeps answering for the last uid linked here.
+ * never for an anonymous user. giftCodeService calls it for the account
+ * that redeemed a code, because the server granted the entitlement to that
+ * uid (the server refuses an anonymous token, so there is no anonymous
+ * redemption). An anonymous user that becomes an account by linking goes
+ * through linkUpgradedUser instead (R9-580). RevenueCat's logOut is never
+ * called, so after a sign-out RevenueCat keeps answering for the last uid
+ * linked here.
  *
  * Until initialize() has configured the SDK — which, on a cold start, is
  * after AuthContext's first call — it does not log in: it only remembers
@@ -353,17 +357,20 @@ async function logInAs(Purchases: PurchasesStatic, uid: string): Promise<void> {
 }
 
 /**
- * R9-135 — a logIn that failed while RevenueCat was answering for ANOTHER
- * account is noted, in memory and on disk, and retried: at the end of the
- * next initialize(), and before a purchase or a restore. Without it the
- * account that came in kept the extras of the one that left, on every later
- * start, and its purchases went to the other customer.
+ * R9-135 — a logIn that failed while RevenueCat was NOT on one of its own
+ * `$RCAnonymousID` ids (the SDK's isAnonymous(), which decides by that id's
+ * shape) is noted, in memory and on disk, and retried: at the end of the
+ * next initialize(), and before a purchase or a restore. That id is usually
+ * the account that left, but it can be the same uid, or a Firebase anonymous
+ * uid linked by a build older than R9-119's fix. Without it the account that
+ * came in kept the extras of the one that left, on every later start, and
+ * its purchases went to the other customer.
  *
- * A logIn that failed while RevenueCat was on its own anonymous id is NOT
- * noted. That is the state every cold start leaves (see linkUser), and what
- * a logIn does with the purchases made under the anonymous id has not been
- * measured on a device: retrying it here would make that call for people it
- * is not made for today.
+ * A logIn that failed while RevenueCat was on a `$RCAnonymousID` is NOT
+ * noted. The SDK remembers its user across starts, so that is where it stays
+ * for whoever has never been linked on this device; and what a logIn does
+ * with the purchases made under that id has not been measured on a device:
+ * retrying it here would make that call for people it is not made for today.
  */
 async function notePendingLink(
   Purchases: PurchasesStatic,

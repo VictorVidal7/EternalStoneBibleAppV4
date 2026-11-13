@@ -185,8 +185,10 @@ export async function redeemGiftCode(code: string): Promise<RedeemOutcome> {
     // Defensive re-link — closes a real gap, not a hypothetical one: on
     // cold start, AuthContext's onAuthStateChanged can call
     // offeringService.linkUser(uid) BEFORE offeringService.initialize()
-    // has finished configuring the RevenueCat SDK (linkUser silently
-    // no-ops while `!configured`), so the local RevenueCat SDK session can
+    // has finished configuring the RevenueCat SDK (while `!configured`,
+    // linkUser only remembers the uid — earlyUid, which this call writes
+    // too — and initialize() logs in only to retry a pending link, R9-135),
+    // so the local RevenueCat SDK session can
     // end up bound to its own anonymous id instead of this Firebase uid.
     // The Cloud Function just granted the entitlement to `uid` specifically
     // (see functions/src/index.ts) — if the local SDK session isn't ALSO
