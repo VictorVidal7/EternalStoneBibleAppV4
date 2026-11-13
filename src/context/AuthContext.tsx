@@ -46,7 +46,10 @@ import {
 } from '@lib/sync/localStoreOwner';
 import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
-import {linkUser as linkOfferingUser} from '@lib/offering/offeringService';
+import {
+  linkUser as linkOfferingUser,
+  linkUpgradedUser as linkUpgradedOfferingUser,
+} from '@lib/offering/offeringService';
 import {clearMemoryStatsFloor} from '@lib/memory/memoryStatsSync';
 import {
   adoptNoAccountPrep,
@@ -480,6 +483,11 @@ export function AuthProvider({children}: AuthProviderProps) {
           : undefined;
       try {
         await authMod.linkWithCredential(current, credential);
+        // R9-580 — this uid is an account now, and Firebase sends no auth
+        // event for a link, so the listener above never links it. Same
+        // terms as there: best-effort, never awaited. The service decides
+        // whether RevenueCat may be moved (see linkUpgradedUser).
+        linkUpgradedOfferingUser(current.uid).catch(() => {});
 
         // R9-23 — the link SUCCEEDED, so this Google account has never been
         // used with this app: a previous owner's data goes into it only if

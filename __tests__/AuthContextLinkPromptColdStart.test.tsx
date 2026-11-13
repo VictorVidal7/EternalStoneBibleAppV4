@@ -127,6 +127,7 @@ jest.mock('@lib/memory/memoryStatsSync', () => ({
 jest.mock('@lib/offering/offeringService', () => ({
   __esModule: true,
   linkUser: async () => {},
+  linkUpgradedUser: async () => {},
 }));
 
 // ---- Ana's private notes, left on the shared phone after she signed out ----

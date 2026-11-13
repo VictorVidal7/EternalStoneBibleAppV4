@@ -125,6 +125,7 @@ export function __resetForTests(): void {
   lastKnownUnlocked = null;
   earlyUid = null;
   pendingUid = null;
+  requestedUid = null;
   listeners.clear();
   apiKey = '';
 }
@@ -137,6 +138,8 @@ let configured = false;
 let earlyUid: string | null = null;
 /** An account change whose logIn has not gone through yet (R9-135). */
 let pendingUid: string | null = null;
+/** The uid of the last logIn this process asked RevenueCat for. */
+let requestedUid: string | null = null;
 /**
  * R9-9 — `null` means "RevenueCat has not answered yet in this process", and
  * that is NOT the same as "not unlocked". This used to be a plain `boolean`
@@ -289,7 +292,40 @@ export async function linkUser(uid: string | null): Promise<void> {
   await logInAs(Purchases, uid);
 }
 
+/**
+ * R9-580 — the anonymous user in session just became an account (Firebase's
+ * linkWithCredential: same uid, and no auth event, so AuthContext's listener
+ * never links it). It is linked here only if RevenueCat is NOT on one of its
+ * own `$RCAnonymousID` ids (the SDK's isAnonymous(), which decides by that
+ * id's shape): then RevenueCat is answering for another uid, typically the
+ * account that signed out on this device (R9-119), and the new account's
+ * purchases would go to that one.
+ *
+ * On a `$RCAnonymousID` it does nothing: what logIn does with the purchases
+ * made under that id has not been measured on a device (R9-135, open). Not
+ * configured, or no answer from isAnonymous(): nothing either. And nothing
+ * if the last logIn asked for is already this uid (an auth event for the
+ * link did reach linkUser first).
+ */
+export async function linkUpgradedUser(uid: string | null): Promise<void> {
+  if (!uid || !configured || requestedUid === uid) return;
+  const Purchases = getPurchases();
+  if (!Purchases?.isAnonymous) return;
+  try {
+    if (await Purchases.isAnonymous()) return;
+  } catch (err) {
+    logger.warn('offeringService: isAnonymous failed before linking', {
+      component: 'offeringService',
+      action: 'linkUpgradedUser',
+      error: err,
+    });
+    return;
+  }
+  await logInAs(Purchases, uid);
+}
+
 async function logInAs(Purchases: PurchasesStatic, uid: string): Promise<void> {
+  requestedUid = uid;
   let customerInfo: CustomerInfo;
   try {
     ({customerInfo} = await Purchases.logIn(uid));

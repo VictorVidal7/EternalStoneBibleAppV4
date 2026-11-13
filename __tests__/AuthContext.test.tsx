@@ -1619,3 +1619,74 @@ describe('R9-135 — el logIn de la cuenta que entra falla', () => {
     await expect(getPendingLinkUid()).resolves.toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// R9-580 — la regresion de R9-119: tras un cierre de sesion, RevenueCat queda
+// en la cuenta que salio; el anonimo crea su cuenta con linkWithCredential, que
+// no dispara el listener, y sin este enlace su compra iba a la otra cuenta. El
+// AuthProvider y el servicio reales; el id del SDK, dicho a mano.
+// ---------------------------------------------------------------------------
+describe('R9-580 — una cuenta creada por link tras un cierre de sesion', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    __setAppUserID: (id: string) => void;
+    __reset: () => void;
+  };
+
+  beforeEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    await setPendingLinkUid(null);
+    setOfferingApiKey('test-key');
+    await initializeOffering();
+  });
+  afterEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+  });
+
+  async function anonymousAfter(rcUser: string) {
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    sdk.__setAppUserID(rcUser);
+    mockCurrentUser = {
+      uid: 'anon-nuevo',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-nuevo'));
+    return ref;
+  }
+
+  it('con RevenueCat en la cuenta que salio, la cuenta nueva se enlaza', async () => {
+    const ref = await anonymousAfter('uid-ana');
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+    await waitFor(() => expect(sdk.logIn.mock.calls).toEqual([['anon-nuevo']]));
+    expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
+  });
+
+  it('con RevenueCat en su id anonimo, no se enlaza', async () => {
+    const ref = await anonymousAfter(
+      '$RCAnonymousID:0123456789abcdef0123456789abcdef',
+    );
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+    expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
+    expect(sdk.logIn).not.toHaveBeenCalled();
+  });
+});

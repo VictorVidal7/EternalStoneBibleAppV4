@@ -12,6 +12,7 @@ import {
   initialize,
   isBillingAvailable,
   linkUser,
+  linkUpgradedUser,
   getUnlockPackages,
   getDonationProducts,
   purchaseUnlock,
@@ -898,5 +899,77 @@ describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () =
 
       await expect(getPendingLinkUid()).resolves.toBeNull();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-580 — una cuenta nacida del anonimo por linkWithCredential (sin evento de
+// Firebase) se enlaza solo si RevenueCat NO esta en un `$RCAnonymousID`. El
+// mock no modela clientes: estas pruebas afirman LLAMADAS, no de quien quedan
+// las compras, y el id del SDK se dice a mano (__setAppUserID).
+// ---------------------------------------------------------------------------
+describe('R9-580 — linkUpgradedUser', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    isAnonymous: jest.Mock;
+    __setAppUserID: (id: string) => void;
+    __reset: () => void;
+  };
+
+  beforeEach(async () => {
+    __resetForTests();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+    __setApiKeyForTests('test-key');
+    await initialize();
+  });
+  afterEach(async () => {
+    __resetForTests();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+  });
+
+  it('con RevenueCat en la cuenta que salio, enlaza la cuenta nueva', async () => {
+    sdk.__setAppUserID('ana');
+    await linkUpgradedUser('anon-nuevo');
+    expect(sdk.logIn.mock.calls).toEqual([['anon-nuevo']]);
+  });
+
+  it('con RevenueCat en su id anonimo, no enlaza (espera la medicion en vivo)', async () => {
+    sdk.__setAppUserID('$RCAnonymousID:0123456789abcdef0123456789abcdef');
+    await linkUpgradedUser('anon-nuevo');
+    expect(sdk.isAnonymous).toHaveBeenCalledTimes(1);
+    expect(sdk.logIn).not.toHaveBeenCalled();
+  });
+
+  it('si el SDK no sabe decir si esta en un id anonimo, no enlaza', async () => {
+    sdk.__setAppUserID('ana');
+    sdk.isAnonymous.mockRejectedValueOnce(new Error('no configurado'));
+    await linkUpgradedUser('anon-nuevo');
+    expect(sdk.logIn).not.toHaveBeenCalled();
+  });
+
+  it('sin configurar, no enlaza', async () => {
+    __resetForTests();
+    __setApiKeyForTests('test-key');
+    sdk.__setAppUserID('ana');
+    await linkUpgradedUser('anon-nuevo');
+    expect(sdk.logIn).not.toHaveBeenCalled();
+    expect(sdk.isAnonymous).not.toHaveBeenCalled();
+  });
+
+  it('si el ultimo logIn pedido ya es ese uid (un evento llego a linkUser), no lo repite', async () => {
+    await linkUser('anon-nuevo');
+    await linkUpgradedUser('anon-nuevo');
+    expect(sdk.logIn.mock.calls).toEqual([['anon-nuevo']]);
+  });
+
+  it('si su logIn falla, queda pendiente y se reintenta antes de comprar', async () => {
+    sdk.__setAppUserID('ana');
+    sdk.logIn.mockRejectedValueOnce({code: '10', message: 'network'});
+    await linkUpgradedUser('anon-nuevo');
+    await expect(getPendingLinkUid()).resolves.toBe('anon-nuevo');
+    await purchaseUnlock({identifier: 'o1'} as never);
+    expect(sdk.logIn.mock.calls).toEqual([['anon-nuevo'], ['anon-nuevo']]);
   });
 });
