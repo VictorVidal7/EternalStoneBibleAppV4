@@ -1304,4 +1304,9 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   suponía que dos `logIn` no se serializan; `purchases` 10.16.1 atiende los pedidos al backend de a uno y en orden.
   Con ese orden, una «regresión de `R9-581`» que la 149 casi numera daba igual con y sin la guarda: el daño era del
   reintento viejo.
+- **Un arreglo de dos mitades que cubren las mismas filas se mide con cada mitad revertida sola (sesión 150,
+  `R9-582`).** El borrado del pendiente al cerrar sesión y la guarda del reintento daban los mismos dueños en las
+  sondas: con cualquiera de los dos revertido, la matriz de la 149 no cambiaba. Una prueba por mitad, a nivel
+  servicio, donde la sesión cambia sin pasar por la otra mitad; y la sonda corrida con cada mitad sola, para escribir
+  qué fila mueve cada una (aquí, solo D3, con el disco fallando, distinguía la guarda).
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

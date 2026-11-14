@@ -14395,6 +14395,11 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     los pedidos en orden): `rc=beto` en cada arranque y la compra de carla en beto, salga bien o mal su `logIn`
     (filas C1, C3, F-C1 y F-C1ok de la sonda de la 149). «El del arranque sí» vale solo para la sesión del momento
     de `configure()`: `R9-589`. Con este arreglo van `R9-589` y `R9-590`. `detail/S149-revision-del-diff-s148.md`.
+  - **✅ ARREGLADO en la sesión 150** (`6e1c48df`): el servicio sabe quién está en sesión (`setSessionAccount`, que
+    `AuthContext` llama en cada evento; `linkUser` y `linkUpgradedUser`); el pendiente se reintenta solo para esa
+    cuenta, y cerrar sesión o eliminar la cuenta lo borran (`forgetSessionAccount`). En las sondas, ningún `logIn` de
+    una cuenta que salió con un anónimo u otra cuenta en sesión (A1, A2a, A2b, F, C1, C3, F-C1 y F-C1ok), igual con U
+    y con N. Sin medir en vivo. `detail/S150-arreglos-r9-582.md`.
 
 - **`R9-583` (S147, revisión del diff de la 146 / comentarios y docs — P3) — 🐛 cinco textos dicen más, o
   distinto, de lo que hace el código.** Por lectura, con el SDK leído y dos sondas.
@@ -14487,6 +14492,9 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Propuesta (sin escribir):** con `R9-582`: que el reintento de `initialize()` mire la cuenta en sesión en el
     momento de reintentar (el servicio la va a conocer), no `earlyUid`. Detalle:
     `detail/S149-revision-del-diff-s148.md` §4.
+  - **✅ ARREGLADO en la sesión 150** (`6e1c48df`, con `R9-582`): `initialize()` reintenta solo si el pendiente es la
+    cuenta en sesión en el momento de reintentar; `earlyUid` desapareció. F-E3, F-E3ok y E3, sin `logIn(beto)`.
+    `detail/S150-arreglos-r9-582.md`.
 
 - **`R9-590` (S149, revisión del diff de la 148 / comentarios y docs — P3) — 🐛 cinco textos del diff de la 148
   dicen más de lo que hace el código o de lo medido.** Por lectura, con el SDK y RN Firebase leídos en la versión
@@ -14505,6 +14513,8 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     termina antes del rechazo de uno anterior.
   - **Propuesta (sin escribir):** corregirlos en el commit de `R9-582`. Detalle:
     `detail/S149-revision-del-diff-s148.md` §6.
+  - **✅ ARREGLADO en la sesión 150** (`04b7b478`, solo comentarios; el docstring de `earlyUid`, con la variable en
+    `6e1c48df`): los cinco textos dicen lo medido. `detail/S150-arreglos-r9-582.md` §5.
 
 - **`R9-591` (S149, revisión del diff de la 148 / pruebas — P3) — 🐛 las pruebas commiteadas no fijan dónde va la
   llamada a `linkUpgradedUser`, y una pieza tiene una cascada sin declarar.** MEDIDO con reverts por pieza

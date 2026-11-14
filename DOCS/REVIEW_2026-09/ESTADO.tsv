@@ -580,13 +580,13 @@ R9-578	P3	revisión del diff de la 144 / pruebas	arreglado	14dea172	marca de su 
 R9-579	P3	revisión del diff de la 144 / hoja de donación / vecino de R9-19	arreglado	55adac79	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`55adac79`): decidido con la V1b (`CONTINUAR.md` §7): la restauración se conserva, porque una restauración vale para qui»
 R9-580	P2	revisión del diff de la 146 / premium / regresión de R9-119	arreglado	e8d67dc2	marca de su entrada: «✅ ARREGLADO en la sesión 148 (`e8d67dc2`): tras un `linkWithCredential` que salió bien, `AuthContext` llama a `linkUpgradedUser`, que enlaza solo si R»
 R9-581	P3	revisión del diff de la 146 / premium / vecino de R9-135	arreglado	04c60aad	marca de su entrada: «✅ ARREGLADO en la sesión 148 (`04c60aad`): `notePendingLink` anota solo si el uid sigue siendo el último `logIn` pedido, mirado después del `await` de»
-R9-582	P3	revisión del diff de la 146 / premium / vecino de R9-135	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-582	P3	revisión del diff de la 146 / premium / vecino de R9-135	arreglado	6e1c48df	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`6e1c48df`): el servicio sabe quién está en sesión (`setSessionAccount`, que `AuthContext` llama en cada evento; `linkUs»
 R9-583	P3	revisión del diff de la 146 / comentarios y docs	arreglado	0d64352e	marca de su entrada: «✅ ARREGLADO en la sesión 148 (`0d64352e`, solo comentarios): los cinco textos dicen lo que hace el código. `detail/S148-arreglos-r9-580.md`. - ⚠️ Sesi»
 R9-584	P3	revisión del diff de la 146 / pruebas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-585	P3	revisión del diff de la 146 / ofrenda / vecino de R9-574	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-586	P3	revisión del diff de la 146 / donación / vecino de R9-579	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-587	P3	revisión del diff de la 146 / premium / anterior al diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-588	P3	revisión del diff de la 146 / pruebas / fuera del diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-589	P3	revisión del diff de la 148 / premium / vecino de R9-582, anterior al diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-590	P3	revisión del diff de la 148 / comentarios y docs	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-589	P3	revisión del diff de la 148 / premium / vecino de R9-582, anterior al diff	arreglado	6e1c48df	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`6e1c48df`, con `R9-582`): `initialize()` reintenta solo si el pendiente es la cuenta en sesión en el momento de reinten»
+R9-590	P3	revisión del diff de la 148 / comentarios y docs	arreglado	04b7b478	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`04b7b478`, solo comentarios; el docstring de `earlyUid`, con la variable en `6e1c48df`): los cinco textos dicen lo medi»
 R9-591	P3	revisión del diff de la 148 / pruebas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

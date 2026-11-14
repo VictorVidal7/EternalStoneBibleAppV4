@@ -1,9 +1,9 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 149, 2026-11-13): la fase de ARREGLOS; la 149 revisó el diff de la 148.** Qué queda abierto se
-> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 149 eran 281 de 591: ningún
-> P0, 16 P1, 91 P2, 173 P3 y un aviso. Siguen `R9-582` (con `R9-589` y `R9-590`) y `R9-584` (con `R9-591`); después,
-> la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> **Frontera (sesión 150, 2026-11-13): la fase de ARREGLOS; la 150 arregló `R9-582`, `R9-589` y `R9-590`.** Qué queda
+> abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 150 eran 278 de 591:
+> ningún P0, 16 P1, 91 P2, 170 P3 y un aviso. Sigue la 151: la revisión del diff de la 150; después, `R9-584` (con
+> `R9-591`) y la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
 > (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -326,3 +326,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   queda en la cuenta que salió; de la 146), `R9-590` (comentarios) y `R9-591` (pruebas). Leído en el SDK: los
   pedidos salen de a uno y en orden; con ese orden, la guarda de `R9-581` no cambia ninguna fila. A 6g lo cubre la
   letra de la §7. Sin medir en vivo. Detalle: `detail/S149-revision-del-diff-s148.md`.
+- **Sesión 150 — 2026-11-13.** Arreglos, con Opus 5.5 de principal y Fable de asesor: `R9-582` y `R9-589`
+  (`6e1c48df`: el servicio sabe quién está en sesión; el pendiente se reintenta solo para esa cuenta, mirada al
+  reintentar, y cerrar sesión o eliminar la cuenta lo borran) y `R9-590` (`04b7b478`, solo comentarios). Diez pruebas
+  nuevas, cada pieza vista caer sola; las sondas, sin ningún `logIn` de una cuenta que salió con otra sesión, igual
+  con U y con N. La Parte 2 (`R9-584`, `R9-591`) y la V2 pasan a la 151, tras la revisión de este diff. Sin medir en
+  vivo. Detalle: `detail/S150-arreglos-r9-582.md`.
