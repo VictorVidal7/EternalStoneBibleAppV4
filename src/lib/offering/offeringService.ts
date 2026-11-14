@@ -283,7 +283,8 @@ export async function isBillingAvailable(): Promise<boolean> {
  * uid (the server refuses an anonymous token, so there is no anonymous
  * redemption). Both pass the account in session, so `uid` is also noted as
  * that account (R9-582). An anonymous user that becomes an account by
- * linking goes through linkUpgradedUser instead (R9-580). RevenueCat's
+ * linking is linked by linkUpgradedUser (R9-580), and also here if Firebase
+ * sends an auth event for the link (not measured on a device). RevenueCat's
  * logOut is never called, so after a sign-out RevenueCat keeps answering for
  * the last uid linked here.
  *
@@ -327,11 +328,13 @@ export async function forgetSessionAccount(): Promise<void> {
 
 /**
  * R9-580 — the anonymous user in session just became an account (Firebase's
- * linkWithCredential: same uid, and no auth event, so AuthContext's listener
- * never links it). It is linked here only if RevenueCat is NOT on one of its
- * own `$RCAnonymousID` ids (the SDK's isAnonymous(), which decides by that
- * id's shape): then RevenueCat is answering for another uid, typically the
- * account that signed out on this device (R9-119), and the new account's
+ * linkWithCredential: same uid). Whether Firebase sends an auth event for a
+ * link, and so whether AuthContext's listener links it too, has not been
+ * measured on a device; this does not count on it. It is linked here only if
+ * RevenueCat is NOT on one of its own `$RCAnonymousID` ids (the SDK's
+ * isAnonymous(): true for an id of that shape, or for the one an older SDK
+ * version cached): then RevenueCat is answering for another uid, typically
+ * the account that signed out on this device (R9-119), and the new account's
  * purchases would go to that one.
  *
  * On a `$RCAnonymousID` it does nothing: what logIn does with the purchases
@@ -390,8 +393,8 @@ async function logInAs(Purchases: PurchasesStatic, uid: string): Promise<void> {
 
 /**
  * R9-135 — a logIn that failed while RevenueCat was NOT on one of its own
- * `$RCAnonymousID` ids (the SDK's isAnonymous(), which decides by that id's
- * shape) is noted, in memory and on disk, and retried: at the end of the next
+ * `$RCAnonymousID` ids (see linkUpgradedUser for what isAnonymous() means)
+ * is noted, in memory and on disk, and retried: at the end of the next
  * initialize(), and before a purchase or a restore, in both cases only while
  * that account is in session (R9-582, R9-589). That id is usually
  * the account that left, but it can be the same uid, or a Firebase anonymous
@@ -409,10 +412,11 @@ async function notePendingLink(
   Purchases: PurchasesStatic,
   uid: string,
 ): Promise<void> {
-  // R9-581 — a rejection can arrive after a later logIn was asked for (and
-  // perhaps went through): then this uid is no longer the one RevenueCat
-  // should be on, and noting it would send the next purchase to it. R9-582 —
-  // nor is it noted once this account has left the session (a
+  // R9-581 — a rejection can arrive after a later logIn was asked for: then
+  // this uid is no longer the one RevenueCat should end on, and noting it
+  // would send the next purchase to it. The installed SDK sends logIn
+  // requests one at a time and in order, so that later one has not finished
+  // yet. R9-582 — nor is it noted once this account has left the session (a
   // sign-out while its logIn was out). Both checked after the await, so what
   // happened meanwhile counts too.
   try {

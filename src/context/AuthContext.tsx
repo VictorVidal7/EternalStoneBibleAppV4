@@ -488,10 +488,11 @@ export function AuthProvider({children}: AuthProviderProps) {
           : undefined;
       try {
         await authMod.linkWithCredential(current, credential);
-        // R9-580 — this uid is an account now, and Firebase sends no auth
-        // event for a link, so the listener above never links it. Same
-        // terms as there: best-effort, never awaited. The service decides
-        // whether RevenueCat may be moved (see linkUpgradedUser).
+        // R9-580 — this uid is an account now. Whether Firebase sends an
+        // auth event for a link (and the listener above links it) has not
+        // been measured on a device, so it is not counted on. Same terms as
+        // there: best-effort, never awaited. The service decides whether
+        // RevenueCat may be moved (see linkUpgradedUser).
         linkUpgradedOfferingUser(current.uid).catch(() => {});
 
         // R9-23 — the link SUCCEEDED, so this Google account has never been
