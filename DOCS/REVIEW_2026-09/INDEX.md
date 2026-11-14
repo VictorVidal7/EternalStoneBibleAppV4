@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 148, 2026-11-13): la fase de ARREGLOS, con `R9-580` arreglado.** Qué queda abierto se pregunta
-> con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 148 eran 278 de 588: ningún P0, 16 P1,
-> 91 P2, 170 P3 y un aviso. Sigue la revisión del diff de la 148 en la 149; después, `R9-582`, `R9-584` y la V2
-> (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba (`CONTINUAR.md`
-> §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 149, 2026-11-13): la fase de ARREGLOS; la 149 revisó el diff de la 148.** Qué queda abierto se
+> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 149 eran 281 de 591: ningún
+> P0, 16 P1, 91 P2, 173 P3 y un aviso. Siguen `R9-582` (con `R9-589` y `R9-590`) y `R9-584` (con `R9-591`); después,
+> la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -319,3 +319,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   por link tras un cierre de sesión se enlaza si RevenueCat no está en un id anónimo), `R9-581` y `R9-583` (P3).
   Lo commiteado da igual con los dos supuestos. La 149 revisa este diff; `R9-582`, `R9-584` y la V2 van después. Sin medir en vivo.
   Detalle: `detail/S148-arreglos-r9-580.md`.
+- **Sesión 149 — 2026-11-13.** La revisión del diff de la 148 (no se tocó la app), con Opus 5.5 de principal y Fable
+  de asesor: los tres arreglos se sostienen (las seis piezas de la 148 vuelven a caer por su razón, cuatro piezas
+  nuevas, y las matrices, idénticas a las `s148fix3`). Tres hallazgos nuevos, P3: `R9-589` (si el último pedido
+  fue el reintento de otra cuenta, el rechazo tardío de la cuenta en sesión ya no se anota, y su compra queda en la
+  otra para siempre: regresión de `R9-581`), `R9-590` (comentarios) y `R9-591` (pruebas). A 6g lo cubre la letra
+  de la §7. Sin medir en vivo. Detalle: `detail/S149-revision-del-diff-s148.md`.

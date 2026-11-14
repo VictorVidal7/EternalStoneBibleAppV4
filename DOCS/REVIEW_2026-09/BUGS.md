@@ -14372,6 +14372,9 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   - **✅ ARREGLADO en la sesión 148** (`04c60aad`): `notePendingLink` anota solo si el uid sigue siendo el último
     `logIn` pedido, mirado después del `await` de `isAnonymous()`. Cambia solo la fila B2, igual con U y con N. La
     prueba, vista fallar con la guarda revertida. `detail/S148-arreglos-r9-580.md`.
+  - **⚠️ Sesión 149 (revisión del diff de la 148): el arreglo abre `R9-589`.** `requestedUid` lo escribe también el
+    reintento de un pendiente: si el último pedido fue el reintento de una cuenta que ya salió, el rechazo tardío
+    de la cuenta en sesión deja de anotarse (filas C1, C3 y E3). `detail/S149-revision-del-diff-s148.md`.
 
 - **`R9-582` (S147, revisión del diff de la 146 / premium / vecino de `R9-135` — P3) — 🐛 el reintento antes de
   comprar o restaurar no mira quién está en sesión; el del arranque sí.** MEDIDO con sonda (filas A1, A2a, A2b, F
@@ -14385,6 +14388,10 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     que entró). **Propuesta (sin escribir):** que el servicio sepa quién está en sesión y reintente solo para esa
     cuenta, y que cerrar sesión o eliminar la cuenta borren el pendiente. Detalle:
     `detail/S147-revision-del-diff-s146.md`.
+  - **⚠️ Sesión 149:** el reintento del arranque mira `earlyUid`, que se fija mientras el SDK no está configurado:
+    si la sesión cambia durante los `await` de `initialize()`, reintenta a la cuenta que salió (fila E3). «El del
+    arranque sí» vale solo para la sesión del momento de `configure()`. Con este arreglo van `R9-589` y `R9-590`.
+    `detail/S149-revision-del-diff-s148.md`.
 
 - **`R9-583` (S147, revisión del diff de la 146 / comentarios y docs — P3) — 🐛 cinco textos dicen más, o
   distinto, de lo que hace el código.** Por lectura, con el SDK leído y dos sondas.
@@ -14407,6 +14414,8 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     `detail/S147-revision-del-diff-s146.md` §6.
   - **✅ ARREGLADO en la sesión 148** (`0d64352e`, solo comentarios): los cinco textos dicen lo que hace el código.
     `detail/S148-arreglos-r9-580.md`.
+  - **⚠️ Sesión 149:** la quinta viñeta quedó a medias: el docstring de `earlyUid` sigue diciendo que lo pide
+    `AuthContext`. Con otros tres textos del diff de la 148, en `R9-590`.
 
 - **`R9-584` (S147, revisión del diff de la 146 / pruebas — P3) — 🐛 guardas del diff sin prueba, tres expects que
   pasan con y sin el arreglo, y dos cascadas sin declarar.** MEDIDO con reverts por pieza (agente 1,
@@ -14454,6 +14463,54 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
 cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDIDO por el agente 1
   (`_scratch/S147-a1-random.out.txt`), sin re-verificar por el orquestador: con `--randomize` cae en 7 de 8
   semillas (`AuthContext.test.tsx:1200`), y ya caía en `ee262bf5` (4 de 6). En el orden del archivo pasa.
+
+- **`R9-589` (S149, revisión del diff de la 148 / premium / regresión de `R9-581` — P3) — 🐛 si el último `logIn`
+  pedido fue el reintento de una cuenta que ya salió, el rechazo tardío de la cuenta en sesión no se anota, y
+  RevenueCat se queda en la otra cuenta para siempre.** MEDIDO con sonda (el `AuthProvider` y los servicios
+  reales; filas C1, C3 y E3 de `_scratch/S149-matriz-head-U.txt`, iguales con N) y con la guarda revertida
+  (`S149-matriz-sin581-*.txt`). Sin medir en vivo.
+  - La guarda de `R9-581` (`notePendingLink`: anotar solo si `requestedUid === uid`) supone que «el último pedido»
+    es la cuenta que tiene que quedar. Pero `requestedUid` lo escribe `logInAs`, y a él llega también
+    `retryPendingLink`. Con un pendiente de beto (que salió sin que se borrara, `R9-582`), carla entra y su
+    `logIn` queda en vuelo; una compra (C1), un «Restaurar» (C3) o el reintento de `initialize()` (E3) hacen
+    `logIn(beto)`; el de carla rechaza tarde y ya no se anota.
+  - **Medida:** con HEAD, `rc=beto` en cada arranque; en C1, las dos compras de carla quedan en beto, también
+    tras «Restaurar»; en E3, su compra queda en beto. Antes de `04c60aad`, el rechazo se anotaba y el arranque o
+    la compra siguiente hacían `logIn(carla)`. Solo lo corrige que carla cierre sesión y vuelva a entrar.
+  - **Severidad:** P3. El daño es el de `R9-581`, con una ventana más angosta: un pendiente de una cuenta que ya
+    salió, un `logIn` de la cuenta nueva que queda en vuelo y falla, y una compra, un «Restaurar» o un arranque en
+    esa ventana. No es P2 como `R9-580`, que era un camino común sin carrera.
+  - **Propuesta (sin escribir):** con `R9-582`: que la guarda compare con la cuenta en sesión y no con el último
+    pedido, y que el reintento de `initialize()` mire la sesión al terminar y no `earlyUid`. Detalle:
+    `detail/S149-revision-del-diff-s148.md` §4.
+
+- **`R9-590` (S149, revisión del diff de la 148 / comentarios y docs — P3) — 🐛 cuatro textos del diff de la 148
+  dicen más de lo que hace el código o de lo medido.** Por lectura, con el SDK y RN Firebase leídos en la versión
+  instalada.
+  - **El docstring de `earlyUid`** (`offeringService.ts:134-137`): «the account AuthContext asked to link»;
+    `giftCodeService` también lo escribe. Es la quinta viñeta de `R9-583`.
+  - **«Firebase sends no auth event for a link»** (`AuthContext.tsx:486-487`, y `offeringService.ts:301`, cuyo
+    docstring cuenta dos frases después con que el evento llegue): sin medir. En la capa JS de RN Firebase 26.2.0
+    el link emite `onUserChanged` y no `onAuthStateChanged`; el evento nativo no se leyó.
+  - **«…goes through linkUpgradedUser instead»** (docstring de `linkUser`): con el evento, la cuenta nueva pasa por
+    `linkUser`.
+  - **«Decides by that id's shape»** (`linkUpgradedUser` y `notePendingLink`): `currentUserIsAnonymous` también da
+    `true` si el id es igual al heredado de una versión vieja del SDK (`purchases` 10.16.1).
+  - **Propuesta (sin escribir):** corregirlos en el commit de `R9-582`. Detalle:
+    `detail/S149-revision-del-diff-s148.md` §6.
+
+- **`R9-591` (S149, revisión del diff de la 148 / pruebas — P3) — 🐛 las pruebas commiteadas no fijan dónde va la
+  llamada a `linkUpgradedUser`, y una pieza tiene una cascada sin declarar.** MEDIDO con reverts por pieza
+  (`_scratch/S149-rev-{g,h,i}.out.txt`) y con las dos sondas de la 148 (`S148-matriz-ext-s149h-*.txt`).
+  - **Pieza h:** agregar la llamada a la rama `credential-already-in-use` no hace caer ninguna de las 124 pruebas;
+    las sondas, sí (106 líneas por modelo: un `logIn` del uid anónimo que se descarta y compras a su nombre).
+  - **Pieza g:** moverla después de `claimLocalStore` tampoco; hoy no cambia nada observable (lo de después no
+    lanza).
+  - **Pieza i** (sin el `logInAs` de `linkUpgradedUser`): además de las tres que caen por la razón, cae por tiempo
+    la de `R9-581`: el `mockRejectedValueOnce` no consumido sobrevive a `__reset`, que usa `mockClear`.
+  - **Propuesta (sin escribir):** una prueba de colisión con RevenueCat en otra cuenta que afirme que no hay
+    `logIn` del uid anónimo; que `__reset` vacíe las colas de los `*Once`, o declarar la cascada. Con `R9-584`.
+    Detalle: `detail/S149-revision-del-diff-s148.md` §2.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
