@@ -14547,7 +14547,8 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   reales; filas G1, G2, G2ok y F-G2ok de `_scratch/S151-matriz-s151head-U.txt`, iguales con N). Sin medir en vivo.
   - `redeemGiftCode` lee `currentUser` antes de `getIdToken`, del `fetch` y de `res.json()`, y al volver llama a
     `linkUser(currentUser.uid)` (`giftCodeService.ts:203`). Es un camino real: `RedeemCodeSheet` se cierra con «Atrás»
-    con el canje en vuelo (`handleRequestClose` no mira `submitting`), y «Cerrar sesión» está en la misma pantalla.
+    con el canje en vuelo (`handleRequestClose` no mira `submitting`), y «Cerrar sesión» está en la misma pantalla
+    (`app/(tabs)/settings.tsx:912` y `:183`).
   - **Anterior al diff (G2ok y F-G2ok):** si beto sale y entra carla durante el `fetch`, el canje hace `logIn(beto)`
     después del de carla: `rc=beto`, y las compras de carla quedan en beto, también tras el arranque en frío (que no
     enlaza a carla: `R9-135`), hasta que carla vuelva a iniciar sesión en un proceso configurado. Igual en
@@ -14694,8 +14695,9 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   y también el `set` del disco, o (iii) inició sesión en un proceso donde `initialize()` no configuró el SDK. Antes de
   la 150, un pendiente viejo de la misma cuenta la rescataba por accidente; el cierre de sesión ahora lo borra
   (`R9-582`). Es la raíz que espera la medición. Además: la compra con el `logIn` de la cuenta que entra en vuelo y
-  saliendo bien es `R9-593`; la compra antes del primer evento de Firebase (fila N1) no se corrige, igual que antes de
-  la 150. `detail/S151-revision-del-diff-s150.md` §4 y §5.
+  saliendo bien es `R9-593`. La compra antes del primer evento de Firebase (fila N1) tampoco se corrige: beto paga,
+  recibe `success` y, al llegar el evento, queda con `premium=false` y la compra en ana; igual antes de la 150, y
+  angosto (el evento llega antes de `initialize()` en el orden medido en la 115). `detail/S151-revision-del-diff-s150.md` §4 y §5.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige

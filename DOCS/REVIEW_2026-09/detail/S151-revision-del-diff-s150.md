@@ -30,8 +30,9 @@ suites y 4789 pruebas; `_scratch/S150-ci.out.txt`).
   reintento que no llega: `logIn.mock.calls` sin el segundo `beto`); tres de ellas («nadie en sesión», «un anónimo
   compra» y «un anónimo restaura») aparecían en la corrida entera tapadas por la cascada en `:776`. **3 caen solo en
   cascada** y pasan solas: «un logIn que sale bien borra el pendiente» (en `:776`), «forgetSessionAccount borra el
-  pendiente del disco» (el timeout) y la de `R9-580` «enlaza la cuenta nueva». Las dos que la 150 no leyó por prueba
-  (la de `R9-589` y el control de `R9-581`) caen solas por la razón (`:931` y `:1118`, `Received: null`).
+  pendiente del disco» (el timeout) y la de `R9-580` «enlaza la cuenta nueva»: son la cuarta de `:776` y las dos que
+  la 150 dejó sin leer. Las cuentas cierran: las 9 de la 150 más tres de las cuatro de `:776` dan 12. La de `R9-589`
+  y el control de `R9-581` caen solas por la razón (`:931` y `:1118`, `Received: null`).
 - **Las piezas que la 150 no revirtió.** Ninguna hace caer una prueba (134/134):
 
 | Pieza | Qué se cambia                                                          | Pruebas | Sondas         | Lectura                                                                                                                                                        |
@@ -90,10 +91,14 @@ Entre HEAD y `f832d391` solo cambia una línea, en las dos variantes: el `disco=
     línea que los deja abiertos es `sessionUid = uid` en `linkUser` (con f2 revertida, G1 y G2 quedan en ana y en
     carla). f2 no se puede quitar sin más: la fijan 12 pruebas del arranque en frío.
   - **Es un camino real:** `RedeemCodeSheet` se cierra con «Atrás» aunque el canje esté en vuelo
-    (`handleRequestClose` no mira `submitting`), y «Cerrar sesión» está en la misma pantalla.
-- **N1 se sostiene como lo dejó escrito la 150** (§7 de su detalle): no daña, solo no corrige; y es igual en
-  `f832d391`, donde `initialize()` tampoco reintentaba sin un `linkUser` previo. La compra antes del primer evento de
-  Firebase es la pieza abierta de `R9-135` (la cuenta en sesión no está enlazada todavía).
+    (`handleRequestClose` no mira `submitting`), y «Cerrar sesión» está en la misma pantalla (la hoja se monta en
+    `app/(tabs)/settings.tsx:912`, y el `signOut()` de esa pantalla está en `:183`).
+- **N1 NO se sostiene como lo escribió la 150** (§7 de su detalle: «no daña, solo no corrige»): beto paga, recibe
+  `success` (la compra en ana, con los extras de ana a la vista) y, al llegar el evento, su `logIn` sale bien y queda
+  con `premium=false`: el mismo final que P0. Es igual en `f832d391`, donde `initialize()` tampoco reintentaba sin un
+  `linkUser` previo. Es angosto: en el orden medido en la 115 el evento de Firebase llega antes de `initialize()`, y
+  la compra pide abrir la hoja. Es la pieza abierta de `R9-135` (la cuenta en sesión no está enlazada todavía):
+  ⚠️ ahí, sin número nuevo.
 - **La rehidratación (R1, R1f) se sostiene:** el evento `null` no borra el pendiente, y la cuenta que vuelve lo
   resuelve.
 - **D3b y D3c:** el pendiente que sobrevive porque el borrado falla solo se reintenta para su cuenta en sesión. No
@@ -127,7 +132,7 @@ Leído en `purchases` 10.16.1 (el AAR instalado, extraído con `_scratch/S147-aa
   listener de compras del orquestador (`PurchasesOrchestrator$getPurchasesUpdatedListener$1`), que lee
   `PurchasesOrchestrator.getAppUserID()` cuando Play informa la compra, y se lo da a
   `PostTransactionWithProductDetailsHelper.postTransactions`. `PostReceiptHelper` no vuelve a leer el usuario actual
-  (`getCurrentAppUserID`: 0 apariciones).
+  (`getCurrentAppUserID`: 0 apariciones en la clase y en sus clases internas).
 - **`logIn` cambia el usuario solo cuando vuelve su respuesta:** `cacheAppUserID` está en la devolución de éxito
   (`IdentityManager$logIn$4$1`), detrás de `Backend.logIn`.
 
