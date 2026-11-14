@@ -39,17 +39,17 @@ real.
 `_scratch/S150-piezas.sh.txt` contra las tres suites (134 pruebas); salidas en `S150-rev-<pieza>.out.txt`. El diff,
 igual antes y después (`S150-antes-piezas.patch.txt`).
 
-| Pieza | Qué se revierte                                        | Cae                                                                                                     |
-| ----- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| a     | `pendingUid !== sessionUid` en `retryPendingLink`      | 8: comprar o restaurar con otra sesión (4), `R9-589`, «…NO se reintenta» (2) y el anónimo sin `signOut` |
-| 589   | `initialize()` compara con la sesión del `configure()` | 1: la de `R9-589` (`logIn('beto')` con carla en sesión)                                                 |
-| b     | `forgetOfferingSession()` en `signOut`                 | 1: «cerrar sesión borra el pendiente» (`Received: "uid-beto"`)                                          |
-| c     | lo mismo en `deleteAccount`                            | 1: «eliminar la cuenta borra el pendiente»                                                              |
-| d     | `setOfferingSession(...)` en el listener               | 1: «si Firebase pasa a un anónimo sin cerrar sesión… restaurar no reintenta»                            |
-| e     | `sessionUid !== uid` en `notePendingLink`              | 1: «un logIn que falla cuando su cuenta ya salió no se anota»                                           |
-| f     | `sessionUid = uid` en `linkUpgradedUser`               | 1: la de `R9-580` «si su logIn falla, queda pendiente…» (`null`)                                        |
-| f2    | `sessionUid = uid` en `linkUser`                       | 15 (todo lo que parte de un pendiente anotado por `linkUser`)                                           |
-| h     | el borrado del disco en `forgetSessionAccount`         | 3: la del servicio, la de `signOut` y la de `deleteAccount`                                             |
+| Pieza | Qué se revierte                                        | Cae                                                                                                                                                                                                                    |
+| ----- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| a     | `pendingUid !== sessionUid` en `retryPendingLink`      | 8: comprar o restaurar con otra sesión (4), `R9-589`, «…NO se reintenta» (2) y el anónimo sin `signOut`                                                                                                                |
+| 589   | `initialize()` compara con la sesión del `configure()` | 1: la de `R9-589` (`logIn('beto')` con carla en sesión)                                                                                                                                                                |
+| b     | `forgetOfferingSession()` en `signOut`                 | 1: «cerrar sesión borra el pendiente» (`Received: "uid-beto"`)                                                                                                                                                         |
+| c     | lo mismo en `deleteAccount`                            | 1: «eliminar la cuenta borra el pendiente»                                                                                                                                                                             |
+| d     | `setOfferingSession(...)` en el listener               | 1: «si Firebase pasa a un anónimo sin cerrar sesión… restaurar no reintenta»                                                                                                                                           |
+| e     | `sessionUid !== uid` en `notePendingLink`              | 1: «un logIn que falla cuando su cuenta ya salió no se anota»                                                                                                                                                          |
+| f     | `sessionUid = uid` en `linkUpgradedUser`               | 1: la de `R9-580` «si su logIn falla, queda pendiente…» (`null`)                                                                                                                                                       |
+| f2    | `sessionUid = uid` en `linkUser`                       | 15: 9 por la razón (el pendiente no se anota, o no hay reintento); 4 en cascada en `:776` (un `*Once` que la prueba anterior no consumió: la cascada de `R9-591`); 2 sin leer por prueba (un timeout y la de `R9-580`) |
+| h     | el borrado del disco en `forgetSessionAccount`         | 3: la del servicio, la de `signOut` y la de `deleteAccount`                                                                                                                                                            |
 
 Las pruebas afirman LLAMADAS (`logIn.mock.calls`) y el disco, no de quién quedan las compras.
 
@@ -65,8 +65,9 @@ no cambia. La predicción, escrita antes de correr: `_scratch/S150-prediccion.tx
   en sesión: en el arranque de carla, RevenueCat queda en carla.
 - **Fuera de lo previsto, y explicado.** _A3, última línea_: la sonda pone a beto en sesión en un arranque en frío
   sin que haya iniciado sesión en ningún proceso; antes lo rescataba el pendiente viejo, que ahora el cierre de
-  sesión borró, como pide `R9-582`. En la app, un inicio de sesión ocurre con el SDK configurado y pasa por `logIn`
-  (o se vuelve a anotar). Es la pieza abierta de `R9-135`. _E1b_: la cuenta en sesión llega con `getCustomerInfo` en
+  sesión borró, como pide `R9-582`. **Por lectura, sin fila:** en la app, un inicio de sesión ocurre con el SDK
+  configurado y pasa por `logIn` (o se vuelve a anotar). Es la pieza abierta de `R9-135`, y es un costo real del
+  borrado: el pendiente viejo ya no rescata a la cuenta que vuelve en frío. _E1b_: la cuenta en sesión llega con `getCustomerInfo` en
   vuelo y su `logIn` falla; ahora el arranque la reintenta una vez más (es la misma cuenta, y está en sesión).
 - **Las dos mitades se tapan entre sí.** Con la guarda revertida (`s150singuarda`), la de la 149 no cambia, y en la
   extendida cambia solo D3 (el disco falla al borrar: el pendiente sobrevive al cierre, y solo la guarda evita el
@@ -74,8 +75,12 @@ no cambia. La predicción, escrita antes de correr: `_scratch/S150-prediccion.tx
   vuelve la última línea de A3). Por eso cada mitad tiene su prueba a nivel servicio, donde la sesión cambia sin
   pasar por el `signOut`.
 - **Queda a la vista, sin numerar (para la 151).** En C1, F-C1 y F-C1ok, la compra de carla con su propio `logIn`
-  en vuelo queda en ana (antes, en beto). La sonda no encola la compra en el FIFO, y no se leyó si el SDK encola el
-  envío del recibo detrás del `logIn`. Es de la familia de `R9-135` y `R9-587`, no de este arreglo.
+  en vuelo queda en ana (antes, en beto). **La consecuencia, en F-C1ok:** carla paga, recibe `success` y termina con
+  `premium=false`, con la compra en ana; en HEAD terminaba con `premium=true` (la compra en beto, y RevenueCat en
+  beto). Es la clase de error que la §7 no acepta (quitarle los extras a quien pagó). No bloquea este arreglo: lo que
+  se quitó es una espera accidental (el reintento de beto, encolado detrás del `logIn` de carla); **por lectura, sin
+  fila**, HEAD hace lo mismo cuando no hay pendiente. Además, la compra de la sonda es instantánea y va fuera del FIFO,
+  y no se leyó si el SDK encola el envío del recibo detrás del `logIn`. Es de la familia de `R9-135` y `R9-587`.
 
 ## 5. `R9-590`: los cinco textos
 
