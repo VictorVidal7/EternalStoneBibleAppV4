@@ -153,6 +153,7 @@ import {
   ENTITLEMENT_ID,
   getLastKnownEntitlement,
   initialize as initializeOffering,
+  restore as restoreOffering,
   __resetForTests as resetOffering,
   __setApiKeyForTests as setOfferingApiKey,
 } from '../src/lib/offering/offeringService';
@@ -1617,6 +1618,66 @@ describe('R9-135 — el logIn de la cuenta que entra falla', () => {
     expect(getLastKnownEntitlement()).toBe(false);
     await expect(getCachedEntitlement()).resolves.toBe(false);
     await expect(getPendingLinkUid()).resolves.toBeNull();
+  });
+
+  // R9-582 — el pendiente es de la cuenta en sesion: cerrar sesion o eliminar
+  // la cuenta lo borran, y un anonimo no lo reintenta. Afirman LLAMADAS y el
+  // disco, no de quien quedan las compras.
+  async function betoPendingAfterAna() {
+    const captured = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={captured.onReady} />
+      </AuthProvider>,
+    );
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    mockCurrentUser = {uid: 'uid-ana', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(getLastKnownEntitlement()).toBe(true));
+    sdk.__setAppUserID('uid-ana');
+    sdk.logIn.mockRejectedValueOnce({code: '10', message: 'network'});
+    mockCurrentUser = {uid: 'uid-beto', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto');
+    return captured.ref;
+  }
+
+  it('R9-582 — cerrar sesion borra el pendiente', async () => {
+    const ref = await betoPendingAfterAna();
+
+    await act(async () => {
+      await ref.current!.signOut();
+    });
+
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+  });
+
+  it('R9-582 — eliminar la cuenta borra el pendiente', async () => {
+    mockEngineStub = null;
+    const ref = await betoPendingAfterAna();
+
+    await act(async () => {
+      await ref.current!.deleteAccount();
+    });
+
+    expect(mockDeleteUser).toHaveBeenCalled(); // CONTROL
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+  });
+
+  it('R9-582 — si Firebase pasa a un anonimo sin cerrar sesion en la app, restaurar no reintenta el pendiente', async () => {
+    await betoPendingAfterAna();
+    mockCurrentUser = null;
+    flushListenerWith(null);
+    mockCurrentUser = {uid: 'anon-nuevo', isAnonymous: true};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+
+    await act(async () => {
+      await restoreOffering();
+    });
+
+    expect(sdk.logIn.mock.calls).toEqual([['uid-ana'], ['uid-beto']]);
   });
 });
 

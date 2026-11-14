@@ -47,8 +47,10 @@ import {
 import {useLanguage} from '@hooks/useLanguage';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {
+  forgetSessionAccount as forgetOfferingSession,
   linkUser as linkOfferingUser,
   linkUpgradedUser as linkUpgradedOfferingUser,
+  setSessionAccount as setOfferingSession,
 } from '@lib/offering/offeringService';
 import {clearMemoryStatsFloor} from '@lib/memory/memoryStatsSync';
 import {
@@ -371,7 +373,10 @@ export function AuthProvider({children}: AuthProviderProps) {
       // user never is. The anonymous user created right below after a
       // sign-out is therefore not linked, RevenueCat keeps answering for
       // whoever it had, and the extras stay on this device. Best-effort and
-      // non-blocking — never awaited.
+      // non-blocking — never awaited. R9-582 — the service is told who is in
+      // session on every event, so that it retries a pending link only for
+      // that account.
+      setOfferingSession(next && !next.isAnonymous ? next.uid : null);
       if (next && !next.isAnonymous) {
         linkOfferingUser(next.uid).catch(() => {});
       }
@@ -649,6 +654,11 @@ export function AuthProvider({children}: AuthProviderProps) {
       triggeredAnonymousRef.current = false;
       await authMod().signOut();
     }
+    // R9-582 — the account that left is no longer the one a pending
+    // RevenueCat link is retried for. Only once the sign-out went through:
+    // an auth event alone can go through `null` for an account still signed
+    // in. Never throws.
+    await forgetOfferingSession();
     // Shared-device guard — see the file header comment. Tied to this
     // explicit action, not to the reactive `user` state in
     // SyncEngineContext, which can tick through null/anonymous transiently
@@ -739,6 +749,9 @@ export function AuthProvider({children}: AuthProviderProps) {
       }
     }
 
+    // R9-582 — the deleted account's pending RevenueCat link is forgotten:
+    // nobody signs in as that uid again. Never throws.
+    await forgetOfferingSession();
     // R9-38 — the account the local store belonged to is gone: what is edited
     // from now on waits for no account (this one never comes back to take
     // it). The marker keeps a value that is no account's, so the next sign-in

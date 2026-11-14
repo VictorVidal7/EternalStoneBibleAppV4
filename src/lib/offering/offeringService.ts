@@ -123,7 +123,7 @@ export function __resetForTests(): void {
   _purchases = undefined;
   configured = false;
   lastKnownUnlocked = null;
-  earlyUid = null;
+  sessionUid = null;
   pendingUid = null;
   requestedUid = null;
   listeners.clear();
@@ -132,10 +132,14 @@ export function __resetForTests(): void {
 
 let configured = false;
 /**
- * The account AuthContext asked to link before initialize() had configured
- * the SDK (every cold start). Only remembered: see initialize().
+ * R9-582 — the account in session in the app, or `null` (anonymous, or
+ * nobody). In memory only: Firebase's first auth event of every process says
+ * it again. Written by setSessionAccount (AuthContext's listener, on every
+ * event), by linkUser and linkUpgradedUser (whose callers always pass the
+ * account in session), and cleared by forgetSessionAccount. A pending link
+ * is noted and retried only for this account.
  */
-let earlyUid: string | null = null;
+let sessionUid: string | null = null;
 /** An account change whose logIn has not gone through yet (R9-135). */
 let pendingUid: string | null = null;
 /** The uid of the last logIn this process asked RevenueCat for. */
@@ -241,10 +245,11 @@ export async function initialize(): Promise<void> {
     const info = await Purchases.getCustomerInfo();
     await handleCustomerInfo(info);
     // R9-135 — an account change that could not be completed in an earlier
-    // process is retried here, and only if that account is still the one
-    // in session. Any other early uid is left alone (see linkUser).
+    // process is retried here. R9-589 — only if that account is in session
+    // when the retry is made, not when the SDK was configured: the session
+    // can change during the awaits above (retryPendingLink decides).
     const stored = await getPendingLinkUid();
-    if (stored !== null && stored === earlyUid) {
+    if (stored !== null) {
       pendingUid = stored;
       await retryPendingLink(Purchases);
     }
@@ -276,24 +281,48 @@ export async function isBillingAvailable(): Promise<boolean> {
  * never for an anonymous user. giftCodeService calls it for the account
  * that redeemed a code, because the server granted the entitlement to that
  * uid (the server refuses an anonymous token, so there is no anonymous
- * redemption). An anonymous user that becomes an account by linking goes
- * through linkUpgradedUser instead (R9-580). RevenueCat's logOut is never
- * called, so after a sign-out RevenueCat keeps answering for the last uid
- * linked here.
+ * redemption). Both pass the account in session, so `uid` is also noted as
+ * that account (R9-582). An anonymous user that becomes an account by
+ * linking goes through linkUpgradedUser instead (R9-580). RevenueCat's
+ * logOut is never called, so after a sign-out RevenueCat keeps answering for
+ * the last uid linked here.
  *
  * Until initialize() has configured the SDK — which, on a cold start, is
- * after AuthContext's first call — it does not log in: it only remembers
- * the uid (R9-135, open: that account is not linked on a cold start).
+ * after AuthContext's first call — it does not log in (R9-135, open: that
+ * account is not linked on a cold start; initialize() only retries a pending
+ * link of the account in session).
  */
 export async function linkUser(uid: string | null): Promise<void> {
   if (!uid) return;
-  if (!configured) {
-    earlyUid = uid;
-    return;
-  }
+  sessionUid = uid;
+  if (!configured) return;
   const Purchases = getPurchases();
   if (!Purchases) return;
   await logInAs(Purchases, uid);
+}
+
+/**
+ * R9-582 — who is in session in the app: the account's uid, or `null` for an
+ * anonymous user or nobody. AuthContext's listener calls it on every auth
+ * event. It does not move RevenueCat, and it does not touch the pending link
+ * on disk: an auth event can go through `null` or an anonymous user while an
+ * account is still signed in (Firebase restoring the session), so only an
+ * explicit sign-out forgets it (forgetSessionAccount).
+ */
+export function setSessionAccount(uid: string | null): void {
+  sessionUid = uid;
+}
+
+/**
+ * R9-582 — the account in session signed out or was deleted: nobody is in
+ * session, and its pending link, if any, is forgotten, in memory and on
+ * disk. RevenueCat is not moved (R9-119: it keeps answering for the last uid
+ * linked here). Never throws.
+ */
+export async function forgetSessionAccount(): Promise<void> {
+  sessionUid = null;
+  pendingUid = null;
+  await setPendingLinkUid(null);
 }
 
 /**
@@ -309,10 +338,13 @@ export async function linkUser(uid: string | null): Promise<void> {
  * made under that id has not been measured on a device (R9-135, open). Not
  * configured, or no answer from isAnonymous(): nothing either. And nothing
  * if the last logIn asked for is already this uid (an auth event for the
- * link did reach linkUser first).
+ * link did reach linkUser first). Whatever it decides, this uid is now the
+ * account in session (R9-582).
  */
 export async function linkUpgradedUser(uid: string | null): Promise<void> {
-  if (!uid || !configured || requestedUid === uid) return;
+  if (!uid) return;
+  sessionUid = uid;
+  if (!configured || requestedUid === uid) return;
   const Purchases = getPurchases();
   if (!Purchases?.isAnonymous) return;
   try {
@@ -359,8 +391,9 @@ async function logInAs(Purchases: PurchasesStatic, uid: string): Promise<void> {
 /**
  * R9-135 — a logIn that failed while RevenueCat was NOT on one of its own
  * `$RCAnonymousID` ids (the SDK's isAnonymous(), which decides by that id's
- * shape) is noted, in memory and on disk, and retried: at the end of the
- * next initialize(), and before a purchase or a restore. That id is usually
+ * shape) is noted, in memory and on disk, and retried: at the end of the next
+ * initialize(), and before a purchase or a restore, in both cases only while
+ * that account is in session (R9-582, R9-589). That id is usually
  * the account that left, but it can be the same uid, or a Firebase anonymous
  * uid linked by a build older than R9-119's fix. Without it the account that
  * came in kept the extras of the one that left, on every later start, and
@@ -378,11 +411,14 @@ async function notePendingLink(
 ): Promise<void> {
   // R9-581 — a rejection can arrive after a later logIn was asked for (and
   // perhaps went through): then this uid is no longer the one RevenueCat
-  // should be on, and noting it would send the next purchase to it. Checked
-  // after the await, so a logIn asked for meanwhile counts too.
+  // should be on, and noting it would send the next purchase to it. R9-582 —
+  // nor is it noted once this account has left the session (a
+  // sign-out while its logIn was out). Both checked after the await, so what
+  // happened meanwhile counts too.
   try {
     if (!Purchases.isAnonymous || (await Purchases.isAnonymous())) return;
     if (requestedUid !== uid) return;
+    if (sessionUid !== uid) return;
     pendingUid = uid;
     await setPendingLinkUid(uid);
   } catch (err) {
@@ -394,8 +430,13 @@ async function notePendingLink(
   }
 }
 
+/**
+ * R9-582 — only for the account in session, read now: a pending link of an
+ * account that signed out, or of another account, is not retried (an
+ * anonymous user never changes RevenueCat's owner, R9-119).
+ */
 async function retryPendingLink(Purchases: PurchasesStatic): Promise<void> {
-  if (pendingUid === null) return;
+  if (pendingUid === null || pendingUid !== sessionUid) return;
   await logInAs(Purchases, pendingUid);
 }
 

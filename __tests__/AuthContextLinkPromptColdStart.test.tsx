@@ -117,8 +117,8 @@ jest.mock('@react-native-google-signin/google-signin', () => ({
   },
 }));
 
-// Side effects of an auth event that this file does not look at. These two
-// named imports are the only ones the provider tree takes from each module.
+// Side effects of an auth event that this file does not look at. These are
+// the only named imports the provider tree takes from each module.
 jest.mock('@lib/memory/memoryStatsSync', () => ({
   __esModule: true,
   seedMemoryStatsFloorIfFresh: async () => {},
@@ -128,6 +128,8 @@ jest.mock('@lib/offering/offeringService', () => ({
   __esModule: true,
   linkUser: async () => {},
   linkUpgradedUser: async () => {},
+  setSessionAccount: () => {},
+  forgetSessionAccount: async () => {},
 }));
 
 // ---- Ana's private notes, left on the shared phone after she signed out ----

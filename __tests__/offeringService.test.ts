@@ -21,6 +21,8 @@ import {
   refreshEntitlement,
   onEntitlementChange,
   getLastKnownEntitlement,
+  setSessionAccount,
+  forgetSessionAccount,
   __resetForTests,
   __setApiKeyForTests,
 } from '../src/lib/offering/offeringService';
@@ -738,6 +740,7 @@ describe('R9-105 — la linea exacta de R9-9 con el modulo RECIEN CARGADO', () =
 describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () => {
   const sdk = Purchases as unknown as {
     logIn: jest.Mock;
+    getCustomerInfo: jest.Mock;
     isAnonymous: jest.Mock;
     purchasePackage: jest.Mock;
     restorePurchases: jest.Mock;
@@ -866,6 +869,96 @@ describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () =
     await purchaseUnlock(pkg);
 
     expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto'], ['carla']]);
+  });
+
+  // R9-582 y R9-589 — el pendiente se reintenta solo para la cuenta en sesion,
+  // mirada al reintentar. La sesion cambia aqui sin pasar por el cierre de
+  // sesion de AuthContext (que ademas borra el pendiente): asi se mide la
+  // guarda sola. El mock afirma LLAMADAS, no de quien quedan las compras.
+  describe('R9-582 — solo para la cuenta en sesion', () => {
+    it.each([
+      ['otra cuenta', 'carla'],
+      ['un anonimo', null],
+    ])(
+      'con %s en sesion, comprar NO reintenta el pendiente',
+      async (_label, session) => {
+        await betoFailsAfterAna();
+        setSessionAccount(session);
+
+        sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+        await purchaseUnlock(pkg);
+
+        expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto']]);
+        await expect(getPendingLinkUid()).resolves.toBe('beto');
+      },
+    );
+
+    it.each([
+      ['otra cuenta', 'carla'],
+      ['un anonimo', null],
+    ])(
+      'con %s en sesion, restaurar NO reintenta el pendiente',
+      async (_label, session) => {
+        await betoFailsAfterAna();
+        setSessionAccount(session);
+
+        await restore();
+
+        expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto']]);
+        await expect(getPendingLinkUid()).resolves.toBe('beto');
+      },
+    );
+
+    it('R9-589 — si la sesion cambia mientras initialize() espera a getCustomerInfo, no reintenta a la que salio', async () => {
+      await betoFailsAfterAna();
+      __resetForTests();
+      sdk.logIn.mockClear();
+      __setApiKeyForTests('test-key');
+      // El arranque en frio: Firebase avisa a beto antes de initialize().
+      await linkUser('beto');
+      let answer: (info: unknown) => void = () => {};
+      sdk.getCustomerInfo.mockImplementationOnce(
+        () => new Promise(resolve => (answer = resolve)),
+      );
+      const started = initialize();
+      await new Promise(r => setImmediate(r));
+      // Beto sale y entra carla mientras tanto.
+      setSessionAccount('carla');
+      answer({entitlements: {active: {}, all: {}}});
+      await started;
+
+      expect(sdk.logIn).not.toHaveBeenCalledWith('beto');
+      await expect(getPendingLinkUid()).resolves.toBe('beto');
+    });
+
+    it('un logIn que falla cuando su cuenta ya salio de la sesion no se anota', async () => {
+      sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+      await linkUser('ana');
+      (
+        Purchases as unknown as {__setAppUserID: (id: string) => void}
+      ).__setAppUserID('ana');
+      let reject: (err: unknown) => void = () => {};
+      sdk.logIn.mockImplementationOnce(
+        () => new Promise((_resolve, rej) => (reject = rej)),
+      );
+      const linking = linkUser('beto');
+      await new Promise(r => setImmediate(r));
+      // Beto cierra sesion con su logIn en vuelo; el rechazo llega despues.
+      await forgetSessionAccount();
+      reject(offline);
+      await linking;
+
+      expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto']]);
+      await expect(getPendingLinkUid()).resolves.toBeNull();
+    });
+
+    it('forgetSessionAccount borra el pendiente del disco', async () => {
+      await betoFailsAfterAna();
+
+      await forgetSessionAccount();
+
+      await expect(getPendingLinkUid()).resolves.toBeNull();
+    });
   });
 
   describe('lo que NO se reintenta (espera la medicion en vivo)', () => {
