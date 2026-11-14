@@ -14372,9 +14372,11 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   - **✅ ARREGLADO en la sesión 148** (`04c60aad`): `notePendingLink` anota solo si el uid sigue siendo el último
     `logIn` pedido, mirado después del `await` de `isAnonymous()`. Cambia solo la fila B2, igual con U y con N. La
     prueba, vista fallar con la guarda revertida. `detail/S148-arreglos-r9-580.md`.
-  - **⚠️ Sesión 149 (revisión del diff de la 148): el arreglo abre `R9-589`.** `requestedUid` lo escribe también el
-    reintento de un pendiente: si el último pedido fue el reintento de una cuenta que ya salió, el rechazo tardío
-    de la cuenta en sesión deja de anotarse (filas C1, C3 y E3). `detail/S149-revision-del-diff-s148.md`.
+  - **⚠️ Sesión 149 (revisión del diff de la 148): el orden de B2 no lo da el SDK instalado.** Leído en
+    `purchases` 10.16.1: los pedidos al backend salen de a uno y en orden (un solo hilo), así que el rechazo de
+    beto llega antes de que el `logIn` de carla resuelva. Con ese orden (modo FIFO de la sonda de la 149), la
+    guarda no cambia ninguna fila. Sin ese orden, dejaría de anotar a la cuenta en sesión cuando el último pedido
+    es el reintento de otra (filas C1, C3 y E3). No se re-severiza. `detail/S149-revision-del-diff-s148.md`.
 
 - **`R9-582` (S147, revisión del diff de la 146 / premium / vecino de `R9-135` — P3) — 🐛 el reintento antes de
   comprar o restaurar no mira quién está en sesión; el del arranque sí.** MEDIDO con sonda (filas A1, A2a, A2b, F
@@ -14388,10 +14390,11 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     que entró). **Propuesta (sin escribir):** que el servicio sepa quién está en sesión y reintente solo para esa
     cuenta, y que cerrar sesión o eliminar la cuenta borren el pendiente. Detalle:
     `detail/S147-revision-del-diff-s146.md`.
-  - **⚠️ Sesión 149:** el reintento del arranque mira `earlyUid`, que se fija mientras el SDK no está configurado:
-    si la sesión cambia durante los `await` de `initialize()`, reintenta a la cuenta que salió (fila E3). «El del
-    arranque sí» vale solo para la sesión del momento de `configure()`. Con este arreglo van `R9-589` y `R9-590`.
-    `detail/S149-revision-del-diff-s148.md`.
+  - **⚠️ Sesión 149:** también con otra CUENTA en sesión. Con un pendiente de beto, carla entra, y una compra o un
+    «Restaurar» antes de que termine su `logIn` hacen `logIn(beto)`, que sale después del de carla (el SDK atiende
+    los pedidos en orden): `rc=beto` en cada arranque y la compra de carla en beto, salga bien o mal su `logIn`
+    (filas C1, C3, F-C1 y F-C1ok de la sonda de la 149). «El del arranque sí» vale solo para la sesión del momento
+    de `configure()`: `R9-589`. Con este arreglo van `R9-589` y `R9-590`. `detail/S149-revision-del-diff-s148.md`.
 
 - **`R9-583` (S147, revisión del diff de la 146 / comentarios y docs — P3) — 🐛 cinco textos dicen más, o
   distinto, de lo que hace el código.** Por lectura, con el SDK leído y dos sondas.
@@ -14464,27 +14467,28 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   (`_scratch/S147-a1-random.out.txt`), sin re-verificar por el orquestador: con `--randomize` cae en 7 de 8
   semillas (`AuthContext.test.tsx:1200`), y ya caía en `ee262bf5` (4 de 6). En el orden del archivo pasa.
 
-- **`R9-589` (S149, revisión del diff de la 148 / premium / regresión de `R9-581` — P3) — 🐛 si el último `logIn`
-  pedido fue el reintento de una cuenta que ya salió, el rechazo tardío de la cuenta en sesión no se anota, y
-  RevenueCat se queda en la otra cuenta para siempre.** MEDIDO con sonda (el `AuthProvider` y los servicios
-  reales; filas C1, C3 y E3 de `_scratch/S149-matriz-head-U.txt`, iguales con N) y con la guarda revertida
-  (`S149-matriz-sin581-*.txt`). Sin medir en vivo.
-  - La guarda de `R9-581` (`notePendingLink`: anotar solo si `requestedUid === uid`) supone que «el último pedido»
-    es la cuenta que tiene que quedar. Pero `requestedUid` lo escribe `logInAs`, y a él llega también
-    `retryPendingLink`. Con un pendiente de beto (que salió sin que se borrara, `R9-582`), carla entra y su
-    `logIn` queda en vuelo; una compra (C1), un «Restaurar» (C3) o el reintento de `initialize()` (E3) hacen
-    `logIn(beto)`; el de carla rechaza tarde y ya no se anota.
-  - **Medida:** con HEAD, `rc=beto` en cada arranque; en C1, las dos compras de carla quedan en beto, también
-    tras «Restaurar»; en E3, su compra queda en beto. Antes de `04c60aad`, el rechazo se anotaba y el arranque o
-    la compra siguiente hacían `logIn(carla)`. Solo lo corrige que carla cierre sesión y vuelva a entrar.
-  - **Severidad:** P3. El daño es el de `R9-581`, con una ventana más angosta: un pendiente de una cuenta que ya
-    salió, un `logIn` de la cuenta nueva que queda en vuelo y falla, y una compra, un «Restaurar» o un arranque en
-    esa ventana. No es P2 como `R9-580`, que era un camino común sin carrera.
-  - **Propuesta (sin escribir):** con `R9-582`: que la guarda compare con la cuenta en sesión y no con el último
-    pedido, y que el reintento de `initialize()` mire la sesión al terminar y no `earlyUid`. Detalle:
+- **`R9-589` (S149, revisión del diff de la 148 / premium / vecino de `R9-582`, anterior al diff — P3) — 🐛 el
+  reintento del arranque mira `earlyUid`, que se fija antes de `configure()`: si la sesión cambia durante los
+  `await` de `initialize()`, reintenta a la cuenta que salió, y RevenueCat se queda en ella aunque el `logIn` de la
+  cuenta nueva salga bien.** MEDIDO con sonda (el `AuthProvider` y los servicios reales; filas E3, F-E3 y F-E3ok de
+  `_scratch/S149-matriz-head-U.txt`, iguales con N). Sin medir en vivo. Es de `b48c430b` (la 146), no del diff de
+  la 148.
+  - `initialize()` reintenta el pendiente si `stored === earlyUid` (`offeringService.ts:247`). `earlyUid` lo
+    escribe `linkUser` solo mientras `!configured`, y `configured` pasa a `true` antes de los `await` de
+    `getCustomerInfo()` y `getPendingLinkUid()`. Si en ese rato beto (pendiente y en sesión al arrancar) sale y
+    entra carla, la comparación sigue dando `true` y se hace `logIn(beto)` con carla en sesión.
+  - **Medida:** con los pedidos al SDK de a uno y en orden (modo FIFO de la sonda: el `Dispatcher` del SDK
+    instalado usa un solo hilo, `newSingleThreadScheduledExecutor`, y `purchases-hybrid-common` 18.30.0 no le pasa
+    otro), el reintento sale después del `logIn` de carla: `rc=beto` en cada arranque, y la compra de carla queda
+    en beto, salga bien (F-E3ok) o mal (F-E3) su `logIn`. Igual con y sin la guarda de `R9-581`. Solo lo corrige
+    que carla cierre sesión y vuelva a entrar.
+  - **Severidad:** P3: pide un pendiente de la cuenta en sesión al arrancar, y cerrar sesión e iniciar otra antes
+    de que vuelva el primer `getCustomerInfo()`. No es P2 como `R9-580`, que era un camino común sin carrera.
+  - **Propuesta (sin escribir):** con `R9-582`: que el reintento de `initialize()` mire la cuenta en sesión en el
+    momento de reintentar (el servicio la va a conocer), no `earlyUid`. Detalle:
     `detail/S149-revision-del-diff-s148.md` §4.
 
-- **`R9-590` (S149, revisión del diff de la 148 / comentarios y docs — P3) — 🐛 cuatro textos del diff de la 148
+- **`R9-590` (S149, revisión del diff de la 148 / comentarios y docs — P3) — 🐛 cinco textos del diff de la 148
   dicen más de lo que hace el código o de lo medido.** Por lectura, con el SDK y RN Firebase leídos en la versión
   instalada.
   - **El docstring de `earlyUid`** (`offeringService.ts:134-137`): «the account AuthContext asked to link»;
@@ -14496,6 +14500,9 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `linkUser`.
   - **«Decides by that id's shape»** (`linkUpgradedUser` y `notePendingLink`): `currentUserIsAnonymous` también da
     `true` si el id es igual al heredado de una versión vieja del SDK (`purchases` 10.16.1).
+  - **El comentario de `R9-581`** (`notePendingLink`: un rechazo puede llegar después de que otro `logIn` «perhaps
+    went through»): el SDK instalado atiende los pedidos de a uno y en orden, así que un `logIn` pedido después no
+    termina antes del rechazo de uno anterior.
   - **Propuesta (sin escribir):** corregirlos en el commit de `R9-582`. Detalle:
     `detail/S149-revision-del-diff-s148.md` §6.
 

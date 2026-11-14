@@ -1299,8 +1299,9 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   (sesión 148, `R9-580`).** El enlace tras `linkWithCredential` se escribió para el caso sin evento; con el evento,
   el listener ya había pedido el mismo `logIn` y la fila 6b ganó uno doble. No movía dueños, pero era una fila que
   no podía cambiar: se cortó con el último uid pedido.
-- **«El último pedido» lo escriben también los reintentos (sesión 149, `R9-589`).** Una guarda de orden que compara
-  con el último pedido hereda los errores de quien pide: el reintento de una cuenta que ya salió pasó a ser «el
-  último», y el rechazo tardío de la cuenta en sesión dejó de anotarse. Antes de una guarda así, `grep` de quién
-  escribe el valor y la fila donde lo escribe un reintento.
+- **Una fila que depende del orden en que vuelven dos llamadas al SDK se corre también con el orden que el SDK
+  impone, leído en la versión instalada, antes de numerarla (sesión 149, `R9-581` y `R9-589`).** La sonda de la 147
+  suponía que dos `logIn` no se serializan; `purchases` 10.16.1 atiende los pedidos al backend de a uno y en orden.
+  Con ese orden, una «regresión de `R9-581`» que la 149 casi numera daba igual con y sin la guarda: el daño era del
+  reintento viejo.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

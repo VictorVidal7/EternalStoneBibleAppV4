@@ -321,7 +321,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   Detalle: `detail/S148-arreglos-r9-580.md`.
 - **Sesión 149 — 2026-11-13.** La revisión del diff de la 148 (no se tocó la app), con Opus 5.5 de principal y Fable
   de asesor: los tres arreglos se sostienen (las seis piezas de la 148 vuelven a caer por su razón, cuatro piezas
-  nuevas, y las matrices, idénticas a las `s148fix3`). Tres hallazgos nuevos, P3: `R9-589` (si el último pedido
-  fue el reintento de otra cuenta, el rechazo tardío de la cuenta en sesión ya no se anota, y su compra queda en la
-  otra para siempre: regresión de `R9-581`), `R9-590` (comentarios) y `R9-591` (pruebas). A 6g lo cubre la letra
-  de la §7. Sin medir en vivo. Detalle: `detail/S149-revision-del-diff-s148.md`.
+  nuevas, y las matrices, idénticas a las `s148fix3`). Tres hallazgos nuevos, P3: `R9-589` (el reintento del
+  arranque mira un uid fijado antes de configurar el SDK: con un cambio de sesión durante `initialize()`, RevenueCat
+  queda en la cuenta que salió; de la 146), `R9-590` (comentarios) y `R9-591` (pruebas). Leído en el SDK: los
+  pedidos salen de a uno y en orden; con ese orden, la guarda de `R9-581` no cambia ninguna fila. A 6g lo cubre la
+  letra de la §7. Sin medir en vivo. Detalle: `detail/S149-revision-del-diff-s148.md`.
