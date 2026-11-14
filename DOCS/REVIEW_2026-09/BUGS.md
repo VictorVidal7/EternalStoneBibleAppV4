@@ -14400,6 +14400,10 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     cuenta, y cerrar sesión o eliminar la cuenta lo borran (`forgetSessionAccount`). En las sondas, ningún `logIn` de
     una cuenta que salió con un anónimo u otra cuenta en sesión (A1, A2a, A2b, F, C1, C3, F-C1 y F-C1ok), igual con U
     y con N. Sin medir en vivo. `detail/S150-arreglos-r9-582.md`.
+  - **⚠️ Sesión 151:** por el canje vuelven sus filas. `redeemGiftCode` llama a `linkUser` con el uid de antes del
+    `fetch`, y desde este arreglo `linkUser` también lo fija como la cuenta en sesión: con un cierre de sesión durante
+    el canje y su `logIn` fallando, el pendiente se anota después del borrado y lo reintenta la compra del anónimo o
+    de otra cuenta (filas G1 y G2). Es `R9-592`. `detail/S151-revision-del-diff-s150.md` §4.
 
 - **`R9-583` (S147, revisión del diff de la 146 / comentarios y docs — P3) — 🐛 cinco textos dicen más, o
   distinto, de lo que hace el código.** Por lectura, con el SDK leído y dos sondas.
@@ -14528,6 +14532,54 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Propuesta (sin escribir):** una prueba de colisión con RevenueCat en otra cuenta que afirme que no hay
     `logIn` del uid anónimo; que `__reset` vacíe las colas de los `*Once`, o declarar la cascada. Con `R9-584`.
     Detalle: `detail/S149-revision-del-diff-s148.md` §2.
+  - **⚠️ Sesión 151 (revisión del diff de la 150): seis piezas más sin prueba.** Ninguna hace caer una de las 134
+    (`_scratch/S151-rev-*.out.txt`): `forgetOfferingSession()` antes del `signOut` de Firebase (l; lo observable es
+    un `signOut` que rechaza, y falta esa prueba); sin su `await` al cerrar sesión o al eliminar la cuenta (m1 y m2;
+    `forgetSessionAccount` no lanza); `sessionUid = uid` después de las guardas de `linkUpgradedUser` (n y n1; las
+    cuatro sondas, iguales: se declara, como la pieza g); y `forgetSessionAccount` sin `pendingUid = null` (o1; sin
+    consumidor que lo distinga). La cascada de la pieza f2 de la 150 en `:776` es la de esta entrada (`__reset` con
+    `mockClear`): de sus 15 caídas, 3 pasan solas. Con `R9-584`, en la 152. `detail/S151-revision-del-diff-s150.md` §2.
+
+- **`R9-592` (S151, revisión del diff de la 150 / premium / vecino de `R9-582`, en parte anterior al diff — P3) — 🐛
+  el canje enlaza con el uid que estaba en sesión ANTES del `fetch`: si la sesión cambió, hace `logIn` de la cuenta
+  que salió, y desde la 150 además la fija como la cuenta en sesión, así que un fallo se anota y lo reintenta la
+  compra siguiente de otra sesión.** MEDIDO con sonda (el `AuthProvider`, el `offeringService` y el `giftCodeService`
+  reales; filas G1, G2, G2ok y F-G2ok de `_scratch/S151-matriz-s151head-U.txt`, iguales con N). Sin medir en vivo.
+  - `redeemGiftCode` lee `currentUser` antes de `getIdToken`, del `fetch` y de `res.json()`, y al volver llama a
+    `linkUser(currentUser.uid)` (`giftCodeService.ts:203`). Es un camino real: `RedeemCodeSheet` se cierra con «Atrás»
+    con el canje en vuelo (`handleRequestClose` no mira `submitting`), y «Cerrar sesión» está en la misma pantalla.
+  - **Anterior al diff (G2ok y F-G2ok):** si beto sale y entra carla durante el `fetch`, el canje hace `logIn(beto)`
+    después del de carla: `rc=beto`, y las compras de carla quedan en beto, también tras el arranque en frío (que no
+    enlaza a carla: `R9-135`), hasta que carla vuelva a iniciar sesión en un proceso configurado. Igual en
+    `f832d391`.
+  - **Del diff (G1 y G2):** `linkUser` fija `sessionUid = uid` (`offeringService.ts:298`). Si el `logIn(beto)` del
+    canje falla, se anota en disco después del borrado del cierre de sesión, y la compra siguiente del anónimo (G1) o
+    de carla (G2) hace `logIn(beto)`: la fila A de `R9-582` y la de carla de la 149, por este camino. Los dueños son
+    los mismos en `f832d391`: la 150 no los empeora, pero no los cierra. Con esa línea revertida, G1 queda en ana y G2
+    en carla (`S151-matriz-s151sinf2-*.txt`); no se puede quitar sin más: la fijan 12 pruebas del arranque en frío.
+  - Tres docstrings lo niegan: el de `sessionUid` y el de `linkUser` («the account in session»), y el de
+    `retryPendingLink`.
+  - **Severidad:** P3: pide cerrar sesión (y, para carla, iniciar otra) mientras el canje espera al servidor; G1
+    termina donde termina el camino sin fallo (RevenueCat en la última cuenta que entró, beto). **Propuesta (sin
+    escribir):** que el canje enlace solo si su cuenta sigue en sesión al volver, con los tres docstrings. Detalle:
+    `detail/S151-revision-del-diff-s150.md` §4.
+
+- **`R9-593` (S151, revisión del diff de la 150 / premium / vecino de `R9-135` y `R9-587`, anterior al diff — P3) —
+  🐛 una compra con el `logIn` de la cuenta en sesión todavía en vuelo queda en la cuenta anterior, aunque ese `logIn`
+  salga bien.** MEDIDO con sonda (filas P0 y F-C1ok; P0, igual en `f832d391`) y leído en el SDK instalado. Sin medir
+  en vivo el orden real.
+  - `purchaseUnlock` no espera el `logIn` que pidió el listener de `AuthContext` (sin `await`). En `purchases`
+    10.16.1, el `app_user_id` del recibo se fija cuando Play informa la compra (`PurchasesOrchestrator.getAppUserID()`
+    en el listener de compras) y va en el cuerpo al encolar `postReceiptData`, en el mismo `dispatcher` que `logIn`;
+    `logIn` cambia el usuario solo en su devolución de éxito. El recibo espera detrás del `logIn`, pero lleva el
+    usuario anterior.
+  - En P0 (sin pendiente), carla paga, recibe `success` y termina con `premium=false`, con la compra en ana; en la
+    sonda, «Restaurar» la pasa a carla, lo que depende de la configuración de transferencias del panel (sin medir:
+    `R9-135`). Con el `logIn` que falla es `R9-135`.
+  - **Severidad:** P3: pide que el `logIn` tarde más que todo el flujo de compra de Play (una hoja que el usuario
+    confirma), y «Restaurar» lo recupera si el panel transfiere. **Propuesta (sin escribir):** que comprar y
+    restaurar esperen el `logIn` en vuelo de la cuenta en sesión antes de ir a la tienda. Detalle:
+    `detail/S151-revision-del-diff-s150.md` §6.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -14637,6 +14689,13 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   `linkWithCredential`, se enlaza solo si RevenueCat no está en un `$RCAnonymousID`. La otra mitad (desde un id
   anónimo) y la raíz siguen esperando la cuenta de prueba; la fila 6i (el link con el servicio sin configurar) es
   ese resto. `detail/S148-arreglos-r9-580.md`.
+  **⚠️ Sesión 151 (revisión del diff de la 150): la fila A3 de la 150 tiene caminos reales, por lectura.** Una cuenta
+  vuelve en frío sin pendiente, y sin enlazar, si (i) el proceso murió con su `logIn` en vuelo, (ii) su `logIn` falló
+  y también el `set` del disco, o (iii) inició sesión en un proceso donde `initialize()` no configuró el SDK. Antes de
+  la 150, un pendiente viejo de la misma cuenta la rescataba por accidente; el cierre de sesión ahora lo borra
+  (`R9-582`). Es la raíz que espera la medición. Además: la compra con el `logIn` de la cuenta que entra en vuelo y
+  saliendo bien es `R9-593`; la compra antes del primer evento de Firebase (fila N1) no se corrige, igual que antes de
+  la 150. `detail/S151-revision-del-diff-s150.md` §4 y §5.
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige

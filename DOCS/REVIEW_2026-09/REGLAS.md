@@ -1309,4 +1309,9 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   sondas: con cualquiera de los dos revertido, la matriz de la 149 no cambiaba. Una prueba por mitad, a nivel
   servicio, donde la sesión cambia sin pasar por la otra mitad; y la sonda corrida con cada mitad sola, para escribir
   qué fila mueve cada una (aquí, solo D3, con el disco fallando, distinguía la guarda).
+- **Un dato que un servicio toma de sus llamadores se mide con cada llamador que espera entre leerlo y pasarlo
+  (sesión 151, `R9-592`).** La 150 hizo que `linkUser` fijara «la cuenta en sesión» porque sus dos llamadores pasaban
+  esa cuenta. El canje la lee antes del `fetch` y la pasa al volver: si la sesión cambió, el servicio cree en sesión a
+  la que salió, y vuelven las filas que el arreglo cerraba. Antes de que un servicio crea lo que le pasan, `grep` de
+  cada llamador y de cada `await` entre la lectura y la llamada, y una fila en la sonda por cada uno.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

@@ -590,3 +590,5 @@ R9-588	P3	revisión del diff de la 146 / pruebas / fuera del diff	abierto		sin m
 R9-589	P3	revisión del diff de la 148 / premium / vecino de R9-582, anterior al diff	arreglado	6e1c48df	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`6e1c48df`, con `R9-582`): `initialize()` reintenta solo si el pendiente es la cuenta en sesión en el momento de reinten»
 R9-590	P3	revisión del diff de la 148 / comentarios y docs	arreglado	04b7b478	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`04b7b478`, solo comentarios; el docstring de `earlyUid`, con la variable en `6e1c48df`): los cinco textos dicen lo medi»
 R9-591	P3	revisión del diff de la 148 / pruebas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-592	P3	revisión del diff de la 150 / premium / vecino de R9-582, en parte anterior al diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-593	P3	revisión del diff de la 150 / premium / vecino de R9-135 y R9-587, anterior al diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

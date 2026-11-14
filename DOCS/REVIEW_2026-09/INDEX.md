@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 150, 2026-11-13): la fase de ARREGLOS; la 150 arregló `R9-582`, `R9-589` y `R9-590`.** Qué queda
-> abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 150 eran 278 de 591:
-> ningún P0, 16 P1, 91 P2, 170 P3 y un aviso. Sigue la 151: la revisión del diff de la 150; después, `R9-584` (con
-> `R9-591`) y la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
-> (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 151, 2026-11-13): la fase de ARREGLOS; la 151 revisó el diff de la 150 y numeró `R9-592` y
+> `R9-593`.** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de
+> la 151 eran 280 de 593: ningún P0, 16 P1, 91 P2, 172 P3 y un aviso. Sigue la 152: `R9-584` (con `R9-591`) y, si
+> cabe, `R9-592`; después, la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
+> Google de prueba (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -332,3 +332,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   nuevas, cada pieza vista caer sola; las sondas, sin ningún `logIn` de una cuenta que salió con otra sesión, igual
   con U y con N. La Parte 2 (`R9-584`, `R9-591`) y la V2 pasan a la 151, tras la revisión de este diff. Sin medir en
   vivo. Detalle: `detail/S150-arreglos-r9-582.md`.
+- **Sesión 151 — 2026-11-13.** Revisión del diff de la 150, con Opus 5.5 de principal y Fable de asesor: las nueve
+  piezas vuelven a caer por su razón (f2, leída prueba por prueba: 12 solas y 3 en cascada), las tres matrices con
+  HEAD salen iguales a las de la 150, y seis piezas más no las fija ninguna prueba. Dos hallazgos nuevos (P3):
+  `R9-592` (el canje enlaza con el uid de antes del `fetch` y, desde la 150, lo fija como la cuenta en sesión) y
+  `R9-593` (la compra con el `logIn` en vuelo, leída en el SDK). La Parte 2 pasa a la 152. Sin medir en vivo.
+  Detalle: `detail/S151-revision-del-diff-s150.md`.
