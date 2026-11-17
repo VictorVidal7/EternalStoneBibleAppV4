@@ -3685,6 +3685,13 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   al restaurar en otro teléfono, el plan vuelve alineado a la fecha del grupo, pero sin «Leyendo con {{grupo}}» ni
   «Salir del grupo». (`@devotional_saved` ya lo nombra `detail/A7-backupservice.md:174`.)
   - **Nota de la sesión 160:** la raíz ya tiene guarda (`90f67a46`): `LOCAL_BACKUP_KEYS` y `__tests__/backupKeyCoverage.test.ts`, que cae con una clave sin cubrir o una listada que ya no existe. 47 claves esperan en `PENDING_R9_30`. **Sigue abierto**; el diseño por tandas: `detail/S160-v3-arreglos.md` §5.
+  - **Nota de la sesión 161:** la tanda 1, hecha en `fix/s161-v3` (`3041db99` y `994365a7`): 13 claves viajan en
+    `payload.local` (marcas de estudio, profecías, quiz, niños, oración, emociones, devoción, testimonio y
+    devocionales guardados). Cada escritor relee el disco; el devocional y el testimonio reescribían desde memoria
+    y ahora escuchan `subscribeBackupRestored`. Pruebas de ida y vuelta, vistas caer. Quedan 34 claves en
+    `PENDING_R9_30`: la Mesa, `@custom_plans`, `@devotional_draft`, `@together_groups`, audio, compartir y las
+    preferencias. Niños: un archivo con el progreso pero sin la insignia puede dejar «Primera historia» bloqueada
+    (`[storyId].tsx:241` pide `=== 1`). **Sigue abierto.** `detail/S161-v3-arreglos.md` §3 y §6.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -3793,6 +3800,12 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   `detail/A9-mesa-persistencia.md`.
   **⚠️ Sesión 22 (sonda): se sostiene en P1, y es peor de lo escrito.** Los llamadores son **5**, no 4, desde el origen. El quinto, «insertar ilustración» (`app/features/prep/illustrations/index.tsx:229`), hace `await savePrepNote` → `toast.success('Ilustración añadida a tu preparación.')` → `router.back()`. Con la escritura fallida, el usuario recibe una confirmación FALSA: la sonda da toast de éxito y la sección vacía. Los stores hermanos (`prepIllustrationsStore.ts:101-132` y `prepSeriesStore.ts:100-187`) se tragan igual (por lectura), así que el alcance es «la Mesa y sus bancos».
   - **Nota de la sesión 160:** va a la 161 con el diseño de `detail/S160-v3-arreglos.md` §5 (la promesa propia que rechaza, la cola que traga, y el `toast.error` en los llamadores).
+  - **Nota de la sesión 161:** arreglado en parte en `fix/s161-v3` (`732974bb` y `f44364f0`). `savePrepNote` y
+    `setPrepSelfReviewQuestion` rechazan con la escritura fallida; la cola traga su copia. Los seis llamadores
+    avisan con un toast por ráfaga; «insertar ilustración» ya no dice «añadida» ni vuelve; un flush fallido no
+    navega. Con HEAD, las dos resolvían. Pruebas con los stores y las pantallas reales, vistas caer. **Sigue
+    abierto:** los `save*` de los bancos (ilustraciones, series y sermón) tragan con un `.catch` explícito, con 31
+    llamadores. `detail/S161-v3-arreglos.md` §2 y §4.
 - **`R9-54` (A11, planes) — 🐛 descompletar un día de un plan no se sostiene: vuelve solo en la
   siguiente lectura de CUALQUIER capítulo, con notificación falsa.** Severidad
   **media-alta**. `toggleDay` (`ReadingPlanProgressContext.tsx:211-246`) quita el día de
@@ -14769,6 +14782,28 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: costo, sin daño de datos. **Propuesta (sin escribir):** medirlo en el emulador con una
     colección grande; si pesa, pedir metadata solo hasta el primer snapshot del servidor (un listener de un tiro).
     `detail/S159-revision-del-diff-s158.md` §5.
+
+- **`R9-600` (S161, Mesa / banco de ilustraciones, vecino de `R9-52` y `R9-129` — P2) — 🐛 insertar una
+  ilustración con la lectura de `@prep_notes` fallida borra la prosa de la sección, con toast de éxito.** MEDIDO
+  con sonda en la pantalla real (agente 1, `prepIllustrationsListScreen.test.tsx`). Sin medir en vivo.
+  - `getAllPrepNotes` (`prepNotesStore.ts:31-39`) convierte la lectura fallida en `{}`. La pantalla
+    (`illustrations/index.tsx` ~:225) toma `current = ''` y guarda solo la ilustración.
+  - `savePrepNote` relee el mapa dentro de su turno: si esa segunda lectura sale, escribe y pisa la sección.
+  - Sonda: sección con «Prosa previa a mano.», un fallo de lectura → `application: "La oveja perdida…"`, éxito 1.
+  - **Severidad:** P2: borra prosa del usuario y dice «añadida»; pide un fallo de lectura pasajero.
+    **Propuesta (sin escribir):** una lectura estricta (`{strict: true}`, como `R9-129`) para quien escribe
+    encima. `detail/S161-v3-arreglos.md` §5.
+
+- **`R9-601` (S161, estudio y niños / persistencia, vecino de `R9-30` — P3) — 🐛 cinco stores leen «vacío» con
+  la lectura fallida, y el toque siguiente escribe ese vacío encima.** MEDIDO con sonda en `factFavorites`
+  (agente 2); los otros, por lectura (agente 3 y el principal).
+  - `factFavorites.ts`, `journeyFavorites.ts`, `journeyProgress.ts`, `prophecyFavorites.ts` y `kidsProgress.ts`
+    (`readState`, :66-89): el `catch` devuelve un conjunto o un estado vacío.
+  - El escritor lee, cambia uno y escribe: con la lectura rota, guarda solo el cambio.
+  - Sonda: disco `["a","b"]`, `getItem` falla una vez, `toggleFactFavorite('d')` → `["d"]`.
+  - No lo abre el respaldo: es anterior. Los de oración y emociones abortan la escritura (sin daño).
+  - **Severidad:** P3: marcas y progreso, no texto; pide un fallo de lectura. **Propuesta (sin escribir):** que el
+    escritor relance en un fallo de lectura. `detail/S161-v3-arreglos.md` §5.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

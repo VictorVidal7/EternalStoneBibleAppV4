@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 160, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas); la V3, hecha en parte (quedan `R9-52` y `R9-30`).** Qué queda abierto se pregunta con
-> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 160 eran 275 de 599: ningún P0, 11 P1,
-> 88 P2, 175 P3 y un aviso. `fix/s160-v3` y `docs/review-s160` esperan el OK de Victor. Sigue la 161: `R9-52` y
-> después `R9-30` (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
+> **Frontera (sesión 161, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, hecha en parte (`R9-52`, en parte; `R9-30`, la tanda 1).** Qué queda abierto se pregunta
+> con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 161 eran 277 de 601: ningún P0,
+> 11 P1, 89 P2, 176 P3 y un aviso. `fix/s161-v3` y `docs/review-s161` esperan el OK de Victor. Sigue la 162: la
+> tanda 2 de `R9-30` (la Mesa) y los bancos de `R9-52`, con `R9-600` (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
 > Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo de la 160, están sin medir en vivo; del
 > Modo C faltan `C17` y `C23`.
 
@@ -392,3 +392,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   raíz de `R9-30` tiene guarda; quedan 47 claves en `PENDING_R9_30`. `R9-52` va a la 161 con su diseño. 11 piezas
   vistas caer. Dos reglas. Sin medir en vivo. Cerró en la 160b por el tope de llamadas. Detalle:
   `detail/S160-v3-arreglos.md`.
+- **Sesión 161 — 2026-11-17.** Lo que quedaba de la V3, con Opus 5.5 de principal y 5 agentes a pedido de Victor
+  (los cinco Opus 5.5 `high`, en worktrees), en `fix/s161-v3`. `R9-52`, en parte (`732974bb`, `f44364f0`): las notas
+  y la autoevaluación rechazan, y la Mesa avisa con un toast por ráfaga. `R9-30`, la tanda 1 (`3041db99`,
+  `994365a7`): 13 claves viajan, y el devocional y el testimonio releen tras restaurar. Quedan 34 claves y los
+  bancos. Dos nuevos: `R9-600` (P2) y `R9-601` (P3). Validate 400/400. Sin medir en vivo. Detalle:
+  `detail/S161-v3-arreglos.md`.

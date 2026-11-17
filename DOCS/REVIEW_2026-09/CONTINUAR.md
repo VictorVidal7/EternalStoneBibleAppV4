@@ -216,6 +216,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   **Hecha en parte en la 160** (`detail/S160-v3-arreglos.md`), sin agentes, sin medir en vivo: `R9-129` y `R9-131`
   (`501bb70a`), `R9-60` y `R9-117` (`90f67a46`), en `fix/s160-v3`. La raíz de `R9-30` tiene guarda (47 claves en
   `PENDING_R9_30`). **La 161: `R9-52` y después `R9-30`**, con el diseño del detalle §5 (de `R9-30`, la tanda 1).
+  **Hecha en parte en la 161** (`detail/S161-v3-arreglos.md`), con 5 agentes, sin medir en vivo: `R9-52` en parte
+  (las notas y la autoevaluación; quedan los `save*` de los bancos) y la tanda 1 de `R9-30` (13 claves), en
+  `fix/s161-v3`. Nuevos: `R9-600` (P2) y `R9-601` (P3). **La 162: la tanda 2 de `R9-30` (la Mesa:
+  `@prep_illustrations`, `@prep_self_review`, `@sermon_notes`) y los bancos de `R9-52`, con `R9-600`.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
