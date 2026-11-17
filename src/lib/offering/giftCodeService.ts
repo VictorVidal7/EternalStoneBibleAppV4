@@ -200,7 +200,19 @@ export async function redeemGiftCode(code: string): Promise<RedeemOutcome> {
     // Not fixed at the root (AuthContext.tsx / offeringService.ts's own
     // init-ordering) — that's out of this feature's scope; see the
     // gift-code-redemption report.
-    await linkUser(currentUser.uid).catch(() => {});
+    //
+    // R9-592 — only while the account that redeemed is still the one in
+    // session, read again now: the session can change while the server
+    // answers (the sheet closes with "Back" mid-redemption, and "Sign out" is
+    // on the same screen). Linking the account that left would move
+    // RevenueCat away from whoever is in session now, and note the account
+    // that left as the one in session (R9-582). There is no await between
+    // this read and linkUser, which notes the account before its own first
+    // await.
+    const inSessionNow = authMod ? authMod().currentUser : null;
+    if (inSessionNow?.uid === currentUser.uid) {
+      await linkUser(currentUser.uid).catch(() => {});
+    }
   }
   return outcome;
 }

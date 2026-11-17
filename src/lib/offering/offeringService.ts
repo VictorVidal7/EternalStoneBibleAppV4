@@ -135,8 +135,9 @@ let configured = false;
  * R9-582 — the account in session in the app, or `null` (anonymous, or
  * nobody). In memory only: Firebase's first auth event of every process says
  * it again. Written by setSessionAccount (AuthContext's listener, on every
- * event), by linkUser and linkUpgradedUser (whose callers always pass the
- * account in session), and cleared by forgetSessionAccount. A pending link
+ * event), by linkUser and linkUpgradedUser (whose callers pass the account
+ * in session: the redemption only if its account is still in session when
+ * the server answers, R9-592), and cleared by forgetSessionAccount. A pending link
  * is noted and retried only for this account.
  */
 let sessionUid: string | null = null;
@@ -281,8 +282,9 @@ export async function isBillingAvailable(): Promise<boolean> {
  * never for an anonymous user. giftCodeService calls it for the account
  * that redeemed a code, because the server granted the entitlement to that
  * uid (the server refuses an anonymous token, so there is no anonymous
- * redemption). Both pass the account in session, so `uid` is also noted as
- * that account (R9-582). An anonymous user that becomes an account by
+ * redemption), and only if that account is still in session when the server
+ * answers (R9-592). Both pass the account in session, so `uid` is also noted
+ * as that account (R9-582). An anonymous user that becomes an account by
  * linking is linked by linkUpgradedUser (R9-580), and also here if Firebase
  * sends an auth event for the link (not measured on a device). RevenueCat's
  * logOut is never called, so after a sign-out RevenueCat keeps answering for

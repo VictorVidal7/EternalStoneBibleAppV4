@@ -98,6 +98,46 @@ describe('giftCodeService.redeemGiftCode', () => {
     expect(mockLinkUser).toHaveBeenCalledWith('uid-123');
   });
 
+  describe('R9-592 — la sesion cambia mientras el servidor responde', () => {
+    // El canje lee la cuenta al empezar; si al volver del fetch ya no es la
+    // que esta en sesion, no la enlaza: moveria RevenueCat a la cuenta que
+    // salio, y la anotaria como la cuenta en sesion (R9-582).
+    function fetchOnceChangingSessionTo(
+      next: {uid: string; getIdToken: jest.Mock} | null,
+    ) {
+      (global.fetch as jest.Mock).mockImplementationOnce(async () => {
+        mockCurrentUser = next;
+        return {
+          status: 200,
+          json: jest.fn().mockResolvedValue({status: 'success'}),
+        };
+      });
+    }
+
+    it('cerro sesion durante el canje: el canje sale bien y no enlaza a la cuenta que salio', async () => {
+      fetchOnceChangingSessionTo(null);
+      await expect(redeemGiftCode('ABCD-1234')).resolves.toEqual({
+        status: 'success',
+      });
+      expect(mockLinkUser).not.toHaveBeenCalled();
+    });
+
+    it('entro otra cuenta durante el canje: no enlaza a la que canjeo', async () => {
+      fetchOnceChangingSessionTo({
+        uid: 'uid-carla',
+        getIdToken: mockGetIdToken,
+      });
+      await redeemGiftCode('ABCD-1234');
+      expect(mockLinkUser).not.toHaveBeenCalled();
+    });
+
+    it('la misma cuenta, releida (otro objeto, mismo uid): enlaza', async () => {
+      fetchOnceChangingSessionTo({uid: 'uid-123', getIdToken: mockGetIdToken});
+      await redeemGiftCode('ABCD-1234');
+      expect(mockLinkUser).toHaveBeenCalledWith('uid-123');
+    });
+  });
+
   it('does not call linkUser again for a non-success outcome', async () => {
     mockFetchOnce(409, {status: 'already_redeemed'});
     await redeemGiftCode('ABCD-1234');
