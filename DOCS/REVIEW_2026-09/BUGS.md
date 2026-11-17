@@ -14552,6 +14552,10 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     y al eliminar la cuenta (caen con m1 y m2); el CONTROL de `mockDeleteUser`, que pasaba con llamadas de pruebas
     anteriores. Declaradas: n, n1, o1 (su único consumidor real es un `logIn` de más del mismo uid: la 151 escribió
     «sin consumidor») y las guardas del SDK sin `isAnonymous` (solo un log). `detail/S152-arreglos-pruebas.md` §5.
+  - **Sesión 153 (revisión):** se sostiene. El `__reset` nuevo no cambia ninguna conducta con HEAD: 0 colas `*Once`
+    ni overrides vivos en 27 archivos (298 pruebas), con un control que sí lo ve. Las guardas sin `isAnonymous` y el
+    `beforeEach` de `AuthContext.test.tsx`, declarados por lectura, ahora medidos: dicen lo mismo.
+    `detail/S153-revision-del-diff-s152.md` §2-§5.
 
 - **`R9-592` (S151, revisión del diff de la 150 / premium / vecino de `R9-582`, en parte anterior al diff — P3) — 🐛
   el canje enlaza con el uid que estaba en sesión ANTES del `fetch`: si la sesión cambió, hace `logIn` de la cuenta
@@ -14582,6 +14586,9 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     decía la predicción (el anónimo y carla compran en su cuenta; RevenueCat no pasa a beto), igual con U y con N; las
     tres sondas viejas, iguales. Los docstrings de `sessionUid` y `linkUser`, al día; el de `retryPendingLink` vuelve a
     valer. Sin medir en vivo. `detail/S152-arreglos-pruebas.md` §6.
+  - **Sesión 153 (revisión):** se sostiene. Las tres pruebas caen igual; las diez matrices con HEAD, iguales a
+    `s152fix`. Ningún otro llamador de `linkUser` espera entre leer y llamar. `detail/S153-revision-del-diff-s152.md`
+    §3-§4.
 
 - **`R9-593` (S151, revisión del diff de la 150 / premium / vecino de `R9-135` y `R9-587`, anterior al diff — P3) —
   🐛 una compra con el `logIn` de la cuenta en sesión todavía en vuelo queda en la cuenta anterior, aunque ese `logIn`
@@ -14613,6 +14620,12 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     siguiente. **Propuesta (sin escribir):** leer el pendiente del disco aunque `getCustomerInfo()` falle (fuera del
     `try` de esa llamada), con la regla de `R9-589` (la sesión mirada al reintentar). Detalle:
     `detail/S152-arreglos-pruebas.md` §7.
+  - **⚠️ Sesión 153 (revisión del diff de la 152): dos frases no decían lo medido.** «Sin red» no basta: el SDK
+    instalado responde `getCustomerInfo()` de su caché (`CACHED_OR_FETCHED`, la política por defecto que usa
+    `purchases-hybrid-common` 18.30.0; leído en el bytecode de `purchases` 10.16.1, sin medir en el aparato). Rechaza
+    sin caché del usuario del SDK, o por otra falla. Y «nada lo reintenta» es lo medido para la compra y «Restaurar»:
+    un canje que sale bien o un inicio de sesión nuevo hacen `logIn(beto)` (por lectura). El bloque está hoy en
+    `:246-256`. Sigue en P3, con un disparador más angosto. `detail/S153-revision-del-diff-s152.md` §5.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

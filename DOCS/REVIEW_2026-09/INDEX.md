@@ -1,9 +1,8 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 152, 2026-11-16): la fase de ARREGLOS; la 152 arregló `R9-584`, `R9-591` y `R9-592`, y numeró
-> `R9-594`.** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de
-> la 152 eran 278 de 594: ningún P0, 16 P1, 91 P2, 170 P3 y un aviso. Sigue la 153: la revisión del diff de la 152;
-> después, la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> **Frontera (sesión 153, 2026-11-16): la fase de ARREGLOS; la 153 revisó el diff de la 152 y se sostiene.** Qué
+> queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 153 eran 278
+> de 594: ningún P0, 16 P1, 91 P2, 170 P3 y un aviso. Sigue la 154: la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
 > (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -344,3 +343,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   (`0b957e86`, el canje enlaza solo si su cuenta sigue en sesión). Cada pieza vista caer sola sobre lo integrado; las
   sondas, como decía la predicción. Un hallazgo nuevo (P3): `R9-594` (el arranque sin red no carga el pendiente).
   Sin medir en vivo. Detalle: `detail/S152-arreglos-pruebas.md`.
+- **Sesión 153 — 2026-11-16.** Revisión del diff de la 152, con Opus 5.5 de principal y sin agentes; el asesor no
+  respondió. Los tres arreglos se sostienen. El mock nuevo no cambia ninguna conducta con HEAD (0 eventos, con
+  control). Cada prueba nueva cae con su pieza, por la razón escrita. Las diez matrices, iguales a `s152fix`. Dos
+  declaraciones por lectura, ahora medidas. Ningún hallazgo nuevo; dos frases de `R9-594` corregidas («sin red» no
+  basta: el SDK responde de su caché). Sin medir en vivo. Detalle: `detail/S153-revision-del-diff-s152.md`.

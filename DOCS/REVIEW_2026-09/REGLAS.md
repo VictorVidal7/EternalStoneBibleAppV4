@@ -1319,4 +1319,8 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   `R9-38`. Y para verlo caer, la pieza tiene que fallar solo en el camino de esa prueba: una que quita la llamada para
   todos también quita las anteriores, y el control cae con y sin el arreglo. `mockClear` del mock al empezar la
   prueba, o contar desde un `antes`.
+- **El disparador de un hallazgo que nombra el mundo («sin red») se lee en el SDK instalado antes de escribirlo
+  (sesión 153, `R9-594`).** La sonda hizo rechazar `getCustomerInfo()` y la entrada escribió «sin red». El SDK
+  responde de su caché (`CACHED_OR_FETCHED`): sin red y con caché, no rechaza. Una sonda mide qué pasa si la llamada
+  falla; cuándo falla de verdad es otra pregunta, y la contesta el SDK (o el aparato).
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
