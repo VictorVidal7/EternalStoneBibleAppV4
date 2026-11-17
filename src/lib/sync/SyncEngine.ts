@@ -434,6 +434,42 @@ function updatedAtOf(entity: {updatedAt?: unknown}): number {
 
 type AnyAdapter = SyncAdapter<unknown>;
 
+/**
+ * R9-126 option E — how a collection's wait for the server ended: its listener
+ * delivered and applied a snapshot from the server, it failed (error, detached,
+ * no listener), or the session ended.
+ */
+type ServerSyncResult = 'server' | 'error' | 'stopped';
+
+/** R9-126 option E — one listener's wait for the server (see `serverSync`). */
+type ServerSync = {
+  done: Promise<ServerSyncResult>;
+  settle: (result: ServerSyncResult) => void;
+  /** A server snapshot arrived; its "applied" marker is in the chain. */
+  serverSeen: boolean;
+  /** Each doc's clock as this listener's view holds it, for the bulk push;
+   *  `null` once no bulk push of this session can still need it. */
+  clocks: Map<string, number> | null;
+};
+
+function newServerSync(withClocks: boolean): ServerSync {
+  let settle: (result: ServerSyncResult) => void = () => {};
+  const done = new Promise<ServerSyncResult>(resolve => {
+    let settled = false;
+    settle = result => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+  });
+  return {
+    done,
+    settle,
+    serverSeen: false,
+    clocks: withClocks ? new Map() : null,
+  };
+}
+
 export class SyncEngine {
   private adapters = new Map<string, AnyAdapter>();
   private listeners = new Set<SyncEngineListener>();
@@ -786,6 +822,21 @@ export class SyncEngine {
    *  starts next (see `queueSkipAfterAccountDeletion`). Apart from the one
    *  above, so an answer given in a sign-in never drops it. */
   private deletionSkip = false;
+  /**
+   * R9-126 option E — per collection, its listener's wait for the server. The
+   * initial bulk push of a collection waits for it: run before the listener's
+   * first snapshot was applied, it pushed every local row with its old clock
+   * over a newer copy in the cloud (the other device never heard of it, below
+   * its floor; a new phone downloaded the old one). Waited for, LWW has
+   * already applied the newer copy here, and `clocks` tells which rows the
+   * cloud already holds. Settled `'stopped'` by `stop()`, `'error'` by an
+   * error of the listener or its detach.
+   */
+  private serverSync = new Map<string, ServerSync>();
+  /** R9-126 option E — a bulk push of this session may still read the
+   *  listeners' clocks: set by `start()`, cleared once the bulk push is done
+   *  (or not to run), so later attaches keep no map of the collection. */
+  private bulkClocksWanted = false;
   private state: SyncEngineState = {
     isActive: false,
     isOnline: true,
@@ -816,6 +867,9 @@ export class SyncEngine {
 
   unregister(collection: string): void {
     this.adapters.delete(collection);
+    // R9-126 option E — no snapshot of this listener comes any more.
+    this.serverSync.get(collection)?.settle('error');
+    this.serverSync.delete(collection);
     const off = this.unsubs.get(collection);
     if (off) {
       off();
@@ -904,6 +958,9 @@ export class SyncEngine {
     // once `await engine.start(uid)` resolves still gets that guarantee.
     // Each attach still manages its own errors internally (logged, never
     // thrown), so one failing collection can't block the others.
+    // R9-126 option E — the listeners note each doc's clock until the initial
+    // bulk push no longer needs them (see `serverSync`).
+    this.bulkClocksWanted = true;
     await Promise.all(
       Array.from(this.adapters.values()).map(adapter =>
         this.attachListener(adapter),
@@ -951,6 +1008,12 @@ export class SyncEngine {
     this.flushSession += 1;
     this.flushInFlight = false;
     this.uid = null;
+    // R9-126 option E — a bulk push still waiting for the server belongs to
+    // the session that is ending: it ends without its flag (see
+    // `maybeRunInitialBulkPush`), and the next `start()` runs it.
+    for (const sync of this.serverSync.values()) sync.settle('stopped');
+    this.serverSync.clear();
+    this.bulkClocksWanted = false;
     // Conflicts are transient — they snapshot the local doc at detection
     // time. If the user signs back in, fresh onSnapshot events will
     // re-detect any still-divergent docs: each one is still in its
@@ -1669,7 +1732,20 @@ export class SyncEngine {
     }
 
     const lookup = (docId: string) => collectionRef.doc(docId).get();
+    // R9-126 option E — this listener's wait for the server. A re-attach in
+    // the same session replaces the old one: a bulk push waiting on it takes
+    // the collection to its retry list (R9-257).
+    const sync = newServerSync(this.bulkClocksWanted);
+    this.serverSync.get(adapter.collection)?.settle('error');
+    this.serverSync.set(adapter.collection, sync);
     const off = query.onSnapshot(
+      // R9-126 option E — with metadata changes the step from the cache to
+      // the server raises an event even when no doc changed (an account with
+      // nothing in the cloud, linked offline; a collection cached from an
+      // earlier session). `docChanges()` without options leaves out the
+      // metadata-only changes, so those events reach `handleSnapshot` with
+      // no change and end at its first line. No read is billed for them.
+      {includeMetadataChanges: true},
       snapshot => {
         // R9-175 — one batch at a time per collection. Batches share the
         // cursor: while one waited (the read of a `removed`, a `getLocal`), a
@@ -1686,9 +1762,30 @@ export class SyncEngine {
         for (const change of changes) {
           this.noteArrived(uid, adapter.collection, change);
         }
+        // R9-126 option E — the view's clocks, cache included: once the view
+        // is in sync with the server, it IS the server's (a doc the server no
+        // longer has leaves it as a `removed`).
+        if (sync.clocks) {
+          for (const change of changes) {
+            const id = fromDocId(change.doc.id);
+            const data = change.type === 'removed' ? null : change.doc.data();
+            if (data) sync.clocks.set(id, updatedAtOf(data));
+            else sync.clocks.delete(id);
+          }
+        }
         this.enqueueSnapshot(adapter.collection, () =>
           this.handleSnapshot(adapter, changes, lookup, session, uid),
         );
+        // R9-126 option E — the first snapshot from the server, once applied
+        // (the chain runs it after this batch, R9-175). One from the cache
+        // does not count: offline, or with the collection cached, the SDK
+        // delivers the cache first, without the newer copy of the cloud.
+        if (!sync.serverSeen && snapshot.metadata?.fromCache !== true) {
+          sync.serverSeen = true;
+          this.enqueueSnapshot(adapter.collection, async () =>
+            sync.settle('server'),
+          );
+        }
       },
       err => {
         // AuthContext.signOut/deleteAccount call stop() synchronously
@@ -1713,6 +1810,9 @@ export class SyncEngine {
           collection: adapter.collection,
         });
         this.updateState({lastError: err.message});
+        // R9-126 option E — a listener that failed delivers nothing more: a
+        // bulk push waiting on it takes the collection to its retry list.
+        sync.settle('error');
       },
     );
     this.unsubs.set(adapter.collection, off);
@@ -3710,8 +3810,26 @@ export class SyncEngine {
 
   // ---------- private: initial bulk push ----------
 
+  /** R9-126 option E — no bulk push of this session reads the clocks any
+   *  more: the maps go. */
+  private dropBulkClocks(): void {
+    this.bulkClocksWanted = false;
+    for (const sync of this.serverSync.values()) sync.clocks = null;
+  }
+
   private async maybeRunInitialBulkPush(uid: string): Promise<void> {
+    // R9-126 option E — see `dropBulkClocks`; every way out drops them.
+    const session = this.flushSession;
+    try {
+      await this.runInitialBulkPush(uid);
+    } finally {
+      if (session === this.flushSession) this.dropBulkClocks();
+    }
+  }
+
+  private async runInitialBulkPush(uid: string): Promise<void> {
     const flagKey = `${BULK_PUSH_FLAG_PREFIX}${uid}`;
+    const session = this.flushSession;
     const skip = this.skipNextBulkPush;
     // R9-127 — only the account it was asked for (or the sign-in still in
     // flight it was armed for) takes it; another uid's start leaves it. The
@@ -3770,9 +3888,33 @@ export class SyncEngine {
     const failed: string[] = [];
     for (const adapter of this.adapters.values()) {
       if (only && !only.has(adapter.collection)) continue;
+      // R9-126 option E — first the cloud's copy of every doc, applied here by
+      // LWW (see `serverSync`). Ended by `stop()`: no flag and no list, so
+      // the next `start()` runs it. Failed: as a failed read below (R9-257).
+      // Offline it waits while the process lives; nothing was written yet.
+      const sync = this.serverSync.get(adapter.collection);
+      const synced: ServerSyncResult = sync ? await sync.done : 'error';
+      if (synced === 'stopped' || session !== this.flushSession) return;
+      if (synced === 'error') {
+        failed.push(adapter.collection);
+        continue;
+      }
       try {
         const rows = await adapter.pullAllLocal();
+        if (session !== this.flushSession) return;
         for (const row of rows) {
+          // R9-126 option E — a row the cloud already holds at the same clock
+          // or a newer one does not go up: it is the cloud's copy that LWW
+          // applied, or the local side of a conflict the person still has to
+          // pick. Pushed, it rewrote the whole cloud of an account with data
+          // (a write per doc, R9-29), or the old side over the newer one.
+          const cloud = sync?.clocks?.get(row.id);
+          if (
+            cloud !== undefined &&
+            updatedAtOf(row.data as {updatedAt?: unknown}) <= cloud
+          ) {
+            continue;
+          }
           this.upsertQueueEntry({
             uid,
             collection: adapter.collection,

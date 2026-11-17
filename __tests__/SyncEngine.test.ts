@@ -72,6 +72,12 @@ let mockGetGate:
   ((path: string, id: string) => Promise<void> | undefined) | null = null;
 /** R9-124 — when true, every doc `get()` rejects. Reset in beforeEach. */
 let mockGetShouldFail = false;
+/** R9-126 option E — when true, a listener's first snapshot comes from the
+ *  cache (`metadata.fromCache: true`), as the SDK delivers it offline or with
+ *  the collection cached; `__fireMetadataSync()` then raises the step to the
+ *  server. Every other delivery carries no metadata (counts as the server's).
+ *  Reset in beforeEach. */
+let mockAttachFromCache = false;
 /** R9-177 — RNFirebase on Android runs a doc's `get()`, `set()` and `delete()`
  *  on ONE executor (pool size 1 by default). A read holds it until the server
  *  answers (`Tasks.await`); a write holds it only to be issued, and is answered
@@ -199,6 +205,8 @@ function mockMakeCollection(path: string): MockCollRef {
   >();
   let snapshotCb: ((s: unknown) => void) | null = null;
   let errorCb: ((err: Error) => void) | null = null;
+  /** R9-126 option E — whether the live listener asked for metadata changes. */
+  let metadataChanges = false;
   let whereClauses: MockWhereClause[] = [];
 
   /** R9-179 — the doc as this device sees it: the cloud's copy, then every
@@ -233,8 +241,13 @@ function mockMakeCollection(path: string): MockCollRef {
     return {type: 'removed', doc: {id: docId, exists: true, data: () => last}};
   };
 
-  const deliver = (changes: MockChange[], via: MockDeliveryCause): void => {
-    if (!snapshotCb || changes.length === 0) return;
+  const deliver = (
+    changes: MockChange[],
+    via: MockDeliveryCause,
+    metadata?: {fromCache: boolean},
+    raiseEmpty = false,
+  ): void => {
+    if (!snapshotCb || (changes.length === 0 && !raiseEmpty)) return;
     for (const c of changes) {
       mockDelivered.push({path, type: c.type, id: c.doc.id, via});
     }
@@ -246,7 +259,11 @@ function mockMakeCollection(path: string): MockCollRef {
       const data = structuredClone(c.doc.data());
       return {...c, doc: {...c.doc, data: () => data}};
     });
-    snapshotCb({docChanges: () => fresh, size: fresh.length});
+    snapshotCb({
+      docChanges: () => fresh,
+      size: fresh.length,
+      ...(metadata ? {metadata} : {}),
+    });
   };
 
   /** R9-179 — what an own write changed in this device's view reaches the
@@ -372,35 +389,48 @@ function mockMakeCollection(path: string): MockCollRef {
     }),
     orderBy: jest.fn((_field: string, _direction?: string) => coll),
     limit: jest.fn((_n: number) => coll),
-    onSnapshot: jest.fn(
-      (cb: (s: unknown) => void, onError?: (err: Error) => void) => {
-        snapshotCb = cb;
-        errorCb = onError ?? null;
-        // A new listener is a new query: it starts with an empty result set,
-        // and its first snapshot, a beat later, brings every doc of this
-        // device's view that matches, as `added` — own writes in flight
-        // included (R9-179: the SDK does; before, a restart re-delivered
-        // only what a test fired again).
-        listenerSet.clear();
-        setImmediate(() => {
-          if (snapshotCb !== cb) return;
-          const initial: MockChange[] = [];
-          const ids = new Set([...serverDocs.keys(), ...ownInFlight.keys()]);
-          for (const docId of ids) {
-            const change = viewChange(docId);
-            if (change) initial.push(change);
-          }
-          deliver(initial, 'attach');
-        });
-        return () => {
-          snapshotCb = null;
-          // Deliberately NOT clearing errorCb here — real native teardown
-          // is async, so the JS error closure SyncEngine registered can
-          // still be invoked a beat after this unsub runs. __fireError
-          // below uses that to simulate exactly this race.
-        };
-      },
-    ),
+    onSnapshot: jest.fn((...args: unknown[]) => {
+      // R9-126 option E — the engine passes `{includeMetadataChanges}` first.
+      const [cb, onError] = (
+        typeof args[0] === 'function' ? args : args.slice(1)
+      ) as [(s: unknown) => void, ((err: Error) => void) | undefined];
+      const opts = typeof args[0] === 'function' ? undefined : args[0];
+      metadataChanges =
+        (opts as {includeMetadataChanges?: boolean} | undefined)
+          ?.includeMetadataChanges === true;
+      snapshotCb = cb;
+      errorCb = onError ?? null;
+      // A new listener is a new query: it starts with an empty result set,
+      // and its first snapshot, a beat later, brings every doc of this
+      // device's view that matches, as `added` — own writes in flight
+      // included (R9-179: the SDK does; before, a restart re-delivered
+      // only what a test fired again).
+      listenerSet.clear();
+      setImmediate(() => {
+        if (snapshotCb !== cb) return;
+        const initial: MockChange[] = [];
+        const ids = new Set([...serverDocs.keys(), ...ownInFlight.keys()]);
+        for (const docId of ids) {
+          const change = viewChange(docId);
+          if (change) initial.push(change);
+        }
+        // R9-126 option E — the SDK raises a listener's first snapshot
+        // even when it is empty.
+        deliver(
+          initial,
+          'attach',
+          mockAttachFromCache ? {fromCache: true} : undefined,
+          true,
+        );
+      });
+      return () => {
+        snapshotCb = null;
+        // Deliberately NOT clearing errorCb here — real native teardown
+        // is async, so the JS error closure SyncEngine registered can
+        // still be invoked a beat after this unsub runs. __fireError
+        // below uses that to simulate exactly this race.
+      };
+    }),
     get: jest.fn(async () => {
       const entries = mockCollDocs.get(path) ?? [];
       const filtered = entries.filter(e =>
@@ -470,6 +500,15 @@ function mockMakeCollection(path: string): MockCollRef {
   ) => {
     errorCb?.(err);
   };
+  /** R9-126 option E — the view caught up with the server and no doc changed:
+   *  an event with no change, `fromCache: false` (the listener asks for
+   *  metadata changes). */
+  (coll as MockCollRef & {__fireMetadataSync: () => void}).__fireMetadataSync =
+    () => {
+      // Without metadata changes the SDK raises nothing for it.
+      if (!metadataChanges) return;
+      deliver([], 'fire', {fromCache: false}, true);
+    };
   mockCollections.set(path, coll);
   return coll;
 }
@@ -582,6 +621,7 @@ beforeEach(async () => {
   mockSetGate = null;
   mockGetGate = null;
   mockGetShouldFail = false;
+  mockAttachFromCache = false;
   mockExecutorTail = Promise.resolve();
   mockExecutorTurns = 0;
   mockDelivered.length = 0;

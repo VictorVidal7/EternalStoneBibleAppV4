@@ -46,7 +46,14 @@ interface Query {
   where: (field: string, op: WhereFilterOp, value: unknown) => Query;
   orderBy: (field: string, direction?: 'asc' | 'desc') => Query;
   limit: (n: number) => Query;
+  /**
+   * R9-126 option E — the engine's listener passes the options first
+   * (`{includeMetadataChanges: true}`), as RNFirebase's `onSnapshot(options,
+   * onNext, onError)` takes them: the step from the cache to the server raises
+   * an event even when no doc changed.
+   */
   onSnapshot: (
+    options: {includeMetadataChanges?: boolean},
     onNext: (snapshot: QuerySnapshot) => void,
     onError?: (err: Error) => void,
   ) => () => void;
@@ -87,6 +94,9 @@ interface QuerySnapshot {
   /** Sprint 49 — every doc in the snapshot (used by one-shot `get()`). */
   docs: DocumentSnapshot[];
   size: number;
+  /** R9-126 option E — `fromCache`: the snapshot came from the local cache,
+   *  not (yet) from the server. Absent counts as from the server. */
+  metadata?: {fromCache?: boolean};
 }
 
 interface FirestoreInstance {
@@ -111,6 +121,7 @@ type FirestoreModuleExports = {
   limit: (n: number) => unknown;
   onSnapshot: (
     query: unknown,
+    options: {includeMetadataChanges?: boolean},
     onNext: (snapshot: any) => void,
     onError?: (err: Error) => void,
   ) => () => void;
@@ -146,6 +157,9 @@ function wrapQuerySnapshot(raw: any): QuerySnapshot {
       })),
     docs: (raw.docs ?? []).map(wrapDocumentSnapshot),
     size: raw.size,
+    // R9-126 option E — the engine tells a snapshot of the cache from one of
+    // the server by it. Dropped here, every snapshot counted as the server's.
+    ...(raw.metadata ? {metadata: {fromCache: !!raw.metadata.fromCache}} : {}),
   };
 }
 
@@ -156,9 +170,10 @@ function buildQuery(mod: FirestoreModuleExports, queryRef: unknown): Query {
     orderBy: (field, direction) =>
       buildQuery(mod, mod.query(queryRef, mod.orderBy(field, direction))),
     limit: n => buildQuery(mod, mod.query(queryRef, mod.limit(n))),
-    onSnapshot: (onNext, onError) =>
+    onSnapshot: (options, onNext, onError) =>
       mod.onSnapshot(
         queryRef,
+        options,
         snap => onNext(wrapQuerySnapshot(snap)),
         onError,
       ),

@@ -34,7 +34,11 @@ jest.mock('../src/lib/sync/firestore', () => {
       orderBy: () => query,
       limit: () => query,
       get: async () => ({docs: [], docChanges: () => [], size: 0}),
-      onSnapshot: (cb: (snapshot: unknown) => void) => {
+      onSnapshot: (...args: unknown[]) => {
+        // R9-126 option E — the engine passes `{includeMetadataChanges}` first.
+        const cb = args.find(a => typeof a === 'function') as Parameters<
+          typeof mockSnapshotCbs.set
+        >[1];
         mockSnapshotCbs.set(path, cb);
         return () => mockSnapshotCbs.delete(path);
       },

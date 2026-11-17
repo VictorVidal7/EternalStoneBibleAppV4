@@ -31,7 +31,15 @@ function mockColl(path: string): Record<string, unknown> {
     where: () => coll,
     orderBy: () => coll,
     limit: () => coll,
-    onSnapshot: () => () => {},
+    onSnapshot: (...args: unknown[]) => {
+      // R9-126 option E — like the SDK, a listener gets its first snapshot (empty
+      // here): the initial bulk push waits for it.
+      const next = args.find(a => typeof a === 'function');
+      setImmediate(() => {
+        if (typeof next === 'function') next({docChanges: () => [], size: 0});
+      });
+      return () => {};
+    },
     get: async () => ({docs: [], empty: true, size: 0}),
     doc: (id: string) => ({
       set: async () => {

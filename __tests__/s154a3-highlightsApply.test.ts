@@ -111,7 +111,11 @@ function mockCollection(path: string) {
     where: () => query,
     orderBy: () => query,
     limit: () => query,
-    onSnapshot: (next: (snapshot: unknown) => void) => {
+    onSnapshot: (...args: unknown[]) => {
+      // R9-126 option E — the engine passes `{includeMetadataChanges}` first.
+      const next = (typeof args[0] === 'function' ? args[0] : args[1]) as (
+        snapshot: unknown,
+      ) => void;
       mockListeners.set(path, next);
       return () => {
         if (mockListeners.get(path) === next) mockListeners.delete(path);

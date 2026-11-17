@@ -367,35 +367,37 @@ function mockMakeCollection(path: string): MockCollRef {
     }),
     orderBy: jest.fn((_field: string, _direction?: string) => coll),
     limit: jest.fn((_n: number) => coll),
-    onSnapshot: jest.fn(
-      (cb: (s: unknown) => void, onError?: (err: Error) => void) => {
-        snapshotCb = cb;
-        errorCb = onError ?? null;
-        // A new listener is a new query: it starts with an empty result set,
-        // and its first snapshot, a beat later, brings every doc of this
-        // device's view that matches, as `added` — own writes in flight
-        // included (R9-179: the SDK does; before, a restart re-delivered
-        // only what a test fired again).
-        listenerSet.clear();
-        setImmediate(() => {
-          if (snapshotCb !== cb) return;
-          const initial: MockChange[] = [];
-          const ids = new Set([...serverDocs.keys(), ...ownInFlight.keys()]);
-          for (const docId of ids) {
-            const change = viewChange(docId);
-            if (change) initial.push(change);
-          }
-          deliver(initial, 'attach');
-        });
-        return () => {
-          snapshotCb = null;
-          // Deliberately NOT clearing errorCb here — real native teardown
-          // is async, so the JS error closure SyncEngine registered can
-          // still be invoked a beat after this unsub runs. __fireError
-          // below uses that to simulate exactly this race.
-        };
-      },
-    ),
+    onSnapshot: jest.fn((...args: unknown[]) => {
+      // R9-126 option E — the engine passes `{includeMetadataChanges}` first.
+      const [cb, onError] = (
+        typeof args[0] === 'function' ? args : args.slice(1)
+      ) as [(s: unknown) => void, ((err: Error) => void) | undefined];
+      snapshotCb = cb;
+      errorCb = onError ?? null;
+      // A new listener is a new query: it starts with an empty result set,
+      // and its first snapshot, a beat later, brings every doc of this
+      // device's view that matches, as `added` — own writes in flight
+      // included (R9-179: the SDK does; before, a restart re-delivered
+      // only what a test fired again).
+      listenerSet.clear();
+      setImmediate(() => {
+        if (snapshotCb !== cb) return;
+        const initial: MockChange[] = [];
+        const ids = new Set([...serverDocs.keys(), ...ownInFlight.keys()]);
+        for (const docId of ids) {
+          const change = viewChange(docId);
+          if (change) initial.push(change);
+        }
+        deliver(initial, 'attach');
+      });
+      return () => {
+        snapshotCb = null;
+        // Deliberately NOT clearing errorCb here — real native teardown
+        // is async, so the JS error closure SyncEngine registered can
+        // still be invoked a beat after this unsub runs. __fireError
+        // below uses that to simulate exactly this race.
+      };
+    }),
     get: jest.fn(async () => {
       const entries = mockCollDocs.get(path) ?? [];
       const filtered = entries.filter(e =>

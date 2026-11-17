@@ -32,7 +32,11 @@ function mockMakeQuery(path: string): Record<string, unknown> {
       get: jest.fn(async () => ({exists: false, data: () => undefined})),
       delete: jest.fn(async () => {}),
     })),
-    onSnapshot: jest.fn((cb: (snapshot: unknown) => void) => {
+    onSnapshot: jest.fn((...args: unknown[]) => {
+      // R9-126 option E — the engine passes `{includeMetadataChanges}` first.
+      const cb = (typeof args[0] === 'function' ? args[0] : args[1]) as (
+        snapshot: unknown,
+      ) => void;
       const listener: MockListener = {path, live: true, cb};
       mockListeners.push(listener);
       return () => {
