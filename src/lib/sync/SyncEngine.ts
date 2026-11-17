@@ -2473,7 +2473,47 @@ export class SyncEngine {
       );
       return false;
     }
+    if (data) {
+      this.dropQueuedOlderThan(adapter.collection, id, data);
+    }
     return true;
+  }
+
+  /**
+   * R9-126 (option C) — LWW just took a change of the doc from the cloud (a
+   * copy or a tombstone) newer than a write of this device still waiting in
+   * the queue: that write lost here, so it does not go up either. Pushed, the
+   * cloud kept the old version (or revived what the other device deleted
+   * later), the other device never heard of it (below its floor) and a new
+   * phone downloaded it, while this phone kept the newer one (the common
+   * trigger: an edit queued offline, and the other device writes later; S49).
+   * A tombstone of this device's queued loses the same way to a newer copy.
+   * Not covered: a push already in flight (it lands anyway), the first-sign-in
+   * bulk push (option E) and a restored backup (option B): their old copy goes
+   * up before any newer one is applied here.
+   */
+  private dropQueuedOlderThan(
+    collection: string,
+    id: string,
+    applied: {updatedAt?: unknown},
+  ): void {
+    const before = this.queue.length;
+    this.queue = this.queue.filter(
+      q =>
+        !(
+          q.uid === this.uid &&
+          q.collection === collection &&
+          q.id === id &&
+          updatedAtOf(q.data) < updatedAtOf(applied)
+        ),
+    );
+    if (this.queue.length === before) return;
+    this.updateState({pendingWrites: this.pendingForActiveUid()});
+    // R9-212 — not with the queue unread: the write would wait for a read
+    // again, and if that read failed too it gave up and wrote the queue from
+    // memory, losing the entries of other docs still on disk. The read joins
+    // them later, and drops this doc's (`queueTouched`, set by the apply).
+    if (!this.queueUnread) void this.persistQueue();
   }
 
   // ---------- private: sync cursor (quota hardening) ----------
