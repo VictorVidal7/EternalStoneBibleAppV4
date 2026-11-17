@@ -1,9 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 153, 2026-11-16): la fase de ARREGLOS; la 153 revisó el diff de la 152 y se sostiene.** Qué
-> queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 153 eran 278
-> de 594: ningún P0, 16 P1, 91 P2, 170 P3 y un aviso. Sigue la 154: la V2 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
-> (`CONTINUAR.md` §7). Todo el dinero está sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 154, 2026-11-16): la fase de ARREGLOS; la 154 hizo la V2 en parte (`fix/s154-v2`, sin
+> mergear al escribir esto).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
+> al cierre de la 154 eran 275 de 594: ningún P0, 14 P1, 90 P2, 170 P3 y un aviso. Sigue la 155: `R9-127` y la
+> revisión del diff de la 154 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google
+> de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 están sin medir en vivo; del Modo C faltan `C17`
+> y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -348,3 +350,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   control). Cada prueba nueva cae con su pieza, por la razón escrita. Las diez matrices, iguales a `s152fix`. Dos
   declaraciones por lectura, ahora medidas. Ningún hallazgo nuevo; dos frases de `R9-594` corregidas («sin red» no
   basta: el SDK responde de su caché). Sin medir en vivo. Detalle: `detail/S153-revision-del-diff-s152.md`.
+- **Sesión 154 — 2026-11-16.** Arreglos, la tanda V2 en parte, con Opus 5.5 de principal, Fable de asesor y 8
+  agentes a pedido de Victor: `R9-128` y `R9-132` (`5296512b`, un `apply*` que falla ya no avanza el cursor) y
+  `R9-37` (`253f0a9d`, sin listener huérfano), en `fix/s154-v2`. Cada pieza vista caer sola sobre lo integrado.
+  `R9-127`: el diff del agente 6 no entró (quita la red del borrado). `R9-126`: medido con sonda y propuesto (C en
+  su sesión; B a la §8). Sin medir en vivo. Detalle: `detail/S154-arreglos-v2.md`.

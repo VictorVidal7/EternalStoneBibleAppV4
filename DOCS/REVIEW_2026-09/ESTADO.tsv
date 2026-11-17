@@ -35,7 +35,7 @@ R9-33	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la
 R9-34	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`): la rama de error hace el spread de la entrada viva de la cola, no del snapshot `item`. Cayó del mismo cambio q»
 R9-35	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`): `advanceCursor` topa en `Date.now()`, así que el envenenamiento ya no puede ocurrir; y `loadCursor` descarta u»
 R9-36	P0	conflictos	arreglado	6440ca0	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`6440ca0`): - `keepMine` relee lo local al resolver (`adapter.getLocal`) y sube eso re-sellado. Falla con error si la ses»
-R9-37	P1	SyncEngine	abierto		`src/lib/sync/SyncEngine.ts:1590` (la guarda `unsubs.has`) y `:1696` (el `unsubs.set`), con el `await` del cursor en medio
+R9-37	P1	SyncEngine	arreglado	253f0a9d	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`253f0a9d`, rama `fix/s154-v2`): dos guardas después del último `await` de `attachListener` (la colección sin listener y»
 R9-38	P0	SyncEngine	arreglado	ea182dc	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`ea182dc`, rama `fix/s53-r59-r38`). El cómo, decidido midiendo: - Sin sesión, `queueWrite`/`queueDelete` encolan la entra»
 R9-39	P0	conflictos	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`9c425a8`, junto con `R9-106`): - Hay un conjunto «no asentado» (conflictos pendientes y docs saltados por `R9-46`) por c»
 R9-40	P1	catálogo de versiones	abierto		verificado en la 141: ningún `fetch` del catálogo de versiones tiene timeout (`grep AbortController src/lib/bible`: 0)
@@ -126,11 +126,11 @@ R9-124	P0	SyncEngine	arreglado	34de18f	marca de su entrada: «✅ ARREGLADO en l
 R9-125	P0	identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`, hecho en la nube y revisado en local): `signInWithGoogle` lee el dueño previo ANTES de bifurcar, y la rama sin»
 R9-126	P1	SyncEngine / respaldo	abierto		`src/lib/sync/SyncEngine.ts:78`, `:997` y `:3586` siguen tratando el push con reloj viejo como riesgo vivo (lo evitan, no lo cierran); ningún commit lo arregla, y la entrada lo sigue hasta la sesión 49
 R9-127	P1	SyncEngine / auth	abierto		`src/lib/sync/SyncEngine.ts:779` (`skipNextBulkPush`, booleano de instancia sin uid) y `src/context/AuthContext.tsx:694` (`deleteAccount` lo arma); la entrada dice qué puertas se cerraron y cuáles no
-R9-128	P1	adaptadores de sync	abierto		`src/lib/sync/adapters/notes.ts:115-121` (`catch` → `logger.error`, sin relanzar) y `adapters/highlights.ts:120`, `:134`
+R9-128	P1	adaptadores de sync	arreglado	5296512b	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`5296512b`, rama `fix/s154-v2`): los `apply*` de notas, subrayados y favoritos relanzan; `applyRemoteChange` devuelve `f»
 R9-129	P1	respaldo / memoria	abierto		`src/lib/memory/reviewEventStore.ts:90-96` (`catch` → `return []`)
 R9-130	P1	prueba de identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`): el `claimLocalStore` del camino directo lo vigila ahora una prueba que pasa por las tres ramas. Quitado, caen»
 R9-131	P1	prueba de respaldo	abierto		por lectura (el revert no se repitió): ninguna prueba nombra `R9-131`; `__tests__/achievementServiceRestoreBackup.test.ts` no tiene `degraded`, y `strict` solo aparece en `backupDegradedSections.test.ts:183-194`, que prueba el getter y no la llamada del export
-R9-132	P2	adaptadores de sync	abierto		`src/lib/sync/adapters/highlights.ts:85-91` (`getLocal`: `catch` → `return null`); `src/lib/sync/SyncEngine.ts:3340` lo nombra como lectura fallida posible
+R9-132	P2	adaptadores de sync	arreglado	5296512b	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`5296512b`, rama `fix/s154-v2`): el `getLocal` de subrayados lanza en un fallo; con HEAD, una copia vieja pisaba nota, c»
 R9-133	P2	favoritos / sync	arreglado	57cab837	dos marcas ✅ en la entrada: favoritos con `R9-210` (`682f852`, sesión 34) y el mazo (`57cab83`, sesión 61); el bulk push de favoritos sigue aparte, en `R9-214`
 R9-134	P2	memoria / identidad	abierto		`src/lib/memory/memoryStatsSync.ts:82-84` (`getReviewLogOwner`: `catch` → `return null`, falla abierta)
 R9-135	P2	premium	abierto		`linkUser` en `src/lib/offering/offeringService.ts` (`if (!configured || !uid) return;`); reproduce con el servicio real (sesión 144, `_scratch/S144-sonda.test.tsx.txt`); decidido el 2026-11-12 (`CONTINUAR.md` §7), se arregla en la tanda V1b

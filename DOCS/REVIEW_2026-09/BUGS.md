@@ -2909,6 +2909,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     - **Arreglo (hipótesis, sin medir):** cuando LWW aplica una copia más nueva que la entrada en
       cola del doc, quitar la entrada, que ya perdió en este teléfono. Antes, preguntar qué vigila
       esa entrada mientras espera: sus relojes (`own`) y la guarda de `R9-245`.
+  - **Sesión 154: medido con sonda (agente 7), sin tocar `src/`.** Restaurar, el bulk push del primer inicio y una
+    edición en cola que ya perdió LWW suben una versión vieja; en el bulk push, A tampoco se queda con la nueva
+    (inferido del mock). Opciones: C (si LWW aplica una copia más nueva, quitar la entrada en cola; medida),
+    E (el bulk push espera el primer snapshot), B (el import reestampa `updatedAt`: decisión en `CONTINUAR.md` §8),
+    R (LWW en las reglas: consola, con `R9-4`) y T (transacción: descartada, +1 lectura por push). Recomendación:
+    C en su propia sesión, después E. `detail/S154-arreglos-v2.md` §6.
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -2935,6 +2941,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     arma recién cuando el link tuvo éxito, así que esa puerta se cerró. Siguen abiertas la rama sin
     anónimo y la de colisión (se arman antes del `signInWithCredential`), y el skip de
     `deleteAccount`. El arreglo de fondo (un skip por uid) toca `SyncEngine.ts` y `AuthContext.tsx`.
+  - **Sesión 154: sigue abierto.** El agente 6 hizo el skip por uid (12 pruebas, sus piezas caen), y el diff NO
+    entró: además quita el skip de `deleteAccount`, la única red del camino de borrado (con la marca de dueño
+    ilegible, o el reclamo de `(deleted)` fallando, lo borrado subiría a la cuenta siguiente sin preguntar: leído,
+    sin medir). El diseño para la 155: armar el skip solo si la limpieza y el borrado salieron bien, y que un
+    «Migrar» explícito suelte el pendiente; antes, medir los dos casos sin pregunta con HEAD y con el diff del
+    agente 6 (`_scratch/S154-sondas-agente-6/S154-a6.diff.txt`). `detail/S154-arreglos-v2.md` §5.
 
 - **`R9-128` (S21, adaptadores de sync) — 🐛 un apply remoto que FALLA se traga su error y el
   cursor avanza igual: el cambio remoto no vuelve nunca.** CONFIRMADO con sonda del motor.
@@ -2949,6 +2961,14 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     o revive lo que el otro borró.
   - P1 y no P0 porque el disparador (una escritura SQLite que falla: `database is locked`, disco
     lleno) es raro.
+  - **✅ ARREGLADO en la sesión 154** (`5296512b`, rama `fix/s154-v2`): los `apply*` de notas, subrayados y
+    favoritos relanzan; `applyRemoteChange` devuelve `false` y `handleSnapshot` retiene el doc (el camino de
+    `R9-46`); el borrado real ya no corta el lote; el delete de favoritos abre la base antes y saca la fila de la
+    pantalla solo si llegó al disco; el upsert de subrayados es un solo `INSERT OR REPLACE`. `resolveConflict`, sin
+    cambio de código (con el adaptador que relanza, el conflicto sigue). Cada pieza vista caer sola sobre lo
+    integrado. Sin medir en vivo. Sin medir: un `apply*` que falla siempre deja el doc retenido para siempre (la
+    regla de `R9-212`). Candidato sin número (agente 2): `queueTouched` se marca antes del `apply` y no se quita si
+    falla. `detail/S154-arreglos-v2.md` §4 y §7.
 
 - **`R9-129` (S21, respaldo / memoria) — 🐛 `getAllReviewEvents` se traga su error: la sección
   `reviewEvents` del respaldo nunca se marca degradada, y el sembrado toma un dispositivo con
@@ -3641,6 +3661,11 @@ loadCursor()` (lectura de AsyncStorage). Dos invocaciones concurrentes para la m
   **2 veces** y `unsubs` retiene una sola. La mitad "el huérfano sigue entregando tras
   `stop()`" es **inferencia sobre el SDK real, no medición** (el arnés comparte un único
   `snapshotCb`). Detalle: `detail/A4-syncengine.md`.
+  - **✅ ARREGLADO en la sesión 154** (`253f0a9d`, rama `fix/s154-v2`): dos guardas después del último `await` de
+    `attachListener` (la colección sin listener y el adaptador todavía registrado). Con HEAD: 2 listeners y 1
+    huérfano tras `stop()`, en `register()` durante `start()` y en `start` → `stop` → `start` del mismo uid. Que el
+    huérfano siga facturando en el SDK real: sin medir. Candidato sin número (agente 5): un adaptador registrado de
+    nuevo sin carrera deja el listener con el viejo. `detail/S154-arreglos-v2.md` §4 y §7.
 
 - **`R9-40` (campo, catálogo de versiones) — 🐛 ningún `fetch` de la app tiene timeout:
   «Buscando versiones disponibles…» se cuelga para siempre.** Severidad **media**.
@@ -14636,6 +14661,8 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   la lectura sana no aplica nada. P2 y no P1: a diferencia de `notes`, la ventana no se abre sola
   (los subrayados llaman a `initialize()` en los cuatro métodos). Hace falta que la lectura falle
   de verdad.
+  - **✅ ARREGLADO en la sesión 154** (`5296512b`, rama `fix/s154-v2`): el `getLocal` de subrayados lanza en un
+    fallo; con HEAD, una copia vieja pisaba nota, color y reloj de la local nueva. Sin medir en vivo. `detail/S154-arreglos-v2.md` §4.
 
 - **`R9-133` (S21, favoritos / sync) — 🐛 el `getLocal` de FAVORITOS dice «ausente» durante toda
   la carga en frío, y para siempre si la carga falla.** CONFIRMADO con sonda (provider real).

@@ -189,6 +189,13 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   `R9-132` (P2, la misma forma en subrayados); `R9-37` (el listener huérfano); `R9-127` (el `skipNextBulkPush` sin
   uid); y `R9-126` (el push con reloj viejo), que es de diseño: se mide y se propone antes de escribirlo, y si no
   cabe, lleva su propia sesión.
+  **Hecha EN PARTE en la sesión 154** (`detail/S154-arreglos-v2.md`), con 8 agentes, sin medir en vivo: `R9-128` y
+  `R9-132` (`5296512b`) y `R9-37` (`253f0a9d`) arreglados, en `fix/s154-v2`. **`R9-127` sigue abierto:** el diff del
+  agente 6 no entró (quita el skip de `deleteAccount`, la única red del camino de borrado). **`R9-126`, medido y
+  propuesto** (opciones C, E, B, R y T). **La 155: `R9-127`** con el diseño del §5 del detalle (armar el skip solo si
+  la limpieza y el borrado salieron bien, y que un «Migrar» explícito suelte el pendiente; antes, medir los dos
+  casos sin pregunta con HEAD y con el diff del agente 6), **y la revisión del diff de la 154.** Después, `R9-126`
+  opción C en su propia sesión (y E detrás); la B espera la decisión de la §8; la R va con la V4 (`R9-4`).
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
@@ -777,6 +784,9 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     quita el step? Recomendación de Claude: quitarlo; un verde que no mide confunde.
   - **`R9-136`, la cuota compartida de Firestore:** la entrada lo llama bloqueante antes del lanzamiento. Las
     mitigaciones (App Check, y un tope y la lista de colecciones en las reglas) tocan la consola de Firebase.
+- **`R9-126`, opción B (sesión 154):** «Restaurar» un respaldo, ¿lleva lo restaurado a la cuenta (el import
+  reestampa `updatedAt` y la nube queda con el respaldo) o solo a este teléfono (la nube no cambia)? Recomendación
+  de Claude: «a la cuenta». `detail/S154-arreglos-v2.md` §6.
 
 ## 9. Abierto, sin relación con la revisión
 
