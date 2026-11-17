@@ -56,6 +56,16 @@ jest.mock('@hooks/useLanguage', () => ({
 jest.mock('@context/OfferingSheetContext', () => ({
   useOfferingSheet: () => ({open: jest.fn()}),
 }));
+// R9-52 (S162): the editor reports a failed save with a toast.
+const mockToast = {
+  success: jest.fn(),
+  error: jest.fn(),
+  info: jest.fn(),
+  warning: jest.fn(),
+};
+jest.mock('@context/ToastContext', () => ({
+  useToast: () => mockToast,
+}));
 
 import PrepIllustrationEditorScreen from '../app/features/prep/illustrations/[id]';
 import {PremiumProvider} from '../src/context/PremiumContext';
@@ -86,6 +96,12 @@ beforeEach(async () => {
   await AsyncStorage.clear();
   __resetBackupRestoredListenersForTests();
   await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
+  mockToast.error.mockClear();
+});
+
+// A save the restore cancels is not a failure: no error toast.
+afterEach(() => {
+  expect(mockToast.error).not.toHaveBeenCalled();
 });
 
 function renderScreen() {
