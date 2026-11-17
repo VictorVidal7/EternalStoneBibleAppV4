@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 157, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C hecha y revisada;
-> E, B y R abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
-> al cierre de la 157 eran 277 de 597: ningún P0, 13 P1, 90 P2, 173 P3 y un aviso. `docs/review-s157` espera el OK
-> de Victor. Sigue la 158: la opción E de `R9-126` (el bulk push; `CONTINUAR.md` §4). `R9-135` sigue abierto: espera
-> la medición con la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 157
+> **Frontera (sesión 158, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C revisada; E hecha;
+> B y R abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
+> al cierre de la 158 eran 277 de 597: ningún P0, 13 P1, 90 P2, 173 P3 y un aviso. `fix/s158-r9-126-e` y `docs/review-s158`
+> esperan el OK de Victor. Sigue la 159: la revisión del diff de la 158 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera
+> la medición con la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 158
 > están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -373,3 +373,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   vuelven a caer por su razón y la matriz de vecinos da lo escrito. Medido lo que la 156 dejó sin medir: C no
   rompe el push en vuelo ni los conflictos (nunca ve un `own` vivo). Un hallazgo nuevo, anterior a los dos diffs:
   `R9-597` (P3). Notas en `R9-126` y `R9-158`; una regla. Sin código. Detalle: `detail/S157-revision-155-156.md`.
+- **Sesión 158 — 2026-11-17.** `R9-126` opción E, con Opus 5.5 de principal y 3 agentes a pedido de Victor (uno
+  Sonnet `medium`, dos forks Opus `high`). `2e9b042b`: el bulk push de cada colección espera un snapshot del
+  servidor y no re-sube lo que la nube ya tiene (sin ese filtro, «Migrar» re-subía la nube). El agente 2 halló que
+  `firestore.ts` perdía `metadata`: entró en el mismo diff. 10 pruebas; 6 piezas vistas caer en el principal; la
+  matriz de vecinos con C, 24 casos, ninguno rompe. `R9-126` sigue por B, R y el push en vuelo. Dos reglas. Sin
+  medir en vivo. Detalle: `detail/S158-r9-126-opcion-e.md`.

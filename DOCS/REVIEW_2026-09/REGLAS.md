@@ -1338,4 +1338,12 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   de la 155 citó `R9-260` para el salto que se vacía aunque su escritura falle, y `R9-260` es otra cosa (la doble
   hidratación). El agente 2 de la 157 copió la cita. Antes de escribir «ya reportado `R9-N`», `grep -n` de su
   entrada y una línea leída.
+- **Mover un productor detrás de un apply cambia lo que lee: medí también cuántas escrituras (sesión 158,
+  `R9-126` E).** Con el bulk push esperando el snapshot, lo local ya es la copia de la nube. Sin un filtro de
+  relojes, «Migrar» a una cuenta con datos re-subía toda la nube (20 escrituras en vez de 5, el tope de un flush).
+  La matriz de vecinos lleva una columna de costo.
+- **Un worktree de agente sin cambios se borra al terminar; un arnés viejo no acepta la firma nueva (sesión 158).**
+  El agente 1 solo midió: su worktree desapareció con una salida sin copiar. Lo que se quiere re-medir se copia
+  fuera antes de terminar. Y al cambiar la firma de una llamada que los mocks imitan (`onSnapshot` con opciones),
+  las sondas viejas con mock propio caen por el mock, no por el arreglo: se adaptan antes de comparar.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

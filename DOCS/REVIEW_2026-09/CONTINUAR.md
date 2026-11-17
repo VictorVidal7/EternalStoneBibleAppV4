@@ -207,6 +207,9 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   **Hecha en la sesión 157** (`detail/S157-revision-155-156.md`), con 5 agentes, sin medir en vivo: los dos
   diffs se sostienen sobre lo apilado (16 piezas y la matriz de vecinos, otra vez); C no rompe el push en vuelo ni
   los conflictos. Un hallazgo nuevo, anterior a los dos: `R9-597` (P3), con la tanda siguiente. **La 158: la E.**
+  **Hecha en la sesión 158** (`detail/S158-r9-126-opcion-e.md`), con 3 agentes, sin medir en vivo: la E
+  (`2e9b042b`, en `fix/s158-r9-126-e`), con el filtro de relojes y el envoltorio de `firestore.ts`. `R9-126` sigue
+  abierto por B (§8), R (con la V4) y el push en vuelo. **La 159: la revisión del diff de la 158.** Después, la V3.
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
@@ -285,8 +288,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 
 ## 5. Reglas que ya costaron caro: el resumen
 
-Las 295 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
-cual en la 143, tres de la 145, cuatro de la 146, cuatro de la 147, una de la 148, una de la 149, una de la 150, una de la 151, una de la 152, una de la 153, una de la 155, una de la 156 y una de la 157). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
+Las 297 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
+cual en la 143, tres de la 145, cuatro de la 146, cuatro de la 147, una de la 148, una de la 149, una de la 150, una de la 151, una de la 152, una de la 153, una de la 155, una de la 156, una de la 157 y dos de la 158). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
 tema:
 
 - **Alcance y permisos.** Se hace lo que pide el mensaje de la sesión y nada más. Un mensaje de Victor a mitad de

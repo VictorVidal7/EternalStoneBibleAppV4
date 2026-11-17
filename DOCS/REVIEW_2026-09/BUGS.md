@@ -2930,6 +2930,15 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     conflicto retenido, la entrada sube sobre una lápida más nueva hasta que la persona elige (`R9-161`, por diseño):
     esta forma, en un doc en conflicto, sin apply que dispare C. C nunca ve un `own` vivo (`retireOwn` lo borra
     antes). `detail/S157-revision-155-156.md` §6 y §7.
+  - **✅ ARREGLADO EN PARTE en la sesión 158** (`2e9b042b`, rama `fix/s158-r9-126-e`); **la entrada sigue abierta.**
+    Entró la opción E: el bulk push de cada colección espera a que su listener aplique un snapshot del servidor
+    (`fromCache` falso; el listener pide `includeMetadataChanges`), y no encola una fila que la nube ya tiene con un
+    reloj igual o más nuevo. `stop()` lo corta sin marca; un error del listener lleva la colección a la lista de
+    `R9-257`. El envoltorio `firestore.ts` perdía `metadata`: arreglado en el mismo diff (sin él, la E no esperaba
+    en producción). Cierra el bulk push (C2: antes A, nube y teléfono nuevo con V) y el lado viejo de un conflicto
+    retenido. **Sigue abierto:** restaurar (B, §8), las reglas (R) y un push ya en vuelo. 10 pruebas
+    (`__tests__/s158-r9-126-bulk-espera.test.ts`), con HEAD caen 7; 6 piezas. Matriz de vecinos con C: 24 casos,
+    ninguno rompe. Sin medir en vivo. `detail/S158-r9-126-opcion-e.md`.
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
