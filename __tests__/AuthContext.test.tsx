@@ -1664,6 +1664,9 @@ describe('R9-135 — el logIn de la cuenta que entra falla', () => {
 
   it('R9-582 — eliminar la cuenta borra el pendiente', async () => {
     mockEngineStub = null;
+    // R9-591 (S152) — ningún beforeEach limpia mockDeleteUser: sin esto, el
+    // CONTROL de abajo pasaba con las llamadas de pruebas anteriores.
+    mockDeleteUser.mockClear();
     const ref = await betoPendingAfterAna();
 
     await act(async () => {
@@ -1687,6 +1690,127 @@ describe('R9-135 — el logIn de la cuenta que entra falla', () => {
     });
 
     expect(sdk.logIn.mock.calls).toEqual([['uid-ana'], ['uid-beto']]);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-591 — dos lugares del diff que ninguna prueba fijaba: la colision no
+// enlaza el uid anonimo (pieza h de la 149), y el pendiente se olvida solo
+// DESPUES de que el signOut de Firebase salio bien (pieza l de la 151). El
+// AuthProvider y el servicio reales; el id del SDK, dicho a mano.
+// ---------------------------------------------------------------------------
+describe('R9-591 — la colision y el cierre de sesion que falla', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    __setAppUserID: (id: string) => void;
+    __reset: () => void;
+  };
+  const active = {
+    entitlements: {
+      active: {[ENTITLEMENT_ID]: {identifier: ENTITLEMENT_ID}},
+      all: {},
+    },
+  };
+
+  beforeEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    await setPendingLinkUid(null);
+    setOfferingApiKey('test-key');
+    await initializeOffering();
+  });
+  afterEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+  });
+
+  const settle = async () => {
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  };
+
+  it('en la colision (credential-already-in-use) no hay logIn del uid anonimo, aunque RevenueCat este en otra cuenta', async () => {
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    // RevenueCat quedo en la cuenta que salio: es el caso en que
+    // linkUpgradedUser SI moveria RevenueCat al uid que se le pase.
+    sdk.__setAppUserID('uid-ana');
+    mockCurrentUser = {
+      uid: 'anon-nuevo',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-nuevo'));
+
+    // La cuenta de Google ya existe (carla): el link se rechaza y la app
+    // inicia sesion directo en ella. El uid anonimo se descarta.
+    mockLinkWithCredential.mockRejectedValueOnce({
+      code: 'auth/credential-already-in-use',
+    });
+    mockSignInWithCredential.mockImplementationOnce(async () => {
+      mockCurrentUser = {uid: 'uid-carla', isAnonymous: false};
+      return {user: {uid: 'uid-carla'}};
+    });
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+    await settle();
+    expect(mockLinkWithCredential).toHaveBeenCalledTimes(1); // CONTROL
+    expect(mockSignInWithCredential).toHaveBeenCalledTimes(1); // CONTROL
+    expect(sdk.logIn).not.toHaveBeenCalledWith('anon-nuevo');
+
+    // El evento de Firebase de carla enlaza a carla, y solo a ella.
+    flushListenerWith(mockCurrentUser);
+    await settle();
+    expect(sdk.logIn.mock.calls).toEqual([['uid-carla']]);
+  });
+
+  it('si el signOut de Firebase rechaza, el pendiente de la cuenta que sigue en sesion sobrevive', async () => {
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    mockCurrentUser = {uid: 'uid-ana', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(getLastKnownEntitlement()).toBe(true));
+    sdk.__setAppUserID('uid-ana');
+    sdk.logIn.mockRejectedValueOnce({code: '10', message: 'network'});
+    mockCurrentUser = {uid: 'uid-beto', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto'); // precondicion
+
+    // Beto toca «Cerrar sesion» y el signOut de Firebase falla: beto sigue
+    // en sesion, y su pendiente tiene que seguir anotado.
+    mockSignOut.mockRejectedValueOnce(new Error('signOut fallo'));
+    await act(async () => {
+      await expect(ref.current!.signOut()).rejects.toThrow('signOut fallo');
+    });
+    expect(mockSignOut).toHaveBeenCalledTimes(1); // CONTROL
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto');
+
+    // Y se le sigue reintentando: «Restaurar» hace su logIn otra vez.
+    await act(async () => {
+      await restoreOffering();
+    });
+    expect(sdk.logIn.mock.calls).toEqual([
+      ['uid-ana'],
+      ['uid-beto'],
+      ['uid-beto'],
+    ]);
   });
 });
 
@@ -1758,5 +1882,139 @@ describe('R9-580 — una cuenta creada por link tras un cierre de sesion', () =>
     }
     expect(mockLinkWithCredential).toHaveBeenCalledTimes(1);
     expect(sdk.logIn).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-591 — cerrar sesion y eliminar la cuenta ESPERAN el borrado del pendiente
+// (`await forgetOfferingSession()`): no terminan con el pendiente todavia en el
+// disco. El borrado se detiene en una compuerta; las llamadas, no el dueño.
+// ---------------------------------------------------------------------------
+describe('R9-591 — el await del borrado del pendiente', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    __setAppUserID: (id: string) => void;
+    __reset: () => void;
+  };
+  const active = {
+    entitlements: {
+      active: {[ENTITLEMENT_ID]: {identifier: ENTITLEMENT_ID}},
+      all: {},
+    },
+  };
+  const {
+    PENDING_LINK_KEY,
+  }: {PENDING_LINK_KEY: string} = require('../src/lib/offering/pendingLink');
+  const deleteItem = SecureStore.deleteItemAsync as jest.Mock;
+  const originalDelete = deleteItem.getMockImplementation()!;
+
+  beforeEach(async () => {
+    resetOffering();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    await setPendingLinkUid(null);
+    setOfferingApiKey('test-key');
+    await initializeOffering();
+  });
+  afterEach(async () => {
+    deleteItem.mockImplementation(originalDelete);
+    resetOffering();
+    sdk.__reset();
+    await setPendingLinkUid(null);
+  });
+
+  const settle = async () => {
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  };
+
+  // Ana entra; beto entra y su logIn falla: beto queda anotado en el disco.
+  async function betoPending() {
+    const captured = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={captured.onReady} />
+      </AuthProvider>,
+    );
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    mockCurrentUser = {uid: 'uid-ana', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(getLastKnownEntitlement()).toBe(true));
+    sdk.__setAppUserID('uid-ana');
+    sdk.logIn.mockRejectedValueOnce({code: '10', message: 'network'});
+    mockCurrentUser = {uid: 'uid-beto', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await settle();
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto');
+    return captured.ref;
+  }
+
+  // El borrado de la clave del pendiente espera a `release()`.
+  function gatePendingDelete() {
+    let release!: () => void;
+    const gate = new Promise<void>(r => {
+      release = r;
+    });
+    deleteItem.mockImplementation((key: string) =>
+      key === PENDING_LINK_KEY
+        ? gate.then(() => originalDelete(key))
+        : originalDelete(key),
+    );
+    return () => release();
+  }
+
+  it('cerrar sesion no termina antes de borrar el pendiente del disco', async () => {
+    const ref = await betoPending();
+    const release = gatePendingDelete();
+
+    let done = false;
+    let signingOut!: Promise<void>;
+    await act(async () => {
+      signingOut = ref.current!.signOut().then(() => {
+        done = true;
+      });
+    });
+    await settle();
+
+    expect(mockSignOut).toHaveBeenCalled(); // CONTROL: llego al borrado
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto');
+    expect(done).toBe(false);
+
+    release();
+    await act(async () => {
+      await signingOut;
+    });
+    expect(done).toBe(true);
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+  });
+
+  it('eliminar la cuenta no termina antes de borrar el pendiente del disco', async () => {
+    mockEngineStub = null;
+    mockDeleteUser.mockClear();
+    const ref = await betoPending();
+    const release = gatePendingDelete();
+
+    let done = false;
+    let deleting!: Promise<void>;
+    await act(async () => {
+      deleting = ref.current!.deleteAccount().then(() => {
+        done = true;
+      });
+    });
+    await settle();
+
+    expect(mockDeleteUser).toHaveBeenCalled(); // CONTROL: llego al borrado
+    await expect(getPendingLinkUid()).resolves.toBe('uid-beto');
+    expect(done).toBe(false);
+
+    release();
+    await act(async () => {
+      await deleting;
+    });
+    expect(done).toBe(true);
+    await expect(getPendingLinkUid()).resolves.toBeNull();
   });
 });

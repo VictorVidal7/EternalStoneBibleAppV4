@@ -87,11 +87,25 @@ const Purchases = {
     customerInfoListeners = [];
     offeringsResponse = {all: {}};
     productsResponse = [];
+    // R9-591 — mockClear() keeps the *Once queues: a mockRejectedValueOnce a
+    // test did not consume was inherited by the next test (a cascade). Reset
+    // each fn and put its default implementation back.
     for (const value of Object.values(Purchases)) {
-      if (typeof value?.mockClear === 'function') value.mockClear();
+      if (typeof value?.mockReset === 'function') {
+        value.mockReset();
+        const impl = defaultImplementations.get(value);
+        if (impl) value.mockImplementation(impl);
+      }
     }
   },
 };
+
+// The implementation each jest.fn was created with, for __reset.
+const defaultImplementations = new Map(
+  Object.values(Purchases)
+    .filter(value => typeof value?.getMockImplementation === 'function')
+    .map(value => [value, value.getMockImplementation()]),
+);
 
 module.exports = Purchases;
 module.exports.default = Purchases;
