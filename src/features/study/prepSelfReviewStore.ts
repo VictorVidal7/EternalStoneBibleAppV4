@@ -61,7 +61,8 @@ let writeQueue: Promise<void> = Promise.resolve();
 /**
  * Toggle one question's checked state for a passage (last write wins; a
  * passage whose last checked question is unchecked drops out of storage).
- * Fire-and-forget safe: failures log and never reject.
+ * R9-52 — rejects when the write failed (and logs it): a caller that does not
+ * await it must `.catch` it.
  */
 export function setPrepSelfReviewQuestion(
   passageKey: string,
@@ -83,10 +84,12 @@ export function setPrepSelfReviewQuestion(
     );
     await AsyncStorage.setItem(resolved, serializePrepSelfReviewMap(next));
   };
-  writeQueue = writeQueue
-    .then(() => prepWrite(key, run))
-    .catch(error => {
-      logger.warn('Failed to save prep self-review', {error: String(error)});
-    });
-  return writeQueue;
+  // R9-52 — the caller gets this write's own outcome (it rejects when the
+  // write failed); the queue keeps a copy that swallows, so the next write
+  // does not inherit the failure.
+  const mine = writeQueue.then(() => prepWrite(key, run));
+  writeQueue = mine.catch(error => {
+    logger.warn('Failed to save prep self-review', {error: String(error)});
+  });
+  return mine;
 }

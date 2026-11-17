@@ -446,6 +446,50 @@ describe('PrepIllustrationsListScreen — Tanda 4', () => {
       );
     });
 
+    // R9-52 — the write of the notes fails (the real store, with `setItem`
+    // rejecting only for `@prep_notes`). It used to resolve anyway, and the
+    // screen said "added" and went back with nothing saved.
+    it('a failed save shows an error, no success toast, and stays on the screen', async () => {
+      await unlockPremium();
+      await seedIllustrations({
+        i1: {
+          id: 'i1',
+          title: 'El hijo pródigo',
+          body: 'El padre corre',
+          category: 'testimony',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      mockToast.error.mockClear();
+      const setItem = AsyncStorage.setItem as jest.Mock;
+      const real = setItem.getMockImplementation()!;
+      let failed = 0;
+      setItem.mockImplementation((key: string, value: string) => {
+        if (key === '@prep_notes') {
+          failed += 1;
+          return Promise.reject(new Error('disco lleno'));
+        }
+        return real(key, value);
+      });
+      try {
+        const {findByText} = renderScreen();
+        fireEvent.press(await findByText('El hijo pródigo'));
+
+        await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+        expect(mockToast.error).toHaveBeenCalledWith(
+          translations.es.prepTable.saveError,
+        );
+        // CONTROL: the write was attempted and failed.
+        expect(failed).toBe(1);
+        expect(mockToast.success).not.toHaveBeenCalled();
+        expect(mockBack).not.toHaveBeenCalled();
+        expect(await AsyncStorage.getItem('@prep_notes')).toBeNull();
+      } finally {
+        setItem.mockImplementation(real);
+      }
+    });
+
     it('dismisses the insert banner and browses normally afterward', async () => {
       await unlockPremium();
       await seedIllustrations({

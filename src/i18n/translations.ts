@@ -1048,6 +1048,9 @@ export const translations = {
       exportPdfGenerating: 'Generando PDF…',
       exportPdfDialogTitle: 'Compartir bosquejo en PDF',
       exportPdfError: 'No se pudo generar el PDF. Inténtalo de nuevo.',
+      // R9-52 — una escritura de la Mesa que falló (notas, autorrevisión o
+      // una ilustración insertada): antes se tragaba en silencio.
+      saveError: 'No se pudo guardar tu preparación. Inténtalo de nuevo.',
       pulpitTitle: 'Modo púlpito',
       pulpitLockedBody:
         'Desbloquea con premium el modo púlpito: una vista de pantalla completa con letra grande, cronómetro y una estimación de la duración de tu prédica.',
@@ -7629,6 +7632,9 @@ export const translations = {
       exportPdfGenerating: 'Generating PDF…',
       exportPdfDialogTitle: 'Share outline as PDF',
       exportPdfError: 'Could not generate the PDF. Please try again.',
+      // R9-52 — a failed Mesa write (notes, self-review, or an inserted
+      // illustration): it used to be swallowed silently.
+      saveError: 'Could not save your preparation. Please try again.',
       pulpitTitle: 'Pulpit mode',
       pulpitLockedBody:
         'Unlock pulpit mode with premium: a full-screen, large-type view with a pacing clock and an estimate of your sermon’s length.',

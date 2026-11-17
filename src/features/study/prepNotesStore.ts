@@ -49,7 +49,8 @@ let writeQueue: Promise<void> = Promise.resolve();
 
 /**
  * Save one section's prose for a passage (last write wins; an emptied passage
- * drops out of storage). Fire-and-forget safe: failures log and never reject.
+ * drops out of storage). R9-52 — rejects when the write failed (and logs it):
+ * a caller that does not await it must `.catch` it.
  *
  * `template` is the caller's CURRENT effective template (e.g. the screen's
  * own resolved `notes.template ?? DEFAULT_PREP_TEMPLATE` state) — passed
@@ -80,10 +81,12 @@ export function savePrepNote(
     );
     await AsyncStorage.setItem(resolved, serializePrepNotesMap(next));
   };
-  writeQueue = writeQueue
-    .then(() => prepWrite(key, run))
-    .catch(error => {
-      logger.warn('Failed to save prep note', {error: String(error)});
-    });
-  return writeQueue;
+  // R9-52 — the caller gets this write's own outcome (it rejects when the
+  // write failed); the queue keeps a copy that swallows, so the next write
+  // does not inherit the failure.
+  const mine = writeQueue.then(() => prepWrite(key, run));
+  writeQueue = mine.catch(error => {
+    logger.warn('Failed to save prep note', {error: String(error)});
+  });
+  return mine;
 }

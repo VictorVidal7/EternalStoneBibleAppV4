@@ -269,6 +269,12 @@ function StepButton({
   );
 }
 
+// R9-52 — how long after a "could not save" toast another failed write stays
+// silent (see `reportSaveError`). Longer than the toast's own 3 s, so a burst
+// shows one, and short enough that a write that keeps failing while the
+// preparer types is still reported now and then.
+const SAVE_ERROR_BURST_MS = 10_000;
+
 export default function PrepTableScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -977,6 +983,21 @@ export default function PrepTableScreen() {
     });
   }, [router, table]);
 
+  // R9-52 — a failed Mesa write used to be swallowed by the store, and the
+  // screen said nothing. The stores now reject; every caller here reports it
+  // through this, which shows ONE error toast per burst of failures (a flush
+  // of seven sections, or an autosave that fails on every pause in typing),
+  // not one per write: a failure within `SAVE_ERROR_BURST_MS` of the last
+  // toast shown is silent.
+  const lastSaveErrorToastAtRef = useRef<number | null>(null);
+  const reportSaveError = useCallback(() => {
+    const now = Date.now();
+    const last = lastSaveErrorToastAtRef.current;
+    if (last !== null && now - last < SAVE_ERROR_BURST_MS) return;
+    lastSaveErrorToastAtRef.current = now;
+    toast.error(p.saveError);
+  }, [toast, p.saveError]);
+
   // R9-143 — the flush both buttons below run before navigating. It used to
   // write `drafts[section] ?? ''` under `table.passageKey` for every section:
   // the two hazards R9-47 removed from `handleNoteBlur`, kept here. A tap
@@ -985,17 +1006,27 @@ export default function PrepTableScreen() {
   // section without a draft deleted prose another screen had just saved.
   // Same two guards as the blur: an absent draft is not an edit, and the
   // drafts are filed under the passage they were loaded for.
-  const flushDrafts = useCallback(async () => {
-    if (!table) return;
+  //
+  // R9-52 — resolves `false` when a save failed (after the error toast): the
+  // two buttons then stay here, with the drafts still on screen, instead of
+  // opening a screen that reads the notes from storage without them.
+  const flushDrafts = useCallback(async (): Promise<boolean> => {
+    if (!table) return false;
     const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
-    await Promise.all(
-      templateSections.map(section => {
-        const value = drafts[section];
-        if (value === undefined) return undefined;
-        return savePrepNote(passageKey, section, value, undefined, template);
-      }),
-    );
-  }, [table, drafts, templateSections, template]);
+    try {
+      await Promise.all(
+        templateSections.map(section => {
+          const value = drafts[section];
+          if (value === undefined) return undefined;
+          return savePrepNote(passageKey, section, value, undefined, template);
+        }),
+      );
+      return true;
+    } catch {
+      reportSaveError();
+      return false;
+    }
+  }, [table, drafts, templateSections, template, reportSaveError]);
 
   // Tanda 4 — the "Banco de ilustraciones" entry point, opened in INSERT
   // mode (carries `insertPassageKey`): picking an illustration there appends
@@ -1015,7 +1046,7 @@ export default function PrepTableScreen() {
     // own template sections (not the bare `PREP_SECTIONS` 7) so a
     // non-'expository' entry's just-typed prose (e.g. a `tension` note) is
     // actually persisted before the illustrations screen reads it back.
-    await flushDrafts();
+    if (!(await flushDrafts())) return;
     router.push({
       pathname: '/features/prep/illustrations' as never,
       params: {insertPassageKey: table.passageKey},
@@ -1035,7 +1066,7 @@ export default function PrepTableScreen() {
     // Uses THIS entry's own template sections (not the bare `PREP_SECTIONS`
     // 7) so a non-'expository' entry's prose is fully flushed too — the
     // pulpit screen resolves the SAME template independently from storage.
-    await flushDrafts();
+    if (!(await flushDrafts())) return;
     // Resolve the version the SAME way this screen resolves it (explicit
     // param, else the device's last-picked reading version) and ALWAYS
     // forward it. The pulpit screen falls back independently to the
@@ -1075,7 +1106,9 @@ export default function PrepTableScreen() {
       value: string,
       templateId: PrepTemplateId,
     ) => {
-      savePrepNote(passageKey, section, value, undefined, templateId);
+      savePrepNote(passageKey, section, value, undefined, templateId).catch(
+        reportSaveError,
+      );
     },
     700,
   );
@@ -1123,9 +1156,11 @@ export default function PrepTableScreen() {
       //     and typed for.
       if (value === undefined) return;
       const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
-      savePrepNote(passageKey, section, value, undefined, template);
+      savePrepNote(passageKey, section, value, undefined, template).catch(
+        reportSaveError,
+      );
     },
-    [table, drafts, template],
+    [table, drafts, template, reportSaveError],
   );
 
   const handleNoteSelectionChange = useCallback(
@@ -1137,16 +1172,18 @@ export default function PrepTableScreen() {
 
   // Autorrevisión — toggles one question's checked state. Optimistic local
   // update (mirrors handleNoteChange's own draft-first pattern) + a
-  // fire-and-forget store write (setPrepSelfReviewQuestion is already
-  // serialized/failure-safe, same contract as savePrepNote).
+  // fire-and-forget store write (setPrepSelfReviewQuestion is serialized;
+  // R9-52: it rejects on a failed write, same contract as savePrepNote).
   const handleToggleSelfReviewQuestion = useCallback(
     (id: PrepSelfReviewQuestionId, checked: boolean) => {
       if (!table) return;
       haptics.tap();
       setSelfReview(prev => setQuestionChecked(prev, id, checked));
-      setPrepSelfReviewQuestion(table.passageKey, id, checked);
+      setPrepSelfReviewQuestion(table.passageKey, id, checked).catch(
+        reportSaveError,
+      );
     },
-    [table],
+    [table, reportSaveError],
   );
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast

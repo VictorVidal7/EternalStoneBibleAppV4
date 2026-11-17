@@ -119,6 +119,8 @@ export default function PrepIllustrationsListScreen() {
   const {open: openOfferingSheet} = useOfferingSheet();
   const toast = useToast();
   const h = t.prepIllustrations;
+  // R9-52 — the Mesa's own "could not save" text: the insert writes its notes.
+  const saveError = t.prepTable.saveError;
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
   const params = useLocalSearchParams<{insertPassageKey?: string}>();
@@ -226,12 +228,21 @@ export default function PrepIllustrationsListScreen() {
       const current = existing.sections[INSERT_TARGET_SECTION] ?? '';
       const next =
         current.trim().length > 0 ? `${current}\n\n${addition}` : addition;
-      await savePrepNote(passageKey, INSERT_TARGET_SECTION, next);
+      // R9-52 — `savePrepNote` rejects when the write failed. It used to
+      // resolve anyway, and this said "added" and went back with nothing
+      // saved. Now a failure says so and stays here, so the preparer can try
+      // again.
+      try {
+        await savePrepNote(passageKey, INSERT_TARGET_SECTION, next);
+      } catch {
+        toast.error(saveError);
+        return;
+      }
       haptics.success();
       toast.success(h.insertedToast);
       router.back();
     },
-    [params.insertPassageKey, toast, h.insertedToast, router],
+    [params.insertPassageKey, toast, h.insertedToast, saveError, router],
   );
 
   const handleOpen = useCallback(
