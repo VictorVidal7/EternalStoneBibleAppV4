@@ -163,8 +163,9 @@ export class AchievementService {
     // underlying CONTENT they count (highlights, notes) DOES sync. A
     // reinstall or a fresh sync pulldown can therefore silently push a count
     // like `highlights` to >= 1 via `applyRemoteUpsert`
-    // (lib/sync/adapters/highlights.ts → HighlightService.addHighlight()
-    // directly), which never calls checkAchievements(). Left alone, the
+    // (lib/sync/adapters/highlights.ts writes the row with its own SQL since
+    // R9-128, as it did through HighlightService.addHighlight() before),
+    // which never calls checkAchievements(). Left alone, the
     // achievement then sits "secretly already earned" until the NEXT
     // unrelated tracked action (trackVersesRead, trackSearch, trackNote...)
     // runs the generic loop below and "discovers" it — popping the
