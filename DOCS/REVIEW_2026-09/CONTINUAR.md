@@ -27,7 +27,7 @@ Dónde está cada cosa:
 - `BUGS.md`: las entradas. Es la fuente: la marca `✅ ARREGLADO` va en la entrada, y el TSV se regenera.
 - `detail/`: un detalle por fila o por sesión.
 - `INDEX.md`: el ledger de las filas (Modos A a D).
-- `REGLAS.md`: las 290 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
+- `REGLAS.md`: las 291 reglas completas (la §5 de antes). `RECETAS.md`: lo mecánico.
 - `historial/`: lo que la 143 sacó de este archivo y de `INDEX.md`, movido tal cual. No rige: es registro.
 - `REVIEW_PROMPT.md`: el charter.
 
@@ -181,6 +181,8 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   fijan sus pruebas; dos hallazgos nuevos (P3): `R9-592` (el canje con la sesión cambiando, que reabre las filas de
   `R9-582`) y `R9-593` (la compra con el `logIn` en vuelo). **La 152: `R9-584` con `R9-591` (las pruebas) y, si cabe,
   `R9-592` (el mismo archivo); después, la V2.** `R9-593` va con la pieza abierta de `R9-135`.
+  **Hecha en la sesión 152** (`detail/S152-arreglos-pruebas.md`), con 6 agentes, sin medir en vivo: `R9-584`,
+  `R9-591` y `R9-592` arreglados; un hallazgo nuevo, `R9-594` (P3). **La 153 revisa este diff; después, la V2.**
 - **Tanda V2 — sync que pierde en silencio (4 P1).** `R9-128` (un apply remoto que falla y el cursor avanza), con
   `R9-132` (P2, la misma forma en subrayados); `R9-37` (el listener huérfano); `R9-127` (el `skipNextBulkPush` sin
   uid); y `R9-126` (el push con reloj viejo), que es de diseño: se mide y se propone antes de escribirlo, y si no
@@ -263,8 +265,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 
 ## 5. Reglas que ya costaron caro: el resumen
 
-Las 290 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
-cual en la 143, tres de la 145, cuatro de la 146, cuatro de la 147, una de la 148, una de la 149, una de la 150 y una de la 151). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
+Las 291 reglas completas, cada una con la sesión y el hallazgo que la pagó, están en `REGLAS.md` (275 movidas tal
+cual en la 143, tres de la 145, cuatro de la 146, cuatro de la 147, una de la 148, una de la 149, una de la 150, una de la 151 y una de la 152). Ninguna se retiró. Antes de una tarea, buscá ahí las de su tema con `grep -n`. Este es el resumen, por
 tema:
 
 - **Alcance y permisos.** Se hace lo que pide el mensaje de la sesión y nada más. Un mensaje de Victor a mitad de

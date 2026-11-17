@@ -1314,4 +1314,9 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   esa cuenta. El canje la lee antes del `fetch` y la pasa al volver: si la sesión cambió, el servicio cree en sesión a
   la que salió, y vuelven las filas que el arreglo cerraba. Antes de que un servicio crea lo que le pasan, `grep` de
   cada llamador y de cada `await` entre la lectura y la llamada, y una fila en la sonda por cada uno.
+- **Un CONTROL `toHaveBeenCalled` sobre un mock que ningún `beforeEach` limpia pasa con las llamadas de pruebas
+  anteriores (sesión 152, `R9-591`).** El de «R9-582 — eliminar la cuenta borra el pendiente» pasaba con las de
+  `R9-38`. Y para verlo caer, la pieza tiene que fallar solo en el camino de esa prueba: una que quita la llamada para
+  todos también quita las anteriores, y el control cae con y sin el arreglo. `mockClear` del mock al empezar la
+  prueba, o contar desde un `antes`.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

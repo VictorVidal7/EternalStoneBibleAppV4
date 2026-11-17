@@ -14404,6 +14404,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     `fetch`, y desde este arreglo `linkUser` también lo fija como la cuenta en sesión: con un cierre de sesión durante
     el canje y su `logIn` fallando, el pendiente se anota después del borrado y lo reintenta la compra del anónimo o
     de otra cuenta (filas G1 y G2). Es `R9-592`. `detail/S151-revision-del-diff-s150.md` §4.
+  - **Sesión 152:** `R9-592` arreglado (`0b957e86`): por el canje ya no vuelven sus filas (G1 y G2, en ana y en carla).
 
 - **`R9-583` (S147, revisión del diff de la 146 / comentarios y docs — P3) — 🐛 cinco textos dicen más, o
   distinto, de lo que hace el código.** Por lectura, con el SDK leído y dos sondas.
@@ -14444,6 +14445,12 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     146 incluyen una prueba que no cae por la razón escrita.
   - **Propuesta (sin escribir):** las pruebas que faltan, con el arreglo de `R9-580`. Detalle:
     `detail/S147-revision-del-diff-s146.md` §2.
+  - **✅ ARREGLADO en la sesión 152** (`f11d813e`, rama `fix/s152-pruebas`), solo pruebas: el segundo `try/catch` de
+    `logInAs` y el orden borrar/procesar (`describe('R9-584 — logInAs…')`); `pendingLink.ts` con el almacenamiento
+    fallando (`__tests__/pendingLink.test.ts`, nuevo); `notActivated` en «ya comprado» (`OfferingSheet.test.tsx`); los
+    tres expects, ahora con `getCustomerInfo`/`restorePurchases` que responden por el usuario del SDK (caen sin 135d y
+    sin 135e). El lugar del reintento en `initialize()` ya lo fija la de `R9-589`. Las dos cascadas son la de
+    `__reset` (`R9-591`). Cada pieza vista caer sola sobre lo integrado. `detail/S152-arreglos-pruebas.md` §3-§4.
 
 - **`R9-585` (S147, revisión del diff de la 146 / ofrenda / vecino de `R9-574` — P3) — 🐛 «Restaurar» toma por
   ofrenda cualquier compra que no sea una donación.** MEDIDO con sonda (la hoja y el servicio reales;
@@ -14539,6 +14546,12 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     cuatro sondas, iguales: se declara, como la pieza g); y `forgetSessionAccount` sin `pendingUid = null` (o1; sin
     consumidor que lo distinga). La cascada de la pieza f2 de la 150 en `:776` es la de esta entrada (`__reset` con
     `mockClear`): de sus 15 caídas, 3 pasan solas. Con `R9-584`, en la 152. `detail/S151-revision-del-diff-s150.md` §2.
+  - **✅ ARREGLADO en la sesión 152** (`21f67f21`, rama `fix/s152-pruebas`): `__reset` hace `mockReset` y repone la
+    implementación por defecto (la suite entera, 377/377; f2 de 15 caídas a 12, i de 4 a 3, 135e de 13 a 3); la
+    colisión sin `logIn` del uid anónimo (cae con h); el `signOut` que rechaza (cae con l); el `await` al cerrar sesión
+    y al eliminar la cuenta (caen con m1 y m2); el CONTROL de `mockDeleteUser`, que pasaba con llamadas de pruebas
+    anteriores. Declaradas: n, n1, o1 (su único consumidor real es un `logIn` de más del mismo uid: la 151 escribió
+    «sin consumidor») y las guardas del SDK sin `isAnonymous` (solo un log). `detail/S152-arreglos-pruebas.md` §5.
 
 - **`R9-592` (S151, revisión del diff de la 150 / premium / vecino de `R9-582`, en parte anterior al diff — P3) — 🐛
   el canje enlaza con el uid que estaba en sesión ANTES del `fetch`: si la sesión cambió, hace `logIn` de la cuenta
@@ -14564,6 +14577,11 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     termina donde termina el camino sin fallo (RevenueCat en la última cuenta que entró, beto). **Propuesta (sin
     escribir):** que el canje enlace solo si su cuenta sigue en sesión al volver, con los tres docstrings. Detalle:
     `detail/S151-revision-del-diff-s150.md` §4.
+  - **✅ ARREGLADO en la sesión 152** (`0b957e86`, rama `fix/s152-pruebas`): al volver con éxito, el canje relee
+    `currentUser` y enlaza solo si es el mismo uid. En la sonda de la 151 cambian solo G1, G1ok, G2, G2ok y F-G2ok, como
+    decía la predicción (el anónimo y carla compran en su cuenta; RevenueCat no pasa a beto), igual con U y con N; las
+    tres sondas viejas, iguales. Los docstrings de `sessionUid` y `linkUser`, al día; el de `retryPendingLink` vuelve a
+    valer. Sin medir en vivo. `detail/S152-arreglos-pruebas.md` §6.
 
 - **`R9-593` (S151, revisión del diff de la 150 / premium / vecino de `R9-135` y `R9-587`, anterior al diff — P3) —
   🐛 una compra con el `logIn` de la cuenta en sesión todavía en vuelo queda en la cuenta anterior, aunque ese `logIn`
@@ -14581,6 +14599,20 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     confirma), y «Restaurar» lo recupera si el panel transfiere. **Propuesta (sin escribir):** que comprar y
     restaurar esperen el `logIn` en vuelo de la cuenta en sesión antes de ir a la tienda. Detalle:
     `detail/S151-revision-del-diff-s150.md` §6.
+
+- **`R9-594` (S152, arreglos de la 152 / premium / vecino de `R9-135` y `R9-587`, anterior a la 150 — P3) — 🐛 si el
+  `getCustomerInfo()` del arranque rechaza, `initialize()` se salta el bloque del pendiente: la cuenta pendiente en
+  sesión compra sin su `logIn`, y nada lo reintenta en ese proceso.** MEDIDO con sonda (el servicio real; fila S3 del
+  agente 1, re-medida en el principal: `_scratch/S152-a1-s3-principal.out.txt`). Sin medir en vivo.
+  - `offeringService.ts:245-255`: el bloque que lee el pendiente del disco va después de `await getCustomerInfo()`,
+    dentro del mismo `try`. Si esa llamada rechaza (sin red), el `catch` lo salta: `pendingUid` queda `null` en
+    memoria aunque el disco diga `beto` y beto esté en sesión. Beto compra con `success` sin `logIn(beto)` antes (la
+    compra queda en ana) y «Restaurar» tampoco reintenta (`notFound`). Se corrige en el siguiente arranque con red.
+  - Anterior a la 150 (el bloque es de la 146).
+  - **Severidad:** P3: pide un pendiente de un proceso anterior y un arranque sin red, y se corrige solo en el arranque
+    siguiente. **Propuesta (sin escribir):** leer el pendiente del disco aunque `getCustomerInfo()` falle (fuera del
+    `try` de esa llamada), con la regla de `R9-589` (la sesión mirada al reintentar). Detalle:
+    `detail/S152-arreglos-pruebas.md` §7.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
