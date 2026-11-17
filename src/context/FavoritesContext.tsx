@@ -204,7 +204,9 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
             err instanceof Error ? err : new Error(String(err)),
             {component: 'FavoritesContext', id},
           );
-          return;
+          // R9-128 — rethrown: resolved, the engine counted the change as
+          // applied and moved the cursor past it, so it never came back.
+          throw err;
         }
         // Mirror into React state so the screen rerenders immediately.
         setFavorites(prev => {
@@ -217,8 +219,15 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
           return [incoming, ...prev];
         });
       },
+      // R9-128 — a failed delete rethrows and leaves the screen alone. It
+      // used to resolve (the engine moved the cursor past it) and still drop
+      // the favorite from the screen while its row stayed in SQLite, so it
+      // came back on the next load and never left again. `initialize()`
+      // first, as the upsert does: the engine calls this without `getLocal`
+      // for a doc deleted for real.
       async applyRemoteDelete(id) {
         try {
+          await bibleDB.initialize();
           await bibleDB.removeFavorite(id);
         } catch (err) {
           logger.warn('favorites adapter: applyRemoteDelete DB failed', {
@@ -226,6 +235,7 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
             id,
             error: err instanceof Error ? err.message : String(err),
           });
+          throw err;
         }
         setFavorites(prev => prev.filter(f => f.id !== id));
       },

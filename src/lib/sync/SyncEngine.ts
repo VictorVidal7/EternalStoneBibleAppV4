@@ -1990,9 +1990,31 @@ export class SyncEngine {
             // covers the ones in memory too (R9-65 holds each one as soon as
             // it is recorded) and the ones from before a restart.
             if (!this.isHeldConflict(adapter.collection, id)) {
-              await this.withLocalWriteSuppressed(adapter.collection, id, () =>
-                adapter.applyRemoteDelete(id),
-              );
+              // R9-128 — the adapter rejects when the delete did not reach
+              // disk. Thrown from here, it ended the batch: the docs after
+              // this one were never applied, and the next batch moved the
+              // cursor past them. The doc itself is settled below, as before:
+              // it is gone from the cloud, so no query delivers it again, and
+              // a mark held for it would pin the floor after a restart, where
+              // only a held conflict is read again (R9-164, R9-195).
+              try {
+                await this.withLocalWriteSuppressed(
+                  adapter.collection,
+                  id,
+                  () => adapter.applyRemoteDelete(id),
+                );
+              } catch (err) {
+                logger.warn(
+                  'SyncEngine: applying a remote delete failed — the local ' +
+                    'copy stays',
+                  {
+                    component: 'SyncEngine',
+                    collection: adapter.collection,
+                    id,
+                    error: err instanceof Error ? err.message : String(err),
+                  },
+                );
+              }
               if (!isCurrent()) return;
             }
           }
@@ -2400,14 +2422,34 @@ export class SyncEngine {
       }
     }
 
-    if (deleted) {
-      await this.withLocalWriteSuppressed(adapter.collection, id, () =>
-        adapter.applyRemoteDelete(id),
+    // R9-128 — an apply that fails is a doc NOT applied, like a `getLocal`
+    // that fails (R9-46): `false` makes the caller hold it, so no query floor
+    // moves past a change this device never took, and the next attach
+    // delivers it again. Counted as applied, the cursor moved past it and the
+    // change never came back; an edit made here later then overwrote the
+    // other device's in the cloud, or revived what it had deleted.
+    try {
+      if (deleted) {
+        await this.withLocalWriteSuppressed(adapter.collection, id, () =>
+          adapter.applyRemoteDelete(id),
+        );
+      } else if (data) {
+        await this.withLocalWriteSuppressed(adapter.collection, id, () =>
+          adapter.applyRemoteUpsert(id, data),
+        );
+      }
+    } catch (err) {
+      logger.warn(
+        'SyncEngine: applying a remote change failed — holding the doc ' +
+          'so it is delivered again',
+        {
+          component: 'SyncEngine',
+          collection: adapter.collection,
+          id,
+          error: err instanceof Error ? err.message : String(err),
+        },
       );
-    } else if (data) {
-      await this.withLocalWriteSuppressed(adapter.collection, id, () =>
-        adapter.applyRemoteUpsert(id, data),
-      );
+      return false;
     }
     return true;
   }
@@ -3296,6 +3338,14 @@ export class SyncEngine {
    *
    * `keepMine` rejects, leaving the conflict pending and touching nothing,
    * when the local copy cannot be read or no longer exists (R9-36).
+   *
+   * R9-128 — every choice rejects the same way when the local write fails:
+   * the adapter rejects, and its rejection leaves here before anything is
+   * settled. The conflict stays pending, the doc stays held below the query
+   * floor, the cursor does not move and nothing is queued; the conflicts
+   * screen shows its error and the user can choose again. An adapter that
+   * swallowed the failure made it look resolved: the conflict went away, the
+   * cursor moved past «theirs», and this device kept «mine» for good.
    */
   async resolveConflict(
     conflictId: string,
@@ -3336,9 +3386,9 @@ export class SyncEngine {
       // the doc since, and once that edit was more than CONFLICT_WINDOW_MS
       // old the echo came back as plain LWW and overwrote it locally too.
       // A read that fails, or finds the doc gone, resolves nothing: a
-      // `null` is not "keep an empty doc", and from the highlights adapter
-      // it can also be a failed read (R9-132), so neither the snapshot nor a
-      // tombstone is safe to push in its place.
+      // `null` is not "keep an empty doc" (and the notes and highlights
+      // adapters no longer answer a failed read with `null`: R9-46, R9-132),
+      // so neither the snapshot nor a tombstone is safe to push in its place.
       // R9-160 — and the local copy now is always THIS device's: nothing the
       // other device writes lands in it while the conflict waits.
       const current = (await adapter.getLocal(conflict.docId)) as SyncEntity<

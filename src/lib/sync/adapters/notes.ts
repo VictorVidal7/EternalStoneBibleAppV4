@@ -118,6 +118,9 @@ export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
         err instanceof Error ? err : new Error(String(err)),
         {component: 'sync/notes', id},
       );
+      // R9-128 — and the engine must know: swallowed, the change counted as
+      // applied, the cursor moved past it, and it never came back.
+      throw err;
     }
   },
 
@@ -131,6 +134,8 @@ export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
         id,
         error: err instanceof Error ? err.message : String(err),
       });
+      // R9-128 — see applyRemoteUpsert.
+      throw err;
     }
   },
 

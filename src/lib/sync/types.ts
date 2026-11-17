@@ -56,7 +56,10 @@ export interface SyncAdapter<T = unknown> {
   /**
    * Read the local row for an id, so the engine can decide whether a
    * remote change should win (LWW). Return null if the row doesn't
-   * exist locally.
+   * exist locally, and THROW when it could not be read (R9-46, R9-132):
+   * a `null` lets the remote copy in without LWW or conflict detection.
+   * (reviewEvents still reads a failure as `null`: harmless, its applies
+   * are deliberate no-ops.)
    */
   getLocal(id: string): Promise<SyncEntity<T> | null>;
 
@@ -64,14 +67,17 @@ export interface SyncAdapter<T = unknown> {
    * Apply a remote create/update locally. The engine has already
    * decided this should win (newer updatedAt than the local copy, or
    * the local row didn't exist). The adapter must NOT re-queue this
-   * change to the engine.
+   * change to the engine. It must REJECT when the write did not land
+   * (R9-128): the engine then holds the doc below its cursor so it is
+   * delivered again; a swallowed failure counted as applied for good.
    */
   applyRemoteUpsert(id: string, data: SyncEntity<T>): Promise<void>;
 
   /**
    * Apply a remote soft-delete locally. The adapter typically removes
    * the local row entirely (the tombstone lives on Firestore so other
-   * devices can see the delete).
+   * devices can see the delete). Like applyRemoteUpsert, it must REJECT
+   * when the delete did not land (R9-128).
    */
   applyRemoteDelete(id: string): Promise<void>;
 

@@ -74,46 +74,51 @@ function highlightToRemote(h: Highlight): SyncEntity<RemoteHighlight> {
 export const highlightsSyncAdapter: SyncAdapter<RemoteHighlight> = {
   collection: 'highlights',
 
+  // R9-132 — deliberately NOT wrapped in a try/catch that returns `null`, as
+  // in the notes adapter (R9-46): "I could not read the database" must not
+  // masquerade as "this verse has no highlight here". The engine treats a
+  // `null` as permission to apply the remote copy without last-write-wins or
+  // conflict detection, so an OLDER copy of the other device overwrote the
+  // color, category and note of a newer local one. A read that throws makes
+  // the engine skip the doc and keep it below the cursor instead.
   async getLocal(verseId) {
-    try {
-      await bibleDB.initialize();
-      const service = getService();
-      await service.initialize();
-      const h = await service.getHighlightByVerse(verseId);
-      if (!h) return null;
-      return highlightToRemote(h);
-    } catch (err) {
-      logger.warn('highlights adapter: getLocal failed', {
-        component: 'sync/highlights',
-        verseId,
-        error: err instanceof Error ? err.message : String(err),
-      });
-      return null;
-    }
+    await bibleDB.initialize();
+    const service = getService();
+    await service.initialize();
+    const h = await service.getHighlightByVerse(verseId);
+    if (!h) return null;
+    return highlightToRemote(h);
   },
 
+  // R9-128 — a write that did not land REJECTS. Swallowed, the engine counted
+  // the doc as applied and moved its cursor past it, so the change never came
+  // back, and the next local edit pushed over the other device's copy.
   async applyRemoteUpsert(verseId, data) {
     try {
       await bibleDB.initialize();
       const service = getService();
       await service.initialize();
-      // addHighlight does INSERT OR REPLACE keyed on verse_id, so
-      // calling it for an existing verseId updates in place. We just
-      // need to overwrite the created_at/updated_at afterwards so the
-      // remote timestamps survive (addHighlight overwrites them with
-      // Date.now()).
-      await service.addHighlight(
-        data.verseId,
-        data.bookId,
-        data.chapter,
-        data.verse,
-        data.color,
-        data.category,
-        data.note,
-      );
+      // One INSERT OR REPLACE keyed on the UNIQUE verse_id, with the remote
+      // timestamps in it. `addHighlight` stamps the row with Date.now(), and
+      // the UPDATE that put the remote ones back was a second statement: when
+      // only that one failed, the row kept the remote content under a stamp
+      // newer than any copy, and LWW then ignored the redelivery as older.
       await bibleDB.executeSql(
-        'UPDATE highlights SET created_at = ?, updated_at = ? WHERE verse_id = ?',
-        [data.createdAt, data.updatedAt, verseId],
+        `INSERT OR REPLACE INTO highlights
+         (id, verse_id, book_id, chapter, verse, color, category, note, created_at, updated_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          `highlight_${data.verseId}_${Date.now()}`,
+          data.verseId,
+          data.bookId,
+          data.chapter,
+          data.verse,
+          data.color,
+          data.category || null,
+          data.note || null,
+          data.createdAt,
+          data.updatedAt,
+        ],
       );
     } catch (err) {
       logger.error(
@@ -121,6 +126,7 @@ export const highlightsSyncAdapter: SyncAdapter<RemoteHighlight> = {
         err instanceof Error ? err : new Error(String(err)),
         {component: 'sync/highlights', verseId},
       );
+      throw err;
     }
   },
 
@@ -136,6 +142,8 @@ export const highlightsSyncAdapter: SyncAdapter<RemoteHighlight> = {
         verseId,
         error: err instanceof Error ? err.message : String(err),
       });
+      // R9-128 — as in applyRemoteUpsert.
+      throw err;
     }
   },
 
