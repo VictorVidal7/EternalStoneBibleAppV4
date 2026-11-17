@@ -72,7 +72,8 @@ function mutate(fn: (map: SermonNotesMap) => SermonNotesMap): Promise<void> {
  * Create a new session. Returns the created `SermonNoteSession`, or `null`
  * if the title was blank or the store was already at `MAX_SESSIONS` (callers
  * should check `canCreateSession` first for a real "llegaste al máximo"
- * message; this is the defensive result to branch on).
+ * message; this is the defensive result to branch on). R9-52 — rejects when
+ * the write failed: `null` keeps meaning "blank or full", not "not saved".
  */
 export async function createSermonNoteSession(
   title: string,
@@ -81,32 +82,28 @@ export async function createSermonNoteSession(
   const id = generateSermonNoteId();
   const now = Date.now();
   let created: SermonNoteSession | null = null;
-  try {
-    await mutate(map => {
-      const next = createSession(map, title, source, now, id);
-      created = next[id] ?? null;
-      return next;
-    });
-  } catch {
-    return null;
-  }
+  await mutate(map => {
+    const next = createSession(map, title, source, now, id);
+    created = next[id] ?? null;
+    return next;
+  });
   return created;
 }
 
 /**
  * Save a partial edit (title/source/bodyText) to an existing session.
- * Fire-and-forget safe: failures log and never reject. Callers typically
- * debounce this shortly after typing stops, same as [[prepNotesStore]]'s
- * `savePrepNote`.
+ * R9-52 — rejects when the write failed (and logs it): a caller that does
+ * not await it must `.catch` it. Callers typically debounce this shortly
+ * after typing stops, same as [[prepNotesStore]]'s `savePrepNote`.
  */
 export function saveSermonNoteSession(
   id: string,
   patch: SermonNoteDraft,
 ): Promise<void> {
-  return mutate(map => updateSession(map, id, patch)).catch(() => undefined);
+  return mutate(map => updateSession(map, id, patch));
 }
 
-/** Delete a whole session. */
+/** Delete a whole session. R9-52 — rejects when the write failed. */
 export function deleteSermonNoteSession(id: string): Promise<void> {
-  return mutate(map => deleteSession(map, id)).catch(() => undefined);
+  return mutate(map => deleteSession(map, id));
 }

@@ -160,6 +160,10 @@ export default function PrepSeriesDetailScreen() {
   const {open: openOfferingSheet} = useOfferingSheet();
   const toast = useToast();
   const h = t.prepSeries;
+  // R9-52 — the store's writes reject when they failed (they used to be
+  // swallowed, and the screen went on as if saved). Every action below says
+  // so and stays where it was: the draft, the sheet and the screen.
+  const saveError = t.prepTable.saveError;
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
   const params = useLocalSearchParams<{id?: string}>();
@@ -246,30 +250,45 @@ export default function PrepSeriesDetailScreen() {
       return;
     }
     haptics.tap();
-    await addPrepSeriesPassage(series.id, key);
+    try {
+      await addPrepSeriesPassage(series.id, key);
+    } catch {
+      toast.error(saveError);
+      return;
+    }
     setAddDraft('');
     setAddError('');
     await load();
-  }, [series, addDraft, h, load]);
+  }, [series, addDraft, h, load, toast, saveError]);
 
   const handleRemovePassage = useCallback(
     async (key: string) => {
       if (!series) return;
       haptics.tap();
-      await removePrepSeriesPassage(series.id, key);
+      try {
+        await removePrepSeriesPassage(series.id, key);
+      } catch {
+        toast.error(saveError);
+        return;
+      }
       await load();
     },
-    [series, load],
+    [series, load, toast, saveError],
   );
 
   const handleMovePassage = useCallback(
     async (key: string, direction: 'up' | 'down') => {
       if (!series) return;
       haptics.tap();
-      await movePrepSeriesPassage(series.id, key, direction);
+      try {
+        await movePrepSeriesPassage(series.id, key, direction);
+      } catch {
+        toast.error(saveError);
+        return;
+      }
       await load();
     },
-    [series, load],
+    [series, load, toast, saveError],
   );
 
   const handleOpenRename = useCallback(() => {
@@ -283,17 +302,28 @@ export default function PrepSeriesDetailScreen() {
     if (!series) return;
     const name = nameDraft.trim();
     if (!name) return;
-    await renamePrepSeries(series.id, name);
+    try {
+      await renamePrepSeries(series.id, name);
+    } catch {
+      toast.error(saveError);
+      return;
+    }
     setRenaming(false);
     await load();
-  }, [series, nameDraft, load]);
+  }, [series, nameDraft, load, toast, saveError]);
 
   const handleDelete = useCallback(async () => {
     if (!series) return;
-    await deletePrepSeries(series.id);
+    try {
+      await deletePrepSeries(series.id);
+    } catch {
+      setDeleteConfirmOpen(false);
+      toast.error(saveError);
+      return;
+    }
     setDeleteConfirmOpen(false);
     router.back();
-  }, [series, router]);
+  }, [series, router, toast, saveError]);
 
   const handleOpenDateModal = useCallback((key: string) => {
     haptics.tap();
@@ -306,21 +336,31 @@ export default function PrepSeriesDetailScreen() {
       haptics.tap();
       const next = value === 'none' ? null : value;
       if (series.sermonType === next) return;
-      await setPrepSeriesSermonType(series.id, next);
+      try {
+        await setPrepSeriesSermonType(series.id, next);
+      } catch {
+        toast.error(saveError);
+        return;
+      }
       await load();
     },
-    [series, load],
+    [series, load, toast, saveError],
   );
 
   const handlePickDate = useCallback(
     async (date: string | null) => {
       if (!series || !dateModalKey) return;
       haptics.tap();
-      await setPrepSeriesPassageDate(series.id, dateModalKey, date);
+      try {
+        await setPrepSeriesPassageDate(series.id, dateModalKey, date);
+      } catch {
+        toast.error(saveError);
+        return;
+      }
       setDateModalKey(null);
       await load();
     },
-    [series, dateModalKey, load],
+    [series, dateModalKey, load, toast, saveError],
   );
 
   const handleExportSeries = useCallback(async () => {

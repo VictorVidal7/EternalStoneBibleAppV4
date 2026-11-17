@@ -78,7 +78,8 @@ function mutate(fn: (map: PrepSeriesMap) => PrepSeriesMap): Promise<void> {
  * Create a new series. Returns the created `PrepSeries`, or `null` if the
  * name was blank or the store was already at `MAX_SERIES` (callers should
  * check `canCreateSeries` first for a real "series llenas" message; this is
- * the defensive result to branch on).
+ * the defensive result to branch on). R9-52 — rejects when the write
+ * failed: `null` keeps meaning "blank or full", not "not saved".
  */
 export async function createPrepSeries(
   name: string,
@@ -88,105 +89,90 @@ export async function createPrepSeries(
   const id = generateSeriesId();
   const now = Date.now();
   let created: PrepSeries | null = null;
-  try {
-    await mutate(map => {
-      const next = createSeries(map, name, passageKeys, now, id, sermonType);
-      created = next[id] ?? null;
-      return next;
-    });
-  } catch {
-    return null;
-  }
+  await mutate(map => {
+    const next = createSeries(map, name, passageKeys, now, id, sermonType);
+    created = next[id] ?? null;
+    return next;
+  });
   return created;
 }
 
-/** Rename a series. Fire-and-forget safe: failures log and never reject. */
+// R9-52 — every write below rejects when it failed (and logs it): a caller
+// that does not await it must `.catch` it. They used to swallow it, and the
+// screens reported success.
+
+/** Rename a series. */
 export function renamePrepSeries(id: string, name: string): Promise<void> {
-  return mutate(map => renameSeries(map, id, name)).catch(() => undefined);
+  return mutate(map => renameSeries(map, id, name));
 }
 
 /**
  * Set (or clear, with `sermonType === null`) a series' homiletical category.
- * Fire-and-forget safe.
  */
 export function setPrepSeriesSermonType(
   id: string,
   sermonType: SermonType | null,
 ): Promise<void> {
-  return mutate(map => setSeriesSermonType(map, id, sermonType)).catch(
-    () => undefined,
-  );
+  return mutate(map => setSeriesSermonType(map, id, sermonType));
 }
 
 /**
  * Add a passage to a series. Returns whether the passage actually got
- * added (false when it was already present, the series was full, or the
- * underlying write failed).
+ * added (false when it was already present or the series was full); rejects
+ * when the underlying write failed.
  */
 export async function addPrepSeriesPassage(
   id: string,
   passageKey: string,
 ): Promise<boolean> {
   let added = false;
-  try {
-    await mutate(map => {
-      const next = addPassageToSeries(map, id, passageKey);
-      added = next !== map;
-      return next;
-    });
-  } catch {
-    return false;
-  }
+  await mutate(map => {
+    const next = addPassageToSeries(map, id, passageKey);
+    added = next !== map;
+    return next;
+  });
   return added;
 }
 
-/** Remove a passage from a series. Fire-and-forget safe. */
+/** Remove a passage from a series. */
 export function removePrepSeriesPassage(
   id: string,
   passageKey: string,
 ): Promise<void> {
-  return mutate(map => removePassageFromSeries(map, id, passageKey)).catch(
-    () => undefined,
-  );
+  return mutate(map => removePassageFromSeries(map, id, passageKey));
 }
 
-/** Reorder a passage within a series. Fire-and-forget safe. */
+/** Reorder a passage within a series. */
 export function movePrepSeriesPassage(
   id: string,
   passageKey: string,
   direction: 'up' | 'down',
 ): Promise<void> {
-  return mutate(map => moveSeriesPassage(map, id, passageKey, direction)).catch(
-    () => undefined,
-  );
+  return mutate(map => moveSeriesPassage(map, id, passageKey, direction));
 }
 
 /**
  * Set (or clear, with `date === null`) a passage's target preaching date
- * ("YYYY-MM-DD"). Fire-and-forget safe.
+ * ("YYYY-MM-DD").
  */
 export function setPrepSeriesPassageDate(
   id: string,
   passageKey: string,
   date: string | null,
 ): Promise<void> {
-  return mutate(map => setSeriesPassageDate(map, id, passageKey, date)).catch(
-    () => undefined,
-  );
+  return mutate(map => setSeriesPassageDate(map, id, passageKey, date));
 }
 
-/** Set (or clear, with '') a passage's short schedule note. Fire-and-forget safe. */
+/** Set (or clear, with '') a passage's short schedule note. */
 export function setPrepSeriesPassageNote(
   id: string,
   passageKey: string,
   note: string,
 ): Promise<void> {
-  return mutate(map => setSeriesPassageNote(map, id, passageKey, note)).catch(
-    () => undefined,
-  );
+  return mutate(map => setSeriesPassageNote(map, id, passageKey, note));
 }
 
 /** Delete a whole series (never touches the passages' own prep notes). */
 export function deletePrepSeries(id: string): Promise<void> {
-  return mutate(map => deleteSeries(map, id)).catch(() => undefined);
+  return mutate(map => deleteSeries(map, id));
 }

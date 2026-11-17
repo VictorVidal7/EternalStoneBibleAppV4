@@ -80,7 +80,8 @@ function mutate(
  * Create a new BLANK illustration. Returns the created `PrepIllustration`, or
  * `null` if the store was already at `MAX_ILLUSTRATIONS` (callers should
  * check `canCreateIllustration` first for a real "banco lleno" message; this
- * is the defensive result to branch on).
+ * is the defensive result to branch on). R9-52 — rejects when the write
+ * failed: `null` keeps meaning "full", not "not saved".
  */
 export async function createPrepIllustration(
   category?: IllustrationCategory,
@@ -88,49 +89,43 @@ export async function createPrepIllustration(
   const id = generateIllustrationId();
   const now = Date.now();
   let created: PrepIllustration | null = null;
-  try {
-    await mutate(map => {
-      const next = createIllustration(map, now, id, category);
-      created = next[id] ?? null;
-      return next;
-    });
-  } catch {
-    return null;
-  }
+  await mutate(map => {
+    const next = createIllustration(map, now, id, category);
+    created = next[id] ?? null;
+    return next;
+  });
   return created;
 }
 
-/** Save an illustration's title. Fire-and-forget safe: failures log and never reject. */
+// R9-52 — every write below rejects when it failed (and logs it): a caller
+// that does not await it must `.catch` it. They used to swallow it, and the
+// screens reported success.
+
+/** Save an illustration's title. */
 export function savePrepIllustrationTitle(
   id: string,
   title: string,
 ): Promise<void> {
-  return mutate(map => setIllustrationTitle(map, id, title)).catch(
-    () => undefined,
-  );
+  return mutate(map => setIllustrationTitle(map, id, title));
 }
 
-/** Save an illustration's body. Fire-and-forget safe. */
+/** Save an illustration's body. */
 export function savePrepIllustrationBody(
   id: string,
   body: string,
 ): Promise<void> {
-  return mutate(map => setIllustrationBody(map, id, body)).catch(
-    () => undefined,
-  );
+  return mutate(map => setIllustrationBody(map, id, body));
 }
 
-/** Save an illustration's category. Fire-and-forget safe. */
+/** Save an illustration's category. */
 export function savePrepIllustrationCategory(
   id: string,
   category: IllustrationCategory,
 ): Promise<void> {
-  return mutate(map => setIllustrationCategory(map, id, category)).catch(
-    () => undefined,
-  );
+  return mutate(map => setIllustrationCategory(map, id, category));
 }
 
-/** Delete an illustration. Fire-and-forget safe. */
+/** Delete an illustration. */
 export function deletePrepIllustration(id: string): Promise<void> {
-  return mutate(map => deleteIllustration(map, id)).catch(() => undefined);
+  return mutate(map => deleteIllustration(map, id));
 }

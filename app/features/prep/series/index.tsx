@@ -96,6 +96,10 @@ export default function PrepSeriesListScreen() {
   const {open: openOfferingSheet} = useOfferingSheet();
   const toast = useToast();
   const h = t.prepSeries;
+  // R9-52 — the store's writes reject when they failed (creating a series
+  // returned `null`, and adding a passage `false`, and this screen said
+  // "added" and went back).
+  const saveError = t.prepTable.saveError;
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
   const params = useLocalSearchParams<{passageKey?: string}>();
@@ -181,13 +185,28 @@ export default function PrepSeriesListScreen() {
   const handleSubmitCreate = useCallback(async () => {
     const name = nameDraft.trim();
     if (!name) return;
-    const created = await createPrepSeries(name, [], typeDraft);
+    // A failed create keeps the sheet open, with the name, to try again.
+    let created: PrepSeries | null;
+    try {
+      created = await createPrepSeries(name, [], typeDraft);
+    } catch {
+      toast.error(saveError);
+      return;
+    }
     if (!created) return;
     setCreating(false);
     setNameDraft('');
     setTypeDraft(undefined);
     if (attachActive && params.passageKey) {
-      await addPrepSeriesPassage(created.id, params.passageKey);
+      // The series exists; the passage did not get in. Say so and stay: the
+      // list shows the new series, and tapping it attaches again.
+      try {
+        await addPrepSeriesPassage(created.id, params.passageKey);
+      } catch {
+        toast.error(saveError);
+        await load();
+        return;
+      }
       haptics.success();
       toast.success(h.addedToast.replace('{{name}}', created.name));
       router.back();
@@ -204,13 +223,19 @@ export default function PrepSeriesListScreen() {
     router,
     toast,
     h.addedToast,
+    saveError,
   ]);
 
   const handleOpenSeries = useCallback(
     async (item: PrepSeries) => {
       haptics.tap();
       if (attachActive && params.passageKey) {
-        await addPrepSeriesPassage(item.id, params.passageKey);
+        try {
+          await addPrepSeriesPassage(item.id, params.passageKey);
+        } catch {
+          toast.error(saveError);
+          return;
+        }
         haptics.success();
         toast.success(h.addedToast.replace('{{name}}', item.name));
         router.back();
@@ -218,7 +243,7 @@ export default function PrepSeriesListScreen() {
       }
       router.push(`/features/prep/series/${item.id}` as never);
     },
-    [attachActive, params.passageKey, router, toast, h.addedToast],
+    [attachActive, params.passageKey, router, toast, h.addedToast, saveError],
   );
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast

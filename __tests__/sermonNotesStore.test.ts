@@ -91,13 +91,16 @@ describe('deleteSermonNoteSession', () => {
 });
 
 describe('a failed underlying write is not reported as success', () => {
-  it('createSermonNoteSession returns null (not a phantom session) when the write rejects, and does not wedge the queue', async () => {
+  // R9-52 (S162) — it used to resolve `null`, the same answer as "blank or
+  // full", and the screen did nothing. Now it rejects.
+  it('createSermonNoteSession rejects (not a phantom session) when the write rejects, and does not wedge the queue', async () => {
     jest
       .spyOn(AsyncStorage, 'setItem')
       .mockImplementationOnce(() => Promise.reject(new Error('disk full')));
 
-    const failed = await createSermonNoteSession('Se pierde');
-    expect(failed).toBeNull();
+    await expect(createSermonNoteSession('Se pierde')).rejects.toThrow(
+      'disk full',
+    );
 
     // The queue must still be usable afterwards — one bad write shouldn't
     // block every write that comes after it.

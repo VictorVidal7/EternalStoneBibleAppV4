@@ -45,6 +45,8 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
+import {useSaveErrorToast} from '@hooks/useSaveErrorToast';
+import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
@@ -81,6 +83,7 @@ export default function SermonNoteEditorScreen() {
   const {colors, gradient, highContrast} = useTheme();
   const {t} = useLanguage();
   const {selectedVersion} = useBibleVersion();
+  const toast = useToast();
   const h = t.sermonNotes;
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
@@ -133,14 +136,18 @@ export default function SermonNoteEditorScreen() {
     };
   }, [id]);
 
+  // R9-52 — the store's writes reject when they failed (they used to be
+  // swallowed). The autosaves don't wait, and report through this: one toast
+  // per burst.
+  const reportSaveError = useSaveErrorToast(h.saveError);
   const debouncedSaveTitle = useDebouncedCallback((value: string) => {
-    saveSermonNoteSession(id, {title: value});
+    saveSermonNoteSession(id, {title: value}).catch(reportSaveError);
   }, 700);
   const debouncedSaveSource = useDebouncedCallback((value: string) => {
-    saveSermonNoteSession(id, {source: value});
+    saveSermonNoteSession(id, {source: value}).catch(reportSaveError);
   }, 700);
   const debouncedSaveBody = useDebouncedCallback((value: string) => {
-    saveSermonNoteSession(id, {bodyText: value});
+    saveSermonNoteSession(id, {bodyText: value}).catch(reportSaveError);
   }, 700);
 
   // Flush any pending saves on unmount — the same Android
@@ -263,10 +270,17 @@ export default function SermonNoteEditorScreen() {
 
   const handleDelete = useCallback(async () => {
     if (!id) return;
-    await deleteSermonNoteSession(id);
+    // R9-52 — a failed delete rejects: say so and stay on the note.
+    try {
+      await deleteSermonNoteSession(id);
+    } catch {
+      setDeleteConfirmOpen(false);
+      toast.error(h.saveError);
+      return;
+    }
     setDeleteConfirmOpen(false);
     router.back();
-  }, [id, router]);
+  }, [id, router, toast, h.saveError]);
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])

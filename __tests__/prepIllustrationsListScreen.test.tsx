@@ -380,6 +380,72 @@ describe('PrepIllustrationsListScreen — Tanda 4', () => {
     expect(queryByText('Para borrar')).toBeNull();
   });
 
+  // R9-52, the bank (S162) — the real store, with `setItem` rejecting only
+  // for `@prep_illustrations`. Creating used to resolve `null` (the tap did
+  // nothing) and deleting used to resolve (nothing said).
+  describe('a failed write of the bank', () => {
+    const setItem = AsyncStorage.setItem as jest.Mock;
+    const real = setItem.getMockImplementation()!;
+    let failed = 0;
+    beforeEach(() => {
+      mockToast.error.mockClear();
+      failed = 0;
+    });
+    afterEach(() => {
+      setItem.mockImplementation(real);
+    });
+    function failBankWrites() {
+      setItem.mockImplementation((key: string, value: string) => {
+        if (key === '@prep_illustrations') {
+          failed += 1;
+          return Promise.reject(new Error('disco lleno'));
+        }
+        return real(key, value);
+      });
+    }
+
+    it('creating shows an error and opens nothing', async () => {
+      await unlockPremium();
+      const {findByLabelText, findByText} = renderScreen();
+      await findByText(h.emptyTitle);
+      failBankWrites();
+      fireEvent.press(await findByLabelText(h.newIllustration));
+
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(
+        translations.es.prepTable.saveError,
+      );
+      expect(failed).toBe(1);
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+
+    it('deleting shows an error, and the illustration stays listed', async () => {
+      await unlockPremium();
+      await seedIllustrations({
+        i1: {
+          id: 'i1',
+          title: 'No se borra',
+          body: '',
+          category: 'humor',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      const {findByText, findByLabelText} = renderScreen();
+      await findByText('No se borra');
+      failBankWrites();
+      fireEvent.press(await findByLabelText(h.deleteLabel));
+      fireEvent.press(await findByText(translations.es.delete));
+
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(
+        translations.es.prepTable.saveError,
+      );
+      expect(failed).toBe(1);
+      expect(await findByText('No se borra')).toBeTruthy();
+    });
+  });
+
   describe('insert mode (adding a saved illustration to the current preparation)', () => {
     beforeEach(() => {
       mockParams = {insertPassageKey: 'John/3/16'};

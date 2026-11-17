@@ -1048,8 +1048,9 @@ export const translations = {
       exportPdfGenerating: 'Generando PDF…',
       exportPdfDialogTitle: 'Compartir bosquejo en PDF',
       exportPdfError: 'No se pudo generar el PDF. Inténtalo de nuevo.',
-      // R9-52 — una escritura de la Mesa que falló (notas, autorrevisión o
-      // una ilustración insertada): antes se tragaba en silencio.
+      // R9-52 — una escritura de la Mesa que falló (notas, autorrevisión, una
+      // ilustración insertada, y los bancos de ilustraciones y de series):
+      // antes se tragaba en silencio.
       saveError: 'No se pudo guardar tu preparación. Inténtalo de nuevo.',
       pulpitTitle: 'Modo púlpito',
       pulpitLockedBody:
@@ -2084,6 +2085,9 @@ export const translations = {
       limitReachedTitle: 'Llegaste al máximo de notas',
       limitReachedBody:
         'Elimina alguna nota existente para poder crear una nueva.',
+      // R9-52 — una escritura fallida (crear, editar o eliminar una nota):
+      // antes se tragaba en silencio.
+      saveError: 'No se pudo guardar tu nota de sermón. Inténtalo de nuevo.',
       titlePlaceholder: 'Título, p. ej. "Prédica de hoy"',
       sourcePlaceholder: 'Iglesia / predicador (opcional)',
       bodyPlaceholder: 'Escribe aquí tus notas mientras escuchas la prédica…',
@@ -8664,6 +8668,7 @@ export const translations = {
       verseCountNone: 'No verses',
       limitReachedTitle: "You've reached the maximum number of notes",
       limitReachedBody: 'Delete an existing note to create a new one.',
+      saveError: 'Could not save your sermon note. Please try again.',
       titlePlaceholder: 'Title, e.g. "Today\'s sermon"',
       sourcePlaceholder: 'Church / preacher (optional)',
       bodyPlaceholder: 'Write your notes here as you listen to the sermon…',

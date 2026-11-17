@@ -469,4 +469,120 @@ describe('PrepSeriesDetailScreen — T8.4.4', () => {
     fireEvent.press(await findByLabelText(h.viewByDate));
     await waitFor(() => expect(queryAllByLabelText(h.moveDown).length).toBe(0));
   });
+
+  // R9-52, the bank (S162) — the real store, with `setItem` rejecting only
+  // for `@prep_series`. Every write here used to be swallowed by the store:
+  // the screen cleared the draft, closed the sheet, or went back as if done.
+  describe('a failed write of the bank', () => {
+    const setItem = AsyncStorage.setItem as jest.Mock;
+    const real = setItem.getMockImplementation()!;
+    const saveError = t.prepTable.saveError;
+    let failed = 0;
+    beforeEach(() => {
+      failed = 0;
+    });
+    afterEach(() => {
+      setItem.mockImplementation(real);
+    });
+    function failBankWrites() {
+      setItem.mockImplementation((key: string, value: string) => {
+        if (key === PREP_SERIES_KEY) {
+          failed += 1;
+          return Promise.reject(new Error('disco lleno'));
+        }
+        return real(key, value);
+      });
+    }
+
+    it('adding a passage shows an error and keeps the typed reference', async () => {
+      await unlockPremium();
+      await seedSeries({[SERIES_ID]: series()});
+      const {findByPlaceholderText, findByLabelText, findByText} =
+        renderScreen();
+      await findByText(h.emptyPassagesTitle);
+      const input = await findByPlaceholderText(h.addPassagePlaceholder);
+      fireEvent.changeText(input, 'Juan 3:16-21');
+      failBankWrites();
+      fireEvent.press(await findByLabelText(h.addPassage));
+
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(saveError);
+      expect(failed).toBe(1);
+      expect(input.props.value).toBe('Juan 3:16-21');
+      expect((await getPrepSeries(SERIES_ID))?.passageKeys).toEqual([]);
+    });
+
+    it('renaming shows an error and keeps the sheet open with the name', async () => {
+      await unlockPremium();
+      await seedSeries({[SERIES_ID]: series()});
+      const {findByLabelText, findByPlaceholderText, findByText} =
+        renderScreen();
+      await findByText('Efesios');
+      fireEvent.press(await findByLabelText(h.renameLabel));
+      const input = await findByPlaceholderText(h.namePlaceholder);
+      fireEvent.changeText(input, 'Efesios — otoño');
+      failBankWrites();
+      fireEvent.press(await findByText(t.save));
+
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(saveError);
+      expect(failed).toBe(1);
+      expect((await findByPlaceholderText(h.namePlaceholder)).props.value).toBe(
+        'Efesios — otoño',
+      );
+      expect((await getPrepSeries(SERIES_ID))?.name).toBe('Efesios');
+    });
+
+    it('deleting shows an error and does not go back', async () => {
+      await unlockPremium();
+      await seedSeries({[SERIES_ID]: series()});
+      const {findByLabelText, findByText} = renderScreen();
+      await findByText('Efesios');
+      fireEvent.press(await findByLabelText(h.deleteLabel));
+      failBankWrites();
+      fireEvent.press(await findByText(t.delete));
+
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(saveError);
+      expect(failed).toBe(1);
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(await getPrepSeries(SERIES_ID)).not.toBeNull();
+    });
+
+    it('removing, moving, the sermon type and a date each report it', async () => {
+      await unlockPremium();
+      await seedSeries({
+        [SERIES_ID]: series({passageKeys: ['John/1/1', 'John/3/16']}),
+      });
+      const {findAllByLabelText, findByLabelText, findByText} = renderScreen();
+      await findByText('Juan 1:1');
+      failBankWrites();
+
+      fireEvent.press((await findAllByLabelText(h.removePassage))[0]);
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      fireEvent.press((await findAllByLabelText(h.moveDown))[0]);
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(2));
+      fireEvent.press(
+        await findByLabelText(
+          `${h.sermonTypeLabel}: ${h.sermonTypes.expositiva}`,
+        ),
+      );
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(3));
+      fireEvent.press((await findAllByLabelText(h.noDate))[0]);
+      fireEvent.press(await findByText(h.dateThisSunday));
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(4));
+
+      expect(failed).toBe(4);
+      for (const call of mockToast.error.mock.calls) {
+        expect(call).toEqual([saveError]);
+      }
+      // The date sheet stays open, to try again.
+      expect(await findByText(h.dateThisSunday)).toBeTruthy();
+      expect(await getPrepSeries(SERIES_ID)).toMatchObject({
+        passageKeys: ['John/1/1', 'John/3/16'],
+      });
+      expect((await getPrepSeries(SERIES_ID))?.sermonType).toBeUndefined();
+      expect((await getPrepSeries(SERIES_ID))?.schedule).toBeUndefined();
+    });
+  });
 });

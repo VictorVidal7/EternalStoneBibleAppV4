@@ -61,6 +61,7 @@ import {OfferingBadge} from '@components/ui/OfferingBadge';
 import {MarkdownFormatToolbar} from '@components/ui/MarkdownFormatToolbar';
 import {ContextualHintBanner} from '@components/hints/ContextualHintBanner';
 import {useContextualHint} from '@hooks/useContextualHint';
+import {useSaveErrorToast} from '@hooks/useSaveErrorToast';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {getBookIntro} from '@/constants/book-intros';
@@ -268,12 +269,6 @@ function StepButton({
     </TouchableOpacity>
   );
 }
-
-// R9-52 — how long after a "could not save" toast another failed write stays
-// silent (see `reportSaveError`). Longer than the toast's own 3 s, so a burst
-// shows one, and short enough that a write that keeps failing while the
-// preparer types is still reported now and then.
-const SAVE_ERROR_BURST_MS = 10_000;
 
 export default function PrepTableScreen() {
   const router = useRouter();
@@ -987,16 +982,8 @@ export default function PrepTableScreen() {
   // screen said nothing. The stores now reject; every caller here reports it
   // through this, which shows ONE error toast per burst of failures (a flush
   // of seven sections, or an autosave that fails on every pause in typing),
-  // not one per write: a failure within `SAVE_ERROR_BURST_MS` of the last
-  // toast shown is silent.
-  const lastSaveErrorToastAtRef = useRef<number | null>(null);
-  const reportSaveError = useCallback(() => {
-    const now = Date.now();
-    const last = lastSaveErrorToastAtRef.current;
-    if (last !== null && now - last < SAVE_ERROR_BURST_MS) return;
-    lastSaveErrorToastAtRef.current = now;
-    toast.error(p.saveError);
-  }, [toast, p.saveError]);
+  // not one per write (`useSaveErrorToast`, shared with the banks).
+  const reportSaveError = useSaveErrorToast(p.saveError);
 
   // R9-143 — the flush both buttons below run before navigating. It used to
   // write `drafts[section] ?? ''` under `table.passageKey` for every section:

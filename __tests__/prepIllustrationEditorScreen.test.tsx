@@ -102,6 +102,17 @@ jest.mock('@context/OfferingSheetContext', () => ({
   useOfferingSheet: () => ({open: mockOpenOfferingSheet}),
 }));
 
+const mockToast = {
+  success: jest.fn(),
+  error: jest.fn(),
+  warning: jest.fn(),
+  info: jest.fn(),
+  show: jest.fn(),
+};
+jest.mock('@context/ToastContext', () => ({
+  useToast: () => mockToast,
+}));
+
 const h = translations.es.prepIllustrations;
 const offering = translations.es.offering;
 
@@ -276,5 +287,129 @@ describe('PrepIllustrationEditorScreen — Tanda 4', () => {
     const stillThere = await getPrepIllustration('i1');
     expect(stillThere).not.toBeNull();
     expect(stillThere?.title).toBe('Se queda');
+  });
+
+  // R9-52, the bank (S162) — the real store, with `setItem` rejecting only
+  // for `@prep_illustrations`. Every write here used to be swallowed by the
+  // store: the screen said nothing, and deleting went back as if done.
+  describe('a failed write of the bank', () => {
+    const setItem = AsyncStorage.setItem as jest.Mock;
+    const real = setItem.getMockImplementation()!;
+    const saveError = translations.es.prepTable.saveError;
+    let failed = 0;
+    const seeded = {
+      i1: {
+        id: 'i1',
+        title: 'Con contenido',
+        body: 'Cuerpo',
+        category: 'analogy' as const,
+        createdAt: 1,
+        updatedAt: 1,
+      },
+    };
+    beforeEach(() => {
+      mockToast.error.mockClear();
+      mockToast.success.mockClear();
+      failed = 0;
+    });
+    afterEach(() => {
+      setItem.mockImplementation(real);
+    });
+    function failBankWrites() {
+      setItem.mockImplementation((key: string, value: string) => {
+        if (key === PREP_ILLUSTRATIONS_KEY) {
+          failed += 1;
+          return Promise.reject(new Error('disco lleno'));
+        }
+        return real(key, value);
+      });
+    }
+
+    // One write each, so each caller is seen on its own (a burst shows one
+    // toast, and would hide a caller that stopped reporting).
+    it.each([
+      ['the title blur', 'title'],
+      ['the body blur', 'body'],
+      ['the category chip', 'category'],
+      ['the title autosave', 'titleTyped'],
+      ['the body autosave', 'bodyTyped'],
+    ])('%s reports it', async (_label, which) => {
+      await unlockPremium();
+      await seedIllustrations(seeded);
+      mockParams = {id: 'i1'};
+      const {findByPlaceholderText, findByLabelText} = renderScreen();
+      const titleInput = await findByPlaceholderText(h.titlePlaceholder);
+      const bodyInput = await findByPlaceholderText(h.bodyPlaceholder);
+      failBankWrites();
+      if (which === 'title') fireEvent(titleInput, 'blur');
+      if (which === 'body') fireEvent(bodyInput, 'blur');
+      if (which === 'category') {
+        fireEvent.press(await findByLabelText(h.categories.humor));
+      }
+      if (which === 'titleTyped') fireEvent.changeText(titleInput, 'Otro');
+      if (which === 'bodyTyped') fireEvent.changeText(bodyInput, 'Otro');
+
+      // CONTROL: the one write was attempted and failed (the autosave waits
+      // 700 ms).
+      await waitFor(() => expect(failed).toBe(1), {timeout: 3000});
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(saveError);
+    });
+
+    it('the blurs and the category chip report it, one toast per burst', async () => {
+      await unlockPremium();
+      await seedIllustrations(seeded);
+      mockParams = {id: 'i1'};
+      const {findByPlaceholderText, findByLabelText} = renderScreen();
+      const titleInput = await findByPlaceholderText(h.titlePlaceholder);
+      const bodyInput = await findByPlaceholderText(h.bodyPlaceholder);
+      failBankWrites();
+      fireEvent.changeText(titleInput, 'Nuevo título');
+      fireEvent(titleInput, 'blur');
+      fireEvent.changeText(bodyInput, 'Nuevo cuerpo');
+      fireEvent(bodyInput, 'blur');
+      fireEvent.press(await findByLabelText(h.categories.humor));
+
+      // CONTROL: the three writes were attempted and failed.
+      await waitFor(() => expect(failed).toBe(3));
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(saveError);
+      expect(await getPrepIllustration('i1')).toMatchObject({
+        title: 'Con contenido',
+        body: 'Cuerpo',
+        category: 'analogy',
+      });
+    });
+
+    it('deleting shows an error and stays on the illustration', async () => {
+      await unlockPremium();
+      await seedIllustrations(seeded);
+      mockParams = {id: 'i1'};
+      const {findByLabelText, findByText} = renderScreen();
+      await findByText('Con contenido');
+      failBankWrites();
+      fireEvent.press(await findByLabelText(h.deleteLabel));
+      fireEvent.press(await findByText(translations.es.delete));
+
+      await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+      expect(mockToast.error).toHaveBeenCalledWith(saveError);
+      expect(failed).toBe(1);
+      expect(mockBack).not.toHaveBeenCalled();
+      expect(await getPrepIllustration('i1')).not.toBeNull();
+    });
+
+    it("the quiet cleanup of an abandoned blank fails quietly (no toast: the preparer didn't ask for it)", async () => {
+      await unlockPremium();
+      const created = await createPrepIllustration();
+      mockParams = {id: created!.id};
+      const {unmount, findByPlaceholderText} = renderScreen();
+      await findByPlaceholderText(h.titlePlaceholder);
+      failBankWrites();
+      unmount();
+
+      await waitFor(() => expect(failed).toBe(1));
+      expect(mockToast.error).not.toHaveBeenCalled();
+      expect(await getPrepIllustration(created!.id)).not.toBeNull();
+    });
   });
 });

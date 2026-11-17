@@ -95,21 +95,28 @@ export default function SermonNotesListScreen() {
       return;
     }
     setCreating(true);
+    let created: SermonNoteSession | null;
     try {
-      const created = await createSermonNoteSession(
+      created = await createSermonNoteSession(
         defaultSessionTitle(Date.now(), bookLang),
       );
-      if (!created) return;
-      router.push(`/features/sermon-notes/${created.id}` as never);
+    } catch {
+      // R9-52 — the store rejects when the write failed (it used to resolve
+      // `null`, and the tap did nothing): say so, and open nothing.
+      toast.error(h.saveError);
+      return;
     } finally {
       setCreating(false);
     }
+    if (!created) return;
+    router.push(`/features/sermon-notes/${created.id}` as never);
   }, [
     creating,
     sessionsMap,
     toast,
     h.limitReachedTitle,
     h.limitReachedBody,
+    h.saveError,
     bookLang,
     router,
   ]);

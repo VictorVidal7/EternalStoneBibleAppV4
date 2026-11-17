@@ -57,6 +57,8 @@ import {useDebouncedCallback} from 'use-debounce';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useSaveErrorToast} from '@hooks/useSaveErrorToast';
+import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
@@ -90,7 +92,13 @@ export default function PrepIllustrationEditorScreen() {
   const {t} = useLanguage();
   const {isPremium} = usePremium();
   const {open: openOfferingSheet} = useOfferingSheet();
+  const toast = useToast();
   const h = t.prepIllustrations;
+  // R9-52 — the store's writes reject when they failed (they used to be
+  // swallowed). The autosaves, blurs and the category chip don't wait, and
+  // report through this: one toast per burst.
+  const saveError = t.prepTable.saveError;
+  const reportSaveError = useSaveErrorToast(saveError);
 
   const params = useLocalSearchParams<{id?: string}>();
   const id = params.id ?? '';
@@ -149,11 +157,11 @@ export default function PrepIllustrationEditorScreen() {
   // preparación.
   const debouncedSaveTitle = useDebouncedCallback((value: string) => {
     if (!id) return;
-    savePrepIllustrationTitle(id, value);
+    savePrepIllustrationTitle(id, value).catch(reportSaveError);
   }, 700);
   const debouncedSaveBody = useDebouncedCallback((value: string) => {
     if (!id) return;
-    savePrepIllustrationBody(id, value);
+    savePrepIllustrationBody(id, value).catch(reportSaveError);
   }, 700);
 
   // Flush any pending debounced save on unmount (the exact "type, back,
@@ -169,7 +177,10 @@ export default function PrepIllustrationEditorScreen() {
         id &&
         isIllustrationEmpty(titleRef.current, bodyRef.current)
       ) {
-        deletePrepIllustration(id);
+        // R9-52 — a quiet cleanup the preparer never asked for: if it fails,
+        // a blank stays in the bank (the store logs it), and a "could not
+        // save" toast on leaving would only confuse. Caught, not reported.
+        deletePrepIllustration(id).catch(() => undefined);
       }
     },
     [id, debouncedSaveTitle, debouncedSaveBody],
@@ -186,8 +197,8 @@ export default function PrepIllustrationEditorScreen() {
 
   const handleTitleBlur = useCallback(() => {
     if (!id) return;
-    savePrepIllustrationTitle(id, title);
-  }, [id, title]);
+    savePrepIllustrationTitle(id, title).catch(reportSaveError);
+  }, [id, title, reportSaveError]);
 
   const handleBodyChange = useCallback(
     (value: string) => {
@@ -200,8 +211,8 @@ export default function PrepIllustrationEditorScreen() {
 
   const handleBodyBlur = useCallback(() => {
     if (!id) return;
-    savePrepIllustrationBody(id, body);
-  }, [id, body]);
+    savePrepIllustrationBody(id, body).catch(reportSaveError);
+  }, [id, body, reportSaveError]);
 
   // The category chip saves immediately — nothing to debounce for a single
   // discrete pick.
@@ -210,18 +221,27 @@ export default function PrepIllustrationEditorScreen() {
       haptics.tap();
       setCategory(next);
       if (!id) return;
-      savePrepIllustrationCategory(id, next);
+      savePrepIllustrationCategory(id, next).catch(reportSaveError);
     },
-    [id],
+    [id, reportSaveError],
   );
 
   const handleDelete = useCallback(async () => {
     if (!id) return;
     loadedRef.current = false; // the unmount cleanup should not race this explicit delete
-    await deletePrepIllustration(id);
+    // R9-52 — a failed delete rejects: say so and stay on the illustration
+    // (it is still there), with the cleanup armed again.
+    try {
+      await deletePrepIllustration(id);
+    } catch {
+      loadedRef.current = true;
+      setDeleteConfirmOpen(false);
+      toast.error(saveError);
+      return;
+    }
     setDeleteConfirmOpen(false);
     router.back();
-  }, [id, router]);
+  }, [id, router, toast, saveError]);
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])

@@ -495,6 +495,99 @@ describe('PrepSeriesListScreen — T8.4.4', () => {
       );
     });
 
+    // R9-52, the bank (S162) — the real store, with `setItem` rejecting only
+    // for `@prep_series`. Adding used to resolve `false` on a failed write,
+    // and the screen said "added" and went back with nothing saved.
+    describe('a failed write of the bank', () => {
+      const setItem = AsyncStorage.setItem as jest.Mock;
+      const real = setItem.getMockImplementation()!;
+      const saveError = translations.es.prepTable.saveError;
+      let failed = 0;
+      beforeEach(() => {
+        mockToast.error.mockClear();
+        failed = 0;
+      });
+      afterEach(() => {
+        setItem.mockImplementation(real);
+      });
+      /** Rejects the `@prep_series` writes after the first `skip` ones. */
+      function failBankWrites(skip = 0) {
+        let left = skip;
+        setItem.mockImplementation((key: string, value: string) => {
+          if (key === PREP_SERIES_KEY) {
+            if (left > 0) {
+              left -= 1;
+              return real(key, value);
+            }
+            failed += 1;
+            return Promise.reject(new Error('disco lleno'));
+          }
+          return real(key, value);
+        });
+      }
+
+      it('adding to a tapped series shows an error, no success toast, and stays', async () => {
+        await unlockPremium();
+        await seedSeries({
+          s1: {
+            id: 's1',
+            name: 'Efesios',
+            passageKeys: [],
+            createdAt: 1,
+            updatedAt: 1,
+          },
+        });
+        const {findByText} = renderScreen();
+        await findByText('Efesios');
+        failBankWrites();
+        fireEvent.press(await findByText('Efesios'));
+
+        await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+        expect(mockToast.error).toHaveBeenCalledWith(saveError);
+        expect(failed).toBe(1);
+        expect(mockToast.success).not.toHaveBeenCalled();
+        expect(mockBack).not.toHaveBeenCalled();
+        expect((await getPrepSeries('s1'))?.passageKeys).toEqual([]);
+      });
+
+      it('creating shows an error and keeps the sheet open with the name', async () => {
+        await unlockPremium();
+        const {findByText, findByPlaceholderText, getByDisplayValue} =
+          renderScreen();
+        fireEvent.press(await findByText(h.attachBody));
+        const input = await findByPlaceholderText(h.namePlaceholder);
+        fireEvent.changeText(input, 'Romanos');
+        failBankWrites();
+        fireEvent.press(await findByText(h.create));
+
+        await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+        expect(mockToast.error).toHaveBeenCalledWith(saveError);
+        expect(failed).toBe(1);
+        expect(getByDisplayValue('Romanos')).toBeTruthy();
+        expect(mockToast.success).not.toHaveBeenCalled();
+        expect(mockBack).not.toHaveBeenCalled();
+        expect(mockPush).not.toHaveBeenCalled();
+      });
+
+      it('a created series whose passage did not get in says so and stays, listing it', async () => {
+        await unlockPremium();
+        const {findByText, findByPlaceholderText} = renderScreen();
+        fireEvent.press(await findByText(h.attachBody));
+        const input = await findByPlaceholderText(h.namePlaceholder);
+        fireEvent.changeText(input, 'Romanos');
+        failBankWrites(1); // the create saves; the add fails
+        fireEvent.press(await findByText(h.create));
+
+        await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+        expect(mockToast.error).toHaveBeenCalledWith(saveError);
+        expect(failed).toBe(1);
+        expect(mockToast.success).not.toHaveBeenCalled();
+        expect(mockBack).not.toHaveBeenCalled();
+        expect(mockPush).not.toHaveBeenCalled();
+        expect(await findByText('Romanos')).toBeTruthy();
+      });
+    });
+
     it('dismisses the attach banner and browses normally afterward', async () => {
       await unlockPremium();
       await seedSeries({

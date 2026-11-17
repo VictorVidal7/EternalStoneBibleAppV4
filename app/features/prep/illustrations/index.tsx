@@ -207,10 +207,18 @@ export default function PrepIllustrationsListScreen() {
       categoryFilter === 'all'
         ? undefined
         : (categoryFilter as IllustrationCategory | undefined);
-    const created = await createPrepIllustration(category);
+    // R9-52 — the store rejects when the write failed (it used to resolve
+    // `null`, and the tap did nothing): say so, and open nothing.
+    let created: PrepIllustration | null;
+    try {
+      created = await createPrepIllustration(category);
+    } catch {
+      toast.error(saveError);
+      return;
+    }
     if (!created) return;
     router.push(`/features/prep/illustrations/${created.id}` as never);
-  }, [illustrationsMap, categoryFilter, toast, h, router]);
+  }, [illustrationsMap, categoryFilter, toast, h, saveError, router]);
 
   // Tanda 4 — append the tapped illustration's title + body to the pending
   // passage's `application` section (see INSERT_TARGET_SECTION above) and
@@ -264,10 +272,16 @@ export default function PrepIllustrationsListScreen() {
 
   const handleConfirmDelete = useCallback(async () => {
     if (!deleteTarget) return;
-    await deletePrepIllustration(deleteTarget.id);
+    // R9-52 — a failed delete rejects: say so (the reload below shows the
+    // illustration still there).
+    try {
+      await deletePrepIllustration(deleteTarget.id);
+    } catch {
+      toast.error(saveError);
+    }
     setDeleteTarget(null);
     await load();
-  }, [deleteTarget, load]);
+  }, [deleteTarget, load, toast, saveError]);
 
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
