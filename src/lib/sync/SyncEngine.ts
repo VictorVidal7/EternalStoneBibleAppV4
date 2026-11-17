@@ -1622,7 +1622,20 @@ export class SyncEngine {
     // live listener into `unsubs` for an engine that's supposed to be
     // stopped — exactly the listener the ordering fix in
     // AuthContext.signOut exists to prevent, just via a different path.
+    //
+    // R9-37 — and the «already attached» check above ran BEFORE these awaits:
+    // a second attach of the same collection could pass it too, and the later
+    // `unsubs.set` dropped the first listener's unsub, leaving it open and out
+    // of reach of `stop()` and `unregister()`. So it is checked again here,
+    // after the last await; from
+    // here to `unsubs.set` nothing awaits, so the first attach to get here
+    // wins and the rest return. That covers `stop()` + `start()` of the same
+    // uid too (the cold-start flicker of SyncEngineContext), which the uid
+    // check above cannot tell apart. And an adapter unregistered (or replaced)
+    // while its attach waited gets no listener.
     if (this.uid !== uidAtAttach) return;
+    if (this.adapters.get(adapter.collection) !== adapter) return;
+    if (this.unsubs.has(adapter.collection)) return;
     // R9-39 / R9-106 — and never past a doc this device has not settled
     // yet, whatever other docs moved the cursor since: a pending conflict
     // must come back after a restart to be detected again, and a skipped
