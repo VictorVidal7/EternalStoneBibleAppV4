@@ -8,15 +8,11 @@
  * no blur/debounce here, unlike free-text notes) and a read-modify-write race
  * on rapid taps would otherwise drop a toggle.
  *
- * STRICTLY DEVICE-LOCAL — more so than [[prepNotesStore]]'s own notes. Never
- * synced to Firestore (no adapter registers this key, same as prep notes).
- * UNLIKE prep notes/series, this key is also deliberately left OUT of
- * `BackupService`'s export/import file: prep notes are included there on
- * purpose ("export/import is the ONLY way to move this between devices" —
- * see BackupService.ts's own docstring), but a self-review checklist is a
- * private, in-the-moment self-check with no reason to travel between devices
- * or sit in a shareable backup file, so it follows [[prepIllustrationsStore]]'s
- * precedent (also prep-related, also never backed up) instead.
+ * DEVICE-LOCAL. Never synced to Firestore (no adapter registers this key,
+ * same as prep notes). R9-30 — it travels in `BackupService`'s export/import
+ * file with the rest of the Mesa, by account: it was left out on purpose,
+ * and a new phone lost it with no other way back (the backup is the ONLY
+ * way to move the Mesa between devices).
  *
  * Para la gloria de Dios Todopoderoso ✨
  */

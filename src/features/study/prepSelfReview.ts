@@ -17,10 +17,9 @@
  * One `PrepSelfReview` per passage key ("John/3/16-21"), same key format as
  * [[prepNotes]]'s `PrepNotesMap`. Kept React-/storage-free (the
  * [[prepSelfReviewStore]] does the AsyncStorage I/O), mirroring
- * [[prepNotes]]/[[prepNotesStore]]. DEVICE-LOCAL and never leaves the phone —
- * never synced, never exported, never shared (see prepSelfReviewStore.ts's
- * own docstring for why this is stricter than prepNotes, which IS included
- * in the manual backup/export file).
+ * [[prepNotes]]/[[prepNotesStore]]. DEVICE-LOCAL — never synced, never
+ * shared; R9-30: it travels in the manual backup file, like prepNotes (see
+ * prepSelfReviewStore.ts's own docstring).
  *
  * Para la gloria de Dios Todopoderoso ✨
  */

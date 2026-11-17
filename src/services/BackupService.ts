@@ -26,7 +26,8 @@
  *   - `memory` — the memorization deck + full review-event history. These ARE
  *     synced to Firestore for a signed-in Google user, but a signed-out user
  *     (or an extra local safety net) had zero backup of them before.
- *   - `prep` — "Mesa de preparación" notes + series planner. Deliberately
+ *   - `prep` — "Mesa de preparación" notes + series planner (and, R9-30,
+ *     the illustration bank + the self-review checklist). Deliberately
  *     NEVER synced to the cloud (unfinished-sermon privacy) — export/import
  *     is the ONLY way to move this between devices.
  *
@@ -95,6 +96,16 @@ import {
   parsePrepSeriesMap,
   serializePrepSeriesMap,
 } from '../features/study/prepSeries';
+import {
+  type PrepIllustrationsMap,
+  parsePrepIllustrationsMap,
+  serializePrepIllustrationsMap,
+} from '../features/study/prepIllustrations';
+import {
+  type PrepSelfReviewMap,
+  parsePrepSelfReviewMap,
+  serializePrepSelfReviewMap,
+} from '../features/study/prepSelfReview';
 import {getSyncEngine, nullifyUndefined} from '../lib/sync';
 import {
   emitBackupRestored,
@@ -118,6 +129,8 @@ const KEYS = {
   memoryDeck: '@memory_deck',
   prepNotes: '@prep_notes',
   prepSeries: '@prep_series',
+  prepIllustrations: '@prep_illustrations',
+  prepSelfReview: '@prep_self_review',
 } as const;
 
 /**
@@ -246,6 +259,13 @@ export interface BackupPayload {
   prep: {
     notes: PrepNotesMap | null;
     series: PrepSeriesMap | null;
+    /**
+     * R9-30 — the Banco de ilustraciones and the autorrevisión, by account
+     * like the two above. Additive within format v2: a file without them
+     * (older builds) restores neither, and leaves this device's as they are.
+     */
+    illustrations?: PrepIllustrationsMap | null;
+    selfReview?: PrepSelfReviewMap | null;
   };
   /**
    * R9-60 — the raw value of each `LOCAL_BACKUP_KEYS` key that was set on
@@ -509,10 +529,13 @@ export async function buildBackup(): Promise<BuildBackupResult> {
 
   // R9-59 — the Mesa of the account signed in, not every account's: a backup
   // made by one account no longer carries another's (see `prepAccount`).
-  const [prepNotesKey, prepSeriesKey] = await Promise.all([
-    prepKey(KEYS.prepNotes),
-    prepKey(KEYS.prepSeries),
-  ]);
+  const [prepNotesKey, prepSeriesKey, prepIllustrationsKey, prepSelfReviewKey] =
+    await Promise.all([
+      prepKey(KEYS.prepNotes),
+      prepKey(KEYS.prepSeries),
+      prepKey(KEYS.prepIllustrations),
+      prepKey(KEYS.prepSelfReview),
+    ]);
   const [
     planProgress,
     planReadChapters,
@@ -524,6 +547,8 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     memoryDeck,
     prepNotesRaw,
     prepSeriesRaw,
+    prepIllustrationsRaw,
+    prepSelfReviewRaw,
   ] = await Promise.all([
     readJSON(KEYS.readingPlanProgress, 'readingPlanProgress', degradedSections),
     readJSON(
@@ -547,6 +572,8 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     ),
     readRaw(prepNotesKey, 'prepNotes', degradedSections),
     readRaw(prepSeriesKey, 'prepSeries', degradedSections),
+    readRaw(prepIllustrationsKey, 'prepIllustrations', degradedSections),
+    readRaw(prepSelfReviewKey, 'prepSelfReview', degradedSections),
   ]);
 
   // R9-49 — `{strict: true}` on the four reading-history ledgers. Those
@@ -653,6 +680,12 @@ export async function buildBackup(): Promise<BuildBackupResult> {
     prep: {
       notes: prepNotesRaw ? parsePrepNotesMap(prepNotesRaw) : null,
       series: prepSeriesRaw ? parsePrepSeriesMap(prepSeriesRaw) : null,
+      illustrations: prepIllustrationsRaw
+        ? parsePrepIllustrationsMap(prepIllustrationsRaw)
+        : null,
+      selfReview: prepSelfReviewRaw
+        ? parsePrepSelfReviewMap(prepSelfReviewRaw)
+        : null,
     },
   };
 
@@ -1348,6 +1381,15 @@ export async function importBackup(
   const prepSeriesIn = prepSeriesPresent
     ? parsePrepSeriesMap(JSON.stringify(prepSection.series ?? {}))
     : null;
+  // R9-30 — absent in a file from an older build: this device's stay.
+  const prepIllustrationsPresent = prepSection.illustrations !== undefined;
+  const prepIllustrationsIn = prepIllustrationsPresent
+    ? parsePrepIllustrationsMap(JSON.stringify(prepSection.illustrations ?? {}))
+    : null;
+  const prepSelfReviewPresent = prepSection.selfReview !== undefined;
+  const prepSelfReviewIn = prepSelfReviewPresent
+    ? parsePrepSelfReviewMap(JSON.stringify(prepSection.selfReview ?? {}))
+    : null;
 
   // ---- AsyncStorage portion: fully built (validated + serialized into the
   // exact key/value pairs) BEFORE the SQLite transaction even opens. This is
@@ -1465,6 +1507,22 @@ export async function importBackup(
       serializePrepSeriesMap(prepSeriesIn),
       'prepSeries',
       'prepSeries',
+    );
+  }
+  if (prepIllustrationsPresent && prepIllustrationsIn) {
+    queuePair(
+      await prepKey(KEYS.prepIllustrations),
+      serializePrepIllustrationsMap(prepIllustrationsIn),
+      'prepIllustrations',
+      'prepIllustrations',
+    );
+  }
+  if (prepSelfReviewPresent && prepSelfReviewIn) {
+    queuePair(
+      await prepKey(KEYS.prepSelfReview),
+      serializePrepSelfReviewMap(prepSelfReviewIn),
+      'prepSelfReview',
+      'prepSelfReview',
     );
   }
   // R9-60 — the verbatim keys, each its own section. Only a key the file

@@ -91,8 +91,7 @@ const EXCLUDED: Record<string, string> = {
  * the Mesa keys go by account, like `@prep_notes`.
  */
 const PENDING_R9_30 = [
-  '@prep_illustrations',
-  '@prep_self_review',
+  // Not the Mesa (free tier, one key for every account, no `prepKey`).
   '@sermon_notes',
   '@custom_plans',
   '@devotional_draft',
