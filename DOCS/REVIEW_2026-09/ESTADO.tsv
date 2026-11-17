@@ -58,7 +58,7 @@ R9-56	P2	notas	abierto		`app/(tabs)/notes.tsx:276` (`localizeBook(item.book)` ju
 R9-57	P2	lector	abierto		`app/(tabs)/verse/[book]/[chapter].tsx:1049` (`saveNote` corta con `!noteText.trim()`; sin borrado desde el lector)
 R9-58	P2	Mesa	abierto		`grep flushOnExit` en `app` y `src`: 0
 R9-59	P2	privacidad local	aceptado	sesión 51	marca de su entrada: «✅ DECIDIDO por Victor el 2026-10-03 (tras la sesión 51): la opción (b). La Mesa se guarda por cuenta, y cerrar sesión no borra nada. Progreso y logros»
-R9-60	P2	respaldo	abierto		`src/services/BackupService.ts`: 0 menciones de `@memory_daily_goal`, `@memory_weekly_target` ni `@memory_celebrated_milestones`
+R9-60	P2	respaldo	arreglado	90f67a46	marca de su entrada: «✅ ARREGLADO en la sesión 160 (`90f67a46`, rama `fix/s160-v3`): las tres claves viajan en `payload.local` (`LOCAL_BACKUP_KEYS`), con degradado por clav»
 R9-61	P2	recuperación	abierto		`resetDeck` sigue sin llamadores fuera de `MemoryDeckContext`
 R9-62	P2	hitos	abierto		`src/lib/memory/goalStore.ts:72` (`merged.slice(-MAX_CELEBRATED)`, con `MAX_CELEBRATED = 60` en `:22`)
 R9-63	P2	recap	abierto		`src/features/reading-insights/weeklyRecap.ts:86` (`listeningDateKey(now - i * MS_PER_DAY)`)
@@ -115,7 +115,7 @@ R9-113	P2	build de packs	abierto		`scripts/build-web-packs.js:907` (el preflight
 R9-114	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-114`
 R9-115	P2	SyncEngine	arreglado	e97cd95	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`e97cd95`, con `R9-254`): la hidratación une lo escrito durante su lectura (la más nueva gana, con los relojes de la viej»
 R9-116	P2	prueba de respaldo	abierto		por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
-R9-117	P2	favoritos / respaldo	abierto		`subscribeBackupRestored` tiene 4 suscriptores en `src/context` (mazo, preferencias, progreso del plan, progreso); `FavoritesContext.tsx` no está
+R9-117	P2	favoritos / respaldo	arreglado	90f67a46	marca de su entrada: «✅ ARREGLADO en la sesión 160 (`90f67a46`, rama `fix/s160-v3`): `FavoritesContext` se suscribe a `subscribeBackupRestored`; `__tests__/favoritesRestore»
 R9-118	P2	CI	abierto		espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
 R9-119	P2	premium	arreglado	3190815b	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`3190815b`): `AuthContext` ya no llama a `linkUser` para un usuario anónimo (tampoco en el primer arranque); cerrar sesi»
 R9-120	P3	build de packs	abierto		grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
@@ -127,9 +127,9 @@ R9-125	P0	identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la
 R9-126	P1	SyncEngine / respaldo	abierto	parcial: 46ad0e93	parcial: la marca de su entrada dice «✅ ARREGLADO EN PARTE en la sesión 156» (`46ad0e93`): entró la opción C (la cola); siguen el bulk push (E), restaurar (B, §8) y las reglas (R)
 R9-127	P1	SyncEngine / auth	arreglado	9757b8dc	marca de su entrada: «✅ ARREGLADO en la sesión 155 (`9757b8dc`, rama `fix/s155-r9-127`): el skip de un inicio lleva su uid (`settle(uid)` lo ata, `settle(null)` lo suelta);»
 R9-128	P1	adaptadores de sync	arreglado	5296512b	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`5296512b`, rama `fix/s154-v2`): los `apply*` de notas, subrayados y favoritos relanzan; `applyRemoteChange` devuelve `f»
-R9-129	P1	respaldo / memoria	abierto		`src/lib/memory/reviewEventStore.ts:90-96` (`catch` → `return []`)
+R9-129	P1	respaldo / memoria	arreglado	501bb70a	marca de su entrada: «✅ ARREGLADO en la sesión 160 (`501bb70a`, rama `fix/s160-v3`): `getAllReviewEvents({strict: true})` relanza en el export, el sembrado y el agregado de»
 R9-130	P1	prueba de identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`): el `claimLocalStore` del camino directo lo vigila ahora una prueba que pasa por las tres ramas. Quitado, caen»
-R9-131	P1	prueba de respaldo	abierto		por lectura (el revert no se repitió): ninguna prueba nombra `R9-131`; `__tests__/achievementServiceRestoreBackup.test.ts` no tiene `degraded`, y `strict` solo aparece en `backupDegradedSections.test.ts:183-194`, que prueba el getter y no la llamada del export
+R9-131	P1	prueba de respaldo	arreglado	501bb70a	marca de su entrada: «✅ ARREGLADO en la sesión 160 (`501bb70a`, rama `fix/s160-v3`): `__tests__/backupReadingHistoryGuards.test.ts`, con el `AchievementService` real, vigil»
 R9-132	P2	adaptadores de sync	arreglado	5296512b	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`5296512b`, rama `fix/s154-v2`): el `getLocal` de subrayados lanza en un fallo; con HEAD, una copia vieja pisaba nota, c»
 R9-133	P2	favoritos / sync	arreglado	57cab837	dos marcas ✅ en la entrada: favoritos con `R9-210` (`682f852`, sesión 34) y el mazo (`57cab83`, sesión 61); el bulk push de favoritos sigue aparte, en `R9-214`
 R9-134	P2	memoria / identidad	abierto		`src/lib/memory/memoryStatsSync.ts:82-84` (`getReviewLogOwner`: `catch` → `return null`, falla abierta)

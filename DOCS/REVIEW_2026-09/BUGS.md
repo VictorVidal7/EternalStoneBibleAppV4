@@ -3015,6 +3015,7 @@ cursor - 5 min)`. Con el cursor avanzado (reintento de `R9-257`, marca `'1'`, un
 - **`R9-129` (S21, respaldo / memoria) — 🐛 `getAllReviewEvents` se traga su error: la sección
   `reviewEvents` del respaldo nunca se marca degradada, y el sembrado toma un dispositivo con
   historial por uno fresco.** CONFIRMADO con sondas, con el `reviewEventStore` REAL.
+  - **✅ ARREGLADO en la sesión 160** (`501bb70a`, rama `fix/s160-v3`): `getAllReviewEvents({strict: true})` relanza en el export, el sembrado y el agregado de la nube (daño nuevo: el `.set()` total con el piso solo). Detalle: `detail/S160-v3-arreglos.md` §2 y §3.
   - `reviewEventStore.ts:80-97` hace `catch → []`. `buildBackup` la envuelve en `safeQuery`
     (`BackupService.ts:551-555`), que solo marca desde su `catch`. Es el quinto getter de la forma
     de `R9-49`, y el arreglo `{strict: true}` no lo tocó.
@@ -3047,6 +3048,7 @@ cursor - 5 min)`. Con el cursor avanzado (reintento de `R9-257`, marca `'1'`, un
 - **`R9-131` (S21, prueba de respaldo) — 🐛 las dos mitades que protegen la historia de lectura
   (`{strict: true}` del export y `data.degraded` del servicio) no las vigila ninguna prueba, y su
   regresión reabre `R9-49`.** CONFIRMADO por revert y sonda.
+  - **✅ ARREGLADO en la sesión 160** (`501bb70a`, rama `fix/s160-v3`): `__tests__/backupReadingHistoryGuards.test.ts`, con el `AchievementService` real, vigila el `{strict: true}` de los cuatro libros y el `data.degraded` de `restoreBackup`. Detalle: `detail/S160-v3-arreglos.md` §3 y §4.
   - La prueba del export usa un servicio falso cuyos 4 getters **rechazan siempre**, con o sin
     `strict`. Quitar el `{strict: true}` de las 4 llamadas (`BackupService.ts:528/534/540/546`)
     la deja verde. Con el servicio real, el ledger ya no se marca y `streakLog: []` sale igual que
@@ -3682,6 +3684,7 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   **Medido en la 129 (`A37`, agente 4):** `@together_groups` tampoco está en las `KEYS` (`BackupService.ts:109-121`):
   al restaurar en otro teléfono, el plan vuelve alineado a la fecha del grupo, pero sin «Leyendo con {{grupo}}» ni
   «Salir del grupo». (`@devotional_saved` ya lo nombra `detail/A7-backupservice.md:174`.)
+  - **Nota de la sesión 160:** la raíz ya tiene guarda (`90f67a46`): `LOCAL_BACKUP_KEYS` y `__tests__/backupKeyCoverage.test.ts`, que cae con una clave sin cubrir o una listada que ya no existe. 47 claves esperan en `PENDING_R9_30`. **Sigue abierto**; el diseño por tandas: `detail/S160-v3-arreglos.md` §5.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -3789,6 +3792,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   `savePrepNote(...)` → `resolves.toBeUndefined()` y el storage queda vacío. Detalle:
   `detail/A9-mesa-persistencia.md`.
   **⚠️ Sesión 22 (sonda): se sostiene en P1, y es peor de lo escrito.** Los llamadores son **5**, no 4, desde el origen. El quinto, «insertar ilustración» (`app/features/prep/illustrations/index.tsx:229`), hace `await savePrepNote` → `toast.success('Ilustración añadida a tu preparación.')` → `router.back()`. Con la escritura fallida, el usuario recibe una confirmación FALSA: la sonda da toast de éxito y la sección vacía. Los stores hermanos (`prepIllustrationsStore.ts:101-132` y `prepSeriesStore.ts:100-187`) se tragan igual (por lectura), así que el alcance es «la Mesa y sus bancos».
+  - **Nota de la sesión 160:** va a la 161 con el diseño de `detail/S160-v3-arreglos.md` §5 (la promesa propia que rechaza, la cola que traga, y el `toast.error` en los llamadores).
 - **`R9-54` (A11, planes) — 🐛 descompletar un día de un plan no se sostiene: vuelve solo en la
   siguiente lectura de CUALQUIER capítulo, con notificación falsa.** Severidad
   **media-alta**. `toggleDay` (`ReadingPlanProgressContext.tsx:211-246`) quita el día de
@@ -15097,6 +15101,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 - **`R9-117` (S19, favoritos / respaldo) — 🐛 `FavoritesContext` no escucha la señal de
   restauración, y pisa lo restaurado.** No está entre los suscriptores de
   `subscribeBackupRestored` (verificado).
+  - **✅ ARREGLADO en la sesión 160** (`90f67a46`, rama `fix/s160-v3`): `FavoritesContext` se suscribe a `subscribeBackupRestored`; `__tests__/favoritesRestoreSignal.test.tsx` con el provider real. Detalle: `detail/S160-v3-arreglos.md` §3.
 
   **Medido:**
   - Tras importar, la memoria sigue con `"nota PRE-import"` mientras SQLite tiene
@@ -15931,6 +15936,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `@memory_stats_floor`/`_banner_pending` quedan fuera **correctamente** (caché derivable;
   respaldarlas empeoraría `R9-53`). Detalle: `detail/A10-memoria-srs.md`.
   **❌ Corrección de la sesión 22 (sonda): no se re-celebran «todos» los hitos, solo el más alto.** `pendingMilestone` devuelve el mayor no celebrado, y `milestoneKeysToMark` marca los inferiores a la vez: tras restaurar con racha 156 sale `["streak:100", …]`. Lo demás se sostiene. Sigue en P2.
+  - **✅ ARREGLADO en la sesión 160** (`90f67a46`, rama `fix/s160-v3`): las tres claves viajan en `payload.local` (`LOCAL_BACKUP_KEYS`), con degradado por clave; `__tests__/backupKeyCoverage.test.ts` vigila la lista. Detalle: `detail/S160-v3-arreglos.md` §3.
 - **`R9-61` (A10, recuperación) — 🐛 `resetDeck` está en la API pública del contexto y no tiene
   ni un solo llamador: no hay forma de que el usuario borre sus datos de memoria.** Severidad
   **baja**. Declarado, documentado (_"handy for 'Reset' affordance"_), implementado

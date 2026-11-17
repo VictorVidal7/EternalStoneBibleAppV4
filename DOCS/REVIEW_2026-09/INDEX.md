@@ -1,10 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 159, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
-> al cierre de la 159 eran 279 de 599: ningún P0, 13 P1, 90 P2, 175 P3 y un aviso. `docs/review-s159` espera el OK
-> de Victor. Sigue la 160: la V3 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
-> Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159 están sin medir en vivo; del
+> **Frontera (sesión 160, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, hecha en parte (quedan `R9-52` y `R9-30`).** Qué queda abierto se pregunta con
+> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 160 eran 275 de 599: ningún P0, 11 P1,
+> 88 P2, 175 P3 y un aviso. `fix/s160-v3` y `docs/review-s160` esperan el OK de Victor. Sigue la 161: `R9-52` y
+> después `R9-30` (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
+> Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo de la 160, están sin medir en vivo; del
 > Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -384,3 +385,10 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   el envoltorio, medido con las piezas reales de RNFB 26.2.0. Dos hallazgos nuevos (P3): `R9-598` (el bulk push de
   un `start()` viejo filtra con el listener de otra cuenta) y `R9-599` (el costo de `includeMetadataChanges`, por
   lectura). Dos notas en `R9-126`. Dos reglas. Sin código. Detalle: `detail/S159-revision-del-diff-s158.md`.
+- **Sesión 160 — 2026-11-17.** La V3 en parte, con Opus 5.5 de principal, sin agentes, en `fix/s160-v3`.
+  `501bb70a`: `R9-129` y `R9-131` (el historial de repasos relanza en el export, el sembrado y el agregado de la
+  nube; una prueba con el `AchievementService` real). `90f67a46`: `R9-60` y `R9-117` (`LOCAL_BACKUP_KEYS` en
+  `payload.local`, una prueba que vigila las claves contra el código, y los favoritos releen tras restaurar). La
+  raíz de `R9-30` tiene guarda; quedan 47 claves en `PENDING_R9_30`. `R9-52` va a la 161 con su diseño. 11 piezas
+  vistas caer. Dos reglas. Sin medir en vivo. Cerró en la 160b por el tope de llamadas. Detalle:
+  `detail/S160-v3-arreglos.md`.

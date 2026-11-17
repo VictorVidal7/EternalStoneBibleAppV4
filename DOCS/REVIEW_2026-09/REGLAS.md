@@ -1352,4 +1352,11 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
 - **Un estado por colección que lee una continuación asíncrona necesita también el uid (sesión 159, `R9-598`).** La
   continuación de un `start()` viejo corre en la sesión de la cuenta nueva y lee sus mapas. Al revisar un mapa nuevo
   del motor: `start(u1)` en vuelo, `stop()`, `start(u2)`. Y un conteo de suites se escribe con su lista.
+- **Una prueba que pone estado global lo limpia en `afterEach` (sesión 160, `R9-129`).** El `setSyncEngine` de la
+  prueba del agregado se limpiaba al final del cuerpo: cuando la aserción caía, el motor falso quedaba puesto y
+  arrastraba a las pruebas de `R9-131`, y el revert por pieza mentía (caían piezas que no eran la suya). Todo
+  `set*` de un singleton, un mock global o un timer se deshace en `afterEach`, no en el cuerpo.
+- **Una lista de claves se vigila contra el código, también al revés (sesión 160, `R9-30` y `R9-60`).** La prueba
+  de cobertura cae si una clave del código no está listada, y también si una clave listada ya no existe: así salió
+  `@premium_unlocked`, que solo vivía en un comentario. Una lista sin la vuelta se pudre en silencio.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
