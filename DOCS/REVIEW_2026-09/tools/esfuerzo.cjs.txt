@@ -1,0 +1,31 @@
+// Deja puesto el esfuerzo con que arranca el CHAT SIGUIENTE (CONTINUAR.md §7, decisión de Victor del 2026-11-16).
+// El orquestador lo corre al cerrar cada sesión, según el tipo de la sesión siguiente:
+//   high   — arreglos, revisión de un diff, diseño, Modo C;
+//   medium — un cierre (S1NN-CIERRE-PROMPT), un checkpoint de docs, un merge, la memoria.
+// Escribe effortLevel arriba y en modelSettings de los modelos principales; no toca nada más.
+// No cambia el esfuerzo del chat en curso: vale desde el chat siguiente (el statusline lo muestra).
+// Uso: node DOCS/REVIEW_2026-09/tools/esfuerzo.cjs.txt <low|medium|high|xhigh>
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const NIVELES = ['low', 'medium', 'high', 'xhigh'];
+const MODELOS = ['claude-opus-5-5', 'claude-fable-5-2'];
+const nivel = process.argv[2];
+if (!NIVELES.includes(nivel)) {
+  console.error('uso: node esfuerzo.cjs.txt <' + NIVELES.join('|') + '>');
+  process.exit(2);
+}
+const file = path.join(os.homedir(), '.claude', 'settings.json');
+const raw = fs.readFileSync(file, 'utf8');
+const s = JSON.parse(raw);
+const antes = {top: s.effortLevel, ...Object.fromEntries(MODELOS.map(m => [m, s.modelSettings?.[m]?.effortLevel]))};
+s.effortLevel = nivel;
+s.modelSettings = s.modelSettings || {};
+for (const m of MODELOS) s.modelSettings[m] = {...(s.modelSettings[m] || {}), effortLevel: nivel};
+const out = JSON.stringify(s, null, 2) + (raw.endsWith('\n') ? '\n' : '');
+JSON.parse(out);
+fs.writeFileSync(file, out);
+const despues = {top: s.effortLevel, ...Object.fromEntries(MODELOS.map(m => [m, s.modelSettings[m].effortLevel]))};
+console.log('antes:   ' + JSON.stringify(antes));
+console.log('después: ' + JSON.stringify(despues));
