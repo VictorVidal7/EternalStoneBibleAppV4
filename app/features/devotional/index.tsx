@@ -38,6 +38,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import bibleDB from '@lib/database';
 import {logger} from '@lib/utils/logger';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {BIBLE_BOOKS, getBookById} from '@/constants/bible';
 import {
   addDaysISO,
@@ -142,6 +143,20 @@ export default function DevotionalBuilderScreen() {
       alive = false;
     };
   }, []);
+
+  // R9-30 — a restore rewrote `@devotional_saved` behind this screen, and the
+  // next share writes `addSavedDevotional(savedList, …)`: the pre-import list
+  // would land back over the restored one. Re-read the list (only the list:
+  // the draft is the form the user is typing in).
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        AsyncStorage.getItem(DEVOTIONAL_SAVED_KEY)
+          .then(raw => setSavedList(parseSavedDevotionals(raw)))
+          .catch(() => undefined);
+      }),
+    [],
+  );
 
   // Autosave the draft shortly after typing/editing stops — the same
   // debounce-then-flush-on-unmount discipline used for prep notes (Sprint

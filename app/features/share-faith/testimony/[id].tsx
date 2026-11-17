@@ -51,6 +51,7 @@ import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {TestimonyImageModal} from '@components/insights/TestimonyImageModal';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {
   getFaithTestimony,
   saveFaithTestimonySession,
@@ -91,10 +92,12 @@ export default function FaithTestimonyEditorScreen() {
   const [now, setNow] = useState('');
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
+  // R9-30 — bumped by a backup restore, the one event that reloads the id.
+  const [restoreCount, setRestoreCount] = useState(0);
 
   // Loaded ONCE per id — not on every focus, same guard as the sermon-notes
   // editor (re-focusing this screen must never refetch over in-flight,
-  // not-yet-flushed local edits).
+  // not-yet-flushed local edits). A restore is the exception (see below).
   useEffect(() => {
     let cancelled = false;
     if (!id) {
@@ -118,7 +121,7 @@ export default function FaithTestimonyEditorScreen() {
     return () => {
       cancelled = true;
     };
-  }, [id]);
+  }, [id, restoreCount]);
 
   const debouncedSaveTitle = useDebouncedCallback((value: string) => {
     saveFaithTestimonySession(id, {title: value});
@@ -142,6 +145,27 @@ export default function FaithTestimonyEditorScreen() {
       debouncedSaveChange.flush();
       debouncedSaveNow.flush();
     },
+    [
+      debouncedSaveTitle,
+      debouncedSaveBefore,
+      debouncedSaveChange,
+      debouncedSaveNow,
+    ],
+  );
+
+  // R9-30 — a restore rewrote `@faith_testimony` behind this editor. Each
+  // keystroke saves the WHOLE field held here, so the next one would write the
+  // pre-import text back over the restored one. Drop the pending saves (they
+  // belong to the replaced text) and reload the session from disk.
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        debouncedSaveTitle.cancel();
+        debouncedSaveBefore.cancel();
+        debouncedSaveChange.cancel();
+        debouncedSaveNow.cancel();
+        setRestoreCount(c => c + 1);
+      }),
     [
       debouncedSaveTitle,
       debouncedSaveBefore,
