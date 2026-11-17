@@ -156,7 +156,7 @@ describe('Mesa de preparación — a failed write (R9-52)', () => {
   beforeEach(async () => {
     setItem.mockImplementation(realSetItem);
     mockPush.mockClear();
-    Object.values(mockToast).forEach(fn => fn.mockClear());
+    Object.values(mockToast).forEach(fn => fn.mockReset());
     await AsyncStorage.clear();
     clock = 1_000_000;
     dateNow = jest.spyOn(Date, 'now').mockImplementation(() => clock);
@@ -210,6 +210,12 @@ describe('Mesa de preparación — a failed write (R9-52)', () => {
     await findByText('Juan 3:16');
 
     const failed = failWritesOf('@prep_notes');
+    // Which failed write the toast came after: the flush's is the first, the
+    // autosave's (700 ms later) the second.
+    let failedAtToast: number | null = null;
+    mockToast.error.mockImplementation(() => {
+      failedAtToast ??= failed();
+    });
     fireEvent.changeText(
       getByLabelText(p.sections.bigIdea.label),
       'La idea que no se guardó',
@@ -224,6 +230,8 @@ describe('Mesa de preparación — a failed write (R9-52)', () => {
     await waitFor(() => expect(failed()).toBeGreaterThanOrEqual(1));
     await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
     expect(mockToast.error).toHaveBeenCalledWith(p.saveError);
+    // The flush itself reported it, before the autosave wrote.
+    expect(failedAtToast).toBe(1);
     expect(mockPush).not.toHaveBeenCalled();
     // The draft is still on screen, for the preparer to try again.
     expect(getByLabelText(p.sections.bigIdea.label).props.value).toBe(
@@ -234,5 +242,6 @@ describe('Mesa de preparación — a failed write (R9-52)', () => {
     // second toast.
     await waitFor(() => expect(failed()).toBe(2), {timeout: 3000});
     expect(mockToast.error).toHaveBeenCalledTimes(1);
+    expect(mockPush).not.toHaveBeenCalled();
   });
 });
