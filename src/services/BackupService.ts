@@ -121,6 +121,29 @@ const KEYS = {
 } as const;
 
 /**
+ * R9-60 / R9-30 — device-local keys the backup carries VERBATIM, as raw
+ * strings, in `payload.local`. The sections above were each enumerated by
+ * hand, and a key nobody remembered simply never travelled (the daily goal,
+ * the weekly target and the celebrated milestones; and, for R9-30, most of
+ * the user's own writing). `__tests__/backupKeyCoverage.test.ts` sweeps every
+ * AsyncStorage key literal in `src/` and `app/`: a new key fails it until it
+ * is listed here, covered by a section above, or excluded there with its
+ * reason. A key goes here only when nothing mounted rewrites it from memory
+ * after a restore (or that writer listens to `subscribeBackupRestored`).
+ */
+export const LOCAL_BACKUP_KEYS: readonly string[] = [
+  '@memory_daily_goal',
+  '@memory_weekly_target',
+  '@memory_celebrated_milestones',
+];
+
+/** Every AsyncStorage key the backup carries, for the coverage test. */
+export const BACKUP_COVERED_KEYS: readonly string[] = [
+  ...Object.values(KEYS),
+  ...LOCAL_BACKUP_KEYS,
+];
+
+/**
  * v1 → v2: fixes the `readingProgress` bug and adds achievements, full
  * reader preferences + app theme, memoryDeck/reviewEvents, and the whole
  * "Mesa de preparación" — see the file-level docstring for the full list.
@@ -209,6 +232,12 @@ export interface BackupPayload {
     notes: PrepNotesMap | null;
     series: PrepSeriesMap | null;
   };
+  /**
+   * R9-60 — the raw value of each `LOCAL_BACKUP_KEYS` key that was set on
+   * the source device. Additive within format v2, like `meta`: an older
+   * build ignores it, and a file without it restores none of these keys.
+   */
+  local?: Record<string, string>;
   /**
    * Which sections this file does NOT actually contain because their read
    * threw at export time (R9-27). Additive within format v2 — an older build
@@ -611,6 +640,15 @@ export async function buildBackup(): Promise<BuildBackupResult> {
       series: prepSeriesRaw ? parsePrepSeriesMap(prepSeriesRaw) : null,
     },
   };
+
+  // R9-60 — the verbatim keys. A failed read marks `local:<key>`, so the
+  // import leaves that key alone instead of treating it as unset.
+  const local: Record<string, string> = {};
+  for (const key of LOCAL_BACKUP_KEYS) {
+    const value = await readRaw(key, `local:${key}`, degradedSections);
+    if (value != null) local[key] = value;
+  }
+  payload.local = local;
 
   // A handful of sections (appTheme, readerPreferences) are read from more
   // than one AsyncStorage key and would otherwise appear twice.
@@ -1413,6 +1451,16 @@ export async function importBackup(
       'prepSeries',
       'prepSeries',
     );
+  }
+  // R9-60 — the verbatim keys, each its own section. Only a key the file
+  // carries is written: one the source device never set stays as it is here.
+  const localIn = isPlainObject(payload.local) ? payload.local : {};
+  for (const key of LOCAL_BACKUP_KEYS) {
+    const value = localIn[key];
+    const label = `local:${key}`;
+    if (typeof value === 'string' || wasDegraded(label)) {
+      queuePair(key, typeof value === 'string' ? value : '', label, label);
+    }
   }
 
   // ---- SQLite portion: ONE transaction, all-or-nothing ----

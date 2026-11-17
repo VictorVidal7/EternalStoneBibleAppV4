@@ -32,6 +32,7 @@ import {
   type SyncEntity,
 } from '../lib/sync';
 import {useSyncEngineOptional} from './SyncEngineContext';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 
 type FavoriteSourceVerse = Pick<
   BibleVerse,
@@ -135,6 +136,11 @@ export const FavoritesProvider: FC<{children: ReactNode}> = ({children}) => {
   useEffect(() => {
     loadFavorites();
   }, []);
+
+  // R9-117 — an import rewrites the favorites table directly. Without a
+  // re-read the screens keep the pre-import copy (an edited note, a rating)
+  // until the app restarts, and the deletion tombstone reads that copy.
+  useEffect(() => subscribeBackupRestored(() => void loadFavorites()), []);
 
   // Register the sync adapter once the engine is mounted. The engine
   // calls applyRemoteUpsert/Delete with the local-write suppress flag
