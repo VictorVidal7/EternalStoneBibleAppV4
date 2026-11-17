@@ -135,6 +135,21 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   '@memory_daily_goal',
   '@memory_weekly_target',
   '@memory_celebrated_milestones',
+  // R9-30, S161 — every writer of these re-reads the disk before it writes.
+  '@fact_favorites_v1',
+  '@journey_favorites_v1',
+  '@journey_progress_v1',
+  '@prophecy_favorites_v1',
+  '@prophecy_progress_v1',
+  '@quiz_stats_v1',
+  '@kids_progress_v1',
+  '@prayer_requests_v1',
+  '@prayer_log',
+  '@feelings_log',
+  '@devotion_log',
+  // These two have a mounted screen that re-reads on `subscribeBackupRestored`.
+  '@faith_testimony',
+  '@devotional_saved',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */
