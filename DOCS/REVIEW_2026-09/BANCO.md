@@ -27,6 +27,30 @@ encontrar. Sirven para comparar un esfuerzo con otro, o un modelo con otro, ante
 **Contaminación:** la memoria y los docs de sesiones posteriores nombran algunas respuestas. Por eso cada tarea
 pide la medición, no solo el nombre.
 
+## Cuándo recomendarlo
+
+El orquestador se lo recomienda a Victor en el mensaje final de la sesión, en una línea («Recomiendo correr el
+banco: <motivo>»), solo si se cumple uno de estos momentos. Victor decide si se corre y cuándo.
+
+| Momento                                                 | Cómo se nota                                                                                     | Qué se compara                                        |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------- |
+| Salió un modelo nuevo, o cambió el modelo por defecto   | El id del modelo del entorno no está en «Última corrida» de abajo                                | El nuevo contra el de hoy, en los dos papeles         |
+| Se quiere bajar un defecto (esfuerzo o modelo)          | Victor pide ahorrar, o el orquestador ve que una regla de §7 podría ser más barata               | La configuración barata contra la de hoy              |
+| Un agente barato se equivocó dos veces                  | Dos afirmaciones de agentes Sonnet que la re-medición no sostuvo (en la misma sesión o seguidas) | Sonnet contra Opus en el papel de solo medir          |
+| La cuota se va antes de terminar, dos sesiones seguidas | Cortes por límite o avisos de Victor de que se acaba                                             | Las configuraciones baratas, para ver qué se sostiene |
+| Antes de una tanda grande nueva (por ejemplo, la V2)    | El mensaje de la sesión abre una tanda de varias sesiones                                        | Solo si el banco no corrió con los modelos de hoy     |
+
+**Cuándo NO:** en medio de una sesión de arreglos (se termina primero); con la cuota baja ese día (mejor justo
+después de un reinicio de 5 horas); si ya corrió con los mismos modelos y nada cambió.
+
+**Cómo correrlo barato:** primero 3 tareas (B1, B4 y B5: un hallazgo, una cuenta y un llamador); las siete solo si
+las tres dan distinto entre configuraciones.
+
+## Última corrida
+
+Ninguna. Modelos del entorno al escribir el banco (2026-11-16): Opus 5.5 (`claude-opus-5-5`) de principal, Fable 5.2
+(`claude-fable-5-2`) de asesor, Sonnet 5.5 (`claude-sonnet-5-5`) para los agentes que solo miden.
+
 ## Las tareas
 
 ### B1 — el arranque sin red (`R9-594`, sesión 152)
@@ -102,6 +126,6 @@ pide la medición, no solo el nombre.
 
 ## Qué falta
 
-Ninguna corrida todavía. La primera, cuando Victor la pida: por ejemplo Opus `high` contra Opus `medium`, o Opus
+Ninguna corrida todavía (ver «Cuándo recomendarlo»). La primera, cuando Victor la pida: por ejemplo Opus `high` contra Opus `medium`, o Opus
 contra Sonnet para el papel de «solo medir», con las siete tareas. Costo esperado: unos 150 a 250 mil tokens por
 tarea y configuración, según las tandas de agentes de esta revisión.

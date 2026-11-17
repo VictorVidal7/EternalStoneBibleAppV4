@@ -446,7 +446,9 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
       dice qué modelo y esfuerzo llevó cada agente.
   - **El banco propio: `BANCO.md`** (escrito en la 152, siete tareas con la respuesta conocida, cada una un error
     real de la IA en esta revisión). Sirve para comparar un esfuerzo o un modelo con otro antes de cambiar un
-    defecto de arriba. Se corre cuando Victor lo pide; hasta entonces, las reglas de arriba valen como están.
+    defecto de arriba. Se corre cuando Victor lo pide. **El orquestador se lo recomienda** al cerrar una sesión si se
+    cumple uno de los momentos de su sección «Cuándo recomendarlo» (un modelo nuevo, un defecto que se quiere bajar,
+    un agente barato que se equivocó dos veces, la cuota que no alcanza, una tanda grande nueva).
 
 - **El premium es de quien dio la ofrenda: en el aparato donde estuvo, no se pierde al cerrar sesión, y la cuenta
   lo lleva a otros aparatos (`R9-119`; decidido por Claude el 2026-11-12, por delegación de Victor: «lo dejo a tu
