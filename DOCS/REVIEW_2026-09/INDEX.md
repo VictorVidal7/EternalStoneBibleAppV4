@@ -343,8 +343,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   (`0b957e86`, el canje enlaza solo si su cuenta sigue en sesión). Cada pieza vista caer sola sobre lo integrado; las
   sondas, como decía la predicción. Un hallazgo nuevo (P3): `R9-594` (el arranque sin red no carga el pendiente).
   Sin medir en vivo. Detalle: `detail/S152-arreglos-pruebas.md`.
-- **Sesión 153 — 2026-11-16.** Revisión del diff de la 152, con Opus 5.5 de principal y sin agentes; el asesor no
-  respondió. Los tres arreglos se sostienen. El mock nuevo no cambia ninguna conducta con HEAD (0 eventos, con
+- **Sesión 153 — 2026-11-16.** Revisión del diff de la 152, con Opus 5.5 de principal y sin agentes; el asesor
+  respondió solo al cierre. Los tres arreglos se sostienen. El mock nuevo no cambia ninguna conducta con HEAD (0 eventos, con
   control). Cada prueba nueva cae con su pieza, por la razón escrita. Las diez matrices, iguales a `s152fix`. Dos
   declaraciones por lectura, ahora medidas. Ningún hallazgo nuevo; dos frases de `R9-594` corregidas («sin red» no
   basta: el SDK responde de su caché). Sin medir en vivo. Detalle: `detail/S153-revision-del-diff-s152.md`.

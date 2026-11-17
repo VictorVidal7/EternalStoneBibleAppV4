@@ -1,7 +1,7 @@
 # S153 — revisión del diff de la 152 (`88fb8b33..0b957e86`)
 
 > **Sesión 153 (2026-11-16).** Chat nuevo, en la terminal, con **Opus 5.5 de principal**, sin agentes. El asesor
-> (Fable) no respondió a tiempo: la sesión cerró sin él. Esfuerzo: `settings.json` dice `high`; el statusline no se
+> no respondió a la primera consulta; la del cierre sí, y corrigió tres frases (`docs2`). Esfuerzo: `settings.json` dice `high`; el statusline no se
 > ve desde el chat. **Sin emulador: nada de esto está medido en vivo.**
 >
 > **Resultado.** Los tres arreglos de la 152 se sostienen. El mock nuevo no cambia ninguna conducta con HEAD. Cada
@@ -52,7 +52,7 @@ sin consumir.
 | `592` (`giftCode…`)     | 2 (de 18) | sí                        | `mockLinkUser`: 1 llamada, se esperaban 0                    |
 | `592objeto`             | 1         | sí                        | «la misma cuenta, releída» no enlaza                         |
 
-- **Las 18 pruebas nuevas tienen pieza.** Son dos de `logInAs`, cinco de `pendingLink`, una de la hoja, cuatro de
+- **Las 15 pruebas nuevas tienen pieza.** Son dos de `logInAs`, cinco de `pendingLink`, una de la hoja, cuatro de
   `R9-591` y tres del canje. Los tres expects reescritos caen con `135d` y `135e`.
 - **El CONTROL de `mockDeleteUser`** (`S152-dos.cjs.txt`): con `deleteUser` saltado solo para beto, la prueba cae en
   `:1676` (0 llamadas). Sin el `mockClear` nuevo, pasa. Igual que en la 152 (`S153-ctl-{fix,nofix}.out.txt`).
@@ -77,7 +77,7 @@ sin consumir.
 - **Lo que queda abierto en el canje** es la ventana del cierre de sesión mismo. Si el servidor responde entre el
   `signOut` de Google y el de Firebase, `currentUser` sigue siendo beto y el canje enlaza a beto. Es el caso de un
   `logIn` en vuelo al cerrar sesión: `forgetSessionAccount` lo olvida después, y `notePendingLink` mira la sesión tras
-  su `await` (`:427`). Son las filas de `R9-582`. Nada nuevo.
+  su `await` (`:427`). Por lectura, es la forma de las filas de `R9-582`; la sonda no tiene una fila propia para el canje en esa ventana. No se midió.
 
 ## 5. `R9-594` y las declaraciones sin prueba: ¿dicen lo medido?
 
