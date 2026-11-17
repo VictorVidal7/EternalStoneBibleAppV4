@@ -637,6 +637,26 @@ describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migr
     expect(pushesOf('nuevo')).toBe(1);
   });
 
+  it('un «Migrar» a la pregunta propia de la colisión también suelta la red', async () => {
+    // Never claimed: the link branch does not ask, so the collision does.
+    const {ref, getByText} = await anaDeletes({neverClaimed: true});
+    mockCurrentUser = {uid: 'anon-z', isAnonymous: true};
+    emit(mockCurrentUser);
+    mockLinkWithCredential.mockRejectedValueOnce(
+      Object.assign(new Error('in use'), {
+        code: 'auth/credential-already-in-use',
+      }),
+    );
+    nextSignInLandsAs('nuevo');
+    const out = await signInAnswering(ref, getByText, 'Migrar');
+    expect((out as AuthUser | null)?.uid).toBe('nuevo');
+
+    await mockEngine.start('nuevo');
+    await drain();
+    expect(await flag('nuevo')).not.toBe('skip');
+    expect(pushesOf('nuevo')).toBe(1);
+  });
+
   it('el motor: la red del borrado la toma el start de cualquier cuenta, una sola vez', async () => {
     const engine: SyncEngine = mockEngine;
     engine.queueSkipAfterAccountDeletion();
