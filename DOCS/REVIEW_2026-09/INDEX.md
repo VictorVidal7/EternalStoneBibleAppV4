@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 158, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C revisada; E hecha;
+> **Frontera (sesión 159, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
 > B y R abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
-> al cierre de la 158 eran 277 de 597: ningún P0, 13 P1, 90 P2, 173 P3 y un aviso. `fix/s158-r9-126-e` y `docs/review-s158`
-> esperan el OK de Victor. Sigue la 159: la revisión del diff de la 158 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera
-> la medición con la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 158
-> están sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> al cierre de la 159 eran 279 de 599: ningún P0, 13 P1, 90 P2, 175 P3 y un aviso. `docs/review-s159` espera el OK
+> de Victor. Sigue la 160: la V3 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
+> Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159 están sin medir en vivo; del
+> Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -379,3 +379,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `firestore.ts` perdía `metadata`: entró en el mismo diff. 10 pruebas; 6 piezas vistas caer en el principal; la
   matriz de vecinos con C, 24 casos, ninguno rompe. `R9-126` sigue por B, R y el push en vuelo. Dos reglas. Sin
   medir en vivo. Detalle: `detail/S158-r9-126-opcion-e.md`.
+- **Sesión 159 — 2026-11-17.** Revisión de `2e9b042b` (`R9-126` E), con Opus 5.5 de principal y 3 agentes a pedido
+  de Victor (uno Sonnet `medium`, dos forks Opus `high`). La E se sostiene: 6 piezas y matriz, iguales byte a byte;
+  el envoltorio, medido con las piezas reales de RNFB 26.2.0. Dos hallazgos nuevos (P3): `R9-598` (el bulk push de
+  un `start()` viejo filtra con el listener de otra cuenta) y `R9-599` (el costo de `includeMetadataChanges`, por
+  lectura). Dos notas en `R9-126`. Dos reglas. Sin código. Detalle: `detail/S159-revision-del-diff-s158.md`.

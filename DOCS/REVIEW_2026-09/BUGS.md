@@ -2939,6 +2939,15 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     retenido. **Sigue abierto:** restaurar (B, §8), las reglas (R) y un push ya en vuelo. 10 pruebas
     (`__tests__/s158-r9-126-bulk-espera.test.ts`), con HEAD caen 7; 6 piezas. Matriz de vecinos con C: 24 casos,
     ninguno rompe. Sin medir en vivo. `detail/S158-r9-126-opcion-e.md`.
+  - **Revisada en la sesión 159** (`detail/S159-revision-del-diff-s158.md`): la E se sostiene; 6 piezas y matriz,
+    iguales; el envoltorio, medido con las piezas reales de RNFB 26.2.0. Dos notas, sin número:
+    - **El filtro no ve bajo el piso de la query.** `clocks` solo anota la vista de `where('updatedAt', '>=',
+cursor - 5 min)`. Con el cursor avanzado (reintento de `R9-257`, marca `'1'`, un start tras `stop()` en la
+      espera) lo de abajo se re-sube con su reloj: con datos coherentes, solo cuota, y menos que sin la E. «Migrar,
+      5 escrituras y no 20» (158) vale con cursor 0. Lo local más viejo bajo el piso es la opción B.
+    - **Un `onError` sincrónico dentro de `onSnapshot` colgaría la espera** (rama «after teardown», antes de
+      `unsubs.set`, sin `settle`). Medido con un mock; RNFB 26.2.0 entrega los errores como evento asíncrono.
+    - Nuevos: `R9-598` (la espera por colección sin uid) y `R9-599` (el costo de `includeMetadataChanges`).
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -14732,6 +14741,30 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: pide que falle la escritura de un valor chico, y un start más de esa cuenta. **Propuesta
     (sin escribir):** soltar la ranura solo si el `setItem` salió, o reponerla en el `catch`.
     `detail/S157-revision-155-156.md` §5.
+
+- **`R9-598` (S159, revisión del diff de la 158 / sync / auth, vecino de `R9-126` E y `R9-122` punto 3 — P3) — 🐛
+  el bulk push de un `start()` viejo corre en la sesión de otra cuenta: espera al listener de esa cuenta, filtra con
+  sus relojes, y un doc de la primera no sube nunca.** MEDIDO con sonda (el motor real; agente 2, caso a2-2e,
+  `_scratch/S159-sondas-agente-2/`). Sin medir en vivo.
+  - Caso: `start(u1)` en vuelo, `stop()`, `start(u2)`. La continuación de `start(u1)` lanza
+    `void this.maybeRunInitialBulkPush(u1)` sin mirar `this.uid`; `runInitialBulkPush` toma la sesión vigente (u2).
+  - `serverSync` va por colección, sin uid: el bulk push de u1 espera el snapshot de u2 y salta las filas que la
+    nube de u2 tiene. Salida con la E: `u1NubeDoc1: null`, marca de u1 `'2'`; con `2e9b042b^`: `"V"`.
+  - La raíz es de `R9-122` punto 3 (un `stop()` dentro de un `start()` en vuelo). El daño nuevo es de la E.
+  - Llamadores: `AuthContext.tsx:663` y `:740`, `SyncEngineContext.tsx:94-127`. Ventana: los `await` de `start()`.
+  - **Severidad:** P3: pide cambiar de cuenta durante un `start()`, y un doc solo local de la primera.
+    **Propuesta (sin escribir):** volver si `this.uid !== uid` antes del bulk push y tras cada espera.
+    `detail/S159-revision-del-diff-s158.md` §4.
+
+- **`R9-599` (S159, revisión del diff de la 158 / sync / rendimiento, vecino de `R9-126` E — P3) — 🐛 con
+  `includeMetadataChanges`, cada ack de una escritura propia serializa otra vez todo el resultado de la query.** Por
+  lectura, sin medir (agente 3, `_scratch/S159-sondas-agente-3/`).
+  - Cada evento se serializa en Android (`ReactNativeFirebaseFirestoreSerialize.java:204-210`), se parsea en RNFB y
+    se mapea en el envoltorio (`docs`). En un primer sync (piso 0) es la colección entera.
+  - El motor lo descarta en su primera línea, pero el CPU y el puente ya se pagaron. Sin lecturas facturadas.
+  - **Severidad:** P3: costo, sin daño de datos. **Propuesta (sin escribir):** medirlo en el emulador con una
+    colección grande; si pesa, pedir metadata solo hasta el primer snapshot del servidor (un listener de un tiro).
+    `detail/S159-revision-del-diff-s158.md` §5.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

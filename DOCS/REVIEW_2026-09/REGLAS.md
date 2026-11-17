@@ -1346,4 +1346,10 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   El agente 1 solo midió: su worktree desapareció con una salida sin copiar. Lo que se quiere re-medir se copia
   fuera antes de terminar. Y al cambiar la firma de una llamada que los mocks imitan (`onSnapshot` con opciones),
   las sondas viejas con mock propio caen por el mock, no por el arreglo: se adaptan antes de comparar.
+- **Un filtro que lee la vista de un listener ve solo lo que su query trae (sesión 159, `R9-126` E).** El listener
+  va con `where('updatedAt', '>=', piso)`: con el cursor avanzado, lo de abajo no está en `clocks` y se re-sube. La
+  158 midió «5 escrituras y no 20» solo con cursor 0. Un caso de costo se mide también con el cursor avanzado.
+- **Un estado por colección que lee una continuación asíncrona necesita también el uid (sesión 159, `R9-598`).** La
+  continuación de un `start()` viejo corre en la sesión de la cuenta nueva y lee sus mapas. Al revisar un mapa nuevo
+  del motor: `start(u1)` en vuelo, `stop()`, `start(u2)`. Y un conteo de suites se escribe con su lista.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).
