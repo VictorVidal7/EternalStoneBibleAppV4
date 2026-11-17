@@ -775,8 +775,17 @@ export class SyncEngine {
   /** Sprint 43 — when set, the next maybeRunInitialBulkPush persists the
    *  done-flag without actually queueing any rows. Used by the migration
    *  flow in AuthContext when the user opts out of migrating anonymous
-   *  data into an existing Google account. */
-  private skipNextBulkPush = false;
+   *  data into an existing Google account.
+   *
+   *  R9-127 — it carries the account it was asked for: only that uid's
+   *  `start()` takes it. `uid: null` is a sign-in still in flight (its uid
+   *  unknown yet); see `queueSkipNextBulkPush`. A bare boolean was taken by
+   *  the next `start()` of ANY uid, and its 'skip' is honoured for good. */
+  private skipNextBulkPush: {uid: string | null} | null = null;
+  /** R9-127 — the skip an account deletion leaves for whichever account
+   *  starts next (see `queueSkipAfterAccountDeletion`). Apart from the one
+   *  above, so an answer given in a sign-in never drops it. */
+  private deletionSkip = false;
   private state: SyncEngineState = {
     isActive: false,
     isOnline: true,
@@ -2949,9 +2958,54 @@ export class SyncEngine {
    * (and persist the done-flag so subsequent sessions skip too). Used
    * by AuthContext when the user picks "Just sign in" in the migration
    * dialog.
+   *
+   * R9-127 — for `uid` only. With no uid (`null`: the collision branch and
+   * the one with no anonymous user ask before `signInWithCredential`, so the
+   * account is not known yet), the caller settles it once that sign-in is
+   * over: `settle(uid)` binds it to the account the sign-in produced, and
+   * `settle(null)` drops it when the sign-in failed, so it does not outlive
+   * the attempt it was answered in. A handle whose skip was already taken,
+   * or replaced by a later one, does nothing.
    */
-  queueSkipNextBulkPush(): void {
-    this.skipNextBulkPush = true;
+  queueSkipNextBulkPush(uid: string | null = null): {
+    settle: (uid: string | null) => void;
+  } {
+    const skip = {uid};
+    this.skipNextBulkPush = skip;
+    return {
+      settle: settledUid => {
+        if (this.skipNextBulkPush !== skip) return;
+        if (settledUid === null) this.skipNextBulkPush = null;
+        else if (skip.uid === null) skip.uid = settledUid;
+      },
+    };
+  }
+
+  /**
+   * R9-127 — an account deletion that went through leaves a skip for the
+   * NEXT account to start, whichever it is: the rows still on this device
+   * were just deleted from the cloud, and a sign-in that does not ask (the
+   * store's owner unreadable, or never recorded) would upload them again.
+   * A sign-in that asks overrules it with its answer: «Migrar» suspends it
+   * (`suspendSkipAfterAccountDeletion`), and declining queues its own.
+   */
+  queueSkipAfterAccountDeletion(): void {
+    this.deletionSkip = true;
+  }
+
+  /**
+   * R9-127 — an explicit «Migrar» answered in a sign-in: the deletion skip
+   * does not apply to the account that sign-in produces. Suspended at the
+   * answer, before the sign-in, whose auth event can start the engine before
+   * the caller resumes. The function it returns puts it back, for a sign-in
+   * that then fails: the answer was for that attempt only.
+   */
+  suspendSkipAfterAccountDeletion(): () => void {
+    const was = this.deletionSkip;
+    this.deletionSkip = false;
+    return () => {
+      if (was) this.deletionSkip = true;
+    };
   }
 
   // ---------- private: conflict bookkeeping ----------
@@ -3618,11 +3672,17 @@ export class SyncEngine {
 
   private async maybeRunInitialBulkPush(uid: string): Promise<void> {
     const flagKey = `${BULK_PUSH_FLAG_PREFIX}${uid}`;
-    if (this.skipNextBulkPush) {
+    const skip = this.skipNextBulkPush;
+    // R9-127 — only the account it was asked for (or the sign-in still in
+    // flight it was armed for) takes it; another uid's start leaves it. The
+    // deletion skip is for whichever account starts next.
+    const own = skip !== null && (skip.uid === null || skip.uid === uid);
+    if (own || this.deletionSkip) {
       // User opted out of migrating their local-only data into this
       // (existing) Google account. Persist the flag so subsequent
       // sessions also skip, then clear the in-memory marker.
-      this.skipNextBulkPush = false;
+      if (own) this.skipNextBulkPush = null;
+      this.deletionSkip = false;
       try {
         await AsyncStorage.setItem(flagKey, BULK_PUSH_SKIP_VALUE);
       } catch {

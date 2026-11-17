@@ -409,9 +409,19 @@ export function AuthProvider({children}: AuthProviderProps) {
     // push is skipped (the person declined). The Mesa «sin cuenta» follows
     // the same answer (see `prepAccount`).
     let keepsLocal = true;
-    const skipBulkPush = () => {
+    // R9-127 — the skip is for the account this sign-in produces. With its
+    // uid unknown (it is asked before `signInWithCredential`), it is settled
+    // below: bound to the uid that sign-in produced, or dropped when it fails.
+    let pendingSkip: {settle: (uid: string | null) => void} | undefined;
+    const skipBulkPush = (uid: string | null = null) => {
       keepsLocal = false;
-      getSyncEngine()?.queueSkipNextBulkPush();
+      pendingSkip = getSyncEngine()?.queueSkipNextBulkPush(uid);
+    };
+    // R9-127 — an explicit «Migrar» overrules the skip an account deletion
+    // left: suspended at the answer, and put back if this sign-in fails.
+    let resumeDeletionSkip: (() => void) | undefined;
+    const migrates = () => {
+      resumeDeletionSkip = getSyncEngine()?.suspendSkipAfterAccountDeletion();
     };
     const authMod = getAuth();
     const gs = getGoogleSignin();
@@ -454,7 +464,10 @@ export function AuthProvider({children}: AuthProviderProps) {
         // of 0 does not say there is nothing to ask about.
         const unread = localData.some(d => d.unread);
         if (total === 0 && !unread) return false;
-        if (await askMigration(unread ? null : total)) return false;
+        if (await askMigration(unread ? null : total)) {
+          migrates();
+          return false;
+        }
         logger.info(
           'AuthProvider: declined migrating a previous owner’s local data',
           {component: 'AuthProvider', localItems: total},
@@ -500,7 +513,7 @@ export function AuthProvider({children}: AuthProviderProps) {
         // the person said so above. The skip is queued only now — armed
         // before a link that then fails, it would outlive this attempt and
         // swallow the bulk push of whichever account starts the engine next.
-        if (declined) skipBulkPush();
+        if (declined) skipBulkPush(String(current.uid));
         await claimLocalStore(current.uid);
         if (keepsLocal) await adoptNoAccountPrep(current.uid);
 
@@ -539,6 +552,7 @@ export function AuthProvider({children}: AuthProviderProps) {
         return mergedUser;
       } catch (err: any) {
         if (err?.code !== 'auth/credential-already-in-use') {
+          resumeDeletionSkip?.();
           throw err;
         }
         logger.warn('Google credential already linked, signing in directly', {
@@ -575,6 +589,7 @@ export function AuthProvider({children}: AuthProviderProps) {
                   localItems: total,
                 });
               } else {
+                migrates();
                 logger.info('AuthProvider: user accepted migration', {
                   component: 'AuthProvider',
                   localItems: total,
@@ -606,8 +621,17 @@ export function AuthProvider({children}: AuthProviderProps) {
       }
     }
 
-    await authMod().signInWithCredential(credential);
+    try {
+      await authMod().signInWithCredential(credential);
+    } catch (err) {
+      // R9-127 — the answer was for this attempt. Left armed, the next
+      // `start()` took it, and a «Migrar» in the retry was overruled for good.
+      pendingSkip?.settle(null);
+      resumeDeletionSkip?.();
+      throw err;
+    }
     const signedIn = authMod().currentUser;
+    if (signedIn?.uid) pendingSkip?.settle(String(signedIn.uid));
     // R9-130 — the ONLY place an existing account (the collision branch) or a
     // sign-in with no anonymous user claims the store. Without it the marker
     // stays `null`, which every guard above reads as "first sign-in, don't
@@ -681,14 +705,17 @@ export function AuthProvider({children}: AuthProviderProps) {
    *     too. Account deletion is scoped to the cloud copy only, same as
    *     sign-out ("Local data survives sign-out" above) — stopping the
    *     engine keeps that deterministic instead of racing the listeners.
-   *  2. Queue a bulk-push skip — SyncEngineContext only calls engine.start()
-   *     for a non-anonymous user, so the fresh anonymous session created
-   *     below does NOT push anything on its own. This flag instead guards
-   *     the case where the user signs back into Google in this same app
-   *     session (no restart) right after deleting: that linkWithCredential
-   *     would otherwise trigger a bulk push of the still-on-device rows
-   *     with no "already pushed" marker for the new uid, silently
-   *     re-uploading the exact data we just deleted.
+   *  2. Once steps 3 and 4 went through, queue a bulk-push skip for the next
+   *     account to start (R9-127). SyncEngineContext only calls
+   *     engine.start() for a non-anonymous user, so the fresh anonymous
+   *     session created below does NOT push anything on its own. The skip
+   *     guards a sign-in in this same app session (no restart) that does
+   *     not ask: the store is claimed for `(deleted)` below, so a sign-in
+   *     normally asks first (R9-23), but with that marker unreadable, or
+   *     never recorded, it would upload the exact data just deleted. An
+   *     answer overrules it: «Migrar» suspends it, declining queues its own.
+   *     Not before step 3: a wipe that fails restarts the engine for this
+   *     account, and that start took the skip and wrote 'skip' over it.
    *  3. Delete every users/{uid}/* doc (see deleteAllCloudData — verified
    *     against the live Firestore rules, a permissive wildcard, so this
    *     is safe to do client-side for every collection incl. `conflicts`).
@@ -711,7 +738,6 @@ export function AuthProvider({children}: AuthProviderProps) {
     const engine = getSyncEngine();
 
     engine?.stop();
-    engine?.queueSkipNextBulkPush();
 
     try {
       await deleteAllCloudData(uid);
@@ -750,6 +776,11 @@ export function AuthProvider({children}: AuthProviderProps) {
       }
     }
 
+    // R9-127 — the cloud copy and the account are gone: the next account to
+    // start does not get the rows still here unless its sign-in asks and the
+    // person says «Migrar». Right after the deletion, before any await, so
+    // nothing that follows can leave the next account without it.
+    engine?.queueSkipAfterAccountDeletion();
     // R9-582 — the deleted account's pending RevenueCat link is forgotten:
     // nobody signs in as that uid again. Never throws.
     await forgetOfferingSession();

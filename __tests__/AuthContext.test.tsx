@@ -37,6 +37,8 @@ const mockEngineStop = jest.fn(() => {
 let mockEngineStub: {
   exportLocalData: jest.Mock;
   queueSkipNextBulkPush: jest.Mock;
+  queueSkipAfterAccountDeletion: jest.Mock;
+  suspendSkipAfterAccountDeletion: jest.Mock;
   stop?: jest.Mock;
   forgetStoreOwner?: jest.Mock;
 } | null = null;
@@ -439,6 +441,8 @@ describe('AuthProvider', () => {
     mockEngineStub = {
       exportLocalData: mockExportLocalData,
       queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
     };
     mockExportLocalData.mockResolvedValueOnce([
       {collection: 'favorites', count: 3},
@@ -494,6 +498,8 @@ describe('AuthProvider', () => {
     mockEngineStub = {
       exportLocalData: mockExportLocalData,
       queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
     };
     mockExportLocalData.mockResolvedValueOnce([
       {collection: 'notes', count: 12},
@@ -549,6 +555,8 @@ describe('AuthProvider', () => {
     mockEngineStub = {
       exportLocalData: mockExportLocalData,
       queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
     };
     mockExportLocalData.mockResolvedValueOnce([
       {collection: 'notes', count: 12},
@@ -588,6 +596,8 @@ describe('AuthProvider', () => {
     mockEngineStub = {
       exportLocalData: mockExportLocalData,
       queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
     };
 
     render(
@@ -695,6 +705,8 @@ describe('AuthProvider', () => {
             : [],
         ),
         queueSkipNextBulkPush: jest.fn(),
+        queueSkipAfterAccountDeletion: jest.fn(),
+        suspendSkipAfterAccountDeletion: jest.fn(),
         stop: jest.fn(),
       };
       mockEngineStub = engine;
@@ -1046,6 +1058,8 @@ describe('AuthProvider', () => {
     mockEngineStub = {
       exportLocalData: mockExportLocalData,
       queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
     };
     mockExportLocalData.mockResolvedValueOnce([
       {collection: 'favorites', count: 2},
@@ -1116,6 +1130,8 @@ describe('AuthProvider', () => {
     mockEngineStub = {
       exportLocalData: mockExportLocalData,
       queueSkipNextBulkPush: mockQueueSkipNextBulkPush,
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
       stop: mockEngineStop,
     };
 
@@ -1175,6 +1191,8 @@ describe('R9-38 — deleteAccount', () => {
     const engine = {
       exportLocalData: jest.fn(async () => []),
       queueSkipNextBulkPush: jest.fn(),
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
       stop: jest.fn(),
       forgetStoreOwner: jest.fn(),
     };
@@ -1206,6 +1224,8 @@ describe('R9-38 — deleteAccount', () => {
     mockEngineStub = {
       exportLocalData: jest.fn(async () => []),
       queueSkipNextBulkPush: jest.fn(),
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
       stop: jest.fn(),
       forgetStoreOwner: jest.fn(),
     };
@@ -1266,6 +1286,8 @@ describe('R9-59 — la Mesa por cuenta, desde AuthProvider', () => {
     const engine = {
       exportLocalData: jest.fn(async () => [{collection: 'notes', count: 3}]),
       queueSkipNextBulkPush: jest.fn(),
+      queueSkipAfterAccountDeletion: jest.fn(),
+      suspendSkipAfterAccountDeletion: jest.fn(),
       stop: jest.fn(),
       forgetStoreOwner: jest.fn(),
     };
