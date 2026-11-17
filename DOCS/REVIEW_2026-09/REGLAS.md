@@ -1323,4 +1323,9 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   (sesión 153, `R9-594`).** La sonda hizo rechazar `getCustomerInfo()` y la entrada escribió «sin red». El SDK
   responde de su caché (`CACHED_OR_FETCHED`): sin red y con caché, no rechaza. Una sonda mide qué pasa si la llamada
   falla; cuándo falla de verdad es otra pregunta, y la contesta el SDK (o el aparato).
+- **Un estado de un solo uso que arman dos caminos distintos va en dos ranuras, si uno puede soltar el del otro
+  (sesión 155, `R9-127`; lo vio el asesor).** Con un solo skip, borrado → «Solo iniciar sesión» → el inicio falla
+  → `settle(null)` soltaba también la red del borrado, y el reintento sin pregunta subía lo borrado. Antes de
+  compartir una ranura, la fila en que el dueño de uno la limpia mientras el otro sigue pendiente; y una pieza que
+  vuelva a la ranura única (`ranura-unica`), vista caer.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

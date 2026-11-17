@@ -2947,6 +2947,12 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     sin medir). El diseño para la 155: armar el skip solo si la limpieza y el borrado salieron bien, y que un
     «Migrar» explícito suelte el pendiente; antes, medir los dos casos sin pregunta con HEAD y con el diff del
     agente 6 (`_scratch/S154-sondas-agente-6/S154-a6.diff.txt`). `detail/S154-arreglos-v2.md` §5.
+  - **✅ ARREGLADO en la sesión 155** (`9757b8dc`, rama `fix/s155-r9-127`): el skip de un inicio lleva su uid
+    (`settle(uid)` lo ata, `settle(null)` lo suelta); el del borrado va en una ranura aparte, armada recién tras la
+    limpieza y el `deleteUser`, y un «Migrar» explícito la suspende (se repone si el inicio falla). Medido antes con
+    HEAD y con el diff del agente 6: los cuatro casos sin pregunta siguen en `skip`, y el «Migrar» tras el borrado ya
+    sube. 21 pruebas (`__tests__/s155-skip-por-uid.test.tsx`), 13 piezas vistas caer solas. Sin medir en vivo.
+    `detail/S155-revision-y-r9-127.md` §3 y §4.
 
 - **`R9-128` (S21, adaptadores de sync) — 🐛 un apply remoto que FALLA se traga su error y el
   cursor avanza igual: el cambio remoto no vuelve nunca.** CONFIRMADO con sonda del motor.
@@ -2969,6 +2975,9 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     integrado. Sin medir en vivo. Sin medir: un `apply*` que falla siempre deja el doc retenido para siempre (la
     regla de `R9-212`). Candidato sin número (agente 2): `queueTouched` se marca antes del `apply` y no se quita si
     falla. `detail/S154-arreglos-v2.md` §4 y §7.
+  - **Sesión 155 (revisión del diff de la 154): se sostiene.** Las 18 piezas de los agentes 1 a 5 vuelven a caer
+    por su razón; solo los `CONTROL` no caen. El `apply*` que falla siempre, ya medido: `R9-595`. El upsert de
+    `memoryCards` no cumple el contrato: `R9-596`. `detail/S155-revision-y-r9-127.md` §2.1.
 
 - **`R9-129` (S21, respaldo / memoria) — 🐛 `getAllReviewEvents` se traga su error: la sección
   `reviewEvents` del respaldo nunca se marca degradada, y el sembrado toma un dispositivo con
@@ -14651,6 +14660,33 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     sin caché del usuario del SDK, o por otra falla. Y «nada lo reintenta» es lo medido para la compra y «Restaurar»:
     un canje que sale bien o un inicio de sesión nuevo hacen `logIn(beto)` (por lectura). El bloque está hoy en
     `:246-256`. Sigue en P3, con un disparador más angosto. `detail/S153-revision-del-diff-s152.md` §5.
+
+- **`R9-595` (S155, revisión del diff de la 154 / sync / vecino de `R9-128` y `R9-212` — P3) — 🐛 un `apply*` que
+  falla SIEMPRE deja el piso clavado bajo su doc: cada attach relee ese doc y todo lo posterior, sin salida.**
+  MEDIDO con sonda (el motor real; `_scratch/S155-sonda-applyFallaSiempre.test.ts.txt`, salida `.out.txt`). Sin
+  medir en vivo.
+  - `doc-old` falla siempre; `doc-a` y `doc-b` son posteriores. En tres attaches, el piso queda en 699 999 y los
+    tres se entregan cada vez. LWW descarta lo ya aplicado: no se pierde nada, se paga en lecturas, y la cuenta crece
+    con cada cambio posterior mientras la escritura falle.
+  - Lo abre el arreglo de `R9-128` (la 154): antes, el doc se perdía una vez y no costaba lecturas (de la 154, sin
+    re-medir). Es la regla de `R9-212` (una falla que se repite).
+  - ¿Un doc venenoso (fallo determinista)? Por lectura, no entre los escritores de la propia app: los `NOT NULL` y
+    el `CHECK` de `rating` de los tres esquemas los llena siempre el mismo dispositivo. Uno escrito por otra versión
+    o a mano sí lo sería: sin medir.
+  - **Severidad:** P3: pide una escritura local que falle en cada intento, y cuesta lecturas, no datos. **Propuesta
+    (sin escribir):** un tope de reintentos por doc, después del cual se avanza el piso y se anota el doc.
+    `detail/S155-revision-y-r9-127.md` §2.4.
+
+- **`R9-596` (S155, revisión del diff de la 154 / sync / `memoryCards`, vecino de `R9-128` y `R9-133` — P3) — 🐛
+  el `applyRemoteUpsert` de `memoryCards` resuelve antes de escribir en el disco, contra el contrato de
+  `types.ts`.** POR LECTURA, sin sonda. Sin medir en vivo.
+  - `MemoryDeckContext.tsx:410-432`: `applyRemoteUpsert` hace `edit()` en memoria y resuelve. El disco lo escribe un
+    efecto después, con `setItem(...).catch(() => undefined)` (`:354` y `:374`).
+  - Desde la 154, `types.ts` dice que un `apply*` rechaza si no escribió. Si esa escritura falla siempre, el cursor
+    ya pasó y la tarjeta remota se pierde al reiniciar: la forma de `R9-128`, en el único adaptador que la 154 no
+    tocó. Es el candidato del agente 4 de la 154.
+  - **Severidad:** P3: pide un `setItem` de AsyncStorage que falle siempre, y por lectura, sin medir. **Propuesta (sin escribir):** que el upsert espere la escritura de su tarjeta y rechace si
+    falla; antes, medirlo con el provider real. `detail/S155-revision-y-r9-127.md` §2.2.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

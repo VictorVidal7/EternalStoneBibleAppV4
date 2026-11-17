@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 154, 2026-11-16): la fase de ARREGLOS; la 154 hizo la V2 en parte (`fix/s154-v2`).**
+> **Frontera (sesión 155, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126`.**
 > Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
-> al cierre de la 154 eran 275 de 594: ningún P0, 14 P1, 90 P2, 170 P3 y un aviso. Sigue la 155: `R9-127` y la
-> revisión del diff de la 154 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google
-> de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 están sin medir en vivo; del Modo C faltan `C17`
-> y `C23`.
+> al cierre de la 155 eran 276 de 596: ningún P0, 13 P1, 90 P2, 172 P3 y un aviso. Sigue la 156: `R9-126` opción C,
+> sola; la revisión del diff de la 155, después (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con
+> la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 y la 155 están sin medir en
+> vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -355,3 +355,10 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `R9-37` (`253f0a9d`, sin listener huérfano), en `fix/s154-v2`. Cada pieza vista caer sola sobre lo integrado.
   `R9-127`: el diff del agente 6 no entró (quita la red del borrado). `R9-126`: medido con sonda y propuesto (C en
   su sesión; B a la §8). Sin medir en vivo. Detalle: `detail/S154-arreglos-v2.md`.
+- **Sesión 155 — 2026-11-16/17.** Revisión del diff de la 154 y arreglo de `R9-127`, con Opus 5.5 de principal,
+  Fable de asesor y sin agentes. La 154 se sostiene: las 18 piezas vuelven a caer por su razón. Dos hallazgos nuevos
+  (P3): `R9-595` (un `apply*` que falla siempre clava el piso; medido) y `R9-596` (el upsert de `memoryCards`
+  resuelve antes del disco; por lectura). `R9-127` (`9757b8dc`): el skip por uid y una ranura aparte para el
+  borrado, armada tras el `deleteUser` y suspendida por un «Migrar»; medido antes con HEAD y con el diff del agente
+  6; 21 pruebas y 13 piezas vistas caer. Un comentario (`d9f53ca0`) y la prueba 21 (`667e0e25`). Sin medir en vivo.
+  Detalle: `detail/S155-revision-y-r9-127.md`.
