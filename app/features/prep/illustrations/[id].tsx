@@ -70,6 +70,7 @@ import {
   savePrepIllustrationCategory,
   savePrepIllustrationTitle,
 } from '@/features/study/prepIllustrationsStore';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {
   ILLUSTRATION_CATEGORY_META,
   ILLUSTRATION_CATEGORY_ORDER,
@@ -184,6 +185,21 @@ export default function PrepIllustrationEditorScreen() {
       }
     },
     [id, debouncedSaveTitle, debouncedSaveBody],
+  );
+
+  // R9-30 — a restore rewrote `@prep_illustrations` behind this editor (an
+  // import still running when the user came back to it). Each keystroke saves
+  // the WHOLE field held here, so the next one would write the pre-import text
+  // back over the restored one. Drop the pending saves (they belong to the
+  // replaced text) and reload the illustration from disk.
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        debouncedSaveTitle.cancel();
+        debouncedSaveBody.cancel();
+        if (isPremium) void load();
+      }),
+    [debouncedSaveTitle, debouncedSaveBody, isPremium, load],
   );
 
   const handleTitleChange = useCallback(
