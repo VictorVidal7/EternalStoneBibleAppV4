@@ -147,7 +147,7 @@ tres pruebas de `deleteAccount` caían con `TypeError`. Llevan los dos métodos;
 - Todo, sin emulador.
 - El skip sigue solo en memoria (`R9-255`): si el proceso muere entre el borrado y el inicio siguiente, la red no
   está. Igual que antes.
-- `R9-260`: el skip se vacía aunque su `setItem('skip')` falle. Igual que antes.
+- El skip se vacía aunque su `setItem('skip')` falle. Igual que antes. (La 157: es `R9-597`; aquí decía `R9-260`, por error.)
 - La red del borrado escribe `skip` también sobre una cuenta que ya tenía `'2'` (una cuenta vieja que entra sin
   pregunta): así se pierde su lista de reintento de `R9-257`. Es lo que hacía HEAD. Sin número.
 

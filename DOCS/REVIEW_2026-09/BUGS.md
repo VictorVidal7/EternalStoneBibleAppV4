@@ -2925,6 +2925,11 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
   - **Sesión 156, medido (agente 4), sin número:** el apply de R falla una vez y la red vuelve entre attaches: la
     entrada vieja sube en el medio y la nube pierde R. C no actúa (el apply no anduvo). Es esta entrada cruzada con
     `R9-128`. El conflicto pendiente (C3 a 10 s) también sube la entrada: C no corre ahí (agente 5).
+  - **Sesión 157, revisión de C, medido (agentes 3 y 4), sin número.** Un push ya en vuelo: si su `set` resuelve, D
+    llega a la nube igual (lo que el docstring excluye); si rechaza, C evita que D suba otra vez (mejora). Con un
+    conflicto retenido, la entrada sube sobre una lápida más nueva hasta que la persona elige (`R9-161`, por diseño):
+    esta forma, en un doc en conflicto, sin apply que dispare C. C nunca ve un `own` vivo (`retireOwn` lo borra
+    antes). `detail/S157-revision-155-156.md` §6 y §7.
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -4133,6 +4138,10 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     haya datos.
   - **Del otro lado, leído:** `claimLocalStore` (`:100-109`) también se traga el fallo de ESCRITURA.
     Conviene decidirlo junto.
+  - **Sesión 157, medido (agente 2, sonda c7), sin número.** Desde `R9-127` (la 155), un «Migrar» suspende la red
+    del borrado. Si el start de esa cuenta no llega en el proceso y entra otra sin pregunta (marcador ilegible), la
+    otra recibe las filas: `'2'` y 1 subida (antes de la 155, `skip` y 0). Pide dos fallos juntos, y las filas ya
+    eran de quien eligió migrar: el daño es este fallo abierto. `detail/S157-revision-155-156.md` §5.
 
 - **`R9-159` (S24, arnés de pruebas — P3) — 🐛 en unas 41 suites el mock de `useRouter` devuelve un
   objeto nuevo en cada render, así que ninguna ve una dependencia faltante de `useCallback` sobre
@@ -14700,6 +14709,20 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     tocó. Es el candidato del agente 4 de la 154.
   - **Severidad:** P3: pide un `setItem` de AsyncStorage que falle siempre, y por lectura, sin medir. **Propuesta (sin escribir):** que el upsert espere la escritura de su tarjeta y rechace si
     falla; antes, medirlo con el provider real. `detail/S155-revision-y-r9-127.md` §2.2.
+
+- **`R9-597` (S157, revisión del diff de la 155 / sync / auth, vecino de `R9-127` y `R9-263` — P3) — 🐛 el salto
+  del bulk push se vacía en memoria aunque su `setItem('skip')` falle: el start siguiente de esa cuenta sube lo que
+  se acababa de borrar (o lo que la persona no quiso migrar).** MEDIDO con sonda (el motor real; agente 2, caso c2,
+  `_scratch/S157-sondas-agente-2/`). Sin medir en vivo.
+  - `maybeRunInitialBulkPush` (`SyncEngine.ts:3720-3735`): suelta `skipNextBulkPush` y `deletionSkip` ANTES del
+    `setItem`, y su `catch` es «best-effort». Sin flag en el disco, el start siguiente de la misma cuenta (un
+    reinicio, o `stop()` y `start()`) corre el bulk push entero.
+  - Sonda: red del borrado armada, el `setItem` del flag falla → `null` / 0 subidas; el start siguiente → `'2'` / 1.
+  - Anterior a la 155: el booleano se vaciaba igual. `detail/S155-revision-y-r9-127.md` §5 lo citó como `R9-260`, y
+    es un error (`R9-260` es la doble hidratación de la cola).
+  - **Severidad:** P3: pide que falle la escritura de un valor chico, y un start más de esa cuenta. **Propuesta
+    (sin escribir):** soltar la ranura solo si el `setItem` salió, o reponerla en el `catch`.
+    `detail/S157-revision-155-156.md` §5.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -1334,4 +1334,8 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   entradas de otros docs. Antes solo una escritura del usuario la disparaba. Antes de llamar a un escritor desde un
   sitio nuevo, leé qué hace cuando su estado no está listo (sin leer, sin hidratar, rendido), con una sonda de
   esa fila.
+- **Un número citado como «ya reportado» se abre y se lee antes de copiarlo (sesión 157, `R9-597`).** El detalle
+  de la 155 citó `R9-260` para el salto que se vacía aunque su escritura falle, y `R9-260` es otra cosa (la doble
+  hidratación). El agente 2 de la 157 copió la cita. Antes de escribir «ya reportado `R9-N`», `grep -n` de su
+  entrada y una línea leída.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 156, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C hecha; E, B y R
-> abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
-> al cierre de la 156 eran 276 de 596: ningún P0, 13 P1, 90 P2, 172 P3 y un aviso. `fix/s156-r9-126` y
-> `docs/review-s156` esperan el OK de Victor. Sigue la 157: la revisión de los diffs de la 155 y la 156
-> (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba (`CONTINUAR.md`
-> §7). Todo el dinero y la sync de la 154 a la 156 están sin medir en vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 157, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C hecha y revisada;
+> E, B y R abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
+> al cierre de la 157 eran 277 de 597: ningún P0, 13 P1, 90 P2, 173 P3 y un aviso. `docs/review-s157` espera el OK
+> de Victor. Sigue la 158: la opción E de `R9-126` (el bulk push; `CONTINUAR.md` §4). `R9-135` sigue abierto: espera
+> la medición con la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 157
+> están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -368,3 +368,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   de otros docs: entró su guarda. El agente 4, el borrado remoto: C lo incluye (decisión técnica del orquestador).
   10 pruebas; tres piezas vistas caer en el principal. `R9-126` queda en parte (E, B y R). Notas en `R9-126` y
   `R9-595`; ningún hallazgo nuevo. Sin medir en vivo. Detalle: `detail/S156-r9-126-opcion-c.md`.
+- **Sesión 157 — 2026-11-17.** Revisión de los diffs de la 155 (`R9-127`) y la 156 (C), con Opus 5.5 de principal
+  y 5 agentes a pedido de Victor (dos Sonnet `medium`, tres forks Opus `high`). Sobre lo apilado, las 16 piezas
+  vuelven a caer por su razón y la matriz de vecinos da lo escrito. Medido lo que la 156 dejó sin medir: C no
+  rompe el push en vuelo ni los conflictos (nunca ve un `own` vivo). Un hallazgo nuevo, anterior a los dos diffs:
+  `R9-597` (P3). Notas en `R9-126` y `R9-158`; una regla. Sin código. Detalle: `detail/S157-revision-155-156.md`.
