@@ -1611,6 +1611,15 @@ describe('R9-135 — el logIn de la cuenta que entra falla', () => {
       </AuthProvider>,
     );
     flushListenerWith(mockCurrentUser);
+    // R9-584 — el getCustomerInfo del arranque responde por el usuario en que
+    // esta el SDK: sigue en Ana, con la ofrenda. Solo el logIn de Beto hace que
+    // se vea lo de Beto (el global, vacio). Con el global vacio por quien sea,
+    // lo que se ve daba `false` con y sin el reintento.
+    (Purchases.getCustomerInfo as jest.Mock).mockImplementationOnce(async () =>
+      (await Purchases.getAppUserID()) === 'uid-ana'
+        ? active
+        : {entitlements: {active: {}, all: {}}},
+    );
     await initializeOffering();
     await settle();
 

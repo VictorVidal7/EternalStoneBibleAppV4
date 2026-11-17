@@ -589,3 +589,51 @@ describe('OfferingSheet', () => {
     expect(queryByText(/Gracias por tu ofrenda/)).toBeNull();
   });
 });
+
+describe('R9-584 — «ya comprado» y la tienda trae la compra sin entitlement', () => {
+  const es = require('../src/i18n/translations').translations.es;
+  // La compra figura en la cuenta y la entitlement no esta: restore() dice
+  // 'notActivated' (R9-574). La prueba vecina de R9-17 restaura una
+  // respuesta sin la lista: es 'notFound'.
+  const purchasedNoEntitlementInfo = {
+    ...noEntitlementInfo,
+    nonSubscriptionTransactions: [
+      {
+        transactionIdentifier: 'tx-1',
+        productIdentifier: 'ofrenda_extras_1',
+        purchaseDate: '2026-11-12T00:00:00Z',
+      },
+    ],
+  };
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+  });
+
+  it('el aviso de «sin activar», no «No se pudo restaurar» ni los montos otra vez', async () => {
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+    mockPurchases.purchasePackage.mockRejectedValueOnce({code: '6'});
+    mockPurchases.restorePurchases.mockResolvedValueOnce(
+      purchasedNoEntitlementInfo,
+    );
+
+    const {findByText, findByLabelText, queryByText} = renderSheet();
+    fireEvent.press(await findByLabelText('$0.99'));
+
+    expect(await findByText(es.offering.notActivatedTitle)).toBeTruthy();
+    expect(await findByText(es.offering.notActivatedMessage)).toBeTruthy();
+    expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+    expect(mockToast.error).not.toHaveBeenCalled();
+    expect(mockToast.success).not.toHaveBeenCalled();
+    expect(queryByText('$0.99')).toBeNull();
+  });
+});

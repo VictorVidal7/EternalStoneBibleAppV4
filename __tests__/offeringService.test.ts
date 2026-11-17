@@ -807,6 +807,15 @@ describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () =
 
   it('se reintenta antes de restaurar, y lo que se ve pasa a ser lo de la cuenta que entro', async () => {
     await betoFailsAfterAna();
+    // R9-584 — la tienda responde por el usuario en que esta el SDK: Ana tiene
+    // la ofrenda y Beto no. Sin el reintento, el SDK sigue en Ana y Beto se
+    // restauraria lo de Ana (`restored`). Con el global vacio por quien sea,
+    // este expect pasaba con y sin el reintento.
+    sdk.restorePurchases.mockImplementationOnce(async () =>
+      (await Purchases.getAppUserID()) === 'ana'
+        ? active
+        : {entitlements: {active: {}, all: {}}},
+    );
 
     await expect(restore()).resolves.toEqual({status: 'notFound'});
 
@@ -819,6 +828,15 @@ describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () =
 
   it('en el arranque siguiente, con esa cuenta en sesion, se reintenta al terminar initialize()', async () => {
     await betoFailsAfterAna();
+    // R9-584 — el getCustomerInfo del arranque responde por el usuario en que
+    // esta el SDK: sigue en Ana, con la ofrenda. Solo el logIn de Beto hace que
+    // se vea lo de Beto (el global, vacio). Con el global vacio por quien sea,
+    // lo que se ve daba `false` con y sin el reintento.
+    sdk.getCustomerInfo.mockImplementationOnce(async () =>
+      (await Purchases.getAppUserID()) === 'ana'
+        ? active
+        : {entitlements: {active: {}, all: {}}},
+    );
 
     await nextProcess('beto');
 
@@ -992,6 +1010,75 @@ describe('R9-135 — un logIn que falla al cambiar de cuenta se reintenta', () =
 
       await expect(getPendingLinkUid()).resolves.toBeNull();
     });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// R9-584 — lo que logInAs hace DESPUES de un logIn que sale bien: borra el
+// pendiente y despues procesa la respuesta, dentro de su propio try/catch. En
+// el codigo de hoy lo unico de ese tramo que puede lanzar es procesar una
+// respuesta ilegible (aqui, un customerInfo sin `entitlements`): la cache y
+// los listeners ya atajan lo suyo. El mock no modela clientes: se afirman
+// LLAMADAS, el disco y el resultado de la compra.
+// ---------------------------------------------------------------------------
+describe('R9-584 — logInAs tras un logIn que sale bien', () => {
+  const sdk = Purchases as unknown as {
+    logIn: jest.Mock;
+    purchasePackage: jest.Mock;
+    __reset: () => void;
+    __setAppUserID: (id: string) => void;
+  };
+  const active = {
+    entitlements: {
+      active: {[ENTITLEMENT_ID]: {identifier: ENTITLEMENT_ID}},
+      all: {},
+    },
+  };
+  const pkg = {identifier: 'o1'} as never;
+  const offline = {code: '10', message: 'network'};
+  const unreadable = {customerInfo: {}};
+
+  beforeEach(async () => {
+    __resetForTests();
+    sdk.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    await setPendingLinkUid(null);
+    __setApiKeyForTests('test-key');
+    await initialize();
+  });
+
+  /** Ana esta enlazada; entra Beto, su logIn falla y queda anotado. */
+  async function betoPending(): Promise<void> {
+    sdk.logIn.mockResolvedValueOnce({customerInfo: active});
+    await linkUser('ana');
+    sdk.__setAppUserID('ana');
+    sdk.logIn.mockRejectedValueOnce(offline);
+    await linkUser('beto');
+    await expect(getPendingLinkUid()).resolves.toBe('beto');
+  }
+
+  it('una respuesta ilegible del reintento no tumba la compra que lo pidio', async () => {
+    await betoPending();
+    sdk.logIn.mockResolvedValueOnce(unreadable);
+    sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+
+    await expect(purchaseUnlock(pkg)).resolves.toEqual({status: 'success'});
+
+    expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto'], ['beto']]);
+    expect(sdk.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('el pendiente se borra ANTES de procesar la respuesta: una ilegible no lo deja para la compra siguiente', async () => {
+    await betoPending();
+    sdk.logIn.mockResolvedValueOnce(unreadable);
+    sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+    await purchaseUnlock(pkg);
+
+    // RevenueCat ya respondio por Beto: no queda nada que reintentar.
+    await expect(getPendingLinkUid()).resolves.toBeNull();
+    sdk.purchasePackage.mockResolvedValueOnce({customerInfo: active});
+    await purchaseUnlock(pkg);
+    expect(sdk.logIn.mock.calls).toEqual([['ana'], ['beto'], ['beto']]);
   });
 });
 
