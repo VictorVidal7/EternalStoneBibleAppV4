@@ -161,3 +161,22 @@ arranque sin red con un pendiente (`R9-594`).
 `S152-gates.out.txt`; `S152-prediccion-592.txt`, `S152-rev-592*.json.txt` y `.out.txt`; `S152-sondas.sh.txt`, las
 matrices `*s152head*` y `*s152fix*` y `S152-diff-fix-head-{U,N}.txt`; `S152-msg-{584,591,592}.txt`;
 `S152-checkpoint.sh.txt`, `S152-bloques.txt` y `S152-docs.cjs.txt`.
+
+## 10. El flujo: los 7 principios de Karpathy (pedido de Victor a mitad de sesión)
+
+Victor pidió revisar un video (Fran Salazar, «Cómo el ingeniero de IA #1 del mundo usa la IA», 6 nov 2026, 10 min).
+La transcripción se leyó en el Chrome de Victor (Claude in Chrome): la página bajada con `curl` traía la pista de
+subtítulos, pero YouTube la devolvió vacía, y su panel de transcripción pidió una verificación de navegador.
+
+| Principio                                            | Aquí, antes                                       | Decisión (§7)                          |
+| ---------------------------------------------------- | ------------------------------------------------- | -------------------------------------- |
+| 1. Dirigir y revisar el resultado, no producirlo     | Ya: Victor decide y da el OK; la prueba cae antes | sin cambio                             |
+| 2. Esfuerzo medio por defecto; alto si falla o pesa  | Siempre `high`                                    | `medium` en lo mecánico                |
+| 3. Prompts cortos: el objetivo, no los pasos         | Mensajes de ~6 KB que repiten las reglas          | mensaje corto; las reglas, en archivos |
+| 4. Respuestas cortas, como un manual de avión        | Detalles y entradas densos                        | frases cortas, tablas y diagramas      |
+| 5. Pruebas propias antes que benchmarks              | Ya para la app (sondas, matrices)                 | el banco propio, cuando Victor lo pida |
+| 6. El software es el envoltorio; valen los datos     | Ya: valen `BUGS.md`, `ESTADO.tsv`, `REGLAS.md`    | sin cambio                             |
+| 7. Un modelo caro dirige; uno barato hace el volumen | Todos los agentes, Opus                           | Sonnet para los agentes que solo miden |
+
+Lo que no se adopta tal cual: el prompt «tonto» de cinco palabras. Funciona porque Karpathy sabe evaluar el
+resultado; aquí la evaluación es la prueba que cae con su pieza, y esa regla no se acorta.

@@ -419,6 +419,26 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
 
 ## 7. Decisiones de Victor que NO hay que volver a preguntarle
 
+- **El flujo de trabajo, desde la sesión 153 (Victor, 2026-11-16: «apliquemos todo lo que nos convenga», tras el
+  video de los 7 principios de Karpathy; el análisis está en `detail/S152-arreglos-pruebas.md` §10).**
+  - **Esfuerzo por tipo de sesión.** `high` para arreglos y revisiones. `medium` para lo mecánico: un cierre, un
+    checkpoint, un merge, un `S1NN-CIERRE-PROMPT`. Si algo falla dos veces con `medium`, se sube a `high`. Victor
+    pone el esfuerzo con `/effort`; el mensaje de la sesión dice cuál.
+  - **El mensaje de la sesión, corto.** Lleva el objetivo, el alcance, el estado esperado de git y lo que NO va. Las
+    reglas fijas viven en `CONTINUAR.md` §5, `RECETAS.md` y `REGLAS.md`, y no se copian al mensaje. El modelo:
+    `_scratch/S153-PROMPT.md`.
+  - **Los informes, cortos.** Frases de 20 palabras o menos, voz activa, una idea por frase. Una tabla o un
+    diagrama antes que tres párrafos. Vale para el mensaje final a Victor, la bitácora de `INDEX.md` y el
+    encabezado de una entrada de `BUGS.md`. El detalle de una sesión puede ser largo, pero cada frase sigue la regla.
+  - **Agentes: el modelo según la tarea.** Victor sigue decidiendo cuántos y cuál. El orquestador propone así: un
+    agente que diseña o escribe pruebas, con el modelo principal (puede ir como `fork`); uno que solo corre y mide
+    con scripts dados, con Sonnet y esfuerzo `medium`, como `general-purpose` con las reglas completas en un
+    archivo (un `fork` hereda siempre el modelo principal). Lo que un script puede filtrar se filtra sin IA.
+  - **El banco propio (pendiente, sin escribir).** Entre 5 y 10 tareas pasadas con la respuesta conocida, cada una
+    un error real de la IA en esta revisión (un verde falso, una afirmación de agente que no se sostuvo, un revert
+    mal hecho). Sirve para comparar `medium` contra `high`, o un modelo contra otro, antes de cambiar el defecto. Se
+    arma cuando Victor lo pida; hasta entonces, el esfuerzo de arriba es la regla.
+
 - **El premium es de quien dio la ofrenda: en el aparato donde estuvo, no se pierde al cerrar sesión, y la cuenta
   lo lleva a otros aparatos (`R9-119`; decidido por Claude el 2026-11-12, por delegación de Victor: «lo dejo a tu
   mejor consideración»; Victor puede cambiarlo).** La regla, en una línea: **un usuario anónimo nunca le cambia el
