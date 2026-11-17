@@ -89,6 +89,7 @@ import {
 } from '@/features/study/prepTable';
 import {rankIllustrationsByRelevance} from '@/features/study/prepRelevance';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
+import type {PrepNotes} from '@/features/study/prepNotes';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -230,7 +231,15 @@ export default function PrepIllustrationsListScreen() {
       const passageKey = params.insertPassageKey;
       if (!passageKey) return;
       haptics.tap();
-      const existing = await getPrepNotes(passageKey);
+      // R9-600 — a strict read: a failed one used to come back as "no
+      // notes", and the illustration was saved alone over the section.
+      let existing: PrepNotes;
+      try {
+        existing = await getPrepNotes(passageKey, {strict: true});
+      } catch {
+        toast.error(saveError);
+        return;
+      }
       const pieces = [item.title.trim(), item.body.trim()].filter(Boolean);
       const addition = pieces.join('\n');
       const current = existing.sections[INSERT_TARGET_SECTION] ?? '';

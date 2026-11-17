@@ -27,20 +27,39 @@ import {
 
 const PREP_NOTES_KEY = '@prep_notes';
 
-/** Read the whole map (empty map if none/corrupt). */
-export async function getAllPrepNotes(): Promise<PrepNotesMap> {
+/**
+ * R9-600 — `strict: true` rethrows a failed read instead of degrading it to
+ * "no notes". A screen that only SHOWS the notes keeps the tolerant default.
+ * A caller that builds a write on top of what it read (the illustrations
+ * bank appends to a section, the Mesa edits the sections it loaded) asks for
+ * the throw: read as "no notes", it saved its text alone over the section
+ * and the preparer's prose was lost. Same opt-in as `getAllReviewEvents`
+ * (R9-129).
+ */
+export interface PrepNotesReadOptions {
+  strict?: boolean;
+}
+
+/** Read the whole map (empty map if none/corrupt; see the options). */
+export async function getAllPrepNotes(
+  options?: PrepNotesReadOptions,
+): Promise<PrepNotesMap> {
   try {
     const raw = await AsyncStorage.getItem(await prepKey(PREP_NOTES_KEY));
     return parsePrepNotesMap(raw);
   } catch (error) {
     logger.warn('Failed to read prep notes', {error: String(error)});
+    if (options?.strict) throw error;
     return {};
   }
 }
 
-/** Read one passage's notes (empty notes if none). */
-export async function getPrepNotes(passageKey: string): Promise<PrepNotes> {
-  const map = await getAllPrepNotes();
+/** Read one passage's notes (empty notes if none; see the options). */
+export async function getPrepNotes(
+  passageKey: string,
+  options?: PrepNotesReadOptions,
+): Promise<PrepNotes> {
+  const map = await getAllPrepNotes(options);
   return map[passageKey] ?? emptyPrepNotes();
 }
 

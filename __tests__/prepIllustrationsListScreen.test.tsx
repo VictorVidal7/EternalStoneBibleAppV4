@@ -556,6 +556,56 @@ describe('PrepIllustrationsListScreen — Tanda 4', () => {
       }
     });
 
+    // R9-600 — the read of the notes fails once (the real store, with
+    // `getItem` rejecting only for `@prep_notes`). It used to come back as
+    // "no notes", and the screen saved the illustration ALONE over the
+    // section, then said "added": the preparer's prose was gone.
+    it('a failed read of the notes keeps the prose, shows an error, and stays', async () => {
+      await unlockPremium();
+      await savePrepNote('John/3/16', 'application', 'Prosa previa a mano.');
+      await seedIllustrations({
+        i1: {
+          id: 'i1',
+          title: 'La oveja perdida',
+          body: 'El pastor deja las noventa y nueve',
+          category: 'testimony',
+          createdAt: 1,
+          updatedAt: 1,
+        },
+      });
+      const before = await AsyncStorage.getItem('@prep_notes');
+      mockToast.error.mockClear();
+      const getItem = AsyncStorage.getItem as jest.Mock;
+      const real = getItem.getMockImplementation()!;
+      let failed = 0;
+      getItem.mockImplementation((key: string) => {
+        if (key === '@prep_notes' && failed === 0) {
+          failed += 1;
+          return Promise.reject(new Error('lectura rota'));
+        }
+        return real(key);
+      });
+      try {
+        const {findByText} = renderScreen();
+        fireEvent.press(await findByText('La oveja perdida'));
+
+        await waitFor(() => expect(mockToast.error).toHaveBeenCalledTimes(1));
+        expect(mockToast.error).toHaveBeenCalledWith(
+          translations.es.prepTable.saveError,
+        );
+        // CONTROL: the read was attempted and failed.
+        expect(failed).toBe(1);
+        expect(mockToast.success).not.toHaveBeenCalled();
+        expect(mockBack).not.toHaveBeenCalled();
+        const notes = await getPrepNotes('John/3/16');
+        expect(notes.sections.application).toBe('Prosa previa a mano.');
+        // Nothing was written: not even the same prose with a new stamp.
+        expect(await AsyncStorage.getItem('@prep_notes')).toBe(before);
+      } finally {
+        getItem.mockImplementation(real);
+      }
+    });
+
     it('dismisses the insert banner and browses normally afterward', async () => {
       await unlockPremium();
       await seedIllustrations({
