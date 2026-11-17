@@ -2915,6 +2915,16 @@ undefined`) tiene que seguir dando la pantalla genérica con «Reintentar». Sin
     E (el bulk push espera el primer snapshot), B (el import reestampa `updatedAt`: decisión en `CONTINUAR.md` §8),
     R (LWW en las reglas: consola, con `R9-4`) y T (transacción: descartada, +1 lectura por push). Recomendación:
     C en su propia sesión, después E. `detail/S154-arreglos-v2.md` §6.
+  - **✅ ARREGLADO EN PARTE en la sesión 156** (`46ad0e93`, rama `fix/s156-r9-126`); **la entrada sigue abierta.**
+    Entró la opción C: si LWW aplica un cambio remoto más nuevo (copia o lápida), las entradas de esta cuenta, ese
+    doc y reloj más viejo salen de la cola (`dropQueuedOlderThan`). Con la cola sin leer no se escribe el disco
+    (`R9-212`: la relectura que se rendía borraba entradas de otros docs; lo midió el agente 3). Cierra el disparador
+    común (la 49) y R9-104 de la misma cuenta. **Sigue abierto:** el bulk push (E), restaurar (B, §8), las reglas
+    (R) y un push ya en vuelo. 10 pruebas (`__tests__/s156a2-r9-126-cola.test.ts`): sin C caen 6, sin la guarda 1,
+    con `!deleted` 1. Sin medir en vivo. `detail/S156-r9-126-opcion-c.md`.
+  - **Sesión 156, medido (agente 4), sin número:** el apply de R falla una vez y la red vuelve entre attaches: la
+    entrada vieja sube en el medio y la nube pierde R. C no actúa (el apply no anduvo). Es esta entrada cruzada con
+    `R9-128`. El conflicto pendiente (C3 a 10 s) también sube la entrada: C no corre ahí (agente 5).
 
 - **`R9-127` (S21, `SyncEngine` / auth) — 🐛 el `skipNextBulkPush` que arma `deleteAccount` anula
   un «Sí, migrar» de la cuenta SIGUIENTE, para siempre.** CONFIRMADO con sonda.
@@ -14676,6 +14686,9 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: pide una escritura local que falle en cada intento, y cuesta lecturas, no datos. **Propuesta
     (sin escribir):** un tope de reintentos por doc, después del cual se avanza el piso y se anota el doc.
     `detail/S155-revision-y-r9-127.md` §2.4.
+  - **Sesión 156 (agente 4, medido):** con una entrada en cola del mismo doc, cuesta datos, no solo lecturas: la
+    entrada sube y la nube pierde la versión nueva, que nunca se aplica aquí. Igual con HEAD y con la opción C de
+    `R9-126` (C no corre si el apply falla). `detail/S156-r9-126-opcion-c.md` §3.
 
 - **`R9-596` (S155, revisión del diff de la 154 / sync / `memoryCards`, vecino de `R9-128` y `R9-133` — P3) — 🐛
   el `applyRemoteUpsert` de `memoryCards` resuelve antes de escribir en el disco, contra el contrato de

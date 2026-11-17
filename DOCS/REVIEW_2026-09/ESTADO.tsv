@@ -124,7 +124,7 @@ R9-122	P3	dinero y sync	abierto		parcial: el punto 4 se arregló con `R9-153` (`
 R9-123	P3	docs de la revisión	abierto		docs rancios de la revisión («sin corregir una por una»); los absorbe la sesión de adelgazar docs
 R9-124	P0	SyncEngine	arreglado	34de18f	marca de su entrada: «✅ ARREGLADO en la sesión 26 (`34de18f`, rama `fix/review-s26-removed`): - ante un `removed`, `getDoc` FUERA de `withLocalWriteSuppressed`, con `isCurr»
 R9-125	P0	identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`, hecho en la nube y revisado en local): `signInWithGoogle` lee el dueño previo ANTES de bifurcar, y la rama sin»
-R9-126	P1	SyncEngine / respaldo	abierto		`src/lib/sync/SyncEngine.ts:78`, `:997` y `:3586` siguen tratando el push con reloj viejo como riesgo vivo (lo evitan, no lo cierran); ningún commit lo arregla, y la entrada lo sigue hasta la sesión 49
+R9-126	P1	SyncEngine / respaldo	abierto	parcial: 46ad0e93	parcial: la marca de su entrada dice «✅ ARREGLADO EN PARTE en la sesión 156» (`46ad0e93`): entró la opción C (la cola); siguen el bulk push (E), restaurar (B, §8) y las reglas (R)
 R9-127	P1	SyncEngine / auth	arreglado	9757b8dc	marca de su entrada: «✅ ARREGLADO en la sesión 155 (`9757b8dc`, rama `fix/s155-r9-127`): el skip de un inicio lleva su uid (`settle(uid)` lo ata, `settle(null)` lo suelta);»
 R9-128	P1	adaptadores de sync	arreglado	5296512b	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`5296512b`, rama `fix/s154-v2`): los `apply*` de notas, subrayados y favoritos relanzan; `applyRemoteChange` devuelve `f»
 R9-129	P1	respaldo / memoria	abierto		`src/lib/memory/reviewEventStore.ts:90-96` (`catch` → `return []`)

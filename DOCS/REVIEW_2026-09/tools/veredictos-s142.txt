@@ -1,7 +1,7 @@
 # Veredictos de la conciliacion (sesion 142, 2026-11-12): id|estado|cierre|evidencia. Las lineas de codigo son las de a0147da0.
 # Los lee estado.cjs.txt para las entradas de BUGS.md sin marca de cierre entera. Al arreglar un hallazgo no se toca
 # este archivo: se pone la marca en su entrada y se regenera el TSV (la marca manda sobre un veredicto «abierto»).
-126|abierto||`src/lib/sync/SyncEngine.ts:78`, `:997` y `:3586` siguen tratando el push con reloj viejo como riesgo vivo (lo evitan, no lo cierran); ningún commit lo arregla, y la entrada lo sigue hasta la sesión 49
+126|abierto|parcial: 46ad0e93|parcial: la marca de su entrada dice «✅ ARREGLADO EN PARTE en la sesión 156» (`46ad0e93`): entró la opción C (la cola); siguen el bulk push (E), restaurar (B, §8) y las reglas (R)
 127|abierto||`src/lib/sync/SyncEngine.ts:779` (`skipNextBulkPush`, booleano de instancia sin uid) y `src/context/AuthContext.tsx:694` (`deleteAccount` lo arma); la entrada dice qué puertas se cerraron y cuáles no
 128|abierto||`src/lib/sync/adapters/notes.ts:115-121` (`catch` → `logger.error`, sin relanzar) y `adapters/highlights.ts:120`, `:134`
 129|abierto||`src/lib/memory/reviewEventStore.ts:90-96` (`catch` → `return []`)

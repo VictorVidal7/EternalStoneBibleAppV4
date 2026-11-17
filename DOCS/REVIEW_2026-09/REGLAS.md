@@ -1328,4 +1328,10 @@ package.json package-lock.json` para saber si ese build es el de HEAD. Así sali
   → `settle(null)` soltaba también la red del borrado, y el reintento sin pregunta subía lo borrado. Antes de
   compartir una ranura, la fila en que el dueño de uno la limpia mientras el otro sigue pendiente; y una pieza que
   vuelva a la ranura única (`ranura-unica`), vista caer.
+- **Un camino nuevo que escribe un estado compartido hereda las salidas de error de los escritores que ya había
+  (sesión 156, `R9-126`; lo midió el agente 3).** C llamaba a `persistQueue()` desde un apply: con la cola sin
+  leer, eso dispara la relectura, y si falla, la rendición de `R9-212` escribe la cola desde memoria y borra las
+  entradas de otros docs. Antes solo una escritura del usuario la disparaba. Antes de llamar a un escritor desde un
+  sitio nuevo, leé qué hace cuando su estado no está listo (sin leer, sin hidratar, rendido), con una sonda de
+  esa fila.
 - **Actualizá memoria y este archivo al cerrar la sesión** (`feedback_essb-memory-freshness`).

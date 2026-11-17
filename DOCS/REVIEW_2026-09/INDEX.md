@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 155, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126`.**
-> Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
-> al cierre de la 155 eran 276 de 596: ningún P0, 13 P1, 90 P2, 172 P3 y un aviso. Sigue la 156: `R9-126` opción C,
-> sola; la revisión del diff de la 155, después (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con
-> la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 y la 155 están sin medir en
-> vivo; del Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 156, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C hecha; E, B y R
+> abiertas).** Qué queda abierto se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`;
+> al cierre de la 156 eran 276 de 596: ningún P0, 13 P1, 90 P2, 172 P3 y un aviso. `fix/s156-r9-126` y
+> `docs/review-s156` esperan el OK de Victor. Sigue la 157: la revisión de los diffs de la 155 y la 156
+> (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba (`CONTINUAR.md`
+> §7). Todo el dinero y la sync de la 154 a la 156 están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -362,3 +362,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   borrado, armada tras el `deleteUser` y suspendida por un «Migrar»; medido antes con HEAD y con el diff del agente
   6; 21 pruebas y 13 piezas vistas caer. Un comentario (`d9f53ca0`) y la prueba 21 (`667e0e25`). Sin medir en vivo.
   Detalle: `detail/S155-revision-y-r9-127.md`.
+- **Sesión 156 — 2026-11-17.** `R9-126` opción C, con Opus 5.5 de principal y 5 agentes a pedido de Victor (uno
+  Sonnet `medium`, cuatro forks Opus `high`). `46ad0e93`: si LWW aplica un cambio remoto más nuevo (copia o lápida),
+  la entrada vieja de ese doc sale de la cola. El agente 3 halló que C, con la cola sin leer, podía borrar entradas
+  de otros docs: entró su guarda. El agente 4, el borrado remoto: C lo incluye (decisión técnica del orquestador).
+  10 pruebas; tres piezas vistas caer en el principal. `R9-126` queda en parte (E, B y R). Notas en `R9-126` y
+  `R9-595`; ningún hallazgo nuevo. Sin medir en vivo. Detalle: `detail/S156-r9-126-opcion-c.md`.
