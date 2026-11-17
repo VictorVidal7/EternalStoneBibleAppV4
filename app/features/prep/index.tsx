@@ -613,7 +613,10 @@ export default function PrepTableScreen() {
 
       const bookIntro = getBookIntro(table.bookId, lang);
 
-      const saved = await getPrepNotes(table.passageKey);
+      // R9-600 — strict: the fields start from this text, and a save writes
+      // a whole section. A failed read used to open them empty, and what was
+      // typed there replaced the prose. Now it ends in the `catch` below.
+      const saved = await getPrepNotes(table.passageKey, {strict: true});
       const savedSelfReview = await getPrepSelfReview(table.passageKey);
 
       // Everything above is read-only; this is the first line that mutates
@@ -670,19 +673,24 @@ export default function PrepTableScreen() {
       // enough to disown an answer that arrives after the passage moved.
       const key = table.passageKey;
       let cancelled = false;
-      getPrepNotes(key).then(saved => {
-        if (cancelled) return;
-        setDrafts(saved.sections);
-        draftsPassageKeyRef.current = key;
-        // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
-        // the illustrations bank and back) must adopt a template another
-        // screen just PERSISTED for this SAME entry, but must never reset
-        // a template the picker just chose locally and hasn't been saved
-        // yet (picking narrativo, then navigating to insert an
-        // illustration before typing a word, must not silently revert the
-        // pick to 'expository' on return).
-        if (saved.template) setTemplate(saved.template);
-      });
+      // R9-600 — strict, for the same reason as the load: a failed re-read
+      // keeps the fields as they are instead of emptying them.
+      getPrepNotes(key, {strict: true})
+        .then(saved => {
+          if (cancelled) return;
+          setDrafts(saved.sections);
+          draftsPassageKeyRef.current = key;
+          // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
+          // the illustrations bank and back) must adopt a template another
+          // screen just PERSISTED for this SAME entry, but must never reset
+          // a template the picker just chose locally and hasn't been saved
+          // yet (picking narrativo, then navigating to insert an
+          // illustration before typing a word, must not silently revert the
+          // pick to 'expository' on return).
+          if (saved.template) setTemplate(saved.template);
+        })
+        // The store logged it; the fields keep what they show.
+        .catch(() => undefined);
       return () => {
         cancelled = true;
       };
