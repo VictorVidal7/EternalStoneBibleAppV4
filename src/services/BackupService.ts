@@ -512,7 +512,8 @@ export async function buildBackup(): Promise<BuildBackupResult> {
   // four sections holding the whole reading history — `safeQuery` can only
   // mark a section from its own `catch`. Strict makes the throw reach us, so
   // a transient SQLite error is recorded instead of being exported as a
-  // credible "this user has never read anything".
+  // credible "this user has never read anything". R9-129 — the review log
+  // is the fifth getter of that shape: same opt-in.
   const [
     rawStats,
     achievementsAll,
@@ -559,7 +560,7 @@ export async function buildBackup(): Promise<BuildBackupResult> {
       degradedSections,
     ),
     safeQuery(
-      () => getAllReviewEvents(),
+      () => getAllReviewEvents({strict: true}),
       [] as ReviewEvent[],
       'reviewEvents',
       degradedSections,

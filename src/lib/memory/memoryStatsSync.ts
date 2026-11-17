@@ -167,7 +167,11 @@ export async function seedMemoryStatsFloorIfFresh(uid: string): Promise<void> {
     if (existing != null) return;
 
     // Fresh-device signal: no local review history to restore over.
-    const events = await getAllReviewEvents();
+    // R9-129 — strict: a failed read is not "no history". Seeding over a
+    // history we could not read counts every review twice, for good; the
+    // throw lands in the catch below and the seed simply waits for the next
+    // sign-in.
+    const events = await getAllReviewEvents({strict: true});
     if (events.length > 0) return;
 
     const snap = await fn()
@@ -227,8 +231,10 @@ export async function maybeWriteMemoryStatsSummary(): Promise<void> {
       await AsyncStorage.setItem(REVIEW_LOG_OWNER_KEY, uid);
     }
 
+    // R9-129 — strict: the write below is a total overwrite of the cloud
+    // aggregate, and a failed read would replace it with the floor alone.
     const [events, floor] = await Promise.all([
-      getAllReviewEvents(),
+      getAllReviewEvents({strict: true}),
       getMemoryStatsFloor(),
     ]);
     // Nothing worth writing until there's some signal (local or restored).

@@ -76,8 +76,20 @@ export async function addReviewEvent(event: ReviewEvent): Promise<void> {
   }
 }
 
-/** Every event, oldest first (the order the analytics expect). */
-export async function getAllReviewEvents(): Promise<ReviewEvent[]> {
+/**
+ * Every event, oldest first (the order the analytics expect).
+ *
+ * R9-129 — by default a failed read degrades to `[]`, which is right for
+ * the screens (a heatmap must not crash). It is WRONG for the callers that
+ * read `[]` as a fact about the user: the backup export (`safeQuery` can
+ * only mark the section from its own `catch`), the fresh-device seed
+ * (`[]` means "never reviewed here") and the cloud aggregate write (a
+ * total overwrite). `strict: true` is how they ask for the throw, the same
+ * opt-in as `AchievementService`'s `ReadLogOptions` (R9-49).
+ */
+export async function getAllReviewEvents(options?: {
+  strict?: boolean;
+}): Promise<ReviewEvent[]> {
   try {
     await bibleDB.initialize();
     const db = await bibleDB.getDatabase();
@@ -92,6 +104,7 @@ export async function getAllReviewEvents(): Promise<ReviewEvent[]> {
       component: 'memory/reviewEventStore',
       error: err instanceof Error ? err.message : String(err),
     });
+    if (options?.strict) throw err;
     return [];
   }
 }
