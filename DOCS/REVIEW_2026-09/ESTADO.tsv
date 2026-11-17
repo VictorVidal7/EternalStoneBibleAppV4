@@ -50,7 +50,7 @@ R9-48	P0	identidad	arreglado	67af8c9	marca de su entrada: «✅ ARREGLADO en la 
 R9-49	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): los 4 getters aceptan `{strict: true}`, que solo usa el export — los llamadores de UI siguen degradando a `[]`»
 R9-50	P1	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `updateHighlight` pasa a ser tri-estado (`undefined` = no tocar, `null` = borrar) y devuelve la entidad escrit»
 R9-51	P1	notas	abierto		verificado en la 141: la tabla `notes` no tiene restricción por versículo
-R9-52	P1	Mesa	abierto		`src/features/study/prepNotesStore.ts:83-88` (`writeQueue…catch(log)` y `return writeQueue`: resuelve siempre)
+R9-52	P1	Mesa	arreglado	dcbd9ced	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`dcbd9ced`, rama `fix/s162-v3`): los 17 escritores de los tres bancos rechazan con la escritura fallida (los `create*` y»
 R9-53	P2	respaldo	abierto		sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
 R9-54	P1	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:222-257` (`toggleDay` no toca `READ_CHAPTERS_KEY`; solo lo escriben `:302` y `:463`)
 R9-55	P2	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:270-279` (`migratePlanProgress` copia `completedDays` sin recortar)
@@ -598,5 +598,5 @@ R9-596	P3	revisión del diff de la 154 / sync / memoryCards, vecino de R9-128 y 
 R9-597	P3	revisión del diff de la 155 / sync / auth, vecino de R9-127 y R9-263	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-598	P3	revisión del diff de la 158 / sync / auth, vecino de R9-126 E y R9-122 punto 3	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-599	P3	revisión del diff de la 158 / sync / rendimiento, vecino de R9-126 E	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-600	P2	Mesa / banco de ilustraciones, vecino de R9-52 y R9-129	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-600	P2	Mesa / banco de ilustraciones, vecino de R9-52 y R9-129	arreglado	4acd1834	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`4acd1834` y `39ddedd8`, rama `fix/s162-v3`): `getAllPrepNotes` y `getPrepNotes` aceptan `{strict: true}`. El banco de i»
 R9-601	P3	estudio y niños / persistencia, vecino de R9-30	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

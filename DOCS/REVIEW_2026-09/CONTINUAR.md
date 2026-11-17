@@ -220,6 +220,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   (las notas y la autoevaluación; quedan los `save*` de los bancos) y la tanda 1 de `R9-30` (13 claves), en
   `fix/s161-v3`. Nuevos: `R9-600` (P2) y `R9-601` (P3). **La 162: la tanda 2 de `R9-30` (la Mesa:
   `@prep_illustrations`, `@prep_self_review`, `@sermon_notes`) y los bancos de `R9-52`, con `R9-600`.**
+  **Hecha en la 162** salvo `R9-30` (`detail/S162-v3-arreglos.md`), con 3 agentes, sin medir en vivo:
+  `R9-52` y `R9-600`, cerrados; la tanda 2 de `R9-30` (ilustraciones y autoevaluación), en `fix/s162-v3`.
+  `@sermon_notes` no es de la Mesa: va con las claves que no son de la Mesa. **La 163: la tanda 3 de `R9-30`
+  (`@custom_plans`, `@together_groups`) y medir los borradores de la Mesa ante una restauración (detalle §5).**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).

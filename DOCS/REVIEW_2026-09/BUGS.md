@@ -3692,6 +3692,13 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
     `PENDING_R9_30`: la Mesa, `@custom_plans`, `@devotional_draft`, `@together_groups`, audio, compartir y las
     preferencias. Niños: un archivo con el progreso pero sin la insignia puede dejar «Primera historia» bloqueada
     (`[storyId].tsx:241` pide `=== 1`). **Sigue abierto.** `detail/S161-v3-arreglos.md` §3 y §6.
+  - **Nota de la sesión 162:** la tanda 2, hecha en `fix/s162-v3` (`652a6a58` y `67c04b31`):
+    `@prep_illustrations` y `@prep_self_review` viajan en la sección `prep`, por cuenta (`prepKey`) y en turno
+    (`prepMultiSet`); un archivo sin el campo no toca nada. El editor de ilustraciones reescribía desde memoria
+    («titulo RESTAURADO» quedaba en «titulo PRE y») y ahora escucha `subscribeBackupRestored`. Vistas caer.
+    **`@sermon_notes` no pasa:** no es de la Mesa (gratis, una clave para todas las cuentas, sin `prepKey`); pasarlo
+    pide una migración, o `LOCAL_BACKUP_KEYS` con la suscripción de `sermon-notes/[id].tsx:137-143`. Va con las
+    claves que no son de la Mesa. `detail/S162-v3-arreglos.md` §3.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -3806,6 +3813,11 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     navega. Con HEAD, las dos resolvían. Pruebas con los stores y las pantallas reales, vistas caer. **Sigue
     abierto:** los `save*` de los bancos (ilustraciones, series y sermón) tragan con un `.catch` explícito, con 31
     llamadores. `detail/S161-v3-arreglos.md` §2 y §4.
+  - **✅ ARREGLADO en la sesión 162** (`dcbd9ced`, rama `fix/s162-v3`): los 17 escritores de los tres bancos
+    rechazan con la escritura fallida (los `create*` y `addPrepSeriesPassage` también, en vez de `null`/`false`); los
+    24 llamadores avisan sin éxito ni navegación, con `useSaveErrorToast` (un toast por ráfaga). Texto nuevo
+    `sermonNotes.saveError`. Re-medido sobre lo apilado: cada store revertido hace caer 15, 17 y 11 pruebas.
+    `detail/S162-v3-arreglos.md` §3.
 - **`R9-54` (A11, planes) — 🐛 descompletar un día de un plan no se sostiene: vuelve solo en la
   siguiente lectura de CUALQUIER capítulo, con notificación falsa.** Severidad
   **media-alta**. `toggleDay` (`ReadingPlanProgressContext.tsx:211-246`) quita el día de
@@ -14793,6 +14805,10 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P2: borra prosa del usuario y dice «añadida»; pide un fallo de lectura pasajero.
     **Propuesta (sin escribir):** una lectura estricta (`{strict: true}`, como `R9-129`) para quien escribe
     encima. `detail/S161-v3-arreglos.md` §5.
+  - **✅ ARREGLADO en la sesión 162** (`4acd1834` y `39ddedd8`, rama `fix/s162-v3`): `getAllPrepNotes` y
+    `getPrepNotes` aceptan `{strict: true}`. El banco de ilustraciones y la Mesa (carga y relectura al volver) leen
+    estricto: con la lectura fallida no escriben ni abren campos vacíos. Los demás lectores solo muestran.
+    Re-medido sobre lo apilado: sin el arreglo del store caen 5 pruebas. `detail/S162-v3-arreglos.md` §3.
 
 - **`R9-601` (S161, estudio y niños / persistencia, vecino de `R9-30` — P3) — 🐛 cinco stores leen «vacío» con
   la lectura fallida, y el toque siguiente escribe ese vacío encima.** MEDIDO con sonda en `factFavorites`

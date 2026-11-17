@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 161, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas); la V3, hecha en parte (`R9-52`, en parte; `R9-30`, la tanda 1).** Qué queda abierto se pregunta
-> con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 161 eran 277 de 601: ningún P0,
-> 11 P1, 89 P2, 176 P3 y un aviso. `fix/s161-v3` y `docs/review-s161` esperan el OK de Victor. Sigue la 162: la
-> tanda 2 de `R9-30` (la Mesa) y los bancos de `R9-52`, con `R9-600` (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de
-> Google de prueba (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo de la 160, están sin medir en vivo; del
+> **Frontera (sesión 162, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, hecha salvo `R9-30` (tandas 1 y 2 hechas).** Qué queda abierto se pregunta con
+> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 162 eran 275 de 601: ningún P0,
+> 10 P1, 88 P2, 176 P3 y un aviso. `fix/s162-v3` y `docs/review-s162` esperan el OK de Victor. Sigue la 163 (`CONTINUAR.md` §4).
+> `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el
+> dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 162, están sin medir en vivo; del
 > Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -398,3 +398,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `994365a7`): 13 claves viajan, y el devocional y el testimonio releen tras restaurar. Quedan 34 claves y los
   bancos. Dos nuevos: `R9-600` (P2) y `R9-601` (P3). Validate 400/400. Sin medir en vivo. Detalle:
   `detail/S161-v3-arreglos.md`.
+- **Sesión 162 — 2026-11-17.** La V3 que quedaba, con Opus 5.5 de principal y 3 agentes a pedido de Victor
+  (los tres Opus 5.5 `high`, en worktrees), en `fix/s162-v3`. `R9-52`, cerrado (`dcbd9ced`): los tres bancos
+  rechazan y sus 24 llamadores avisan. `R9-600`, cerrado (`4acd1834`, `39ddedd8`): lectura estricta para quien
+  escribe encima. `R9-30`, la tanda 2 (`652a6a58`, `67c04b31`): ilustraciones y autoevaluación viajan por
+  cuenta; `@sermon_notes` no pasa (no es de la Mesa). Validate 405/405. Sin medir en vivo. Detalle:
+  `detail/S162-v3-arreglos.md`.
