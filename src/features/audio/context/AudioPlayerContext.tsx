@@ -62,6 +62,7 @@ import {reconcileSleepTimer} from '../lib/sleepTimer';
 import {shouldReplayVerse} from '../lib/verseRepeat';
 import {useBibleVersionOptional} from '@hooks/useBibleVersion';
 import {usePremiumOptional} from '../../../context/PremiumContext';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 
 // ==================== INITIAL STATE ====================
 
@@ -290,9 +291,19 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   // ==================== LOAD PREFERENCES ====================
 
+  // R9-30, S165 — bumped by every user setter of a field `loadPreferences`
+  // hydrates. A read in flight when the user taps drops its result instead of
+  // putting the pre-tap value back on screen.
+  const prefsPickSeq = useRef(0);
+
   useEffect(() => {
     loadPreferences();
   }, []);
+
+  // R9-30, S165 — `@audio_preferences` travels in the backup. Re-read it
+  // after an import, or the player keeps the old speed, audio language,
+  // continuous playback and reader follow in memory until a restart.
+  useEffect(() => subscribeBackupRestored(() => void loadPreferences()), []);
 
   // Enumerate the system TTS voices, so resolveNarration can pin an explicit
   // es-ES voice for Spanish narration with no user-chosen voice. Runs on mount
@@ -353,8 +364,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   }, []);
 
   const loadPreferences = async () => {
+    const seq = prefsPickSeq.current;
     try {
       const stored = await AsyncStorage.getItem(AUDIO_STORAGE_KEYS.preferences);
+      if (seq !== prefsPickSeq.current) return;
       if (stored) {
         const prefs: AudioPreferences = JSON.parse(stored);
         setState(prev => ({
@@ -368,35 +381,48 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             ? prefs.playbackSpeed
             : DEFAULT_PLAYBACK_SPEED,
           selectedLanguage: prefs.selectedLanguage || DEFAULT_LANGUAGE,
+          // No voice saved: none pinned (a re-read after a restore must
+          // also un-pin the one on screen).
+          ...(prefs.selectedVoiceId ? {} : {selectedVoice: null}),
         }));
-        // Continuous playback (Sprint 72) — only override the ON default when a
-        // boolean was explicitly saved (older prefs without the field keep ON).
-        if (typeof prefs.autoAdvanceChapter === 'boolean') {
-          setAutoAdvanceChapterState(prefs.autoAdvanceChapter);
-        }
-        // Reader follow (Sprint 74) — only override the ON default when a
-        // boolean was explicitly saved (older prefs without the field keep ON).
-        if (typeof prefs.readerFollowsAudio === 'boolean') {
-          setReaderFollowsAudioState(prefs.readerFollowsAudio);
-        }
+        // Continuous playback (Sprint 72) and reader follow (Sprint 74) — an
+        // older prefs without the field keeps the ON default. Set both every
+        // time: a re-read after a restore must also put the default back.
+        setAutoAdvanceChapterState(
+          typeof prefs.autoAdvanceChapter === 'boolean'
+            ? prefs.autoAdvanceChapter
+            : true,
+        );
+        setReaderFollowsAudioState(
+          typeof prefs.readerFollowsAudio === 'boolean'
+            ? prefs.readerFollowsAudio
+            : true,
+        );
 
-        // Load voice if saved
+        // The voice id names a TTS voice of the device that saved it.
         if (prefs.selectedVoiceId) {
           const voices = await Speech.getAvailableVoicesAsync();
+          if (seq !== prefsPickSeq.current) return;
           const savedVoice = voices.find(
             v => v.identifier === prefs.selectedVoiceId,
           );
-          if (savedVoice) {
-            setState(prev => ({
-              ...prev,
-              selectedVoice: {
-                identifier: savedVoice.identifier,
-                name: savedVoice.name,
-                language: savedVoice.language,
-                quality: savedVoice.quality as VoiceInfo['quality'],
-              },
-            }));
-          }
+          // A voice this device does not have (a backup from another phone,
+          // an uninstalled voice) is not pinned: the automatic pick narrates.
+          // The one on screen stays only if it IS the saved one (an empty
+          // enumeration while the TTS engine binds is transient).
+          setState(prev => ({
+            ...prev,
+            selectedVoice: savedVoice
+              ? {
+                  identifier: savedVoice.identifier,
+                  name: savedVoice.name,
+                  language: savedVoice.language,
+                  quality: savedVoice.quality as VoiceInfo['quality'],
+                }
+              : prev.selectedVoice?.identifier === prefs.selectedVoiceId
+                ? prev.selectedVoice
+                : null,
+          }));
         }
       }
     } catch (error) {
@@ -822,6 +848,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   const setPlaybackSpeed = useCallback(
     (speed: PlaybackSpeed) => {
       const clamped = clampPlaybackSpeed(speed, isPremium);
+      prefsPickSeq.current += 1;
       haptics.tap();
       setState(prev => ({...prev, playbackSpeed: clamped}));
       savePreferences({playbackSpeed: clamped});
@@ -830,6 +857,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   );
 
   const setVoice = useCallback((voice: VoiceInfo) => {
+    prefsPickSeq.current += 1;
     haptics.tap();
     setState(prev => ({...prev, selectedVoice: voice}));
     savePreferences({selectedVoiceId: voice.identifier});
@@ -839,12 +867,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // (resolveNarration → pickDefaultSpanishVoiceId for Spanish). Mirrors
   // setVoice; `setLanguage` also clears the voice but that isn't discoverable.
   const clearVoice = useCallback(() => {
+    prefsPickSeq.current += 1;
     haptics.tap();
     setState(prev => ({...prev, selectedVoice: null}));
     savePreferences({selectedVoiceId: null});
   }, []);
 
   const setLanguage = useCallback((language: AudioLanguage) => {
+    prefsPickSeq.current += 1;
     haptics.tap();
     setState(prev => ({
       ...prev,
@@ -855,12 +885,14 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   }, []);
 
   const setAutoAdvanceChapter = useCallback((enabled: boolean) => {
+    prefsPickSeq.current += 1;
     haptics.tap();
     setAutoAdvanceChapterState(enabled);
     savePreferences({autoAdvanceChapter: enabled});
   }, []);
 
   const setReaderFollowsAudio = useCallback((enabled: boolean) => {
+    prefsPickSeq.current += 1;
     haptics.tap();
     setReaderFollowsAudioState(enabled);
     savePreferences({readerFollowsAudio: enabled});
