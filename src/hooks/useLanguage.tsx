@@ -1,7 +1,16 @@
-import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {translations, Language, TranslationKeys} from '../i18n/translations';
 import * as Localization from 'expo-localization';
+import {invalidateLanguageCache} from '../i18n/languageUtils';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 
 const LANGUAGE_STORAGE_KEY = '@app_language';
 
@@ -40,13 +49,42 @@ export function LanguageProvider({children}: {children: ReactNode}) {
     }
   }
 
+  // R9-30 — bumped by every pick, so a restore re-read in flight cannot put
+  // back the language read before the user's tap.
+  const pickSeq = useRef(0);
+
+  // R9-30 — `@app_language` travels in the backup. After a restore, apply the
+  // saved language as a pick does (state + the non-React cache), without
+  // writing it back. A missing or bad value leaves the current one.
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        const seq = pickSeq.current;
+        void (async () => {
+          try {
+            const saved = await AsyncStorage.getItem(LANGUAGE_STORAGE_KEY);
+            if (seq !== pickSeq.current) return;
+            if (saved === 'es' || saved === 'en') applyLanguage(saved);
+          } catch (error) {
+            console.error('Error re-reading saved language:', error);
+          }
+        })();
+      }),
+    [],
+  );
+
+  function applyLanguage(lang: Language) {
+    setLanguageState(lang);
+    // Invalidate language cache for non-React utilities. A static import:
+    // the dynamic one threw under Jest, and languageUtils has no cycle here.
+    invalidateLanguageCache();
+  }
+
   async function setLanguage(lang: Language) {
+    pickSeq.current += 1;
     setLanguageState(lang);
     await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, lang);
-
-    // Invalidate language cache for non-React utilities
-    const {invalidateLanguageCache} = await import('../i18n/languageUtils');
-    invalidateLanguageCache();
+    applyLanguage(lang);
   }
 
   const t = translations[language];
