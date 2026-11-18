@@ -1,10 +1,10 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 165, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas); la V3, completa (`R9-30` cerrado en la 165).** Qué queda abierto se pregunta con
-> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 165 eran 274 de 602: ningún P0, 9 P1,
-> 88 P2, 176 P3 y un aviso. `fix/s165-v3` y `docs/review-s165` esperan el OK de Victor. Sigue la 166
-> (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> **Frontera (sesión 166, 2026-11-18): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, completa y revisada en la 166 (con emulador).** Qué queda abierto se pregunta con
+> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 166 eran 283 de 611: ningún P0, 9 P1,
+> 91 P2, 182 P3 y un aviso. `docs/review-s166` espera el OK de Victor. Sigue la 167: los arreglos de la revisión
+> de la 166 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
 > (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 165,
 > están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
@@ -417,3 +417,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   pedido de Victor (`general-purpose` Opus 5.5 `high`, en worktrees), en `fix/s165-v3` (11 commits). Viajan
   8 preferencias, con sus proveedores releyendo; 13 van a `EXCLUDED` (los recordatorios y una clave muerta).
   `PENDING_R9_30` se retira. Validate 423/423. Sin medir en vivo. Detalle: `detail/S165-v3-arreglos.md`.
+- **Sesión 166 — 2026-11-18.** La revisión del diff de la 165 (`9d7a4e41..b61235db`), con emulador, con Opus 5.5
+  de principal y 3 agentes a pedido de Victor (`general-purpose` Opus 5.5 `high`, en worktrees). Sin cambios de
+  código. Nuevos: `R9-603`, `R9-604` y `R9-605` (P2), y de `R9-606` a `R9-611` (P3); sumas a `R9-410` y
+  `R9-439`. En vivo (AVD, APK debug): importar cambia idioma, versión y contraste sin reiniciar. El audio real,
+  sin medir. Detalle: `detail/S166-revision-v3.md`.

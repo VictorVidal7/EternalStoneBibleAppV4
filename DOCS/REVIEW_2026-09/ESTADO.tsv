@@ -601,3 +601,12 @@ R9-599	P3	revisión del diff de la 158 / sync / rendimiento, vecino de R9-126 E	
 R9-600	P2	Mesa / banco de ilustraciones, vecino de R9-52 y R9-129	arreglado	4acd1834	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`4acd1834` y `39ddedd8`, rama `fix/s162-v3`): `getAllPrepNotes` y `getPrepNotes` aceptan `{strict: true}`. El banco de i»
 R9-601	P3	estudio y niños / persistencia, vecino de R9-30	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-602	P2	la Mesa / respaldo, vecino de R9-30	arreglado	9a2cc67d	marca de su entrada: «✅ ARREGLADO en la sesión 163 (`9a2cc67d`, rama `fix/s163-v3`): la Mesa escucha `subscribeBackupRestored`, cancela el guardado pendiente y relee las no»
+R9-603	P2	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-604	P2	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-605	P2	lector / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-606	P3	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-607	P3	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-608	P3	idioma / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-609	P3	tema / pruebas, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-610	P3	lector / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-611	P3	versión / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

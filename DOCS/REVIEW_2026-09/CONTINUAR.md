@@ -235,6 +235,11 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   **Hecha en la 165** (`detail/S165-v3-arreglos.md`), con 3 agentes, sin medir en vivo: las 21 preferencias,
   en `fix/s165-v3`; `R9-30` cerrado y la V3 completa. **La 166: la revisión del diff de la 165 (respaldo,
   audio y arranque: con emulador, por la regla de riesgo de abajo); después, la V4.**
+  **Hecha en la 166: la revisión** (`detail/S166-revision-v3.md`), con 3 agentes y con emulador: los arreglos se
+  sostienen salvo lo anotado; importar cambia idioma, versión y contraste en vivo sin reiniciar. Nuevos: `R9-603`,
+  `R9-604` y `R9-605` (P2), y de `R9-606` a `R9-611` (P3); sumas a `R9-410` y `R9-439`. Con P2 nuevos, la regla
+  «Según el riesgo» pide arreglos. **La 167: los arreglos de la revisión de la 166 (los 3 P2 y los P3 del mismo
+  archivo), y después la V4.** Si Victor prefiere la V4 primero: §8.
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
@@ -826,6 +831,9 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
 - **`R9-126`, opción B (sesión 154):** «Restaurar» un respaldo, ¿lleva lo restaurado a la cuenta (el import
   reestampa `updatedAt` y la nube queda con el respaldo) o solo a este teléfono (la nube no cambia)? Recomendación
   de Claude: «a la cuenta». `detail/S154-arreglos-v2.md` §6.
+- **El orden después de la 166:** la revisión dejó 3 P2 (`R9-603`, `R9-604`, `R9-605`). (a) La 167, sus arreglos
+  con los P3 del mismo archivo, y después la V4 (lo que pide la regla «Según el riesgo» de la §4; es lo que queda
+  escrito). (b) La V4 primero y los P2 de la 166 con ella o detrás. Lo decide Victor.
 
 ## 9. Abierto, sin relación con la revisión
 

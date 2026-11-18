@@ -11974,6 +11974,10 @@ leido: null, pedidas: ['@prep_notes: pendiente']}` y `pedidasAlFinal: ['@prep_no
     Si Victor da por alcanzable un respaldo ajeno o corrupto, sube.
   - **Arreglo propuesto (sin escribir):** `Object.prototype.hasOwnProperty.call(colorThemes, saved)` en
     `useTheme.tsx:1158`, y la misma guarda en `BackupService.ts:1253` antes de escribir.
+  - **Agravado en la 165 (S166, agente R1):** `67e9a913` relee el tema con la señal, así que ya no espera al
+    arranque siguiente: lanza en el momento del import. Sonda: `{"trasRestaurar":"Cannot read properties of
+undefined (reading 'morning')","disk":"constructor"}`; control `forest` monta. Con el alto contraste en
+    ON no lanza (la paleta fija lo tapa). Sigue P2. `detail/S166-revision-v3.md` §3.
 
 - **`R9-411` (S114, `A12` hilo 1 / respaldo y planes / `R9-30` — P2) — 🐛 `importBackup` escribe
   `readingPlanProgress` y `readingPlanReadChapters` sin validar la forma, contra su propio comentario, y con
@@ -12400,6 +12404,11 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     arranca en `'es'` (`useLanguage.tsx:19`) y el idioma y la versión guardados llegan aparte de
     `setIsLoading(false)` (`app/_layout.tsx:209-226`); si uno llega después, el efecto de `:180-198` corre dos
     veces seguidas: los dos refrescos de esta entrada. Pide montar `AppContent`. Detalle: `detail/A24-i18n.md`.
+  - **Disparador nuevo desde la 165 (S166, agentes R1 y R2):** un idioma restaurado sin versión elegida.
+    El idioma llega en un render y la versión que lo sigue en el siguiente: el efecto corre dos veces.
+    Sondas con los proveedores reales: `"runs":["en/RVR1960","en/WEB"]`, avisos 14 → 28, uno con texto RVR1960
+    bajo «Verse of the day». Control: idioma con versión explícita en el mismo commit, una corrida, 14. S165 §7
+    («una vez») no se cumple. `detail/S166-revision-v3.md` §3.
 
 - **`R9-440` (S120, `A20` / Ajustes — P3) — 🐛 sin conexión y con cambios en cola, Ajustes dice
   «Sincronizando N cambios…».** MEDIDO con sonda en la sesión 120.
@@ -14851,6 +14860,87 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `subscribeBackupRestored`, cancela el guardado pendiente y relee las notas (estricta; la plantilla, solo si
     está guardada; descartada si el pasaje se movió). Vistas caer las cuatro piezas. Sin medir en vivo.
     `detail/S163-v3-arreglos.md` §3 y §4.
+
+- **`R9-603` (S166, audio / respaldo, revisión de la 165 — P2) — 🐛 una copia sin voz, en el mismo idioma del
+  audio, suelta la voz fijada en este aparato, en pantalla y en disco.** MEDIDO (agente R3 y sonda propia).
+  - `AudioPlayerContext.tsx:391`: `...(prefs.selectedVoiceId ? {} : {selectedVoice: null})`. Una copia de otro
+    teléfono casi siempre trae `selectedVoiceId: null` (el valor por defecto).
+  - Contradice la regla de `f56bf254` (S165 §3): «la voz es del aparato; con el mismo idioma, se queda».
+  - Sonda propia: voz `es-es-x-here` fijada; archivo `{selectedVoiceId: null, playbackSpeed: 1.5}`, idioma `es`.
+    Salida: `H1 null {"playbackSpeed":1.5,"selectedVoiceId":null,...}`. Control: voz ajena con id, mismo idioma:
+    queda `es-es-x-here`.
+  - Lo trae `3f18b9bc`. La prueba de la 165 lo fija como esperado (`audioPreferencesRestoreSignal.test.tsx:167`).
+  - **Severidad:** P2: el ajuste se pierde en el caso más común; se recupera eligiendo la voz otra vez.
+
+- **`R9-604` (S166, audio / respaldo, revisión de la 165 — P2) — 🐛 `"null"` en `@audio_preferences` tumba el
+  proveedor raíz, al importar y en cada arranque; la importación lo da por éxito.** MEDIDO (R3 y sonda propia).
+  - `AudioPlayerContext.tsx:385`: `JSON.parse('null')` pasa el `if (stored)`, y `prefs.playbackSpeed` se lee
+    dentro del updater de `setState`: lanza en el render, fuera del `try/catch`.
+  - El `ErrorBoundary` de `app/_layout.tsx:448` está por debajo de `AudioPlayerProvider`: no lo atrapa.
+    `importBackup` escribe el valor y devuelve `failedSections` vacío.
+  - Sonda propia: `H2 live TypeError: Cannot read properties of null (reading 'playbackSpeed')` y
+    `H2 cold` igual. Control (R3): `'[]'` monta con velocidad 1.
+  - El código es previo; lo hace alcanzable desde un archivo la 165 (`4d17f396` y `3f18b9bc`).
+  - **Severidad:** P2 porque pide un archivo editado o dañado; por la consecuencia (la app no arranca hasta
+    borrar los datos) sería P1.
+
+- **`R9-605` (S166, lector / respaldo, revisión de la 165 — P2) — 🐛 una versión restaurada recarga el lector
+  montado, y esa recarga pisa la posición de «Continuar leyendo» que la importación acaba de escribir.** MEDIDO
+  (agente R2, lector entero real, `buildBackup` e `importBackup` reales).
+  - `app/(tabs)/verse/[book]/[chapter].tsx:928`: `loadChapter` escribe `reading_progress id=1` en cada carga.
+    `BackupService.ts:1659-1669` escribe la posición restaurada antes de la señal.
+  - Salida: `IMPORT reading_progress(id=1)=Génesis 1 5 | init | getChapter:KJV | WRITE reading_progress(id=1)=Juan 3:1`.
+    Control: el mismo archivo con la versión de aquí: solo el `IMPORT`.
+  - Lo trae `4f93a3ab` (antes la versión no se releía y el lector no recargaba).
+  - **Severidad:** P2: se pierde un dato restaurado; es un puntero, y la lectura siguiente lo pisaría igual.
+
+- **`R9-606` (S166, audio / respaldo, revisión de la 165 — P3) — 🐛 si el motor devuelve la lista de voces vacía
+  al llegar la señal, una voz ajena suelta la de aquí para siempre.** MEDIDO (R3 y sonda propia).
+  - `AudioPlayerContext.tsx:418-450`: con `voices.length === 0` no corre `keepHeld`; el camino de respaldo pone
+    `null` (el id de pantalla no es el del archivo) y el disco queda con la voz ajena.
+  - Sonda propia: `H3 null {"selectedVoiceId":"es-us-x-foreign",...}`. Una enumeración posterior no la repone;
+    el arranque en frío lee la ajena y no la encuentra (R3: `P2c cold start screen null`).
+  - Lo trae `f56bf254`. Sin medir: si Android devuelve de verdad una lista vacía tras el selector de archivos.
+
+- **`R9-607` (S166, audio / respaldo, revisión de la 165 — P3) — 🐛 dos `savePreferences` a la vez se pisan: el
+  disco queda distinto de la pantalla.** MEDIDO (agente R3, `PremiumProvider` real).
+  - `AudioPlayerContext.tsx:457-480` lee, modifica y escribe sin serializar. Chocan la escritura de `keepHeld`
+    (`:430`) y la del recorte de velocidad (`:870`).
+  - Salida: cuenta gratis, archivo 2.5x con voz ajena: `P5 screen 2 es-es-x-here disk 2.5 es-es-x-here`.
+    Control: una sola escritura: `screen 2 disk 2`. Se corrige en el arranque siguiente (el recorte vuelve).
+  - Lo trae `f56bf254`; el patrón de leer y escribir sin orden es previo.
+
+- **`R9-608` (S166, idioma / respaldo, revisión de la 165 — P3) — 🐛 un idioma basura del archivo queda en disco,
+  y en el arranque siguiente se pierde el idioma que eligió el usuario.** MEDIDO (agente R1).
+  - `BackupService.ts:1567-1573` escribe `local` tal cual. `useLanguage.tsx:68` lo ignora en vivo; en frío,
+    `useLanguage.tsx:38-45` lo reemplaza por el idioma del aparato.
+  - Salida: app en `en`, aparato en `es`, archivo `xx`:
+    `{"pantalla":"en","disco":"xx","trasFrio":"es","discoTrasFrio":"es"}`. Control: `en` válido, todo en `en`.
+  - Lo trae `0c418094`. Pide un archivo fabricado o de una versión futura. La prueba de la 165 «CONTROL: a bad
+    saved value» da por bueno el disco con `fr`.
+
+- **`R9-609` (S166, tema / pruebas, revisión de la 165 — P3) — 🐛 las pruebas de la 165 no caen si se quitan las
+  guardas del modo y del tema de color.** MEDIDO (agente R1).
+  - `useTheme.tsx:1167` (`modeSeq`) y `:1183` (`colorSeq`): sin las dos guardas, `themeRestoreSignal.test.tsx`
+    sigue verde, 2 de 2.
+  - La sonda de R1 (toques en los tres durante la relectura) cae sin ellas: pantalla `["dark","ocean"]`, disco
+    `"auto","forest"`. Con las guardas, pantalla y disco iguales.
+  - Lo trae `67e9a913` (hueco de prueba; el código está bien).
+
+- **`R9-610` (S166, lector / respaldo, revisión de la 165 — P3) — 🐛 un respaldo de un aparato que nunca tocó el
+  modo dual lo apaga aquí, ahora al instante.** MEDIDO (agente R2).
+  - `BackupService.ts:696`: `sideBySide: sideBySide === '1'` exporta `false` sin la clave; `:1361-1366` y
+    `:1488-1495` escriben `'0'`. Las otras tres claves del lector quedan intactas sin la clave en el origen.
+  - Salida: `{"sideBySide":true,...}` → `{"sideBySide":false,...}`, disco `"@reader_side_by_side":"0"`. Un
+    archivo viejo sin `local` da lo mismo.
+  - Previo; `89e09485` lo hace inmediato (antes se veía al volver a montar el lector).
+
+- **`R9-611` (S166, versión / respaldo, revisión de la 165 — P3) — 🐛 un id de versión fuera del catálogo queda en
+  disco: en vivo no cambia nada, y en el arranque siguiente la versión sigue al idioma.** MEDIDO (agente R2).
+  - `useBibleVersion.tsx:121-122`: un id desconocido no hace nada en vivo; en frío, la versión sigue al idioma.
+  - Salida: aparato `en`/KJV explícita, archivo `es`/`NBLA`: tras restaurar `es/KJV`, disco `NBLA`, en frío
+    `es/RVR1960`. Control: un id conocido no instalado coincide en vivo y en frío.
+  - Lo traen `4f93a3ab` y `fb4abef3`. Pide un archivo de una app más nueva.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
