@@ -22,12 +22,12 @@ R9-20	P2	backend	abierto		mejora (💡): `vercel/gift-code-redeem/api/redeem.ts`
 R9-21	P2	backend	abierto		mejora (💡): `vercel/gift-code-redeem/api/redeem.ts:207` (el fallo del marcado va a `console.error` y la respuesta sigue)
 R9-22	P0	sync	arreglado	a9785be	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`a9785be`): `PendingWrite` lleva `uid`; lo sellan `queueWrite`, `queueDelete` y el bulk push; el dedup de la cola lo inclu»
 R9-23	P0	identidad	arreglado	e75eca3	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`e75eca3`): exactamente ese arreglo. `@local_store_owner_uid` se reclama en cada inicio de sesión no-anónimo, y la rama de»
-R9-24	P1	copy	abierto		`src/i18n/translations.ts:3893` sigue mandando a «Resetear Datos de la Biblia» para borrar lo del dispositivo
-R9-25	P1	cuota	abierto		`src/lib/sync/deleteAccountData.ts:55` (`.get()` sin `limit()`) y `:56` (`Promise.allSettled` de todos los deletes)
+R9-24	P1	copy	arreglado	d8425ada	marca de su entrada: «✅ ARREGLADO en la sesión 169 (`d8425ada`, rama `fix/s169-v4`): el diálogo dice, en los dos idiomas, que lo guardado en el aparato no se borra, sin man»
+R9-25	P1	cuota	arreglado	190747c8	marca de su entrada: «✅ ARREGLADO en la sesión 169 (`190747c8`, rama `fix/s169-v4`): `deleteAllCloudData` lee y borra en páginas de 200 (`ACCOUNT_DELETION_BATCH_SIZE`) y co»
 R9-26	P2	auth	abierto		mejora (💡): `src/context/AuthContext.tsx:707` (`deleteUser`) y `:760` (`triggeredAnonymousRef.current = false` después)
 R9-27	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `degradedSections` viaja ahora DENTRO del archivo (`payload.meta.degradedSections`, aditivo dentro del formato»
 R9-28	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que s»
-R9-29	P1	cuota	abierto		`src/services/BackupService.ts:1078-1084` (un `queueWrite('reviewEvents', …)` por evento importado)
+R9-29	P1	cuota	arreglado	fb2a0391	marca de su entrada: «✅ ARREGLADO en la sesión 169 (`fb2a0391`, rama `fix/s169-v4`): el import ya no sube `reviewEvents` (nadie los lee en la nube) y encola lo demás con un»
 R9-30	P1	respaldo	arreglado	dcd9d339	marca de su entrada: «✅ ARREGLADO en la sesión 165 (`dcd9d339` a `b61235db`, rama `fix/s165-v3`; tandas 1 a 5, sesiones 160 a 165): las 21 preferencias. Viajan 8: idioma, a»
 R9-31	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:1419` (`withTransactionAsync`, no la exclusiva)
 R9-32	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:655` (`shareAsync`; `grep deleteAsync`: 0, el archivo de caché no se limpia)
@@ -613,3 +613,4 @@ R9-611	P3	versión / respaldo, revisión de la 165	arreglado	f3fb0e9c	marca de s
 R9-612	P3	lector / respaldo, vecino de R9-605	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-613	P3	lector / respaldo, revisión de la 167, vecino de R9-605	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-614	P3	tema / respaldo, revisión de la 167	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-615	P3	sync / cuota, vecino de R9-29	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

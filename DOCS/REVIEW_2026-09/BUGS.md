@@ -3650,6 +3650,7 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   privadas intactas para el siguiente dueño — y sirven de munición a `R9-23`.
   **Medido en la 128 (`A36`, agente 8):** tampoco borra el diario de oración (`@prayer_requests_v1`), el registro
   (`@prayer_log`) ni el progreso de Niños (`@kids_progress_v1`): esas claves solo aparecen en su propio store.
+  - **✅ ARREGLADO en la sesión 169** (`d8425ada`, rama `fix/s169-v4`): el diálogo dice, en los dos idiomas, que lo guardado en el aparato no se borra, sin mandar a «Resetear Datos». Agregar la acción de borrar lo local sigue en la §8. Detalle: `detail/S169-tanda-v4.md`.
 
 - **`R9-25` (A3, cuota) — 🐛 `deleteAllCloudData` lee y borra sin límite ni lotes.**
   `deleteAccountData.ts:52-76`: `.get()` **sin `limit()`** por cada una de 8 colecciones +
@@ -3658,6 +3659,7 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   secuencialmente. Una cuenta con ~7 000 `reviewEvents` gasta ~14 % de las lecturas y ~35 %
   de las escrituras **diarias de todo el proyecto**, y si falla a mitad muestra "No se pudo
   eliminar tu cuenta" con parte ya borrada.
+  - **✅ ARREGLADO en la sesión 169** (`190747c8`, rama `fix/s169-v4`): `deleteAllCloudData` lee y borra en páginas de 200 (`ACCOUNT_DELETION_BATCH_SIZE`) y corta al primer fallo. Un borrado completo sigue costando N lecturas y N borrados. Detalle: `detail/S169-tanda-v4.md`.
 
 - **`R9-29` (A7, cuota) — 🐛 el import empuja una escritura Firestore por entidad y revive
   la ruta `reviewEvents` que se eliminó por cuota.** `BackupService.ts:962-1028`. El
@@ -3666,6 +3668,7 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   sube nada desde el cambio local-first, así que el import es hoy el **único escritor** de
   esa colección. ~7 300 escrituras en ráfaga ≈ 37 % de la cuota diaria compartida; y
   `persistQueue()` por entrada lo hace O(N²) en el hilo JS.
+  - **✅ ARREGLADO en la sesión 169** (`fb2a0391`, rama `fix/s169-v4`): el import ya no sube `reviewEvents` (nadie los lee en la nube) y encola lo demás con un solo `SyncEngine.queueWrites` (un `persistQueue` en vez de N). Vecino nuevo: `R9-615`. Detalle: `detail/S169-tanda-v4.md`.
 
 - **`R9-30` (A7, respaldo) — 🐛 el respaldo omite contenido escrito por el usuario que no
   tiene copia en la nube, incluidas 2 partes de la propia Mesa.** `BackupService.ts:104-116`
@@ -14988,6 +14991,14 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     que tumba la app; su guarda cubriría el color, no el modo.
   - **Severidad:** P3: pide un archivo de una app más nueva o editado.
 
+- **`R9-615` (S169, sync / cuota, vecino de `R9-29` — P3) — 🐛 el listener de `reviewEvents` sigue abierto y
+  cobra una lectura por cada doc que entrega, y el adapter lo descarta.** POR LECTURA (agente A2 de la 169 y
+  orquestador).
+  - `registerOfflineAdapters.ts:14` registra `reviewEventsSyncAdapter`; su `applyRemoteUpsert` no hace nada.
+  - En un aparato nuevo (cursor 0), el primer snapshot lee todo lo subido antes: hasta ~7 300 lecturas por cuenta.
+  - Con `R9-29` nadie escribe más ahí: la colección se vacía con `cleanupOldReviewEvents` en 12 meses.
+  - **Severidad:** P3: costo de cuota acotado, sin daño a datos. Sin medir con el motor real.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -15137,6 +15148,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     del plan Spark, y eso no se cura con el reinicio diario sino borrando a mano desde la consola; y 50 000 `get`
     de documentos que no existen, bajo el propio `users/{uid}/`, agotan la cuota de LECTURAS sin escribir nada.
     Las mitigaciones son las mismas (App Check; y en la regla, un tope de tamaño y la lista de colecciones).
+  - **Sesión 169: propuesta, nada aplicado.** Borrador de reglas (lista de colecciones, topes generosos) y orden de App Check con Play Integrity (monitoreo antes de «Enforce»), en `detail/S169-tanda-v4.md` §4. Pide el OK de Victor aparte, paso por paso.
 
 - **`R9-137` (S21, prueba de sync) — 🐛 el dedupe por uid de `upsertQueueEntry` (pieza de
   `R9-22`) no lo vigila ninguna prueba.** CONFIRMADO por revert y sonda. Quitar
@@ -15927,6 +15939,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **Arreglo sugerido (no aplicado):** volcar el texto vivo a `firestore.rules` (ya está
   capturado íntegro en el detalle de `B4`, así que es mecánico) + añadir
   `"firestore": {"rules": "firestore.rules"}` a `firebase.json`.
+  - **Sesión 169: propuesta, nada aplicado.** Primer paso: `firestore.rules` = las reglas vivas tal cual y `"firestore": {"rules": "firestore.rules"}` en `firebase.json`. Corrección: hoy `firebase.json` no tiene sección `functions`. Detalle: `detail/S169-tanda-v4.md`.
 
 - **`R9-5` (B5, CI) — ⚠️ el job "Security Audit" no puede fallar nunca.** Severidad baja
   como riesgo, pero induce a error activamente. Los dos únicos pasos del job

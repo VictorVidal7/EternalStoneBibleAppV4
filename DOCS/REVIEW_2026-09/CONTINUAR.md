@@ -245,6 +245,9 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   arranque: con emulador, por la regla «Según el riesgo»); después, la V4** (Victor, 2026-11-18).
   **Hecha en la 168** (`detail/S168-revision-del-diff-s167.md`), con 3 agentes y con emulador: los arreglos se
   sostienen; nuevos `R9-613` y `R9-614` (P3); suma a `R9-558`. Sin P2 nuevos: **la 169 es la V4.**
+  **Hecha en la 169** (`detail/S169-tanda-v4.md`), con 3 agentes, sin nube ni emulador: `R9-25`, `R9-29` y
+  `R9-24` cerrados en `fix/s169-v4`; nuevo `R9-615` (P3). `R9-136` y `R9-4`: propuesta en el §4 del detalle, sin
+  aplicar. **La 170: la revisión del diff de la 169 (borrado de la cuenta y cola del sync).**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
@@ -252,6 +255,8 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   import sube un `reviewEvents` por evento) y `R9-24`: del diálogo se corrige el texto, para que no prometa un
   borrado que no existe; agregar la acción de borrar lo local queda en la §8. `R9-136` (la cuota compartida, App
   Check y las reglas) y `R9-4` (versionar las reglas) tocan la consola de Firebase: piden el OK de Victor aparte.
+  **Hecha en la 169:** los tres P1 cerrados; la propuesta de `R9-136` y `R9-4`, paso por paso, en
+  `detail/S169-tanda-v4.md` §4, espera el OK de Victor.
 - **Tanda V5 — lector y planes (4 P1).** `R9-41` (Crepúsculo: derivar la oscuridad de la paleta), `R9-40` (el
   timeout del catálogo), `R9-54` (descompletar un día), con `R9-55` y `R9-64` (P2, el mismo archivo), y `R9-51`
   (dos notas para un versículo), que pide diseñar la migración antes de escribirla.

@@ -432,3 +432,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   código. Los nueve arreglos se sostienen. Nuevos: `R9-613` y `R9-614` (P3); suma a `R9-558`. En vivo (AVD, APK
   debug): una escritura de «Continuar leyendo» por capítulo abierto; la voz de aquí se queda. Sin P2 nuevos: la
   169 es la V4. Detalle: `detail/S168-revision-del-diff-s167.md`.
+- **Sesión 169 — 2026-11-18.** La tanda V4 (cuenta y cuota), con Opus 5.5 de principal y 3 agentes a pedido de
+  Victor (`fork` Opus 5.5 `high`, en worktrees), en `fix/s169-v4` (3 commits). Cerrados `R9-25` (el borrado de la
+  cuenta, en páginas de 200), `R9-29` (el import no sube `reviewEvents` y encola en un lote) y `R9-24` (el texto de
+  «Eliminar cuenta»). Nuevo: `R9-615` (P3). `R9-136` y `R9-4`: propuesta sin aplicar. Validate 429/429. Sin medir
+  en vivo. Detalle: `detail/S169-tanda-v4.md`.
