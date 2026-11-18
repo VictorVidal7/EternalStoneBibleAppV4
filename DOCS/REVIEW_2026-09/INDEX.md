@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 163, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas); la V3, hecha salvo `R9-30` (tandas 1 a 3 hechas; quedan 32 claves).** Qué queda abierto se
-> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 163 eran 275 de 602:
-> ningún P0, 10 P1, 88 P2, 176 P3 y un aviso. `fix/s163-v3` y `docs/review-s163` esperan el OK de Victor. Sigue
-> la 164 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
-> (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 163,
+> **Frontera (sesión 164, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, hecha salvo `R9-30` (tandas 1 a 4 hechas; quedan 21 preferencias).** Qué queda abierto
+> se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 164 eran 275 de 602:
+> ningún P0, 10 P1, 88 P2, 176 P3 y un aviso. `fix/s164-v3` y `docs/review-s164` esperan el OK de Victor. Sigue
+> la 165 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 164,
 > están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -408,3 +408,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   principal y sin agentes, en `fix/s163-v3`. `R9-30`, la tanda 3 (`36f7244f`, `664cfc65`): planes propios y
   grupos viajan, y sus providers releen tras restaurar. `R9-602` (P2), nuevo y cerrado (`9a2cc67d`): la Mesa
   relee sus notas con la señal. Validate 408/408. Sin medir en vivo. Detalle: `detail/S163-v3-arreglos.md`.
+- **Sesión 164 — 2026-11-17.** La tanda 4 de `R9-30`, con Opus 5.5 de principal y 3 agentes a pedido de
+  Victor (los tres `fork` Opus 5.5 `high`, en worktrees), en `fix/s164-v3` (8 commits). Viajan
+  `@sermon_notes` (tal cual, sin migración), `@devotional_draft`, audio, compartir, la meta de lectura y
+  «Ver también en…»; cinco pantallas releen con la señal. `lastReadPosition`, a `EXCLUDED`. Validate 416/416.
+  Sin medir en vivo. Detalle: `detail/S164-v3-arreglos.md`.

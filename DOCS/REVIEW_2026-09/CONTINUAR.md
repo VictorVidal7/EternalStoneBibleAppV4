@@ -228,6 +228,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   `R9-602` (la Mesa relee con la señal), en `fix/s163-v3`. **La 164: la tanda 4 de `R9-30`, las claves de
   contenido que no son preferencias (`@sermon_notes`, `@devotional_draft`, audio, compartir, metas,
   `lastReadPosition`); detalle §6.**
+  **Hecha en la 164** (`detail/S164-v3-arreglos.md`), con 3 agentes, sin medir en vivo: las 9 claves, en
+  `fix/s164-v3`; `@sermon_notes` pasa tal cual y `lastReadPosition` va a `EXCLUDED`. **La 165: las 21
+  preferencias de `PENDING_R9_30`, con la recomendación de `detail/S160-v3-arreglos.md` §5, y la promesa de
+  `translations.ts:4176` al cerrar `R9-30`; detalle S164 §6.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).

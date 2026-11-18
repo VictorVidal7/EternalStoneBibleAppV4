@@ -3704,6 +3704,12 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
     desde memoria: con HEAD, guardar un plan o unirse a un grupo tras restaurar borraba lo restaurado. Ahora
     escuchan `subscribeBackupRestored`. Vistas caer por pieza. La Mesa, medida: `R9-602`, cerrado. Quedan 32
     claves en `PENDING_R9_30`. **Sigue abierto.** `detail/S163-v3-arreglos.md` §3.
+  - **Nota de la sesión 164:** la tanda 4, hecha en `fix/s164-v3` (`38b93a30` a `90b849d8`): `@sermon_notes`,
+    `@devotional_draft`, los marcadores y la escucha de audio, los estilos de compartir, la meta de lectura y
+    «Ver también en…» viajan en `payload.local`. `@sermon_notes` pasa tal cual, sin migración por cuenta.
+    El editor de sermones, el armador, la cola de audio, Metas e Inicio releen con la señal. `lastReadPosition`
+    va a `EXCLUDED`: no tiene lector. Vistas caer por pieza. Quedan 21 preferencias en `PENDING_R9_30`.
+    **Sigue abierto.** `detail/S164-v3-arreglos.md` §3.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
