@@ -27,6 +27,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {logger} from '@lib/utils/logger';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 
 const STORAGE_KEY = '@together_groups';
 
@@ -60,18 +61,28 @@ const TogetherContext = createContext<TogetherContextValue | undefined>(
 export function TogetherProvider({children}: {children: ReactNode}) {
   const [memberships, setMemberships] = useState<MembershipMap>({});
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) setMemberships(JSON.parse(raw));
-      } catch {
-        logger.warn('Could not load together memberships', {
-          component: 'TogetherContext',
-        });
-      }
-    })();
+  const loadMemberships = useCallback(async () => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (raw) setMemberships(JSON.parse(raw));
+    } catch {
+      logger.warn('Could not load together memberships', {
+        component: 'TogetherContext',
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    void loadMemberships();
+  }, [loadMemberships]);
+
+  // R9-30 — every join or leave writes a map built from this copy, and the
+  // provider outlives a restore from Settings: without the re-read, the next
+  // join wrote the pre-import map back over the restored groups.
+  useEffect(
+    () => subscribeBackupRestored(() => void loadMemberships()),
+    [loadMemberships],
+  );
 
   const persist = useCallback(async (next: MembershipMap) => {
     setMemberships(next);

@@ -26,6 +26,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {logger} from '@lib/utils/logger';
 import type {ReadingPlan} from '@/constants/reading-plans';
 import {setRegisteredCustomPlans} from '@lib/reading/customPlans';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 
 const STORAGE_KEY = '@custom_plans';
 
@@ -60,21 +61,31 @@ export function CustomPlansProvider({children}: {children: ReactNode}) {
     setRegisteredCustomPlans(customPlans);
   }, [customPlans]);
 
-  useEffect(() => {
-    (async () => {
-      try {
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw);
-          if (Array.isArray(parsed)) setCustomPlans(parsed as ReadingPlan[]);
-        }
-      } catch {
-        logger.warn('Could not load custom plans', {
-          component: 'CustomPlansContext',
-        });
+  const loadCustomPlans = useCallback(async () => {
+    try {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) setCustomPlans(parsed as ReadingPlan[]);
       }
-    })();
+    } catch {
+      logger.warn('Could not load custom plans', {
+        component: 'CustomPlansContext',
+      });
+    }
   }, []);
+
+  useEffect(() => {
+    void loadCustomPlans();
+  }, [loadCustomPlans]);
+
+  // R9-30 — every edit writes a list built from this copy, and the provider
+  // outlives a restore from Settings: without the re-read, the next save
+  // wrote the pre-import list back over the restored plans.
+  useEffect(
+    () => subscribeBackupRestored(() => void loadCustomPlans()),
+    [loadCustomPlans],
+  );
 
   const persist = useCallback(async (next: ReadingPlan[]) => {
     setCustomPlans(next);
