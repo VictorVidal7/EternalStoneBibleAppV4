@@ -48,6 +48,7 @@ import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useSaveErrorToast} from '@hooks/useSaveErrorToast';
 import {useToast} from '@context/ToastContext';
 import {haptics} from '@lib/haptics';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {AppText} from '@components/ui/AppText';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {MarkdownFormatToolbar} from '@components/ui/MarkdownFormatToolbar';
@@ -160,6 +161,39 @@ export default function SermonNoteEditorScreen() {
       debouncedSaveBody.flush();
     },
     [debouncedSaveTitle, debouncedSaveSource, debouncedSaveBody],
+  );
+
+  // R9-30 — a restore rewrote `@sermon_notes` behind this editor (an import
+  // still running when the user came here). The fields are loaded once per
+  // id, and each keystroke writes a WHOLE field from them: the next one wrote
+  // the pre-import text over the restored one, and so did a pending save.
+  // Drop the pending saves (they belong to the replaced text) and re-read the
+  // session, strictly: a failed read keeps what the fields show (R9-600).
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        debouncedSaveTitle.cancel();
+        debouncedSaveSource.cancel();
+        debouncedSaveBody.cancel();
+        if (!id) return;
+        getSermonNote(id, {strict: true})
+          .then(found => {
+            if (!found) {
+              // The restored file does not have this session.
+              setSession(null);
+              setStatus('notFound');
+              return;
+            }
+            setSession(found);
+            setTitle(found.title);
+            setSource(found.source ?? '');
+            setBodyText(found.bodyText);
+            setStatus('ready');
+          })
+          // The store logged it; the fields keep what they show.
+          .catch(() => undefined);
+      }),
+    [id, debouncedSaveTitle, debouncedSaveSource, debouncedSaveBody],
   );
 
   const handleTitleChange = useCallback(

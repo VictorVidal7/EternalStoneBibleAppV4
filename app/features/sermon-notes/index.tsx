@@ -17,7 +17,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {useToast} from '@context/ToastContext';
 import {AppText} from '@components/ui/AppText';
 import {
@@ -84,6 +85,11 @@ export default function SermonNotesListScreen() {
       load();
     }, [load]),
   );
+
+  // R9-30 — a restore that lands while this list is on screen (an import
+  // still running when the user came back) replaced the sessions: show them,
+  // and count them for the "llegaste al máximo" check.
+  useEffect(() => subscribeBackupRestored(() => void load()), [load]);
 
   const sessions = useMemo(() => listSessions(sessionsMap), [sessionsMap]);
 

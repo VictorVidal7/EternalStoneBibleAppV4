@@ -30,22 +30,36 @@ import {
 
 const SERMON_NOTES_KEY = '@sermon_notes';
 
-/** Read the whole map (empty map if none/corrupt). */
-export async function getAllSermonNotes(): Promise<SermonNotesMap> {
+/**
+ * R9-30 / R9-600 — `strict: true` rethrows a failed read instead of degrading
+ * it to "no notes". The editor's re-read after a restore asks for it: read as
+ * "no notes", it would show "not found" over a session that is still there.
+ * The default stays tolerant, for the screens that only show the list.
+ */
+export interface SermonNotesReadOptions {
+  strict?: boolean;
+}
+
+/** Read the whole map (empty map if none/corrupt; see the options). */
+export async function getAllSermonNotes(
+  options?: SermonNotesReadOptions,
+): Promise<SermonNotesMap> {
   try {
     const raw = await AsyncStorage.getItem(SERMON_NOTES_KEY);
     return parseSermonNotesMap(raw);
   } catch (error) {
     logger.warn('Failed to read sermon notes', {error: String(error)});
+    if (options?.strict) throw error;
     return {};
   }
 }
 
-/** Read one session (null if it doesn't exist). */
+/** Read one session (null if it doesn't exist; see the options). */
 export async function getSermonNote(
   id: string,
+  options?: SermonNotesReadOptions,
 ): Promise<SermonNoteSession | null> {
-  const map = await getAllSermonNotes();
+  const map = await getAllSermonNotes(options);
   return map[id] ?? null;
 }
 
