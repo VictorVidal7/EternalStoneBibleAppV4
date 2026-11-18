@@ -187,6 +187,14 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   '@app_language',
   '@app_high_contrast',
   '@app_reduce_motion_override',
+  // R9-30, S165 — the Bible version (`BibleVersionProvider`) and the reader's
+  // dual mode and Focus (`useReaderDualPrefs`) re-read on
+  // `subscribeBackupRestored`. A version this device lacks falls back as on a
+  // cold start; the id stays as the user's choice.
+  '@bible_version',
+  '@reader_dual_layout',
+  '@reader_focus_mode',
+  '@reader_secondary_version',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */

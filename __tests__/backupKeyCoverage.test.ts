@@ -95,10 +95,6 @@ const EXCLUDED: Record<string, string> = {
  */
 const PENDING_R9_30 = [
   // Preferences (the backup already carries the theme and the reader's).
-  '@bible_version',
-  '@reader_dual_layout',
-  '@reader_focus_mode',
-  '@reader_secondary_version',
   '@audio_preferences',
   '@audio_selected_voice',
   '@daily_notifications_enabled',
@@ -273,5 +269,57 @@ describe('R9-30, S165 — language, high contrast and reduce motion travel', () 
     );
     expect(restored).toEqual(VALUES);
     expect(result.failedSections).toEqual([]);
+  });
+});
+
+describe('R9-30, S165 — the Bible version and the reader travel', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    setAchievementServiceInstance({
+      initialize: jest.fn().mockResolvedValue(undefined),
+      getRawUserStats: jest.fn().mockResolvedValue({}),
+      getAllAchievements: jest.fn().mockResolvedValue([]),
+      getReadingLog: jest.fn().mockResolvedValue([]),
+      getCompletedBooks: jest.fn().mockResolvedValue([]),
+      getBookReadingLog: jest.fn().mockResolvedValue([]),
+      getChaptersReadLog: jest.fn().mockResolvedValue([]),
+      restoreBackup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AchievementService);
+  });
+
+  afterAll(() => setAchievementServiceInstance(null));
+
+  // A downloaded version on purpose: the file carries the id whether or not
+  // the next device has the pack (the provider falls back, R9-424).
+  const VALUES: Record<string, string> = {
+    '@bible_version': 'RV1909',
+    '@reader_dual_layout': 'columns',
+    '@reader_focus_mode': '1',
+    '@reader_secondary_version': 'KJV',
+  };
+
+  it('a round trip carries the four keys to a fresh device', async () => {
+    await AsyncStorage.multiSet(Object.entries(VALUES));
+    const {payload} = await buildBackup();
+    const file = JSON.parse(JSON.stringify(payload));
+    await AsyncStorage.clear();
+    const result = await importBackup(file);
+    const restored = Object.fromEntries(
+      await AsyncStorage.multiGet(Object.keys(VALUES)),
+    );
+    expect(restored).toEqual(VALUES);
+    expect(result.failedSections).toEqual([]);
+  });
+
+  it('CONTROL: a source device that never chose leaves this one as it is', async () => {
+    const {payload} = await buildBackup();
+    const file = JSON.parse(JSON.stringify(payload));
+    await AsyncStorage.multiSet([
+      ['@bible_version', 'KJV'],
+      ['@reader_focus_mode', '1'],
+    ]);
+    await importBackup(file);
+    expect(await AsyncStorage.getItem('@bible_version')).toBe('KJV');
+    expect(await AsyncStorage.getItem('@reader_focus_mode')).toBe('1');
   });
 });
