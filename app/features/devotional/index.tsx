@@ -178,6 +178,30 @@ export default function DevotionalBuilderScreen() {
     debouncedSaveDraft({title, startDate, days});
   }, [draftLoaded, title, startDate, days, debouncedSaveDraft]);
 
+  // R9-30 (S164) — `@devotional_draft` travels in the backup now. A restore
+  // that lands with this screen open (an import still running when the user
+  // came here) wrote the file's draft to disk, and the autosave above writes
+  // the WHOLE form from memory: the next edit put the pre-import draft back.
+  // Drop the pending autosave (it belongs to the replaced form) and show the
+  // restored draft. A file without one left this device's on disk: the form
+  // stays as it is.
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        debouncedSaveDraft.cancel();
+        AsyncStorage.getItem(DEVOTIONAL_DRAFT_KEY)
+          .then(raw => {
+            const draft = parseDevotionalDraft(raw);
+            if (!draft) return;
+            setTitle(draft.title);
+            setStartDate(draft.startDate);
+            setDays(draft.days);
+          })
+          .catch(() => undefined);
+      }),
+    [debouncedSaveDraft],
+  );
+
   useEffect(() => () => debouncedSaveDraft.flush(), [debouncedSaveDraft]);
 
   const bookName = (id: number) => {
