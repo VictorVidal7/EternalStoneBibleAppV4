@@ -3710,6 +3710,12 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
     El editor de sermones, el armador, la cola de audio, Metas e Inicio releen con la señal. `lastReadPosition`
     va a `EXCLUDED`: no tiene lector. Vistas caer por pieza. Quedan 21 preferencias en `PENDING_R9_30`.
     **Sigue abierto.** `detail/S164-v3-arreglos.md` §3.
+  - **✅ ARREGLADO en la sesión 165** (`dcd9d339` a `b61235db`, rama `fix/s165-v3`; tandas 1 a 5, sesiones
+    160 a 165): las 21 preferencias. Viajan 8: idioma, alto contraste, «Reducir animaciones», versión, las 3
+    del lector y `@audio_preferences`; sus proveedores releen con la señal. Van a `EXCLUDED` los 12
+    recordatorios (se programan en el aparato) y `@audio_selected_voice` (clave muerta). Una voz de otro
+    teléfono no pisa la de este aparato. `PENDING_R9_30` se retira. La promesa de la interfaz se sostiene.
+    Vistas caer por pieza; sin medir en vivo. Detalle: `detail/S165-v3-arreglos.md`.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.

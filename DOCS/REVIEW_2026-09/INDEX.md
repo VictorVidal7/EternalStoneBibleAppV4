@@ -1,11 +1,11 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 164, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas); la V3, hecha salvo `R9-30` (tandas 1 a 4 hechas; quedan 21 preferencias).** Qué queda abierto
-> se pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 164 eran 275 de 602:
-> ningún P0, 10 P1, 88 P2, 176 P3 y un aviso. `fix/s164-v3` y `docs/review-s164` esperan el OK de Victor. Sigue
-> la 165 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
-> (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 164,
+> **Frontera (sesión 165, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, completa (`R9-30` cerrado en la 165).** Qué queda abierto se pregunta con
+> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 165 eran 274 de 602: ningún P0, 9 P1,
+> 88 P2, 176 P3 y un aviso. `fix/s165-v3` y `docs/review-s165` esperan el OK de Victor. Sigue la 166
+> (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 165,
 > están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
@@ -413,3 +413,7 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `@sermon_notes` (tal cual, sin migración), `@devotional_draft`, audio, compartir, la meta de lectura y
   «Ver también en…»; cinco pantallas releen con la señal. `lastReadPosition`, a `EXCLUDED`. Validate 416/416.
   Sin medir en vivo. Detalle: `detail/S164-v3-arreglos.md`.
+- **Sesión 165 — 2026-11-17.** La tanda 5 de `R9-30` y su cierre, con Opus 5.5 de principal y 3 agentes a
+  pedido de Victor (`general-purpose` Opus 5.5 `high`, en worktrees), en `fix/s165-v3` (11 commits). Viajan
+  8 preferencias, con sus proveedores releyendo; 13 van a `EXCLUDED` (los recordatorios y una clave muerta).
+  `PENDING_R9_30` se retira. Validate 423/423. Sin medir en vivo. Detalle: `detail/S165-v3-arreglos.md`.

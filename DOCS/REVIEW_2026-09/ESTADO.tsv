@@ -28,7 +28,7 @@ R9-26	P2	auth	abierto		mejora (💡): `src/context/AuthContext.tsx:707` (`delete
 R9-27	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `degradedSections` viaja ahora DENTRO del archivo (`payload.meta.degradedSections`, aditivo dentro del formato»
 R9-28	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que s»
 R9-29	P1	cuota	abierto		`src/services/BackupService.ts:1078-1084` (un `queueWrite('reviewEvents', …)` por evento importado)
-R9-30	P1	respaldo	abierto		`src/services/BackupService.ts:119-120`: las `KEYS` solo traen `@prep_notes` y `@prep_series`
+R9-30	P1	respaldo	arreglado	dcd9d339	marca de su entrada: «✅ ARREGLADO en la sesión 165 (`dcd9d339` a `b61235db`, rama `fix/s165-v3`; tandas 1 a 5, sesiones 160 a 165): las 21 preferencias. Viajan 8: idioma, a»
 R9-31	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:1419` (`withTransactionAsync`, no la exclusiva)
 R9-32	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:655` (`shareAsync`; `grep deleteAsync`: 0, el archivo de caché no se limpia)
 R9-33	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO»
