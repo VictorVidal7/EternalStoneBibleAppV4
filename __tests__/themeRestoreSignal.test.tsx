@@ -96,4 +96,58 @@ describe('R9-30 — ThemeProvider re-reads on a restore', () => {
     expect(await AsyncStorage.getItem('@app_high_contrast')).toBe('false');
     expect(result.current.highContrast).toBe(false);
   });
+
+  // R9-609 — one per guard: without `modeSeq` or `colorSeq` the two tests
+  // above stayed green.
+  it('a theme picked while the re-read is in flight is not overwritten by it', async () => {
+    await AsyncStorage.setItem('@app_theme_mode', 'light');
+    const {result} = renderHook(() => useTheme(), {wrapper});
+    await waitFor(() => expect(result.current.mode).toBe('light'));
+
+    await AsyncStorage.setItem('@app_theme_mode', 'dark');
+    const gate = gateReads('@app_theme_mode');
+    try {
+      await act(async () => {
+        emitBackupRestored();
+      });
+      // The user picks "auto" while the re-read still holds 'dark'.
+      await act(async () => {
+        await result.current.setThemeMode('auto');
+      });
+      await act(async () => {
+        gate.release();
+      });
+    } finally {
+      gate.restore();
+    }
+
+    expect(result.current.mode).toBe('auto');
+    expect(await AsyncStorage.getItem('@app_theme_mode')).toBe('auto');
+  });
+
+  it('a color theme picked while the re-read is in flight is not overwritten by it', async () => {
+    await AsyncStorage.setItem('@app_color_theme', 'ocean');
+    const {result} = renderHook(() => useTheme(), {wrapper});
+    await waitFor(() => expect(result.current.colorTheme).toBe('ocean'));
+
+    await AsyncStorage.setItem('@app_color_theme', 'forest');
+    const gate = gateReads('@app_color_theme');
+    try {
+      await act(async () => {
+        emitBackupRestored();
+      });
+      // The user picks "midnight" while the re-read still holds 'forest'.
+      await act(async () => {
+        await result.current.setColorTheme('midnight');
+      });
+      await act(async () => {
+        gate.release();
+      });
+    } finally {
+      gate.restore();
+    }
+
+    expect(result.current.colorTheme).toBe('midnight');
+    expect(await AsyncStorage.getItem('@app_color_theme')).toBe('midnight');
+  });
 });
