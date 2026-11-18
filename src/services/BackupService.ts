@@ -178,6 +178,10 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   '@audio_listening_stats',
   '@share_style_presets',
   '@share_style_presets_compact',
+  // R9-30, S164 — the daily reading goal (Ajustes > Metas re-reads it on the
+  // signal) and the Home "Ver también en…" toggle (`useHomeAlsoVersions`).
+  '@reading_daily_goal',
+  '@home_also_versions',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */

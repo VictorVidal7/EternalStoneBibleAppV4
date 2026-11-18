@@ -82,6 +82,9 @@ const EXCLUDED: Record<string, string> = {
   '@audio_spain_voice_prompt_shown': 'aviso de interfaz',
   '@explore_last_visited_category_v1': 'aviso de interfaz',
   '@audio_last_position': 'posicion del reproductor en este aparato',
+  // R9-30, S164: get/setLastReadPosition of ReadingProgressContext have no
+  // caller; the real pointer is SQLite `reading_progress`, which travels.
+  lastReadPosition: 'sin lector: la posicion viaja en bible.lastReadPosition',
 };
 
 /**
@@ -91,9 +94,6 @@ const EXCLUDED: Record<string, string> = {
  * the Mesa keys go by account, like `@prep_notes`.
  */
 const PENDING_R9_30 = [
-  '@reading_daily_goal',
-  '@home_also_versions',
-  'lastReadPosition',
   // Preferences (the backup already carries the theme and the reader's).
   '@app_language',
   '@app_high_contrast',
