@@ -9,7 +9,7 @@
  * untouched.
  */
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -35,6 +35,7 @@ import {
 import {getDailyGoal, setDailyGoal} from '@lib/memory/goalStore';
 import {getWeeklyTarget, setWeeklyTarget} from '@lib/memory/weeklyTargetStore';
 import {WEEKLY_TARGET_OPTIONS} from '@lib/memory/weeklyChallenge';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 
 const MEMORY_GOAL_OPTIONS = [3, 5, 10, 15, 20, 30];
 
@@ -51,22 +52,36 @@ export default function GoalsSettings() {
   const [memoryGoal, setMemoryGoalState] = useState(10);
   const [weeklyTarget, setWeeklyTargetState] = useState(3);
 
-  useEffect(() => {
-    (async () => {
-      const [rg, mg, wt] = await Promise.all([
-        getReadingGoal(),
-        getDailyGoal(),
-        getWeeklyTarget(),
-      ]);
-      setReadingGoalState(rg);
-      setMemoryGoalState(mg);
-      setWeeklyTargetState(wt);
-    })();
+  // Bumped by every pick: a read that started before the pick must not land
+  // over it (the pick's own write may not have reached the disk yet).
+  const pickSeq = useRef(0);
+
+  const loadGoals = useCallback(async () => {
+    const seq = pickSeq.current;
+    const [rg, mg, wt] = await Promise.all([
+      getReadingGoal(),
+      getDailyGoal(),
+      getWeeklyTarget(),
+    ]);
+    if (seq !== pickSeq.current) return;
+    setReadingGoalState(rg);
+    setMemoryGoalState(mg);
+    setWeeklyTargetState(wt);
   }, []);
+
+  useEffect(() => {
+    void loadGoals();
+  }, [loadGoals]);
+
+  // R9-30 — Ajustes stays mounted while a backup is imported from it: the
+  // three goals travel in `payload.local`, so re-read them, or the chips show
+  // (and the `selected === value` guard compares against) the pre-import ones.
+  useEffect(() => subscribeBackupRestored(() => void loadGoals()), [loadGoals]);
 
   const handleReadingGoalSelect = useCallback(
     async (selected: number) => {
       if (readingBusy || selected === readingGoal) return;
+      pickSeq.current += 1;
       setReadingBusy(true);
       setReadingGoalState(selected);
       haptics.tap();
@@ -83,6 +98,7 @@ export default function GoalsSettings() {
   const handleMemoryGoalSelect = useCallback(
     async (selected: number) => {
       if (selected === memoryGoal) return;
+      pickSeq.current += 1;
       setMemoryGoalState(selected);
       haptics.tap();
       await setDailyGoal(selected);
@@ -94,6 +110,7 @@ export default function GoalsSettings() {
   const handleWeeklyTargetSelect = useCallback(
     async (selected: number) => {
       if (selected === weeklyTarget) return;
+      pickSeq.current += 1;
       setWeeklyTargetState(selected);
       haptics.tap();
       await setWeeklyTarget(selected);
