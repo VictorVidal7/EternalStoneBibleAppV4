@@ -112,6 +112,36 @@ describe('R9-30 — AudioPlayerProvider re-reads its preferences on a restore', 
     await waitFor(() => expect(result.current.state.selectedVoice).toBeNull());
   });
 
+  it('a foreign voice in the same audio language keeps the voice pinned here, on screen and on disk', async () => {
+    const {result} = await mountHydrated();
+
+    await AsyncStorage.setItem(
+      KEY,
+      JSON.stringify({
+        ...BEFORE,
+        playbackSpeed: 1.5,
+        selectedVoiceId: 'es-us-x-other-phone',
+      }),
+    );
+    await act(async () => {
+      emitBackupRestored();
+    });
+
+    await waitFor(() => expect(result.current.state.playbackSpeed).toBe(1.5));
+    await waitFor(async () =>
+      expect(
+        JSON.parse((await AsyncStorage.getItem(KEY))!).selectedVoiceId,
+      ).toBe(HERE_VOICE.identifier),
+    );
+    expect(result.current.state.selectedVoice?.identifier).toBe(
+      HERE_VOICE.identifier,
+    );
+    // The rest of the restored file stays.
+    expect(JSON.parse((await AsyncStorage.getItem(KEY))!).playbackSpeed).toBe(
+      1.5,
+    );
+  });
+
   it('a restored file without the two toggles puts their ON default back', async () => {
     await AsyncStorage.setItem(
       KEY,

@@ -303,7 +303,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // R9-30, S165 — `@audio_preferences` travels in the backup. Re-read it
   // after an import, or the player keeps the old speed, audio language,
   // continuous playback and reader follow in memory until a restart.
-  useEffect(() => subscribeBackupRestored(() => void loadPreferences()), []);
+  useEffect(
+    () => subscribeBackupRestored(() => void loadPreferences(true)),
+    [],
+  );
 
   // Enumerate the system TTS voices, so resolveNarration can pin an explicit
   // es-ES voice for Spanish narration with no user-chosen voice. Runs on mount
@@ -363,13 +366,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     };
   }, []);
 
-  const loadPreferences = async () => {
+  const loadPreferences = async (afterRestore = false) => {
     const seq = prefsPickSeq.current;
     try {
       const stored = await AsyncStorage.getItem(AUDIO_STORAGE_KEYS.preferences);
       if (seq !== prefsPickSeq.current) return;
       if (stored) {
         const prefs: AudioPreferences = JSON.parse(stored);
+        // What this device had pinned before the restored file lands.
+        const held = stateRef.current;
         setState(prev => ({
           ...prev,
           // Guards against a corrupted/stale persisted value that isn't one
@@ -406,8 +411,28 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           const savedVoice = voices.find(
             v => v.identifier === prefs.selectedVoiceId,
           );
-          // A voice this device does not have (a backup from another phone,
-          // an uninstalled voice) is not pinned: the automatic pick narrates.
+          // R9-30, S165 — a restored file from another phone names a voice
+          // this one lacks (the engine did enumerate: the list is not empty).
+          // The voice belongs to the device: keep the one pinned here, in the
+          // same audio language (`setLanguage` un-pins it on a change), and
+          // put its id back on disk over the foreign one.
+          const keepHeld =
+            afterRestore &&
+            !savedVoice &&
+            voices.length > 0 &&
+            held.selectedVoice !== null &&
+            held.selectedLanguage ===
+              (prefs.selectedLanguage || DEFAULT_LANGUAGE)
+              ? held.selectedVoice
+              : null;
+          if (keepHeld) {
+            setState(prev => ({...prev, selectedVoice: keepHeld}));
+            void savePreferences({selectedVoiceId: keepHeld.identifier});
+            return;
+          }
+          // A voice this device does not have (an uninstalled voice, or a
+          // backup in another audio language) is not pinned: the automatic
+          // pick narrates.
           // The one on screen stays only if it IS the saved one (an empty
           // enumeration while the TTS engine binds is transient).
           setState(prev => ({
