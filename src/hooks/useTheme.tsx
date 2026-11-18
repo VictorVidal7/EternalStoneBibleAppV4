@@ -1,6 +1,14 @@
-import {createContext, useContext, useState, useEffect, ReactNode} from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+  ReactNode,
+} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useColorScheme} from 'react-native';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 
 type ThemeMode = 'light' | 'dark' | 'auto';
 type TimeOfDay = 'morning' | 'afternoon' | 'evening' | 'night';
@@ -1136,9 +1144,27 @@ export function ThemeProvider({children}: {children: ReactNode}) {
     }
   }, [mode, systemColorScheme]);
 
+  // R9-30 — the backup carries the theme, the color theme and high contrast.
+  // After a restore, re-read the three from disk. One counter per key, bumped
+  // by its setter: a re-read in flight cannot undo the user's tap.
+  const modeSeq = useRef(0);
+  const colorSeq = useRef(0);
+  const contrastSeq = useRef(0);
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        void loadThemePreference();
+        void loadColorThemePreference();
+        void loadHighContrastPreference();
+      }),
+    [],
+  );
+
   async function loadThemePreference() {
+    const seq = modeSeq.current;
     try {
       const savedMode = await AsyncStorage.getItem(THEME_STORAGE_KEY);
+      if (seq !== modeSeq.current) return;
       if (
         savedMode &&
         (savedMode === 'light' || savedMode === 'dark' || savedMode === 'auto')
@@ -1151,10 +1177,12 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   }
 
   async function loadColorThemePreference() {
+    const seq = colorSeq.current;
     try {
       const savedColorTheme = await AsyncStorage.getItem(
         COLOR_THEME_STORAGE_KEY,
       );
+      if (seq !== colorSeq.current) return;
       if (savedColorTheme && savedColorTheme in colorThemes) {
         setColorThemeState(savedColorTheme as ColorTheme);
       }
@@ -1164,17 +1192,19 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   }
 
   async function loadHighContrastPreference() {
+    const seq = contrastSeq.current;
     try {
       const saved = await AsyncStorage.getItem(HIGH_CONTRAST_STORAGE_KEY);
-      if (saved === 'true') {
-        setHighContrastState(true);
-      }
+      if (seq !== contrastSeq.current) return;
+      // Both ways: a restore may also turn it off.
+      setHighContrastState(saved === 'true');
     } catch (error) {
       console.error('Error loading high-contrast preference:', error);
     }
   }
 
   async function setThemeMode(newMode: ThemeMode) {
+    modeSeq.current += 1;
     try {
       await AsyncStorage.setItem(THEME_STORAGE_KEY, newMode);
       setMode(newMode);
@@ -1184,6 +1214,7 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   }
 
   async function setColorTheme(newColorTheme: ColorTheme) {
+    colorSeq.current += 1;
     try {
       await AsyncStorage.setItem(COLOR_THEME_STORAGE_KEY, newColorTheme);
       setColorThemeState(newColorTheme);
@@ -1193,6 +1224,7 @@ export function ThemeProvider({children}: {children: ReactNode}) {
   }
 
   async function setHighContrast(enabled: boolean) {
+    contrastSeq.current += 1;
     try {
       await AsyncStorage.setItem(
         HIGH_CONTRAST_STORAGE_KEY,
