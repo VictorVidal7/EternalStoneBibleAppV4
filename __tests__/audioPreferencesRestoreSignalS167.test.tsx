@@ -274,4 +274,55 @@ describe('S167 — AudioPlayerProvider and a restored @audio_preferences', () =>
       expect((await disk()).selectedVoiceId).toBeNull();
     });
   });
+
+  describe('R9-606 — an empty voice list when the signal lands', () => {
+    it('a foreign voice keeps the one pinned here, on screen and on disk, and a cold start finds it', async () => {
+      const file = await fileWith(
+        JSON.stringify({...BEFORE, selectedVoiceId: 'es-us-x-foreign'}),
+      );
+      const first = await mountHydrated();
+      (Speech.getAvailableVoicesAsync as jest.Mock).mockImplementation(() =>
+        Promise.resolve([]),
+      );
+
+      await act(async () => {
+        await importBackup(file);
+      });
+      await settle();
+
+      expect(first.result.current.state.selectedVoice?.identifier).toBe(
+        HERE_VOICE.identifier,
+      );
+      expect((await disk()).selectedVoiceId).toBe(HERE_VOICE.identifier);
+
+      // The next cold start, with the engine bound.
+      first.unmount();
+      (Speech.getAvailableVoicesAsync as jest.Mock).mockImplementation(() =>
+        Promise.resolve([HERE_VOICE]),
+      );
+      await mountHydrated();
+    });
+
+    it('CONTROL: a foreign voice in another audio language is un-pinned', async () => {
+      const file = await fileWith(
+        JSON.stringify({
+          ...BEFORE,
+          selectedLanguage: 'en',
+          selectedVoiceId: 'en-us-x-foreign',
+        }),
+      );
+      const {result} = await mountHydrated();
+      (Speech.getAvailableVoicesAsync as jest.Mock).mockImplementation(() =>
+        Promise.resolve([]),
+      );
+
+      await act(async () => {
+        await importBackup(file);
+      });
+      await settle();
+
+      expect(result.current.state.selectedVoice).toBeNull();
+      expect((await disk()).selectedVoiceId).toBe('en-us-x-foreign');
+    });
+  });
 });

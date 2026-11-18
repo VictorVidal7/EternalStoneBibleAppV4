@@ -471,10 +471,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             v => v.identifier === prefs.selectedVoiceId,
           );
           // R9-30, S165 — a restored file from another phone names a voice
-          // this one lacks (the engine did enumerate: the list is not empty).
-          // Keep the one pinned here and put its id back on disk over the
-          // foreign one.
-          const keepHeld = !savedVoice && voices.length > 0 ? holdable : null;
+          // this one lacks. Keep the one pinned here and put its id back on
+          // disk over the foreign one. R9-606, S167: also when the engine
+          // returns an empty list (still binding): the fallback below would
+          // un-pin it and leave the foreign id on disk for good.
+          const keepHeld = !savedVoice ? holdable : null;
           if (keepHeld) {
             setState(prev => ({...prev, selectedVoice: keepHeld}));
             void savePreferences({selectedVoiceId: keepHeld.identifier});
