@@ -2,8 +2,9 @@
  * R9-30 / R9-60 — the backup's key lists were enumerated by hand, and a key
  * nobody remembered never travelled. This test sweeps every AsyncStorage key
  * literal in `src/` and `app/` and fails on a key that is neither carried by
- * the backup (`BACKUP_COVERED_KEYS`), nor excluded below with its reason, nor
- * on the explicit R9-30 pending list (which the next session empties).
+ * the backup (`BACKUP_COVERED_KEYS`), nor excluded below with its reason.
+ * (The R9-30 pending list emptied in S165 and is gone: a new key is placed
+ * in one of the two, with its writers checked, before it lands.)
  *
  * And R9-60, round trip: the three memory preferences travel in
  * `payload.local`, a failed read leaves the key alone on import, and a file
@@ -105,16 +106,6 @@ const EXCLUDED: Record<string, string> = {
   '@audio_selected_voice': 'clave muerta: la voz va en @audio_preferences',
 };
 
-/**
- * R9-30, still open: user content and preferences that do not travel yet.
- * Each one needs its writers checked (who rewrites the key from memory after
- * a restore) before it moves to `LOCAL_BACKUP_KEYS` or a section of its own;
- * the Mesa keys go by account, like `@prep_notes`.
- */
-const PENDING_R9_30: string[] = [
-  // Preferences (the backup already carries the theme and the reader's).
-];
-
 function sourceFiles(dir: string): string[] {
   const out: string[] = [];
   for (const entry of fs.readdirSync(dir, {withFileTypes: true})) {
@@ -152,27 +143,19 @@ function keysInSource(): Set<string> {
 }
 
 describe('R9-30 / R9-60 — every AsyncStorage key is placed', () => {
-  it('no key in the code is left out of the three lists', () => {
-    const placed = new Set([
-      ...BACKUP_COVERED_KEYS,
-      ...Object.keys(EXCLUDED),
-      ...PENDING_R9_30,
-    ]);
+  it('no key in the code is left out of the two lists', () => {
+    const placed = new Set([...BACKUP_COVERED_KEYS, ...Object.keys(EXCLUDED)]);
     const unplaced = [...keysInSource()].filter(k => !placed.has(k)).sort();
     expect(unplaced).toEqual([]);
   });
 
   it('no key sits in two lists, and none is stale', () => {
-    const lists = [BACKUP_COVERED_KEYS, Object.keys(EXCLUDED), PENDING_R9_30];
+    const lists = [BACKUP_COVERED_KEYS, Object.keys(EXCLUDED)];
     const all = lists.flat();
     expect(all.filter((k, i) => all.indexOf(k) !== i)).toEqual([]);
     const inSource = keysInSource();
     // A listed key that no longer exists in the code is a list that lies.
-    expect(
-      [...Object.keys(EXCLUDED), ...PENDING_R9_30].filter(
-        k => !inSource.has(k),
-      ),
-    ).toEqual([]);
+    expect(Object.keys(EXCLUDED).filter(k => !inSource.has(k))).toEqual([]);
   });
 });
 
