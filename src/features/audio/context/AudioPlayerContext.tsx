@@ -89,6 +89,52 @@ const initialSleepTimerState: SleepTimerState = {
   mode: null,
 };
 
+// R9-604, S167 — `@audio_preferences` can come from a restored file. Valid
+// JSON that is not an object (`null`, a number, a string, an array) is no
+// saved preferences, not an object to read fields from or spread into. Nor is
+// text that does not parse: the next save writes a fresh object over it.
+function parsePreferencesObject(
+  raw: string | null,
+): Record<string, unknown> | null {
+  if (!raw) return null;
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    logger.warn('Unreadable audio preferences on disk');
+    return null;
+  }
+  return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)
+    ? (parsed as Record<string, unknown>)
+    : null;
+}
+
+// What the player may hydrate from disk, field by field: a field of the wrong
+// type or out of range is dropped and reads as absent.
+function readStoredPreferences(
+  raw: string | null,
+): Partial<AudioPreferences> | null {
+  const p = parsePreferencesObject(raw);
+  if (!p) return null;
+  const prefs: Partial<AudioPreferences> = {};
+  if (PLAYBACK_SPEEDS.includes(p.playbackSpeed as PlaybackSpeed)) {
+    prefs.playbackSpeed = p.playbackSpeed as PlaybackSpeed;
+  }
+  if (typeof p.selectedVoiceId === 'string' || p.selectedVoiceId === null) {
+    prefs.selectedVoiceId = p.selectedVoiceId;
+  }
+  if (p.selectedLanguage === 'es' || p.selectedLanguage === 'en') {
+    prefs.selectedLanguage = p.selectedLanguage;
+  }
+  if (typeof p.autoAdvanceChapter === 'boolean') {
+    prefs.autoAdvanceChapter = p.autoAdvanceChapter;
+  }
+  if (typeof p.readerFollowsAudio === 'boolean') {
+    prefs.readerFollowsAudio = p.readerFollowsAudio;
+  }
+  return prefs;
+}
+
 // ==================== CONTEXT ====================
 
 const AudioPlayerContext = createContext<AudioPlayerContextValue | undefined>(
@@ -371,21 +417,19 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     try {
       const stored = await AsyncStorage.getItem(AUDIO_STORAGE_KEYS.preferences);
       if (seq !== prefsPickSeq.current) return;
-      if (stored) {
-        const prefs: AudioPreferences = JSON.parse(stored);
+      const prefs = readStoredPreferences(stored);
+      if (prefs) {
         // What this device had pinned before the restored file lands.
         const held = stateRef.current;
         setState(prev => ({
           ...prev,
-          // Guards against a corrupted/stale persisted value that isn't one
-          // of the recognized speeds at all (entitlement-based clamping to
-          // FREE_MAX_PLAYBACK_SPEED happens separately once isPremium is known
-          // — see the effect below, which avoids clamping a real premium
-          // speed during the brief async window before it resolves).
-          playbackSpeed: PLAYBACK_SPEEDS.includes(prefs.playbackSpeed)
-            ? prefs.playbackSpeed
-            : DEFAULT_PLAYBACK_SPEED,
-          selectedLanguage: prefs.selectedLanguage || DEFAULT_LANGUAGE,
+          // A corrupted/stale value that isn't one of the recognized speeds
+          // was dropped by readStoredPreferences (entitlement-based clamping
+          // to FREE_MAX_PLAYBACK_SPEED happens separately once isPremium is
+          // known — see the effect below, which avoids clamping a real
+          // premium speed during the brief async window before it resolves).
+          playbackSpeed: prefs.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED,
+          selectedLanguage: prefs.selectedLanguage ?? DEFAULT_LANGUAGE,
           // No voice saved: none pinned (a re-read after a restore must
           // also un-pin the one on screen).
           ...(prefs.selectedVoiceId ? {} : {selectedVoice: null}),
@@ -461,16 +505,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       const current = await AsyncStorage.getItem(
         AUDIO_STORAGE_KEYS.preferences,
       );
-      const currentPrefs: AudioPreferences = current
-        ? JSON.parse(current)
-        : {
-            playbackSpeed: DEFAULT_PLAYBACK_SPEED,
-            selectedVoiceId: null,
-            selectedLanguage: DEFAULT_LANGUAGE,
-            autoPlay: false,
-            continueFromLastPosition: true,
-            autoAdvanceChapter: true,
-          };
+      // Unknown fields (a newer build's) are kept; a non-object is replaced.
+      const currentPrefs = parsePreferencesObject(current) ?? {
+        playbackSpeed: DEFAULT_PLAYBACK_SPEED,
+        selectedVoiceId: null,
+        selectedLanguage: DEFAULT_LANGUAGE,
+        autoPlay: false,
+        continueFromLastPosition: true,
+        autoAdvanceChapter: true,
+      };
 
       const updated = {...currentPrefs, ...prefs};
       await AsyncStorage.setItem(
