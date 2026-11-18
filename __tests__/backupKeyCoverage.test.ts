@@ -85,6 +85,24 @@ const EXCLUDED: Record<string, string> = {
   // R9-30, S164: get/setLastReadPosition of ReadingProgressContext have no
   // caller; the real pointer is SQLite `reading_progress`, which travels.
   lastReadPosition: 'sin lector: la posicion viaja en bible.lastReadPosition',
+  // R9-30, S165: each reminder is scheduled on this device, with this
+  // device's OS permission. Restored ON, the toggle would claim a reminder
+  // nothing scheduled, and the launch top-up would ask for the permission.
+  '@daily_notifications_enabled': 'recordatorio: se programa en el aparato',
+  '@daily_notifications_hour': 'recordatorio: se programa en el aparato',
+  '@devotion_reminder_enabled': 'recordatorio: se programa en el aparato',
+  '@devotion_reminder_hour': 'recordatorio: se programa en el aparato',
+  '@memory_reminder_enabled': 'recordatorio: se programa en el aparato',
+  '@memory_reminder_hour': 'recordatorio: se programa en el aparato',
+  '@prayer_reminder_enabled': 'recordatorio: se programa en el aparato',
+  '@prayer_reminder_hour': 'recordatorio: se programa en el aparato',
+  '@prophecy_reminder_enabled': 'recordatorio: se programa en el aparato',
+  '@prophecy_reminder_hour': 'recordatorio: se programa en el aparato',
+  '@sabias_que_reminder_enabled': 'recordatorio: se programa en el aparato',
+  '@sabias_que_reminder_hour': 'recordatorio: se programa en el aparato',
+  // R9-30, S165: declared in AUDIO_STORAGE_KEYS, never read nor written;
+  // the chosen voice lives in `@audio_preferences.selectedVoiceId`.
+  '@audio_selected_voice': 'clave muerta: la voz va en @audio_preferences',
 };
 
 /**
@@ -93,22 +111,8 @@ const EXCLUDED: Record<string, string> = {
  * a restore) before it moves to `LOCAL_BACKUP_KEYS` or a section of its own;
  * the Mesa keys go by account, like `@prep_notes`.
  */
-const PENDING_R9_30 = [
+const PENDING_R9_30: string[] = [
   // Preferences (the backup already carries the theme and the reader's).
-  '@audio_preferences',
-  '@audio_selected_voice',
-  '@daily_notifications_enabled',
-  '@daily_notifications_hour',
-  '@devotion_reminder_enabled',
-  '@devotion_reminder_hour',
-  '@memory_reminder_enabled',
-  '@memory_reminder_hour',
-  '@prayer_reminder_enabled',
-  '@prayer_reminder_hour',
-  '@prophecy_reminder_enabled',
-  '@prophecy_reminder_hour',
-  '@sabias_que_reminder_enabled',
-  '@sabias_que_reminder_hour',
 ];
 
 function sourceFiles(dir: string): string[] {

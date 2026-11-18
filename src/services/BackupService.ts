@@ -195,6 +195,10 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   '@reader_dual_layout',
   '@reader_focus_mode',
   '@reader_secondary_version',
+  // R9-30, S165 — the player's speed, audio language and toggles; the player
+  // re-reads them on `subscribeBackupRestored`. Its voice id is only pinned
+  // where that TTS voice exists.
+  '@audio_preferences',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */
