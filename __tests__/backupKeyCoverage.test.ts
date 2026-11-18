@@ -91,10 +91,6 @@ const EXCLUDED: Record<string, string> = {
  * the Mesa keys go by account, like `@prep_notes`.
  */
 const PENDING_R9_30 = [
-  '@audio_bookmarks',
-  '@audio_listening_stats',
-  '@share_style_presets',
-  '@share_style_presets_compact',
   '@reading_daily_goal',
   '@home_also_versions',
   'lastReadPosition',

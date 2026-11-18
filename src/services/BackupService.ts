@@ -171,6 +171,13 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   // re-read on `subscribeBackupRestored`.
   '@sermon_notes',
   '@devotional_draft',
+  // R9-30, S164 — the audio and share stores re-read the disk before each
+  // write; the one screen that writes a held list (the queue sheet's pins)
+  // re-reads on `subscribeBackupRestored`.
+  '@audio_bookmarks',
+  '@audio_listening_stats',
+  '@share_style_presets',
+  '@share_style_presets_compact',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */
