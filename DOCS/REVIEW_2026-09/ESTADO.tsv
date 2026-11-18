@@ -611,3 +611,5 @@ R9-609	P3	tema / pruebas, revisión de la 165	arreglado	c9dd3b05	marca de su ent
 R9-610	P3	lector / respaldo, revisión de la 165	arreglado	4f6fb3ee	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`4f6fb3ee`, rama `fix/s167`): sin la clave en el origen, el respaldo exporta `readerPreferences: {}` y no toca el modo d»
 R9-611	P3	versión / respaldo, revisión de la 165	arreglado	f3fb0e9c	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`f3fb0e9c`, rama `fix/s167`): `importBackup` no escribe un id fuera de `BIBLE_VERSIONS`; una versión del catálogo no ins»
 R9-612	P3	lector / respaldo, vecino de R9-605	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-613	P3	lector / respaldo, revisión de la 167, vecino de R9-605	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-614	P3	tema / respaldo, revisión de la 167	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

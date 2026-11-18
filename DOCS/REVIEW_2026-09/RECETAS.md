@@ -25,6 +25,7 @@ vacío. Con el productor real, no un mock de fábrica. Si no es testeable en jes
 principal; `git worktree add --detach /c/projects/essb-docs-sN <rama>`; los docs se editan en el worktree;
 `bash <script> <etiqueta> <mensaje.txt>` lleva el parche, corre prettier y commitea. Después:
 `git worktree remove`, y `NODE_ENV=development npm run validate` en primer plano, sin Metro ni worktrees.
+En toda parada (cierre o corte): `tools/esfuerzo.cjs.txt <nivel>` es el último comando, y el mensaje dice el nivel.
 
 ## Merge y CI
 

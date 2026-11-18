@@ -14114,6 +14114,11 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `R9-424` (~1 a 2 s) y, con el recordatorio activo, `R9-570`. Para su tanda: la red puede escribir la clave
     cuando la base **respondió** y el pack no está (no cuando la lectura falló): cura las siete pantallas y
     `R9-570` de una vez. La decisión es de esa tanda.
+  - **Otro camino, medido en la 168 (agente R3):** restaurar un archivo con `@bible_version` de una versión del
+    catálogo sin descargar (`RV1909`; `BackupService.ts:213` la deja pasar a propósito). Pantalla real del
+    detalle de tema: disco `RV1909`, nueve «texto no disponible». Control `KJV` instalada: texto. El lector cae a
+    RVR1960 en vivo y en frío. Igual en `de2d0f56`. Ya anotado sin entrada en la §8 de la 165. Caso real: un
+    teléfono nuevo restaura el respaldo de otro que tenía RV1909 descargada.
 
 - **`R9-559` (S138, `C27a` / lector nativo con 0 versículos — P3) — 🐛 el lector pinta una página en blanco, sin
   mensaje ni reintento, cuando el capítulo no tiene filas.** MEDIDO en el emulador por el camino de `R9-558` (John 4 y
@@ -14959,6 +14964,29 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `Génesis 1:5`.
   - Se dejó así: contar una carga vacía cambiaría el paso a mano de una versión vacía a una con texto.
   - **Severidad:** P3: pide una versión sin el capítulo abierto más una restauración; es un puntero.
+
+- **`R9-613` (S168, lector / respaldo, revisión de la 167, vecino de `R9-605` — P3) — 🐛 tras restaurar, ir a
+  un capítulo vacío y volver no escribe el capítulo de partida en «Continuar leyendo».** MEDIDO (agente R2 de la
+  168 con `renderRouter`, y sonda propia).
+  - `app/(tabs)/verse/[book]/[chapter].tsx:931-939`: la carga vacía no cambia `progressWrittenForRef`, que sigue en
+    `Juan/3`; al volver, la guarda no deja escribir.
+  - Sonda propia (la prueba de `R9-605` con `getChapter` vacío para Juan 4): lector en Juan 3, importar (Génesis
+    1:5), Juan 4, Juan 3. HEAD: sin escrituras, puntero Génesis 1:5. `de2d0f56`: `WRITE Juan 3:1`. Control con
+    Juan 4 con texto: `WRITE Juan 4:1`, `WRITE Juan 3:1` en los dos.
+  - Lo trae `b0c9342d`. La misma raíz que `R9-612`, al revés: allí sobra una escritura, aquí falta una.
+  - **Severidad:** P3: pide una versión sin ese capítulo y una restauración; es un puntero.
+
+- **`R9-614` (S168, tema / respaldo, revisión de la 167 — P3) — 🐛 un modo o un tema de color desconocido en el
+  archivo queda en disco, y en el arranque siguiente se pierde la elección de aquí.** MEDIDO (agente R3 de la 168
+  y sonda propia).
+  - `BackupService.ts:1384-1391` acepta cualquier texto en `user.appTheme`. `useTheme.tsx` lo ignora en vivo; en
+    frío caen los valores por defecto. El resultado lo da por restaurado.
+  - Sonda propia (`ThemeProvider` e `importBackup` reales): aquí `dark`/`ocean`, archivo `sepia`/`nebula`:
+    `{"live":{"mode":"dark","color":"ocean"},"disk":["sepia","nebula"],"cold":{"mode":"auto","color":"midnight"},"failed":[]}`.
+    Control `light`/`forest`: vivo, disco y frío iguales.
+  - Previo (igual en `de2d0f56`). Es el patrón de `R9-608` en `user.appTheme`. `R9-410` cubre el `constructor`
+    que tumba la app; su guarda cubriría el color, no el modo.
+  - **Severidad:** P3: pide un archivo de una app más nueva o editado.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

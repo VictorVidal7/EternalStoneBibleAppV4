@@ -243,6 +243,8 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   **Hecha en la 167** (`detail/S167-arreglos-revision-166.md`), con 3 agentes, sin medir en vivo: de `R9-603` a
   `R9-611` cerrados, en `fix/s167`; nuevo `R9-612` (P3). **La 168: la revisión del diff de la 167 (audio y
   arranque: con emulador, por la regla «Según el riesgo»); después, la V4** (Victor, 2026-11-18).
+  **Hecha en la 168** (`detail/S168-revision-del-diff-s167.md`), con 3 agentes y con emulador: los arreglos se
+  sostienen; nuevos `R9-613` y `R9-614` (P3); suma a `R9-558`. Sin P2 nuevos: **la 169 es la V4.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
@@ -484,6 +486,8 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     dice. Vale desde el chat siguiente (no cambia el chat en curso); el statusline lo muestra al arrancar. Si algo
     falla dos veces con `medium`, el orquestador lo dice y pone `high` para el chat siguiente. El esfuerzo pesa poco
     en el costo (la salida es el 13 %, medido en la 141): el ahorro grande es el contexto y los agentes.
+    En TODA parada, también un corte por ~100 llamadas con un CIERRE-PROMPT, `esfuerzo.cjs.txt` es el último
+    comando antes del mensaje final, y ese mensaje dice el nivel que quedó (se pasó en la 168 al cortar).
   - **El mensaje de la sesión, corto.** Lleva el objetivo, el alcance, el estado esperado de git y lo que NO va. Las
     reglas fijas viven en `CONTINUAR.md` §5, `RECETAS.md` y `REGLAS.md`, y no se copian al mensaje. El modelo:
     `_scratch/S153-PROMPT.md`.
