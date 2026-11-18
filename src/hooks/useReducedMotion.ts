@@ -16,7 +16,8 @@
  * the Sprint-54 reader themes.
  *
  * OS value is device-local, no persistence, no sync. The app override is
- * persisted (see `AccessibilityPreferencesContext`) but still device-local.
+ * persisted (see `AccessibilityPreferencesContext`), never synced, and
+ * carried by the backup file (R9-30).
  *
  * Para la gloria de Dios Todopoderoso ✨
  */

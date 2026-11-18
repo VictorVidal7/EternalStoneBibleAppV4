@@ -20,9 +20,11 @@ import React, {
   useState,
   useEffect,
   useCallback,
+  useRef,
   ReactNode,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {subscribeBackupRestored} from '../lib/backup/restoreSignal';
 
 interface AccessibilityPreferencesContextValue {
   reduceMotionOverride: boolean;
@@ -40,17 +42,33 @@ export const AccessibilityPreferencesProvider: React.FC<{
 }> = ({children}) => {
   const [reduceMotionOverride, setReduceMotionOverrideState] = useState(false);
 
-  useEffect(() => {
+  // R9-30 — bumped by every toggle, so a restore re-read in flight cannot
+  // put back the value read before the user's tap.
+  const pickSeq = useRef(0);
+
+  const load = useCallback(() => {
+    const seq = pickSeq.current;
     AsyncStorage.getItem(REDUCE_MOTION_STORAGE_KEY)
       .then(saved => {
-        if (saved === 'true') setReduceMotionOverrideState(true);
+        // Both ways: a restore may also turn it off.
+        if (seq === pickSeq.current) {
+          setReduceMotionOverrideState(saved === 'true');
+        }
       })
       .catch(error => {
         console.error('Error loading reduce-motion override:', error);
       });
   }, []);
 
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  // R9-30 — the override travels in the backup: re-read it after a restore.
+  useEffect(() => subscribeBackupRestored(load), [load]);
+
   const setReduceMotionOverride = useCallback(async (enabled: boolean) => {
+    pickSeq.current += 1;
     try {
       await AsyncStorage.setItem(
         REDUCE_MOTION_STORAGE_KEY,
