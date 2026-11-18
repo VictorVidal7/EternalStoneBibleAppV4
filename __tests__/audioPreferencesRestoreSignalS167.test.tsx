@@ -325,4 +325,71 @@ describe('S167 — AudioPlayerProvider and a restored @audio_preferences', () =>
       expect((await disk()).selectedVoiceId).toBe('en-us-x-foreign');
     });
   });
+
+  describe('R9-607 — two saves at once', () => {
+    // A free account: 2.5x is premium, the clamp brings it to 2x and saves.
+    it.each([
+      ['a foreign voice', 'es-us-x-foreign'],
+      ['no voice', null],
+    ])(
+      'a 2.5x file with %s: the clamp and the kept voice both reach the disk',
+      async (_label, voiceId) => {
+        const file = await fileWith(
+          JSON.stringify({
+            ...BEFORE,
+            playbackSpeed: 2.5,
+            selectedVoiceId: voiceId,
+          }),
+        );
+        const {result} = await mountHydrated();
+
+        await act(async () => {
+          await importBackup(file);
+        });
+        await settle();
+
+        expect(result.current.state.playbackSpeed).toBe(2);
+        expect(result.current.state.selectedVoice?.identifier).toBe(
+          HERE_VOICE.identifier,
+        );
+        expect(await disk()).toMatchObject({
+          playbackSpeed: 2,
+          selectedVoiceId: HERE_VOICE.identifier,
+        });
+      },
+    );
+
+    it('two toggles flipped in the same tick are both saved', async () => {
+      const {result} = await mountHydrated();
+
+      await act(async () => {
+        result.current.setAutoAdvanceChapter(false);
+        result.current.setReaderFollowsAudio(false);
+      });
+      await settle();
+
+      expect(await disk()).toMatchObject({
+        autoAdvanceChapter: false,
+        readerFollowsAudio: false,
+      });
+    });
+
+    it('CONTROL: a 2.5x file with the voice of here: one write, 2x on disk', async () => {
+      const file = await fileWith(
+        JSON.stringify({...BEFORE, playbackSpeed: 2.5}),
+      );
+      const {result} = await mountHydrated();
+
+      await act(async () => {
+        await importBackup(file);
+      });
+      await settle();
+
+      expect(result.current.state.playbackSpeed).toBe(2);
+      expect(await disk()).toMatchObject({
+        playbackSpeed: 2,
+        selectedVoiceId: HERE_VOICE.identifier,
+      });
+    });
+  });
 });

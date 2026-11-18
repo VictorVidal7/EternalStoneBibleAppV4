@@ -342,6 +342,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // putting the pre-tap value back on screen.
   const prefsPickSeq = useRef(0);
 
+  // R9-607, S167 — the tail of the `savePreferences` queue (see there).
+  const prefsSaveQueue = useRef<Promise<void>>(Promise.resolve());
+
   useEffect(() => {
     loadPreferences();
   }, []);
@@ -507,7 +510,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     }
   };
 
-  const savePreferences = async (prefs: Partial<AudioPreferences>) => {
+  const writePreferences = async (prefs: Partial<AudioPreferences>) => {
     try {
       const current = await AsyncStorage.getItem(
         AUDIO_STORAGE_KEYS.preferences,
@@ -530,6 +533,16 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     } catch (error) {
       logger.warn('Error saving audio preferences', {error: String(error)});
     }
+  };
+
+  // R9-607, S167 — each save reads, merges and writes the whole key. Two at
+  // once (the speed clamp and the voice kept after a restore) read the same
+  // value, and the last write dropped the other's field. Saves run one after
+  // another; `writePreferences` never rejects, so the queue never breaks.
+  const savePreferences = (prefs: Partial<AudioPreferences>) => {
+    const run = prefsSaveQueue.current.then(() => writePreferences(prefs));
+    prefsSaveQueue.current = run;
+    return run;
   };
 
   // ==================== SLEEP TIMER = :MOVED UP ====================
