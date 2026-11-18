@@ -61,6 +61,7 @@ import {logger} from '../lib/utils/logger';
 import {prepKey, prepMultiSet} from '../features/study/prepAccount';
 import {getTranslations} from '../i18n/languageUtils';
 import type {Note} from '../types/bible';
+import {BIBLE_VERSIONS} from '../constants/bible';
 import type {Favorite} from '../context/FavoritesContext';
 import type {ReaderPreferences} from '../context/ReaderPreferencesContext';
 import {
@@ -200,6 +201,17 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   // where that TTS voice exists.
   '@audio_preferences',
 ];
+
+/**
+ * R9-608, R9-611 — the `local` keys whose value only means something if this
+ * build knows it: the same test their reader applies (`useLanguage`,
+ * `BibleVersionProvider`). A catalog version this device has not downloaded
+ * passes: live and cold fall back alike, and the choice is kept.
+ */
+const LOCAL_VALUE_USABLE: Readonly<Record<string, (v: string) => boolean>> = {
+  '@app_language': v => v === 'es' || v === 'en',
+  '@bible_version': v => BIBLE_VERSIONS.some(b => b.id === v),
+};
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */
 export const BACKUP_COVERED_KEYS: readonly string[] = [
@@ -1563,12 +1575,17 @@ export async function importBackup(
   }
   // R9-60 — the verbatim keys, each its own section. Only a key the file
   // carries is written: one the source device never set stays as it is here.
+  // R9-608, R9-611 — nor one this build cannot use (a newer build's language
+  // or version, a hand-edited file): its reader ignores it live, and the next
+  // cold start would find this device's own choice gone.
   const localIn = isPlainObject(payload.local) ? payload.local : {};
   for (const key of LOCAL_BACKUP_KEYS) {
     const value = localIn[key];
     const label = `local:${key}`;
-    if (typeof value === 'string' || wasDegraded(label)) {
-      queuePair(key, typeof value === 'string' ? value : '', label, label);
+    const usable =
+      typeof value === 'string' && (LOCAL_VALUE_USABLE[key]?.(value) ?? true);
+    if (usable || wasDegraded(label)) {
+      queuePair(key, usable ? (value as string) : '', label, label);
     }
   }
 

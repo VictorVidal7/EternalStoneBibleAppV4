@@ -110,16 +110,21 @@ describe('R9-30 — LanguageProvider applies the restored language', () => {
     expect(view.getByTestId('lang').props.children).toBe('es');
   });
 
-  it('CONTROL: a bad saved value leaves the current language', async () => {
+  // R9-608 — importBackup no longer writes a language this build cannot use
+  // (`backupUnusableLocalValues.test.tsx`): a bad value on disk is not what a
+  // restore leaves. This only checks that the re-read stays defensive: it
+  // ignores the value and writes nothing back.
+  it('CONTROL: the re-read ignores a bad value on disk and writes nothing', async () => {
     const view = renderProvider();
     await waitFor(() =>
       expect(view.getByTestId('lang').props.children).toBe('es'),
     );
     await AsyncStorage.setItem('@app_language', 'fr');
+    (AsyncStorage.setItem as jest.Mock).mockClear();
     await act(async () => {
       emitBackupRestored();
     });
     expect(view.getByTestId('lang').props.children).toBe('es');
-    expect(await AsyncStorage.getItem('@app_language')).toBe('fr');
+    expect(AsyncStorage.setItem as jest.Mock).not.toHaveBeenCalled();
   });
 });
