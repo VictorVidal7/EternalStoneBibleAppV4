@@ -1,12 +1,12 @@
 # 🔍 Revisión profunda 2026-09 — ÍNDICE (ledger de checkpoints)
 
-> **Frontera (sesión 162, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
-> B y R abiertas); la V3, hecha salvo `R9-30` (tandas 1 y 2 hechas).** Qué queda abierto se pregunta con
-> `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 162 eran 275 de 601: ningún P0,
-> 10 P1, 88 P2, 176 P3 y un aviso. `fix/s162-v3` y `docs/review-s162` esperan el OK de Victor. Sigue la 163 (`CONTINUAR.md` §4).
-> `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba (`CONTINUAR.md` §7). Todo el
-> dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 162, están sin medir en vivo; del
-> Modo C faltan `C17` y `C23`.
+> **Frontera (sesión 163, 2026-11-17): la fase de ARREGLOS; la V2, completa salvo `R9-126` (C y E revisadas;
+> B y R abiertas); la V3, hecha salvo `R9-30` (tandas 1 a 3 hechas; quedan 32 claves).** Qué queda abierto se
+> pregunta con `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`; al cierre de la 163 eran 275 de 602:
+> ningún P0, 10 P1, 88 P2, 176 P3 y un aviso. `fix/s163-v3` y `docs/review-s163` esperan el OK de Victor. Sigue
+> la 164 (`CONTINUAR.md` §4). `R9-135` sigue abierto: espera la medición con la cuenta de Google de prueba
+> (`CONTINUAR.md` §7). Todo el dinero y la sync de la 154 a la 159, y el respaldo y la Mesa de la 160 a la 163,
+> están sin medir en vivo; del Modo C faltan `C17` y `C23`.
 
 ## Protocolo (resumen — el detalle está en el charter §1)
 
@@ -404,3 +404,7 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   escribe encima. `R9-30`, la tanda 2 (`652a6a58`, `67c04b31`): ilustraciones y autoevaluación viajan por
   cuenta; `@sermon_notes` no pasa (no es de la Mesa). Validate 405/405. Sin medir en vivo. Detalle:
   `detail/S162-v3-arreglos.md`.
+- **Sesión 163 — 2026-11-17.** La tanda 3 de `R9-30` y la Mesa ante una restauración, con Opus 5.5 de
+  principal y sin agentes, en `fix/s163-v3`. `R9-30`, la tanda 3 (`36f7244f`, `664cfc65`): planes propios y
+  grupos viajan, y sus providers releen tras restaurar. `R9-602` (P2), nuevo y cerrado (`9a2cc67d`): la Mesa
+  relee sus notas con la señal. Validate 408/408. Sin medir en vivo. Detalle: `detail/S163-v3-arreglos.md`.

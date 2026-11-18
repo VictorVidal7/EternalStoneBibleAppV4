@@ -3699,6 +3699,11 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
     **`@sermon_notes` no pasa:** no es de la Mesa (gratis, una clave para todas las cuentas, sin `prepKey`); pasarlo
     pide una migración, o `LOCAL_BACKUP_KEYS` con la suscripción de `sermon-notes/[id].tsx:137-143`. Va con las
     claves que no son de la Mesa. `detail/S162-v3-arreglos.md` §3.
+  - **Nota de la sesión 163:** la tanda 3, hecha en `fix/s163-v3` (`36f7244f` y `664cfc65`): `@custom_plans` y
+    `@together_groups` viajan en `payload.local`. Sus providers viven en la raíz y reescribían la lista entera
+    desde memoria: con HEAD, guardar un plan o unirse a un grupo tras restaurar borraba lo restaurado. Ahora
+    escuchan `subscribeBackupRestored`. Vistas caer por pieza. La Mesa, medida: `R9-602`, cerrado. Quedan 32
+    claves en `PENDING_R9_30`. **Sigue abierto.** `detail/S163-v3-arreglos.md` §3.
 
 - **`R9-37` (A4, `SyncEngine`) — 🐛 `attachListener` es check-then-act sobre un `await`:
   dos listeners en la misma colección y uno queda huérfano.** Severidad **media**.
@@ -14820,6 +14825,20 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - No lo abre el respaldo: es anterior. Los de oración y emociones abortan la escritura (sin daño).
   - **Severidad:** P3: marcas y progreso, no texto; pide un fallo de lectura. **Propuesta (sin escribir):** que el
     escritor relance en un fallo de lectura. `detail/S161-v3-arreglos.md` §5.
+
+- **`R9-602` (S163, la Mesa / respaldo, vecino de `R9-30` — P2) — 🐛 una restauración que aterriza con la Mesa
+  enfocada queda pisada por la tecla o el blur siguiente.** MEDIDO con la pantalla real.
+  - `app/features/prep/index.tsx`: los borradores viven en `drafts`; cada tecla y cada blur escriben una sección
+    ENTERA desde esa copia. La relectura al enfocar cubre una restauración hecha en Ajustes, no una que llega
+    con la Mesa ya enfocada (una importación que sigue corriendo al volver; la Mesa abre Ajustes en `:884`).
+  - Sonda: «contexto PRE» en disco encima de «contexto RESTAURADO» tras un blur; un guardado pendiente deja
+    «aplicacion PRE tecleada» encima de lo restaurado.
+  - **Severidad:** P2: el sermón escrito a mano, sin copia en la nube; pide que la importación termine con la
+    Mesa enfocada.
+  - **✅ ARREGLADO en la sesión 163** (`9a2cc67d`, rama `fix/s163-v3`): la Mesa escucha
+    `subscribeBackupRestored`, cancela el guardado pendiente y relee las notas (estricta; la plantilla, solo si
+    está guardada; descartada si el pasaje se movió). Vistas caer las cuatro piezas. Sin medir en vivo.
+    `detail/S163-v3-arreglos.md` §3 y §4.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
