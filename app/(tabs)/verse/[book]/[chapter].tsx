@@ -696,6 +696,8 @@ export default function VerseReadingScreen() {
   // after the next loadChapter() already reset the chip, showing "this
   // word means X" on a verse where it doesn't apply.
   const loadIdRef = useRef(0);
+  // The chapter (`book/chapter`) this screen last wrote to `reading_progress`.
+  const progressWrittenForRef = useRef<string | null>(null);
 
   useEffect(() => {
     loadChapter();
@@ -923,8 +925,16 @@ export default function VerseReadingScreen() {
       setVerses(chapterVerses);
       setVersesVersionId(selectedVersion.id);
 
-      // Update reading progress
-      if (chapterVerses.length > 0) {
+      // Update reading progress — once per chapter opened. A reload of the
+      // SAME chapter (a version change: by hand, or restored from a backup,
+      // R9-605) is not a new reading; writing it again only rewrote the same
+      // place, or overwrote the position a restore had just put there.
+      const progressKey = `${book}/${chapterNum}`;
+      if (
+        chapterVerses.length > 0 &&
+        progressWrittenForRef.current !== progressKey
+      ) {
+        progressWrittenForRef.current = progressKey;
         await bibleDB.updateReadingProgress(book, chapterNum, 1);
       }
 
