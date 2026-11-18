@@ -40,7 +40,6 @@ import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {effectivePlanDays} from '@/lib/reading/planReflow';
 import {getDailyVerseRef} from '@/constants/daily-verses';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {getBookByName} from '@/constants/bible';
 import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
 import {
@@ -50,9 +49,7 @@ import {
   canGoBack,
   canGoForward,
 } from '@/lib/home/dailyVerseHistory';
-
-// Persisted visibility of the daily verse's "see it in …" chips (Sprint 77).
-const HOME_ALSO_VERSIONS_KEY = '@home_also_versions';
+import {useHomeAlsoVersions} from '@hooks/useHomeAlsoVersions';
 import {useTheme} from '@hooks/useTheme';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
@@ -266,25 +263,9 @@ export default function HomeScreen() {
     level: 1,
     versesRead: 0,
   });
-  // "Ver también en…" chips on the daily verse card (Sprint 77). OFF by
-  // default to keep the card minimal; the footer globe toggles it and the
-  // choice persists across sessions.
-  const [alsoVersionsVisible, setAlsoVersionsVisible] = useState(false);
-  useEffect(() => {
-    AsyncStorage.getItem(HOME_ALSO_VERSIONS_KEY)
-      .then(value => setAlsoVersionsVisible(value === '1'))
-      .catch(() => {});
-  }, []);
-  const toggleAlsoVersions = useCallback(() => {
-    haptics.tap();
-    setAlsoVersionsVisible(prev => {
-      const next = !prev;
-      AsyncStorage.setItem(HOME_ALSO_VERSIONS_KEY, next ? '1' : '0').catch(
-        () => {},
-      );
-      return next;
-    });
-  }, []);
+  // "Ver también en…" chips on the daily verse card (Sprint 77); re-read on a
+  // restore (R9-30).
+  const {alsoVersionsVisible, toggleAlsoVersions} = useHomeAlsoVersions();
 
   // Daily verse history (Sprint 78): 0 = today, up to DAILY_HISTORY_MAX_BACK
   // days into the past — the verse is deterministic per calendar day, so a
