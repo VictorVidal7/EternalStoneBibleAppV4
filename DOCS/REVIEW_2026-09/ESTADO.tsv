@@ -601,12 +601,13 @@ R9-599	P3	revisión del diff de la 158 / sync / rendimiento, vecino de R9-126 E	
 R9-600	P2	Mesa / banco de ilustraciones, vecino de R9-52 y R9-129	arreglado	4acd1834	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`4acd1834` y `39ddedd8`, rama `fix/s162-v3`): `getAllPrepNotes` y `getPrepNotes` aceptan `{strict: true}`. El banco de i»
 R9-601	P3	estudio y niños / persistencia, vecino de R9-30	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-602	P2	la Mesa / respaldo, vecino de R9-30	arreglado	9a2cc67d	marca de su entrada: «✅ ARREGLADO en la sesión 163 (`9a2cc67d`, rama `fix/s163-v3`): la Mesa escucha `subscribeBackupRestored`, cancela el guardado pendiente y relee las no»
-R9-603	P2	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-604	P2	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-605	P2	lector / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-606	P3	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-607	P3	audio / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-608	P3	idioma / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-609	P3	tema / pruebas, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-610	P3	lector / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-611	P3	versión / respaldo, revisión de la 165	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-603	P2	audio / respaldo, revisión de la 165	arreglado	0d538666	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`0d538666`, rama `fix/s167`): sin voz en el archivo, tras restaurar en el mismo idioma, queda la voz fijada aquí, en pan»
+R9-604	P2	audio / respaldo, revisión de la 165	arreglado	3631c411	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`3631c411`, rama `fix/s167`): `readStoredPreferences` valida `@audio_preferences` campo por campo; un JSON que no es obj»
+R9-605	P2	lector / respaldo, revisión de la 165	arreglado	b0c9342d	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`b0c9342d`, rama `fix/s167`): el lector escribe `reading_progress` una vez por capítulo abierto; la recarga del mismo ca»
+R9-606	P3	audio / respaldo, revisión de la 165	arreglado	07bea40d	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`07bea40d`, rama `fix/s167`): la voz de aquí se queda tras restaurar aunque el motor devuelva la lista vacía. Detalle: `»
+R9-607	P3	audio / respaldo, revisión de la 165	arreglado	f0183309	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`f0183309`, rama `fix/s167`): `savePreferences` encadena las escrituras en una cola; la firma no cambia. Detalle: `detai»
+R9-608	P3	idioma / respaldo, revisión de la 165	arreglado	f3fb0e9c	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`f3fb0e9c`, rama `fix/s167`): `importBackup` no escribe un idioma que no sea `es` o `en` (`LOCAL_VALUE_USABLE`); queda e»
+R9-609	P3	tema / pruebas, revisión de la 165	arreglado	c9dd3b05	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`c9dd3b05`, rama `fix/s167`): dos pruebas nuevas en `themeRestoreSignal.test.tsx` caen sin `modeSeq` y sin `colorSeq`. D»
+R9-610	P3	lector / respaldo, revisión de la 165	arreglado	4f6fb3ee	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`4f6fb3ee`, rama `fix/s167`): sin la clave en el origen, el respaldo exporta `readerPreferences: {}` y no toca el modo d»
+R9-611	P3	versión / respaldo, revisión de la 165	arreglado	f3fb0e9c	marca de su entrada: «✅ ARREGLADO en la sesión 167 (`f3fb0e9c`, rama `fix/s167`): `importBackup` no escribe un id fuera de `BIBLE_VERSIONS`; una versión del catálogo no ins»
+R9-612	P3	lector / respaldo, vecino de R9-605	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

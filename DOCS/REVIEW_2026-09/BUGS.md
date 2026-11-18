@@ -14871,6 +14871,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     queda `es-es-x-here`.
   - Lo trae `3f18b9bc`. La prueba de la 165 lo fija como esperado (`audioPreferencesRestoreSignal.test.tsx:167`).
   - **Severidad:** P2: el ajuste se pierde en el caso más común; se recupera eligiendo la voz otra vez.
+  - **✅ ARREGLADO en la sesión 167** (`0d538666`, rama `fix/s167`): sin voz en el archivo, tras restaurar en el mismo idioma, queda la voz fijada aquí, en pantalla y en disco. La prueba de la 165 (`:167`) se corrigió. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-604` (S166, audio / respaldo, revisión de la 165 — P2) — 🐛 `"null"` en `@audio_preferences` tumba el
   proveedor raíz, al importar y en cada arranque; la importación lo da por éxito.** MEDIDO (R3 y sonda propia).
@@ -14883,6 +14884,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - El código es previo; lo hace alcanzable desde un archivo la 165 (`4d17f396` y `3f18b9bc`).
   - **Severidad:** P2 porque pide un archivo editado o dañado; por la consecuencia (la app no arranca hasta
     borrar los datos) sería P1.
+  - **✅ ARREGLADO en la sesión 167** (`3631c411`, rama `fix/s167`): `readStoredPreferences` valida `@audio_preferences` campo por campo; un JSON que no es objeto se lee como «sin preferencias», en vivo y en frío. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-605` (S166, lector / respaldo, revisión de la 165 — P2) — 🐛 una versión restaurada recarga el lector
   montado, y esa recarga pisa la posición de «Continuar leyendo» que la importación acaba de escribir.** MEDIDO
@@ -14893,6 +14895,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     Control: el mismo archivo con la versión de aquí: solo el `IMPORT`.
   - Lo trae `4f93a3ab` (antes la versión no se releía y el lector no recargaba).
   - **Severidad:** P2: se pierde un dato restaurado; es un puntero, y la lectura siguiente lo pisaría igual.
+  - **✅ ARREGLADO en la sesión 167** (`b0c9342d`, rama `fix/s167`): el lector escribe `reading_progress` una vez por capítulo abierto; la recarga del mismo capítulo por cambio de versión no escribe. Vecino abierto: `R9-612`. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-606` (S166, audio / respaldo, revisión de la 165 — P3) — 🐛 si el motor devuelve la lista de voces vacía
   al llegar la señal, una voz ajena suelta la de aquí para siempre.** MEDIDO (R3 y sonda propia).
@@ -14901,6 +14904,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Sonda propia: `H3 null {"selectedVoiceId":"es-us-x-foreign",...}`. Una enumeración posterior no la repone;
     el arranque en frío lee la ajena y no la encuentra (R3: `P2c cold start screen null`).
   - Lo trae `f56bf254`. Sin medir: si Android devuelve de verdad una lista vacía tras el selector de archivos.
+  - **✅ ARREGLADO en la sesión 167** (`07bea40d`, rama `fix/s167`): la voz de aquí se queda tras restaurar aunque el motor devuelva la lista vacía. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-607` (S166, audio / respaldo, revisión de la 165 — P3) — 🐛 dos `savePreferences` a la vez se pisan: el
   disco queda distinto de la pantalla.** MEDIDO (agente R3, `PremiumProvider` real).
@@ -14909,6 +14913,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Salida: cuenta gratis, archivo 2.5x con voz ajena: `P5 screen 2 es-es-x-here disk 2.5 es-es-x-here`.
     Control: una sola escritura: `screen 2 disk 2`. Se corrige en el arranque siguiente (el recorte vuelve).
   - Lo trae `f56bf254`; el patrón de leer y escribir sin orden es previo.
+  - **✅ ARREGLADO en la sesión 167** (`f0183309`, rama `fix/s167`): `savePreferences` encadena las escrituras en una cola; la firma no cambia. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-608` (S166, idioma / respaldo, revisión de la 165 — P3) — 🐛 un idioma basura del archivo queda en disco,
   y en el arranque siguiente se pierde el idioma que eligió el usuario.** MEDIDO (agente R1).
@@ -14918,6 +14923,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `{"pantalla":"en","disco":"xx","trasFrio":"es","discoTrasFrio":"es"}`. Control: `en` válido, todo en `en`.
   - Lo trae `0c418094`. Pide un archivo fabricado o de una versión futura. La prueba de la 165 «CONTROL: a bad
     saved value» da por bueno el disco con `fr`.
+  - **✅ ARREGLADO en la sesión 167** (`f3fb0e9c`, rama `fix/s167`): `importBackup` no escribe un idioma que no sea `es` o `en` (`LOCAL_VALUE_USABLE`); queda el de aquí. La prueba de la 165 «CONTROL» se corrigió. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-609` (S166, tema / pruebas, revisión de la 165 — P3) — 🐛 las pruebas de la 165 no caen si se quitan las
   guardas del modo y del tema de color.** MEDIDO (agente R1).
@@ -14926,6 +14932,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - La sonda de R1 (toques en los tres durante la relectura) cae sin ellas: pantalla `["dark","ocean"]`, disco
     `"auto","forest"`. Con las guardas, pantalla y disco iguales.
   - Lo trae `67e9a913` (hueco de prueba; el código está bien).
+  - **✅ ARREGLADO en la sesión 167** (`c9dd3b05`, rama `fix/s167`): dos pruebas nuevas en `themeRestoreSignal.test.tsx` caen sin `modeSeq` y sin `colorSeq`. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-610` (S166, lector / respaldo, revisión de la 165 — P3) — 🐛 un respaldo de un aparato que nunca tocó el
   modo dual lo apaga aquí, ahora al instante.** MEDIDO (agente R2).
@@ -14934,6 +14941,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Salida: `{"sideBySide":true,...}` → `{"sideBySide":false,...}`, disco `"@reader_side_by_side":"0"`. Un
     archivo viejo sin `local` da lo mismo.
   - Previo; `89e09485` lo hace inmediato (antes se veía al volver a montar el lector).
+  - **✅ ARREGLADO en la sesión 167** (`4f6fb3ee`, rama `fix/s167`): sin la clave en el origen, el respaldo exporta `readerPreferences: {}` y no toca el modo dual de aquí. Un archivo viejo con `false` lo sigue apagando. Detalle: `detail/S167-arreglos-revision-166.md`.
 
 - **`R9-611` (S166, versión / respaldo, revisión de la 165 — P3) — 🐛 un id de versión fuera del catálogo queda en
   disco: en vivo no cambia nada, y en el arranque siguiente la versión sigue al idioma.** MEDIDO (agente R2).
@@ -14941,6 +14949,16 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Salida: aparato `en`/KJV explícita, archivo `es`/`NBLA`: tras restaurar `es/KJV`, disco `NBLA`, en frío
     `es/RVR1960`. Control: un id conocido no instalado coincide en vivo y en frío.
   - Lo traen `4f93a3ab` y `fb4abef3`. Pide un archivo de una app más nueva.
+  - **✅ ARREGLADO en la sesión 167** (`f3fb0e9c`, rama `fix/s167`): `importBackup` no escribe un id fuera de `BIBLE_VERSIONS`; una versión del catálogo no instalada sí se escribe, como antes. Detalle: `detail/S167-arreglos-revision-166.md`.
+
+- **`R9-612` (S167, lector / respaldo, vecino de `R9-605` — P3) — 🐛 si el lector muestra un capítulo vacío
+  (la versión no lo tiene) y una restauración trae una versión con texto, la primera carga real pisa
+  «Continuar leyendo».** MEDIDO (agente A2 de la 167, sonda P8, lector entero real).
+  - `app/(tabs)/verse/[book]/[chapter].tsx`, `loadChapter`: la guarda de `R9-605` solo cuenta una carga con
+    versículos; la carga vacía no marca el capítulo, y la primera con texto escribe `Juan 3:1` sobre
+    `Génesis 1:5`.
+  - Se dejó así: contar una carga vacía cambiaría el paso a mano de una versión vacía a una con texto.
+  - **Severidad:** P3: pide una versión sin el capítulo abierto más una restauración; es un puntero.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

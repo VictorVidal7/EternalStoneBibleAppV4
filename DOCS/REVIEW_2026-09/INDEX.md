@@ -422,3 +422,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   código. Nuevos: `R9-603`, `R9-604` y `R9-605` (P2), y de `R9-606` a `R9-611` (P3); sumas a `R9-410` y
   `R9-439`. En vivo (AVD, APK debug): importar cambia idioma, versión y contraste sin reiniciar. El audio real,
   sin medir. Detalle: `detail/S166-revision-v3.md`.
+- **Sesión 167 — 2026-11-18.** Los arreglos de la revisión de la 166, con Opus 5.5 de principal y 3 agentes a
+  pedido de Victor (`general-purpose` Opus 5.5 `high`, en worktrees), en `fix/s167` (8 commits). Cerrados de
+  `R9-603` a `R9-611`: la voz de aquí se queda, `@audio_preferences` se valida, el lector no pisa «Continuar
+  leyendo», la importación no escribe idioma ni versión desconocidos, y el modo dual sin clave no viaja. Nuevo:
+  `R9-612` (P3). Validate 426/426. Sin medir en vivo. Detalle: `detail/S167-arreglos-revision-166.md`.
