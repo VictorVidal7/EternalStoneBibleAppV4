@@ -273,7 +273,9 @@ export interface BackupPayload {
     readingPlanReadChapters: unknown;
     searchHistory: unknown;
     readerPreferences: {
-      sideBySide: boolean;
+      /** R9-610 — absent when the source device never set it, so the import
+       *  leaves this device's as it is. Older builds wrote `false` then. */
+      sideBySide?: boolean;
     };
     /** v2 — the FULL reader typography/layout preferences object, not just
      *  `sideBySide`. Preserves `sepiaGrandfathered`. */
@@ -704,9 +706,8 @@ export async function buildBackup(): Promise<BuildBackupResult> {
       readingPlanProgress: planProgress ?? {},
       readingPlanReadChapters: planReadChapters ?? {},
       searchHistory: searchHistory ?? [],
-      readerPreferences: {
-        sideBySide: sideBySide === '1',
-      },
+      readerPreferences:
+        sideBySide == null ? {} : {sideBySide: sideBySide === '1'},
       readerPreferencesFull: readerPreferencesFull ?? null,
       appTheme: {
         mode: appThemeMode ?? null,

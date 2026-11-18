@@ -310,3 +310,65 @@ describe('R9-30, S165 — the Bible version and the reader travel', () => {
     expect(await AsyncStorage.getItem('@reader_focus_mode')).toBe('1');
   });
 });
+
+describe('R9-610 — dual mode travels only if the source device set it', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    setAchievementServiceInstance({
+      initialize: jest.fn().mockResolvedValue(undefined),
+      getRawUserStats: jest.fn().mockResolvedValue({}),
+      getAllAchievements: jest.fn().mockResolvedValue([]),
+      getReadingLog: jest.fn().mockResolvedValue([]),
+      getCompletedBooks: jest.fn().mockResolvedValue([]),
+      getBookReadingLog: jest.fn().mockResolvedValue([]),
+      getChaptersReadLog: jest.fn().mockResolvedValue([]),
+      restoreBackup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AchievementService);
+  });
+
+  afterAll(() => setAchievementServiceInstance(null));
+
+  const KEY = '@reader_side_by_side';
+
+  /** Export on a source device holding `value` (null: never set). */
+  async function exportFrom(value: string | null) {
+    await AsyncStorage.clear();
+    if (value !== null) await AsyncStorage.setItem(KEY, value);
+    const {payload} = await buildBackup();
+    await AsyncStorage.clear();
+    return JSON.parse(JSON.stringify(payload));
+  }
+
+  it('a source that never touched it leaves this device as it is', async () => {
+    const file = await exportFrom(null);
+    await AsyncStorage.setItem(KEY, '1');
+    await importBackup(file);
+    expect(await AsyncStorage.getItem(KEY)).toBe('1');
+    expect(file.user.readerPreferences).toEqual({});
+  });
+
+  it('CONTROL: an explicit choice on the source travels, both ways', async () => {
+    const off = await exportFrom('0');
+    expect(off.user.readerPreferences).toEqual({sideBySide: false});
+    await AsyncStorage.setItem(KEY, '1');
+    await importBackup(off);
+    expect(await AsyncStorage.getItem(KEY)).toBe('0');
+
+    const on = await exportFrom('1');
+    expect(on.user.readerPreferences).toEqual({sideBySide: true});
+    await AsyncStorage.setItem(KEY, '0');
+    await importBackup(on);
+    expect(await AsyncStorage.getItem(KEY)).toBe('1');
+  });
+
+  // Older builds wrote `false` for "never set" and for an explicit "off"
+  // alike: such a file still restores "off", as it always did.
+  it('CONTROL: an older file with `sideBySide: false` still writes off', async () => {
+    const file = await exportFrom(null);
+    file.user.readerPreferences = {sideBySide: false};
+    delete file.local;
+    await AsyncStorage.setItem(KEY, '1');
+    await importBackup(file);
+    expect(await AsyncStorage.getItem(KEY)).toBe('0');
+  });
+});
