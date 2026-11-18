@@ -182,6 +182,11 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   // signal) and the Home "Ver también en…" toggle (`useHomeAlsoVersions`).
   '@reading_daily_goal',
   '@home_also_versions',
+  // R9-30, S165 — the app language, high contrast and "Reducir animaciones":
+  // their root providers re-read them on `subscribeBackupRestored`.
+  '@app_language',
+  '@app_high_contrast',
+  '@app_reduce_motion_override',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */

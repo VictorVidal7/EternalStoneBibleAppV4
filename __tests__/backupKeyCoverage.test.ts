@@ -95,9 +95,6 @@ const EXCLUDED: Record<string, string> = {
  */
 const PENDING_R9_30 = [
   // Preferences (the backup already carries the theme and the reader's).
-  '@app_language',
-  '@app_high_contrast',
-  '@app_reduce_motion_override',
   '@bible_version',
   '@reader_dual_layout',
   '@reader_focus_mode',
@@ -234,5 +231,47 @@ describe('R9-60 — the memory preferences travel', () => {
     await AsyncStorage.setItem('@memory_weekly_target', '9');
     await importBackup(file);
     expect(await AsyncStorage.getItem('@memory_weekly_target')).toBe('9');
+  });
+});
+
+describe('R9-30, S165 — language, high contrast and reduce motion travel', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+    setAchievementServiceInstance({
+      initialize: jest.fn().mockResolvedValue(undefined),
+      getRawUserStats: jest.fn().mockResolvedValue({}),
+      getAllAchievements: jest.fn().mockResolvedValue([]),
+      getReadingLog: jest.fn().mockResolvedValue([]),
+      getCompletedBooks: jest.fn().mockResolvedValue([]),
+      getBookReadingLog: jest.fn().mockResolvedValue([]),
+      getChaptersReadLog: jest.fn().mockResolvedValue([]),
+      restoreBackup: jest.fn().mockResolvedValue(undefined),
+    } as unknown as AchievementService);
+  });
+
+  afterAll(() => setAchievementServiceInstance(null));
+
+  const VALUES: Record<string, string> = {
+    '@app_language': 'en',
+    '@app_high_contrast': 'true',
+    '@app_reduce_motion_override': 'true',
+  };
+
+  it('a round trip carries the three keys over a device set the other way', async () => {
+    await AsyncStorage.multiSet(Object.entries(VALUES));
+    const {payload} = await buildBackup();
+    const file = JSON.parse(JSON.stringify(payload));
+    await AsyncStorage.clear();
+    await AsyncStorage.multiSet([
+      ['@app_language', 'es'],
+      ['@app_high_contrast', 'false'],
+      ['@app_reduce_motion_override', 'false'],
+    ]);
+    const result = await importBackup(file);
+    const restored = Object.fromEntries(
+      await AsyncStorage.multiGet(Object.keys(VALUES)),
+    );
+    expect(restored).toEqual(VALUES);
+    expect(result.failedSections).toEqual([]);
   });
 });
