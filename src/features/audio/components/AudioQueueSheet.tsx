@@ -64,6 +64,7 @@ import {
   formatQueueRowMeta,
 } from '../lib/queueMeta';
 import {playlistUpNext} from '../lib/versePlaylist';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {AUDIO_QUEUE_LENGTH} from '../constants/audioConstants';
 
 interface AudioQueueSheetProps {
@@ -183,7 +184,15 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
 
   // 🔖 Saved listening positions (Sprint 77) — loaded when the sheet opens;
   // mutations go through the pure model and persist via the serialized store.
+  // R9-30 — every toggle saves the WHOLE list held here, so a restore that
+  // lands with the sheet open must re-read it, or the next tap writes the
+  // pre-import pins back over the restored ones.
   const [bookmarks, setBookmarks] = useState<AudioBookmark[]>([]);
+  const [restoreTick, setRestoreTick] = useState(0);
+  useEffect(
+    () => subscribeBackupRestored(() => setRestoreTick(n => n + 1)),
+    [],
+  );
   useEffect(() => {
     if (!visible) return;
     let cancelled = false;
@@ -194,7 +203,7 @@ export const AudioQueueSheet: React.FC<AudioQueueSheetProps> = ({
     return () => {
       cancelled = true;
     };
-  }, [visible]);
+  }, [visible, restoreTick]);
 
   const currentBookmark = currentVerse
     ? bookmarkAtVerse(bookmarks, currentVerse)
