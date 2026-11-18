@@ -421,6 +421,15 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       if (prefs) {
         // What this device had pinned before the restored file lands.
         const held = stateRef.current;
+        // R9-30, S165 / R9-603, S167 — the voice belongs to the device: after
+        // a restore in the same audio language (`setLanguage` un-pins it on a
+        // change), the one pinned here may stay over the file's.
+        const holdable =
+          afterRestore &&
+          held.selectedVoice !== null &&
+          held.selectedLanguage === (prefs.selectedLanguage ?? DEFAULT_LANGUAGE)
+            ? held.selectedVoice
+            : null;
         setState(prev => ({
           ...prev,
           // A corrupted/stale value that isn't one of the recognized speeds
@@ -430,9 +439,10 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           // premium speed during the brief async window before it resolves).
           playbackSpeed: prefs.playbackSpeed ?? DEFAULT_PLAYBACK_SPEED,
           selectedLanguage: prefs.selectedLanguage ?? DEFAULT_LANGUAGE,
-          // No voice saved: none pinned (a re-read after a restore must
-          // also un-pin the one on screen).
-          ...(prefs.selectedVoiceId ? {} : {selectedVoice: null}),
+          // No voice saved: the one held here, or none (a re-read after a
+          // restore in another audio language must also un-pin the one on
+          // screen). Screen and disk get the same voice.
+          ...(prefs.selectedVoiceId ? {} : {selectedVoice: holdable}),
         }));
         // Continuous playback (Sprint 72) and reader follow (Sprint 74) — an
         // older prefs without the field keeps the ON default. Set both every
@@ -448,6 +458,11 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             : true,
         );
 
+        // A file without a voice (the default on any phone) keeps the one
+        // pinned here, and puts its id back on disk for the next cold start.
+        if (!prefs.selectedVoiceId && holdable) {
+          void savePreferences({selectedVoiceId: holdable.identifier});
+        }
         // The voice id names a TTS voice of the device that saved it.
         if (prefs.selectedVoiceId) {
           const voices = await Speech.getAvailableVoicesAsync();
@@ -457,18 +472,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           );
           // R9-30, S165 — a restored file from another phone names a voice
           // this one lacks (the engine did enumerate: the list is not empty).
-          // The voice belongs to the device: keep the one pinned here, in the
-          // same audio language (`setLanguage` un-pins it on a change), and
-          // put its id back on disk over the foreign one.
-          const keepHeld =
-            afterRestore &&
-            !savedVoice &&
-            voices.length > 0 &&
-            held.selectedVoice !== null &&
-            held.selectedLanguage ===
-              (prefs.selectedLanguage || DEFAULT_LANGUAGE)
-              ? held.selectedVoice
-              : null;
+          // Keep the one pinned here and put its id back on disk over the
+          // foreign one.
+          const keepHeld = !savedVoice && voices.length > 0 ? holdable : null;
           if (keepHeld) {
             setState(prev => ({...prev, selectedVoice: keepHeld}));
             void savePreferences({selectedVoiceId: keepHeld.identifier});

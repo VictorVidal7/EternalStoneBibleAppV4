@@ -164,7 +164,11 @@ describe('R9-30 — AudioPlayerProvider re-reads its preferences on a restore', 
 
     await waitFor(() => expect(result.current.autoAdvanceChapter).toBe(true));
     expect(result.current.readerFollowsAudio).toBe(true);
-    expect(result.current.state.selectedVoice).toBeNull();
+    // R9-603, S167 — a file without a voice, in the same audio language,
+    // keeps the voice pinned here (S165 fixed the un-pin as expected).
+    expect(result.current.state.selectedVoice?.identifier).toBe(
+      HERE_VOICE.identifier,
+    );
   });
 
   it('CONTROL: an empty voice list (TTS engine still binding) keeps the saved voice pinned', async () => {

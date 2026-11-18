@@ -219,4 +219,59 @@ describe('S167 — AudioPlayerProvider and a restored @audio_preferences', () =>
       expect(result.current.state.selectedLanguage).toBe('en');
     });
   });
+
+  describe('R9-603 — a file without a voice', () => {
+    it('in the same audio language keeps the voice pinned here, on screen and on disk', async () => {
+      const file = await fileWith(
+        JSON.stringify({...BEFORE, selectedVoiceId: null, playbackSpeed: 1.5}),
+      );
+      const {result} = await mountHydrated();
+
+      await act(async () => {
+        await importBackup(file);
+      });
+      await settle();
+
+      expect(result.current.state.playbackSpeed).toBe(1.5);
+      expect(result.current.state.selectedVoice?.identifier).toBe(
+        HERE_VOICE.identifier,
+      );
+      expect(await disk()).toMatchObject({
+        playbackSpeed: 1.5,
+        selectedVoiceId: HERE_VOICE.identifier,
+      });
+    });
+
+    it('CONTROL: in another audio language un-pins it, on screen and on disk', async () => {
+      const file = await fileWith(
+        JSON.stringify({
+          ...BEFORE,
+          selectedVoiceId: null,
+          selectedLanguage: 'en',
+        }),
+      );
+      const {result} = await mountHydrated();
+
+      await act(async () => {
+        await importBackup(file);
+      });
+      await settle();
+
+      expect(result.current.state.selectedLanguage).toBe('en');
+      expect(result.current.state.selectedVoice).toBeNull();
+      expect((await disk()).selectedVoiceId).toBeNull();
+    });
+
+    it('CONTROL: a cold start with no voice on disk pins none', async () => {
+      await AsyncStorage.setItem(
+        KEY,
+        JSON.stringify({...BEFORE, selectedVoiceId: null}),
+      );
+      const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+      await settle();
+
+      expect(result.current.state.selectedVoice).toBeNull();
+      expect((await disk()).selectedVoiceId).toBeNull();
+    });
+  });
 });
