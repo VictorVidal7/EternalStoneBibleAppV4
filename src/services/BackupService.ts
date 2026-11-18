@@ -163,6 +163,9 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   // These two have a mounted screen that re-reads on `subscribeBackupRestored`.
   '@faith_testimony',
   '@devotional_saved',
+  // R9-30, S163 — their root providers re-read on `subscribeBackupRestored`.
+  '@custom_plans',
+  '@together_groups',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */
