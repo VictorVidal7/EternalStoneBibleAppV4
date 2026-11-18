@@ -27,7 +27,6 @@ import bibleDB from '@lib/database';
 import {BibleVerse} from '@/types/bible';
 import {getBookByName, getBookById, canonicalBookName} from '@/constants/bible';
 import {findProphecyForVerseKey} from '@/features/study/messianicProphecies';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   linkifyReferences,
   type ParsedReference,
@@ -132,11 +131,9 @@ import {centeredMaxWidth, READER_MAX_WIDTH} from '@/styles/responsive';
 import {
   resolveSecondaryVersion,
   secondaryVersionChoices,
-  normalizeDualLayout,
-  toggleDualLayout as nextDualLayout,
   swapVersions,
-  type DualLayout,
 } from '@lib/reading/secondaryVersion';
+import {useReaderDualPrefs} from '@hooks/useReaderDualPrefs';
 import {
   formatVerseList,
   buildPassageReference,
@@ -335,14 +332,22 @@ export default function VerseReadingScreen() {
   const [showHighlightPicker, setShowHighlightPicker] = useState(false);
   // Side-by-side mode: pairs each verse with its counterpart from a SECOND
   // translation so users can study two at once without leaving the reader.
-  const [sideBySide, setSideBySide] = useState(false);
-  const [secondaryVerses, setSecondaryVerses] = useState<BibleVerse[]>([]);
   // The user's chosen companion translation (persisted). With three versions
   // (RVR1960 / KJV / WEB) the companion is no longer "the other one" — it's a
   // real choice; null means "not chosen yet → first available" (Sprint 66).
-  const [preferredSecondaryId, setPreferredSecondaryId] = useState<
-    string | null
-  >(null);
+  // The dual layout (Sprint 67) and Focus mode (Sprint 70) persist too. R9-30
+  // — the hook re-reads all four when a backup is restored.
+  const {
+    sideBySide,
+    preferredSecondaryId,
+    dualLayout,
+    focusMode,
+    toggleSideBySide: flipSideBySide,
+    chooseSecondary,
+    toggleLayout,
+    toggleFocusMode: flipFocusMode,
+  } = useReaderDualPrefs();
+  const [secondaryVerses, setSecondaryVerses] = useState<BibleVerse[]>([]);
   // The companion to actually render: the preference when it's a real,
   // non-primary version, else the first available one (pure + tested).
   const secondaryVersion = useMemo(
@@ -383,15 +388,13 @@ export default function VerseReadingScreen() {
         : null,
     [firstSelectedVerse, bookInfo, chapterNum],
   );
-  // How the two translations are laid out in dual mode: the companion stacked
-  // under each verse (default) or two equal-weight columns (Sprint 67),
-  // persisted so the reader's choice sticks.
-  const [dualLayout, setDualLayout] = useState<DualLayout>('stacked');
+  // `dualLayout` (from `useReaderDualPrefs` above): the companion stacked
+  // under each verse (default) or two equal-weight columns (Sprint 67).
 
   // Dedicated Focus mode (Sprint 70): a toolbar toggle that spotlights the verse
   // centered in the viewport (dimming the rest) for distraction-free reading.
-  // Persisted; reuses the pure spotlight model. `focusedVerse` follows scroll.
-  const [focusMode, setFocusMode] = useState(false);
+  // `focusMode` comes from `useReaderDualPrefs`; reuses the pure spotlight
+  // model. `focusedVerse` follows scroll.
   const [focusedVerse, setFocusedVerse] = useState<number | null>(null);
   // The verse the reader arrived at via navigation (search, cross-reference,
   // "highlightVerse"), temporarily outranking BOTH the audio-spoken verse and
@@ -464,51 +467,20 @@ export default function VerseReadingScreen() {
     return () => setBottomOffset(0);
   }, [setBottomOffset]);
 
-  // Hydrate the dual-mode preferences once on mount: whether it's on, and
-  // which companion translation was last chosen.
-  useEffect(() => {
-    AsyncStorage.getItem('@reader_side_by_side')
-      .then(v => {
-        if (v === '1') setSideBySide(true);
-      })
-      .catch(() => undefined);
-    AsyncStorage.getItem('@reader_secondary_version')
-      .then(v => {
-        if (v) setPreferredSecondaryId(v);
-      })
-      .catch(() => undefined);
-    AsyncStorage.getItem('@reader_dual_layout')
-      .then(v => setDualLayout(normalizeDualLayout(v)))
-      .catch(() => undefined);
-    AsyncStorage.getItem('@reader_focus_mode')
-      .then(v => setFocusMode(v === '1'))
-      .catch(() => undefined);
-  }, []);
-
   function toggleSideBySide() {
     haptics.tap();
-    const next = !sideBySide;
-    setSideBySide(next);
-    AsyncStorage.setItem('@reader_side_by_side', next ? '1' : '0').catch(
-      () => undefined,
-    );
+    flipSideBySide();
     // The companion chapter is fetched by the effect below, which reacts to
     // sideBySide / the chosen secondary version / the chapter.
   }
 
-  // Toggle Focus mode (Sprint 70). Turning it ON spotlights the centered verse
+  // Focus mode (Sprint 70) turning ON spotlights the centered verse
   // immediately (computed from the last known scroll position); turning it OFF
-  // clears the focused verse so every row returns to full opacity. Persisted.
-  function toggleFocusMode() {
-    // Tap toggles quietly (Sprint 82) — the per-tap caption was noisy;
-    // long-press (explainFocusMode) describes it instead.
-    haptics.tap();
-    const next = !focusMode;
-    setFocusMode(next);
-    AsyncStorage.setItem('@reader_focus_mode', next ? '1' : '0').catch(
-      () => undefined,
-    );
-    if (next) {
+  // clears the focused verse so every row returns to full opacity. An effect,
+  // not the toggle, so a value a restored backup brings (R9-30) takes the
+  // same path as a tap.
+  useEffect(() => {
+    if (focusMode) {
       const offsets = Array.from(verseOffsetsRef.current, ([verse, y]) => ({
         verse,
         y,
@@ -523,6 +495,13 @@ export default function VerseReadingScreen() {
     } else {
       setFocusedVerse(null);
     }
+  }, [focusMode]);
+
+  function toggleFocusMode() {
+    // Tap toggles quietly (Sprint 82) — the per-tap caption was noisy;
+    // long-press (explainFocusMode) describes it instead. Persisted.
+    haptics.tap();
+    flipFocusMode();
   }
 
   // Long-press on Focus = a tooltip describing what it does in its CURRENT
@@ -538,10 +517,7 @@ export default function VerseReadingScreen() {
   // remember it. The fetch effect below reloads the companion chapter.
   function changeSecondaryVersion(versionId: string) {
     haptics.tap();
-    setPreferredSecondaryId(versionId);
-    AsyncStorage.setItem('@reader_secondary_version', versionId).catch(
-      () => undefined,
-    );
+    chooseSecondary(versionId);
   }
 
   // Swap primary ↔ companion without a trip to Settings. The "primary" is the
@@ -552,11 +528,7 @@ export default function VerseReadingScreen() {
     if (!secondaryVersion) return;
     haptics.tap();
     const swapped = swapVersions(selectedVersion.id, secondaryVersion.id);
-    setPreferredSecondaryId(swapped.secondaryId);
-    AsyncStorage.setItem(
-      '@reader_secondary_version',
-      swapped.secondaryId,
-    ).catch(() => undefined);
+    chooseSecondary(swapped.secondaryId);
     // setVersion is async + persists @bible_version; the primary/companion
     // chapter effects react to the new selectedVersion.id / secondary id.
     void setVersion(swapped.primaryId);
@@ -565,11 +537,7 @@ export default function VerseReadingScreen() {
   // Toggle the dual layout (companion stacked vs equal-weight columns) + persist.
   function changeDualLayout() {
     haptics.tap();
-    setDualLayout(prev => {
-      const next = nextDualLayout(prev);
-      AsyncStorage.setItem('@reader_dual_layout', next).catch(() => undefined);
-      return next;
-    });
+    toggleLayout();
   }
 
   // (Re)fetch the companion chapter whenever dual mode, the chosen secondary
