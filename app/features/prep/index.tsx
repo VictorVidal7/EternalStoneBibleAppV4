@@ -160,6 +160,7 @@ import {
 } from '@/features/study/prepRange';
 import {translations} from '@/i18n/translations';
 import {logger} from '@lib/utils/logger';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -1115,6 +1116,35 @@ export default function PrepTableScreen() {
   // savePrepNote is idempotent + serialized, so this is harmless even when
   // onBlur/handleOpenPulpit already saved the same value.
   useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+
+  // R9-602 — a restore rewrote `@prep_notes` behind this screen. The focus
+  // re-read above covers a restore made while the user was in Settings, not
+  // one that lands after they came back (an import still running). Each
+  // keystroke and each blur writes a WHOLE section from `drafts`, so the next
+  // one wrote the pre-import prose over the restored one. Drop the pending
+  // save (it belongs to the replaced text) and re-read the notes, with the
+  // focus re-read's own rules: strict, and the template only when stored.
+  const passageKeyRef = useRef<string | null>(null);
+  passageKeyRef.current = table?.passageKey ?? null;
+  useEffect(
+    () =>
+      subscribeBackupRestored(() => {
+        debouncedSaveNote.cancel();
+        const key = passageKeyRef.current;
+        if (!key) return;
+        getPrepNotes(key, {strict: true})
+          .then(saved => {
+            // The passage moved while the read was in flight: `load()` owns it.
+            if (passageKeyRef.current !== key) return;
+            setDrafts(saved.sections);
+            draftsPassageKeyRef.current = key;
+            if (saved.template) setTemplate(saved.template);
+          })
+          // The store logged it; the fields keep what they show (R9-600).
+          .catch(() => undefined);
+      }),
+    [debouncedSaveNote],
+  );
 
   const handleNoteChange = useCallback(
     (section: PrepSection, value: string) => {
