@@ -166,6 +166,11 @@ export const LOCAL_BACKUP_KEYS: readonly string[] = [
   // R9-30, S163 — their root providers re-read on `subscribeBackupRestored`.
   '@custom_plans',
   '@together_groups',
+  // R9-30, S164 — one key per device for every account (free tier, no
+  // `prepKey`): `payload.local` is per device too. Their mounted screens
+  // re-read on `subscribeBackupRestored`.
+  '@sermon_notes',
+  '@devotional_draft',
 ];
 
 /** Every AsyncStorage key the backup carries, for the coverage test. */
