@@ -6,7 +6,7 @@
  *
  * `importBackup` real; `bibleDB` y `AchievementService` mockeados como en
  * `backupPrepTurn.test.ts`, y el motor de sync (`getSyncEngine`), para que su
- * `queueWrite` pueda lanzar.
+ * `queueWrites` pueda lanzar.
  *
  * R9-303 — la parte de SQLite del respaldo puede esperar en una puerta
  * (`mockSqlite`): el respaldo ya empezo, y todavia no pidio el turno. La
@@ -51,7 +51,7 @@ jest.mock('../src/lib/achievements/AchievementService', () => {
   };
 });
 
-let mockEngine: {queueWrite: () => void} | null = null;
+let mockEngine: {queueWrites: () => void} | null = null;
 jest.mock('../src/lib/sync', () => ({
   ...jest.requireActual('../src/lib/sync'),
   getSyncEngine: () => mockEngine,
@@ -190,7 +190,7 @@ it('R9-278: avisa antes de escribir el mazo, y despues', async () => {
 
 it('R9-278: si algo lanza despues de escribir, el aviso de fin llega igual', async () => {
   mockEngine = {
-    queueWrite: () => {
+    queueWrites: () => {
       throw new Error('motor');
     },
   };

@@ -81,11 +81,7 @@ import {
   type ReviewGrade,
   normalizeEase,
 } from '../lib/memory/srs';
-import {
-  type ReviewEvent,
-  isReviewEventWithinSyncWindow,
-  reviewEventToRemote,
-} from '../lib/memory/reviewEvents';
+import {type ReviewEvent} from '../lib/memory/reviewEvents';
 import {getAllReviewEvents} from '../lib/memory/reviewEventStore';
 import {
   type PrepNotesMap,
@@ -1134,40 +1130,51 @@ function allRowsFailedValidation(
 }
 
 /**
- * Hand off the 6 Firestore-synced collections' just-restored entities to the
- * EXISTING sync engine via its own public `queueWrite` — the same call every
- * Context already makes on a normal add/edit (see e.g. `FavoritesContext.
- * addFavorite`). This is deliberately NOT a new sync mechanism, and it is safe
- * to call unconditionally: with nobody signed in, `queueWrite` queues for the
- * account the local store belongs to, which takes it up when it signs in
- * again, as with any edit made signed out (R9-38); with no owner it queues
- * nothing, and the first sign-in's bulk push takes the rows.
+ * Hand off the Firestore-synced collections' just-restored entities to the
+ * EXISTING sync engine via its own public `queueWrites` — the batch form of
+ * the `queueWrite` every Context already makes on a normal add/edit (see e.g.
+ * `FavoritesContext.addFavorite`). This is deliberately NOT a new sync
+ * mechanism, and it is safe to call unconditionally: with nobody signed in,
+ * the writes are queued for the account the local store belongs to, which
+ * takes them up when it signs in again, as with any edit made signed out
+ * (R9-38); with no owner nothing is queued, and the first sign-in's bulk push
+ * takes the rows.
  *
  * Why not rely SOLELY on the engine's one-time "initial bulk push" (which
  * reads local storage via `pullAllLocal` on first sign-in)? That mechanism
  * is gated by a PER-DEVICE, per-uid flag that only fires once — a device
  * that already completed its bulk push before this import would otherwise
  * never re-upload the newly-restored rows until the user happened to edit
- * each one by hand. Calling `queueWrite` per entity here covers BOTH cases
- * (fresh device/first sign-in — where the bulk push would have caught it
- * anyway — and an already-synced device doing a same-account restore) with
- * the engine's own existing per-item API, not a reimplementation of it.
+ * each one by hand. Queueing every entity here covers BOTH cases (fresh
+ * device/first sign-in — where the bulk push would have caught it anyway —
+ * and an already-synced device doing a same-account restore).
+ *
+ * R9-29 — in ONE `queueWrites`, not a `queueWrite` per entity: each of those
+ * wrote the whole queue to disk (O(N²) on the JS thread). And the review log
+ * is NOT pushed at all: since the local-first change nothing reads the cloud
+ * `reviewEvents` (the adapter drops every remote event, `pullAllLocal` returns
+ * nothing, and `reviewCard` no longer writes there); cross-device continuity
+ * is the `memoryStats` summary. This was the collection's last writer: up to
+ * one billed write per event of the last 12 months (~7 300 for a long-lived
+ * account, over a third of the shared daily quota), plus a billed read of each
+ * on every device that attaches from scratch. The events are restored to
+ * local SQLite above all the same.
  */
 function pushImportedEntitiesToSync(data: {
   favorites: Favorite[];
   notes: Note[];
   highlights: RawHighlightRow[];
   memoryDeck: MemoryCard[];
-  reviewEvents: ReviewEvent[];
 }): void {
   const engine = getSyncEngine();
   if (!engine) return;
+  const writes: Array<{collection: string; id: string; data: object}> = [];
 
   for (const f of data.favorites) {
-    engine.queueWrite(
-      'favorites',
-      f.id,
-      nullifyUndefined({
+    writes.push({
+      collection: 'favorites',
+      id: f.id,
+      data: nullifyUndefined({
         id: f.id,
         verseId: f.verseId,
         book: f.book,
@@ -1181,18 +1188,22 @@ function pushImportedEntitiesToSync(data: {
         createdAt: f.createdAt,
         updatedAt: f.updatedAt,
       }),
-    );
+    });
   }
 
   for (const n of data.notes) {
-    engine.queueWrite('notes', n.id, buildNoteRemotePayload(n));
+    writes.push({
+      collection: 'notes',
+      id: n.id,
+      data: buildNoteRemotePayload(n),
+    });
   }
 
   for (const h of data.highlights) {
-    engine.queueWrite(
-      'highlights',
-      h.verse_id,
-      buildHighlightRemotePayload({
+    writes.push({
+      collection: 'highlights',
+      id: h.verse_id,
+      data: buildHighlightRemotePayload({
         id: h.id,
         verseId: h.verse_id,
         bookId: h.book_id,
@@ -1204,22 +1215,18 @@ function pushImportedEntitiesToSync(data: {
         createdAt: h.created_at,
         updatedAt: h.updated_at,
       }),
-    );
+    });
   }
 
   for (const c of data.memoryDeck) {
-    engine.queueWrite('memoryCards', c.verseKey, nullifyUndefined({...c}));
+    writes.push({
+      collection: 'memoryCards',
+      id: c.verseKey,
+      data: nullifyUndefined({...c}),
+    });
   }
 
-  for (const e of data.reviewEvents) {
-    // Same 12-month cloud-sync window every other write path honors
-    // (MemoryDeckContext.reviewCard) — an older imported event still gets
-    // its full history kept in local SQLite, it just isn't re-pushed to
-    // Firestore (which prunes past that window anyway).
-    if (isReviewEventWithinSyncWindow(e.reviewedAt)) {
-      engine.queueWrite('reviewEvents', e.id, reviewEventToRemote(e));
-    }
-  }
+  engine.queueWrites(writes);
 }
 
 /**
@@ -1835,18 +1842,18 @@ export async function importBackup(
     }
 
     // ---- Hand off the Firestore-synced collections to the normal sync path.
-    // favorites/notes/highlights/reviewEvents are SQLite-backed and already
-    // committed above regardless of the AsyncStorage outcome, so pushing them
-    // is always safe. memoryDeck is AsyncStorage-backed: pushing it to the
-    // cloud when the LOCAL write just failed would leave this device's cloud
-    // data ahead of what actually landed locally, so it's skipped in that one
-    // failure case. ----
+    // favorites/notes/highlights are SQLite-backed and already committed
+    // above regardless of the AsyncStorage outcome, so pushing them is always
+    // safe (reviewEvents stay local: R9-29, see `pushImportedEntitiesToSync`).
+    // memoryDeck is AsyncStorage-backed: pushing it to the cloud when the
+    // LOCAL write just failed would leave this device's cloud data ahead of
+    // what actually landed locally, so it's skipped in that one failure
+    // case. ----
     pushImportedEntitiesToSync({
       favorites: favoritesIn,
       notes: notesIn,
       highlights: highlightsIn,
       memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
-      reviewEvents: reviewEventsIn,
     });
   } finally {
     // ---- R9-28 — tell the providers that hydrated from these same stores at

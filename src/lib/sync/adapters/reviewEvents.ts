@@ -3,8 +3,9 @@
  * Local-first quota tanda — this adapter no longer moves any data through
  * Firestore; it is kept registered only so `getLocal`/`getMaterialFields`
  * stay well-typed call targets and so a stray `queueWrite('reviewEvents', …)`
- * (e.g. BackupService's manual restore) doesn't throw for lack of an
- * adapter. Both directions are now a deliberate no-op:
+ * doesn't throw for lack of an adapter (BackupService's manual restore was
+ * the last caller; it stopped in R9-29). Both directions are now a
+ * deliberate no-op:
  *
  *  - `pullAllLocal` returns `[]` — the initial bulk push never uploads a
  *    device's local review log to Firestore anymore.
@@ -27,9 +28,9 @@
  * restored history on a new device, so there is nothing left to race.
  *
  * Legacy Firestore `reviewEvents` docs (written before this change, or by
- * `BackupService`'s manual restore, which still queues writes for its own
- * reasons) are simply orphaned — nothing reads them anymore. They keep
- * aging out via the existing 12-month `SyncEngine.cleanupOldReviewEvents`
+ * `BackupService`'s manual restore before R9-29) are orphaned — no code uses
+ * them. The listener still attaches, though, and each doc it delivers is a
+ * billed read that `applyRemoteUpsert` drops (R9-615). They keep aging out via the existing 12-month `SyncEngine.cleanupOldReviewEvents`
  * sweep; no proactive migration needed at current data volumes.
  *
  * `applyRemoteDelete` stays a no-op for the same original reason: local

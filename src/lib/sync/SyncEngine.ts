@@ -157,6 +157,18 @@ export const CURSOR_SAFETY_MARGIN_MS = 5 * 60 * 1000; // 5 minutes
  */
 export const REMOVED_LOOKUP_TIMEOUT_MS = 60 * 1000;
 
+/** What `queueWrite` and `queueWrites` queue for `data` (see `queueWrite`). */
+function writeEntity(data: object): SyncEntity<object> {
+  const asRecord = data as Record<string, unknown>;
+  return {
+    ...asRecord,
+    updatedAt:
+      typeof asRecord.updatedAt === 'number' ? asRecord.updatedAt : Date.now(),
+    deleted: false,
+    deletedAt: null,
+  };
+}
+
 function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
@@ -491,6 +503,9 @@ export class SyncEngine {
    *  `enqueue`), and how many. */
   private ownerChain: Promise<void> = Promise.resolve();
   private ownerWaiting = 0;
+  /** R9-29 — inside `queueWrites`: each entry joins the queue, and the queue
+   *  goes to disk and the flush is asked once, at the end (see there). */
+  private batching = 0;
   /**
    * R9-212 — the queue on disk could not be read (`getItem` failed): the one
    * in memory lacks its entries, every account's (the parked ones too).
@@ -1083,17 +1098,71 @@ export class SyncEngine {
    */
   queueWrite(collection: string, id: string, data: object): void {
     if (this.isSuppressed(collection, id)) return;
-    const asRecord = data as Record<string, unknown>;
-    const entity: SyncEntity<object> = {
-      ...asRecord,
-      updatedAt:
-        typeof asRecord.updatedAt === 'number'
-          ? asRecord.updatedAt
-          : Date.now(),
-      deleted: false,
-      deletedAt: null,
-    };
-    this.enqueue(collection, id, entity);
+    this.enqueue(collection, id, writeEntity(data));
+  }
+
+  /**
+   * R9-29 — `queueWrite` for many docs at once (the backup import): the same
+   * entries, in the same order, for the same account as that many calls. Only
+   * the queue goes to disk once and the flush is asked once, at the end. Each
+   * `persistQueue` serializes the WHOLE queue, so one per doc wrote O(N²)
+   * bytes on the JS thread: 7 000 docs were ~5 GB of JSON and ~10 s blocked on
+   * a desktop, before a single push. Each doc is still its own push (one
+   * billed write each): a Firestore batch is billed per doc all the same, and
+   * the flush's per-entry retry and identity rules (R9-11, R9-34) stay as
+   * they are.
+   */
+  queueWrites(
+    writes: ReadonlyArray<{collection: string; id: string; data: object}>,
+  ): void {
+    const entries: Array<[string, string, SyncEntity<object>]> = [];
+    for (const w of writes) {
+      if (this.isSuppressed(w.collection, w.id)) continue;
+      entries.push([w.collection, w.id, writeEntity(w.data)]);
+    }
+    if (entries.length === 0) return;
+    const uid = this.uid;
+    const queuedAt = Date.now();
+    if (uid && this.ownerWaiting === 0) {
+      this.queueAllFor(uid, entries, queuedAt);
+      return;
+    }
+    // R9-38 — as `enqueue`: one turn of the owner chain for the whole batch,
+    // behind the writes already waiting for the owner.
+    this.ownerWaiting += 1;
+    this.ownerChain = this.ownerChain
+      .then(async () => {
+        const owner = uid ?? (await this.loadStoreOwner());
+        if (owner) this.queueAllFor(owner, entries, queuedAt);
+      })
+      .catch(err => {
+        logger.warn('SyncEngine: writes with no session were not queued', {
+          component: 'SyncEngine',
+          error: err instanceof Error ? err.message : String(err),
+        });
+      })
+      .finally(() => {
+        this.ownerWaiting -= 1;
+      });
+  }
+
+  private queueAllFor(
+    uid: string,
+    entries: ReadonlyArray<[string, string, SyncEntity<object>]>,
+    queuedAt: number,
+  ): void {
+    this.batching += 1;
+    try {
+      for (const [collection, id, data] of entries) {
+        this.queueFor(uid, collection, id, data, queuedAt);
+      }
+    } finally {
+      // Whatever got in goes to disk, even if one entry threw.
+      this.batching -= 1;
+      this.updateState({pendingWrites: this.pendingForActiveUid()});
+      void this.persistQueue();
+      if (uid === this.uid) void this.flush();
+    }
   }
 
   /**
@@ -1165,7 +1234,8 @@ export class SyncEngine {
         if (this.queueUnread) void this.rereadQueue();
       });
     }
-    if (uid === this.uid) void this.flush();
+    // R9-29 — inside `queueWrites`, asked once at the end.
+    if (uid === this.uid && this.batching === 0) void this.flush();
   }
 
   /**
@@ -1603,6 +1673,8 @@ export class SyncEngine {
         };
       }
     }
+    // R9-29 — inside `queueWrites`, once at the end (see there).
+    if (this.batching > 0) return;
     this.updateState({pendingWrites: this.pendingForActiveUid()});
     void this.persistQueue();
   }

@@ -182,6 +182,13 @@ const REVIEW_EVENT_SYNC_WINDOW_MS = 365 * DAY_MS;
  * True when `reviewedAtMs` is within the rolling 12-month sync window
  * ending at `nowMs` — i.e., this event SHOULD be queued/synced/applied.
  *
+ * R9-29 — no app code calls it any more: since the local-first change no
+ * path uploads events (the backup import was the last, and it stopped), and
+ * the adapter applies none. Kept as the reference the cleanup's
+ * `isReviewEventEligibleForCloudCleanup` complements (pinned in tests); the
+ * new-device trade-off above no longer applies either: a new device inherits
+ * the `memoryStats` summary, not events.
+ *
  * Defensive by construction: an invalid/missing timestamp returns `true`
  * (never skip syncing on ambiguous data — per this project's rule that a
  * doubtful case must NEVER silently lose a user's data).
