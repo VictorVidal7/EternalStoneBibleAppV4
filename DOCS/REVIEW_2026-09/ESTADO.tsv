@@ -614,3 +614,7 @@ R9-612	P3	lector / respaldo, vecino de R9-605	abierto		sin marca de cierre en su
 R9-613	P3	lector / respaldo, revisión de la 167, vecino de R9-605	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-614	P3	tema / respaldo, revisión de la 167	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-615	P3	sync / cuota, vecino de R9-29	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-616	P3	sync, lo trae R9-29	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-617	P3	sync, lo trae R9-29	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-618	P3	sync, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-619	P3	cuenta, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

@@ -3660,6 +3660,10 @@ _redLetterText.hasRedLetterData) is not a function` en `ReaderPreferencesSheet.t
   de las escrituras **diarias de todo el proyecto**, y si falla a mitad muestra "No se pudo
   eliminar tu cuenta" con parte ya borrada.
   - **✅ ARREGLADO en la sesión 169** (`190747c8`, rama `fix/s169-v4`): `deleteAllCloudData` lee y borra en páginas de 200 (`ACCOUNT_DELETION_BATCH_SIZE`) y corta al primer fallo. Un borrado completo sigue costando N lecturas y N borrados. Detalle: `detail/S169-tanda-v4.md`.
+  - **Medido en la 170 (agente A1, sonda P4): un borrado que falla y no se reintenta deja la nube sin lo ya
+    borrado, y `start(uid)` no lo vuelve a subir** (el bulk push ya hecho, sin cola, el listener no ve borrados
+    duros): `cloud notes 0, local notes 3`, también tras un arranque en frío. Igual con `212f9d09`. Desde la 169
+    corta en la primera colección que falla: las siguientes quedan intactas. El reintento lo cierra (`left 0`).
 
 - **`R9-29` (A7, cuota) — 🐛 el import empuja una escritura Firestore por entidad y revive
   la ruta `reviewEvents` que se eliminó por cuota.** `BackupService.ts:962-1028`. El
@@ -14998,6 +15002,47 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - En un aparato nuevo (cursor 0), el primer snapshot lee todo lo subido antes: hasta ~7 300 lecturas por cuenta.
   - Con `R9-29` nadie escribe más ahí: la colección se vacía con `cleanupOldReviewEvents` en 12 meses.
   - **Severidad:** P3: costo de cuota acotado, sin daño a datos. Sin medir con el motor real.
+
+- **`R9-616` (S170, sync, lo trae `R9-29` — P3) — 🐛 sin sesión, si la lectura del dueño del store falla dos
+  veces, `queueWrites` no encola NINGUNA entrada del lote; N `queueWrite` perdían solo la primera.** MEDIDO
+  (agente A2 de la 170, sonda M10; re-medido por el orquestador con su propia sonda).
+  - `SyncEngine.ts:1132-1137`: el lote usa un solo turno de la cadena del dueño (`R9-38`) y una sola lectura.
+  - `loadStoreOwner` (`:1249`) reintenta una vez y da `null`; con `null` el turno no encola nada.
+  - Con N sueltas, cada turno vuelve a leer el dueño: solo se pierde la primera.
+  - Sonda del orquestador (el `getItem` del dueño rechaza 2 veces, sin `start()`): lote `q=[]`, disco vacío;
+    sueltas `[notes/b, memoryCards/c]` en memoria y en disco. Control (0 fallos): las dos `[a, b, c]`.
+  - Consecuencia: lo que importa un respaldo sin sesión no entra en la cola; el bulk push ya hecho no lo sube.
+  - El comentario de `queueWrites` («the same entries… as that many calls») es falso en este camino.
+  - **Severidad:** P3: dos fallos seguidos de AsyncStorage, sin sesión y en el import; lo local queda intacto.
+
+- **`R9-617` (S170, sync, lo trae `R9-29` — P3) — 🐛 sin sesión, una entrada del lote que lanza deja
+  sin encolar las que siguen.** MEDIDO con el fallo forzado (agente A2 de la 170, sonda M8).
+  - `SyncEngine.ts:1139-1143` y `:1153-1163`: el `catch` de la cadena corta el bucle de `queueAllFor`.
+  - Lote: `[favorites/a]`; N sueltas sin sesión: todas menos la que lanza (`[favorites/a, memoryCards/c]`).
+  - Con sesión el lote hace lo mismo que el import viejo (su bucle tampoco tenía `try`).
+  - `batching` vuelve a 0 y lo que entró va a disco. El log dice «were not queued», aunque las previas entraron.
+  - **Severidad:** P3, teórico: no se encontró qué puede lanzar en `upsertQueueEntry` con objetos planos.
+
+- **`R9-618` (S170, sync, previo — P3) — 🐛 `start()` puede dejar un `pendingWrites` viejo: el conteo se calcula
+  antes del `await` de `loadDroppedWrites` y se aplica después.** MEDIDO (agente A2 de la 170, sonda M11).
+  - `SyncEngine.ts:942-945`: `{pendingWrites: this.pendingForActiveUid(), droppedWrites: await ...}`.
+  - Una edición y su ack dentro de esa ventana dejan Ajustes con «1 pendiente» y la cola vacía.
+  - Salida: `antesDeSoltar {pend:0,q:0}`, `final {pend:1,q:0}`. Control sin la edición: `final {pend:0,q:0}`.
+  - Queda así hasta el próximo cambio de la cola: el flush periódico no actualiza con 0 debidos.
+  - Con `queueWrites` y un cambio de cuenta a mitad sale más seguido (M7t); el defecto es previo a la 169.
+  - **Severidad:** P3: solo un número en Ajustes; sin daño a datos.
+
+- **`R9-619` (S170, cuenta, previo — P3) — 🐛 un borrado de la cuenta que falla después de que otra cuenta entró
+  vuelve a arrancar el motor para la cuenta borrada.** MEDIDO (agente A1 de la 170, sondas P5a, P5b y P5c con
+  `AuthProvider`, `SyncEngine` y `deleteAllCloudData` reales).
+  - `AuthContext.tsx:744-749`: el `catch` hace `void engine?.start(uid)` sin mirar quién está conectado ahora.
+  - «Cerrar sesión» no se deshabilita mientras se borra (`settings.tsx:752-772`; verificado por el orquestador).
+  - Secuencia: Ana borra → cierra sesión a mitad → entra Beto → la lectura siguiente cae (`permission-denied`)
+    → `stop()` del motor de Beto y `start('ana')`.
+  - Salida: `active ana user beto`; una edición de Beto va a la cola de Ana, hacia `users/ana/...`.
+  - Con las reglas reales el token de Beto la rechaza; el sync de Beto queda apagado hasta el próximo arranque.
+  - Control con `212f9d09` (P5c): igual. La 169 solo alarga la ventana (lecturas en serie por página).
+  - **Severidad:** P3: requiere cerrar sesión durante el borrado; los rechazos de las reglas evitan la fuga.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

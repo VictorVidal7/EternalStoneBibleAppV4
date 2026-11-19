@@ -437,3 +437,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   cuenta, en páginas de 200), `R9-29` (el import no sube `reviewEvents` y encola en un lote) y `R9-24` (el texto de
   «Eliminar cuenta»). Nuevo: `R9-615` (P3). `R9-136` y `R9-4`: propuesta sin aplicar. Validate 429/429. Sin medir
   en vivo. Detalle: `detail/S169-tanda-v4.md`.
+- **Sesión 170 — 2026-11-18.** La revisión del diff de la 169 (`212f9d09..d8425ada`), con emulador, con Opus 5.5
+  de principal y 3 agentes a pedido de Victor (`fork` Opus 5.5 `high`, en worktrees). Sin cambios de código. Los
+  tres arreglos se sostienen. Nuevos: `R9-616` y `R9-617` (P3, los trae `R9-29`), `R9-618` y `R9-619` (P3,
+  previos); suma a `R9-25`. En vivo (AVD, letra 2.0): el diálogo de «Eliminar cuenta» entero en los dos idiomas,
+  cancelado. Sin P2 nuevos: la 171 es la V5. Detalle: `detail/S170-revision-del-diff-s169.md`.

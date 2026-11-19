@@ -248,6 +248,8 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   **Hecha en la 169** (`detail/S169-tanda-v4.md`), con 3 agentes, sin nube ni emulador: `R9-25`, `R9-29` y
   `R9-24` cerrados en `fix/s169-v4`; nuevo `R9-615` (P3). `R9-136` y `R9-4`: propuesta en el §4 del detalle, sin
   aplicar. **La 170: la revisión del diff de la 169 (borrado de la cuenta y cola del sync).**
+  **Hecha en la 170** (`detail/S170-revision-del-diff-s169.md`), con 3 agentes y con emulador: los arreglos se
+  sostienen; nuevos de `R9-616` a `R9-619` (P3); suma a `R9-25`. Sin P2 nuevos: **la 171 es la V5.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
