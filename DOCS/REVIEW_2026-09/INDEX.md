@@ -446,3 +446,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   commits). Cerrados `R9-41` (Crepúsculo: la oscuridad sale de la paleta), `R9-40` (el catálogo y los metadatos
   originales con plazo), `R9-54` (un día destildado no vuelve), `R9-55` y `R9-64` (editar un plan propio recorta y
   fusiona). Nuevo: `R9-620` (P2). `R9-51`: diseño sin código. Validate 431/431. Detalle: `detail/S171-tanda-v5.md`.
+- **Sesión 172 — 2026-11-23.** La revisión del diff de la 171 (`9b9a73ff..2fdd61e6`), con Opus 5.5 de principal,
+  sin agentes y con emulador; cortada a las ~100 llamadas, la cerró la 172b. Sin cambios de código. Los arreglos se
+  sostienen (el tema, el plazo y los planes en vivo). Nuevos: `R9-621` (P3, la barra de estado siempre blanca),
+  `R9-622` (P3, el sello de la fusión antes del inicio) y `R9-623` (P2, un lector montado re-tilda un día destildado
+  por `R9-465`); suma a `R9-465`. La 173 arregla `R9-623`. Detalle: `detail/S172-revision-del-diff-s171.md`.

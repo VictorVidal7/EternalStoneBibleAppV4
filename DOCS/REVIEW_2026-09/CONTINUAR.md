@@ -253,6 +253,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   **Hecha en la 171** (`detail/S171-tanda-v5.md`), sin agentes ni emulador: `R9-41`, `R9-40`, `R9-54`, `R9-55` y
   `R9-64` cerrados en `fix/s171-v5`; nuevo `R9-620` (P2, el resto de `R9-40`). `R9-51`: el diseño de la migración en el
   §3 del detalle, sin código. **La 172: la revisión del diff de la 171 (el tema y los planes, con emulador).**
+  **Hecha en la 172** (`detail/S172-revision-del-diff-s171.md`; cortada, la cerró la 172b), sin agentes y con
+  emulador: los arreglos se sostienen; nuevos `R9-621` y `R9-622` (P3) y `R9-623` (P2: un lector montado re-tilda un
+  día destildado, por `R9-465`); suma a `R9-465`. Con un P2 nuevo, la regla «Según el riesgo» pide arreglos: **la 173
+  arregla `R9-623` con `R9-465`** (y `R9-622` si cabe); **`R9-51`, la 174.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).

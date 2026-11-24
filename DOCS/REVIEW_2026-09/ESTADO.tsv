@@ -619,3 +619,6 @@ R9-617	P3	sync, lo trae R9-29	abierto		sin marca de cierre en su entrada (en las
 R9-618	P3	sync, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-619	P3	cuenta, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-620	P2	red / dinero, resto de R9-40	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-621	P3	interfaz / barra de estado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-622	P3	planes / la fusión de R9-64	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-623	P2	planes / lector, R9-465 deshace R9-54	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

@@ -12728,6 +12728,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     de plan, `trackVersesRead` 2 y `markChapterRead` 2.
   - **Propuesta (sin escribir):** `useMemo` en el `value` de Toast, o un ref en el temporizador. Detalle:
     `detail/A29-contexts.md`.
+  - **Suma de la sesión 172 (emulador):** el re-agendado alcanza también a un lector TAPADO por otra pantalla, y la cuenta se nota: con unos 166 versículos leídos de verdad (95 distintos), el hito marcaba 758/1000 y saltó «Devoted Reader» (500). Desde la 171 además re-tilda un día destildado: `R9-623` (P2).
 
 - **`R9-466` (S124, `A29` / contexts, favoritos — P3) — 🐛 un doble toque en un corazón guarda el mismo versículo
   dos veces, y quitarlo una vez deja el corazón lleno.** MEDIDO con sonda en la 124 (agente 3, re-medido).
@@ -15057,6 +15058,51 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - El canje es dinero: un plazo que vence DESPUÉS de que el servidor canjeó deja al usuario con un error y el código
     gastado. Antes de arreglarlo, medir qué devuelve el endpoint al reintentar el mismo código desde la misma cuenta.
   - `withTimeout` (`src/lib/utils/withTimeout.ts`, de la 171) sirve para los cuatro.
+
+- **`R9-621` (S172, interfaz / barra de estado — P3) — 🐛 la hora y los íconos del sistema salen siempre blancos:
+  con el sistema claro no se ven en Inicio ni en el lector, y con Papel tampoco en oscuro.** MEDIDO en el emulador
+  (sesión 172, `Pixel_9_Pro`, APK debug vc73). No lo trae la 171.
+  - Con el sistema claro, `dumpsys window` da `mLastAppearance=LIGHT_NAVIGATION_BARS`, sin `LIGHT_STATUS_BARS`: la
+    barra de navegación sigue al sistema y la de estado no. Capturas: `_scratch/S172-sondas/S172-p3-home2.png` y
+    `S172-a1-now.png` (blanco sobre blanco); `S172-papel-appD.png` (Papel con el sistema oscuro: blanco sobre crema).
+  - Causa: nadie fija el estilo. El tema nativo (`AppTheme`, `Theme.AppCompat.DayNight.NoActionBar`, generado por
+    prebuild) no lleva `windowLightStatusBar`, y el edge-to-edge de RN solo ajusta la barra de navegación
+    (`node_modules/react-native/.../WindowUtil.kt:189`, `!isDarkMode`). La app usa `StatusBar` solo en onboarding
+    (`light-content`) e inmersivo (`hidden`).
+  - El arreglo tiene que seguir a la superficie y no a la app: en el lector manda el tema de lectura
+    (`isReaderThemeDark`), y en el resto, el tema de la app.
+
+- **`R9-622` (S172, planes / la fusión de `R9-64` — P3) — 🐛 editar un plan propio hacia el contenido de un plan
+  borrado y terminado lo deja «terminado» antes de su inicio.** MEDIDO con el provider real
+  (`_scratch/S172-sondas/zzS172Merge.test.tsx.txt`). Lo trae la 171 (`2fdd61e6`).
+  - X borrado y terminado (inicio 1-sep, sello 20-sep, días 1-3); Y empezado el 1-nov con el día 1 y editado al
+    contenido de X → `{completedDays:[1,2,3], startedAt:"2026-11-01", completedAt:"2026-09-20"}`.
+  - `migratePlanProgress` (`ReadingPlanProgressContext.tsx:276`, el sello en `:305`) empareja el inicio del plan
+    editado con el sello más viejo de los dos. Antes de la 171 el destino quedaba entero (par coherente, y el
+    progreso de Y se perdía). La prueba de la 171 lo fija (`readingPlanProgressContext.test.tsx`, «R9-64: a target
+    with progress merges…»: inicio 1-nov, sello 5-oct).
+  - Sin daño visible hoy: `completedAt` lo leen el diálogo de reinicio (`plan/[id].tsx:872`) y la línea de tiempo,
+    que solo recorre `READING_PLANS`. Daño latente si la línea de tiempo suma los planes propios. La resurrección
+    del plan borrado es `R9-146`.
+
+- **`R9-623` (S172, planes / lector, `R9-465` deshace `R9-54` — P2) — 🐛 un lector que sigue montado en la pila
+  vuelve a tildar el día que el usuario destildó, con el toast falso, cada vez que sale cualquier aviso.** MEDIDO en
+  el emulador (sesión 172) y en el disco. El mecanismo es `R9-465`; desde la 171 tiene este daño.
+  - `ToastContext.tsx:115` da un `value` nuevo en cada render, y el temporizador de 5 s del lector
+    (`app/(tabs)/verse/[book]/[chapter].tsx:729-808`) tiene `toast` en sus dependencias: cada aviso, o su cierre,
+    lo re-agenda también en un lector tapado por otra pantalla, y 5 s después llama otra vez a
+    `markChapterRead` (`:766`). Desde la 171 releer el capítulo de un día lo completa (`:360`), así que esa
+    relectura fantasma lo tilda.
+  - **Medido:** el lector de Juan 6 quedó montado debajo (enlaces y `router.replace` del constructor); plan propio
+    Juan 4-8, el día 3 (Juan 6) destildado a mano (en disco `completedDays: []`). Un aviso ajeno (el constructor
+    vacío, «needNameAndPassage») → segundos después, `Tracking verse reading` de Juan 6, el disco pasa a `[3]` y sale «✅ Day
+    3 of "S172by" completed» sobre el constructor (`_scratch/S172-sondas/S172b-c5-v13.png`). Control: destildar sin
+    aviso, 20 s quieto: sigue `[]` y 14 capturas iguales.
+  - También deshace el cambio de conducta de la 171 (un día leído antes de empezar no se tilda solo): el plan creado
+    con Juan 6 ya leído quedó con el día 3 tildado 12 s después de crearlo, por el aviso «creado» del constructor.
+  - La ruta natural (el lector abierto, otra pestaña, destildar en el plan, cualquier aviso) no está medida.
+  - Propuesta (sin escribir): `useMemo` en el `value` de Toast (cierra también `R9-465`) y que el temporizador del
+    lector no dependa de identidades que cambian; prueba con el provider real de Toast.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
