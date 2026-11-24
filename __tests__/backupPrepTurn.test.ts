@@ -20,6 +20,11 @@ jest.mock('../src/lib/database', () => {
   const sqlite = mockSqlite;
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
+    // R9-51 — the import folds the notes it wrote (none here).
+    foldVerseNotesInTransaction: jest.fn(async () => ({
+      written: [],
+      removedIds: [],
+    })),
     getDatabase: jest.fn().mockResolvedValue({
       withTransactionAsync: async (fn: () => Promise<void>) => {
         if (sqlite.puerta) {

@@ -13,6 +13,11 @@
 jest.mock('../src/lib/database', () => {
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
+    // R9-51 — the import folds the notes it wrote (none here).
+    foldVerseNotesInTransaction: jest.fn(async () => ({
+      written: [],
+      removedIds: [],
+    })),
     getDatabase: jest.fn().mockResolvedValue({
       withTransactionAsync: async (fn: () => Promise<void>) => fn(),
       execAsync: jest.fn().mockResolvedValue(undefined),
@@ -55,6 +60,8 @@ const EXCLUDED: Record<string, string> = {
   // Migrations of THIS device's own data.
   '@migration_bookmarks_to_favorites_v1': 'marca de migracion local',
   '@migration_canonical_book_keys_v1': 'marca de migracion local',
+  // R9-51: el import corre su propio plegado; la marca es de este aparato.
+  '@notes_verse_key_v1': 'marca de migracion local',
   '@bible_bookmarks': 'legado: migrado a favoritos (SQLite, respaldado)',
   // Sync engine and account ownership: belong to this device and session.
   '@sync_conflicted_': 'motor de sync',

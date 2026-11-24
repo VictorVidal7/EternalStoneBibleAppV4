@@ -55,6 +55,11 @@ jest.mock('../src/lib/database', () => {
   };
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
+    // R9-51 — the import folds the notes it wrote (none here).
+    foldVerseNotesInTransaction: jest.fn(async () => ({
+      written: [],
+      removedIds: [],
+    })),
     getDatabase: jest.fn().mockResolvedValue(db),
     executeSql: jest.fn(async () => ({rows: {_array: [], length: 0}})),
     getFavorites: jest.fn().mockResolvedValue([]),

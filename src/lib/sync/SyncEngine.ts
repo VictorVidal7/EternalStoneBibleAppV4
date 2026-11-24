@@ -169,6 +169,17 @@ function writeEntity(data: object): SyncEntity<object> {
   };
 }
 
+/** What `queueDelete` and a `deleted` entry of `queueWrites` queue. */
+function tombstoneEntity(lastKnownData?: object): SyncEntity<object> {
+  const base = (lastKnownData as Record<string, unknown> | undefined) ?? {};
+  return {
+    ...base,
+    updatedAt: Date.now(),
+    deleted: true,
+    deletedAt: Date.now(),
+  };
+}
+
 function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
     const timer = setTimeout(
@@ -1111,14 +1122,27 @@ export class SyncEngine {
    * billed write each): a Firestore batch is billed per doc all the same, and
    * the flush's per-entry retry and identity rules (R9-11, R9-34) stay as
    * they are.
+   *
+   * R9-51 — an entry with `deleted: true` is a `queueDelete` (`data` is the
+   * last known copy), so the notes' fold goes up as ONE batch: the verse's
+   * row and the deletes of the old ids it replaced.
    */
   queueWrites(
-    writes: ReadonlyArray<{collection: string; id: string; data: object}>,
+    writes: ReadonlyArray<{
+      collection: string;
+      id: string;
+      data: object;
+      deleted?: boolean;
+    }>,
   ): void {
     const entries: Array<[string, string, SyncEntity<object>]> = [];
     for (const w of writes) {
       if (this.isSuppressed(w.collection, w.id)) continue;
-      entries.push([w.collection, w.id, writeEntity(w.data)]);
+      entries.push([
+        w.collection,
+        w.id,
+        w.deleted ? tombstoneEntity(w.data) : writeEntity(w.data),
+      ]);
     }
     if (entries.length === 0) return;
     const uid = this.uid;
@@ -1171,14 +1195,7 @@ export class SyncEngine {
    */
   queueDelete(collection: string, id: string, lastKnownData?: object): void {
     if (this.isSuppressed(collection, id)) return;
-    const base = (lastKnownData as Record<string, unknown> | undefined) ?? {};
-    const tombstone: SyncEntity<object> = {
-      ...base,
-      updatedAt: Date.now(),
-      deleted: true,
-      deletedAt: Date.now(),
-    };
-    this.enqueue(collection, id, tombstone);
+    this.enqueue(collection, id, tombstoneEntity(lastKnownData));
   }
 
   /**

@@ -7,6 +7,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {BibleVerse, Note, ReadingProgress} from '../../types/bible';
 import {BIBLE_VERSIONS, canonicalBookName} from '../../constants/bible';
 import {
+  isVerseNoteId,
+  mergeVerseNotes,
+  verseNoteId,
+  type VerseNoteRow,
+} from '../notes/verseNoteKey';
+import {
   normalizePackPath,
   packLoadedKey,
   PACK_IMPORT_SQL,
@@ -338,8 +344,25 @@ async function seedFromBundleIfMissing(): Promise<boolean> {
   }
 }
 
+/** R9-51 — what a fold of the notes changed: the rows it wrote, the ids it removed. */
+export interface NotesFold {
+  written: Note[];
+  removedIds: string[];
+}
+
+const NOTE_COLUMNS = `id, book_name as book, chapter, verse, verse_text as text, note,
+              created_at as createdAt, updated_at as updatedAt`;
+
 class BibleDatabase {
   private db: SQLite.SQLiteDatabase | null = null;
+  /**
+   * R9-51 — the note writes that read before they write, one at a time: the
+   * fold of the migration (a transaction), the sync adapter's, and the
+   * screens' add/update/remove. expo-sqlite lets another call on the same
+   * connection run INSIDE an open `withTransactionAsync`: an edit landing
+   * between the fold's read and its delete would be deleted with the old row.
+   */
+  private notesChain: Promise<unknown> = Promise.resolve();
   private initialized = false;
   private initializationPromise: Promise<void> | null = null;
   // One-time flag for the Sprint 58 canonical book-key normalization.
@@ -2097,51 +2120,77 @@ class BibleDatabase {
 
   // ========== NOTE OPERATIONS ==========
 
-  async addNote(note: Omit<Note, 'id'>): Promise<string> {
-    const db = this.getDb();
-    const id = `note_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-    await db.runAsync(
-      `INSERT INTO notes (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        // Canonical book identity so a note is found regardless of the
-        // version/nav language the verse arrived with (Sprint 58).
-        canonicalBookName(note.book),
-        note.chapter,
-        note.verse,
-        note.text,
-        note.note,
-        note.createdAt,
-        note.updatedAt,
-      ],
-    );
-
-    return id;
+  private withNotesLock<T>(fn: () => Promise<T>): Promise<T> {
+    const run = this.notesChain.then(fn, fn);
+    this.notesChain = run.catch(() => undefined);
+    return run;
   }
 
-  async updateNote(id: string, noteText: string): Promise<void> {
-    const db = this.getDb();
-    const now = new Date().toISOString();
+  /**
+   * R9-51 — the id is the verse (`verseNoteId`), as the highlights' is: a note
+   * written for the same verse on two devices is ONE doc, so the engine sees
+   * the second as an edit (last write wins, or a conflict) instead of syncing
+   * two notes that never meet. The callers look the verse up first
+   * (`getNoteForVerse`) and only add when there is none.
+   */
+  async addNote(note: Omit<Note, 'id'>): Promise<string> {
+    return this.withNotesLock(async () => {
+      const db = this.getDb();
+      const id = verseNoteId(note.book, note.chapter, note.verse);
 
-    await db.runAsync(
-      'UPDATE notes SET note = ?, updated_at = ? WHERE id = ?',
-      [noteText, now, id],
-    );
+      await db.runAsync(
+        `INSERT INTO notes (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          id,
+          // Canonical book identity so a note is found regardless of the
+          // version/nav language the verse arrived with (Sprint 58).
+          canonicalBookName(note.book),
+          note.chapter,
+          note.verse,
+          note.text,
+          note.note,
+          note.createdAt,
+          note.updatedAt,
+        ],
+      );
+
+      return id;
+    });
+  }
+
+  /**
+   * R9-51 — rejects when no row has that id: the fold (`foldVerseNotes`) can
+   * re-key the note a screen just read, and an UPDATE of 0 rows used to say
+   * «saved» for an edit that landed nowhere.
+   */
+  async updateNote(id: string, noteText: string): Promise<void> {
+    return this.withNotesLock(async () => {
+      const db = this.getDb();
+      const now = new Date().toISOString();
+
+      const res = await db.runAsync(
+        'UPDATE notes SET note = ?, updated_at = ? WHERE id = ?',
+        [noteText, now, id],
+      );
+      if (res?.changes === 0) {
+        throw new Error(`updateNote: no note with id ${id}`);
+      }
+    });
   }
 
   async removeNote(id: string): Promise<void> {
-    const db = this.getDb();
-    await db.runAsync('DELETE FROM notes WHERE id = ?', [id]);
+    return this.withNotesLock(async () => {
+      const db = this.getDb();
+      await db.runAsync('DELETE FROM notes WHERE id = ?', [id]);
+    });
   }
 
   async getNotes(): Promise<Note[]> {
     const db = this.getDb();
 
     const result = await db.getAllAsync<Note>(
-      `SELECT id, book_name as book, chapter, verse, verse_text as text, note,
-              created_at as createdAt, updated_at as updatedAt
+      `SELECT ${NOTE_COLUMNS}
        FROM notes
        ORDER BY updated_at DESC`,
     );
@@ -2158,6 +2207,11 @@ class BibleDatabase {
     return result?.count ?? 0;
   }
 
+  /**
+   * R9-51 — the newest, while a verse can still hold several rows (before
+   * the fold, or an old version of the app that synced one in). Without an
+   * order SQLite gave the lowest `rowid`: each device showed its own note.
+   */
   async getNoteForVerse(
     bookName: string,
     chapter: number,
@@ -2166,14 +2220,119 @@ class BibleDatabase {
     const db = this.getDb();
 
     const result = await db.getFirstAsync<Note>(
-      `SELECT id, book_name as book, chapter, verse, verse_text as text, note,
-              created_at as createdAt, updated_at as updatedAt
+      `SELECT ${NOTE_COLUMNS}
        FROM notes
-       WHERE book_name = ? AND chapter = ? AND verse = ?`,
+       WHERE book_name = ? AND chapter = ? AND verse = ?
+       ORDER BY updated_at DESC`,
       [canonicalBookName(bookName), chapter, verse],
     );
 
     return result || null;
+  }
+
+  private async writeNoteRow(row: VerseNoteRow): Promise<void> {
+    await this.getDb().runAsync(
+      `INSERT OR REPLACE INTO notes
+       (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        row.id,
+        row.book,
+        row.chapter,
+        row.verse,
+        row.text,
+        row.note,
+        row.createdAt,
+        row.updatedAt,
+      ],
+    );
+  }
+
+  /**
+   * R9-51 — fold every verse's notes into its one verse-keyed row
+   * (`mergeVerseNotes`), with NO transaction of its own: the caller holds it
+   * (`foldVerseNotes`, and the backup import inside its own). Returns what
+   * changed, for the caller to push: the rows written and the old ids gone.
+   * A second run finds nothing to fold and returns nothing.
+   */
+  async foldVerseNotesInTransaction(bumpTo: string | null): Promise<NotesFold> {
+    const db = this.getDb();
+    const rows = await db.getAllAsync<VerseNoteRow>(
+      `SELECT ${NOTE_COLUMNS} FROM notes ORDER BY rowid`,
+    );
+    const groups = new Map<string, VerseNoteRow[]>();
+    for (const r of rows) {
+      const key = verseNoteId(r.book, r.chapter, r.verse);
+      const group = groups.get(key);
+      if (group) group.push(r);
+      else groups.set(key, [r]);
+    }
+    const fold: NotesFold = {written: [], removedIds: []};
+    for (const [id, group] of groups) {
+      const merged = mergeVerseNotes(group, bumpTo);
+      if (!merged) continue;
+      const before = group.find(r => r.id === id);
+      const same =
+        before !== undefined &&
+        (['book', 'text', 'note', 'createdAt', 'updatedAt'] as const).every(
+          k => before[k] === merged.row[k],
+        );
+      // Written before the old rows go: a fold cut short leaves a row twice,
+      // which the next fold takes, never a text in no row at all.
+      if (!same) {
+        await this.writeNoteRow(merged.row);
+        fold.written.push(merged.row);
+      }
+      for (const old of merged.removedIds) {
+        await db.runAsync('DELETE FROM notes WHERE id = ?', [old]);
+      }
+      fold.removedIds.push(...merged.removedIds);
+    }
+    return fold;
+  }
+
+  /** R9-51 — `foldVerseNotesInTransaction` in one transaction: all or nothing. */
+  async foldVerseNotes(bumpTo: string | null): Promise<NotesFold> {
+    return this.withNotesLock(async () => {
+      let fold: NotesFold = {written: [], removedIds: []};
+      await this.getDb().withTransactionAsync(async () => {
+        fold = await this.foldVerseNotesInTransaction(bumpTo);
+      });
+      return fold;
+    });
+  }
+
+  /**
+   * R9-51 — the sync adapter's write of a note that came from the cloud.
+   *
+   * A verse-keyed doc (or any doc, before this device's fold has run: the
+   * fold takes it then) is written under its own id, as before. A doc under
+   * an OLD id that reaches a device already folded (an old version of the
+   * app, or a device that had not pushed its fold) is folded into the verse's
+   * row here, locally: its text joins unless already there, so a second
+   * delivery changes nothing. Nothing is pushed back: the device that owned
+   * the old id pushes the fold and the old id's delete when it folds.
+   */
+  async applyRemoteNote(row: VerseNoteRow, foldOldIds: boolean): Promise<void> {
+    return this.withNotesLock(async () => {
+      const incoming = {...row, book: canonicalBookName(row.book)};
+      if (!foldOldIds || isVerseNoteId(row.id)) {
+        await this.writeNoteRow(incoming);
+        return;
+      }
+      const local = await this.getDb().getAllAsync<VerseNoteRow>(
+        `SELECT ${NOTE_COLUMNS} FROM notes
+         WHERE book_name = ? AND chapter = ? AND verse = ? ORDER BY rowid`,
+        [incoming.book, incoming.chapter, incoming.verse],
+      );
+      const merged = mergeVerseNotes([...local, incoming], null);
+      if (!merged) return;
+      await this.writeNoteRow(merged.row);
+      for (const old of merged.removedIds) {
+        if (old === row.id) continue; // never stored
+        await this.getDb().runAsync('DELETE FROM notes WHERE id = ?', [old]);
+      }
+    });
   }
 
   /**

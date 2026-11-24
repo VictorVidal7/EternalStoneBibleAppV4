@@ -15,9 +15,11 @@
  * the engine speaks millis. The conversion happens here.
  */
 
-import bibleDB from '@lib/database';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import bibleDB, {type NotesFold} from '@lib/database';
 import {logger} from '@lib/utils/logger';
 import type {Note} from '@/types/bible';
+import {getSyncEngine} from '../instance';
 import {millisToIso, toMillis} from '../timeUtils';
 import {nullifyUndefined} from '../sanitize';
 import type {SyncAdapter, SyncEntity} from '../types';
@@ -92,25 +94,21 @@ export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
   async applyRemoteUpsert(id, data) {
     try {
       await bibleDB.initialize();
-      const isoCreated = millisToIso(data.createdAt || Date.now());
-      const isoUpdated = millisToIso(data.updatedAt || Date.now());
-      // INSERT OR REPLACE preserves the remote id so subsequent pulls
-      // match on the same primary key — avoids the dedup-by-fields
-      // gymnastics that would otherwise be needed.
-      await bibleDB.executeSql(
-        `INSERT OR REPLACE INTO notes
-         (id, book_name, chapter, verse, verse_text, note, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [
+      // INSERT OR REPLACE under the remote id, so later pulls match on the
+      // same primary key; an OLD id on a device already folded is folded into
+      // the verse's row instead (R9-51, see `bibleDB.applyRemoteNote`).
+      await bibleDB.applyRemoteNote(
+        {
           id,
-          data.book,
-          data.chapter,
-          data.verse,
-          data.text,
-          data.note,
-          isoCreated,
-          isoUpdated,
-        ],
+          book: data.book,
+          chapter: data.chapter,
+          verse: data.verse,
+          text: data.text,
+          note: data.note,
+          createdAt: millisToIso(data.createdAt || Date.now()),
+          updatedAt: millisToIso(data.updatedAt || Date.now()),
+        },
+        await notesFolded(),
       );
     } catch (err) {
       logger.error(
@@ -157,6 +155,67 @@ export const notesSyncAdapter: SyncAdapter<RemoteNote> = {
     return ['note', 'text'] as const;
   },
 };
+
+/**
+ * R9-51 — the one-time fold of this device's notes into one row per verse,
+ * keyed on the verse (`vnote:<book>:<chapter>:<verse>`). Runs at start, after
+ * `migrateCanonicalBookKeys` (which can leave a «Juan 3:16» and a «John
+ * 3:16» note on the same verse). The flag is written after the transaction
+ * and the queueing: a fold that fails leaves no flag and queues nothing, and
+ * the next start runs it again. Once folded, a second run finds no old id.
+ */
+export const NOTES_VERSE_KEY_FLAG = '@notes_verse_key_v1';
+
+let foldedSeen = false;
+
+/** Whether this device's fold has run (`applyRemoteUpsert` asks it). */
+async function notesFolded(): Promise<boolean> {
+  if (foldedSeen) return true;
+  foldedSeen = (await AsyncStorage.getItem(NOTES_VERSE_KEY_FLAG)) === '1';
+  return foldedSeen;
+}
+
+export async function migrateNotesToVerseKeys(): Promise<void> {
+  if (await notesFolded()) return;
+  const fold = await bibleDB.foldVerseNotes(new Date().toISOString());
+  pushNotesFold(fold);
+  await AsyncStorage.setItem(NOTES_VERSE_KEY_FLAG, '1');
+  foldedSeen = true;
+  if (fold.written.length > 0 || fold.removedIds.length > 0) {
+    logger.info('notes: folded into one note per verse', {
+      component: 'sync/notes',
+      written: fold.written.length,
+      removed: fold.removedIds.length,
+    });
+  }
+}
+
+/**
+ * R9-51 — a fold goes up as ONE batch (memory: sync the least, in a batch):
+ * each verse's row it wrote, and a delete of each old id it replaced, so the
+ * old docs do not come back to a device that has not folded yet.
+ */
+export function pushNotesFold(fold: NotesFold): void {
+  if (fold.written.length === 0 && fold.removedIds.length === 0) return;
+  getSyncEngine()?.queueWrites([
+    ...fold.written.map(n => ({
+      collection: 'notes',
+      id: n.id,
+      data: noteToRemote(n),
+    })),
+    ...fold.removedIds.map(id => ({
+      collection: 'notes',
+      id,
+      data: {},
+      deleted: true,
+    })),
+  ]);
+}
+
+/** Tests only: forget the flag read in memory. */
+export function __resetNotesFoldedForTests(): void {
+  foldedSeen = false;
+}
 
 /** Helper for call sites: build the remote payload for a queueWrite. */
 export function buildNoteRemotePayload(note: Note): SyncEntity<RemoteNote> {

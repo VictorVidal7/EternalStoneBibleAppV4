@@ -18,6 +18,7 @@ import {
   getAchievementServiceInstance,
 } from '../lib/achievements/instance';
 import {HighlightService} from '../lib/highlights/HighlightService';
+import {migrateNotesToVerseKeys} from '../lib/sync/adapters/notes';
 import {Achievement} from '../lib/achievements/types';
 import {logger} from '../lib/utils/logger';
 
@@ -106,6 +107,17 @@ export const ServicesProvider: React.FC<ServicesProviderProps> = ({
         // notes (Sprint 58). Runs here, after every table exists (the
         // highlights table is created by HighlightService.initialize above).
         await database.migrateCanonicalBookKeys();
+        // R9-51 — then one note per verse: AFTER the book names are canonical,
+        // so a «Juan 3:16» and a «John 3:16» note fold into one. A failure
+        // does not stop the app: the flag stays unwritten, nothing is queued,
+        // and the next start tries again.
+        try {
+          await migrateNotesToVerseKeys();
+        } catch (error) {
+          logger.error('Notes fold into one per verse failed', error as Error, {
+            component: 'ServicesProvider',
+          });
+        }
 
         setAchievementService(achievements);
         setHighlightService(highlights);

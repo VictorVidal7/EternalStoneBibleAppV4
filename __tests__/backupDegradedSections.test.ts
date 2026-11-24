@@ -32,6 +32,11 @@
 jest.mock('../src/lib/database', () => {
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
+    // R9-51 — the import folds the notes it wrote (none here).
+    foldVerseNotesInTransaction: jest.fn(async () => ({
+      written: [],
+      removedIds: [],
+    })),
     getDatabase: jest.fn().mockResolvedValue({
       withTransactionAsync: async (fn: () => Promise<void>) => fn(),
       // The tests that don't register a shared instance fall through to

@@ -11,13 +11,13 @@
  *  - cada entidad hacía su propio `persistQueue`: la cola entera serializada y
  *    escrita a AsyncStorage una vez por entidad (O(N²) en el hilo JS).
  */
-const mockSets: Array<{path: string; id: string}> = [];
+const mockSets: Array<{path: string; id: string; data?: unknown}> = [];
 function mockColl(path: string): unknown {
   const self: Record<string, unknown> = {};
   Object.assign(self, {
     doc: (id: string) => ({
-      set: async () => {
-        mockSets.push({path, id});
+      set: async (data?: unknown) => {
+        mockSets.push({path, id, data});
       },
       get: async () => ({exists: false, data: () => undefined}),
       delete: async () => {},
@@ -48,6 +48,11 @@ jest.mock('@react-native-community/netinfo', () => ({
 jest.mock('../src/lib/database', () => {
   const instance = {
     initialize: jest.fn().mockResolvedValue(undefined),
+    // R9-51 — the import folds the notes it wrote (none here).
+    foldVerseNotesInTransaction: jest.fn(async () => ({
+      written: [],
+      removedIds: [],
+    })),
     getDatabase: jest.fn().mockResolvedValue({
       withTransactionAsync: async (fn: () => Promise<void>) => {
         await fn();
@@ -239,4 +244,49 @@ it('R9-29: encolar lo importado escribe la cola a disco una vez, no una por enti
     durante: 1,
     subidas: 600, // CONTROL: todo lo que debe subir, subió
   });
+});
+
+it('R9-51: el import sube las notas como las dejó el plegado, en el mismo lote', async () => {
+  // El archivo trae dos notas viejas para Juan 3:1 (`note-0`, `note-1`, con el
+  // libro del aparato que lo escribió) y una para Juan 3:3; el plegado (aquí
+  // su resultado: lo mide con SQLite real `notesVerseKeyR951.test.ts`) dejó
+  // una fila por versículo.
+  const {__mockInstance: db} = jest.requireMock('../src/lib/database') as {
+    __mockInstance: {foldVerseNotesInTransaction: jest.Mock};
+  };
+  const juan31 = {
+    id: 'vnote:John:3:1',
+    book: 'John',
+    chapter: 3,
+    verse: 1,
+    text: 't',
+    note: 'n\n\notra',
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-11-24T00:00:00.000Z',
+  };
+  const juan33 = {...juan31, id: 'vnote:John:3:3', verse: 3, note: 'n'};
+  db.foldVerseNotesInTransaction.mockResolvedValueOnce({
+    written: [juan31, juan33],
+    removedIds: ['note-0', 'note-1', 'note-2'],
+  });
+  const p = respaldo(3);
+  p.bible.notes[1] = {...p.bible.notes[1], verse: 1, note: 'otra'};
+  const lotes = jest.spyOn(engine, 'queueWrites');
+  await importBackup(p);
+  await vaciar();
+
+  expect(lotes).toHaveBeenCalledTimes(1); // un solo lote, con todo lo demás
+  const notas = mockSets
+    .filter(x => x.path.endsWith('/notes'))
+    .map(x => {
+      const d = x.data as {deleted?: boolean; note?: string};
+      return [x.id, d.deleted, d.note];
+    });
+  expect(notas).toEqual([
+    ['vnote:John:3:1', false, 'n\n\notra'],
+    ['vnote:John:3:3', false, 'n'],
+    ['note-0', true, undefined],
+    ['note-1', true, undefined],
+    ['note-2', true, undefined],
+  ]);
 });

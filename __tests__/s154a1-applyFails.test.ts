@@ -22,6 +22,10 @@ jest.mock('@lib/database', () => ({
   default: {
     initialize: (...a: unknown[]) => mockDbInitialize(...a),
     executeSql: (...a: unknown[]) => mockDbExecuteSql(...a),
+    // R9-51 — the adapter writes through applyRemoteNote: the same INSERT,
+    // with the id first, as the executeSql these tests watch.
+    applyRemoteNote: (row: {id: string}) =>
+      mockDbExecuteSql('INSERT OR REPLACE INTO notes', [row.id]),
     removeNote: (...a: unknown[]) => mockDbRemoveNote(...a),
     getNotes: (...a: unknown[]) => mockDbGetNotes(...a),
   },

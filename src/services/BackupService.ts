@@ -56,7 +56,7 @@ import {File, Paths} from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as DocumentPicker from 'expo-document-picker';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import bibleDB from '../lib/database';
+import bibleDB, {type NotesFold} from '../lib/database';
 import {logger} from '../lib/utils/logger';
 import {prepKey, prepMultiSet} from '../features/study/prepAccount';
 import {getTranslations} from '../i18n/languageUtils';
@@ -1165,10 +1165,16 @@ function pushImportedEntitiesToSync(data: {
   notes: Note[];
   highlights: RawHighlightRow[];
   memoryDeck: MemoryCard[];
+  notesFold?: NotesFold | null;
 }): void {
   const engine = getSyncEngine();
   if (!engine) return;
-  const writes: Array<{collection: string; id: string; data: object}> = [];
+  const writes: Array<{
+    collection: string;
+    id: string;
+    data: object;
+    deleted?: boolean;
+  }> = [];
 
   for (const f of data.favorites) {
     writes.push({
@@ -1191,12 +1197,25 @@ function pushImportedEntitiesToSync(data: {
     });
   }
 
-  for (const n of data.notes) {
+  // R9-51 — the notes as the fold left them: each verse's one row (the
+  // fold's copy replaces the file's under the same id), and a delete of each
+  // old id it replaced, so those docs do not come back to the other devices.
+  const fold = data.notesFold;
+  const removed = new Set(fold?.removedIds ?? []);
+  const written = new Map((fold?.written ?? []).map(n => [n.id, n]));
+  const notesOut = [
+    ...data.notes.filter(n => !removed.has(n.id) && !written.has(n.id)),
+    ...written.values(),
+  ];
+  for (const n of notesOut) {
     writes.push({
       collection: 'notes',
       id: n.id,
       data: buildNoteRemotePayload(n),
     });
+  }
+  for (const id of removed) {
+    writes.push({collection: 'notes', id, data: {}, deleted: true});
   }
 
   for (const h of data.highlights) {
@@ -1307,6 +1326,7 @@ export async function importBackup(
 
   const restoredSections: string[] = [];
   const failedSections: string[] = [];
+  let notesFold: NotesFold | null = null;
 
   // ---- R9-27/R9-49 — sections the EXPORT could not read. A listed section
   // is UNKNOWN, not empty: its destructive DELETE-then-insert is skipped and
@@ -1650,6 +1670,12 @@ export async function importBackup(
             ],
           );
         }
+        // R9-51 — the file's notes carry the ids of the device that wrote it
+        // (old ids, or two notes for one verse): the same fold as the start's,
+        // in this transaction, and pushed with the rest below.
+        notesFold = await bibleDB.foldVerseNotesInTransaction(
+          new Date().toISOString(),
+        );
         restoredSections.push('notes');
       }
     }
@@ -1852,6 +1878,7 @@ export async function importBackup(
     pushImportedEntitiesToSync({
       favorites: favoritesIn,
       notes: notesIn,
+      notesFold,
       highlights: highlightsIn,
       memoryDeck: asyncStorageWriteFailed ? [] : Object.values(memoryDeckIn),
     });

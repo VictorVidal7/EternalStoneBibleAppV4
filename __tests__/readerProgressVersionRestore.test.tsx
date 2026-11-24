@@ -27,6 +27,11 @@ var mockPointer: Row | null = null;
 jest.mock('../src/lib/database', () => {
   const db = {
     initialize: jest.fn(async () => undefined),
+    // R9-51 — the import folds the notes it wrote (none here).
+    foldVerseNotesInTransaction: jest.fn(async () => ({
+      written: [],
+      removedIds: [],
+    })),
     getDatabaseStats: jest.fn(async () => ({
       totalVerses: 93000,
       versions: ['RVR1960', 'WEB', 'KJV', 'RV1909'],
