@@ -363,6 +363,14 @@ class BibleDatabase {
    * between the fold's read and its delete would be deleted with the old row.
    */
   private notesChain: Promise<unknown> = Promise.resolve();
+  /**
+   * R9-624 — set by `foldVerseNotes` before it lets go of the notes lock, and
+   * read by `applyRemoteNote` once it holds it: a pull that asked «folded?»
+   * before the fold (the flag is written later, after the queueing) and then
+   * waited for the lock still folds its old id, instead of writing a second
+   * row of the verse that no fold would ever take.
+   */
+  private notesFoldedHere = false;
   private initialized = false;
   private initializationPromise: Promise<void> | null = null;
   // One-time flag for the Sprint 58 canonical book-key normalization.
@@ -2298,6 +2306,7 @@ class BibleDatabase {
       await this.getDb().withTransactionAsync(async () => {
         fold = await this.foldVerseNotesInTransaction(bumpTo);
       });
+      this.notesFoldedHere = true; // R9-624: still inside the lock
       return fold;
     });
   }
@@ -2312,11 +2321,16 @@ class BibleDatabase {
    * row here, locally: its text joins unless already there, so a second
    * delivery changes nothing. Nothing is pushed back: the device that owned
    * the old id pushes the fold and the old id's delete when it folds.
+   *
+   * `foldOldIds` is the flag the adapter read before it got here; a fold
+   * that ran in this process while it waited for the lock counts too
+   * (R9-624, `notesFoldedHere`).
    */
   async applyRemoteNote(row: VerseNoteRow, foldOldIds: boolean): Promise<void> {
     return this.withNotesLock(async () => {
       const incoming = {...row, book: canonicalBookName(row.book)};
-      if (!foldOldIds || isVerseNoteId(row.id)) {
+      const folded = foldOldIds || this.notesFoldedHere;
+      if (!folded || isVerseNoteId(row.id)) {
         await this.writeNoteRow(incoming);
         return;
       }

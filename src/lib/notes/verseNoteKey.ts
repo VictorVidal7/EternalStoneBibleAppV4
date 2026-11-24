@@ -48,13 +48,31 @@ export interface VerseNoteRow {
   updatedAt: string;
 }
 
+/** A fold joins its texts with a blank line; R9-625 splits on it. */
+const PARAGRAPH = '\n\n';
+
+/**
+ * A text's paragraphs, trimmed, without the empty ones: a note that ends in a
+ * newline, joined into a fold, must still be found there whole.
+ */
+function paragraphsOf(text: string): string[] {
+  return text
+    .split(/\n\s*\n/)
+    .map(p => p.trim())
+    .filter(p => p.length > 0);
+}
+
 /**
  * The text of several notes of ONE verse, folded into one. No text of the
  * user is lost and none is made up:
- *  - a text equal to another, or contained in another, is dropped (it is
- *    already there). So folding a note into a fold that already holds it
- *    changes nothing, and two devices that fold the same notes get the same
- *    text: a second fold is a no-op, wherever it runs;
+ *  - a text is dropped only when it is already there: equal to another, or
+ *    made of PARAGRAPHS (split on a blank line) that are all, whole, among
+ *    another's paragraphs. A fold is joined with a blank line, so folding a
+ *    note into a fold that already holds it changes nothing, and two devices
+ *    that fold the same notes get the same text: a second fold is a no-op,
+ *    wherever it runs. R9-625: it used to be a substring test, and «Ver Juan
+ *    1» was dropped beside «Ver Juan 14:6», gone for good (the fold runs once);
+ *  - two texts with the same paragraphs in another order: the first is kept;
  *  - the rest are joined oldest first (`createdAt`), with a blank line.
  */
 export function mergeNoteTexts(
@@ -66,10 +84,18 @@ export function mergeNoteTexts(
     .map(x => x.r.note);
   const distinct: string[] = [];
   for (const t of ordered) if (!distinct.includes(t)) distinct.push(t);
+  const paragraphs = distinct.map(t => new Set(paragraphsOf(t)));
+  const within = (a: number, b: number) =>
+    [...paragraphs[a]].every(p => paragraphs[b].has(p));
+  // `b` holds `a` when `a`'s paragraphs are all in `b`, and `b`'s are not all
+  // in `a` (or are, and `b` comes first): a strict order, so one always stays.
   const kept = distinct.filter(
-    t => !distinct.some(other => other !== t && other.includes(t)),
+    (_, a) =>
+      !distinct.some(
+        (__, b) => b !== a && within(a, b) && (b < a || !within(b, a)),
+      ),
   );
-  return (kept.length > 0 ? kept : distinct.slice(0, 1)).join('\n\n');
+  return (kept.length > 0 ? kept : distinct.slice(0, 1)).join(PARAGRAPH);
 }
 
 /**

@@ -153,8 +153,9 @@ export default function LectioScreen() {
   const step = LECTIO_STEPS[stepIndex];
 
   // Stamp the day's "Momento con Dios" the moment the journey closes (Sprint
-  // 84). `finished` only ever flips false→true (handleFinish, both the saved-
-  // prayer and the error path), so this records exactly once per completion.
+  // 84). `finished` only ever flips false→true (handleFinish, once the prayer
+  // is saved or there is none; R9-627: not when the save fails), so this
+  // records exactly once per completion.
   // DEVICE-LOCAL — recordTodayDevotion writes only the @devotion_log; unlike
   // the prayer-as-note or the Memorize button, it never touches Firestore.
   useEffect(() => {
@@ -323,8 +324,10 @@ export default function LectioScreen() {
         component: 'LectioScreen',
         action: 'handleFinish',
       });
-      // Still close the journey honestly — the prayer stays on screen.
-      setFinished(true);
+      // R9-627 — say so, and stay on this step: the prayer is still in its
+      // field (one step back) and «Finish» tries again. Closing the journey
+      // here used to lose it in silence: the finale does not show it.
+      toast.error(t.notes.saveError);
     } finally {
       savingRef.current = false;
     }
@@ -340,6 +343,7 @@ export default function LectioScreen() {
     toast,
     tl.prayerSaved,
     tl.title,
+    t.notes.saveError,
     achievementService,
     notifyAchievements,
   ]);

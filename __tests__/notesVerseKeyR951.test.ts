@@ -86,6 +86,8 @@ async function freshDevice(db: BibleDatabase): Promise<NodeSqlite> {
   (db as unknown as {db: NodeSqlite}).db = sqlite;
   await (db as unknown as {createSchema(): Promise<void>}).createSchema();
   (db as unknown as {initialized: boolean}).initialized = true;
+  // A new device has not folded (R9-624 keeps that in memory).
+  (db as unknown as {notesFoldedHere: boolean}).notesFoldedHere = false;
   return sqlite;
 }
 
@@ -439,5 +441,196 @@ describe('R9-51 — mergeNoteTexts', () => {
         {note: 'a\n\nb', createdAt: '2026-05'},
       ]),
     ).toBe('a\n\nb');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// S176 — the fixes of the S175 review.
+// ---------------------------------------------------------------------------
+
+const ms = (iso: string) => Date.parse(iso);
+const remoteNote = (note: string, createdAt: string, updatedAt: string) => ({
+  book: 'John',
+  chapter: 3,
+  verse: 16,
+  text: KJV.text,
+  note,
+  createdAt: ms(createdAt),
+  updatedAt: ms(updatedAt),
+});
+
+describe('R9-625 — «already there» is a whole paragraph, not a substring', () => {
+  const at = (note: string, createdAt: string) => ({note, createdAt});
+
+  it('keeps a short note that only LOOKS like part of another', () => {
+    expect(
+      mergeNoteTexts([
+        at('Ver Juan 1', '2026-01'),
+        at('Ver Juan 14:6', '2026-02'),
+      ]),
+    ).toBe('Ver Juan 1\n\nVer Juan 14:6');
+    expect(
+      mergeNoteTexts([
+        at('Salmo 2', '2026-01'),
+        at('Compárese con el Salmo 23', '2026-02'),
+      ]),
+    ).toBe('Salmo 2\n\nCompárese con el Salmo 23');
+  });
+
+  it('still drops a note that is whole paragraphs of another (a fold already folded)', () => {
+    expect(mergeNoteTexts([at('a', '2026-01'), at('a\n\nb', '2026-05')])).toBe(
+      'a\n\nb',
+    );
+    // A note ending in a newline is still found whole inside its fold.
+    const fold = mergeNoteTexts([at('a\n', '2026-01'), at('b', '2026-02')]);
+    expect(
+      mergeNoteTexts([
+        at(fold, '2026-01'),
+        at('a\n', '2026-01'),
+        at('b', '2026-02'),
+      ]),
+    ).toBe(fold);
+    // The same paragraphs in another order: one stays, the first.
+    expect(
+      mergeNoteTexts([at('a\n\nb', '2026-01'), at('b\n\na', '2026-02')]),
+    ).toBe('a\n\nb');
+  });
+
+  it('folding twice is folding once (H5 of S175)', () => {
+    const notes = [
+      at('Ver Juan 1', '2026-01'),
+      at('a\n\nb', '2026-02'),
+      at('a', '2026-03'),
+      at('Ver Juan 14:6', '2026-04'),
+    ];
+    const once = mergeNoteTexts(notes);
+    expect(once).toBe('Ver Juan 1\n\na\n\nb\n\nVer Juan 14:6');
+    expect(mergeNoteTexts([at(once, '2026-01'), ...notes])).toBe(once);
+  });
+
+  it('the migration keeps «Ver Juan 1» and «Ver Juan 14:6» of John 1:1 (the S175 live case)', async () => {
+    const john11 = {
+      book: 'John',
+      chapter: 1,
+      verse: 1,
+      text: 'In the beginning was the Word…',
+    };
+    await oldRow(
+      sqlite,
+      'note_1',
+      john11,
+      'Ver Juan 1',
+      '2026-02-01T00:00:00.000Z',
+      '2026-02-01T00:00:00.000Z',
+    );
+    await oldRow(
+      sqlite,
+      'note_2',
+      john11,
+      'Ver Juan 14:6',
+      '2026-03-01T00:00:00.000Z',
+      '2026-03-01T00:00:00.000Z',
+    );
+    await migrateNotesToVerseKeys();
+    expect(rows(sqlite).map(r => [r.id, r.note])).toEqual([
+      ['vnote:John:1:1', 'Ver Juan 1\n\nVer Juan 14:6'],
+    ]);
+  });
+
+  it('the adapter and the import fold the same way (one rule for the three)', async () => {
+    await AsyncStorage.setItem(NOTES_VERSE_KEY_FLAG, '1');
+    await oldRow(
+      sqlite,
+      'vnote:John:3:16',
+      KJV,
+      'Ver Juan 1',
+      '2026-01-01T00:00:00.000Z',
+      '2026-01-01T00:00:00.000Z',
+    );
+    await notesSyncAdapter.applyRemoteUpsert(
+      'note_9',
+      remoteNote(
+        'Ver Juan 14:6',
+        '2026-02-01T00:00:00.000Z',
+        '2026-02-01T00:00:00.000Z',
+      ),
+    );
+    expect(rows(sqlite).map(r => r.note)).toEqual([
+      'Ver Juan 1\n\nVer Juan 14:6',
+    ]);
+    // The import's fold is `foldVerseNotesInTransaction`, the migration's too.
+    await oldRow(
+      sqlite,
+      'note_imp',
+      KJV,
+      'Ver Juan 14',
+      '2026-03-01T00:00:00.000Z',
+      '2026-03-01T00:00:00.000Z',
+    );
+    await bibleDB.foldVerseNotesInTransaction('2026-11-24T10:00:00.000Z');
+    expect(rows(sqlite).map(r => r.note)).toEqual([
+      'Ver Juan 1\n\nVer Juan 14:6\n\nVer Juan 14',
+    ]);
+  });
+});
+
+describe('R9-624 — «folded?» is decided inside the notes lock', () => {
+  it('a pull that arrives DURING the start-up fold folds its old id: one row (H1 of S175)', async () => {
+    await oldRow(
+      sqlite,
+      'note_a',
+      KJV,
+      'nota A',
+      '2026-03-01T00:00:00.000Z',
+      '2026-03-01T00:00:00.000Z',
+    );
+    const realFold = bibleDB.foldVerseNotesInTransaction.bind(bibleDB);
+    let pull: Promise<void> | null = null;
+    const spy = jest
+      .spyOn(bibleDB, 'foldVerseNotesInTransaction')
+      .mockImplementation(async bumpTo => {
+        // The engine's pull lands while the fold holds the lock; it reads
+        // the flag now (still unset), then waits for the lock.
+        pull = notesSyncAdapter.applyRemoteUpsert(
+          'note_b',
+          remoteNote(
+            'nota B de la tableta',
+            '2026-04-01T00:00:00.000Z',
+            '2026-04-01T00:00:00.000Z',
+          ),
+        );
+        await new Promise(r => setTimeout(r, 5));
+        return realFold(bumpTo);
+      });
+    await migrateNotesToVerseKeys();
+    await pull;
+    spy.mockRestore();
+    expect(rows(sqlite).map(r => [r.id, r.note])).toEqual([
+      ['vnote:John:3:16', 'nota A\n\nnota B de la tableta'],
+    ]);
+    expect(await AsyncStorage.getItem(NOTES_VERSE_KEY_FLAG)).toBe('1');
+  });
+
+  it('a fold that fails does not count: the pull writes its id as before', async () => {
+    await oldRow(
+      sqlite,
+      'note_a',
+      KJV,
+      'nota A',
+      '2026-03-01T00:00:00.000Z',
+      '2026-03-01T00:00:00.000Z',
+    );
+    sqlite.failWhen = sql => sql.startsWith('DELETE FROM notes');
+    await expect(migrateNotesToVerseKeys()).rejects.toThrow();
+    sqlite.failWhen = null;
+    await notesSyncAdapter.applyRemoteUpsert(
+      'note_b',
+      remoteNote(
+        'nota B',
+        '2026-04-01T00:00:00.000Z',
+        '2026-04-01T00:00:00.000Z',
+      ),
+    );
+    expect(rows(sqlite).map(r => r.id)).toEqual(['note_a', 'note_b']);
   });
 });
