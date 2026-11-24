@@ -42,6 +42,7 @@ import {
   isOriginalsUpdateAvailable,
   downloadAndImportOriginals,
   ORIGINALS_META_URL,
+  ORIGINALS_META_TIMEOUT_MS,
 } from '../originals-download-service';
 
 const VALID_META = {
@@ -219,5 +220,39 @@ describe('downloadAndImportOriginals — persists the installed sha256', () => {
       PackDownloadError,
     );
     expect(mockImportOriginalsPack).not.toHaveBeenCalled();
+  });
+});
+
+describe('R9-40 — the originals metadata fetch has a deadline', () => {
+  beforeEach(async () => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+    // Never settles and ignores the abort: the worst network.
+    global.fetch = jest.fn(() => new Promise(() => {}));
+    await AsyncStorage.clear();
+    mockImportOriginalsPack.mockResolvedValue(247);
+    mockDeleteAsync.mockResolvedValue(undefined);
+  });
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('a hung metadata fetch resolves null at the deadline', async () => {
+    let settled: unknown = 'pending';
+    fetchOriginalsMeta().then(v => (settled = v));
+    await jest.advanceTimersByTimeAsync(ORIGINALS_META_TIMEOUT_MS);
+    expect(settled).toBeNull();
+  });
+
+  it('a hung post-import metadata fetch does not hang the download', async () => {
+    mockCreateDownloadResumable.mockReturnValue({
+      downloadAsync: jest.fn().mockResolvedValue({status: 200}),
+    });
+    let words: unknown = 'pending';
+    downloadAndImportOriginals().then(v => (words = v));
+    await jest.advanceTimersByTimeAsync(ORIGINALS_META_TIMEOUT_MS);
+    expect(words).toBe(247);
+    expect(mockImportOriginalsPack).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,6 +3,7 @@ import {File} from 'expo-file-system';
 import bibleDB from './index';
 import {sha256Hex} from './sha256';
 import {logger} from '@lib/utils/logger';
+import {withTimeout} from '@lib/utils/withTimeout';
 import {
   CATALOG_URL,
   PackDownloadError,
@@ -26,16 +27,30 @@ import {
 const SPACE_HEADROOM = 2.5;
 
 /**
+ * Deadline for the catalog fetch (R9-40). React Native's `fetch` has none: a
+ * network that accepts the connection and never answers left «Buscando
+ * versiones…» spinning with no «Reintentar». A timeout rejects like any other
+ * network failure, so the section shows its error and retry.
+ */
+export const CATALOG_TIMEOUT_MS = 15_000;
+
+/**
  * Fetch + parse the hosted catalog of downloadable versions. A cache-buster
  * query keeps a freshly-deployed versions.json from being served stale.
  */
 export async function fetchVersionCatalog(): Promise<RemotePackVersion[]> {
   try {
-    const res = await fetch(`${CATALOG_URL}?t=${Date.now()}`);
-    if (!res.ok) {
-      throw new PackDownloadError('network', `catalog HTTP ${res.status}`);
-    }
-    return parseVersionCatalog(await res.json());
+    return await withTimeout(
+      async signal => {
+        const res = await fetch(`${CATALOG_URL}?t=${Date.now()}`, {signal});
+        if (!res.ok) {
+          throw new PackDownloadError('network', `catalog HTTP ${res.status}`);
+        }
+        return parseVersionCatalog(await res.json());
+      },
+      CATALOG_TIMEOUT_MS,
+      'version catalog',
+    );
   } catch (error) {
     if (error instanceof PackDownloadError) throw error;
     throw new PackDownloadError('network', String(error));

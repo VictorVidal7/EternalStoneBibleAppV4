@@ -21,6 +21,7 @@ import * as LegacyFS from 'expo-file-system/legacy';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from './index';
 import {PackDownloadError} from './pack-catalog';
+import {withTimeout} from '@lib/utils/withTimeout';
 
 /** Where the originals pack is hosted (same Pages host as translation packs). */
 export const ORIGINALS_PACK_URL =
@@ -72,6 +73,13 @@ export function parseOriginalsMeta(json: unknown): OriginalsPackMeta | null {
 }
 
 /**
+ * Deadline for the metadata fetch (R9-40): without it a network that never
+ * answers hung the update check and the END of a finished download (the
+ * post-import sha256 save awaits this call). A timeout is read as offline.
+ */
+export const ORIGINALS_META_TIMEOUT_MS = 15_000;
+
+/**
  * Fetch + parse the hosted originals-pack metadata. Never throws — a network
  * failure or malformed payload just means "no update detected", same spirit
  * as {@link importLocalOriginalsIfPresent}. A cache-buster query keeps a
@@ -79,9 +87,17 @@ export function parseOriginalsMeta(json: unknown): OriginalsPackMeta | null {
  */
 export async function fetchOriginalsMeta(): Promise<OriginalsPackMeta | null> {
   try {
-    const res = await fetch(`${ORIGINALS_META_URL}?t=${Date.now()}`);
-    if (!res.ok) return null;
-    return parseOriginalsMeta(await res.json());
+    return await withTimeout(
+      async signal => {
+        const res = await fetch(`${ORIGINALS_META_URL}?t=${Date.now()}`, {
+          signal,
+        });
+        if (!res.ok) return null;
+        return parseOriginalsMeta(await res.json());
+      },
+      ORIGINALS_META_TIMEOUT_MS,
+      'originals meta',
+    );
   } catch {
     return null;
   }
