@@ -10,6 +10,7 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useMemo,
   useRef,
   ReactNode,
 } from 'react';
@@ -111,8 +112,19 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
     }
   }, []);
 
+  // Memoized so the context value keeps its identity across the provider's own
+  // re-renders (every show and every dismiss). A fresh object here re-ran every
+  // consumer effect with `toast` in its deps — the reader's 5 s reading timer
+  // re-armed on each toast and counted the chapter again (R9-465), and since
+  // re-reading a plan day completes it, re-ticked a day the user had unticked
+  // (R9-623). All five callbacks are stable, so this never changes.
+  const value = useMemo<ToastContextValue>(
+    () => ({show, success, error, warning, info}),
+    [show, success, error, warning, info],
+  );
+
   return (
-    <ToastContext.Provider value={{show, success, error, warning, info}}>
+    <ToastContext.Provider value={value}>
       {children}
       {toastConfig && (
         // Rendered as a plain sibling View (no Modal wrapper) so it never

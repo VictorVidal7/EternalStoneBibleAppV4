@@ -726,6 +726,28 @@ export default function VerseReadingScreen() {
     setFavoritedVerses(new Set(currentChapterFavorites));
   }, [favorites, book, canonicalBook, chapterNum]);
 
+  // The reading timer below reads its helpers through this ref instead of
+  // listing them as deps: re-arming it re-counts the chapter (trackVersesRead
+  // sums without dedup, R9-465) and re-reads it into any plan day it belongs
+  // to, re-ticking a day the user unticked (R9-623). So it must re-arm only
+  // when the CHAPTER changes — never because a context handed out a new
+  // function or object (a toast, a language switch), and a reader left
+  // mounted under another screen sees every such change.
+  const trackingHelpersRef = useRef({
+    markChapterRead,
+    getPlanDuration,
+    notifyAchievements,
+    t,
+    toast,
+  });
+  trackingHelpersRef.current = {
+    markChapterRead,
+    getPlanDuration,
+    notifyAchievements,
+    t,
+    toast,
+  };
+
   // ✨ Track reading progress after 5 seconds
   useEffect(() => {
     if (loading || verses.length === 0 || !achievementService) return;
@@ -734,6 +756,8 @@ export default function VerseReadingScreen() {
     startTimeRef.current = Date.now();
 
     const trackingTimer = setTimeout(async () => {
+      const {markChapterRead, getPlanDuration, notifyAchievements, t, toast} =
+        trackingHelpersRef.current;
       try {
         const timeSpent = Math.floor(
           (Date.now() - startTimeRef.current) / 1000,
@@ -808,17 +832,7 @@ export default function VerseReadingScreen() {
     }, 5000); // 5 seconds
 
     return () => clearTimeout(trackingTimer);
-  }, [
-    verses,
-    loading,
-    achievementService,
-    book,
-    chapterNum,
-    markChapterRead,
-    notifyAchievements,
-    t,
-    toast,
-  ]);
+  }, [verses, loading, achievementService, book, chapterNum, canonicalBook]);
 
   // 📚 Book-completion detection (Sprint 64). When the reading-progress map
   // shows the CURRENT book is now fully read (every chapter past the
