@@ -15125,6 +15125,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     queda hasta que se actualice.
   - **Arreglo propuesto (sin escribir):** decidir «plegado o no» DENTRO del candado (por ejemplo, que el plegado
     marque un estado en memoria antes de soltarlo y `applyRemoteNote` lo lea ya con el candado), y la prueba H1.
+  - **✅ ARREGLADO en la sesión 176** (`4d5e4777`, rama `fix/s176`): `foldVerseNotes` marca `notesFoldedHere` (en memoria) antes de soltar el candado, y `applyRemoteNote` pliega si la bandera que leyó el adaptador O esa marca lo dicen, ya con el candado. Un plegado que falla no la marca. Prueba: la H1 de la 175 (un pull disparado dentro del plegado) termina con UNA fila con las dos notas; el revert la hace caer. Detalle: `detail/S176-arreglos-revision-s175.md` §2.
 
 - **`R9-625` (S175, notas / la regla de `mergeNoteTexts` — P3) — 🐛 el plegado borra una nota cuyo texto aparece
   DENTRO de otra, aunque diga otra cosa: «Ver Juan 1» desaparece junto a «Ver Juan 14:6».** MEDIDO en jest y en el
@@ -15141,6 +15142,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto (sin escribir):** comparar párrafos (partir por `\n\n`): un texto se quita solo si es igual
     a otro o si TODOS sus párrafos ya están, como párrafos, en otro. Sigue siendo idempotente (lo plegado se une
     con `\n\n`).
+  - **✅ ARREGLADO en la sesión 176** (`4d5e4777`, rama `fix/s176`): `mergeNoteTexts` compara PÁRRAFOS (partidos por una línea en blanco, recortados, sin los vacíos): un texto se quita solo si es igual a otro o si todos sus párrafos ya están, enteros, en otro; con los mismos párrafos en otro orden queda el primero (un orden estricto: siempre queda uno). Sigue idempotente y es la misma en la migración, el adaptador y el import (las tres llaman `mergeVerseNotes`). Pruebas en `notesVerseKeyR951.test.ts` (H3 y H5 de la 175, la migración de Juan 1:1, el adaptador y el import); el revert las hace caer (5). En vivo: el caso de la 175 da `vnote:John:1:1` = «Ver Juan 1» + «Ver Juan 14:6». Detalle: `detail/S176-arreglos-revision-s175.md` §1.
 
 - **`R9-626` (S175, notas / el plegado del adaptador con una app vieja — P3) — 🐛 en un aparato ya plegado, cada
   edición de una nota hecha en una app vieja agrega otra copia del texto, y dos aparatos que reciben los mismos docs
@@ -15159,6 +15161,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     acumulan.
   - **Arreglo propuesto (sin escribir), si se decide arreglar:** en el adaptador, un id viejo ya visto reemplaza su
     parte (guardar qué id viejo aportó qué párrafo) o, más simple, aceptarlo y escribirlo en la §5 de la 174.
+  - **✅ ACEPTADO (sesión 176, delegado: «decidir con porqué»)**: no se arregla. (1) Es transitorio y estrecho: pide una app vieja CON sync que siga editando notas, y hoy las únicas son las de la prueba interna, que se actualizan por la tienda. (2) No pierde texto: deja copias de más, a la vista, que el usuario borra en el editor; y la divergencia de orden se cierra con la siguiente edición en cualquier aparato (esa sí sube). (3) Arreglarlo de verdad pide guardar qué id viejo aportó qué párrafo (una columna o tabla nueva y su migración, y otra regla en el adaptador): más código en la zona que esta misma tanda acaba de tocar, por un daño que se acaba solo. `R9-625` no lo cambia (una edición sigue siendo un párrafo distinto). Detalle: `detail/S176-arreglos-revision-s175.md` §4.
 
 - **`R9-627` (S175, lectio / notas — P3) — 🐛 si guardar la oración de lectio falla, no sale ningún aviso y la
   oración se pierde: el final no la muestra.** MEDIDO por lectura (sesión 175); el fallo, sin sondear en vivo.
@@ -15171,6 +15174,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     nota entre la lectura y el `INSERT`: `UNIQUE constraint failed`).
   - **Arreglo propuesto (sin escribir):** en el `catch`, `toast.error` y quedarse en el paso de la oración (o
     mostrarla en el final para copiarla).
+  - **✅ ARREGLADO en la sesión 176** (`4d5e4777`, rama `fix/s176`): el `catch` de `handleFinish` muestra `t.notes.saveError` (el aviso del lector) y NO cierra el recorrido: la oración sigue en su campo (un paso atrás) y «Terminar» reintenta; el día de «Momento con Dios» se marca solo cuando de verdad termina. Prueba con la pantalla real y el error de `updateNote` con 0 filas (`lectioPrayerSaveErrorR9627.test.tsx`): aviso, sin final, la oración en su campo, y el reintento guarda y cierra; el revert la hace caer. Sin medir en vivo. Detalle: `detail/S176-arreglos-revision-s175.md` §3.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

@@ -467,3 +467,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   «contenido» borra una nota que es subcadena de otra; medido también en vivo), `R9-626` (el plegado del adaptador
   con una app vieja) y `R9-627` (lectio falla en silencio). La 176 arregla `R9-625` y `R9-624`. Detalle:
   `detail/S175-revision-del-diff-s174.md`.
+- **Sesión 176 — 2026-11-24.** Los arreglos de la revisión de la 175, con Opus 5.5 de principal, sin agentes y con
+  emulador, en `fix/s176` (`4d5e4777`). `R9-625` (la regla de «contenido» compara párrafos enteros: «Ver Juan 1» y
+  «Ver Juan 14:6» quedan las dos, también en vivo), `R9-624` («¿plegó?» se decide dentro del candado) y `R9-627`
+  (lectio avisa y no pierde la oración), arreglados; `R9-626`, aceptado con porqué. 274 abiertos de 627. Validate
+  435/435, 5141 pruebas. La 177 es la revisión del diff de la 176. Detalle: `detail/S176-arreglos-revision-s175.md`.
