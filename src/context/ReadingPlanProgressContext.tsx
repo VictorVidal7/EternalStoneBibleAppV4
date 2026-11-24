@@ -307,7 +307,8 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         );
       }
 
-      // Find every plan day not yet completed whose chapters are all read.
+      // Find every plan day not yet completed that contains this chapter and
+      // whose chapters are now all read.
       // Uses each plan's EFFECTIVE days (a reflowed custom duration, if one
       // was chosen) so auto-complete checks the day groupings the reader
       // actually sees, not the curated default. Only plans the reader has
@@ -327,6 +328,14 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         );
         for (const planDay of planDays) {
           if (completedDays.includes(planDay.day)) continue;
+          // R9-54 — a reading completes only the days it belongs to. Scanning
+          // every day re-completed one the reader had just UN-ticked (its
+          // chapters stay read) on the next chapter read anywhere, with a
+          // toast. Reading that day's chapter again still completes it.
+          const containsRead = planDay.readings.some(
+            r => chapterKey(r.book, r.chapter) === key,
+          );
+          if (!containsRead) continue;
           const allRead = planDay.readings.every(r => {
             const k = chapterKey(r.book, r.chapter);
             return k != null && nextRead[k];
