@@ -3822,6 +3822,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   **⚠️ Sesión 22 (re-verificado con SQLite real, `node:sqlite`): se sostiene, P1.** No es «una arbitraria»: SQLite devuelve la de menor `rowid`, o sea la que llegó primero a ESE dispositivo. Así, cada dispositivo muestra en el lector su propia nota y los dos divergen para siempre. Para la sonda ya no hace falta un dispositivo. Líneas de hoy: `:540-549`, `:2102` y `:2161-2177`. Vecino: `R9-145`.
   - **Nota de la sesión 171:** el diseño de la migración está en `detail/S171-tanda-v5.md` §3: el id pasa a ser la clave del versículo (`vnote:<libro>:<cap>:<vers>`), con una migración local que fusiona sin perder texto, el plegado en el adaptador y en el import. Sin código: lo escribe una sesión propia.
   - **✅ ARREGLADO en la sesión 174** (`29c956ac`, rama `fix/s174`): el id de una nota es el versículo (`vnote:<libro canónico>:<cap>:<vers>`, `src/lib/notes/verseNoteKey.ts`); un plegado al arrancar (una transacción, bandera `@notes_verse_key_v1`) junta las filas de un versículo sin perder texto y sube un lote con la fila y las lápidas de los ids viejos; el adaptador y el import pliegan con la misma regla; un candado de notas en `BibleDatabase`, y `updateNote` rechaza con 0 filas. 11 pruebas con SQLite real, revert por pieza; en vivo, el plegado al arrancar. Detalle: `detail/S174-r9-51-notas.md`.
+  - **Revisado en la sesión 175** (`detail/S175-revision-del-diff-s174.md`): el arreglo se sostiene (en vivo: el plegado al arrancar, la pestaña Notas con una nota por versículo, el lector que abre el texto plegado y una edición que toca su fila). Nuevos, todos P3: `R9-624` (un pull durante el plegado deja una segunda fila), `R9-625` (la regla de «contenido» borra una nota que es subcadena de otra), `R9-626` (el plegado del adaptador con una app vieja: copias y orden) y `R9-627` (lectio falla en silencio).
 - **`R9-52` (A9, Mesa) — 🐛 toda falla de escritura de una nota se traga en silencio y
   `savePrepNote` la reporta como éxito.** Severidad **media**. `prepNotesStore.ts:76-81`:
   `writeQueue.then(run).catch(log)` y `return writeQueue` → **resuelve, nunca rechaza**; los 4
@@ -15107,6 +15108,69 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Propuesta (sin escribir): `useMemo` en el `value` de Toast (cierra también `R9-465`) y que el temporizador del
     lector no dependa de identidades que cambian; prueba con el provider real de Toast.
   - **✅ ARREGLADO en la sesión 173** (`41a2a356`, rama `fix/s173`): el `value` de `ToastContext` con `useMemo`, y el temporizador de 5 s del lector lee sus ayudantes (`markChapterRead`, `t`, `toast`…) por un ref, así que un aviso no lo re-agenda. Pruebas con los providers reales (`readerTrackingTimerRearm.test.tsx`, `toastContextStableValue.test.tsx`); el revert por pieza las hace caer. En vivo (emulador), la ruta natural: lector de Juan 6 debajo, día destildado, aviso en Ajustes → sigue `[]` (sin el arreglo, `[1]`). Detalle: `detail/S173-arreglos-revision-s172.md` §1.
+
+- **`R9-624` (S175, notas / sync, la revisión de `R9-51` — P3) — 🐛 un doc de nota con id viejo que llega MIENTRAS
+  corre el plegado de arranque se escribe después, como segunda fila del versículo, y ya nadie lo pliega.** MEDIDO
+  en jest con SQLite real (sesión 175).
+  - `adapters/notes.ts:111-112`: `applyRemoteUpsert` lee la bandera (`await notesFolded()`) ANTES de entrar al
+    candado de notas; `applyRemoteNote(row, false)` espera el candado detrás del plegado
+    (`database/index.ts`, `foldVerseNotes`), y la bandera se graba después de soltarlo
+    (`migrateNotesToVerseKeys`, tras el encolado y el `setItem`). El pull que llegó con la bandera aún en `null`
+    escribe el id viejo tal cual DESPUÉS del plegado; la migración no vuelve a correr, así que la fila queda: el
+    lector muestra la más nueva y la pestaña Notas lista dos, el mismo síntoma de `R9-51`.
+  - **Sonda:** `_scratch/S175-pruebas.test.ts.txt`, H1 (un pull de `note_b` disparado dentro del plegado):
+    filas al final `note_b` y `vnote:John:3:16`, bandera `"1"`.
+  - **Camino:** el primer arranque tras actualizar, con sesión y otro aparato (o una app vieja) que escribió una
+    nota mientras tanto. Se cura solo cuando el dueño del id viejo pliega y sube su lápida; con una app vieja
+    queda hasta que se actualice.
+  - **Arreglo propuesto (sin escribir):** decidir «plegado o no» DENTRO del candado (por ejemplo, que el plegado
+    marque un estado en memoria antes de soltarlo y `applyRemoteNote` lo lea ya con el candado), y la prueba H1.
+
+- **`R9-625` (S175, notas / la regla de `mergeNoteTexts` — P3) — 🐛 el plegado borra una nota cuyo texto aparece
+  DENTRO de otra, aunque diga otra cosa: «Ver Juan 1» desaparece junto a «Ver Juan 14:6».** MEDIDO en jest y en el
+  emulador (sesión 175).
+  - `src/lib/notes/verseNoteKey.ts` (`mergeNoteTexts`): `other.includes(t)` es una subcadena de caracteres, no un
+    texto ya guardado. Con dos notas del mismo versículo, una corta y parte de otra («Salmo 2» y «Compárese con el
+    Salmo 23»; «Ver Juan 1» y «Ver Juan 14:6»), la corta se quita y nadie la vuelve a ver. Lo que la 174 quería
+    evitar (`a` dentro de `a\n\nb`, un plegado ya plegado) es un PÁRRAFO entero del otro texto.
+  - **Sonda:** `_scratch/S175-pruebas.test.ts.txt`, H3 (`"Ver Juan 14:6"`, `"Compárese con el Salmo 23"`). En
+    vivo: dos filas viejas de Juan 1:1 con esos textos → `vnote:John:1:1` con «Ver Juan 14:6» solo
+    (`detail/S175-revision-del-diff-s174.md` §3).
+  - El plegado corre UNA vez por aparato: lo que quita no vuelve aunque se arregle después. Por eso conviene
+    arreglarlo antes de que un build con `29c956ac` llegue a un aparato con datos reales.
+  - **Arreglo propuesto (sin escribir):** comparar párrafos (partir por `\n\n`): un texto se quita solo si es igual
+    a otro o si TODOS sus párrafos ya están, como párrafos, en otro. Sigue siendo idempotente (lo plegado se une
+    con `\n\n`).
+
+- **`R9-626` (S175, notas / el plegado del adaptador con una app vieja — P3) — 🐛 en un aparato ya plegado, cada
+  edición de una nota hecha en una app vieja agrega otra copia del texto, y dos aparatos que reciben los mismos docs
+  viejos en otro orden quedan con textos distintos que nadie sube.** MEDIDO en jest (sesión 175).
+  - `database/index.ts` (`applyRemoteNote`, la rama del id viejo): junta el doc entrante con la fila del versículo
+    por `mergeNoteTexts`, que no sabe que el doc es la versión NUEVA de un texto que ya está. Una edición en la app
+    vieja («de la vieja» → «de la vieja, corregida») llega como texto distinto y se suma; otra edición, otra copia.
+  - El orden: la fila del versículo lleva el `createdAt` más viejo, y el doc nuevo se pone después de todo lo ya
+    plegado. Con `X` plegado y dos docs viejos `B` (feb) y `D` (mar), recibir B y luego D da `X\n\nB\n\nD`; D y luego
+    B da `X\n\nD\n\nB`, con el mismo `updated_at`. El adaptador no sube (sin eco, a propósito), así que los dos
+    aparatos se quedan distintos hasta la siguiente edición. Contradice el «dos aparatos que pliegan las mismas
+    notas dan el mismo texto» del §2 de la 174, que vale para la migración, no para el adaptador.
+  - **Sonda:** `_scratch/S175-pruebas.test.ts.txt`, H2 y H4.
+  - **Camino:** una app vieja que sigue escribiendo notas (hoy, solo la prueba interna). Transitorio: termina cuando
+    no quedan apps viejas. Entra con el «app vieja» aceptado del §5 de la 174, que no decía que las ediciones se
+    acumulan.
+  - **Arreglo propuesto (sin escribir), si se decide arreglar:** en el adaptador, un id viejo ya visto reemplaza su
+    parte (guardar qué id viejo aportó qué párrafo) o, más simple, aceptarlo y escribirlo en la §5 de la 174.
+
+- **`R9-627` (S175, lectio / notas — P3) — 🐛 si guardar la oración de lectio falla, no sale ningún aviso y la
+  oración se pierde: el final no la muestra.** MEDIDO por lectura (sesión 175); el fallo, sin sondear en vivo.
+  - `app/features/lectio.tsx:262-332` (`handleFinish`): el `catch` registra el error y llama `setFinished(true)`,
+    sin `toast.error`; el comentario dice «the prayer stays on screen», pero `renderFinale` (`:578`) no muestra la
+    oración, y el paso donde se escribió ya no está. El lector (`saveNote`) sí avisa (`t.notes.saveError`) y deja
+    el editor abierto.
+  - De antes, pero la 174 suma dos razones para que rechace: `updateNote` con 0 filas (el plegado de arranque
+    re-claveó la nota leída un instante antes) y `addNote` con el id del versículo ya ocupado (un pull trajo la
+    nota entre la lectura y el `INSERT`: `UNIQUE constraint failed`).
+  - **Arreglo propuesto (sin escribir):** en el `catch`, `toast.error` y quedarse en el paso de la oración (o
+    mostrarla en el final para copiarla).
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

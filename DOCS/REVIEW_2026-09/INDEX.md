@@ -461,3 +461,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   llamadas, la cerró la 174b. El id de una nota es el versículo; un plegado al arrancar, en el adaptador y en el
   import; un candado de notas. Sin entradas nuevas. Validate 434/434. La 175 es la revisión del diff de la 174.
   Detalle: `detail/S174-r9-51-notas.md`.
+- **Sesión 175 — 2026-11-24.** La revisión del diff de la 174 (`R9-51`), con Opus 5.5 de principal, sin agentes y
+  con emulador, en `docs/review-s175`. El arreglo se sostiene (en vivo: la pestaña Notas y el lector con una nota por
+  versículo). Nuevos, P3: `R9-624` (un pull durante el plegado deja una segunda fila), `R9-625` (la regla de
+  «contenido» borra una nota que es subcadena de otra; medido también en vivo), `R9-626` (el plegado del adaptador
+  con una app vieja) y `R9-627` (lectio falla en silencio). La 176 arregla `R9-625` y `R9-624`. Detalle:
+  `detail/S175-revision-del-diff-s174.md`.

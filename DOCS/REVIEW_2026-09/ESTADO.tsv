@@ -622,3 +622,7 @@ R9-620	P2	red / dinero, resto de R9-40	abierto		sin marca de cierre en su entrad
 R9-621	P3	interfaz / barra de estado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-622	P3	planes / la fusión de R9-64	aceptado	2b126e75	marca de su entrada: «✅ DECIDIDO (sesión 173, delegado: «decidir con porqué») (`2b126e75`): queda el sello más viejo aunque sea anterior al inicio, porque el id de un plan»
 R9-623	P2	planes / lector, R9-465 deshace R9-54	arreglado	41a2a356	marca de su entrada: «✅ ARREGLADO en la sesión 173 (`41a2a356`, rama `fix/s173`): el `value` de `ToastContext` con `useMemo`, y el temporizador de 5 s del lector lee sus ay»
+R9-624	P3	notas / sync, la revisión de R9-51	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-625	P3	notas / la regla de mergeNoteTexts	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-626	P3	notas / el plegado del adaptador con una app vieja	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-627	P3	lectio / notas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

@@ -265,6 +265,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   `R9-51` cerrado en `fix/s174` (`29c956ac`): el id de una nota es el versículo, un plegado que no pierde texto (al
   arrancar, en el adaptador y en el import) y un candado de notas. Toca datos guardados y el sync: **la 175: la
   revisión del diff de la 174, con emulador.**
+  **Hecha en la 175** (`detail/S175-revision-del-diff-s174.md`), sin agentes y con emulador: el arreglo se sostiene;
+  nuevos de `R9-624` a `R9-627` (P3). Sin P2 nuevos, pero el plegado corre una vez por aparato y `R9-625` borra texto
+  que después no vuelve: **la 176 arregla `R9-625` y `R9-624`** (y `R9-627` si cabe; `R9-626`, arreglar o aceptar),
+  antes de que un build con `29c956ac` llegue a un aparato con notas reales. **Después, la V6.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
