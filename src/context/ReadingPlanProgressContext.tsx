@@ -301,7 +301,11 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         // The plan being edited keeps its own start (its pace).
         startedAt: source.startedAt || target?.startedAt || '',
       };
-      // Conserve-once-earned: the earliest stamp of either survives.
+      // Conserve-once-earned: the earliest stamp of either survives, even
+      // when it predates the start kept above (R9-622, decided): a custom
+      // plan's id is the hash of its name and days, so a target with this id
+      // is the same plan, finished before — like restartPlan, which also
+      // keeps the stamp under a newer start.
       if (stamps.length > 0) merged.completedAt = stamps[0];
       else delete merged.completedAt;
       const next = {...progress, [toId]: merged};

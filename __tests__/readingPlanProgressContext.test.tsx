@@ -245,7 +245,8 @@ describe('R9-55 / R9-64 — migratePlanProgress', () => {
       await result.current.migratePlanProgress('old', 'new', 4);
     });
     expect(result.current.getCompletedDays('new')).toEqual([1, 2, 3]);
-    // The plan being edited keeps its own start; a once-earned stamp stays.
+    // The plan being edited keeps its own start; a once-earned stamp stays,
+    // even though it is older than that start (R9-622, decided below).
     expect(result.current.getStartedAt('new')).toBe(START_A);
     expect(result.current.getCompletedAt('new')).toBe(
       '2026-10-05T00:00:00.000Z',
@@ -289,5 +290,52 @@ describe('R9-55 / R9-64 — migratePlanProgress', () => {
       await result.current.migratePlanProgress('missing', 'keep', 1);
     });
     expect(result.current.getCompletedDays('keep')).toEqual([1, 2, 3]);
+  });
+
+  // R9-622 (decided in session 173): the merge keeps the OLDEST stamp even
+  // when it predates the edited plan's start. A custom plan's id is the hash
+  // of its name and days (customPlans.ts), so a target with that id is the
+  // SAME plan, finished before; `completedAt` is the first time the plan was
+  // ever finished (conserve-once-earned, planCompletion.ts), not a field of
+  // the current run — restartPlan already leaves a stamp older than the new
+  // start (the CONTROL below). Dropping it would erase a real «plan
+  // completed» event from the timeline and the «you finished it» restart
+  // text.
+  it('R9-622: an edit onto a deleted, finished twin keeps its older stamp', async () => {
+    const {result} = await withProgress({
+      y: {completedDays: [1], startedAt: '2026-11-01T00:00:00.000Z'},
+      x: {
+        completedDays: [1, 2, 3],
+        startedAt: '2026-09-01T00:00:00.000Z',
+        completedAt: '2026-09-20T00:00:00.000Z',
+      },
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('y', 'x', 3);
+    });
+    expect(result.current.getCompletedDays('x')).toEqual([1, 2, 3]);
+    expect(result.current.getStartedAt('x')).toBe('2026-11-01T00:00:00.000Z');
+    expect(result.current.getCompletedAt('x')).toBe('2026-09-20T00:00:00.000Z');
+  });
+
+  it('CONTROL: restartPlan already leaves a stamp older than the new start', async () => {
+    const {result} = await withProgress({
+      'iam-7': {
+        completedDays: [1, 2, 3, 4, 5, 6, 7],
+        startedAt: '2026-09-01T00:00:00.000Z',
+        completedAt: '2026-09-20T00:00:00.000Z',
+      },
+    });
+    await act(async () => {
+      await result.current.restartPlan('iam-7');
+    });
+    expect(result.current.getCompletedDays('iam-7')).toEqual([]);
+    expect(result.current.getCompletedAt('iam-7')).toBe(
+      '2026-09-20T00:00:00.000Z',
+    );
+    expect(
+      (result.current.getStartedAt('iam-7') as string) >
+        '2026-09-20T00:00:00.000Z',
+    ).toBe(true);
   });
 });
