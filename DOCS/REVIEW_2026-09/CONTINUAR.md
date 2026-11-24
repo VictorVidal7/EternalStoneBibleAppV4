@@ -250,6 +250,9 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   aplicar. **La 170: la revisión del diff de la 169 (borrado de la cuenta y cola del sync).**
   **Hecha en la 170** (`detail/S170-revision-del-diff-s169.md`), con 3 agentes y con emulador: los arreglos se
   sostienen; nuevos de `R9-616` a `R9-619` (P3); suma a `R9-25`. Sin P2 nuevos: **la 171 es la V5.**
+  **Hecha en la 171** (`detail/S171-tanda-v5.md`), sin agentes ni emulador: `R9-41`, `R9-40`, `R9-54`, `R9-55` y
+  `R9-64` cerrados en `fix/s171-v5`; nuevo `R9-620` (P2, el resto de `R9-40`). `R9-51`: el diseño de la migración en el
+  §3 del detalle, sin código. **La 172: la revisión del diff de la 171 (el tema y los planes, con emulador).**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
@@ -262,6 +265,8 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
 - **Tanda V5 — lector y planes (4 P1).** `R9-41` (Crepúsculo: derivar la oscuridad de la paleta), `R9-40` (el
   timeout del catálogo), `R9-54` (descompletar un día), con `R9-55` y `R9-64` (P2, el mismo archivo), y `R9-51`
   (dos notas para un versículo), que pide diseñar la migración antes de escribirla.
+  **Hecha en la 171:** cerrados los P1 `R9-41`, `R9-40` y `R9-54`, y los P2 `R9-55` y `R9-64`. `R9-51` queda abierto con
+  su diseño (`detail/S171-tanda-v5.md` §3): lo escribe una sesión propia, con revisión de diff con emulador detrás.
 - **Tanda V6 — CI y repo (1 P1, barata).** `R9-107` (leer el workflow con un parser YAML), con `R9-2` (el
   `.gitignore` de un repo público), `R9-5` y `R9-6`. `R9-118` (Codecov) sigue en la §8.
 - **Después, las tandas 2 a 9 de abajo** (los P2 de `R9-410` en adelante), con los cuatro P3 de la 141 delante de la

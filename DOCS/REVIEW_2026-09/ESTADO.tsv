@@ -38,8 +38,8 @@ R9-36	P0	conflictos	arreglado	6440ca0	marca de su entrada: «✅ ARREGLADO en la
 R9-37	P1	SyncEngine	arreglado	253f0a9d	marca de su entrada: «✅ ARREGLADO en la sesión 154 (`253f0a9d`, rama `fix/s154-v2`): dos guardas después del último `await` de `attachListener` (la colección sin listener y»
 R9-38	P0	SyncEngine	arreglado	ea182dc	marca de su entrada: «✅ ARREGLADO en la sesión 53 (`ea182dc`, rama `fix/s53-r59-r38`). El cómo, decidido midiendo: - Sin sesión, `queueWrite`/`queueDelete` encolan la entra»
 R9-39	P0	conflictos	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`9c425a8`, junto con `R9-106`): - Hay un conjunto «no asentado» (conflictos pendientes y docs saltados por `R9-46`) por c»
-R9-40	P1	catálogo de versiones	abierto		verificado en la 141: ningún `fetch` del catálogo de versiones tiene timeout (`grep AbortController src/lib/bible`: 0)
-R9-41	P1	lector	abierto		`app/(tabs)/verse/[book]/[chapter].tsx:719-722`: `readerIsDark` sigue enumerando `night` y `high-contrast`, sin `crepusculo`
+R9-40	P1	catálogo de versiones	arreglado	14bc4930	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`14bc4930`, rama `fix/s171-v5`): `withTimeout` (15 s, `AbortController` y carrera) en `fetchVersionCatalog` (el plazo re»
+R9-41	P1	lector	arreglado	12b83c37	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`12b83c37`, rama `fix/s171-v5`): `isReaderThemeDark` (`readerThemes.ts`) deriva la oscuridad del `background` de la pale»
 R9-42	P2	lector	abierto		decisión de diseño (💡): `app/(tabs)/verse/[book]/[chapter].tsx:2595` (`left: -(fontSizes.sm + spacing['0.5'])`)
 R9-43	P2	Mesa	abierto		`app/features/prep/index.tsx:3185` (`sectionCard` sin `gap`); `compareVerseBlock` (`:3424`) tiene `marginBottom` y `gap` propios, sin `marginTop`: no re-medido en pantalla
 R9-44	P0	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): si el versículo ya tiene subrayado, recolorear es un `UPDATE` de solo color en vez de un `addHighlight` de 5 a»
@@ -52,8 +52,8 @@ R9-50	P1	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la
 R9-51	P1	notas	abierto		verificado en la 141: la tabla `notes` no tiene restricción por versículo
 R9-52	P1	Mesa	arreglado	dcbd9ced	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`dcbd9ced`, rama `fix/s162-v3`): los 17 escritores de los tres bancos rechazan con la escritura fallida (los `create*` y»
 R9-53	P2	respaldo	abierto		sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
-R9-54	P1	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:222-257` (`toggleDay` no toca `READ_CHAPTERS_KEY`; solo lo escriben `:302` y `:463`)
-R9-55	P2	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:270-279` (`migratePlanProgress` copia `completedDays` sin recortar)
+R9-54	P1	planes	arreglado	23a9793b	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`23a9793b`, rama `fix/s171-v5`): una lectura completa solo los días que contienen el capítulo leído; la historia no se b»
+R9-55	P2	planes	arreglado	2fdd61e6	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`2fdd61e6`, rama `fix/s171-v5`): `migratePlanProgress` recibe la duración nueva (obligatoria) y suelta los días que ya n»
 R9-56	P2	notas	abierto		`app/(tabs)/notes.tsx:276` (`localizeBook(item.book)` junto al texto congelado)
 R9-57	P2	lector	abierto		`app/(tabs)/verse/[book]/[chapter].tsx:1049` (`saveNote` corta con `!noteText.trim()`; sin borrado desde el lector)
 R9-58	P2	Mesa	abierto		`grep flushOnExit` en `app` y `src`: 0
@@ -62,7 +62,7 @@ R9-60	P2	respaldo	arreglado	90f67a46	marca de su entrada: «✅ ARREGLADO en la 
 R9-61	P2	recuperación	abierto		`resetDeck` sigue sin llamadores fuera de `MemoryDeckContext`
 R9-62	P2	hitos	abierto		`src/lib/memory/goalStore.ts:72` (`merged.slice(-MAX_CELEBRATED)`, con `MAX_CELEBRATED = 60` en `:22`)
 R9-63	P2	recap	abierto		`src/features/reading-insights/weeklyRecap.ts:86` (`listeningDateKey(now - i * MS_PER_DAY)`)
-R9-64	P2	planes	abierto		`src/context/ReadingPlanProgressContext.tsx:278-279` (`delete next[fromId]` incondicional)
+R9-64	P2	planes	arreglado	2fdd61e6	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`2fdd61e6`, rama `fix/s171-v5`): con progreso en el destino, se fusiona: la unión de los días (recortada), el inicio del»
 R9-65	P1	sync	arreglado	261c053	marca de su entrada: «✅ ARREGLADO en la sesión 11 (`261c053`): exactamente esa línea, con la rama de conflicto reordenada para que se lea como lo que es (o frena el cursor,»
 R9-66	P1	build de packs	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: dos pisos, uno antes de abrir la base y otro después del bucle (`spanCount === 0`), y el script pasa a ser requerible par»
 R9-67	P1	tests	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: parsea con `ts.createSourceFile`, que no type-checkea, no resuelve módulos y no ejecuta una línea — conserva entera la ra»
@@ -618,3 +618,4 @@ R9-616	P3	sync, lo trae R9-29	abierto		sin marca de cierre en su entrada (en las
 R9-617	P3	sync, lo trae R9-29	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-618	P3	sync, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-619	P3	cuenta, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-620	P2	red / dinero, resto de R9-40	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

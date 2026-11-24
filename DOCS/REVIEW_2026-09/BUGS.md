@@ -3769,6 +3769,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   **Arreglo (no aplicado):** `AbortSignal.timeout(~10s)` en los 6 call sites, y en el
   catálogo tratar el abort como `loadError` para que aparezca «Reintentar». Detalle:
   `detail/CAMPO-victor-2026-09-07.md`.
+  - **✅ ARREGLADO en la sesión 171** (`14bc4930`, rama `fix/s171-v5`): `withTimeout` (15 s, `AbortController` y carrera) en `fetchVersionCatalog` (el plazo rechaza y sale «Reintentar») y en `fetchOriginalsMeta` (devuelve `null`; colgaba el final de una descarga). El canje de códigos y los cargadores web de packs quedan en `R9-620`. Detalle: `detail/S171-tanda-v5.md` §2.
 
 - **`R9-41` (campo, lector) — 🐛 con el tema de lectura «Crepúsculo» la barra de acciones
   del versículo queda texto casi blanco sobre panel casi blanco.** Severidad **media-alta**
@@ -3791,6 +3792,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   enumerarla — un campo `isDark` en `ReaderThemeColors`, o calcular la luminancia de
   `background` en `readerThemes.ts`, de modo que añadir un tema nuevo no pueda volver a
   olvidarse. Detalle: `detail/CAMPO-victor-2026-09-07.md`.
+  - **✅ ARREGLADO en la sesión 171** (`12b83c37`, rama `fix/s171-v5`): `isReaderThemeDark` (`readerThemes.ts`) deriva la oscuridad del `background` de la paleta; `system` sigue a la app. Prueba con el lector real: 8 temas × app clara/oscura, AA del texto de la barra; con la línea vieja caen solo los 2 de Crepúsculo. Detalle: `detail/S171-tanda-v5.md` §2.
 
 - **`R9-50` (A8, subrayados) — 🐛 borrar la nota o la categoría de un subrayado es un no-op
   completo, y la UI dice «Guardado».** Severidad **alta**. `updateHighlight`
@@ -3818,6 +3820,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   el lector, y contada doble por `getNotesCount()`. Sin sonda (requiere SQLite real). Detalle:
   `detail/A8-notas-subrayados.md`.
   **⚠️ Sesión 22 (re-verificado con SQLite real, `node:sqlite`): se sostiene, P1.** No es «una arbitraria»: SQLite devuelve la de menor `rowid`, o sea la que llegó primero a ESE dispositivo. Así, cada dispositivo muestra en el lector su propia nota y los dos divergen para siempre. Para la sonda ya no hace falta un dispositivo. Líneas de hoy: `:540-549`, `:2102` y `:2161-2177`. Vecino: `R9-145`.
+  - **Nota de la sesión 171:** el diseño de la migración está en `detail/S171-tanda-v5.md` §3: el id pasa a ser la clave del versículo (`vnote:<libro>:<cap>:<vers>`), con una migración local que fusiona sin perder texto, el plegado en el adaptador y en el import. Sin código: lo escribe una sesión propia.
 - **`R9-52` (A9, Mesa) — 🐛 toda falla de escritura de una nota se traga en silencio y
   `savePrepNote` la reporta como éxito.** Severidad **media**. `prepNotesStore.ts:76-81`:
   `writeQueue.then(run).catch(log)` y `return writeQueue` → **resuelve, nunca rechaza**; los 4
@@ -3854,6 +3857,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   plan) → `newlyCompleted: [{planId:'iam-7', day:1}]` y toast «¡Día 1 completado!». Detalle:
   `detail/A11-progreso-rachas.md`.
   **⚠️ Sesión 22 (sonda): se sostiene en P1.** El disparador es ancho: el lector llama a `markChapterRead` tras 5 s en cualquier capítulo. La prueba existente (`readingPlanProgressContext.test.tsx:65-82`) destilda sin haber leído el capítulo del día, así que no pasa por este caso. El toast real dice `✅ Día 1 de "<plan>" completado`. Líneas de hoy: `toggleDay` `:222-257`, el escaneo `:319-338` y `restartPlan` `:441-478`.
+  - **✅ ARREGLADO en la sesión 171** (`23a9793b`, rama `fix/s171-v5`): una lectura completa solo los días que contienen el capítulo leído; la historia no se borra. Cambio de conducta con prueba: un día leído antes de empezar el plan ya no se tilda con una lectura ajena. Detalle: `detail/S171-tanda-v5.md` §2.
 
 - **`R9-269` (S54, Mesa / `R9-59` — P1) — 🐛 la unión de la Mesa «sin cuenta» borra el trabajo del
   mismo pasaje: gana la entrada de la cuenta, y la otra se va con su clave.** MEDIDO con los stores
@@ -15044,6 +15048,16 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Control con `212f9d09` (P5c): igual. La 169 solo alarga la ventana (lecturas en serie por página).
   - **Severidad:** P3: requiere cerrar sesión durante el borrado; los rechazos de las reglas evitan la fuga.
 
+- **`R9-620` (S171, red / dinero, resto de `R9-40` — P2) — 🐛 el canje de códigos regalo y los cargadores web de
+  packs siguen sin plazo.** Por lectura (sesión 171), con el mecanismo medido en `R9-40`.
+  - `src/lib/offering/giftCodeService.ts:158`: el `fetch` del canje no lleva señal ni plazo. En una red que acepta la
+    conexión y no responde, el canje gira sin salida.
+  - `src/lib/database/data-loader.web.ts:98` y `:174`, y `src/lib/reading/redLetterText.web.ts:161`: lo mismo en la
+    web. Son descargas grandes: un plazo fijo corto cortaría una descarga lenta pero viva.
+  - El canje es dinero: un plazo que vence DESPUÉS de que el servidor canjeó deja al usuario con un error y el código
+    gastado. Antes de arreglarlo, medir qué devuelve el endpoint al reintentar el mismo código desde la misma cuenta.
+  - `withTimeout` (`src/lib/utils/withTimeout.ts`, de la 171) sirve para los cuatro.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -16124,6 +16138,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **Repro (sonda):** 5 días completados, plan editado a 2 → `250%` en pantalla vs `100%` en
   `planPace`. Detalle: `detail/A11-progreso-rachas.md`.
   **⬇️ Sesión 22: baja a P2** (sonda: `5/2 · 250%`). Es solo presentación: no se pierde nada, y `planPace` y el «completado» siguen bien. La barra NO se desborda, porque `progressTrack` tiene `overflow: 'hidden'` (`app/(tabs)/plan/[id].tsx:1030-1036`); lo que está mal es el texto. Falta una superficie: la tarjeta de Inicio (`ReadingPlanCard.tsx:127`, `:248`) también pinta `5/2`. `migratePlanProgress` está hoy en `:270-283`.
+  - **✅ ARREGLADO en la sesión 171** (`2fdd61e6`, rama `fix/s171-v5`): `migratePlanProgress` recibe la duración nueva (obligatoria) y suelta los días que ya no existen, en el dato y no en la pantalla. Detalle: `detail/S171-tanda-v5.md` §2.
 
 - **`R9-56` (A8, notas) — 🐛 la pestaña Notas muestra la referencia en el idioma de la versión
   activa y el versículo congelado en el idioma de cuando se creó la nota.** Severidad **baja**.
@@ -16253,6 +16268,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **Repro (sonda):** tras migrar, `getCompletedDays(BIG.id)` → `[]`. Detalle:
   `detail/A11-progreso-rachas.md`.
   **⚠️ Sesión 22 (sonda): se sostiene en P2.** El progreso de origen también desaparece de AsyncStorage. Hay una segunda vía: el id de un plan BORRADO, cuyo progreso sobrevive (`R9-146`).
+  - **✅ ARREGLADO en la sesión 171** (`2fdd61e6`, rama `fix/s171-v5`): con progreso en el destino, se fusiona: la unión de los días (recortada), el inicio del plan editado y el sello más viejo. Detalle: `detail/S171-tanda-v5.md` §2.
 
 ---
 

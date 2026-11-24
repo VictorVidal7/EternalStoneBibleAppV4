@@ -442,3 +442,7 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   tres arreglos se sostienen. Nuevos: `R9-616` y `R9-617` (P3, los trae `R9-29`), `R9-618` y `R9-619` (P3,
   previos); suma a `R9-25`. En vivo (AVD, letra 2.0): el diálogo de «Eliminar cuenta» entero en los dos idiomas,
   cancelado. Sin P2 nuevos: la 171 es la V5. Detalle: `detail/S170-revision-del-diff-s169.md`.
+- **Sesión 171 — 2026-11-23.** La tanda V5, con Opus 5.5 de principal, sin agentes ni emulador, en `fix/s171-v5` (4
+  commits). Cerrados `R9-41` (Crepúsculo: la oscuridad sale de la paleta), `R9-40` (el catálogo y los metadatos
+  originales con plazo), `R9-54` (un día destildado no vuelve), `R9-55` y `R9-64` (editar un plan propio recorta y
+  fusiona). Nuevo: `R9-620` (P2). `R9-51`: diseño sin código. Validate 431/431. Detalle: `detail/S171-tanda-v5.md`.
