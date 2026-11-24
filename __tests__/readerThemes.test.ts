@@ -13,8 +13,10 @@ import {
   isReaderTheme,
   resolveReaderTheme,
   isReaderThemeUnlocked,
+  isReaderThemeDark,
   ReaderTheme,
 } from '../src/styles/readerThemes';
+import {contrastRatio} from '../src/lib/a11y/contrast';
 
 const appColors = {
   background: '#APP_BG',
@@ -228,5 +230,37 @@ describe('isReaderThemeUnlocked', () => {
     expect(isReaderThemeUnlocked('musgo', true, false)).toBe(true);
     expect(isReaderThemeUnlocked('crepusculo', true, false)).toBe(true);
     expect(isReaderThemeUnlocked('niebla', true, false)).toBe(true);
+  });
+});
+
+describe('isReaderThemeDark (R9-41)', () => {
+  it('reads darkness from the palette background, Crepúsculo included', () => {
+    const dark = READER_THEME_ORDER.filter(
+      th => th !== 'system' && isReaderThemeDark(th, false),
+    );
+    expect(dark).toEqual(['night', 'high-contrast', 'crepusculo']);
+  });
+
+  it('system (no palette) follows the app theme', () => {
+    expect(isReaderThemeDark('system', true)).toBe(true);
+    expect(isReaderThemeDark('system', false)).toBe(false);
+  });
+
+  it('a concrete palette ignores the app theme', () => {
+    for (const th of READER_THEME_ORDER.filter(x => x !== 'system')) {
+      expect(isReaderThemeDark(th, true)).toBe(isReaderThemeDark(th, false));
+    }
+  });
+
+  it('every dark palette draws light text, every light one dark text', () => {
+    for (const th of READER_THEME_ORDER.filter(x => x !== 'system')) {
+      const p = READER_THEMES[th]!;
+      const textIsLight =
+        contrastRatio(p.text, '#000000') > contrastRatio(p.text, '#FFFFFF');
+      expect({th, dark: isReaderThemeDark(th, false)}).toEqual({
+        th,
+        dark: textIsLight,
+      });
+    }
   });
 });

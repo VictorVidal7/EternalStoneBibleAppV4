@@ -126,7 +126,7 @@ import {
   fontSize as fontSizes,
   staticColors,
 } from '@/styles/designTokens';
-import {resolveReaderTheme} from '@/styles/readerThemes';
+import {isReaderThemeDark, resolveReaderTheme} from '@/styles/readerThemes';
 import {centeredMaxWidth, READER_MAX_WIDTH} from '@/styles/responsive';
 import {
   resolveSecondaryVersion,
@@ -684,10 +684,8 @@ export default function VerseReadingScreen() {
   // Whether the *reading* surface is dark. Drives the floating selection bar
   // so its `effectiveColors.text` stays legible when the reading theme
   // differs from the app theme (e.g. a Night reading theme on a light app).
-  const readerIsDark =
-    readerPrefs.theme === 'system'
-      ? isDark
-      : readerPrefs.theme === 'night' || readerPrefs.theme === 'high-contrast';
+  // Derived from the palette, not a list of names (R9-41).
+  const readerIsDark = isReaderThemeDark(readerPrefs.theme, isDark);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const startTimeRef = useRef<number>(Date.now());

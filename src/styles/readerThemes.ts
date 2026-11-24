@@ -18,6 +18,8 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
+import {contrastRatio} from '../lib/a11y/contrast';
+
 export type ReaderTheme =
   | 'system'
   | 'paper'
@@ -191,7 +193,6 @@ export const READER_THEMES: Record<ReaderTheme, ReaderThemeColors | null> = {
   // Maximum-legibility "high contrast" — pure white text on pure black with a
   // bright amber accent. Every solid text/background pair clears WCAG AAA (7:1)
   // for low-vision readers; the value is asserted in readerThemesContrast.test.
-  // (A true-dark surface, so readerIsDark treats it like night.)
   'high-contrast': {
     background: '#000000',
     surface: '#0A0A0A',
@@ -272,6 +273,27 @@ export function isReaderTheme(value: unknown): value is ReaderTheme {
     value === 'musgo' ||
     value === 'crepusculo' ||
     value === 'niebla'
+  );
+}
+
+/**
+ * Whether the reading SURFACE of `theme` is dark (R9-41). Derived from the
+ * palette's own `background`, never from a list of theme names: a list has to
+ * be kept in step by hand, and Crepúsculo (T6.3) was left out of it, so the
+ * selection bar drew its light text over a near-white panel. `system` (or
+ * any unknown value) has no palette and follows the app (`appIsDark`).
+ *
+ * "Dark" means white text reads better on it than black text does.
+ */
+export function isReaderThemeDark(
+  theme: ReaderTheme,
+  appIsDark: boolean,
+): boolean {
+  const palette = isReaderTheme(theme) ? READER_THEMES[theme] : null;
+  if (!palette) return appIsDark;
+  return (
+    contrastRatio(palette.background, '#FFFFFF') >
+    contrastRatio(palette.background, '#000000')
   );
 }
 
