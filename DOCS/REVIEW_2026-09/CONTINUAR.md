@@ -261,6 +261,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   emulador: `R9-623` y `R9-465` cerrados (`41a2a356`: el `value` de Toast estable y el temporizador del lector con
   un ref) y `R9-622` decidido (`2b126e75`: queda el sello más viejo). Tocó el lector y el Toast, no datos guardados:
   **la 174 es `R9-51` con el diseño del §3 de la 171** (OK de Victor).
+  **Hecha en la 174** (`detail/S174-r9-51-notas.md`; cortada, la cerró la 174b), sin agentes y con emulador:
+  `R9-51` cerrado en `fix/s174` (`29c956ac`): el id de una nota es el versículo, un plegado que no pierde texto (al
+  arrancar, en el adaptador y en el import) y un candado de notas. Toca datos guardados y el sync: **la 175: la
+  revisión del diff de la 174, con emulador.**
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).

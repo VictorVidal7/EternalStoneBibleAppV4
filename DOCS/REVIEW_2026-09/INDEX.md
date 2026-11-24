@@ -456,3 +456,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   (`41a2a356`: un aviso ya no re-agenda el temporizador de lectura) y `R9-622` decidido (`2b126e75`: la fusión
   conserva el sello más viejo). Sin entradas nuevas. Validate 433/433. La 174 es `R9-51`. Detalle:
   `detail/S173-arreglos-revision-s172.md`.
+- **Sesión 174 — 2026-11-24.** `R9-51` (dos notas para un versículo) con el diseño del §3 de la 171 y tres ajustes,
+  con Opus 5.5 de principal, sin agentes y con emulador, en `fix/s174` (1 commit, `29c956ac`); cortada a las ~100
+  llamadas, la cerró la 174b. El id de una nota es el versículo; un plegado al arrancar, en el adaptador y en el
+  import; un candado de notas. Sin entradas nuevas. Validate 434/434. La 175 es la revisión del diff de la 174.
+  Detalle: `detail/S174-r9-51-notas.md`.

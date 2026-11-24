@@ -49,7 +49,7 @@ R9-47	P0	Mesa	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesi�
 R9-48	P0	identidad	arreglado	67af8c9	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`67af8c9`): marca `@review_log_owner_uid`, en vez de scopear la tabla. Un log sin dueño lo reclama quien escribe primero;»
 R9-49	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): los 4 getters aceptan `{strict: true}`, que solo usa el export — los llamadores de UI siguen degradando a `[]`»
 R9-50	P1	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `updateHighlight` pasa a ser tri-estado (`undefined` = no tocar, `null` = borrar) y devuelve la entidad escrit»
-R9-51	P1	notas	abierto		verificado en la 141: la tabla `notes` no tiene restricción por versículo
+R9-51	P1	notas	arreglado	29c956ac	marca de su entrada: «✅ ARREGLADO en la sesión 174 (`29c956ac`, rama `fix/s174`): el id de una nota es el versículo (`vnote:<libro canónico>:<cap>:<vers>`, `src/lib/notes/v»
 R9-52	P1	Mesa	arreglado	dcbd9ced	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`dcbd9ced`, rama `fix/s162-v3`): los 17 escritores de los tres bancos rechazan con la escritura fallida (los `create*` y»
 R9-53	P2	respaldo	abierto		sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
 R9-54	P1	planes	arreglado	23a9793b	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`23a9793b`, rama `fix/s171-v5`): una lectura completa solo los días que contienen el capítulo leído; la historia no se b»
