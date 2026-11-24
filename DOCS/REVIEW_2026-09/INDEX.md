@@ -451,3 +451,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   sostienen (el tema, el plazo y los planes en vivo). Nuevos: `R9-621` (P3, la barra de estado siempre blanca),
   `R9-622` (P3, el sello de la fusión antes del inicio) y `R9-623` (P2, un lector montado re-tilda un día destildado
   por `R9-465`); suma a `R9-465`. La 173 arregla `R9-623`. Detalle: `detail/S172-revision-del-diff-s171.md`.
+- **Sesión 173 — 2026-11-23.** Los arreglos de la revisión de la 172, con Opus 5.5 de principal, sin agentes y con
+  emulador, en `fix/s173` (2 commits); cortada a las ~100 llamadas, la cerró la 173b. Cerrados `R9-623` y `R9-465`
+  (`41a2a356`: un aviso ya no re-agenda el temporizador de lectura) y `R9-622` decidido (`2b126e75`: la fusión
+  conserva el sello más viejo). Sin entradas nuevas. Validate 433/433. La 174 es `R9-51`. Detalle:
+  `detail/S173-arreglos-revision-s172.md`.

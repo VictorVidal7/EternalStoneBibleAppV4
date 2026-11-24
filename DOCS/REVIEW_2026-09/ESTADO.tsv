@@ -463,7 +463,7 @@ R9-461	P3	A27 / deep links, enlaces compartidos	abierto		sin marca de cierre en 
 R9-462	P3	A28 / hooks, Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-463	P3	A28 / hooks, tema	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-464	P2	A29 / contexts, Favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-465	P3	A29 / contexts, lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-465	P3	A29 / contexts, lector	arreglado	41a2a356	marca de su entrada: «✅ ARREGLADO en la sesión 173 (`41a2a356`, con `R9-623`): un aviso ya no vuelve a llamar a `trackVersesRead` ni a `markChapterRead` (prueba con el prov»
 R9-466	P3	A29 / contexts, favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-467	P2	A30 / params, colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-468	P3	A30 / cuenta, Google	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -620,5 +620,5 @@ R9-618	P3	sync, previo	abierto		sin marca de cierre en su entrada (en las tandas
 R9-619	P3	cuenta, previo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-620	P2	red / dinero, resto de R9-40	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-621	P3	interfaz / barra de estado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-622	P3	planes / la fusión de R9-64	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-623	P2	planes / lector, R9-465 deshace R9-54	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-622	P3	planes / la fusión de R9-64	aceptado	2b126e75	marca de su entrada: «✅ DECIDIDO (sesión 173, delegado: «decidir con porqué») (`2b126e75`): queda el sello más viejo aunque sea anterior al inicio, porque el id de un plan»
+R9-623	P2	planes / lector, R9-465 deshace R9-54	arreglado	41a2a356	marca de su entrada: «✅ ARREGLADO en la sesión 173 (`41a2a356`, rama `fix/s173`): el `value` de `ToastContext` con `useMemo`, y el temporizador de 5 s del lector lee sus ay»

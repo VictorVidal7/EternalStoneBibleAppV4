@@ -12729,6 +12729,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** `useMemo` en el `value` de Toast, o un ref en el temporizador. Detalle:
     `detail/A29-contexts.md`.
   - **Suma de la sesión 172 (emulador):** el re-agendado alcanza también a un lector TAPADO por otra pantalla, y la cuenta se nota: con unos 166 versículos leídos de verdad (95 distintos), el hito marcaba 758/1000 y saltó «Devoted Reader» (500). Desde la 171 además re-tilda un día destildado: `R9-623` (P2).
+  - **✅ ARREGLADO en la sesión 173** (`41a2a356`, con `R9-623`): un aviso ya no vuelve a llamar a `trackVersesRead` ni a `markChapterRead` (prueba con el provider real de Toast; en vivo, un solo «Tracking» por lectura). Detalle: `detail/S173-arreglos-revision-s172.md` §1.
 
 - **`R9-466` (S124, `A29` / contexts, favoritos — P3) — 🐛 un doble toque en un corazón guarda el mismo versículo
   dos veces, y quitarlo una vez deja el corazón lleno.** MEDIDO con sonda en la 124 (agente 3, re-medido).
@@ -15084,6 +15085,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Sin daño visible hoy: `completedAt` lo leen el diálogo de reinicio (`plan/[id].tsx:872`) y la línea de tiempo,
     que solo recorre `READING_PLANS`. Daño latente si la línea de tiempo suma los planes propios. La resurrección
     del plan borrado es `R9-146`.
+  - **✅ DECIDIDO (sesión 173, delegado: «decidir con porqué»)** (`2b126e75`): queda el sello más viejo aunque sea anterior al inicio, porque el id de un plan propio es el hash de su nombre y sus días (`customPlans.ts:53`): el destino es el MISMO plan, terminado antes, y `completedAt` es la primera vez que se terminó (`restartPlan` ya deja un sello así). Sin cambio de conducta: el comentario de `migratePlanProgress` y las pruebas con el porqué. Detalle: `detail/S173-arreglos-revision-s172.md` §2.
 
 - **`R9-623` (S172, planes / lector, `R9-465` deshace `R9-54` — P2) — 🐛 un lector que sigue montado en la pila
   vuelve a tildar el día que el usuario destildó, con el toast falso, cada vez que sale cualquier aviso.** MEDIDO en
@@ -15103,6 +15105,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - La ruta natural (el lector abierto, otra pestaña, destildar en el plan, cualquier aviso) no está medida.
   - Propuesta (sin escribir): `useMemo` en el `value` de Toast (cierra también `R9-465`) y que el temporizador del
     lector no dependa de identidades que cambian; prueba con el provider real de Toast.
+  - **✅ ARREGLADO en la sesión 173** (`41a2a356`, rama `fix/s173`): el `value` de `ToastContext` con `useMemo`, y el temporizador de 5 s del lector lee sus ayudantes (`markChapterRead`, `t`, `toast`…) por un ref, así que un aviso no lo re-agenda. Pruebas con los providers reales (`readerTrackingTimerRearm.test.tsx`, `toastContextStableValue.test.tsx`); el revert por pieza las hace caer. En vivo (emulador), la ruta natural: lector de Juan 6 debajo, día destildado, aviso en Ajustes → sigue `[]` (sin el arreglo, `[1]`). Detalle: `detail/S173-arreglos-revision-s172.md` §1.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

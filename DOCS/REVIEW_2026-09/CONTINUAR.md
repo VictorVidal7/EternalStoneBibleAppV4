@@ -257,6 +257,10 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   emulador: los arreglos se sostienen; nuevos `R9-621` y `R9-622` (P3) y `R9-623` (P2: un lector montado re-tilda un
   día destildado, por `R9-465`); suma a `R9-465`. Con un P2 nuevo, la regla «Según el riesgo» pide arreglos: **la 173
   arregla `R9-623` con `R9-465`** (y `R9-622` si cabe); **`R9-51`, la 174.**
+  **Hecha en la 173** (`detail/S173-arreglos-revision-s172.md`; cortada, la cerró la 173b), sin agentes y con
+  emulador: `R9-623` y `R9-465` cerrados (`41a2a356`: el `value` de Toast estable y el temporizador del lector con
+  un ref) y `R9-622` decidido (`2b126e75`: queda el sello más viejo). Tocó el lector y el Toast, no datos guardados:
+  **la 174 es `R9-51` con el diseño del §3 de la 171** (OK de Victor).
 - **Tanda V3 — respaldo y la Mesa (4 P1).** `R9-129` (`getAllReviewEvents` se traga su error) con su prueba,
   `R9-131`; `R9-30` (el respaldo omite contenido del usuario), con `R9-60` y `R9-117` (P2, la misma raíz: listas
   enumeradas a mano); y `R9-52` (la Mesa reporta como éxito una escritura que falló).
