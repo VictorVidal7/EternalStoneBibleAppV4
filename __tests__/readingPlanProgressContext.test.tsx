@@ -181,3 +181,113 @@ describe('R9-54 — an un-ticked day stays un-ticked', () => {
     expect(done).toEqual([{planId: PLAN_ID, day: 2}]);
   });
 });
+
+// R9-55 / R9-64 — editing a custom plan moves its progress to the new
+// content-derived id. The day numbers past the new length do not exist any
+// more (they showed «5/2 · 250%»), and a target that already had progress
+// must not swallow the source's (it used to be dropped outright).
+describe('R9-55 / R9-64 — migratePlanProgress', () => {
+  beforeEach(async () => {
+    await AsyncStorage.clear();
+  });
+
+  async function withProgress(seed: Record<string, unknown>) {
+    await AsyncStorage.setItem('@reading_plan_progress', JSON.stringify(seed));
+    const hook = renderHook(() => useReadingPlanProgress(), {wrapper});
+    for (let i = 0; i < 5; i++) {
+      await act(async () => {
+        await Promise.resolve();
+      });
+    }
+    return hook;
+  }
+
+  const START_A = '2026-11-01T00:00:00.000Z';
+  const START_B = '2026-10-01T00:00:00.000Z';
+
+  it('R9-55: a plan edited from 5 days to 2 keeps only days 1 and 2', async () => {
+    const {result} = await withProgress({
+      old: {completedDays: [1, 2, 3, 4, 5], startedAt: START_A},
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('old', 'new', 2);
+    });
+    expect(result.current.getCompletedDays('new')).toEqual([1, 2]);
+    expect(result.current.getStartedAt('new')).toBe(START_A);
+    expect(result.current.getCompletedDays('old')).toEqual([]);
+    const stored = JSON.parse(
+      (await AsyncStorage.getItem('@reading_plan_progress')) as string,
+    );
+    expect(stored.new.completedDays).toEqual([1, 2]);
+    expect(stored.old).toBeUndefined();
+  });
+
+  it('CONTROL: a plan edited to MORE days keeps every day it had', async () => {
+    const {result} = await withProgress({
+      old: {completedDays: [1, 3], startedAt: START_A},
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('old', 'new', 6);
+    });
+    expect(result.current.getCompletedDays('new')).toEqual([1, 3]);
+  });
+
+  it('R9-64: a target with progress merges with the source instead of dropping it', async () => {
+    const {result} = await withProgress({
+      old: {completedDays: [1, 2], startedAt: START_A},
+      new: {
+        completedDays: [3],
+        startedAt: START_B,
+        completedAt: '2026-10-05T00:00:00.000Z',
+      },
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('old', 'new', 4);
+    });
+    expect(result.current.getCompletedDays('new')).toEqual([1, 2, 3]);
+    // The plan being edited keeps its own start; a once-earned stamp stays.
+    expect(result.current.getStartedAt('new')).toBe(START_A);
+    expect(result.current.getCompletedAt('new')).toBe(
+      '2026-10-05T00:00:00.000Z',
+    );
+    const stored = JSON.parse(
+      (await AsyncStorage.getItem('@reading_plan_progress')) as string,
+    );
+    expect(stored.old).toBeUndefined();
+    expect(stored.new.completedDays).toEqual([1, 2, 3]);
+  });
+
+  it('R9-64: the merge is trimmed to the new length too', async () => {
+    const {result} = await withProgress({
+      old: {completedDays: [1, 2, 5], startedAt: START_A},
+      new: {completedDays: [4], startedAt: START_B},
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('old', 'new', 3);
+    });
+    expect(result.current.getCompletedDays('new')).toEqual([1, 2]);
+  });
+
+  it('CONTROL: a source with an empty start keeps the target start', async () => {
+    const {result} = await withProgress({
+      old: {completedDays: [], startedAt: ''},
+      new: {completedDays: [2], startedAt: START_B},
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('old', 'new', 3);
+    });
+    expect(result.current.getStartedAt('new')).toBe(START_B);
+    expect(result.current.getCompletedDays('new')).toEqual([2]);
+  });
+
+  it('CONTROL: same id or no source progress is a no-op', async () => {
+    const {result} = await withProgress({
+      keep: {completedDays: [1, 2, 3], startedAt: START_A},
+    });
+    await act(async () => {
+      await result.current.migratePlanProgress('keep', 'keep', 1);
+      await result.current.migratePlanProgress('missing', 'keep', 1);
+    });
+    expect(result.current.getCompletedDays('keep')).toEqual([1, 2, 3]);
+  });
+});

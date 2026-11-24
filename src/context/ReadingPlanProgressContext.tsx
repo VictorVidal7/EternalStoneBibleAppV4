@@ -78,12 +78,18 @@ interface ReadingPlanProgressContextType {
   /**
    * Move a plan's progress to a NEW id (Sprint 110). Editing a custom plan
    * rebuilds it under a fresh content-derived id, so its completedDays /
-   * startedAt / completedAt are carried over to `toId` (only if `toId` has none
-   * yet) and `fromId` is dropped. No-op when the ids match or `fromId` has no
-   * progress — so a rename keeps your streak while a structural edit keeps
-   * whatever days you'd already ticked.
+   * startedAt / completedAt are carried over to `toId` and `fromId` is
+   * dropped. Days past `toDuration` (the edited plan's length) are dropped
+   * (R9-55); a `toId` that already has progress is merged with it, not
+   * overwritten nor discarded (R9-64). No-op when the ids match or `fromId`
+   * has no progress — so a rename keeps your streak while a structural edit
+   * keeps whatever days you'd already ticked that still exist.
    */
-  migratePlanProgress: (fromId: string, toId: string) => Promise<void>;
+  migratePlanProgress: (
+    fromId: string,
+    toId: string,
+    toDuration: number,
+  ) => Promise<void>;
   /**
    * Records that a chapter was read and auto-completes any plan day whose
    * chapters are now all read. Returns the days that just became complete so
@@ -268,14 +274,37 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
   );
 
   const migratePlanProgress = useCallback(
-    async (fromId: string, toId: string) => {
+    async (fromId: string, toId: string, toDuration: number) => {
       if (fromId === toId) return;
-      const current = progress[fromId];
-      if (!current) return;
-      const next = {...progress};
-      // Don't clobber an existing target (e.g. an edit that lands back on a
-      // plan id that already has progress) — only seed it when empty.
-      if (!next[toId]) next[toId] = current;
+      const source = progress[fromId];
+      if (!source) return;
+      const target = progress[toId];
+      // R9-55 — day numbers past the new length no longer exist: carried
+      // verbatim they showed «5/2 · 250%». R9-64 — a target that already has
+      // progress (an edit landing on the id of a plan with the same content,
+      // or of a deleted one whose progress survives) is MERGED: the source
+      // used to be dropped outright.
+      const days = new Set([
+        ...(target?.completedDays ?? []),
+        ...source.completedDays,
+      ]);
+      const completedDays = [...days]
+        .filter(d => Number.isInteger(d) && d >= 1 && d <= toDuration)
+        .sort((a, b) => a - b);
+      const stamps = [target?.completedAt, source.completedAt]
+        .filter((x): x is string => !!x)
+        .sort();
+      const merged: PlanProgress = {
+        ...target,
+        ...source,
+        completedDays,
+        // The plan being edited keeps its own start (its pace).
+        startedAt: source.startedAt || target?.startedAt || '',
+      };
+      // Conserve-once-earned: the earliest stamp of either survives.
+      if (stamps.length > 0) merged.completedAt = stamps[0];
+      else delete merged.completedAt;
+      const next = {...progress, [toId]: merged};
       delete next[fromId];
       await persist(next);
     },

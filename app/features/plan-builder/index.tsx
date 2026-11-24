@@ -219,7 +219,9 @@ export default function PlanBuilderScreen() {
       // Editing rebuilds the plan under a fresh content-derived id. Carry the
       // progress (and its original start date) to the new id, then replace the
       // old entry in one atomic write so the two ids can't clobber each other.
-      if (plan.id !== editId) await migratePlanProgress(editId, plan.id);
+      if (plan.id !== editId) {
+        await migratePlanProgress(editId, plan.id, plan.duration);
+      }
       await replaceCustomPlan(editId, plan);
       toast.success(tb.updated);
     } else {
