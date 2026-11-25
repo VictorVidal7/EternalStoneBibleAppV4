@@ -3,6 +3,7 @@ import {
   useState,
   useContext,
   useEffect,
+  useRef,
   ReactNode,
   FC,
 } from 'react';
@@ -76,6 +77,15 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
   children,
 }) => {
   const [progress, setProgress] = useState<ReadingProgress>({});
+  // R9-414 — `saveProgress` writes the WHOLE map, so after a read that
+  // REJECTED the in-memory `{}` must not reach the disk: the next write
+  // re-reads first (one re-read shared by every writer, `rebase`) and builds
+  // on what it read. If the re-read fails too, it writes from memory as
+  // before (the way out of R9-212: a read can fail forever), and the disk
+  // stays unread: the next write tries again.
+  const progressRef = useRef<ReadingProgress>({});
+  const unreadRef = useRef(false);
+  const rereadRef = useRef<Promise<void> | null>(null);
 
   /**
    * Load reading progress from AsyncStorage on mount
@@ -95,15 +105,33 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
   /**
    * Load progress data from persistent storage
    */
-  const loadProgress = async (): Promise<void> => {
+  const loadProgress = async (): Promise<boolean> => {
+    let savedProgress: string | null;
     try {
-      const savedProgress = await AsyncStorage.getItem('readingProgress');
+      savedProgress = await AsyncStorage.getItem('readingProgress');
+    } catch (error) {
+      unreadRef.current = true;
+      logger.error(
+        'Error loading reading progress from AsyncStorage',
+        error instanceof Error ? error : new Error(String(error)),
+        {
+          component: 'ReadingProgressProvider',
+          action: 'loadProgress',
+        },
+      );
+      return false;
+    }
+    // The disk answered: a map that doesn't parse is already lost, and
+    // re-reading it would not bring it back.
+    unreadRef.current = false;
+    try {
       if (savedProgress !== null) {
         const parsedProgress: ReadingProgress = JSON.parse(savedProgress);
         // Migrate legacy data keyed by the Spanish book name to the canonical
         // (English) key so the Home "Continue Reading" card — which looks it
         // up by the route book param — finds it (Sprint 58 follow-up).
         const canonical = canonicalizeProgressMap(parsedProgress);
+        progressRef.current = canonical;
         setProgress(canonical);
         if (JSON.stringify(canonical) !== savedProgress) {
           AsyncStorage.setItem(
@@ -127,12 +155,14 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
         },
       );
     }
+    return true;
   };
 
   /**
    * Save progress data to persistent storage
    */
   const saveProgress = async (newProgress: ReadingProgress): Promise<void> => {
+    progressRef.current = newProgress;
     try {
       await AsyncStorage.setItem(
         'readingProgress',
@@ -168,6 +198,26 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
     chapter: string,
     percentage: number,
   ): void => {
+    if (unreadRef.current) {
+      rereadRef.current ??= loadProgress()
+        .then(() => undefined)
+        .finally(() => {
+          rereadRef.current = null;
+        });
+      void rereadRef.current.then(() =>
+        applyChapterProgress(progressRef.current, book, chapter, percentage),
+      );
+      return;
+    }
+    applyChapterProgress(progress, book, chapter, percentage);
+  };
+
+  const applyChapterProgress = (
+    base: ReadingProgress,
+    book: string,
+    chapter: string,
+    percentage: number,
+  ): void => {
     // Always key on the canonical (English) book name so reads from the Home
     // card (which passes the route param) and the chapter grid (which
     // passes the Spanish name) hit the same entry (Sprint 58 follow-up).
@@ -178,15 +228,15 @@ export const ReadingProgressProvider: FC<{children: ReactNode}> = ({
     // session-max — without this guard that lower value would stomp the
     // earlier 100% and the chapter grid would show it as "in progress"
     // again. Same convention as `canonicalizeProgressMap`'s migration merge.
-    const existingPct = progress[key]?.[chapter] ?? 0;
+    const existingPct = base[key]?.[chapter] ?? 0;
     const mergedPct = Math.max(existingPct, percentage);
     if (mergedPct === existingPct) {
       return;
     }
     const newProgress: ReadingProgress = {
-      ...progress,
+      ...base,
       [key]: {
-        ...progress[key],
+        ...base[key],
         [chapter]: mergedPct,
       },
     };

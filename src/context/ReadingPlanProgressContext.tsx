@@ -167,12 +167,34 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     readChaptersRef.current = readChapters;
   }, [readChapters]);
 
-  const hydrateFromStorage = useCallback(async () => {
+  // R9-414 — every writer persists a WHOLE map, so after a read that
+  // REJECTED the in-memory `{}` must not reach the disk: the next writer
+  // re-reads first (`ensureRead`, one re-read shared by every writer) and
+  // builds on what it read. If the re-read fails too, it writes from memory
+  // as before (the way out of R9-212: a read can fail forever), and the disk
+  // stays unread: the next writer tries again.
+  const unreadRef = useRef(false);
+  const rereadRef = useRef<Promise<void> | null>(null);
+
+  const hydrateFromStorage = useCallback(async (): Promise<boolean> => {
+    let rawProgress: string | null;
+    let rawRead: string | null;
     try {
-      const [rawProgress, rawRead] = await Promise.all([
+      [rawProgress, rawRead] = await Promise.all([
         AsyncStorage.getItem(STORAGE_KEY),
         AsyncStorage.getItem(READ_CHAPTERS_KEY),
       ]);
+    } catch {
+      unreadRef.current = true;
+      logger.warn('Could not load reading plan progress', {
+        component: 'ReadingPlanProgress',
+      });
+      return false;
+    }
+    // The disk answered: a map that doesn't parse is already lost, and
+    // re-reading it would not bring it back.
+    unreadRef.current = false;
+    try {
       if (rawProgress) {
         const parsed = JSON.parse(rawProgress);
         setProgress(parsed);
@@ -184,11 +206,22 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         readChaptersRef.current = parsed;
       }
     } catch {
-      logger.warn('Could not load reading plan progress', {
+      logger.warn('Could not parse reading plan progress', {
         component: 'ReadingPlanProgress',
       });
     }
+    return true;
   }, []);
+
+  const ensureRead = useCallback(
+    () =>
+      (rereadRef.current ??= hydrateFromStorage()
+        .then(() => undefined)
+        .finally(() => {
+          rereadRef.current = null;
+        })),
+    [hydrateFromStorage],
+  );
 
   useEffect(() => {
     void hydrateFromStorage();
@@ -227,7 +260,9 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
 
   const toggleDay = useCallback(
     async (planId: string, day: number) => {
-      const existing = progress[planId];
+      if (unreadRef.current) await ensureRead();
+      const base = progressRef.current;
+      const existing = base[planId];
       // A `setPlanDuration`-only entry has an empty startedAt (the plan's
       // pace clock hasn't started yet) — the first real toggle starts it now.
       const current: PlanProgress =
@@ -251,7 +286,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         ? effectivePlanDays(plan, current.customDuration).length
         : 0;
       await persist({
-        ...progress,
+        ...base,
         [planId]: withCompletionStamp(
           {...current, completedDays},
           duration,
@@ -259,26 +294,30 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         ),
       });
     },
-    [progress, persist],
+    [ensureRead, persist],
   );
 
   const setPlanStart = useCallback(
     async (planId: string, startedAtISO: string) => {
-      const current = progress[planId];
+      if (unreadRef.current) await ensureRead();
+      const base = progressRef.current;
+      const current = base[planId];
       const next: PlanProgress = current
         ? {...current, startedAt: startedAtISO}
         : {completedDays: [], startedAt: startedAtISO};
-      await persist({...progress, [planId]: next});
+      await persist({...base, [planId]: next});
     },
-    [progress, persist],
+    [ensureRead, persist],
   );
 
   const migratePlanProgress = useCallback(
     async (fromId: string, toId: string, toDuration: number) => {
+      if (unreadRef.current) await ensureRead();
+      const base = progressRef.current;
       if (fromId === toId) return;
-      const source = progress[fromId];
+      const source = base[fromId];
       if (!source) return;
-      const target = progress[toId];
+      const target = base[toId];
       // R9-55 — day numbers past the new length no longer exist: carried
       // verbatim they showed «5/2 · 250%». R9-64 — a target that already has
       // progress (an edit landing on the id of a plan with the same content,
@@ -308,11 +347,11 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
       // keeps the stamp under a newer start.
       if (stamps.length > 0) merged.completedAt = stamps[0];
       else delete merged.completedAt;
-      const next = {...progress, [toId]: merged};
+      const next = {...base, [toId]: merged};
       delete next[fromId];
       await persist(next);
     },
-    [progress, persist],
+    [ensureRead, persist],
   );
 
   const markChapterRead = useCallback(
@@ -322,6 +361,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     ): Promise<AutoCompletedDay[]> => {
       const key = chapterKey(book, chapter);
       if (!key) return [];
+      if (unreadRef.current) await ensureRead();
 
       const currentRead = readChaptersRef.current;
       const nextRead: ReadChaptersMap = currentRead[key]
@@ -419,7 +459,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
 
       return newlyCompleted;
     },
-    [persist],
+    [ensureRead, persist],
   );
 
   const isChapterRead = useCallback(
@@ -463,7 +503,9 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
 
   const setPlanDuration = useCallback(
     async (planId: string, totalDays: number) => {
-      const current = progress[planId];
+      if (unreadRef.current) await ensureRead();
+      const base = progressRef.current;
+      const current = base[planId];
       if (current && current.completedDays.length > 0) return;
       const next: PlanProgress = current
         ? {...current, customDuration: totalDays}
@@ -475,15 +517,17 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
             startedAt: '',
             customDuration: totalDays,
           };
-      await persist({...progress, [planId]: next});
+      await persist({...base, [planId]: next});
     },
-    [progress, persist],
+    [ensureRead, persist],
   );
 
   const restartPlan = useCallback(
     async (planId: string) => {
+      if (unreadRef.current) await ensureRead();
+      const base = progressRef.current;
       const plan = allPlans().find(p => p.id === planId);
-      const current = progress[planId];
+      const current = base[planId];
       if (!plan || !current) return;
 
       // Drop the global read-chapter flags for exactly this plan's chapters
@@ -514,16 +558,18 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         completedDays: [],
         startedAt: new Date().toISOString(),
       };
-      await persist({...progress, [planId]: next});
+      await persist({...base, [planId]: next});
     },
-    [progress, persist],
+    [ensureRead, persist],
   );
 
   const startPlanFromSilentProgress = useCallback(
     async (planId: string) => {
+      if (unreadRef.current) await ensureRead();
+      const base = progressRef.current;
       const plan = allPlans().find(p => p.id === planId);
       if (!plan) return;
-      const current = progress[planId];
+      const current = base[planId];
       const days = effectivePlanDays(plan, current?.customDuration);
       const completedDays = days
         .filter(day =>
@@ -535,7 +581,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         .map(day => day.day);
       const duration = effectivePlanDays(plan, current?.customDuration).length;
       await persist({
-        ...progress,
+        ...base,
         [planId]: withCompletionStamp(
           {
             ...current,
@@ -547,7 +593,7 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
         ),
       });
     },
-    [progress, persist],
+    [ensureRead, persist],
   );
 
   return (

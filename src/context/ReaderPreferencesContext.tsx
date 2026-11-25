@@ -15,6 +15,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   ReactNode,
 } from 'react';
@@ -140,44 +141,67 @@ export const ReaderPreferencesProvider: React.FC<
     DEFAULT_READER_PREFERENCES,
   );
   const [hydrated, setHydrated] = useState(false);
+  // R9-413 — the persist effect writes the WHOLE object, so after a read that
+  // REJECTED the defaults must not reach the disk (they erased every
+  // preference, and `sepiaGrandfathered` with them, for good). While the disk
+  // is unread, each change is also kept as a patch; the persist effect
+  // re-reads first (one re-read at a time) and lays the patch over what it
+  // read. Without a change nothing is written. If the re-read fails too, it
+  // writes from memory as before (the way out of R9-212: a read can fail
+  // forever), and the disk stays unread: the next change tries again.
+  const unreadRef = useRef(false);
+  const rereadingRef = useRef(false);
+  const pendingRef = useRef<Partial<ReaderPreferences>>({});
+  const preferencesRef = useRef(preferences);
+  preferencesRef.current = preferences;
 
-  const hydrateFromStorage = useCallback(async () => {
-    await AsyncStorage.getItem(STORAGE_KEY)
-      .then(raw => {
-        if (raw) {
-          try {
-            const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
-            // T6.3b grandfathering — this `raw` read is the ONLY moment in
-            // this device's lifetime where we can observe "what theme did
-            // this device have selected before Sepia became offering-gated".
-            // If the persisted blob already had `theme: 'sepia'` (from an
-            // older app version, pre-gate) — or the flag was already `true`
-            // from a previous run of this same logic — mark this device
-            // grandfathered for good. A blob with any other theme, or no
-            // blob at all (new install, handled by the `if (raw)` guard),
-            // never sets it: those devices are correctly gated. Once `true`
-            // here, it's carried forward by the normal `...parsed` spread on
-            // every future hydration and is NEVER re-derived or cleared.
-            const sepiaGrandfathered =
-              parsed.sepiaGrandfathered === true || parsed.theme === 'sepia';
-            // Merge with defaults so new fields added later don't crash an
-            // older persisted blob. Sanitize `theme` so a foreign/corrupt
-            // value falls back to 'system' rather than a broken palette.
-            setPreferences(prev => ({
-              ...prev,
-              ...parsed,
-              theme: isReaderTheme(parsed.theme) ? parsed.theme : prev.theme,
-              fontFamily: isReaderFontFamily(parsed.fontFamily)
-                ? parsed.fontFamily
-                : prev.fontFamily,
-              sepiaGrandfathered,
-            }));
-          } catch {
-            // Corrupt blob — fall through to defaults.
-          }
-        }
-      })
-      .finally(() => setHydrated(true));
+  const hydrateFromStorage = useCallback(async (): Promise<boolean> => {
+    let raw: string | null;
+    try {
+      raw = await AsyncStorage.getItem(STORAGE_KEY);
+    } catch {
+      unreadRef.current = true;
+      setHydrated(true);
+      return false;
+    }
+    unreadRef.current = false;
+    const pending = pendingRef.current;
+    pendingRef.current = {};
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
+        // T6.3b grandfathering — this `raw` read is the ONLY moment in
+        // this device's lifetime where we can observe "what theme did
+        // this device have selected before Sepia became offering-gated".
+        // If the persisted blob already had `theme: 'sepia'` (from an
+        // older app version, pre-gate) — or the flag was already `true`
+        // from a previous run of this same logic — mark this device
+        // grandfathered for good. A blob with any other theme, or no
+        // blob at all (new install, handled by the `if (raw)` guard),
+        // never sets it: those devices are correctly gated. Once `true`
+        // here, it's carried forward by the normal `...parsed` spread on
+        // every future hydration and is NEVER re-derived or cleared.
+        const sepiaGrandfathered =
+          parsed.sepiaGrandfathered === true || parsed.theme === 'sepia';
+        // Merge with defaults so new fields added later don't crash an
+        // older persisted blob. Sanitize `theme` so a foreign/corrupt
+        // value falls back to 'system' rather than a broken palette.
+        setPreferences(prev => ({
+          ...prev,
+          ...parsed,
+          theme: isReaderTheme(parsed.theme) ? parsed.theme : prev.theme,
+          fontFamily: isReaderFontFamily(parsed.fontFamily)
+            ? parsed.fontFamily
+            : prev.fontFamily,
+          sepiaGrandfathered,
+          ...pending,
+        }));
+      } catch {
+        // Corrupt blob — fall through to defaults.
+      }
+    }
+    setHydrated(true);
+    return true;
   }, []);
 
   useEffect(() => {
@@ -197,61 +221,117 @@ export const ReaderPreferencesProvider: React.FC<
   // with defaults before hydration finishes.
   useEffect(() => {
     if (!hydrated) return;
+    if (unreadRef.current) {
+      if (rereadingRef.current || Object.keys(pendingRef.current).length === 0)
+        return;
+      rereadingRef.current = true;
+      void hydrateFromStorage().then(ok => {
+        rereadingRef.current = false;
+        if (ok) {
+          // A fresh object re-runs this effect, which writes the merge (also
+          // when the re-read found no blob and nothing else changed).
+          setPreferences(prev => ({...prev}));
+          return;
+        }
+        pendingRef.current = {};
+        AsyncStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(preferencesRef.current),
+        ).catch(() => undefined);
+      });
+      return;
+    }
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(preferences)).catch(
       () => undefined,
     );
-  }, [preferences, hydrated]);
+  }, [preferences, hydrated, hydrateFromStorage]);
 
-  const setFontFamily = useCallback((next: ReaderFontFamily) => {
-    setPreferences(prev => ({...prev, fontFamily: next}));
+  // Every change goes through here, so a change made while the disk is
+  // unread (R9-413) is kept to lay over what the re-read finds.
+  const update = useCallback((patch: Partial<ReaderPreferences>) => {
+    if (unreadRef.current) {
+      pendingRef.current = {...pendingRef.current, ...patch};
+    }
+    setPreferences(prev => ({...prev, ...patch}));
   }, []);
 
-  const setFontSize = useCallback((next: number) => {
-    const clamped = Math.min(
-      READER_FONT_SIZE_MAX,
-      Math.max(READER_FONT_SIZE_MIN, Math.round(next)),
-    );
-    setPreferences(prev => ({...prev, fontSize: clamped}));
-  }, []);
+  const setFontFamily = useCallback(
+    (next: ReaderFontFamily) => {
+      update({fontFamily: next});
+    },
+    [update],
+  );
 
-  const setLineHeightMultiplier = useCallback((next: number) => {
-    setPreferences(prev => ({...prev, lineHeightMultiplier: next}));
-  }, []);
+  const setFontSize = useCallback(
+    (next: number) => {
+      const clamped = Math.min(
+        READER_FONT_SIZE_MAX,
+        Math.max(READER_FONT_SIZE_MIN, Math.round(next)),
+      );
+      update({fontSize: clamped});
+    },
+    [update],
+  );
 
-  const setTextAlign = useCallback((next: ReaderTextAlign) => {
-    setPreferences(prev => ({...prev, textAlign: next}));
-  }, []);
+  const setLineHeightMultiplier = useCallback(
+    (next: number) => {
+      update({lineHeightMultiplier: next});
+    },
+    [update],
+  );
 
-  const setMargin = useCallback((next: ReaderMargin) => {
-    setPreferences(prev => ({...prev, margin: next}));
-  }, []);
+  const setTextAlign = useCallback(
+    (next: ReaderTextAlign) => {
+      update({textAlign: next});
+    },
+    [update],
+  );
 
-  const setTheme = useCallback((next: ReaderTheme) => {
-    setPreferences(prev => ({
-      ...prev,
-      theme: isReaderTheme(next) ? next : 'system',
-    }));
-  }, []);
+  const setMargin = useCallback(
+    (next: ReaderMargin) => {
+      update({margin: next});
+    },
+    [update],
+  );
 
-  const setAutoImmersiveOnListen = useCallback((next: boolean) => {
-    setPreferences(prev => ({...prev, autoImmersiveOnListen: !!next}));
-  }, []);
+  const setTheme = useCallback(
+    (next: ReaderTheme) => {
+      update({theme: isReaderTheme(next) ? next : 'system'});
+    },
+    [update],
+  );
 
-  const setKeepScreenAwake = useCallback((next: boolean) => {
-    setPreferences(prev => ({...prev, keepScreenAwake: !!next}));
-  }, []);
+  const setAutoImmersiveOnListen = useCallback(
+    (next: boolean) => {
+      update({autoImmersiveOnListen: !!next});
+    },
+    [update],
+  );
 
-  const setSwipeChapterNavigation = useCallback((next: boolean) => {
-    setPreferences(prev => ({...prev, swipeChapterNavigation: !!next}));
-  }, []);
+  const setKeepScreenAwake = useCallback(
+    (next: boolean) => {
+      update({keepScreenAwake: !!next});
+    },
+    [update],
+  );
 
-  const setRedLetterWords = useCallback((next: boolean) => {
-    setPreferences(prev => ({...prev, redLetterWords: !!next}));
-  }, []);
+  const setSwipeChapterNavigation = useCallback(
+    (next: boolean) => {
+      update({swipeChapterNavigation: !!next});
+    },
+    [update],
+  );
+
+  const setRedLetterWords = useCallback(
+    (next: boolean) => {
+      update({redLetterWords: !!next});
+    },
+    [update],
+  );
 
   const reset = useCallback(() => {
-    setPreferences(DEFAULT_READER_PREFERENCES);
-  }, []);
+    update(DEFAULT_READER_PREFERENCES);
+  }, [update]);
 
   const value = useMemo<ReaderPreferencesContextValue>(
     () => ({
