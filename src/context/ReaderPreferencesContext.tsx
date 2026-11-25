@@ -170,19 +170,20 @@ export const ReaderPreferencesProvider: React.FC<
     if (raw) {
       try {
         const parsed = JSON.parse(raw) as Partial<ReaderPreferences>;
-        // T6.3b grandfathering — this `raw` read is the ONLY moment in
-        // this device's lifetime where we can observe "what theme did
-        // this device have selected before Sepia became offering-gated".
-        // If the persisted blob already had `theme: 'sepia'` (from an
-        // older app version, pre-gate) — or the flag was already `true`
-        // from a previous run of this same logic — mark this device
-        // grandfathered for good. A blob with any other theme, or no
-        // blob at all (new install, handled by the `if (raw)` guard),
-        // never sets it: those devices are correctly gated. Once `true`
-        // here, it's carried forward by the normal `...parsed` spread on
-        // every future hydration and is NEVER re-derived or cleared.
+        // T6.3b grandfathering — a blob WITHOUT the `sepiaGrandfathered`
+        // key predates the gate (every blob written since carries it), and
+        // that is the only moment in this device's lifetime where we can
+        // observe "what theme did this device have selected before Sepia
+        // became offering-gated": `theme: 'sepia'` there marks the device
+        // grandfathered for good. A blob that carries the key is obeyed as
+        // is (R9-421): re-deriving it from `theme` on every hydration made
+        // Sepia picked WITH premium "grandfathered" on the next cold start,
+        // outliving the entitlement. No blob at all (new install, the
+        // `if (raw)` guard) never sets it: those devices are correctly gated.
         const sepiaGrandfathered =
-          parsed.sepiaGrandfathered === true || parsed.theme === 'sepia';
+          parsed.sepiaGrandfathered === undefined
+            ? parsed.theme === 'sepia'
+            : parsed.sepiaGrandfathered === true;
         // Merge with defaults so new fields added later don't crash an
         // older persisted blob. Sanitize `theme` so a foreign/corrupt
         // value falls back to 'system' rather than a broken palette.

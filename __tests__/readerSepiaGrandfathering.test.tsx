@@ -112,6 +112,38 @@ describe('sepiaGrandfathered — hydration-time detection', () => {
     expect(result.current.preferences.sepiaGrandfathered).toBe(true);
   });
 
+  // R9-421 — the flag was re-derived from `theme` on EVERY hydration, so
+  // Sepia picked with premium on a gated install became "grandfathered" on
+  // the next cold start and outlived the entitlement. Only a blob that
+  // predates the field (no `sepiaGrandfathered` key at all) is derived.
+  it('Sepia picked on a gated install is NOT grandfathered on the next cold start', async () => {
+    const first = renderHook(() => useReaderPreferences(), {wrapper});
+    await waitFor(() => expect(first.result.current.hydrated).toBe(true));
+    act(() => first.result.current.setTheme('sepia'));
+    await waitFor(async () => {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      expect(JSON.parse(raw ?? '{}').theme).toBe('sepia');
+    });
+    first.unmount();
+
+    const {result} = renderHook(() => useReaderPreferences(), {wrapper});
+    await waitFor(() => expect(result.current.hydrated).toBe(true));
+    expect(result.current.preferences.theme).toBe('sepia');
+    expect(result.current.preferences.sepiaGrandfathered).toBe(false);
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    expect(JSON.parse(raw ?? '{}').sepiaGrandfathered).toBe(false);
+  });
+
+  it('respects an explicit false next to theme: "sepia" in the blob', async () => {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({theme: 'sepia', sepiaGrandfathered: false}),
+    );
+    const {result} = renderHook(() => useReaderPreferences(), {wrapper});
+    await waitFor(() => expect(result.current.hydrated).toBe(true));
+    expect(result.current.preferences.sepiaGrandfathered).toBe(false);
+  });
+
   it('a corrupt persisted blob falls back to defaults (flag OFF) instead of crashing', async () => {
     await AsyncStorage.setItem(STORAGE_KEY, '{not valid json');
 
