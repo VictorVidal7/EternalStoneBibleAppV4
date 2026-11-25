@@ -14331,6 +14331,20 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     notificaciones por mañana, sin pérdida de datos. **Arreglo propuesto (sin escribir):** serializar la
     reprogramación; y, con `R9-558`, que la red escriba la clave cuando la base respondió. Detalle:
     `detail/S141-revision-del-diff-s140.md`.
+  - **✅ ARREGLADO en la sesión 180** (`ec99241a`, rama `fix/s180`): una cola por tipo de recordatorio en
+    `NotificationService.ts` (`serializeByType`): cada reprogramación y cada cancelación de un tipo empieza cuando
+    terminó la anterior del mismo tipo; gana la última. Vale para los seis tipos (el mismo efecto los refresca a
+    todos) y para apagar uno a mitad de una reprogramación; una tarea que falla no atasca la cola. La raíz de Ajustes
+    (dos cambios seguidos) queda curada con lo mismo. Prueba: `__tests__/notificationRescheduleSerialized.test.tsx`
+    (`AppContent` real de `app/_layout.tsx` y el servicio real; `expo-notifications` como almacén con estado; 11
+    casos). **Vista FALLAR por pieza** (`_scratch/S180-570-revert.out.txt`): sin la cola, 26 en el frío real y en los
+    cinco hermanos; sin la cola en el apagado, solo el apagado; sin el `catch`, la tarea que falla atasca el tipo.
+    **En vivo** (`Pixel_9_Pro`, APK debug vc73 tras `pm clear`, sin cuenta; la clave en KJV sin el pack y el
+    recordatorio a las 8 escritos en RKStorage): tres fríos, dos corridas en serie y **14 alarmas**, 14 con texto; el
+    control con la cola quitada en el árbol, **26** (12 genéricas y 14 con texto), lo de la 141.
+    - **Costo conocido, sin camino práctico:** `refresh*` lee las preferencias antes de entrar a la cola; apagar el
+      recordatorio en el segundo que va entre esa lectura y la reprogramación del arranque lo vuelve a programar.
+      Ya existía. Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
 
 - **`R9-571` (S141, revisión del diff de la 140 / reproductor flotante / `R9-427` — P3) — 🐛 la ✕ del reproductor no
   lo pliega: el siguiente audio lo abre expandido.** MEDIDO en el emulador (tres veces) y con sonda (el proveedor
@@ -14346,6 +14360,15 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     o que `stop()` use un updater; con eso, el efecto de `R9-427` pasa a ser necesario. La misma forma (un updater
     seguido de un objeto armado desde el ref), en `pause` y en el `onDone`, sin medir. Detalle:
     `detail/S141-revision-del-diff-s140.md`.
+  - **✅ ARREGLADO en la sesión 180** (`4f4c24e3`, rama `fix/s180`): `hidePlayer` pliega el ref antes de `stop()` (el
+    patrón pause/stop), y la escritura de `stop()` lleva el pliegue; el updater que pisaba, redundante (medido), se
+    quita. Prueba: `__tests__/miniAudioPlayerCloseRealProvider.test.tsx` (el proveedor y el reproductor reales: la ✕ y
+    el siguiente capítulo vuelven plegados, a 64). **Vista FALLAR** (`_scratch/S180-572-rojo.out.txt`,
+    `S180-571-revert.out.txt`): sin el ref, 248 con la vista expandida. **Con esto el efecto de `R9-427` pasa a hacer
+    falta:** quitarlo tumba la prueba nueva (248 con `isExpanded = false`, el estado roto de la 117).
+    - **La misma forma en `pause` y `stop`, medida** (`_scratch/S180-571-vecinos.out.txt`): un updater de
+      `isExpanded` seguido de `pause`/`stop` en el mismo tick se pierde. Sin camino de usuario: cada toque es su propio
+      evento y el ref se renueva entre medio. No se abre entrada. Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
 
 - **`R9-572` (S141, revisión del diff de la 140 / pruebas / `R9-427` — P3) — 🐛 la prueba de `R9-427` mide un
   `hidePlayer` que no existe.** MEDIDO (la prueba, leída; el real, con sonda y en vivo).
@@ -14355,6 +14378,11 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Consecuencia:** la prueba vigila el contrato del efecto (falla sin él), no el recorrido del usuario; el día
     que `R9-571` se arregle no lo va a notar. **Propuesta (sin escribir):** un caso con el `AudioPlayerProvider`
     real debajo. Detalle: `detail/S141-revision-del-diff-s140.md`.
+  - **✅ ARREGLADO en la sesión 180** (`4f4c24e3`, rama `fix/s180`): prueba nueva con el `AudioPlayerProvider` real
+    debajo del `MiniAudioPlayer` real (`__tests__/miniAudioPlayerCloseRealProvider.test.tsx`: expandir → ✕ →
+    siguiente capítulo, más dos controles), vista roja antes del arreglo de `R9-571` (248). La prueba vieja se queda
+    como contrato del efecto, con su cabecera y el comentario del `hidePlayer` simulado corregidos. Detalle:
+    `detail/S180-arreglos-p3-de-la-141.md`.
 
 - **`R9-573` (S141, revisión del diff de la 140 / temporizador de sueño / vecino de `R9-425` — P3) — 🐛 «al final
   del libro» sobre una lista no vence: con repetición narra sin fin, y sin ella queda armado.** MEDIDO con sonda.
@@ -14368,6 +14396,18 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Severidad:** P3: pide una lista y elegir un «libro» que la lista no tiene. **Propuesta (sin escribir):** en
     una lista, tratarlo como «al final de la lista», o no ofrecerlo. Detalle:
     `detail/S141-revision-del-diff-s140.md`.
+  - **✅ ARREGLADO en la sesión 180** (`dd758313`, rama `fix/s180`). **Decisión: ocultar la opción con una lista
+    cargada**, y que uno armado antes venza al final de la lista. Por qué: una lista no tiene libro propio; «vencer
+    al terminar el libro del ítem actual» cortaría, en una lista de favoritos de libros distintos, tras el primer
+    versículo; y «al final de la lista» ya es lo que hace «Fin del capítulo» ahí, así que serían dos botones con el
+    mismo efecto y uno con un nombre que promete otra cosa. Sin textos nuevos. `SleepTimerModal` recibe
+    `showEndOfBook` (MiniAudioPlayer lo pone en `false` con una lista); el motor trata «al final del libro» sobre una
+    lista como «al final del capítulo»: para (gana a la repetición) y se consume. Pruebas:
+    `audioSleepTimerEndOfChapter.test.tsx` (proveedor y avanzador reales, 4 casos), `sleepTimerModalEndOfBook.test.tsx`
+    (el modal real, es y en) y el cableado en `miniAudioPlayerCloseRealProvider.test.tsx`. **Vista FALLAR por pieza**
+    (`_scratch/S180-573-revert.out.txt`): cada una tumba solo lo suyo.
+    - **Queda:** con uno arrastrado de un capítulo, la pastilla de la lista dice «Se detendrá al terminar el libro»
+      mientras vence al terminar la lista. Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
 
 - **`R9-574` (S145, revisión del diff de la 144 / hoja de ofrenda / vecino de `R9-17` y `R9-16` — P2) — 🐛 el aviso
   de «sin activar» manda a «Restaurar mi ofrenda anterior», y «Restaurar», en ese mismo estado, responde «No

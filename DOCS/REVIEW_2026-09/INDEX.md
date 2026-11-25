@@ -494,3 +494,14 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   Nuevos, P3: de `R9-628` a `R9-632` (`True` y `|| true`; un job que bloquea obligado a decir «report»; `docker://`;
   `shell: node`; un pin de cualquier acción). Una suma a `R9-118`. 275 abiertos de 632. La 180 son `R9-570` a
   `R9-573`. Detalle: `detail/S179-revision-del-diff-s178.md`.
+
+- **Sesión 180 — 2026-11-24.** Los cuatro P3 de la 141, antes de la tanda 2, con Opus 5.5 de principal y sin
+  agentes, en `fix/s180` (`ec99241a`, `4f4c24e3`, `dd758313` y `62ee160c`). Arreglados los cuatro:
+  - `R9-570`: una cola por tipo de recordatorio. En vivo, 14 alarmas; el control sin la cola, 26.
+  - `R9-571`: la ✕ pliega a través del ref. Con esto, el efecto de `R9-427` pasa a hacer falta.
+  - `R9-572`: la prueba de la ✕ corre sobre el proveedor real; se vio roja antes del arreglo.
+  - `R9-573`: «Fin del libro» ya no se ofrece sobre una lista. Uno armado antes vence al final de la lista. Sin
+    textos nuevos.
+
+  271 abiertos de 632. Validate 440/440, 5205 pruebas. La 181 es la revisión del diff de la 180, con emulador.
+  Detalle: `detail/S180-arreglos-p3-de-la-141.md`.

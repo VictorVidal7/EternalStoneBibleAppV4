@@ -568,10 +568,10 @@ R9-566	P3	C43b / el filtro de color de la galería de subrayados	abierto		sin ma
 R9-567	P3	C43b / el atrás del lector con un versículo seleccionado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-568	P2	C20b / los buscadores de libros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-569	P3	arreglo de R9-424 / registro de versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-570	P3	revisión del diff de la 140 / arreglo de R9-424 / recordatorios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-571	P3	revisión del diff de la 140 / reproductor flotante / R9-427	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-572	P3	revisión del diff de la 140 / pruebas / R9-427	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-573	P3	revisión del diff de la 140 / temporizador de sueño / vecino de R9-425	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-570	P3	revisión del diff de la 140 / arreglo de R9-424 / recordatorios	arreglado	ec99241a	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`ec99241a`, rama `fix/s180`): una cola por tipo de recordatorio en `NotificationService.ts` (`serializeByType`): cada re»
+R9-571	P3	revisión del diff de la 140 / reproductor flotante / R9-427	arreglado	4f4c24e3	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`4f4c24e3`, rama `fix/s180`): `hidePlayer` pliega el ref antes de `stop()` (el patrón pause/stop), y la escritura de `st»
+R9-572	P3	revisión del diff de la 140 / pruebas / R9-427	arreglado	4f4c24e3	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`4f4c24e3`, rama `fix/s180`): prueba nueva con el `AudioPlayerProvider` real debajo del `MiniAudioPlayer` real (`__tests»
+R9-573	P3	revisión del diff de la 140 / temporizador de sueño / vecino de R9-425	arreglado	dd758313	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`dd758313`, rama `fix/s180`). Decisión: ocultar la opción con una lista cargada, y que uno armado antes venza al final d»
 R9-574	P2	revisión del diff de la 144 / hoja de ofrenda / vecino de R9-17 y R9-16	arreglado	593107eb	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`593107eb`): `restore()` tiene una cuarta respuesta, `'notActivated'` (la tienda respondió, la cuenta tiene una ofrenda»
 R9-575	P3	revisión del diff de la 144 / las dos hojas / vecino de R9-17 y R9-18	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-576	P3	revisión del diff de la 144 / las dos hojas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

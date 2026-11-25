@@ -300,7 +300,7 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   y Codecov desde el sha), y cada pieza revertida hace caer su prueba. Nuevos, todos P3, vecinos de sus compuertas:
   de `R9-628` a `R9-632` (dos son anteriores a la 178). Hay una suma a `R9-118`: el sha no fija el CLI `latest` de
   Codecov. Como son P3 de CI y pruebas, no abren tanda. **La V6 queda completa. La 180: los cuatro P3 de la 141
-  (`R9-570` a `R9-573`), antes de la tanda 2.**
+  (`R9-570` a `R9-573`), antes de la tanda 2.** Hecha: ver «Antes de la tanda 2», abajo.
 - **Después, las tandas 2 a 9 de abajo** (los P2 de `R9-410` en adelante), con los cuatro P3 de la 141 delante de la
   tanda 2. Los P2 viejos que quedan entran así: `R9-31`, `R9-32` y `R9-53`, con la tanda 2; `R9-163`, `R9-164`,
   `R9-12`, `R9-58` y `R9-167`, con la 3; `R9-63`, con la 4; `R9-56`, con la 5; `R9-42`, `R9-43` y `R9-57`, con la
@@ -322,6 +322,12 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 - **Antes de la tanda 2 — lo que encontró la 141 (4, P3):** `R9-570` (los recordatorios duplicados: serializar la
   reprogramación), `R9-571` y `R9-572` (la ✕ que no pliega, y su prueba con el proveedor real) y `R9-573` («al
   final del libro» en una lista). Son vecinos de la tanda 1: van primero para no dejar una regresión abierta.
+  **Hecha en la 180** (`detail/S180-arreglos-p3-de-la-141.md`), sin agentes, en `fix/s180` (`ec99241a`, `4f4c24e3`,
+  `dd758313` y `62ee160c`): los cuatro cerrados. `R9-570`: una cola por tipo de recordatorio; en vivo, 14 alarmas
+  (26 sin la cola). `R9-571`: la ✕ pliega a través del ref, y con eso el efecto de `R9-427` pasa a hacer falta.
+  `R9-572`: la prueba con el proveedor real, vista roja. `R9-573`: «Fin del libro» no se ofrece sobre una lista, y
+  uno arrastrado vence al final de la lista, sin textos nuevos. **La 181: la revisión del diff de la 180** (el audio
+  y el arranque, con emulador), tras el merge con el OK de Victor.
 
 - **Tanda 2 — datos locales: lecturas que fallan y pisan, respaldo y reset (7).** `R9-413`, `R9-414` y `R9-421` (una
   lectura que rechaza al montar deja los valores por defecto y la escritura siguiente los vuelca al disco;
