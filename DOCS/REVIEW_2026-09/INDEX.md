@@ -472,3 +472,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   «Ver Juan 14:6» quedan las dos, también en vivo), `R9-624` («¿plegó?» se decide dentro del candado) y `R9-627`
   (lectio avisa y no pierde la oración), arreglados; `R9-626`, aceptado con porqué. 274 abiertos de 627. Validate
   435/435, 5141 pruebas. La 177 es la revisión del diff de la 176. Detalle: `detail/S176-arreglos-revision-s175.md`.
+- **Sesión 177 — 2026-11-24.** La revisión del diff de la 176, con Opus 5.5 de principal, sin agentes y con
+  emulador, sin cambios de código. El diff se sostiene: la regla por párrafos no pierde texto (4000 casos generados,
+  CRLF, bordes, vacías y empates; plegar dos veces = una en las tres puertas; en vivo, once filas nuevas sobre un
+  aparato plegado), `notesFoldedHere` no se filtra y el arranque tras un `setItem` fallido es correcto, lectio
+  aguanta el doble toque y reintenta releyendo, y el porqué de `R9-626` alcanza. Sin hallazgos nuevos: 274 abiertos
+  de 627. La 178 es la V6. Detalle: `detail/S177-revision-del-diff-s176.md`.
