@@ -484,3 +484,13 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `.gitignore`), `R9-5` (el job pasa a «Dependency Report (non-blocking)»: `npm audit` sale 1 hoy, 62 avisos) y
   `R9-6` (`permissions: contents: read` y Codecov en un sha), arreglados. 270 abiertos de 627. Validate 437/437, 5182
   pruebas. La 179 es la revisión del diff de la 178. Detalle: `detail/S178-tanda-v6.md`.
+- **Sesión 179 — 2026-11-24.** La revisión del diff de la 178, con Opus 5.5 de principal, sin agentes ni emulador y
+  sin cambios de código, sobre main (`eb0945a6`). Se sostiene:
+  - El CI real (run `45530938894`) está verde, con «Dependency Report (non-blocking)», `Contents: read` y Codecov
+    desde `b9fd7d16`.
+  - Revertida cada pieza sola, cae su prueba y solo la suya; el escáner viejo entero tumba 17.
+  - Nada se rompe: ni el lockfile ni el entorno `node`, y `.env*` no le esconde nada a ningún build.
+
+  Nuevos, P3: de `R9-628` a `R9-632` (`True` y `|| true`; un job que bloquea obligado a decir «report»; `docker://`;
+  `shell: node`; un pin de cualquier acción). Una suma a `R9-118`. 275 abiertos de 632. La 180 son `R9-570` a
+  `R9-573`. Detalle: `detail/S179-revision-del-diff-s178.md`.

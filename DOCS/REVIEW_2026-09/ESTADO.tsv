@@ -626,3 +626,8 @@ R9-624	P3	notas / sync, la revisión de R9-51	arreglado	4d5e4777	marca de su ent
 R9-625	P3	notas / la regla de mergeNoteTexts	arreglado	4d5e4777	marca de su entrada: «✅ ARREGLADO en la sesión 176 (`4d5e4777`, rama `fix/s176`): `mergeNoteTexts` compara PÁRRAFOS (partidos por una línea en blanco, recortados, sin los v»
 R9-626	P3	notas / el plegado del adaptador con una app vieja	aceptado	sesión 176	marca de su entrada: «✅ ACEPTADO (sesión 176, delegado: «decidir con porqué»): no se arregla. (1) Es transitorio y estrecho: pide una app vieja CON sync que siga editando n»
 R9-627	P3	lectio / notas	arreglado	4d5e4777	marca de su entrada: «✅ ARREGLADO en la sesión 176 (`4d5e4777`, rama `fix/s176`): el `catch` de `handleFinish` muestra `t.notes.saveError` (el aviso del lector) y NO cierra»
+R9-628	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-5	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-629	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-5	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-630	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-6	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-631	P3	compuerta de CI / ciNodeVersion, la revisión de R9-107	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-632	P3	compuerta de CI / ciNodeVersion, la revisión de R9-107	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

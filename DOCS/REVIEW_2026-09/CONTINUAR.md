@@ -295,6 +295,12 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   todos los niveles (62 avisos; la remediación es `R9-1`, sesión propia). `R9-6`: `contents: read` y Codecov en el
   sha de `@v4`. **La 179: la revisión del diff de la 178**, tras el merge con el OK de Victor; el CI real se mide
   después del merge.
+  **Revisada en la 179** (`detail/S179-revision-del-diff-s178.md`), sin agentes ni emulador, sobre main
+  (`eb0945a6`, mergeado y pusheado): se sostiene. El CI real está verde (el job nuevo con su nombre, `Contents: read`
+  y Codecov desde el sha), y cada pieza revertida hace caer su prueba. Nuevos, todos P3, vecinos de sus compuertas:
+  de `R9-628` a `R9-632` (dos son anteriores a la 178). Hay una suma a `R9-118`: el sha no fija el CLI `latest` de
+  Codecov. Como son P3 de CI y pruebas, no abren tanda. **La V6 queda completa. La 180: los cuatro P3 de la 141
+  (`R9-570` a `R9-573`), antes de la tanda 2.**
 - **Después, las tandas 2 a 9 de abajo** (los P2 de `R9-410` en adelante), con los cuatro P3 de la 141 delante de la
   tanda 2. Los P2 viejos que quedan entran así: `R9-31`, `R9-32` y `R9-53`, con la tanda 2; `R9-163`, `R9-164`,
   `R9-12`, `R9-58` y `R9-167`, con la 3; `R9-63`, con la 4; `R9-56`, con la 5; `R9-42`, `R9-43` y `R9-57`, con la

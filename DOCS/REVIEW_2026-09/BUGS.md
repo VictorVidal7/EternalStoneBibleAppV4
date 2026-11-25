@@ -3208,6 +3208,7 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
   **Arreglo:** leer el workflow con un parser YAML de verdad (`yaml` ya está en `node_modules`;
   falta confirmar si es dependencia directa) y recorrer `jobs.*.steps[*].run` como datos.
   **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `scanWorkflowSource` lee el workflow con `yaml` (`schema: 'failsafe'`, `merge: true`) y recorre `jobs.*.steps[*]` como datos; lo que no puede convertir (YAML inválido, un job o un paso que no es un mapa, un `with:` o un pin que no es escalar) va a `unreadable`. `yaml` pasa a devDependency directa (2.9.0, ya instalada como transitiva; el lockfile cambia en dos líneas). Pruebas: las 12 formas de la entrada como `it.each`, un cuarto job pegado al `ci.yml` REAL, `22.10` que no se vuelve 22.1, el YAML inválido y lo que no es mapa: caen 17 con el escáner viejo; sin `failsafe` caen 2 y sin `merge` cae 1. La prueba del `<<: *shared` sin ancla cambió de expectativa (ahora es YAML inválido: se reporta y no da jobs). La suite corre en el entorno `node` (jest-expo resuelve `yaml` a su build ESM de navegador). Detalle: `detail/S178-tanda-v6.md` §1.
+  - **Revisado en la sesión 179** (`detail/S179-revision-del-diff-s178.md`): se sostiene. CI real de `eb0945a6` verde; revertido el escáner entero caen 17, sin `failsafe` 2, sin `merge` 1, sin el `throw` de `doc.errors` 1 y sin `isMap` 1. Lo leen bien: un alias de job entero, `container:`, un `<<:` a nivel de `jobs:` y las claves duplicadas (YAML inválido; antes un `lint` repetido sin pin pasaba). Nuevos, de antes de la 178: `R9-631` (`shell: node {0}` y `./node_modules/.bin/jest`) y `R9-632` (un pin de cualquier acción y en cualquier orden).
 
 - **`R9-108` (S19, build de packs) — 🐛 el «Done.» no manda subir el manifiesto.**
   `build-web-packs.js:1027-1030` imprime «_Upload the \*.sqlite AND \*-red-letter.json to the Pages
@@ -15181,6 +15182,71 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **✅ ARREGLADO en la sesión 176** (`4d5e4777`, rama `fix/s176`): el `catch` de `handleFinish` muestra `t.notes.saveError` (el aviso del lector) y NO cierra el recorrido: la oración sigue en su campo (un paso atrás) y «Terminar» reintenta; el día de «Momento con Dios» se marca solo cuando de verdad termina. Prueba con la pantalla real y el error de `updateNote` con 0 filas (`lectioPrayerSaveErrorR9627.test.tsx`): aviso, sin final, la oración en su campo, y el reintento guarda y cierra; el revert la hace caer. Sin medir en vivo. Detalle: `detail/S176-arreglos-revision-s175.md` §3.
   - **Revisado en la sesión 177** (`detail/S177-revision-del-diff-s176.md`): el arreglo se sostiene: doble toque, un solo intento y un aviso; el reintento vuelve a leer la nota; el aviso en los dos idiomas; el día se marca una vez; atrás baja a la oración. Sin hallazgo nuevo.
 
+- **`R9-628` (S179, compuerta de CI / `ciWorkflowHonesty`, la revisión de `R9-5` — P3) — 🐛 «no puede fallar» se
+  decide por el texto `true`: `True`, `TRUE`, `${{ true }}` y `|| true` pasan con nombre de compuerta.**
+  MEDIDO con sonda (`_scratch/S179-sondas.test.ts.txt`, la función real).
+  - `cannotFail` compara `String(owner['continue-on-error']).trim() === 'true'` sobre el YAML leído con
+    `schema: 'failsafe'`, así que `True` y `TRUE` llegan como texto distinto y `nonBlockingMisnamed` da `[]` para un
+    paso «Audit» en un job «Audit». El esquema core de YAML 1.2 los lee como booleanos (`YAML.parse('x: True')` →
+    `true`). Con el esquema por defecto, `String(true)` sí daría `'true'`: es `failsafe`, elegido por los pins de
+    `R9-107`, el que lo ciega aquí. Que GitHub acepte `True` no se midió.
+  - `${{ true }}` (una expresión que siempre da verdadero) y `run: npm audit || true` sin `continue-on-error` tampoco
+    se ven: un paso «Run npm audit» dentro de «Security Audit» que nunca falla da `[]`. El comentario de la función
+    dice «anything else (an expression, false) can fail».
+  - Hoy el `ci.yml` usa `true` en minúscula: no hay daño. Es el vecino del caso que cerró la compuerta.
+  - **Arreglo propuesto (sin escribir):** comparar `true` sin distinguir mayúsculas; marcar como «no puede fallar»
+    una expresión que es la constante `true`; y que un `run:` que termina en `|| true` (o `|| exit 0`) cuente como
+    no bloqueante, o que la compuerta lo rechace.
+
+- **`R9-629` (S179, compuerta de CI / `ciWorkflowHonesty`, la revisión de `R9-5` — P3) — 🐛 un job que SÍ bloquea,
+  con un solo paso que solo reporta, tiene que llamarse «report».** MEDIDO con sonda.
+  - `nonBlockingMisnamed` marca el job si `cannotFail(job) || stepsOf(job).some(cannotFail)`. Un «Run Tests» con
+    `npm test` (bloquea) y un «Upload coverage (report only)» con `continue-on-error: true` da `job test`.
+  - Renombrarlo a «… report» haría que un job que bloquea diga que no bloquea: la deshonestidad al revés. Lo más
+    probable es que alguien quite el `continue-on-error` para que la compuerta se calle. Hoy no pasa: el paso de
+    Codecov usa `fail_ci_if_error: false`, no `continue-on-error`.
+  - **Arreglo propuesto (sin escribir):** exigir «report» en el job solo si el job entero no puede fallar
+    (`continue-on-error` del job, o todos sus pasos); al paso, siempre.
+
+- **`R9-630` (S179, compuerta de CI / `ciWorkflowHonesty`, la revisión de `R9-6` — P3) — 🐛 una imagen de Docker de
+  terceros en un tag móvil pasa la compuerta de pins, y la cabecera dice «every action».** MEDIDO con sonda.
+  - `unpinnedThirdPartyActions` salta todo `uses:` que empieza con `docker://`: `docker://someone/image:latest` da
+    `unpinned: []`. Tampoco mira `container:` ni `services:` (`checked: 0` con `someone/image:latest` en los dos), ni
+    los `uses:` de dentro de una acción local (`./…`).
+  - La cabecera de la suite dice «every action not published by GitHub itself is pinned to a full commit sha», y el
+    comentario de `ci.yml` dice «a third-party action runs from a full commit sha». Para Docker, la forma fija es
+    `@sha256:…`.
+  - Hoy el repo no usa ninguna de esas formas: sin daño. Es el vecino del caso que cerró (`codecov@v4`).
+  - **Arreglo propuesto (sin escribir):** exigir `@sha256:` de 64 hex en `docker://`, `container:` e `image:` de
+    `services:`, salvo que se decida eximirlos por escrito en la cabecera.
+
+- **`R9-631` (S179, compuerta de CI / `ciNodeVersion`, la revisión de `R9-107` — P3) — 🐛 «este job corre node» se
+  decide por el TEXTO del `run:`: `shell: node {0}` y `./node_modules/.bin/jest` quedan fuera.** MEDIDO con sonda.
+  Es anterior a la 178: el escáner viejo da lo mismo.
+  - `RUNS_NODE = /\b(npm|npx|node|yarn|pnpm)\b/` se prueba solo contra `step.run`. Un paso con `shell: node {0}`, o
+    un job con `defaults.run.shell: node {0}`, y `run: require('./scripts/build-web-packs.js')` no entra en
+    `jobsRunningNode`, así que no se le pide pin y corre con el Node del runner. Es la forma de `R9-82`.
+  - `./node_modules/.bin/jest --ci` (tras restaurar `node_modules` con `actions/cache`) tampoco, porque `\bnode\b`
+    no casa con `node_modules`: el `_` es carácter de palabra.
+  - El comentario nuevo dice «whatever GitHub reads as `run`, this reads as `run`… A parser has no style to miss».
+    Es cierto para LEER el `run:`, pero lo que decide sigue siendo un regex sobre su texto, y la clave `shell:` el
+    escáner la tiene y no la mira.
+  - Hoy ningún job lo hace: sin daño.
+  - **Arreglo propuesto (sin escribir):** contar también `shell:` (del paso, del job y de `defaults.run` del
+    workflow) y `node_modules/.bin` en el regex; o pedir pin a todo job con algún `run:`, que es más simple y más
+    ruidoso.
+
+- **`R9-632` (S179, compuerta de CI / `ciNodeVersion`, la revisión de `R9-107` — P3) — 🐛 cuenta como pin cualquier
+  `node-version` de cualquier acción, y en cualquier orden.** MEDIDO con sonda. Es anterior a la 178: el escáner viejo
+  da lo mismo.
+  - Un job con `uses: pnpm/action-setup@v4` y `with: node-version: '24'`, y después `npm test`, sale con pin
+    (`o=24`), y no hay ningún `setup-node`.
+  - Un job con `npm test` ANTES de `actions/setup-node` con `'24'` sale con pin (`late=24`), aunque el `npm test`
+    corre con el Node del runner.
+  - Hoy los tres jobs ponen `setup-node` antes de todo `run:`: sin daño.
+  - **Arreglo propuesto (sin escribir):** contar el pin solo si sale de un `uses: actions/setup-node@…` y aparece
+    antes del primer paso que corre node en ese job.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -15542,6 +15608,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **Decisión de Victor:** darle token (un secreto) o quitar el step. Lo que no vale es un verde que
   no mide nada.
+  - **⚠️ Sesión 179:** sigue igual tras `R9-6`. En el CI de `eb0945a6` la acción sale del sha `b9fd7d16`, pero baja el CLI de `https://cli.codecov.io/latest/…` (con firma GPG y SHASUM, pero `latest`), y el log sigue diciendo «_Branch `main` is protected but no token was provided_». Esta vez termina en «_queued for processing_»; no se midió si Codecov lo procesó. Fijar la acción no fija lo que baja: si el step se queda, el input `version:` lo fijaría. `detail/S179-revision-del-diff-s178.md` §3.1.
 
 - **`R9-119` (S19, premium) — 🐛 cerrar sesión le quita el premium a quien pagó, y dos docstrings
   dicen lo contrario.** Los docstrings son `offeringService.ts:218-223` y `AuthContext.tsx:335-338`
@@ -16091,6 +16158,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `git add .`.
   **Arreglo sugerido (no aplicado):** `.env*.local` → `.env*` en `.gitignore:48`.
   **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `.gitignore` pasa a `.env*`. Medido antes: ningún archivo versionado ni en el historial se llama `.env*`, no hay ningún `.env` en el árbol, y nada versionado queda ignorado con la regla nueva. `gitignoreSecrets.test.ts` le pregunta a git (`check-ignore --no-index`); sin el arreglo caen exactamente `.env`, `.env.production`, `scripts/.env` y `src/.env`. Los archivos de Victor no se tocaron: `keystore.properties`, `keystores/` y `android/` ya estaban ignorados; `google-services.json` sigue versionado (lo usa `app.json:60`; su clave es pública por diseño, `detail/B2-secretos-arbol.md`). Detalle: `detail/S178-tanda-v6.md` §2.
+  - **Revisado en la sesión 179** (`detail/S179-revision-del-diff-s178.md`): se sostiene. Revertido, caen las cuatro. Ahora también se ignoran `.env.example`, `.envrc` y una carpeta `.env…`, y ninguna existe; `git ls-files -ci --exclude-standard` sigue vacío. Ningún build lee un `.env`: `eas.json` no tiene `env`, no hay `.easignore` y la única `EXPO_PUBLIC_*` tiene valor por defecto.
 
 - **`R9-3` (B3, limpieza) — 💡 3.3 MB de artefactos de Yarn trackeados en un repo que
   usa npm.** Severidad **muy baja**, no es seguridad.
@@ -16137,6 +16205,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   "Dependency Report" para que el nombre no prometa una garantía que no da.
   (`npm outdated` sí necesita la bandera: devuelve 1 siempre que haya algo atrasado.)
   **✅ ARREGLADO en la sesión 178** (`324d98a8` y `36d63241`, rama `fix/s178`), por la segunda opción: `npm audit --audit-level=moderate` sale 1 hoy en todos los niveles (62 avisos, 2 critical; 28 con `--omit=dev`), así que quitarle el `continue-on-error` dejaría el CI rojo hasta una remediación (`R9-1`). El job pasa a «Dependency Report (non-blocking)» y sus pasos a «npm audit (report only)» y «npm outdated (report only)». `ciWorkflowHonesty.test.ts` fija la regla general (lo que no puede fallar dice que solo reporta, el paso y su job); revertido el nombre, cae. `main` no tiene checks requeridos (GET público), y nada en el repo consume el nombre viejo. Se mide en el CI real tras el merge. Detalle: `detail/S178-tanda-v6.md` §3.
+  - **Revisado en la sesión 179** (`detail/S179-revision-del-diff-s178.md`): se sostiene. En el CI real, «Dependency Report (non-blocking)» está verde con `npm audit` saliendo 1 (61 avisos). Revertido el nombre del job o el del paso, cae su prueba; sin `cannotFail(job)`, cae la sonda del job. Nuevos: `R9-628` (`True`, `${{ true }}` y `|| true` pasan) y `R9-629` (un job que bloquea con un paso que solo reporta tiene que llamarse «report»).
 
 - **`R9-6` (B5, CI) — 💡 endurecimiento: sin bloque `permissions:` y acción de terceros
   en tag mutable.** Severidad **baja**, hoy mitigado por configuración del repo.
@@ -16152,6 +16221,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **Arreglo sugerido (no aplicado):** `permissions: {contents: read}` a nivel workflow +
   fijar la acción de Codecov a SHA completo.
   **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `permissions: contents: read` a nivel de workflow, y `codecov/codecov-action` fijado a `b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238` (`# v4.6.0`), el commit al que apuntaba `@v4` (`git ls-remote`): corre el mismo código. Si el step se queda es `R9-118` (§8), que sigue abierto. `ciWorkflowHonesty.test.ts` exige el bloque, ningún `write` y un sha completo en toda acción que no sea de `actions/` o `github/`; cada pieza revertida sola hace caer su prueba. Se mide en el CI real tras el merge. Detalle: `detail/S178-tanda-v6.md` §4.
+  - **Revisado en la sesión 179** (`detail/S179-revision-del-diff-s178.md`): se sostiene. En el CI real los tres jobs dicen `Contents: read` y Codecov se baja de `b9fd7d16…`; `git ls-remote`: `v4` = `v4.6.0^{}` = `b9fd7d16`. Cada pieza revertida hace caer su prueba. Nuevo: `R9-630` (`docker://`, `container:` y `services:` en tag móvil pasan). Lo que el sha no fija (el CLI `latest` de Codecov) es `R9-118`.
 
 - **`R9-7` (B1b, `functions/`) — ✅ RESUELTO 2026-09-03.** Era: código no desplegado que duplica la lógica de dinero, y
   `firebase.json` todavía lo declara.** Severidad **baja-media** (mantenimiento en una
