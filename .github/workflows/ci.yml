@@ -94,9 +94,10 @@ jobs:
   # R9-5: this job REPORTS; it does not gate. Both checks carry
   # `continue-on-error`, so it is green on every run: `npm outdated` exits 1
   # whenever anything is behind, and `npm audit --audit-level=moderate` exited 1
-  # in session 178 (62 advisories, 2 critical; 28 in production dependencies,
-  # 1 critical). It was called "Security Audit", and a green "Security Audit"
-  # reads as "the audit passed". Making the audit gate needs a remediation pass
+  # in session 178 (62 advisories, 2 critical; 28 even with --omit=dev, which in
+  # Expo still counts the CLI and dev server). It was called "Security Audit",
+  # and a green "Security Audit" reads as "the audit passed". Making the audit
+  # gate needs a remediation pass
   # first (R9-1; never `npm audit fix --force`). Until then the names say what
   # the job does, and __tests__/ciWorkflowHonesty.test.ts keeps it that way.
   security:

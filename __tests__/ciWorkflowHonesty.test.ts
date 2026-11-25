@@ -4,7 +4,8 @@
  * R9-5: the job was called "Security Audit", and both of its checks carried
  * `continue-on-error: true`, so it came back green on every run while
  * `npm audit --audit-level=moderate` exited 1 (measured in session 178: 62
- * advisories, 2 critical; 28 in production dependencies alone, 1 critical).
+ * advisories, 2 critical; 28 even with --omit=dev, which in Expo still counts
+ * the CLI and the dev server).
  * Someone reading a PR's checks concluded "the security audit passed". The
  * audit cannot gate today without a remediation pass of its own (R9-1), so the
  * fix is the other option the entry gave: the name stops promising a guarantee
