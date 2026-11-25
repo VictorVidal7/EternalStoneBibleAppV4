@@ -126,8 +126,15 @@ jest.mock('../src/features/audio/components/AudioWaveform', () => ({
 jest.mock('../src/features/audio/components/AudioSpeedSelector', () => ({
   AudioSpeedSelector: () => null,
 }));
+// The modal's props are captured (R9-573: what MiniAudioPlayer offers).
+const mockSleepModalProps: {current: {showEndOfBook?: boolean} | null} = {
+  current: null,
+};
 jest.mock('../src/features/audio/components/SleepTimerModal', () => ({
-  SleepTimerModal: () => null,
+  SleepTimerModal: (props: {showEndOfBook?: boolean}) => {
+    mockSleepModalProps.current = props;
+    return null;
+  },
 }));
 jest.mock('../src/features/audio/components/AudioQueueSheet', () => ({
   AudioQueueSheet: () => null,
@@ -323,6 +330,36 @@ describe('R9-571/R9-572 — the ✕ on the REAL audio provider', () => {
     });
     await loadChapter(4);
     expect(measure(screen)).toEqual(COLLAPSED_VIEW);
+    screen.unmount();
+  });
+});
+
+describe('R9-573 — "End of book" is not offered over a verse playlist', () => {
+  beforeEach(async () => {
+    jest.useFakeTimers();
+    await AsyncStorage.clear();
+    mockSleepModalProps.current = null;
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('a chapter offers it; a playlist does not; back to a chapter, offered again', async () => {
+    const screen = mount();
+    await loadChapter(3);
+    expect(mockSleepModalProps.current?.showEndOfBook).toBe(true);
+
+    await act(async () => {
+      player.current!.loadChapter(chapter(3), {
+        mode: 'playlist',
+        label: 'Favoritos',
+      });
+    });
+    expect(mockSleepModalProps.current?.showEndOfBook).toBe(false);
+
+    await loadChapter(4);
+    expect(mockSleepModalProps.current?.showEndOfBook).toBe(true);
     screen.unmount();
   });
 });

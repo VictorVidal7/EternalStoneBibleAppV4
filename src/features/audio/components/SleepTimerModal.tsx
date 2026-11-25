@@ -33,6 +33,12 @@ interface SleepTimerModalProps {
   onSetEndOfBook: () => void;
   onCancelTimer: () => void;
   currentTimer: SleepTimerState;
+  /**
+   * Whether to offer "End of book". False while a verse playlist is loaded
+   * (R9-573): a list has no book of its own, and the end of the list is
+   * already what "End of chapter" does there.
+   */
+  showEndOfBook?: boolean;
 }
 
 export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
@@ -43,6 +49,7 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
   onSetEndOfBook,
   onCancelTimer,
   currentTimer,
+  showEndOfBook = true,
 }) => {
   const {colors} = useTheme();
   const {t} = useLanguage();
@@ -199,39 +206,41 @@ export const SleepTimerModal: React.FC<SleepTimerModalProps> = ({
             </TouchableOpacity>
 
             {/* End of Book Option — continuous playback rolls through the book's
-                chapters, then stops at the book's end. */}
-            <TouchableOpacity
-              style={[
-                styles.endOfChapterButton,
-                styles.endOfBookSpacing,
-                {
-                  backgroundColor: colors.surfaceVariant,
-                  borderColor: colors.primary,
-                },
-              ]}
-              onPress={handleSetEndOfBook}>
-              <View style={styles.endOfChapterContent}>
-                <Ionicons name="library" size={20} color={colors.primary} />
-                <View style={styles.endOfChapterText}>
-                  <Text
-                    style={[styles.endOfChapterTitle, {color: colors.text}]}>
-                    {tSleep.endOfBookTitle}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.endOfChapterSubtitle,
-                      {color: colors.textSecondary},
-                    ]}>
-                    {tSleep.endOfBookSubtitle}
-                  </Text>
+                chapters, then stops at the book's end. Not over a playlist. */}
+            {showEndOfBook && (
+              <TouchableOpacity
+                style={[
+                  styles.endOfChapterButton,
+                  styles.endOfBookSpacing,
+                  {
+                    backgroundColor: colors.surfaceVariant,
+                    borderColor: colors.primary,
+                  },
+                ]}
+                onPress={handleSetEndOfBook}>
+                <View style={styles.endOfChapterContent}>
+                  <Ionicons name="library" size={20} color={colors.primary} />
+                  <View style={styles.endOfChapterText}>
+                    <Text
+                      style={[styles.endOfChapterTitle, {color: colors.text}]}>
+                      {tSleep.endOfBookTitle}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.endOfChapterSubtitle,
+                        {color: colors.textSecondary},
+                      ]}>
+                      {tSleep.endOfBookSubtitle}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <Ionicons
-                name="chevron-forward"
-                size={20}
-                color={colors.textSecondary}
-              />
-            </TouchableOpacity>
+                <Ionicons
+                  name="chevron-forward"
+                  size={20}
+                  color={colors.textSecondary}
+                />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Info */}

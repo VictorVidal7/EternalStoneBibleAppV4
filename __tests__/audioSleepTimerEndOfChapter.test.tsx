@@ -194,3 +194,95 @@ describe('R9-425 — the end-of-chapter sleep timer stops the narration', () => 
     expect(spokenTexts().at(-1)).toBe('Juan 3:2');
   });
 });
+
+/**
+ * R9-573 (S180) — "end of book" over a verse PLAYLIST never fired: the advancer
+ * leaves on `queueMode === 'playlist'` before it looks at the timer, and the
+ * engine's repeat branch only yielded to "end of chapter". With repeat on it
+ * narrated forever; without it the list ended and the timer stayed armed until
+ * some later book end.
+ *
+ * Decision: a list has no "current book". The modal no longer offers "End of
+ * book" while a list is loaded (MiniAudioPlayer → SleepTimerModal, pinned in
+ * miniAudioPlayerCloseRealProvider.test.tsx), and a timer armed earlier, on a
+ * chapter, that reaches the end of a list stops it there and is consumed —
+ * what "end of chapter" already does over a list.
+ */
+describe('R9-573 — "end of book" reaching the end of a verse playlist', () => {
+  // A list from Juan 3: mid-book, so the book's end can never be what stops it.
+  const loadList = (result: Player) =>
+    act(async () =>
+      result.current.loadChapter(chapterOf(3), {
+        mode: 'playlist',
+        label: 'Favoritos',
+      }),
+    );
+
+  async function playListToItsEnd(result: Player) {
+    await act(async () => result.current.play());
+    await finishCurrentVerse('Juan 3:1');
+    await finishCurrentVerse('Juan 3:2');
+    await letTheAdvancerRun();
+  }
+
+  beforeEach(async () => {
+    jest.useFakeTimers();
+    jest.clearAllMocks();
+    await AsyncStorage.clear();
+    mockGetChapter.mockImplementation(
+      async (_bookId: number, chapter: number) => chapterOf(chapter),
+    );
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('repeating list: it stops at the end of the list instead of wrapping, and the timer is consumed', async () => {
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await act(async () => result.current.setSleepTimerEndOfBook());
+    await loadList(result);
+    await act(async () => result.current.setQueueRepeat(true));
+
+    await playListToItsEnd(result);
+
+    expect(spokenTexts()).toEqual(['Juan 3:1', 'Juan 3:2']);
+    expect(result.current.state.isPlaying).toBe(false);
+    expect(result.current.sleepTimer.mode).toBeNull();
+    expect(mockGetChapter).not.toHaveBeenCalled();
+  });
+
+  it('list without repeat: it stops, and the timer does not stay armed', async () => {
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await act(async () => result.current.setSleepTimerEndOfBook());
+    await loadList(result);
+
+    await playListToItsEnd(result);
+
+    expect(spokenTexts()).toEqual(['Juan 3:1', 'Juan 3:2']);
+    expect(result.current.sleepTimer.mode).toBeNull();
+    expect(result.current.sleepTimer.isActive).toBe(false);
+  });
+
+  it('control — repeating list, no timer: it wraps to the first verse', async () => {
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await loadList(result);
+    await act(async () => result.current.setQueueRepeat(true));
+
+    await playListToItsEnd(result);
+
+    expect(spokenTexts().at(-1)).toBe('Juan 3:1');
+  });
+
+  it('control — a timed (minutes) timer over a repeating list still wraps', async () => {
+    const {result} = renderHook(() => useAudioPlayer(), {wrapper});
+    await act(async () => result.current.setSleepTimer(30));
+    await loadList(result);
+    await act(async () => result.current.setQueueRepeat(true));
+
+    await playListToItsEnd(result);
+
+    expect(spokenTexts().at(-1)).toBe('Juan 3:1');
+    expect(result.current.sleepTimer.isActive).toBe(true);
+  });
+});

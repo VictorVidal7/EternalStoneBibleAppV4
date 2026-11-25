@@ -1094,6 +1094,7 @@ export const MiniAudioPlayer: React.FC<MiniAudioPlayerProps> = ({
           onSetEndOfBook={setSleepTimerEndOfBook}
           onCancelTimer={cancelSleepTimer}
           currentTimer={sleepTimer}
+          showEndOfBook={!isPlaylistQueue}
         />
 
         {/* Listening queue (Sprint 75) */}

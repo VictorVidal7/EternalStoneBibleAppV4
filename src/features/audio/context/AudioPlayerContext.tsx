@@ -667,14 +667,25 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             }
 
             if (index >= freshVerses.length - 1) {
+              const isPlaylist = queueInfoRef.current.mode === 'playlist';
+              // A sleep timer that ends HERE: "end of chapter" always; "end of
+              // book" over a verse playlist too (R9-573, S180) — a list has no
+              // book of its own, so the end of the list is the only end it
+              // will ever reach (the advancer leaves on a playlist before it
+              // looks at the timer). The modal doesn't offer "end of book"
+              // while a list is loaded; this covers one armed earlier, on a
+              // chapter.
+              const stoppedBySleepTimer =
+                freshSleepTimer.mode === 'end-of-chapter' ||
+                (isPlaylist && freshSleepTimer.mode === 'end-of-book');
               // Repeat-the-list (Sprint 80): a repeating playlist wraps to
-              // its start instead of stopping. An end-of-chapter sleep timer
+              // its start instead of stopping. A sleep timer that ends here
               // is an explicit "stop here", so it wins (the same rule
               // shouldAdvanceChapter applies to continuous playback).
               if (
-                queueInfoRef.current.mode === 'playlist' &&
+                isPlaylist &&
                 queueOptionsRef.current.repeat &&
-                freshSleepTimer.mode !== 'end-of-chapter'
+                !stoppedBySleepTimer
               ) {
                 logger.info('Playlist repeating from the start');
                 setTimeout(() => speakVerseByIndex(0), 50);
@@ -688,8 +699,6 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
               // callback, so by the time AudioChapterAdvancer reads the mode it
               // is already null and continuous playback rolled on, chapter
               // after chapter, with no timer left.
-              const stoppedBySleepTimer =
-                freshSleepTimer.mode === 'end-of-chapter';
               if (stoppedBySleepTimer) {
                 cancelSleepTimer();
               }
