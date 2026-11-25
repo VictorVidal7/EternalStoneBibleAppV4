@@ -766,8 +766,38 @@ export async function buildBackup(): Promise<BuildBackupResult> {
  * sections degraded — the file is still written and shareable; a caller
  * that cares can inspect `degradedSections` instead.
  */
+const BACKUP_FILE_RE = /^eternalstone-backup-.*.json$/;
+
+/**
+ * R9-32 — every export used to leave a full copy of the user's data in the
+ * cache, forever: N exports, N copies. The previous ones go before a new one
+ * is written. The file just written stays: `shareAsync` resolves when the
+ * sheet closes, not when the receiving app has finished reading it.
+ * Best-effort: a cleanup failure never blocks the export.
+ */
+function removePreviousBackupFiles(): void {
+  try {
+    for (const entry of Paths.cache.list()) {
+      if (BACKUP_FILE_RE.test(entry.name)) entry.delete();
+    }
+  } catch (error) {
+    logger.warn('Could not clear previous backup files from the cache', {
+      component: 'BackupService',
+      action: 'removePreviousBackupFiles',
+      error: String(error),
+    });
+  }
+}
+
 export async function exportBackup(): Promise<ExportResult> {
+  // Checked BEFORE anything is written: a device that cannot share used to
+  // be left with a file nobody would ever see (R9-32).
+  const canShare = await Sharing.isAvailableAsync();
+  if (!canShare) {
+    throw new Error('Sharing is not available on this device');
+  }
   const {payload, degradedSections} = await buildBackup();
+  removePreviousBackupFiles();
   // Stable, sortable filename so multiple backups stack chronologically.
   const stamp = payload.generatedAt.replace(/[:.]/g, '-');
   const fileName = `eternalstone-backup-${stamp}.json`;
@@ -777,11 +807,6 @@ export async function exportBackup(): Promise<ExportResult> {
   if (target.exists) target.delete();
   target.create();
   target.write(JSON.stringify(payload, null, 2));
-
-  const canShare = await Sharing.isAvailableAsync();
-  if (!canShare) {
-    throw new Error('Sharing is not available on this device');
-  }
 
   const t = await getTranslations();
   await Sharing.shareAsync(target.uri, {
