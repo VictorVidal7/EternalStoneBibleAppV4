@@ -328,6 +328,13 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   `R9-572`: la prueba con el proveedor real, vista roja. `R9-573`: «Fin del libro» no se ofrece sobre una lista, y
   uno arrastrado vence al final de la lista, sin textos nuevos. **La 181: la revisión del diff de la 180** (el audio
   y el arranque, con emulador), tras el merge con el OK de Victor.
+  **Revisada en la 181** (`detail/S181-revision-del-diff-s180.md`, en tres partes; las dos primeras cortadas por
+  límite de llamadas), sin agentes, con emulador en solo lectura y sin cambios de código: se sostiene. En vivo, 28
+  alarmas en frío, tras dos cambios de versión y al apagar y encender rápido; la ✕ pliega sonando; «Fin del libro»
+  no se ofrece sobre una lista y uno arrastrado para al final. Con la repetición quedó leído, sin medir en vivo.
+  Nuevos, P3 y de antes de la 180: `R9-633` (un panel trabado visto una vez, sin reproducir en seis intentos),
+  `R9-634` (la pastilla «0m») y `R9-635` («Fin del capítulo» sobre un día de plan). `R9-464` quedó confirmado en
+  vivo. Los tres nuevos no abren tanda: entran con la próxima de audio. **La 182: la tanda 2.**
 
 - **Tanda 2 — datos locales: lecturas que fallan y pisan, respaldo y reset (7).** `R9-413`, `R9-414` y `R9-421` (una
   lectura que rechaza al montar deja los valores por defecto y la escritura siguiente los vuelca al disco;

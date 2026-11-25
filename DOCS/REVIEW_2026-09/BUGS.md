@@ -12719,6 +12719,10 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     9034 en 20,7 s); tras desmontar, 0. Controles: el provider solo, 1; un foco que corre solo al montar, 2.
   - **Propuesta (sin escribir):** `useCallback`/`useMemo` en el provider, o `[]` en el foco. Detalle:
     `detail/A29-contexts.md`.
+  - **Confirmado en vivo en la 181** (emulador, 0 favoritos): en Favoritos, 12 cargas en ~18 s, una cada ~1,5 s,
+    cada una con su `bibleDB.initialize()` («_already initialized, skipping_»), sin fin; al volver al lector se corta
+    (`_scratch/S181-sondas/S181-fav-en.logcat.txt`, `S181-fav-fuera.logcat.txt`). La causa leída es la de arriba
+    (hoy `FavoritesContext.tsx:490`). `detail/S181-revision-del-diff-s180.md` §6.2.
 
 - **`R9-465` (S124, `A29` / contexts, lector — P3) — 🐛 cada aviso en el lector vuelve a contar el capítulo: los
   versículos leídos, el tiempo y el libro más leído salen inflados.** MEDIDO con sonda en la 124 (agente 2,
@@ -14345,6 +14349,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     - **Costo conocido, sin camino práctico:** `refresh*` lee las preferencias antes de entrar a la cola; apagar el
       recordatorio en el segundo que va entre esa lectura y la reprogramación del arranque lo vuelve a programar.
       Ya existía. Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
+  - **Revisado en la sesión 181** (`detail/S181-revision-del-diff-s180.md` §1 y §2): se sostiene. Cada pieza revertida tumba solo lo suyo. En vivo, con versículo del día y oración: 28 alarmas en frío, 28 tras dos cambios de versión seguidos (corridas en serie, ~0,5 s cada una; gana la última) y en tres rondas de apagar y encender rápido (el `busy` descarta los toques que llegan mientras espera). Sin salida por tiempo en la cola: una tarea que nunca resuelve atascaría su tipo; camino práctico no encontrado, sin entrada.
 
 - **`R9-571` (S141, revisión del diff de la 140 / reproductor flotante / `R9-427` — P3) — 🐛 la ✕ del reproductor no
   lo pliega: el siguiente audio lo abre expandido.** MEDIDO en el emulador (tres veces) y con sonda (el proveedor
@@ -14369,6 +14374,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     - **La misma forma en `pause` y `stop`, medida** (`_scratch/S180-571-vecinos.out.txt`): un updater de
       `isExpanded` seguido de `pause`/`stop` en el mismo tick se pierde. Sin camino de usuario: cada toque es su propio
       evento y el ref se renueva entre medio. No se abre entrada. Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
+  - **Revisado en la sesión 181** (`detail/S181-revision-del-diff-s180.md` §3): se sostiene. En vivo SONANDO (la 141 pausaba): expandir → ✕ → otro capítulo → Audio vuelve plegado, ningún cuadro expandido en una ráfaga de 10 capturas; expandir, el gesto de bajar y el cambio de pestaña siguen bien. Visto una vez un panel trabado que no se reprodujo en seis intentos: `R9-633` (P3, no se atribuye a la 180).
 
 - **`R9-572` (S141, revisión del diff de la 140 / pruebas / `R9-427` — P3) — 🐛 la prueba de `R9-427` mide un
   `hidePlayer` que no existe.** MEDIDO (la prueba, leída; el real, con sonda y en vivo).
@@ -14383,6 +14389,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     siguiente capítulo, más dos controles), vista roja antes del arreglo de `R9-571` (248). La prueba vieja se queda
     como contrato del efecto, con su cabecera y el comentario del `hidePlayer` simulado corregidos. Detalle:
     `detail/S180-arreglos-p3-de-la-141.md`.
+  - **Revisado en la sesión 181** (`detail/S181-revision-del-diff-s180.md` §1 y §3): se sostiene. Revertidos el ref de `hidePlayer` o el efecto de `R9-427`, cae la prueba nueva. Hueco: nunca reproduce, así que no ejercita la ✕ con la narración en curso; el vivo de la 181 lo cubre. Sin entrada.
 
 - **`R9-573` (S141, revisión del diff de la 140 / temporizador de sueño / vecino de `R9-425` — P3) — 🐛 «al final
   del libro» sobre una lista no vence: con repetición narra sin fin, y sin ella queda armado.** MEDIDO con sonda.
@@ -14408,6 +14415,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     (`_scratch/S180-573-revert.out.txt`): cada una tumba solo lo suyo.
     - **Queda:** con uno arrastrado de un capítulo, la pastilla de la lista dice «Se detendrá al terminar el libro»
       mientras vence al terminar la lista. Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
+  - **Revisado en la sesión 181** (`detail/S181-revision-del-diff-s180.md` §4 y §7.2): se sostiene. Sobre una lista el modal no ofrece «Fin del libro»; uno arrastrado de un capítulo para al final de la lista y se consume (en vivo, tres veces). Con la repetición, sin medir en vivo (la repetición se reinicia en cada carga y no se logró activarla a tiempo); leído: la misma condición que para sin repetición le gana a la repetición. Nuevos, de antes de la 180: `R9-634` (la pastilla «0m») y `R9-635` («Fin del capítulo» sobre un día de plan).
 
 - **`R9-574` (S145, revisión del diff de la 144 / hoja de ofrenda / vecino de `R9-17` y `R9-16` — P2) — 🐛 el aviso
   de «sin activar» manda a «Restaurar mi ofrenda anterior», y «Restaurar», en ese mismo estado, responde «No
@@ -15286,6 +15294,50 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Hoy los tres jobs ponen `setup-node` antes de todo `run:`: sin daño.
   - **Arreglo propuesto (sin escribir):** contar el pin solo si sale de un `uses: actions/setup-node@…` y aparece
     antes del primer paso que corre node en ese job.
+
+- **`R9-633` (S181, reproductor flotante / la revisión de `R9-571` — P3) — 🐛 una vez, el panel quedó trabado a
+  altura expandida con los controles PLEGADOS opacos encima de la cabecera expandida.** VISTO UNA VEZ, SIN
+  REPRODUCIR; origen sin determinar. No se atribuye a la 180.
+  - **Lo visto** (emulador, la primera parte de la 181): tras armar «Fin del libro» en Juan 5, plegar con el chevron,
+    un deep link `favorites` que no navegó, un toque que cayó en «Siguiente» (Juan 6) y expandir, el panel quedó
+    estable a altura expandida con las dos vistas superpuestas (`_scratch/S181-sondas/S181-54-crop.png`,
+    `S181-57-crop.png`). «Contraer» y expandir no lo cambiaban; los toques en la «1x» plegada cambiaban la velocidad.
+    Sin errores en logcat.
+  - **Leído:** con un solo `expandProgress` el estado es imposible (la plegada tiene opacidad solo por debajo de 0,3
+    y la expandida solo por encima de 0,7, `MiniAudioPlayer.tsx:460-503`; una sola instancia, `app/_layout.tsx:357`).
+    La «1x» plegada tiene `disabled={state.isExpanded}`: en ese render `isExpanded` era `false` mientras el árbol
+    nativo listaba los botones de la expandida. Apunta a vistas nativas con props viejas (Fabric, Reanimated 4.5.1)
+    más que a la lógica de la 180 (el ref de `hidePlayer` solo actúa en la ✕, que la secuencia no usa).
+  - **Sin reproducir en seis intentos** (la secuencia, sin temporizador, con el deep link que navega, el chevron
+    antes de que cierre el modal, la lista de favoritos narrada con el temporizador arrastrado, y ~25 minutos de
+    sesión con un deep link a la misma ruta). Sin el control (quitar el ref de `hidePlayer` y el efecto de
+    `R9-427`): sin reproducir no mide nada.
+  - **Si vuelve a verse:** capturar el árbol (`uiautomator dump`) y una ráfaga, y probar el control antes de tocar
+    nada. Detalle: `detail/S181-revision-del-diff-s180.md` §5.1, §6.1 y §7.1.
+
+- **`R9-634` (S181, reproductor flotante / temporizador de sueño — P3) — 🐛 con un temporizador por modo («Fin del
+  capítulo», «Fin del libro»), la pastilla de la luna dice «0m».** VISTO en vivo tres veces en la 181. De antes de
+  la 180.
+  - `MiniAudioPlayer.tsx:1061-1065` pinta `{sleepTimer.remainingMinutes}m` siempre que `sleepTimer.isActive`, y los
+    dos modos arman el temporizador con `remainingMinutes: 0` (`AudioPlayerContext.tsx:1123` y `:1142`).
+  - **Repro:** expandir el reproductor → luna → «Fin del libro»: la pastilla dice «0m»
+    (`_scratch/S181-sondas/S181-i1e-final.png`, `S181-i3-crop.png`, `S181-v3-crop.png`). Parece que el
+    temporizador está por vencer.
+  - **Arreglo propuesto (sin escribir):** con un modo, la luna sola (resaltada) o un texto corto del modo, no
+    minutos. Detalle: `detail/S181-revision-del-diff-s180.md` §4 y §7.4.
+
+- **`R9-635` (S181, plan de lectura / temporizador de sueño / vecino de `R9-573` — P3) — 🐛 «Fin del capítulo»
+  sobre un día de plan de varios capítulos narra el día entero.** LEÍDO, sin medir en vivo. De antes de la 180.
+  - `app/(tabs)/plan/[id].tsx:233-247` («Escuchar» del día) carga todos los capítulos del día como UNA lista
+    (`mode: 'playlist'`), y el motor solo mira «Fin del capítulo» en el último ítem de la cola
+    (`index >= freshVerses.length - 1`, `AudioPlayerContext.tsx:669`). En «Mateo 1-3» (`nt-in-90-days`, día 1) o
+    «Génesis 1-3» + «Mateo 1» (`bible-in-a-year`), para tras el último capítulo del día, no tras el primero.
+  - Es la forma concreta del vecino que la 180 anotó («Fin del capítulo» se llama así también sobre una lista,
+    `detail/S180-arreglos-p3-de-la-141.md:106`): en el plan los ítems SON capítulos y el nombre promete otra cosa.
+  - **Sin medir en vivo:** el deep link `plan/<id>` abre «Libro no encontrado», y desde Inicio los volcados fallan
+    (la animación de §6.3 del detalle).
+  - **Arreglo propuesto (sin escribir):** en una lista de capítulos, parar al cambiar de capítulo; o, en una lista,
+    llamar a la opción «Fin de la lista». Detalle: `detail/S181-revision-del-diff-s180.md` §4 y §7.3.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

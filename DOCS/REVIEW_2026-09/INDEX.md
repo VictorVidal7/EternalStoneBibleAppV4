@@ -505,3 +505,14 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 
   271 abiertos de 632. Validate 440/440, 5205 pruebas. La 181 es la revisión del diff de la 180, con emulador.
   Detalle: `detail/S180-arreglos-p3-de-la-141.md`.
+
+- **Sesión 181 — 2026-11-24 y 2026-11-25.** La revisión del diff de la 180, en tres partes (las dos primeras
+  cortadas por límite de llamadas), con Opus 5.5 de principal, sin agentes, con emulador en solo lectura y sin
+  cambios de código, sobre main (`2f99078f`). Se sostiene:
+  - Revertida cada pieza sola, cae solo lo suyo.
+  - `R9-570`: 28 alarmas en frío, tras dos cambios de versión y al apagar y encender rápido.
+  - `R9-571`: la ✕ pliega con la narración sonando.
+  - `R9-573`: sin «Fin del libro» sobre una lista, y uno arrastrado para al final (con la repetición: leído).
+
+  Nuevos, P3 y de antes de la 180: `R9-633` (el panel trabado, visto una vez y sin reproducir), `R9-634` (la
+  pastilla «0m») y `R9-635` («Fin del capítulo» sobre un día de plan). `R9-464` confirmado en vivo. 274 abiertos de 635. La 182 es la tanda 2. Detalle: `detail/S181-revision-del-diff-s180.md`.
