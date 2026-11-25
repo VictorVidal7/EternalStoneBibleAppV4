@@ -231,20 +231,55 @@ async function cancelNotificationsByType(type: string): Promise<void> {
   }
 }
 
+/**
+ * R9-570 (S180) — one queue per reminder type. A reschedule is "cancel this
+ * type, then ~14 awaited schedules"; two of them interleaved (the cold start
+ * whose version falls back a second later, two quick changes in Settings)
+ * each cancelled before the other had finished scheduling, and both windows
+ * survived. Every reschedule and every cancel of a type now starts after the
+ * previous one of the same type ends: the last call wins. A failed task does
+ * not jam the queue (the next one still runs; the caller still sees the error).
+ */
+const typeQueues = new Map<string, Promise<unknown>>();
+
+function serializeByType<T>(type: string, task: () => Promise<T>): Promise<T> {
+  const previous = typeQueues.get(type) ?? Promise.resolve();
+  const run = previous.then(task);
+  typeQueues.set(
+    type,
+    run.catch(() => undefined),
+  );
+  return run;
+}
+
+/** Cancels one type's notifications, in that type's queue. */
+function cancelTypeSerialized(type: string): Promise<void> {
+  return serializeByType(type, () => cancelNotificationsByType(type));
+}
+
 /** Cancels every scheduled daily-verse notification. */
 export async function cancelDailyVerseNotifications(): Promise<void> {
-  await cancelNotificationsByType(DAILY_VERSE_TYPE);
+  await cancelTypeSerialized(DAILY_VERSE_TYPE);
+}
+
+/** scheduleDailyVerseNotifications, in its type's queue (R9-570). */
+export function scheduleDailyVerseNotifications(
+  opts: ScheduleOptions,
+): Promise<number> {
+  return serializeByType(DAILY_VERSE_TYPE, () =>
+    scheduleDailyVerseNotificationsNow(opts),
+  );
 }
 
 /**
  * Reschedules the rolling window of daily-verse notifications. Cancels any
  * existing ones first so the schedule never drifts or duplicates.
  */
-export async function scheduleDailyVerseNotifications(
+async function scheduleDailyVerseNotificationsNow(
   opts: ScheduleOptions,
 ): Promise<number> {
   await initNotifications(opts.language);
-  await cancelDailyVerseNotifications();
+  await cancelNotificationsByType(DAILY_VERSE_TYPE);
 
   try {
     await bibleDB.initialize();
@@ -403,11 +438,20 @@ async function saveMemoryReminderPreferences(
   ]);
 }
 
+/** scheduleMemoryReminders, in its type's queue (R9-570). */
+export function scheduleMemoryReminders(
+  opts: MemoryReminderOptions,
+): Promise<number> {
+  return serializeByType(MEMORY_REMINDER_TYPE, () =>
+    scheduleMemoryRemindersNow(opts),
+  );
+}
+
 /**
  * Reschedules the rolling window of memorization reminders. Cancels only the
  * existing memory reminders first (never the daily verse).
  */
-export async function scheduleMemoryReminders(
+async function scheduleMemoryRemindersNow(
   opts: MemoryReminderOptions,
 ): Promise<number> {
   await initNotifications(opts.language);
@@ -462,7 +506,7 @@ export async function setMemoryReminderEnabled(
     if (!granted) return false;
     await scheduleMemoryReminders(opts);
   } else {
-    await cancelNotificationsByType(MEMORY_REMINDER_TYPE);
+    await cancelTypeSerialized(MEMORY_REMINDER_TYPE);
   }
   await saveMemoryReminderPreferences({enabled, hour: opts.hour});
   return true;
@@ -533,11 +577,20 @@ async function savePrayerReminderPreferences(
   ]);
 }
 
+/** schedulePrayerReminders, in its type's queue (R9-570). */
+export function schedulePrayerReminders(
+  opts: PrayerReminderOptions,
+): Promise<number> {
+  return serializeByType(PRAYER_REMINDER_TYPE, () =>
+    schedulePrayerRemindersNow(opts),
+  );
+}
+
 /**
  * Reschedules the rolling window of prayer reminders. Cancels only the
  * existing prayer reminders first (never the daily verse or memory reminder).
  */
-export async function schedulePrayerReminders(
+async function schedulePrayerRemindersNow(
   opts: PrayerReminderOptions,
 ): Promise<number> {
   await initNotifications(opts.language);
@@ -587,7 +640,7 @@ export async function setPrayerReminderEnabled(
     if (!granted) return false;
     await schedulePrayerReminders(opts);
   } else {
-    await cancelNotificationsByType(PRAYER_REMINDER_TYPE);
+    await cancelTypeSerialized(PRAYER_REMINDER_TYPE);
   }
   await savePrayerReminderPreferences({enabled, hour: opts.hour});
   return true;
@@ -659,11 +712,20 @@ async function saveDevotionReminderPreferences(
   ]);
 }
 
+/** scheduleDevotionReminders, in its type's queue (R9-570). */
+export function scheduleDevotionReminders(
+  opts: DevotionReminderOptions,
+): Promise<number> {
+  return serializeByType(DEVOTION_REMINDER_TYPE, () =>
+    scheduleDevotionRemindersNow(opts),
+  );
+}
+
 /**
  * Reschedules the rolling window of devotion reminders. Cancels only the
  * existing devotion reminders first (never the other reminder types).
  */
-export async function scheduleDevotionReminders(
+async function scheduleDevotionRemindersNow(
   opts: DevotionReminderOptions,
 ): Promise<number> {
   await initNotifications(opts.language);
@@ -713,7 +775,7 @@ export async function setDevotionReminderEnabled(
     if (!granted) return false;
     await scheduleDevotionReminders(opts);
   } else {
-    await cancelNotificationsByType(DEVOTION_REMINDER_TYPE);
+    await cancelTypeSerialized(DEVOTION_REMINDER_TYPE);
   }
   await saveDevotionReminderPreferences({enabled, hour: opts.hour});
   return true;
@@ -787,11 +849,20 @@ async function savePropheticReminderPreferences(
   ]);
 }
 
+/** schedulePropheticReminders, in its type's queue (R9-570). */
+export function schedulePropheticReminders(
+  opts: PropheticReminderOptions,
+): Promise<number> {
+  return serializeByType(PROPHECY_REMINDER_TYPE, () =>
+    schedulePropheticRemindersNow(opts),
+  );
+}
+
 /**
  * Reschedules the rolling window of prophecy-of-the-day reminders. Cancels
  * only the existing prophecy reminders first (never the other types).
  */
-export async function schedulePropheticReminders(
+async function schedulePropheticRemindersNow(
   opts: PropheticReminderOptions,
 ): Promise<number> {
   await initNotifications(opts.language);
@@ -856,7 +927,7 @@ export async function setPropheticReminderEnabled(
     if (!granted) return false;
     await schedulePropheticReminders(opts);
   } else {
-    await cancelNotificationsByType(PROPHECY_REMINDER_TYPE);
+    await cancelTypeSerialized(PROPHECY_REMINDER_TYPE);
   }
   await savePropheticReminderPreferences({enabled, hour: opts.hour});
   return true;
@@ -931,11 +1002,20 @@ async function saveSabiasQueReminderPreferences(
   ]);
 }
 
+/** scheduleSabiasQueReminders, in its type's queue (R9-570). */
+export function scheduleSabiasQueReminders(
+  opts: SabiasQueReminderOptions,
+): Promise<number> {
+  return serializeByType(SABIAS_QUE_REMINDER_TYPE, () =>
+    scheduleSabiasQueRemindersNow(opts),
+  );
+}
+
 /**
  * Reschedules the rolling window of "¿Sabías qué?" reminders. Cancels only
  * the existing reminders of this type first (never the other five types).
  */
-export async function scheduleSabiasQueReminders(
+async function scheduleSabiasQueRemindersNow(
   opts: SabiasQueReminderOptions,
 ): Promise<number> {
   await initNotifications(opts.language);
@@ -998,7 +1078,7 @@ export async function setSabiasQueReminderEnabled(
     if (!granted) return false;
     await scheduleSabiasQueReminders(opts);
   } else {
-    await cancelNotificationsByType(SABIAS_QUE_REMINDER_TYPE);
+    await cancelTypeSerialized(SABIAS_QUE_REMINDER_TYPE);
   }
   await saveSabiasQueReminderPreferences({enabled, hour: opts.hour});
   return true;
