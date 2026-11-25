@@ -1022,7 +1022,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   const hidePlayer = useCallback(async () => {
     setIsVisible(false);
-    setState(prev => ({...prev, isExpanded: false}));
+    // R9-571 (S180): collapse through the REF, before stop(). stop() rebuilds
+    // the whole state from stateRef.current (the pause/stop pattern) and sets
+    // it as an object; a queued `setState(prev => …isExpanded: false)` here was
+    // overwritten by it while the ref still said expanded, and the next audio
+    // opened the player expanded. stop()'s own write now carries the collapse.
+    stateRef.current = {...stateRef.current, isExpanded: false};
     haptics.press();
     await stop();
     // Closing the player is an explicit "I'm done" — drop the saved position so

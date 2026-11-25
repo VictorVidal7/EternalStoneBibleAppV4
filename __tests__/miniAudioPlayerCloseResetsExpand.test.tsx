@@ -13,6 +13,10 @@
  * Fix: an effect makes `expandProgress` follow `state.isExpanded`, whoever
  * changed it.
  *
+ * This file pins the EFFECT's contract against a stand-in context. The ✕ on
+ * the real provider (where R9-571 kept the state broken differently until
+ * S180) is in miniAudioPlayerCloseRealProvider.test.tsx (R9-572).
+ *
  * The REAL component. Mocked: the audio context (a tiny external store), the
  * heavy children, theme/language/toast/premium/favorites, expo-router,
  * expo-blur. Reanimated: the library's own mock with the two pieces the bug
@@ -110,7 +114,10 @@ jest.mock('../src/features/audio/context/AudioPlayerContext', () => {
       store.isExpanded = false;
       emit();
     },
-    // What the real hidePlayer does to the two fields this component reads.
+    // What the real hidePlayer does to the two fields this component reads
+    // (true since R9-571, S180: before, the real one left `isExpanded` true —
+    // R9-572. The user's path on the real provider is pinned in
+    // miniAudioPlayerCloseRealProvider.test.tsx).
     hidePlayer: async () => {
       store.calls.push('hidePlayer');
       store.isVisible = false;
