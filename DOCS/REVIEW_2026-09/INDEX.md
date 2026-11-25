@@ -478,3 +478,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   aparato plegado), `notesFoldedHere` no se filtra y el arranque tras un `setItem` fallido es correcto, lectio
   aguanta el doble toque y reintenta releyendo, y el porqué de `R9-626` alcanza. Sin hallazgos nuevos: 274 abiertos
   de 627. La 178 es la V6. Detalle: `detail/S177-revision-del-diff-s176.md`.
+- **Sesión 178 — 2026-11-24.** La tanda V6 (CI y repo), con Opus 5.5 de principal, sin agentes ni emulador, en
+  `fix/s178` (`324d98a8` y `36d63241`). `R9-107` (P1: qué job corre node se lee con un parser YAML, no por la forma
+  de la línea; 12 formas y el `ci.yml` real con un cuarto job caen sin el arreglo), `R9-2` (`.env*` en el
+  `.gitignore`), `R9-5` (el job pasa a «Dependency Report (non-blocking)»: `npm audit` sale 1 hoy, 62 avisos) y
+  `R9-6` (`permissions: contents: read` y Codecov en un sha), arreglados. 270 abiertos de 627. Validate 437/437, 5182
+  pruebas. La 179 es la revisión del diff de la 178. Detalle: `detail/S178-tanda-v6.md`.

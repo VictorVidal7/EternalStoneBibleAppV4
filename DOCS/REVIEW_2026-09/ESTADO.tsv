@@ -1,10 +1,10 @@
 id	severidad	área	estado	cierre	evidencia
 R9-1	aviso	remediación de vulns	abierto		no es un bug: es la advertencia permanente de que `npm audit fix --force` rompería la app (regla fija de cada sesión); `npm audit` no se volvió a correr
-R9-2	P2	.gitignore	abierto		mejora (💡): `.gitignore:48` sigue en `.env*.local`; `git check-ignore .env` no casa
+R9-2	P2	.gitignore	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8`, rama `fix/s178`): `.gitignore` pasa a `.env*`. Medido antes: ningún archivo versionado ni en el historial se»
 R9-3	P2	limpieza	abierto		mejora (💡): `git ls-files .yarn` sigue trayendo `yarn-3.6.4.cjs` y el plugin
 R9-4	P2	proceso	abierto		mejora (💡): no hay `firestore.rules` versionado (`git ls-files` solo trae `firebase.json`)
-R9-5	P2	CI	abierto		`.github/workflows/ci.yml:100-102` (`npm audit` con `continue-on-error: true`)
-R9-6	P2	CI	abierto		mejora (💡): `ci.yml` sin bloque `permissions:`; `:76` usa `codecov/codecov-action@v4` (tag mutable)
+R9-5	P2	CI	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8` y `36d63241`, rama `fix/s178`), por la segunda opción: `npm audit --audit-level=moderate` sale 1 hoy en todos»
+R9-6	P2	CI	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8`, rama `fix/s178`): `permissions: contents: read` a nivel de workflow, y `codecov/codecov-action` fijado a `b9»
 R9-7	P2	functions/	arreglado	2026-09-03	marca de su entrada: «✅ RESUELTO 2026-09-03. Era: código no desplegado que duplica la lógica de dinero, y `firebase.json` todavía lo declara. Severidad baja-media (mantenim»
 R9-8	P2	subproyectos	abierto		mejora (💡): `functions/package.json` y `vercel/gift-code-redeem/package.json` sin `overrides`
 R9-9	P0	entitlements	arreglado	bb3b25b	marca de su entrada: «✅ ARREGLADO en la sesión 10 (`bb3b25b`), por la opción (c): `lastKnownUnlocked` pasa a `boolean | null`, con `null` = «RevenueCat todavía no ha contes»
@@ -105,7 +105,7 @@ R9-103	P0	SyncEngine	arreglado	7aafc9c	marca de su entrada: «✅ ARREGLADO en l
 R9-104	P1	SyncEngine	arreglado	cfa7c1c	marca de su entrada: «✅ ARREGLADO en la sesión 20 (`cfa7c1c`), para las dos ramas de verdad: - una sesión de flush: `stop()` la incrementa y suelta el candado; - el flush v»
 R9-105	P1	prueba de dinero	arreglado	8ea93b6	marca de su entrada: «✅ ARREGLADO en la sesión 20 (`8ea93b6`). La prueba usa `jest.isolateModulesAsync`, sin reset ni clave de prueba, y lleva un control de que el SDK se c»
 R9-106	P1	SyncEngine	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`9c425a8`), junto con `R9-39`: ver allí.»
-R9-107	P1	compuerta de CI	abierto		`__tests__/ciNodeVersion.test.ts:263` (el mismo regex `/^-?\s*run:\s*(.*)$/`; sin parser YAML)
+R9-107	P1	compuerta de CI	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8`, rama `fix/s178`): `scanWorkflowSource` lee el workflow con `yaml` (`schema: 'failsafe'`, `merge: true`) y re»
 R9-108	P1	build de packs	arreglado	b8e812c	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`b8e812c`): el «Done.» enumera los packs y nombra el manifiesto como ÚLTIMO paso, con su ruta y el nombre con que se publ»
 R9-109	P1	lector web	arreglado	d2b1cc7	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`d2b1cc7`, `44a5d15` y `0631557`): - El lector web hashea los bytes antes de importar (`sha256Hex`, en JS puro: unos 200»
 R9-110	P2	build de packs	abierto		`scripts/build-web-packs.js:948` (`filesNotPinnedBy(out, previous)` sin su propio `try`, dentro del `catch` de FIRST FILE)

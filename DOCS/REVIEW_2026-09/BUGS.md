@@ -3207,6 +3207,7 @@ null` (`offeringService.ts:127`). Antes era `= false`, y ese era el bug: el prim
 
   **Arreglo:** leer el workflow con un parser YAML de verdad (`yaml` ya está en `node_modules`;
   falta confirmar si es dependencia directa) y recorrer `jobs.*.steps[*].run` como datos.
+  **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `scanWorkflowSource` lee el workflow con `yaml` (`schema: 'failsafe'`, `merge: true`) y recorre `jobs.*.steps[*]` como datos; lo que no puede convertir (YAML inválido, un job o un paso que no es un mapa, un `with:` o un pin que no es escalar) va a `unreadable`. `yaml` pasa a devDependency directa (2.9.0, ya instalada como transitiva; el lockfile cambia en dos líneas). Pruebas: las 12 formas de la entrada como `it.each`, un cuarto job pegado al `ci.yml` REAL, `22.10` que no se vuelve 22.1, el YAML inválido y lo que no es mapa: caen 17 con el escáner viejo; sin `failsafe` caen 2 y sin `merge` cae 1. La prueba del `<<: *shared` sin ancla cambió de expectativa (ahora es YAML inválido: se reporta y no da jobs). La suite corre en el entorno `node` (jest-expo resuelve `yaml` a su build ESM de navegador). Detalle: `detail/S178-tanda-v6.md` §1.
 
 - **`R9-108` (S19, build de packs) — 🐛 el «Done.» no manda subir el manifiesto.**
   `build-web-packs.js:1027-1030` imprime «_Upload the \*.sqlite AND \*-red-letter.json to the Pages
@@ -16089,6 +16090,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   entitlements gratis. `.env` en la raíz es el nombre más natural y basta un
   `git add .`.
   **Arreglo sugerido (no aplicado):** `.env*.local` → `.env*` en `.gitignore:48`.
+  **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `.gitignore` pasa a `.env*`. Medido antes: ningún archivo versionado ni en el historial se llama `.env*`, no hay ningún `.env` en el árbol, y nada versionado queda ignorado con la regla nueva. `gitignoreSecrets.test.ts` le pregunta a git (`check-ignore --no-index`); sin el arreglo caen exactamente `.env`, `.env.production`, `scripts/.env` y `src/.env`. Los archivos de Victor no se tocaron: `keystore.properties`, `keystores/` y `android/` ya estaban ignorados; `google-services.json` sigue versionado (lo usa `app.json:60`; su clave es pública por diseño, `detail/B2-secretos-arbol.md`). Detalle: `detail/S178-tanda-v6.md` §2.
 
 - **`R9-3` (B3, limpieza) — 💡 3.3 MB de artefactos de Yarn trackeados en un repo que
   usa npm.** Severidad **muy baja**, no es seguridad.
@@ -16134,6 +16136,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `B1` ya clasificó las 8 y dejó justificadas las inevitables; o renombrar el job a
   "Dependency Report" para que el nombre no prometa una garantía que no da.
   (`npm outdated` sí necesita la bandera: devuelve 1 siempre que haya algo atrasado.)
+  **✅ ARREGLADO en la sesión 178** (`324d98a8` y `36d63241`, rama `fix/s178`), por la segunda opción: `npm audit --audit-level=moderate` sale 1 hoy en todos los niveles (62 avisos, 2 critical; 28 con `--omit=dev`), así que quitarle el `continue-on-error` dejaría el CI rojo hasta una remediación (`R9-1`). El job pasa a «Dependency Report (non-blocking)» y sus pasos a «npm audit (report only)» y «npm outdated (report only)». `ciWorkflowHonesty.test.ts` fija la regla general (lo que no puede fallar dice que solo reporta, el paso y su job); revertido el nombre, cae. `main` no tiene checks requeridos (GET público), y nada en el repo consume el nombre viejo. Se mide en el CI real tras el merge. Detalle: `detail/S178-tanda-v6.md` §3.
 
 - **`R9-6` (B5, CI) — 💡 endurecimiento: sin bloque `permissions:` y acción de terceros
   en tag mutable.** Severidad **baja**, hoy mitigado por configuración del repo.
@@ -16148,6 +16151,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   credenciales ni pushear — a lo sumo falsear el resultado del job.
   **Arreglo sugerido (no aplicado):** `permissions: {contents: read}` a nivel workflow +
   fijar la acción de Codecov a SHA completo.
+  **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `permissions: contents: read` a nivel de workflow, y `codecov/codecov-action` fijado a `b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238` (`# v4.6.0`), el commit al que apuntaba `@v4` (`git ls-remote`): corre el mismo código. Si el step se queda es `R9-118` (§8), que sigue abierto. `ciWorkflowHonesty.test.ts` exige el bloque, ningún `write` y un sha completo en toda acción que no sea de `actions/` o `github/`; cada pieza revertida sola hace caer su prueba. Se mide en el CI real tras el merge. Detalle: `detail/S178-tanda-v6.md` §4.
 
 - **`R9-7` (B1b, `functions/`) — ✅ RESUELTO 2026-09-03.** Era: código no desplegado que duplica la lógica de dinero, y
   `firebase.json` todavía lo declara.** Severidad **baja-media** (mantenimiento en una
@@ -16413,6 +16417,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   (detalle en `detail/B1-npm-audit.md`) y se resuelven cuando `expo-router` migre a
   `query-string` 8+.
   **⚠️ Sesión 21:** hoy `npm audit --package-lock-only` da **14 vulnerabilidades (11 moderate, 3 high)**, no las 8 (1 high) del 2026-09-03. Las nuevas son todas de tooling, cobertura o build (`js-yaml`, `@xmldom/xmldom`, `hono`, `morgan`, `stream-json`, `csv-parse`), ninguna entra al bundle, así que el veredicto de `B1` se sostiene. `--force` sigue siendo la trampa.
+  **⚠️ Sesión 178:** `npm audit --audit-level=moderate` da hoy **62 (1 low, 30 moderate, 29 high, 2 critical)**, y con `--omit=dev` 28 (7 moderate, 20 high, 1 critical; en Expo eso sigue contando el CLI y el servidor de desarrollo). Sale 1 en todos los niveles, también `critical`. No se midió qué entra al bundle. Por eso `R9-5` se arregló renombrando el job y no haciéndolo bloquear: la remediación (`npm audit fix` a secas, nunca `--force`) es una sesión propia.
 
 ---
 

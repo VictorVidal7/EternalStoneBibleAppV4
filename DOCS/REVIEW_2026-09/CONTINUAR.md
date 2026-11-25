@@ -289,6 +289,12 @@ al final lo visible y lo barato. Los P2 viejos entran en la tanda de su área; n
   su diseño (`detail/S171-tanda-v5.md` §3): lo escribe una sesión propia, con revisión de diff con emulador detrás.
 - **Tanda V6 — CI y repo (1 P1, barata).** `R9-107` (leer el workflow con un parser YAML), con `R9-2` (el
   `.gitignore` de un repo público), `R9-5` y `R9-6`. `R9-118` (Codecov) sigue en la §8.
+  **Hecha en la 178** (`detail/S178-tanda-v6.md`), sin agentes ni emulador, en `fix/s178` (`324d98a8` y
+  `36d63241`): los cuatro cerrados. `R9-107`: el escáner lee el workflow con `yaml` (devDependency directa nueva, ya
+  instalada). `R9-2`: `.env*`, sin tocar nada de Victor. `R9-5`: por el renombre, porque `npm audit` sale 1 hoy en
+  todos los niveles (62 avisos; la remediación es `R9-1`, sesión propia). `R9-6`: `contents: read` y Codecov en el
+  sha de `@v4`. **La 179: la revisión del diff de la 178**, tras el merge con el OK de Victor; el CI real se mide
+  después del merge.
 - **Después, las tandas 2 a 9 de abajo** (los P2 de `R9-410` en adelante), con los cuatro P3 de la 141 delante de la
   tanda 2. Los P2 viejos que quedan entran así: `R9-31`, `R9-32` y `R9-53`, con la tanda 2; `R9-163`, `R9-164`,
   `R9-12`, `R9-58` y `R9-167`, con la 3; `R9-63`, con la 4; `R9-56`, con la 5; `R9-42`, `R9-43` y `R9-57`, con la
