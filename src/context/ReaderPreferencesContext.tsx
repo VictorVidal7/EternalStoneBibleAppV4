@@ -331,7 +331,13 @@ export const ReaderPreferencesProvider: React.FC<
   );
 
   const reset = useCallback(() => {
-    update(DEFAULT_READER_PREFERENCES);
+    // R9-636 — `sepiaGrandfathered` is not a preference: a reset that put the
+    // default `false` over it took Sepia away from a grandfathered device
+    // for good. The patch leaves the key out, so it survives also when the
+    // disk is unread (R9-413).
+    const {sepiaGrandfathered: _notAPreference, ...defaults} =
+      DEFAULT_READER_PREFERENCES;
+    update(defaults);
   }, [update]);
 
   const value = useMemo<ReaderPreferencesContextValue>(

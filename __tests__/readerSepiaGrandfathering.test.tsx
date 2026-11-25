@@ -144,6 +144,29 @@ describe('sepiaGrandfathered — hydration-time detection', () => {
     expect(result.current.preferences.sepiaGrandfathered).toBe(false);
   });
 
+  // R9-636 — the reader's "Restablecer" (`reset()`) put the defaults over
+  // everything, `sepiaGrandfathered: false` included: one tap took Sepia away
+  // from a grandfathered device for good. It is not a preference.
+  it('reset() restores the preferences but keeps the device grandfathered', async () => {
+    await AsyncStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({theme: 'sepia', fontSize: 22, sepiaGrandfathered: true}),
+    );
+    const {result} = renderHook(() => useReaderPreferences(), {wrapper});
+    await waitFor(() => expect(result.current.preferences.theme).toBe('sepia'));
+    act(() => result.current.reset());
+    expect(result.current.preferences.theme).toBe('system');
+    expect(result.current.preferences.fontSize).toBe(16);
+    expect(result.current.preferences.sepiaGrandfathered).toBe(true);
+    await waitFor(async () => {
+      const raw = await AsyncStorage.getItem(STORAGE_KEY);
+      expect(JSON.parse(raw ?? '{}')).toMatchObject({
+        theme: 'system',
+        sepiaGrandfathered: true,
+      });
+    });
+  });
+
   it('a corrupt persisted blob falls back to defaults (flag OFF) instead of crashing', async () => {
     await AsyncStorage.setItem(STORAGE_KEY, '{not valid json');
 
