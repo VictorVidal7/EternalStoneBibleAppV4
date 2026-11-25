@@ -1501,21 +1501,33 @@ export async function importBackup(
     if (section) pendingAsyncStorageSections.push(section);
   };
 
+  // R9-411 — present is not valid: a `null`, a number or an array was
+  // written as the map and restored «correctly», and a `null` then threw in
+  // every reader of it (Home first, on every launch). Only a plain object is
+  // a map; anything else fails its section and leaves the device's own.
   if (readingPlanProgressPresent) {
-    queuePair(
-      KEYS.readingPlanProgress,
-      JSON.stringify(user.readingPlanProgress),
-      'readingPlanProgress',
-      'readingPlanProgress',
-    );
+    if (isPlainObject(user.readingPlanProgress)) {
+      queuePair(
+        KEYS.readingPlanProgress,
+        JSON.stringify(user.readingPlanProgress),
+        'readingPlanProgress',
+        'readingPlanProgress',
+      );
+    } else {
+      failedSections.push('readingPlanProgress');
+    }
   }
   if (readingPlanReadChaptersPresent) {
-    queuePair(
-      KEYS.readingPlanReadChapters,
-      JSON.stringify(user.readingPlanReadChapters),
-      'readingPlanReadChapters',
-      'readingPlanReadChapters',
-    );
+    if (isPlainObject(user.readingPlanReadChapters)) {
+      queuePair(
+        KEYS.readingPlanReadChapters,
+        JSON.stringify(user.readingPlanReadChapters),
+        'readingPlanReadChapters',
+        'readingPlanReadChapters',
+      );
+    } else {
+      failedSections.push('readingPlanReadChapters');
+    }
   }
   if (searchHistoryPresent) {
     queuePair(

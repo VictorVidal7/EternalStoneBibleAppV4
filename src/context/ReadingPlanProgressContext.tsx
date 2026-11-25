@@ -145,6 +145,21 @@ const ReadingPlanProgressContext = createContext<
   ReadingPlanProgressContextType | undefined
 >(undefined);
 
+/** A stored map, or `{}` when it doesn't parse or isn't a plain object. */
+function parseMap<T>(raw: string): T {
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return parsed as T;
+    }
+  } catch {
+    logger.warn('Could not parse reading plan progress', {
+      component: 'ReadingPlanProgress',
+    });
+  }
+  return {} as T;
+}
+
 /** Canonical read-chapter key. Returns null if the book can't be resolved. */
 function chapterKey(book: string | number, chapter: number): string | null {
   const bookId =
@@ -194,21 +209,18 @@ export function ReadingPlanProgressProvider({children}: {children: ReactNode}) {
     // The disk answered: a map that doesn't parse is already lost, and
     // re-reading it would not bring it back.
     unreadRef.current = false;
-    try {
-      if (rawProgress) {
-        const parsed = JSON.parse(rawProgress);
-        setProgress(parsed);
-        progressRef.current = parsed;
-      }
-      if (rawRead) {
-        const parsed = JSON.parse(rawRead);
-        setReadChapters(parsed);
-        readChaptersRef.current = parsed;
-      }
-    } catch {
-      logger.warn('Could not parse reading plan progress', {
-        component: 'ReadingPlanProgress',
-      });
+    // R9-411 — only a plain object is a map: a `null` (a hand-edited or
+    // foreign backup) made every reader of the map throw, Home first, on
+    // every launch. What doesn't parse, or isn't a map, reads as empty.
+    if (rawProgress) {
+      const parsed = parseMap<ProgressMap>(rawProgress);
+      setProgress(parsed);
+      progressRef.current = parsed;
+    }
+    if (rawRead) {
+      const parsed = parseMap<ReadChaptersMap>(rawRead);
+      setReadChapters(parsed);
+      readChaptersRef.current = parsed;
     }
     return true;
   }, []);

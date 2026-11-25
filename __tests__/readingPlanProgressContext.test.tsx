@@ -339,3 +339,28 @@ describe('R9-55 / R9-64 — migratePlanProgress', () => {
     ).toBe(true);
   });
 });
+
+// R9-411 — the hydration took any JSON as the map: `null` (which a backup
+// could write) made every reader of the map throw — Home through the
+// ErrorBoundary, «Reintentar» and relaunching included. Only a plain object
+// is a map; anything else reads as empty.
+describe('R9-411 — a stored value that is not a map', () => {
+  for (const [label, raw] of [
+    ['null', 'null'],
+    ['a number', '42'],
+    ['an array', '[1,2]'],
+  ] as const) {
+    it(`${label} reads as empty, and the readers do not throw`, async () => {
+      await AsyncStorage.setItem('@reading_plan_progress', raw);
+      await AsyncStorage.setItem('@reading_plan_read_chapters', raw);
+      const {result} = renderHook(() => useReadingPlanProgress(), {wrapper});
+      await act(async () => {
+        await new Promise(r => setTimeout(r, 20));
+      });
+      expect(result.current.getCompletedDays('bible-in-a-year')).toEqual([]);
+      expect(result.current.getStartedAt('bible-in-a-year')).toBeNull();
+      expect(result.current.isChapterRead('John', 3)).toBe(false);
+      expect(result.current.getSilentDayCount('bible-in-a-year')).toBe(0);
+    });
+  }
+});

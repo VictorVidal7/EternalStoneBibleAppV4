@@ -549,6 +549,75 @@ describe('importBackup — legacy `user.bookmarks` field (removed Bookmarks feat
   });
 });
 
+// R9-411 — the two reading-plan sections were taken as present with
+// `!== undefined` and written as they came: a `null` map (a hand-edited or
+// foreign file) restored «correctly» and then threw in every consumer, Home
+// first, on every launch. Only a plain object is a map.
+describe('R9-411 — reading-plan sections that are not a map', () => {
+  for (const [label, bad] of [
+    ['null', null],
+    ['a number', 42],
+    ['an array', [1, 2]],
+  ] as const) {
+    it(`${label}: both fail, and neither is written`, async () => {
+      await AsyncStorage.setItem(
+        '@reading_plan_progress',
+        JSON.stringify({planA: {startedAt: 'x', completedDays: [1]}}),
+      );
+      await AsyncStorage.setItem(
+        '@reading_plan_read_chapters',
+        JSON.stringify({'43:3': true}),
+      );
+      const base = basePayload();
+      const result = await importBackup({
+        ...base,
+        user: {
+          ...base.user,
+          readingPlanProgress: bad,
+          readingPlanReadChapters: bad,
+        } as unknown as BackupPayload['user'],
+      });
+      expect(result.failedSections).toEqual(
+        expect.arrayContaining([
+          'readingPlanProgress',
+          'readingPlanReadChapters',
+        ]),
+      );
+      expect(result.restoredSections).not.toContain('readingPlanProgress');
+      expect(result.restoredSections).not.toContain('readingPlanReadChapters');
+      expect(
+        JSON.parse((await AsyncStorage.getItem('@reading_plan_progress'))!),
+      ).toEqual({planA: {startedAt: 'x', completedDays: [1]}});
+      expect(
+        JSON.parse(
+          (await AsyncStorage.getItem('@reading_plan_read_chapters'))!,
+        ),
+      ).toEqual({'43:3': true});
+    });
+  }
+
+  it('CONTROL: a map is restored and written', async () => {
+    const base = basePayload();
+    const result = await importBackup({
+      ...base,
+      user: {
+        ...base.user,
+        readingPlanProgress: {planB: {startedAt: 'y', completedDays: [2]}},
+        readingPlanReadChapters: {'1:1': true},
+      } as unknown as BackupPayload['user'],
+    });
+    expect(result.restoredSections).toEqual(
+      expect.arrayContaining([
+        'readingPlanProgress',
+        'readingPlanReadChapters',
+      ]),
+    );
+    expect(
+      JSON.parse((await AsyncStorage.getItem('@reading_plan_progress'))!),
+    ).toEqual({planB: {startedAt: 'y', completedDays: [2]}});
+  });
+});
+
 describe('importBackup — Bug 1: AsyncStorage write fails after SQLite already committed', () => {
   it('resolves (does not reject) with asyncStorageWriteFailed=true, keeping the already-committed SQLite section out of failedSections', async () => {
     const multiSetSpy = jest
