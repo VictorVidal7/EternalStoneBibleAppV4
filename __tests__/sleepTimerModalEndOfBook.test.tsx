@@ -3,7 +3,6 @@
  * (MiniAudioPlayer does so while a verse playlist is loaded: a list has no
  * book of its own). Every other option stays, in both languages.
  */
-import React from 'react';
 import {render} from '@testing-library/react-native';
 import {translations} from '../src/i18n/translations';
 

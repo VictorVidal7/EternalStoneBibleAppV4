@@ -15,7 +15,6 @@
  * language, toast, premium, favorites, router, blur), plus expo-speech and the
  * selected version for the provider.
  */
-import React from 'react';
 import {render, fireEvent, act} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import type {ReactTestInstance} from 'react-test-renderer';
