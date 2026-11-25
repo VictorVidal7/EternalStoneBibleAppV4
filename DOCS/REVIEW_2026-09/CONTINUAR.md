@@ -345,6 +345,12 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   empaquetadas están siempre disponibles); la red puede escribir la clave cuando la base respondió y el pack no
   está, no cuando la lectura falló, y eso cura además las siete pantallas y quita la ventana que hace
   repetirse a `R9-570`.
+  **Hecha EN PARTE en la 182** (`detail/S182-arreglos-tanda-2-parte-1.md`), sin agentes ni emulador, en `fix/s182`
+  (`621793fd`, `457a6494`, `69d3d052` y `fdc69e7c`), cortada por forma: `R9-413` y `R9-414` (un arreglo común: nada
+  se escribe hasta releer), `R9-421` (la vía del respaldo, sin cerrar: decide Victor si el heredado viaja), `R9-636`
+  (nuevo, P3: «Restablecer» quitaba Sepia) y `R9-411` arreglados. `R9-569` y `R9-559` dependen de `R9-558` y quedan
+  con él. **La 183: el resto** (`R9-560` con emulador, y los P2 viejos `R9-31`, `R9-32` y `R9-53`), tras el merge
+  con el OK de Victor; después, la revisión del diff de la 182 y la 183.
 - **Tanda 3 — sync, y texto del usuario que se pierde sin aviso (7).** `R9-518` (la migración de marcadores duplica
   favoritos en la cuenta); `R9-415` (`saveEditor` de resaltados sin `try`); `R9-473` (un solo debounce para todas las
   secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);

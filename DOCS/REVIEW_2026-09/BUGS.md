@@ -12016,6 +12016,10 @@ undefined (reading 'morning')","disk":"constructor"}`; control `forest` monta. C
     (`R9-30`).
   - **Arreglo propuesto (sin escribir):** en `importBackup`, esas dos secciones como fallidas si no son
     `isPlainObject`; en `hydrateFromStorage`, aceptar solo un objeto plano.
+  - **✅ ARREGLADO en la sesión 182** (`fdc69e7c`, rama `fix/s182`), el arreglo propuesto: en `importBackup`, cada
+    sección que no es un objeto plano va a `failedSections` y no se escribe; en `hydrateFromStorage`, solo un objeto
+    plano es un mapa (lo demás se lee como `{}`). Pruebas con el `importBackup` y el provider reales, cada pieza vista
+    caer. `R9-410` sigue esperando. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §5.
 
 - **`R9-412` (S114, `A12` hilo 3 / `ErrorBoundary` nativo / `R9-14` — P2) — 🐛 el boundary nativo es uno
   solo, el más interno de 19 providers, sin nada por encima, y «Reintentar» es un bucle sin salida ante un
@@ -12068,6 +12072,11 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     (raro); en web, el almacenamiento bloqueado (el agente 5 lo vio en `S114-a5-arbolweb`). P2.
   - **Arreglo propuesto (sin escribir):** el de `R9-267` (no persistir hasta una lectura que haya leído el
     disco) y un `catch` en la hidratación.
+  - **✅ ARREGLADO en la sesión 182** (`621793fd`, rama `fix/s182`, con `R9-414`: la misma raíz). Tras un `getItem`
+    que rechaza, el efecto no escribe sin cambios; con un cambio relee (una relectura a la vez) y pone encima el parche
+    de lo cambiado (todos los setters pasan por `update`). Si la relectura también falla, escribe lo de memoria y el
+    disco sigue sin leer (la salida de `R9-212`). Pruebas en `__tests__/failedReadNoOverwrite.test.tsx`, cada pieza
+    vista caer. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §2.
 
 - **`R9-414` (S114, `A12` hilo 2 / progreso de lectura y de planes / `R9-267`, `R9-284` — P2) — 🐛 una
   lectura que falla al montar deja el mapa vacío en memoria, y la siguiente escritura lo vuelca entero
@@ -12080,6 +12089,10 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
   - **Sonda:** `S114-a6-lecturaFallida`, casos PROGRESO y PLANES (con sus controles). P2: hace falta un fallo
     de E/S en la lectura.
   - **Arreglo propuesto (sin escribir):** el de `R9-267`, en los dos contextos.
+  - **✅ ARREGLADO en la sesión 182** (`621793fd`, rama `fix/s182`, con `R9-413`). En los dos contextos, la
+    escritura siguiente a una lectura que rechazó relee primero (una relectura compartida) y construye sobre lo leído;
+    los escritores de planes parten de `progressRef`, leído después del `await`. Con el modelo serie de AsyncStorage,
+    dos escritores en vuelo caen los dos. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §2.
 
 - **`R9-415` (S114, `A12` hilo 2 / resaltados / `R9-50` — P2) — 🐛 `saveEditor` de resaltados no tiene
   `try`: si `updateHighlight` rechaza, «Guardar» no hace nada ni avisa, y la única salida, Cancelar, pierde
@@ -12185,6 +12198,11 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     `sepiaGrandfathered: true` abre Sepia sin premium en el aparato que lo importa; respetar un `false` explícito
     no lo cierra, porque el respaldo trae `true`. Receta para medirlo: `S114-a1-planes` (`importBackup` real) con
     el `ReaderPreferencesProvider` real. Detalle: `detail/A30-seguridad-tipos.md`.
+  - **✅ ARREGLADO en la sesión 182** (`457a6494`, rama `fix/s182`), la propuesta del agente 5: se deriva solo si
+    el blob no trae la clave; si la trae, se obedece. Prueba con el productor real (elegir Sepia, frío), roja sin el
+    arreglo. **La vía del respaldo NO entró:** `BackupService.ts` conserva el flag a propósito; cerrarla es decidir si
+    el heredado viaja con el usuario (propuesta: que viaje). Queda para Victor, sin entrada nueva. Vecino nuevo:
+    `R9-636`. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §3.
 
 - **`R9-422` (S115, `C6` / Mesa / `R9-143` — P3) — 🐛 el historial abierto desde la cabecera de la Mesa no
   muestra lo escrito en los últimos 700 ms.** MEDIDO en la sesión 115 (agente 6, emulador).
@@ -14155,6 +14173,8 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Sesión 141:** desde el arreglo de `R9-424` se ve además ~0,8 s en cada frío directo al lector con el pack
     elegido ausente (medido: «0 verses found» y, al responder la base, la recarga en WEB con 36 versículos). Pasa
     solo; no cambia la severidad.
+  - **Sesión 182: queda con `R9-558`.** Un estado vacío pintado en los ~0,8 s de cada frío con el pack ausente sería
+    peor que la página en blanco, y qué ofrece depende de qué promete el reset. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §6.
 
 - **`R9-560` (S138, `C26b` / los toasts del modal «Datos» — P2) — 🐛 cada toast del respaldo (exportar, importar,
   resetear) se dibuja DETRÁS del modal «Datos» y no se ve: un import roto no muestra nada, y el aviso honesto de un
@@ -14316,6 +14336,8 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     descargada no puede faltar de una lectura que respondió: las disponibles siguen siendo las dos, y nadie pierde
     WEB. **Sin daño.** Lo que sí impide que la red escriba la clave es la lectura que falla (el `finally`). Queda
     como nota de `R9-558`. Detalle: `detail/S141-revision-del-diff-s140.md`.
+  - **Sesión 182: queda con `R9-558`.** Lo que queda es el arreglo (releer al terminar `initializeApp`), y solo sirve
+    para que la red escriba la clave de versión: parte de lo que decide `R9-558`. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §6.
 
 - **`R9-570` (S141, revisión del diff de la 140 / arreglo de `R9-424` / recordatorios — P3) — 🐛 REGRESIÓN: con el
   pack elegido ausente, cada arranque en frío duplica los recordatorios del versículo del día.** MEDIDO en el
@@ -15338,6 +15360,18 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     (la animación de §6.3 del detalle).
   - **Arreglo propuesto (sin escribir):** en una lista de capítulos, parar al cambiar de capítulo; o, en una lista,
     llamar a la opción «Fin de la lista». Detalle: `detail/S181-revision-del-diff-s180.md` §4 y §7.3.
+
+- **`R9-636` (S182, preferencias del lector / vecino de `R9-421` y `R9-413` — P3) — 🐛 «Restablecer» del lector le
+  quita Sepia para siempre a un aparato heredado.** MEDIDO con el provider real. De antes de la 182.
+  - `ReaderPreferencesContext.tsx` (`reset`) ponía `DEFAULT_READER_PREFERENCES` entero, con
+    `sepiaGrandfathered: false`; `ReaderPreferencesSheet.tsx` lo llama desde «Restablecer» en el contexto del lector.
+    El flag no se vuelve a derivar (y antes del arreglo de `R9-421`, el tema pasaba a `system` y la derivación
+    siguiente daba `false`: lo mismo).
+  - **Severidad:** P3: un toque, un tema de cuatro, sin daño de datos; pero contra la regla del heredado («premium
+    nunca quita lo que era gratis»).
+  - **✅ ARREGLADO en la sesión 182** (`69d3d052`, rama `fix/s182`): el parche del reset deja fuera la clave (sobrevive
+    también con el disco sin leer, `R9-413`). Prueba en `__tests__/readerSepiaGrandfathering.test.tsx`, roja sin el
+    arreglo. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §4.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

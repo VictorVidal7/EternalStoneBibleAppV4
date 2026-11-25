@@ -516,3 +516,14 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 
   Nuevos, P3 y de antes de la 180: `R9-633` (el panel trabado, visto una vez y sin reproducir), `R9-634` (la
   pastilla «0m») y `R9-635` («Fin del capítulo» sobre un día de plan). `R9-464` confirmado en vivo. 274 abiertos de 635. La 182 es la tanda 2. Detalle: `detail/S181-revision-del-diff-s180.md`.
+
+- **Sesión 182 — 2026-11-25.** La tanda 2, parte 1 (cortada por forma), con Opus 5.5 de principal, sin agentes y sin
+  emulador, en `fix/s182` (`621793fd`, `457a6494`, `69d3d052` y `fdc69e7c`). Arreglados:
+  - `R9-413` y `R9-414` (un commit): tras una lectura que rechaza, nada se escribe hasta releer; la primera
+    escritura relee y construye sobre lo leído; si la relectura falla, escribe lo de memoria (la salida de `R9-212`).
+  - `R9-421`: el heredado de Sepia se deriva solo de un blob anterior al gate. La vía del respaldo queda para Victor.
+  - `R9-636` (nuevo, P3): «Restablecer» ya no le quita Sepia al heredado.
+  - `R9-411`: los mapas de planes que no son un objeto ni se importan ni se hidratan.
+
+  `R9-569` y `R9-559` quedan con `R9-558`. 270 abiertos de 636. Validate 441/441, 5231 pruebas. La 183: el resto de
+  la tanda 2 (`R9-560` con emulador, `R9-31`, `R9-32` y `R9-53`). Detalle: `detail/S182-arreglos-tanda-2-parte-1.md`.
