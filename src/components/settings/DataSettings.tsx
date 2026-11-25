@@ -31,6 +31,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {staticColors} from '@/styles/designTokens';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
@@ -307,6 +308,8 @@ export default function DataSettings() {
           <ScrollView contentContainerStyle={modalStyles.scrollContent}>
             {actionsContent}
           </ScrollView>
+          {/* R9-560 — toasts fired while this modal is open draw here, in its window. */}
+          <ToastHost />
         </View>
       </Modal>
 

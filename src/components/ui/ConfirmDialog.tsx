@@ -25,6 +25,7 @@ import {AppText as Text} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {staticColors} from '@/styles/designTokens';
+import {ToastHost} from '@context/ToastLayer';
 
 export interface ConfirmDialogProps {
   visible: boolean;
@@ -127,6 +128,10 @@ export const ConfirmDialog: React.FC<ConfirmDialogProps> = ({
             </TouchableOpacity>
           </View>
         </View>
+        {/* R9-560 — a toast fired while the dialog is up (the honest
+            «import partial» warning, right before the restart notice
+            opens) draws here, in the dialog's window, not behind it. */}
+        <ToastHost />
       </View>
     </Modal>
   );

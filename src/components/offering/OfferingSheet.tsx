@@ -30,6 +30,7 @@ import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {usePremium} from '@context/PremiumContext';
 import {haptics} from '@lib/haptics';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
@@ -470,6 +471,8 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
             </>
           )}
         </View>
+        {/* R9-560 — toasts fired while this modal is open draw here, in its window. */}
+        <ToastHost />
       </View>
     </Modal>
   );

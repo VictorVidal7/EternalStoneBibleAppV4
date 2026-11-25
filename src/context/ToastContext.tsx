@@ -14,8 +14,8 @@ import React, {
   useRef,
   ReactNode,
 } from 'react';
-import {StyleSheet, View} from 'react-native';
 import Toast from '../components/Toast';
+import {ToastLayerContext, ToastOverlay, ToastLayerValue} from './ToastLayer';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'default';
 type ToastPosition = 'top' | 'bottom';
@@ -65,6 +65,14 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
   // instance's dismiss request apart from the current one, see below.
   const currentKeyRef = useRef(0);
   currentKeyRef.current = toastKey;
+
+  // R9-560 — the ToastHosts mounted right now, in mount order; the last one
+  // draws the toast (see ToastLayer.tsx). Empty: the root draws it.
+  const [hostIds, setHostIds] = useState<number[]>([]);
+  const registerHost = useCallback((id: number) => {
+    setHostIds(ids => [...ids, id]);
+    return () => setHostIds(ids => ids.filter(x => x !== id));
+  }, []);
 
   const show = useCallback((options: ToastOptions) => {
     setToastConfig(options);
@@ -123,33 +131,47 @@ export const ToastProvider: React.FC<ToastProviderProps> = ({children}) => {
     [show, success, error, warning, info],
   );
 
+  const toastNode = useMemo(
+    () =>
+      toastConfig ? (
+        <Toast
+          key={toastKey}
+          visible={visible}
+          message={toastConfig.message}
+          variant={toastConfig.variant || 'default'}
+          duration={toastConfig.duration || 3000}
+          position={toastConfig.position || 'top'}
+          action={toastConfig.action}
+          numberOfLines={toastConfig.numberOfLines}
+          onDismiss={() => handleDismiss(toastKey)}
+        />
+      ) : null,
+    [toastConfig, toastKey, visible, handleDismiss],
+  );
+  const topHostId = hostIds.length > 0 ? hostIds[hostIds.length - 1] : null;
+  const layer = useMemo<ToastLayerValue>(
+    () => ({topHostId, register: registerHost, node: toastNode}),
+    [topHostId, registerHost, toastNode],
+  );
+
   return (
     <ToastContext.Provider value={value}>
-      {children}
-      {toastConfig && (
-        // Rendered as a plain sibling View (no Modal wrapper) so it never
-        // steals touch input from the rest of the screen while visible —
-        // RN's Android Modal creates a Dialog window without
-        // FLAG_NOT_TOUCH_MODAL, which blocked all touches app-wide for the
-        // toast's duration regardless of the toast's own drawn bounds.
-        // Trade-off accepted: since this View renders in the app's main
-        // window rather than its own, a toast can rarely be drawn behind
-        // another screen's own native Modal (OfferingSheet, ImageShareModal)
-        // if one happens to already be open at the same moment.
-        <View style={styles.toastContainer} pointerEvents="box-none">
-          <Toast
-            key={toastKey}
-            visible={visible}
-            message={toastConfig.message}
-            variant={toastConfig.variant || 'default'}
-            duration={toastConfig.duration || 3000}
-            position={toastConfig.position || 'top'}
-            action={toastConfig.action}
-            numberOfLines={toastConfig.numberOfLines}
-            onDismiss={() => handleDismiss(toastKey)}
-          />
-        </View>
-      )}
+      <ToastLayerContext.Provider value={layer}>
+        {children}
+        {topHostId === null && toastNode && (
+          // Rendered as a plain sibling View (no Modal wrapper) so it never
+          // steals touch input from the rest of the screen while visible —
+          // RN's Android Modal creates a Dialog window without
+          // FLAG_NOT_TOUCH_MODAL, which blocked all touches app-wide for the
+          // toast's duration regardless of the toast's own drawn bounds.
+          // A plain View draws in the window of whoever renders it, so a
+          // toast fired while a native Modal is open would sit behind it in
+          // the main window (R9-560): a modal that fires toasts mounts a
+          // <ToastHost /> in its content, and while one is mounted the
+          // toast is drawn there instead of here (ToastLayer.tsx).
+          <ToastOverlay>{toastNode}</ToastOverlay>
+        )}
+      </ToastLayerContext.Provider>
     </ToastContext.Provider>
   );
 };
@@ -161,14 +183,3 @@ export const useToast = (): ToastContextValue => {
   }
   return context;
 };
-
-const styles = StyleSheet.create({
-  toastContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 9999,
-    pointerEvents: 'box-none',
-  },
-});

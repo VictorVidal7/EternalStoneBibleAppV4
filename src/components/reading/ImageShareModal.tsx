@@ -33,6 +33,7 @@ import {staticColors} from '../../styles/designTokens';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useLanguage} from '../../hooks/useLanguage';
 import {useToast} from '../../context/ToastContext';
+import {ToastHost} from '../../context/ToastLayer';
 import {usePremium} from '../../context/PremiumContext';
 import {useOfferingSheet} from '../../context/OfferingSheetContext';
 import {useReaderPreferences} from '../../context/ReaderPreferencesContext';
@@ -935,6 +936,8 @@ export const ImageShareModal: React.FC<ImageShareModalProps> = ({
             </View>
           </View>
         </ScrollView>
+        {/* R9-560 — toasts fired while this modal is open draw here, in its window. */}
+        <ToastHost />
       </View>
     </Modal>
   );
