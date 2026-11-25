@@ -44,8 +44,9 @@ yarn-error.*
 .DS_Store
 *.pem
 
-# local env files
-.env*.local
+# env files: the repo is PUBLIC, so every .env* is ignored, not only *.local
+# (R9-2; __tests__/gitignoreSecrets.test.ts holds it)
+.env*
 
 # Firebase admin SDK service-account credentials (NEVER commit)
 scripts/firebase-admin-key.json

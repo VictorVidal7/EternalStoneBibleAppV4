@@ -49,9 +49,15 @@
  * Deriving the floor's REASON from the code is still the point: the day nothing
  * requires `node:sqlite` any more, the last case here fails and says the floor
  * can be lowered, rather than quietly outliving its reason.
+ *
+ * The node environment, because jest-expo resolves packages with browser
+ * conditions and `yaml` (R9-107) would load as its ESM browser build.
+ *
+ * @jest-environment node
  */
 import * as fs from 'fs';
 import * as path from 'path';
+import YAML from 'yaml';
 
 const REPO_ROOT = path.join(__dirname, '..');
 const WORKFLOW_DIR = path.join(REPO_ROOT, '.github', 'workflows');
@@ -146,68 +152,50 @@ interface WorkflowScan {
   unreadable: string[];
 }
 
-/**
- * Drop a trailing `# comment` that is not inside quotes.
- *
- * R9-99/R9-100: applied to EVERY line, not just to a scalar's value. A comment
- * after `jobs:` blinded the whole file and a comment after a job header folded
- * that job into the one above it — both of them silently, and both of them on
- * a form YAML allows anywhere.
- */
-function stripTrailingComment(raw: string): string {
-  let quote: string | null = null;
-  for (let i = 0; i < raw.length; i += 1) {
-    const ch = raw[i];
-    if (quote) {
-      if (ch === quote) quote = null;
-    } else if (ch === "'" || ch === '"') {
-      quote = ch;
-    } else if (ch === '#' && (i === 0 || /\s/.test(raw[i - 1]))) {
-      return raw.slice(0, i);
-    }
-  }
-  return raw;
-}
+/** A YAML mapping, as opposed to a sequence, a scalar or nothing. */
+const isMap = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
 
-/** A scalar's value: the comment stripped, then the surrounding quotes. */
-function scalar(raw: string): string {
-  let value = stripTrailingComment(raw.trim()).trim();
-  if (value.length >= 2 && /^['"]/.test(value) && value.at(-1) === value[0]) {
-    value = value.slice(1, -1);
-  }
-  return value;
-}
-
-const indentOf = (line: string): number =>
-  line.length - line.trimStart().length;
-const isBlank = (line: string): boolean => /^\s*(#.*)?$/.test(line);
+/** The tools that mean a step needs a pinned Node. */
+const RUNS_NODE = /\b(npm|npx|node|yarn|pnpm)\b/;
 
 /**
  * The scanner, over SOURCE TEXT rather than a path — the shape R9-86 settled on
  * for this repo, so the probe cases below exercise THIS function and not a copy
  * of it.
  *
- * It is not a general YAML parser. It reads the one structure GitHub Actions
- * workflows have: `jobs:` at column 0, job ids one indent step in, steps as
- * `- ` sequences under them. Anything it meets inside that structure and cannot
- * interpret goes into `unreadable` rather than being skipped.
+ * R9-107: it reads the workflow with a real YAML parser and walks
+ * `jobs.*.steps[*]` as DATA. The drafts before it read LINES, and every fix
+ * they got was a fix to one more line shape:
  *
- * R9-99: what makes a line a JOB is its COLUMN, not its shape. The first draft
- * asked instead for a line matching `^name:$` — ending at the colon — which is
- * a style, and three ordinary YAML forms are not it: a trailing comment
- * (`build: # only lint`), a quoted id, an anchor (`build: &common`). None of
- * them failed: `job` simply stayed on the PREVIOUS job, so every step
- * underneath was filed under a job that already had a pin. Measured on the real
- * ci.yml — a fourth job running `npm ci && npm test` with no setup-node step at
- * all passed 15/15 with a comment on its header, and went red the moment the
- * comment came off. That is R9-89's finding, reopened by its own fix.
+ *   - R9-99: a job header was a line ending at its colon, so `bad: # comment`
+ *     folded that job into the one above it, pin included.
+ *   - R9-100: `jobs: # comment` blinded the whole file.
+ *   - R9-107: "this job runs npm" was `/^-?\s*run:\s*(.*)$/`, the command on
+ *     the SAME line. A `run:` whose value sits on the next line (the form of
+ *     actions/starter-workflows' rust-clippy.yml), a quoted key, a flow-style
+ *     step, a multi-line scalar or an aliased step all left a job running
+ *     `npm test` with no setup-node out of `jobsRunningNode`, so nothing
+ *     demanded a pin for it: 23/23 green on the real ci.yml plus that job.
  *
- * So the column decides, and a line sitting in the job column whose id cannot
- * be read is REPORTED and clears `job`, so nothing below it can be attributed
- * to the wrong owner. Teach the scanner, never the reverse.
+ * Deciding by the form of a line is deciding by a style. A parser has no style
+ * to miss: whatever GitHub reads as `run`, this reads as `run`.
+ *
+ * Two parser settings are deliberate:
+ *
+ *   - `schema: 'failsafe'`: every scalar stays the TEXT it was written as. The
+ *     default schema turns an unquoted `22.10` into the float 22.1, which
+ *     would then compare as 22.1.0: a wrong version, silently.
+ *   - `merge: true`: a `<<:` key is followed, so steps a job inherits are seen.
+ *     Reading more than GitHub would is the safe side for a gate that asks
+ *     which jobs run node.
+ *
+ * What it cannot turn into data is REPORTED in `unreadable` (R9-67's
+ * discipline): a file that is not valid YAML, a job or a step that is not a
+ * mapping, a `with:` that is not one, a pin that is not a scalar. Teach the
+ * scanner, never the reverse.
  */
 export function scanWorkflowSource(name: string, source: string): WorkflowScan {
-  const lines = source.split(/\r?\n/);
   const scan: WorkflowScan = {
     jobs: [],
     jobsRunningNode: [],
@@ -215,111 +203,103 @@ export function scanWorkflowSource(name: string, source: string): WorkflowScan {
     unreadable: [],
   };
 
-  let inJobs = false;
-  let job: string | null = null;
-  /** The column job ids sit at, learned from the first key under `jobs:`. */
-  let jobIndent: number | null = null;
+  let root: unknown;
+  try {
+    const doc = YAML.parseDocument(source, {schema: 'failsafe', merge: true});
+    if (doc.errors.length > 0) {
+      throw new Error(doc.errors.map(error => error.message).join('; '));
+    }
+    root = doc.toJS({maxAliasCount: 100});
+  } catch (error) {
+    const message = (error as Error).message.split('\n')[0];
+    scan.unreadable.push(name + ': not valid YAML (' + message + ')');
+    return scan;
+  }
 
-  for (let i = 0; i < lines.length; i += 1) {
-    const line = lines[i];
-    if (isBlank(line)) continue;
-    const indent = indentOf(line);
-    const text = stripTrailingComment(line.trim()).trim();
-    if (text === '') continue;
+  // No `jobs:` at all yields no jobs, and the per-file floor below says so.
+  if (!isMap(root) || root.jobs === undefined) return scan;
+  if (!isMap(root.jobs)) {
+    scan.unreadable.push(name + ': jobs is not a mapping');
+    return scan;
+  }
 
-    if (!inJobs) {
-      if (indent === 0 && /^jobs:$/.test(text)) {
-        inJobs = true;
-        job = null;
-        jobIndent = null;
-      }
+  for (const [job, body] of Object.entries(root.jobs)) {
+    scan.jobs.push(job);
+    if (!isMap(body)) {
+      scan.unreadable.push(name + ': job ' + job + ' is not a mapping');
       continue;
     }
-    if (indent === 0) {
-      // Left the `jobs:` mapping entirely (another top-level key).
-      inJobs = false;
-      job = null;
+    // A job that calls a reusable workflow (`uses:`) has no steps of its own.
+    if (body.steps === undefined) continue;
+    if (!Array.isArray(body.steps)) {
+      scan.unreadable.push(name + ' ' + job + ': steps is not a sequence');
       continue;
     }
 
-    if (jobIndent === null) jobIndent = indent;
-    if (indent <= jobIndent) {
-      jobIndent = indent;
-      const header = text.match(/^(["']?)([A-Za-z_][\w-]*)\1\s*:(\s|$)/);
-      if (header) {
-        job = header[2];
-        scan.jobs.push(job);
-      } else {
-        job = null;
-        scan.unreadable.push(
-          name + ': cannot read a job name in "' + text + '"',
-        );
-      }
-      continue;
-    }
-    if (job === null) continue;
-
-    // Does this job run node/npm at all? Both `run: cmd` and `run: |` blocks.
-    const run = text.match(/^-?\s*run:\s*(.*)$/);
-    if (run) {
-      let command = run[1];
-      if (/^[|>]/.test(command.trim())) {
-        command = '';
-        for (let j = i + 1; j < lines.length; j += 1) {
-          if (isBlank(lines[j])) continue;
-          if (indentOf(lines[j]) <= indent) break;
-          command += lines[j] + '\n';
-        }
+    body.steps.forEach((step: unknown, index: number) => {
+      const where = name + ' ' + job + ': step ' + (index + 1);
+      if (!isMap(step)) {
+        scan.unreadable.push(where + ' is not a mapping');
+        return;
       }
       if (
-        /\b(npm|npx|node|yarn|pnpm)\b/.test(command) &&
+        step.run !== undefined &&
+        RUNS_NODE.test(String(step.run)) &&
         !scan.jobsRunningNode.includes(job)
       ) {
         scan.jobsRunningNode.push(job);
       }
-      continue;
-    }
 
-    const versionKey = text.match(/^(node-version|node-version-file):\s*(.*)$/);
-    if (versionKey) {
-      const key = versionKey[1];
-      const raw = scalar(versionKey[2]);
-      if (raw === '') {
-        scan.unreadable.push(name + ' ' + job + ': empty ' + key);
-      } else if (raw.includes('${{')) {
-        scan.unreadable.push(
-          name +
-            ' ' +
-            job +
-            ': ' +
-            key +
-            ' is the expression ' +
-            raw +
-            ', whose value this scanner cannot resolve (a matrix or an input)',
-        );
-      } else if (key === 'node-version-file') {
-        // Legitimate, and readable: the file it names lives in the repo.
-        const target = path.join(REPO_ROOT, raw);
-        if (!fs.existsSync(target)) {
+      if (step.with === undefined) return;
+      if (!isMap(step.with)) {
+        scan.unreadable.push(where + ': with is not a mapping');
+        return;
+      }
+      for (const key of ['node-version', 'node-version-file']) {
+        if (!(key in step.with)) continue;
+        const value = step.with[key];
+        if (value !== null && typeof value !== 'string') {
+          scan.unreadable.push(where + ': ' + key + ' is not a scalar');
+          continue;
+        }
+        const raw = (value ?? '').trim();
+        if (raw === '') {
+          scan.unreadable.push(name + ' ' + job + ': empty ' + key);
+        } else if (raw.includes('${{')) {
           scan.unreadable.push(
             name +
               ' ' +
               job +
-              ': node-version-file points at ' +
+              ': ' +
+              key +
+              ' is the expression ' +
               raw +
-              ', which is not in the repo',
+              ', whose value this scanner cannot resolve (a matrix or an input)',
           );
+        } else if (key === 'node-version-file') {
+          // Legitimate, and readable: the file it names lives in the repo.
+          const target = path.join(REPO_ROOT, raw);
+          if (!fs.existsSync(target)) {
+            scan.unreadable.push(
+              name +
+                ' ' +
+                job +
+                ': node-version-file points at ' +
+                raw +
+                ', which is not in the repo',
+            );
+          } else {
+            scan.pins.push({
+              job,
+              pin: fs.readFileSync(target, 'utf8').trim(),
+              key: key + ' (' + raw + ')',
+            });
+          }
         } else {
-          scan.pins.push({
-            job,
-            pin: fs.readFileSync(target, 'utf8').trim(),
-            key: key + ' (' + raw + ')',
-          });
+          scan.pins.push({job, pin: raw, key});
         }
-      } else {
-        scan.pins.push({job, pin: raw, key});
       }
-    }
+    });
   }
   return scan;
 }
@@ -446,10 +426,13 @@ describe('the workflow scanner itself (probes, not the real workflow)', () => {
     expect(scan.pins).toEqual([{job: 'good', pin: '24', key: 'node-version'}]);
   });
 
-  it('REPORTS a job-level line it cannot name instead of adopting the last job', () => {
-    // The general form of R9-99: whatever the reason a job header is
-    // unreadable, the steps under it must not silently inherit the previous
-    // job's pin. An anchor merge key is one way in; there will be others.
+  it('REPORTS a merge key it cannot resolve instead of adopting the last job', () => {
+    // The general form of R9-99: whatever the reason a job cannot be read, the
+    // steps under it must not silently inherit the previous job's pin. Under
+    // the line scanner this `<<:` was "a job name it cannot read"; under the
+    // parser (R9-107) an alias to an anchor that does not exist makes the
+    // whole file unreadable, which is louder still: it is reported, and it
+    // yields no jobs, so the per-file floor fails too.
     const scan = scanWorkflowSource(
       'probe.yml',
       'name: CI\non: [push]\njobs:\n' +
@@ -457,8 +440,20 @@ describe('the workflow scanner itself (probes, not the real workflow)', () => {
         '  <<: *shared\n    steps:\n      - run: npm test\n',
     );
     expect(scan.unreadable).toHaveLength(1);
-    expect(scan.unreadable[0]).toMatch(/cannot read a job name/);
-    expect(scan.jobsRunningNode).toEqual(['good']);
+    expect(scan.unreadable[0]).toMatch(/not valid YAML/);
+    expect(scan.jobs).toEqual([]);
+  });
+
+  it('follows a merge key it CAN resolve, so inherited steps are seen', () => {
+    const scan = scanWorkflowSource(
+      'probe.yml',
+      'name: CI\non: [push]\nx-shared: &shared\n  steps:\n    - run: npm test\njobs:\n' +
+        "  good:\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '24'\n      - run: npm test\n" +
+        '  inherits:\n    <<: *shared\n    runs-on: ubuntu-latest\n',
+    );
+    expect(scan.unreadable).toEqual([]);
+    expect(scan.jobsRunningNode).toEqual(['good', 'inherits']);
+    expect(scan.pins).toEqual([{job: 'good', pin: '24', key: 'node-version'}]);
   });
 
   it('yields NO jobs for a file it could not read at all', () => {
@@ -484,6 +479,110 @@ describe('the workflow scanner itself (probes, not the real workflow)', () => {
     );
     expect(scan.pins).toEqual([{job: 'a', pin: '24', key: 'node-version'}]);
     expect(scan.jobsRunningNode).toEqual(['a', 'b']);
+  });
+});
+
+describe('R9-107: which job runs node is read from the DATA, not the line shape', () => {
+  // The scanner used to decide "this job runs npm" with `/^-?\s*run:\s*(.*)$/`,
+  // the command on the SAME line. Every form below is valid YAML that GitHub
+  // runs, and in each one a job running `npm test` with no setup-node step at
+  // all was never entered in `jobsRunningNode`, so nothing demanded a pin for
+  // it. Measured on the real ci.yml with a fourth job: 23/23 green. The first
+  // form is not exotic: it is how actions/starter-workflows'
+  // code-scanning/rust-clippy.yml writes its `run:`.
+  const smoke = (jobBody: string): string =>
+    'name: CI\non: [push]\njobs:\n' +
+    "  lint:\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '24'\n      - &npmtest {run: npm test}\n" +
+    jobBody;
+  const forms: Array<[string, string]> = [
+    [
+      'the value on the NEXT line',
+      '  smoke:\n    steps:\n      - run:\n          npm test\n',
+    ],
+    [
+      'the value on the next line, under `- name:`',
+      '  smoke:\n    steps:\n      - name: Test\n        run:\n          npm test\n',
+    ],
+    [
+      'a plain scalar over two lines, npm on the second',
+      '  smoke:\n    steps:\n      - run: echo start &&\n          npm test\n',
+    ],
+    [
+      'a double-quoted scalar over two lines',
+      '  smoke:\n    steps:\n      - run: "echo start &&\n          npm test"\n',
+    ],
+    [
+      'a single-quoted scalar over two lines',
+      "  smoke:\n    steps:\n      - run: 'echo start &&\n          npm test'\n",
+    ],
+    ['a double-quoted key', '  smoke:\n    steps:\n      - "run": npm test\n'],
+    ['a single-quoted key', "  smoke:\n    steps:\n      - 'run': npm test\n"],
+    [
+      'a space before the colon',
+      '  smoke:\n    steps:\n      - run : npm test\n',
+    ],
+    ['a flow-mapping step', '  smoke:\n    steps:\n      - {run: npm test}\n'],
+    ['a flow-sequence of steps', '  smoke:\n    steps: [{run: npm test}]\n'],
+    [
+      'the whole job in flow style',
+      '  smoke: {runs-on: ubuntu-latest, steps: [{run: npm test}]}\n',
+    ],
+    ['a step that is an alias', '  smoke:\n    steps:\n      - *npmtest\n'],
+  ];
+
+  it.each(forms)('sees npm in %s, and that it has no pin', (_label, body) => {
+    const scan = scanWorkflowSource('probe.yml', smoke(body));
+    expect(scan.unreadable).toEqual([]);
+    expect(scan.jobs).toEqual(['lint', 'smoke']);
+    expect(scan.jobsRunningNode).toEqual(['lint', 'smoke']);
+    expect(scan.pins).toEqual([{job: 'lint', pin: '24', key: 'node-version'}]);
+  });
+
+  it('flags an unpinned fourth job appended to the REAL ci.yml', () => {
+    const real = fs.readFileSync(path.join(WORKFLOW_DIR, 'ci.yml'), 'utf8');
+    const scan = scanWorkflowSource(
+      'ci.yml',
+      real.replace(/\s*$/, '\n') +
+        '\n  smoke:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n      - run:\n          npm ci && npm test\n',
+    );
+    expect(scan.unreadable).toEqual([]);
+    expect(
+      scan.jobsRunningNode.filter(
+        job => !scan.pins.some(pin => pin.job === job),
+      ),
+    ).toEqual(['smoke']);
+  });
+
+  it('keeps an unquoted pin as WRITTEN (22.10 is not the number 22.1)', () => {
+    // A parser's default schema turns `22.10` into the float 22.1, which would
+    // compare as 22.1.0 — the wrong version, silently. The failsafe schema
+    // keeps every scalar as the text it was.
+    const scan = scanWorkflowSource(
+      'probe.yml',
+      'name: CI\non: [push]\njobs:\n  a:\n    steps:\n      - uses: actions/setup-node@v4\n        with:\n          node-version: 22.10\n      - run: npm test\n',
+    );
+    expect(scan.pins).toEqual([{job: 'a', pin: '22.10', key: 'node-version'}]);
+  });
+
+  it('REPORTS a file that is not valid YAML instead of reading what it can', () => {
+    const scan = scanWorkflowSource(
+      'probe.yml',
+      'name: CI\non: [push]\njobs:\n  a:\n    steps: [\n',
+    );
+    expect(scan.jobs).toEqual([]);
+    expect(scan.unreadable).toHaveLength(1);
+    expect(scan.unreadable[0]).toMatch(/not valid YAML/);
+  });
+
+  it('REPORTS a step or job that is not a mapping', () => {
+    const scan = scanWorkflowSource(
+      'probe.yml',
+      'name: CI\non: [push]\njobs:\n  a:\n    steps:\n      - npm test\n  b: npm test\n',
+    );
+    expect(scan.unreadable).toEqual([
+      'probe.yml a: step 1 is not a mapping',
+      'probe.yml: job b is not a mapping',
+    ]);
   });
 });
 

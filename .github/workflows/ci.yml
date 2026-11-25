@@ -17,6 +17,13 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
+# R9-6: the token gets read access to the code and nothing else, declared here
+# rather than inherited from the repo setting (read today, but that setting can
+# be flipped in the UI with no trace in git). No job pushes, comments or
+# publishes. __tests__/ciWorkflowHonesty.test.ts holds this.
+permissions:
+  contents: read
+
 # Node 24, not 20: `scripts/build-web-packs.js` requires `node:sqlite`, which
 # is unusable before Node 22.13 (it exists from 22.5 but throws
 # without --experimental-sqlite until then) — and `__tests__/buildWebPacks.test.js` plus
@@ -72,16 +79,28 @@ jobs:
       - name: Run tests with coverage
         run: npm run test:ci
 
+      # R9-6: a third-party action runs from a full commit sha, not a tag its
+      # owner can move. This sha is what `@v4` pointed at (v4.6.0) when it
+      # was pinned, so the step runs the same code as before. Whether the step
+      # stays at all is R9-118, an open decision.
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238 # v4.6.0
         with:
           files: ./coverage/lcov.info
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
 
+  # R9-5: this job REPORTS; it does not gate. Both checks carry
+  # `continue-on-error`, so it is green on every run: `npm outdated` exits 1
+  # whenever anything is behind, and `npm audit --audit-level=moderate` exited 1
+  # in session 178 (62 advisories, 2 critical; 28 in production dependencies,
+  # 1 critical). It was called "Security Audit", and a green "Security Audit"
+  # reads as "the audit passed". Making the audit gate needs a remediation pass
+  # first (R9-1; never `npm audit fix --force`). Until then the names say what
+  # the job does, and __tests__/ciWorkflowHonesty.test.ts keeps it that way.
   security:
-    name: Security Audit
+    name: Dependency Report (non-blocking)
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -97,7 +116,7 @@ jobs:
       # job deliberately skips installing for it. Verified equivalent across
       # the Node 20 -> 24 move: same 14 advisories, same moderate/high split,
       # same exit code.
-      - name: Run npm audit
+      - name: npm audit (report only)
         run: npm audit --audit-level=moderate
         continue-on-error: true
 
@@ -114,6 +133,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --legacy-peer-deps --prefer-offline
 
-      - name: Check for outdated packages
+      - name: npm outdated (report only)
         run: npm outdated
         continue-on-error: true

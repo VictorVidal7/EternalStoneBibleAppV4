@@ -108,7 +108,8 @@
     "lint-staged": "^16.2.6",
     "prettier": "^3.6.2",
     "sql.js": "^1.14.1",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "yaml": "^2.9.0"
   },
   "overrides": {
     "ws": "8.21.0",
