@@ -5728,6 +5728,8 @@ export const translations = {
       addThisDay: 'Añadir',
       share: 'Compartir devocional',
       needOneDay: 'Añade al menos un día con un versículo.',
+      notesOverLimit:
+        'Las notas pasan por {{n}} caracteres el límite de 12 000. Acorta alguna para compartir; tu borrador sigue aquí.',
       shareMessage:
         '🗓️ Te comparto un devocional: {{title}}\n\nÁbrelo en Eternal Stone Bible:\n{{link}}',
       savedSectionTitle: 'Tus devocionales',
@@ -12294,6 +12296,8 @@ export const translations = {
       addThisDay: 'Add',
       share: 'Share devotional',
       needOneDay: 'Add at least one day with a verse.',
+      notesOverLimit:
+        'Your notes are {{n}} characters over the 12,000 limit. Shorten some to share; your draft is still here.',
       shareMessage:
         '🗓️ A devotional for you: {{title}}\n\nOpen it in Eternal Stone Bible:\n{{link}}',
       savedSectionTitle: 'Your devotionals',

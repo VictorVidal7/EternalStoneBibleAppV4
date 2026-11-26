@@ -407,6 +407,25 @@ export function makeStudyBundle(
 }
 
 /**
+ * How many note characters `makeCalBundle` left out of `bundle` (R9-511):
+ * every note as `sanitizeNote` gives it with no cap, minus what the bundle
+ * carries. Counts the per-note cap, the total budget, and days the day cap
+ * dropped. Compares totals, not positions (invalid refs are skipped).
+ */
+export function calNotesDropped(
+  days: Array<{note?: string}>,
+  bundle: CalBundle,
+): number {
+  const typed = days.reduce(
+    (sum, day) =>
+      sum + (day.note ? sanitizeNote(day.note, Infinity).length : 0),
+    0,
+  );
+  const carried = bundle.d.reduce((sum, r) => sum + (r.n ? r.n.length : 0), 0);
+  return Math.max(0, typed - carried);
+}
+
+/**
  * Build a baked devotional-calendar bundle from a start date, optional title,
  * and the per-day verse + optional note (Sprint 110). Days beyond the cap are
  * dropped, refs out of range are skipped, notes are sanitized + length-capped,

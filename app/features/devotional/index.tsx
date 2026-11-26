@@ -44,6 +44,8 @@ import {
   addDaysISO,
   addSavedDevotional,
   CAL_NOTE_MAX,
+  CAL_NOTES_TOTAL_MAX,
+  calNotesDropped,
   DEVOTIONAL_DRAFT_KEY,
   DEVOTIONAL_SAVED_KEY,
   encodeHttpsLink,
@@ -303,18 +305,23 @@ export default function DevotionalBuilderScreen() {
   };
 
   const onShare = () => {
-    const bundle = makeCalBundle(
-      startDate,
-      title,
-      days.map(d => ({
-        bookId: d.bookId,
-        chapter: d.chapter,
-        verse: d.verse,
-        note: d.note.trim() || undefined,
-      })),
-    );
+    const input = days.map(d => ({
+      bookId: d.bookId,
+      chapter: d.chapter,
+      verse: d.verse,
+      note: d.note.trim() || undefined,
+    }));
+    const bundle = makeCalBundle(startDate, title, input);
     if (!bundle) {
       toast.info(db.needOneDay);
+      return;
+    }
+    // R9-511: the bundle caps the notes (280 each, 12 000 in all). If it left
+    // any text out, don't share a cut devotional and don't drop the draft —
+    // say how much is over so the user can shorten it.
+    const dropped = calNotesDropped(input, bundle);
+    if (dropped > 0) {
+      toast.error(db.notesOverLimit.replace('{{n}}', String(dropped)));
       return;
     }
     haptics.success();
@@ -335,6 +342,15 @@ export default function DevotionalBuilderScreen() {
   };
 
   const canShare = days.length > 0;
+  // R9-511 (complement to the guard in onShare): each note box stops where the
+  // total budget ends. Never below the note's own length, so a lower limit
+  // can't cut text already in the box.
+  const notesTotal = days.reduce((sum, d) => sum + d.note.length, 0);
+  const noteMaxLength = (note: string) =>
+    Math.max(
+      note.length,
+      Math.min(CAL_NOTE_MAX, CAL_NOTES_TOTAL_MAX - (notesTotal - note.length)),
+    );
 
   const stepBtn = (
     label: string,
@@ -558,7 +574,7 @@ export default function DevotionalBuilderScreen() {
                 onChangeText={text => setNote(i, text)}
                 placeholder={db.notePlaceholder}
                 placeholderTextColor={colors.textSecondary}
-                maxLength={CAL_NOTE_MAX}
+                maxLength={noteMaxLength(d.note)}
                 multiline
               />
             </View>
