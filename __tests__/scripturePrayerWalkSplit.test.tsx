@@ -11,7 +11,6 @@ import {
   waitFor,
   cleanup,
   screen,
-  act,
 } from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
