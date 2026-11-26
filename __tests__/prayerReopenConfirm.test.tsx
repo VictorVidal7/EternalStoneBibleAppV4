@@ -4,7 +4,6 @@
  * purpose), with no confirmation and no undo. The real journal screen and the
  * real store (AsyncStorage from jest.setup), mounted with `renderRouter`.
  */
-import React from 'react';
 import {Text} from 'react-native';
 import {Stack, Tabs} from 'expo-router';
 import {
