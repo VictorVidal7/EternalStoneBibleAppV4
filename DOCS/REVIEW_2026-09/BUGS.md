@@ -16282,6 +16282,12 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     o solo reinstalación) y escribe el diálogo con sesión iniciada, en los dos idiomas. La mitad técnica: la
     exclusiva abre otra conexión y los demás escritores reciben «database is locked»; hay que medir quién escribe
     durante un import y si reintenta. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §3.
+  - **Sesión 184: EN PARTE, el texto arreglado** (`b26d7878`, `38a13f59`). Medido con el motor, el cursor y el
+    adaptador de subrayados reales: lo borrado no vuelve en el mismo proceso; en el arranque siguiente, solo lo
+    cambiado en los 5 min antes del último cambio visto; vuelve al reinstalar o si otro aparato lo edita. El diálogo
+    dice «reemplazará los datos de este dispositivo… lo que no esté en el archivo no se borra de [la cuenta]». Sigue
+    abierto: la transacción exclusiva no es mecánica (el cuerpo usa `bibleDB.executeSql`) y pide medir en el
+    aparato. Detalle: `detail/S184-arreglos-tanda-2-parte-3.md` §2.
 
 - **`R9-32` (A7, respaldo) — 💡 el archivo de respaldo se escribe en caché y nunca se
   limpia.** `BackupService.ts:586-590`. `shareAsync` resuelve al cerrarse la hoja, no cuando
@@ -16291,6 +16297,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   - **Sesión 183: la caché, arreglada (`9095ffbf`); lo que promete Exportar, decidido: el aviso neutro, va en la 184.** Sigue abierto. Medido en vivo: dos exports descartados dejaban dos archivos de 15 370 B. Ahora el export
     borra las copias anteriores y no escribe si no se puede compartir. El aviso (`CONTINUAR.md` §7) quita la
     creencia falsa. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §2.
+  - **✅ ARREGLADO en la sesión 184** (`8ed7e99a`, rama `fix/s184`): tras un export sin secciones degradadas,
+    `toast.info` con el texto de la §7, en los dos idiomas, dentro del modal «Datos». Jest con el provider real;
+    revert: cae el export limpio. Sin medir en vivo (a la 186). Detalle: `detail/S184-arreglos-tanda-2-parte-3.md` §1.
 
 - **`R9-2` (B2, `.gitignore`) — 💡 el `.gitignore` raíz solo cubre `.env*.local`, no un
   `.env` pelado.** Severidad **baja** (hardening), arreglo de una línea.
@@ -16481,6 +16490,10 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     banda y con piso 0, solo los eventos que el import agrega y que no estaban en el log local de antes (por id): son
     los que el floor ya puede contar. Lo que estaba local y se reimporta no toca el floor. Sin vía de escape en la UI
     (`R9-61`), el arreglo tiene que ser exacto. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §3.
+  - **Sesión 184: la propuesta NO es exacta, sin arreglo.** Medido con `computeMemoryStatsSummary` real: el floor
+    guarda bandas sin ids, y restar eventos que nunca contó subcuenta (20 → 15; y un caso hoy correcto, 15 → 10).
+    Decide Victor: aceptar la subcuenta, restar solo lo anterior al `updatedAt` del floor (no cubre todo), o ids en
+    el resumen / una vía de reset. Detalle: `detail/S184-arreglos-tanda-2-parte-3.md` §3.
 
 - **`R9-55` (⬇️ de P1 en la sesión 22; A11, planes) — 🐛 editar un plan propio a menos días arrastra números de día que
   ya no existen: la pantalla muestra 250%.** Severidad **media**. `migratePlanProgress`

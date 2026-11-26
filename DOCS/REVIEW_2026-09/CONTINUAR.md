@@ -358,6 +358,11 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   el diálogo con sesión y la transacción exclusiva) y `R9-53` (la propuesta de su entrada); después, la revisión
   del diff de la 182 y la 183 con emulador (a la 185 si no entra). `R9-410` y `R9-558` (con `R9-569` y `R9-559`)
   siguen sin sesión.
+  **Parte 3 en la 184** (`detail/S184-arreglos-tanda-2-parte-3.md`), sin agentes ni emulador, en `fix/s184` (sin
+  mergear): `R9-32` cerrado (el aviso); `R9-31`, el texto del diálogo (medido cuándo vuelve lo borrado), sigue
+  abierto por la transacción exclusiva (en el aparato); `R9-53`, la propuesta subcuenta: sin arreglo, decide Victor.
+  **Queda, para la 186** (la 185 es el triaje): la revisión del diff de la 182, la 183 y la 184 con emulador, el
+  toast de `R9-32` en vivo y la exclusiva de `R9-31`.
 - **Tanda 3 — sync, y texto del usuario que se pierde sin aviso (7).** `R9-518` (la migración de marcadores duplica
   favoritos en la cuenta); `R9-415` (`saveEditor` de resaltados sin `try`); `R9-473` (un solo debounce para todas las
   secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);

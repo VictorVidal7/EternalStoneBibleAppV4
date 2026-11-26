@@ -537,3 +537,13 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 
   270 abiertos de 637. Validate 443/443, 5239 pruebas. La 184: el aviso de `R9-32`, `R9-31` y `R9-53`; después, la
   revisión del diff de la 182 y la 183. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md`.
+
+- **Sesión 184 — 2026-11-25.** La tanda 2, parte 3, con Opus 5.5, sin agentes ni emulador, en `fix/s184` (sin
+  mergear):
+  - `R9-32` cerrado (`8ed7e99a`): el aviso neutro tras un export limpio, en los dos idiomas.
+  - `R9-31`, el texto (`b26d7878`, `38a13f59`): medido cuándo vuelve lo borrado; el diálogo dice «este
+    dispositivo» y que la cuenta lo conserva. Sigue abierto: la transacción exclusiva, en el aparato.
+  - `R9-53`: la propuesta de su entrada subcuenta (medido); sin arreglo, decide Victor.
+
+  269 abiertos de 637. El paso 5 (la revisión del diff de la 182 y la 183) va a la 186. Detalle:
+  `detail/S184-arreglos-tanda-2-parte-3.md`.
