@@ -550,10 +550,10 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 
 - **Sesión 185 — 2026-11-25.** El triaje de los P3 (§7), solo docs, Opus 5.5 con seis agentes de solo lectura, en
   `docs/review-s185`:
-  - 174 P3 triageados (189 menos los 15 del «NO»): 69 B y 22 C cerrados con `✅ ACEPTADO en la sesión 185
-(triaje)`; 28 A, 28 D (viñeta «lote D»), 23 E y 4 sin revert visto siguen abiertos.
+  - 174 P3 triageados (189 menos los 15 del «NO»): 68 B y 22 C cerrados con `✅ ACEPTADO en la sesión 185
+(triaje)`; 29 A, 28 D (viñeta «lote D»), 23 E y 4 sin revert visto siguen abiertos.
   - Reverts de verificación: cinco mutaciones de `ci.yml` con control (`R9-628` a `R9-632`) y `R9-588`; todo
     restaurado.
   - Una pregunta para Victor: las seis pruebas de la Mesa (D o B), en E mientras tanto.
 
-  178 abiertos de 637 (98 P3). Detalle: `detail/S185-triaje-p3.md`.
+  179 abiertos de 637 (99 P3). Detalle: `detail/S185-triaje-p3.md`.

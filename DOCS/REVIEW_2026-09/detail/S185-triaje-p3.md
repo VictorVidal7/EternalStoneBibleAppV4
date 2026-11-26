@@ -19,8 +19,8 @@ triageados**. `R9-177` y `R9-240` (SIN-VERIFICAR) quedan fuera.
 | E, espera al dueño | 23      | sigue abierto, sin tocar                                          |
 | Sin revert visto   | 4       | sigue abierto: pruebas que irían a B, pero el revert no se corrió |
 
-**Antes:** 269 abiertos (1 P1, 78 P2, 189 P3, el aviso `R9-1`). **Después:** 178 (1 P1, 78 P2, **98 P3**, el aviso).
-Fable estimó 73 (de 53 a 93). Quedan 5 por encima del techo, por tres razones: la regla de la duda (A(1) y A(2) no
+**Antes:** 269 abiertos (1 P1, 78 P2, 189 P3, el aviso `R9-1`). **Después:** 179 (1 P1, 78 P2, **99 P3**, el aviso).
+Fable estimó 73 (de 53 a 93). Quedan 6 por encima del techo, por tres razones: la regla de la duda (A(1) y A(2) no
 van a B), seis pruebas de la Mesa que pasan a E en vez de D o B (§5), y cuatro pruebas sin revert visto.
 
 ## 2. Cómo se decidió
@@ -36,6 +36,7 @@ van a B), seis pruebas de la Mesa que pasan a E en vez de D o B (§5), y cuatro 
   `R9-540` → `R9-527`). `R9-470` no es C («con otra raíz», y `R9-410` está en el «NO»). Donde el destino es B
   (`R9-488`, `R9-462`, `R9-459`, `R9-446`, `R9-422`), se volvió a juzgar con lo que recibe: sigue B; salvo `R9-474`,
   que con `R9-482` (la ilustración insertada dos veces en la Mesa) pasa a D.
+- **B con frontera que el orquestador NO releyó** (aceptados con el acuerdo de los dos agentes): `R9-147`, `R9-149`, `R9-151`, `R9-170`, `R9-285`, `R9-441`, `R9-449`, `R9-479`, `R9-483`, `R9-484`, `R9-487`, `R9-515`, `R9-526`, `R9-543`, `R9-552`, `R9-556`. Ojo con `R9-149` y `R9-151`: compuertas de los packs publicados cuyo revert documentado queda verde (protegen al operador, no datos del usuario). `R9-564` se sacó de B tras el triaje (A(1) en la duda: el `updated_at` sube con cuenta).
 - **Una frase citada por fila**, comprobada por script como texto literal de su entrada.
 
 ## 3. Los reverts de pruebas y CI (la regla de la §7)
@@ -54,7 +55,7 @@ van a B), seis pruebas de la Mesa que pasan a E en vez de D o B (§5), y cuatro 
 - **`R9-588`:** comentado `engine?.forgetStoreOwner()` en `deleteAccount` (`src/context/AuthContext.tsx`), la prueba
   `R9-38 — deleteAccount` cae en el orden del archivo (`olvidado: 0`, esperado 1). Restaurado, diff vacío. La prueba
   protege; lo que queda es la dependencia del orden: B.
-- **Documentados en su entrada:** `R9-120` (ítem 1), `R9-121`, `R9-142`, `R9-149`, `R9-151`, `R9-156` y `R9-304`.
+- **Documentados en su entrada:** `R9-120` (ítem 1), `R9-121`, `R9-142`, `R9-149`, `R9-151` y `R9-304` (`R9-156` también, pero queda A por su ítem 7).
 - **Sin revert visto (quedan abiertos):** `R9-297` y `R9-305` (las piezas medidas son de un rojo falso, no un
   revert), `R9-152` (rojo medido con Node 20) y `R9-171` (rojo medido por zona horaria). Para cerrarlos basta correr
   el revert que su entrada nombra.
@@ -62,8 +63,8 @@ van a B), seis pruebas de la Mesa que pasan a E en vez de D o B (§5), y cuatro 
 
 ## 4. Los aceptados (para que Victor los vea antes del merge)
 
-Cerrados en esta sesión: 91 (69 B y 22 C). Si alguno no le parece, se reabre quitando la marca y
-corriendo `estado.cjs.txt tsv`.
+Cerrados en esta sesión: 90 (68 B y 22 C). Si alguno no le parece, se reabre quitando la marca y
+corriendo `estado.cjs.txt tsv`. Ocho C caen en un destino aceptado y quedan aceptadas en efecto: `R9-524`, `R9-531`, `R9-536`, `R9-548` (en `R9-488`), `R9-537` (en `R9-462`), `R9-481` (en `R9-459`), `R9-492` (en `R9-446`) y `R9-528` (en `R9-422`).
 
 - `R9-120` (B, no-A: mensajes del build): «Hoy es inalcanzable: las 6 revisiones históricas llevan `file` y `sha256`.»
 - `R9-121` (B, no-A: compuerta CI sin daño): «Es preexistente, y ninguna de esas formas aparece en las plantillas.»
@@ -144,7 +145,6 @@ corriendo `estado.cjs.txt tsv`.
 - `R9-553` (B, no-A: peso del release): «0 imports en `src/`, `app/`, las pruebas y los plugins.»
 - `R9-555` (B, no-A: peso del AAB): «2,4 MB de fuentes que nunca se dibujan.»
 - `R9-556` (B, no-A: estadística derivada): «el daño es un repaso no contado (o una racha cortada), no tarjetas perdidas.»
-- `R9-564` (B, no-A: orden y fecha): «misma `id` y texto; `updated_at` 14:17:30 → 14:24:35 tras el toque»
 - `R9-567` (B, no-A: navegación): «No se pierde ningún dato: se pierde la selección y el lugar de lectura.»
 - `R9-575` (B, no-A: aviso perdido, con salida): «Tiene salida: tocar el monto otra vez cae en `alreadyOwned`.»
 - `R9-586` (B, no-A: cosmético): «el toast «Extras restaurados» sale aunque los extras ya se veían.»
@@ -162,8 +162,7 @@ corriendo `estado.cjs.txt tsv`.
 `R9-296`, `R9-299`, `R9-300`, `R9-301`, `R9-308` y `R9-347` son pruebas de `prepAccount` y `backupPrepTurn` cuya
 puerta no atrapa una regresión que perdería la Mesa (un A(1)). La regla de la §7 las manda a D. Pero el ciclo de esas
 pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»; si algo tenía daño medido, la 113
-arreglaba solo eso). Tres (`R9-299`, `R9-300`, `R9-301`) tienen sonda con pérdida o mezcla. Quedan **E**, con la
-viñeta en su entrada. Las opciones: (a) D, las seis (o solo las tres con sonda); (b) B, costo conocido, como
+arreglaba solo eso). Tres (`R9-299`, `R9-300`, `R9-301`) tienen sonda con pérdida o mezcla. Quedan **E**, con la viñeta en su entrada. `R9-297` y `R9-305` (también de la Mesa) quedaron «sin revert visto»: entran en la misma pregunta. Las opciones: (a) D, las seis (o solo las tres con sonda); (b) B, costo conocido, como
 `R9-401` a `R9-409`.
 
 ## 6. Los lotes D, por zona de archivos

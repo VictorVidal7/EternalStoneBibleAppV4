@@ -395,8 +395,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   solos con su tanda P2 (`R9-559` y `R9-569` con la 2; `R9-525` con la 5; lo que suma a `R9-524` es una sola raíz).
   **Desde el 2026-11-25, antes van por el triaje de la §7** (la 185, solo docs): lo que quede en A sigue este
   orden; los lotes D van con agentes en paralelo.
-  **Triaje hecho en la 185** (`detail/S185-triaje-p3.md`): de 174 P3 triageados, 69 B y 22 C cerrados (91); quedan
-  98 P3 abiertos: 28 A, 28 D, 23 E (más los 15 del «NO»), y 4 pruebas sin revert visto. **Una pregunta para Victor**
+  **Triaje hecho en la 185** (`detail/S185-triaje-p3.md`): de 174 P3 triageados, 68 B y 22 C cerrados (90); quedan
+  99 P3 abiertos: 29 A, 28 D, 23 E (más los 15 del «NO»), y 4 pruebas sin revert visto. **Una pregunta para Victor**
   (§5 del detalle): las seis pruebas de la Mesa, D o B.
 - **El orden que queda, desde la 186** (la 186 es la revisión del diff de la 182 a la 184, con emulador):
   1. **Los P2, por tanda** (3 a 9). **No son disjuntas** (medido sobre los archivos que nombran sus entradas, no los

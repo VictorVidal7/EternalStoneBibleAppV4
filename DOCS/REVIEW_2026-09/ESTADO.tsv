@@ -170,7 +170,7 @@ R9-168	P3	Mesa	abierto		`app/features/prep/index.tsx:628` y `:675` (el ref se as
 R9-169	P3	prueba de la Mesa	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-169` (los `await flushDrafts()` de `index.tsx:1018`, `:1038`)
 R9-170	P3	build de packs	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: build no reproducible. «Reconstruir con otro Node cambia los pines sin cambiar una letra.».»
 R9-171	P3	compuerta local	abierto		`__tests__/readingInsights.test.ts:9-12` (el «hoy» escrito a mano y el comentario de UTC+12)
-R9-172	P3	contenido diario	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-63` (familia de): «Es la familia de `R9-63` y `R9-147`.». Lo que queda lo arregla su entrada.»
+R9-172	P3	contenido diario	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-63` (familia de): «Es la familia de `R9-63` y `R9-147`.». Su arreglo tiene que cubrirlo.»
 R9-173	P3	lector web	abierto		decidido y sin hacer: la decisión delegada en la sesión 25 (su entrada) fue extender la opción (b); ningún commit ni el código nombran `R9-173`
 R9-174	P3	SyncEngine / conflictos	arreglado	36cf5be	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`36cf5be`, rama `fix/s32-r192-r193-y-s31`): `+Npend` (en la rama `pending`, una copia es «suya» solo si su reloj difiere»
 R9-175	P2	SyncEngine / cursor	arreglado	c163659	marca de su entrada: «✅ ARREGLADO en la sesión 28 (`c163659`, rama `fix/s28-sync-r9175-r9181`). Una cadena de promesas por colección en el MOTOR (`enqueueSnapshot`). Medido»
@@ -476,22 +476,22 @@ R9-474	P3	A32 / Mesa, navegación	abierto		sin marca de cierre en su entrada (en
 R9-475	P2	A33 / Profecías, mazo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-476	P2	A32 / Mesa, originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-477	P2	A32 / originales, el pack	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-478	P3	A32 / Mesa, versión	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Lo que q»
+R9-478	P3	A32 / Mesa, versión	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Su arreg»
 R9-479	P3	A32 / Mesa, buscar por tema	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: búsqueda incompleta. «en inglés, «Search by topic» no encuentra el ejemplo de su propio placeholder («fear»
 R9-480	P3	A32 / Mesa, comparar versiones	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «Sale cerrando y reabriendo la Mesa.».»
-R9-481	P3	A32 / Mesa, navegación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-459` (familia de): «Familia de `R9-459`.». Lo que queda lo arregla su entrada.»
+R9-481	P3	A32 / Mesa, navegación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-459` (familia de): «Familia de `R9-459`.». Aceptado con su destino (B).»
 R9-482	P3	A32 / Mesa, ilustraciones	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-474` (familia de): «Familia de `R9-474` (el tercero, tras el púlpito y el botón del banco de `A»
 R9-483	P3	A32 / Mesa, originales	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: hay salida. «con el pack de originales de julio, los Salmos con título salen vacíos en la Mesa, y la Mesa»
 R9-484	P3	A32 / originales, morfología	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: ayuda de estudio. «28 palabras del pack publicado tienen un código de morfología que el decodificador no c»
 R9-485	P3	A32 / originales, el pack	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»
-R9-486	P3	A34 / Journeys	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Lo que qu»
+R9-486	P3	A34 / Journeys	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Su arregl»
 R9-487	P3	A34 / «Tu camino»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «en América (al oeste de UTC), «Tu camino» dice que empezaste un día antes».»
 R9-488	P3	A34 / «Tu camino» y recap por período	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «rótulos sin singular («1 favoritos», «1 reading days») y, en la tarjeta del recap que se compa»
 R9-489	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-490	P3	A35 / Niños, datos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-491	P3	A35 / Niños, quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-492	P3	A35 / Niños, quiz	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-446` (raíz de): «Disparador nuevo de la raíz de `R9-446`.». Lo que queda lo arregla su entrada.»
-R9-493	P3	A35 / Niños, la historia	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Lo que queda lo ar»
+R9-492	P3	A35 / Niños, quiz	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-446` (raíz de): «Disparador nuevo de la raíz de `R9-446`.». Aceptado con su destino (B).»
+R9-493	P3	A35 / Niños, la historia	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Su arreglo tiene q»
 R9-494	P3	A35 / Niños, la historia	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»
 R9-495	P3	A35 / Niños, el plan	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: ritmo derivado. «una historia terminada desde la lista arranca el reloj del plan de 10 días».»
 R9-496	P2	A36 / lectio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -519,34 +519,34 @@ R9-517	P3	A38 / widget nativo	aceptado	sesión 185	marca de su entrada: «✅ AC
 R9-518	P2	A39 / marcadores retirados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-519	P3	A39 / colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-520	P3	A39 / favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-521	P3	A39 / Datos bíblicos	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Lo que queda lo arregla su entrada.»
+R9-521	P3	A39 / Datos bíblicos	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Su arreglo tiene que cubrirlo.»
 R9-522	P3	A39 / línea de tiempo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-523	P3	A39 / Datos bíblicos, contenido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-524	P3	A39 / colecciones y línea de tiempo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, en otras pantallas.». Lo que queda lo arregla su entra»
-R9-525	P3	A40 / temas, sentimientos, Luz diaria	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Lo que queda lo arregla su entra»
+R9-524	P3	A39 / colecciones y línea de tiempo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, en otras pantallas.». Aceptado con su destino (B).»
+R9-525	P3	A40 / temas, sentimientos, Luz diaria	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Su arreglo tiene que cubrirlo.»
 R9-526	P3	A40 / devocional compartido	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma del nombre del libro. «el devocional que se recibe nombra el libro en el idioma de la interfaz y mu»
 R9-527	P3	A41 / Teología, contenido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-528	P3	A42 / notas de sermón y testimonios	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-422` (familia de): «Familia de `R9-422` (la Mesa), en otras pantallas.». Lo que queda lo arregl»
+R9-528	P3	A42 / notas de sermón y testimonios	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-422` (familia de): «Familia de `R9-422` (la Mesa), en otras pantallas.». Aceptado con su destin»
 R9-529	P3	piloto de re-revisión de A7 / respaldo / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-530	P3	piloto de re-revisión de B4 / reglas de Firestore / borrado de cuenta	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-531	P3	A43 / Mi lectura, la semana y el ánimo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488` y `R9-524`, en otra pantalla.». Lo que queda lo arregla»
-R9-532	P3	A43 / Mi lectura, la tira de ánimo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-522` (familia de): «Familia de `R9-522` (otra poda que esconde historia).». Lo que queda lo arr»
+R9-531	P3	A43 / Mi lectura, la semana y el ánimo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488` y `R9-524`, en otra pantalla.». Aceptado con su destino»
+R9-532	P3	A43 / Mi lectura, la tira de ánimo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-522` (familia de): «Familia de `R9-522` (otra poda que esconde historia).». Hereda la espera de»
 R9-533	P2	A44 / Comparación de versiones, las guardadas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-534	P3	A44 / Comparación de versiones, el análisis	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: análisis viejo. «si el versículo nuevo queda con menos de dos versiones, la tarjeta de análisis sigue most»
 R9-535	P3	A44 / Comparación de versiones, versificación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` (allí, referencias fijas del contenido; aquí, cualquier»
-R9-536	P3	A45 / devocional compartido, la cabecera	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-531`, en otra pantalla.». Lo que queda lo arregla su entrada»
-R9-537	P3	A45 / devocional compartido y explore-all, el día	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-462` (familia de): «Familia de `R9-462` (Home)». Lo que queda lo arregla su entrada.»
-R9-538	P3	A45 / landings compartidos, versificación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` y `R9-535`». Lo que queda lo arregla su entrada.»
-R9-539	P3	A45 / «Sobre este libro», «Cristo en este libro»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-527` y `R9-528` (las citas de un texto curado)». Lo que qued»
-R9-540	P3	A45 / «Sobre este libro», datos del libro	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-539`». Lo que queda lo arregla su entrada.»
-R9-541	P3	A45 / landings compartidos, la pila	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Lo que queda lo arregla su entrada.»
+R9-536	P3	A45 / devocional compartido, la cabecera	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-531`, en otra pantalla.». Aceptado con su destino (B).»
+R9-537	P3	A45 / devocional compartido y explore-all, el día	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-462` (familia de): «Familia de `R9-462` (Home)». Aceptado con su destino (B).»
+R9-538	P3	A45 / landings compartidos, versificación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` y `R9-535`». Su arreglo tiene que cubrirlo.»
+R9-539	P3	A45 / «Sobre este libro», «Cristo en este libro»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-527` y `R9-528` (las citas de un texto curado)». Hereda la e»
+R9-540	P3	A45 / «Sobre este libro», datos del libro	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-539`». Hereda la espera de Victor de su destino (E).»
+R9-541	P3	A45 / landings compartidos, la pila	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Su arreglo tiene que cubrirlo.»
 R9-542	P3	A45 / landings compartidos, accesibilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-543	P3	A45 / estudio compartido, el idioma	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma de rótulos. «la introducción del libro en un estudio compartido sigue el idioma de la VERSIÓN, sus»
 R9-544	P3	A46 / Conflictos, la auditoría	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «P3: solo el tablero de estadísticas; los datos del usuario no se tocan.».»
 R9-545	P3	A46 / Conflictos, la tarjeta	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-546	P3	A46 / Conflictos, «Combinar»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-469` (familia de): «Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).». Lo q»
+R9-546	P3	A46 / Conflictos, «Combinar»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-469` (familia de): «Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).». Su a»
 R9-547	P3	A46 / Conflictos, el borrador de «Combinar»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-548	P3	A46 / la migración al entrar	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, `R9-524`, `R9-531`.». Lo que queda lo arregla su entra»
+R9-548	P3	A46 / la migración al entrar	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, `R9-524`, `R9-531`.». Aceptado con su destino (B).»
 R9-549	P3	A34 / Mi camino, el resumen del trimestre	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el resumen del trimestre cuenta un día de más».»
 R9-550	P3	B6 / App Link de los enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-551	P3	B6 / Firebase, cliente OAuth de Android	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -562,7 +562,7 @@ R9-560	P2	C26b / los toasts del modal «Datos»	arreglado	d991b711	marca de su e
 R9-561	P2	C42a / la hoja de nota y el teclado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-562	P2	C43a / la ✕ del selector de colores del lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-563	P3	C43a / la hoja de edición del subrayado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-564	P3	C42b / el chip de referencia de la hoja de nota	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: orden y fecha. «misma `id` y texto; `updated_at` 14:17:30 → 14:24:35 tras el toque».»
+R9-564	P3	C42b / el chip de referencia de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-565	P3	C42b / la cabecera de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-566	P3	C43b / el filtro de color de la galería de subrayados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-567	P3	C43b / el atrás del lector con un versículo seleccionado	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «No se pierde ningún dato: se pierde la selección y el lugar de lectura.».»

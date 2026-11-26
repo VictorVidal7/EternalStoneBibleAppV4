@@ -4370,7 +4370,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     15-jul es la de ayer: `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, prueba 2). Una
     superficie más: los subtítulos «Hoy · …» de explore-all (`explore-all/index.tsx:117-125`). Las demás
     funciones «del día» de `src/` no usan la fórmula.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-63` (familia de): «Es la familia de `R9-63` y `R9-147`.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-63` (familia de): «Es la familia de `R9-63` y `R9-147`.». Su arreglo tiene que cubrirlo.
 
 - **`R9-173` (S25, lector web — P3, decidido) — 🐛 la opción (b) de `R9-109` no cubre el fallo de red
   ni el 404 del pack en un navegador que ya tiene texto: igual ve la pantalla de error.** MEDIDO por
@@ -12244,7 +12244,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     medir).
   - **Propuesta (sin escribir):** `flushDrafts()` antes de navegar, como `R9-143`.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «Sin pérdida: el dato se guarda.».
-  - Triaje 185: recibe `R9-528` (familia de esta): al volver del editor con un cambio de menos de 700 ms, la lista muestra el texto viejo. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-528` (familia de esta): al volver del editor con un cambio de menos de 700 ms, la lista muestra el texto viejo. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-423` (S116, `A13` / lector y audio — P2) — 🐛 al volver a cambiar de versión con el audio, la voz
   sigue leyendo la versión anterior.** MEDIDO con sonda en la sesión 116 (agente 1), re-medido igual en el
@@ -12322,10 +12322,10 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `{"RVR1960":200,"RV1909":30}`: rojo.
   - **Propuesta (sin escribir):** volver a buscar (o vaciar los resultados) cuando cambia la versión. Detalle:
     `detail/A16-busqueda.md`.
-  - Triaje 185: recibe `R9-478` (familia de esta): si la versión cambia con la Mesa abierta, la cabecera pasa a la versión nueva y el texto se queda en la vieja. Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-486` (familia de esta): la vista previa de una parada no sigue a la versión: tras cambiarla en el lector y volver, sigue en la vieja bajo el chip en la nueva. Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-521` (familia de esta): los datos ya abiertos no siguen a la versión. Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-525` (familia de esta): con la versión cambiada con la pantalla abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la voz de la versión nueva. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-478` (familia de esta): si la versión cambia con la Mesa abierta, la cabecera pasa a la versión nueva y el texto se queda en la vieja. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-486` (familia de esta): la vista previa de una parada no sigue a la versión: tras cambiarla en el lector y volver, sigue en la vieja bajo el chip en la nueva. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-521` (familia de esta): los datos ya abiertos no siguen a la versión. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-525` (familia de esta): con la versión cambiada con la pantalla abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la voz de la versión nueva. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-431` (S117, `A16` / búsqueda — P2) — 🐛 el resaltado de los resultados no sigue lo que encontró la
   búsqueda: con un apóstrofo en inglés no resalta nada, y con `OR` resalta «or» dentro de otras palabras.**
@@ -12409,7 +12409,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     rojo. Control, la descarga termina en el mismo versículo: las palabras de 3:16.
   - **Propuesta (sin escribir):** recargar al terminar las palabras del versículo actual (un `ref` al último
     `loadWords`). Detalle: `detail/A18-word-study.md`.
-  - Triaje 185: recibe `R9-493` (familia de esta): el versículo de una escena aparece debajo de la siguiente. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-493` (familia de esta): el versículo de una escena aparece debajo de la siguiente. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-436` (S118, `A18` / estudio de palabra — P2) — 🐛 desde Datos bíblicos, el estudio de palabra muestra
   los fragmentos en RVR1960 aunque la interfaz esté en inglés.** MEDIDO con sonda en la sesión 118.
@@ -12571,7 +12571,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** serializar, o `UPDATE … WHERE is_unlocked = 0` y sumar en SQL. Detalle:
     `detail/A23-logros.md`.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «dos revisiones de logros a la vez celebran dos veces el mismo logro o pierden puntos».
-  - Triaje 185: recibe `R9-492` (raíz de esta): dos toques en «Terminar» celebran dos veces la insignia de la primera historia. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-492` (raíz de esta): dos toques en «Terminar» celebran dos veces la insignia de la primera historia. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-447` (S121, `A23` / logros — P3) — 🐛 con la app viva de un día para otro, la «racha actual» de logros
   no baja.** MEDIDO con sonda en la sesión 121.
@@ -12725,7 +12725,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `app/` ni `src/` lo lee y la escena arranca en `useState(0)` (`[storyId].tsx:98`): reabrir es la escena 1
     también al salir con la flecha.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «el atrás del sistema sale de la historia en vez de volver una escena».
-  - Triaje 185: recibe `R9-481` (familia de esta): tras «Buscar por tema», el atrás del sistema sale de la Mesa en vez de volver al pasaje. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-481` (familia de esta): tras «Buscar por tema», el atrás del sistema sale de la Mesa en vez de volver al pasaje. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-460` (S123, `A27` / deep links — P3) — 🐛 un enlace que no es de ninguna ruta abre la pantalla por
   defecto de expo-router, en inglés y con un «Sitemap» de todas las rutas.** MEDIDO con sonda en la 123.
@@ -12771,7 +12771,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** re-tomar `now` en `AppState` `active` y a medianoche. Detalle:
     `detail/A28-hooks.md`.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «con la app viva de un día para otro, las tarjetas de racha y de meta de Home muestran lo de ayer como hecho hoy».
-  - Triaje 185: recibe `R9-537` (familia de esta): con la pantalla abierta de un día para otro, el «Hoy» sigue siendo el de ayer. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-537` (familia de esta): con la pantalla abierta de un día para otro, el «Hoy» sigue siendo el de ayer. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-463` (S124, `A28` / hooks, tema — P3) — 🐛 en cada arranque en frío, quien usa el modo oscuro o «Alto
   contraste» ve primero un cuadro blanco.** MEDIDO con sonda en la 124 (agente 1, re-medido; la duración, Modo C).
@@ -12889,7 +12889,7 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
     `FavoritesContext.tsx:285`), `formatValue([])` siembra «[]» y guardar crea la colección «[]» en los dos
     teléfonos (`_scratch/S135-sondas-agente-7/S135-a7-combinar.test.tsx.txt`, prueba 2:
     `{"local":["[]"],"subido":["[]"]}`). Vaciar un puntaje guarda `0` (por lectura). La coma dentro de un nombre es `R9-546`.
-  - Triaje 185: recibe `R9-546` (familia de esta): «Combinar» parte en dos una colección cuyo nombre tiene coma, aunque el usuario no toque ese cuadro. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-546` (familia de esta): «Combinar» parte en dos una colección cuyo nombre tiene coma, aunque el usuario no toque ese cuadro. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-470` (S125, `A30` / respaldo, progreso de lectura — P3) — 🐛 un respaldo con la clave `__proto__` en el
   progreso de lectura escribe en `Object.prototype` durante toda la sesión.** MEDIDO con sonda en la 125 (agente
@@ -12986,7 +12986,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     `renderRouter`, y el banco de ilustraciones en modo insertar (dos `router.back()`).
   - **Propuesta (sin escribir):** un ref de «navegando» en los dos botones. Detalle: `detail/A32-mesa-altitud.md`.
   - Triaje 185: lote D, A(1) (recibe R9-482: la ilustración insertada dos veces en la Mesa). Sigue abierto; el commit, con su revert por pieza.
-  - Triaje 185: recibe `R9-482` (familia de esta): dos toques en una ilustración en modo insertar cierran también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-482` (familia de esta): dos toques en una ilustración en modo insertar cierran también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-475` (S126, `A33` / Profecías, mazo — P2) — 🐛 con una versión en español, «Memorizar» en el Hilo
   profético crea una segunda carta del mismo versículo, y no reconoce la que ya estaba.** MEDIDO con sonda en la
@@ -13070,7 +13070,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     el texto en español. Control: antes del cambio, «Juan 3:16».
   - **Propuesta (sin escribir):** la cabecera con la lengua de la versión cargada, o `load` dependiente de
     `selectedVersion.id` cuando no hay `params.version`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Su arreglo tiene que cubrirlo.
 
 - **`R9-479` (S127, `A32` / Mesa, buscar por tema — P3) — 🐛 en inglés, «Search by topic» no encuentra el
   ejemplo de su propio placeholder («fear»), ni 12 de 16 palabras de todos los días.** MEDIDO con sonda en la 127
@@ -13111,7 +13111,7 @@ una»: true muestra elegir: false llamadas getAvailableVersions despues: 0`. Con
     el atrás. No se pierde nada (las notas están guardadas).
   - **Sonda:** la misma: `tema: tras el boton -> /features/prep {"version":"RVR1960"}`, `tema: atras ->
 consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa, el atrás vuelve al lector.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-459` (familia de): «Familia de `R9-459`.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-459` (familia de): «Familia de `R9-459`.». Aceptado con su destino (B).
 
 - **`R9-482` (S127, `A32` / Mesa, ilustraciones — P3) — 🐛 dos toques en una ilustración en modo insertar cierran
   también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces.** MEDIDO
@@ -13125,7 +13125,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** `_scratch/S127-sondas-agente-4/S127-a4-ilustracionDoble.test.tsx.txt`, 3/3: `doble seguido ->
 /verse/John/3 insertada x 1`, `doble espaciado -> /verse/John/3 … insertada x 2`. Control: un toque vuelve a
     `/features/prep` con la ilustración una vez.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-474` (familia de): «Familia de `R9-474` (el tercero, tras el púlpito y el botón del banco de `A26`)». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-474` (familia de): «Familia de `R9-474` (el tercero, tras el púlpito y el botón del banco de `A26`)». Su arreglo tiene que cubrirlo.
 
 - **`R9-483` (S127, `A32` / Mesa, originales — P3) — 🐛 con el pack de originales de julio, los Salmos con título
   salen vacíos en la Mesa, y la Mesa no ofrece actualizar.** MEDIDO con sonda en la 127 (agente 3, re-medido
@@ -13172,7 +13172,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `{"chipAntes":true,"chipDespues":true,"muestraRVR":true,"muestraWEB":false,"llamadas":["RVR1960"]}`; control
     (montada con WEB) `{"chip":true,"llamadas":["WEB"]}`. Que la ruta queda montada bajo el lector:
     `S127-a5-pilaLector.test.tsx.txt` (`renderRouter`), 1/1. Detalle: `detail/A34-journeys-camino.md`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Su arreglo tiene que cubrirlo.
 
 - **`R9-487` (S127, `A34` / «Tu camino» — P3) — 🐛 en América (al oeste de UTC), «Tu camino» dice que empezaste un
   día antes.** MEDIDO con sonda en la 127 (agente 6, re-medido igual en el principal con
@@ -13199,10 +13199,10 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** las pruebas «plurales» de `S127-a6-caminoFecha` y `S127-a6-periodoNumeros.test.tsx.txt`, 2/2;
     control: `(12345).toLocaleString('en-US')` = «12,345». En español, el separador solo se nota desde 10 000.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «rótulos sin singular («1 favoritos», «1 reading days») y, en la tarjeta del recap que se comparte, números sin separador de miles».
-  - Triaje 185: recibe `R9-524` (familia de esta): la imagen que se comparte dice «1 versículos» y «1 hitos en tu camino». Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-531` (familia de esta): la tarjeta «Mi semana en la Palabra» que se comparte dice «1 versículos oídos» y pone los números sin separador de miles; la tendencia emocional dice «+1 días». Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-536` (familia de esta): un devocional compartido de un solo día dice «Devocional · 1 días» / «Devotional · 1 days». Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-548` (familia de esta): «Tienes 1 cambios locales» / «You have 1 local changes». Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-524` (familia de esta): la imagen que se comparte dice «1 versículos» y «1 hitos en tu camino». Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-531` (familia de esta): la tarjeta «Mi semana en la Palabra» que se comparte dice «1 versículos oídos» y pone los números sin separador de miles; la tendencia emocional dice «+1 días». Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-536` (familia de esta): un devocional compartido de un solo día dice «Devocional · 1 días» / «Devotional · 1 days». Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-548` (familia de esta): «Tienes 1 cambios locales» / «You have 1 local changes». Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-489` (S128, `A35` / Niños, la historia — P3) — 🐛 «Ver versículo» muestra solo el primer versículo de la
   escena, sin la referencia, y a veces media frase.** MEDIDO con sonda en la 128 (agente 3, re-medido igual en el
@@ -13243,7 +13243,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     real sobre `node:sqlite`): `{"notifyCalls":2,"celebrados":["kids_first_story","kids_first_story"],"total_points":25}`
     (los puntos cuadran porque `addPoints` también corre en carrera); control, un toque: 1 y 25.
   - **Propuesta (sin escribir):** una guarda `finishedRef`; el arreglo de `R9-446` también lo cerraría.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-446` (raíz de): «Disparador nuevo de la raíz de `R9-446`.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-446` (raíz de): «Disparador nuevo de la raíz de `R9-446`.». Aceptado con su destino (B).
 
 - **`R9-493` (S128, `A35` / Niños, la historia — P3) — 🐛 el versículo de una escena aparece debajo de la
   siguiente.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Familia de
@@ -13253,7 +13253,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Camino:** «Ver versículo» y enseguida «Siguiente» (o el tour «Escuchar todo») con la base en frío.
   - **Sonda:** la de `R9-492`: `{"escena":2,"visto":"TEXTO 1:3 (escena 1)","llamadas":[[1,1,3]]}`; control
     (respuesta antes de pasar): `[[1,1,3],[1,1,6]]` y se ve el 1:6.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Su arreglo tiene que cubrirlo.
 
 - **`R9-494` (S128, `A35` / Niños, la historia — P3) — 🐛 la pista única de «Escuchar todo» se gasta sin
   mostrarse.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Cosmético.
@@ -13372,8 +13372,8 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     («¿Dónde estabas tú cuando yo fundaba la tierra?»); RV1909 difiere al final del capítulo (38 contra 41). Sin
     defecto. De los seis «sin medir», quedan `kidsStories.ts:705`, `:739`, `messianicProphecies.ts:535` y
     `cross-references.ts:88`.
-  - Triaje 185: recibe `R9-535` (familia de esta): la comparación alinea las versiones por número: con RV1909 en Jonás 2:1 pone el pez al lado de la oración, y donde a una versión le falta el número dice «omitido en el texto crítico». Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-538` (familia de esta): el landing pone, bajo la referencia que eligió quien comparte, el versículo con ese número en la versión de quien recibe: con RV1909, un Jonás 2:1 compartido desde RVR1960 muestra el pez. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-535` (familia de esta): la comparación alinea las versiones por número: con RV1909 en Jonás 2:1 pone el pez al lado de la oración, y donde a una versión le falta el número dice «omitido en el texto crítico». Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-538` (familia de esta): el landing pone, bajo la referencia que eligió quien comparte, el versículo con ese número en la versión de quien recibe: con RV1909, un Jonás 2:1 compartido desde RVR1960 muestra el pez. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-504` (S128, `A36` / orar la Escritura — P3) — 🐛 el Salmo 51 está en la sección «Salmos que la Escritura
   titula "oración"», y su título no lo dice.** MEDIDO en la 128 (agente 7, re-medido igual en el principal).
@@ -13433,7 +13433,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     (2/2): `["/plan/custom-old [se ve: plan:custom-old]","/ [se ve: home]","exitApp"]`; control (crear): `["/","exitApp"]`.
   - **Propuesta (sin escribir):** `back`/`dismissTo` en vez de `replace`, y los planes propios resueltos desde el
     contexto. El mismo `replace` en `together/index.tsx:232`, `:241` (sin medir). Familia de `R9-502`.
-  - Triaje 185: recibe `R9-541` (familia de esta): el mismo enlace tocado dos veces deja dos landings idénticos en la pila, y sobra un atrás. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-541` (familia de esta): el mismo enlace tocado dos veces deja dos landings idénticos en la pila, y sobra un atrás. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-508` (S129, `A37` / constructor y paquete — P2) — 🐛 la vista previa promete un plan y se guarda otro,
   recortado sin aviso a 400 días y 50 capítulos por día.** MEDIDO con sonda en la 129 (agentes 2 y 3 por separado,
@@ -13591,7 +13591,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     viejo (la pila, por analogía con `S127-a5-pilaLector`). **Sonda:**
     `_scratch/S129-sondas-agente-8/S129-a8-factsVersion.test.tsx.txt` (4/4): `"textoRVR":true,"textoKJV":false`;
     control (montada con KJV), bien; cerrar y abrir lo cura.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Su arreglo tiene que cubrirlo.
 
 - **`R9-522` (S129, `A39` / línea de tiempo — P3) — 🐛 «Tu línea de tiempo» pierde el récord de racha de devoción a
   los 400 días y muestra una racha menor como hito.** MEDIDO con sonda en la 129 (agente 8, re-medido igual en el
@@ -13600,7 +13600,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     `DEVOTION_RETENTION_DAYS = 400`); `streakRecordEvents` (`timeline.ts:150-199`) compara solo con lo que queda.
     La de lectura no se poda. **Sonda:** la de `R9-521`, prueba 4: `"antes":["devotion:2025-01-30=30"],
 "despues":["devotion:2026-03-06=10"]`; control sin poda, la de 30.
-  - Triaje 185: recibe `R9-532` (familia de esta): la tira de ánimo bajo el heatmap tiene 17 columnas y el registro de ánimo guarda 84 días: quien registra su ánimo todos los días ve siempre 4 o 5 semanas «sin registro» a la izquierda. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-532` (familia de esta): la tira de ánimo bajo el heatmap tiene 17 columnas y el registro de ánimo guarda 84 días: quien registra su ánimo todos los días ve siempre 4 o 5 semanas «sin registro» a la izquierda. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-523` (S129, `A39` / Datos bíblicos, contenido — P3, fidelidad) — 🐛 citas entre comillas que no son
   literales y un conteo inflado.** MEDIDO contra la base y los packs en la 129 (agente 8, re-medido igual en el
@@ -13631,7 +13631,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     en 2 Juan y 3 Juan (`src/features/memory/MemoryVersePickerSheet.tsx:321`, `{item.chapters} {tb.chapters}`); el
     de Notas de sermón, igual por lectura (`SermonVersePickerSheet.tsx:329`). La pestaña Biblia sí elige el singular
     (`app/(tabs)/bible.tsx:498`). Detalle: `detail/C20b-memoria-mazo.md`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, en otras pantallas.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, en otras pantallas.». Aceptado con su destino (B).
 
 - **`R9-525` (S130, `A40` / temas, sentimientos, Luz diaria — P3) — 🐛 con la versión cambiada con la pantalla
   abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la
@@ -13655,7 +13655,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
   - **Los gemelos sin audio, en la 131 (`A42`, por lectura):** el detalle de un método y el de una objeción de
     share-faith tienen el mismo `load` de montaje (`share-faith/methods/[id].tsx:208-234`,
     `objections/[id].tsx:199-225`): con la versión cambiada en el lector, siguen en la vieja hasta reabrirlos.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Su arreglo tiene que cubrirlo.
 
 - **`R9-526` (S130, `A40` / devocional compartido — P3) — 🐛 el devocional que se recibe nombra el libro en el
   idioma de la interfaz y muestra el texto de la versión.** MEDIDO con sonda en la 130.
@@ -13683,8 +13683,8 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Sonda:** `_scratch/S131-citasTeologia.cjs.txt` (cada cita entre comillas de los cuerpos, normalizada,
     buscada en RVR1960 y RV1909, o en KJV, WEB y BSB; un versículo o dos seguidos); salida en
     `S131-citasTeologia.out.txt`. El texto lo decide Victor.
-  - Triaje 185: recibe `R9-539` (familia de esta): la tarjeta pone entre «», con su referencia, palabras que el versículo no dice en ninguna versión de la app del idioma. Su arreglo lo cubre.
-  - Triaje 185: recibe `R9-540` (familia de esta): tres afirmaciones de `book-intros` que el propio texto de la app desmiente: 1 Reyes «termina con la caída de Israel (722) y el cautiverio en Babilonia (586)», Filipenses «la palabra "gozo" aparece 16 veces», y dos rangos que dejan afuera el versículo citado. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-539` (familia de esta): la tarjeta pone entre «», con su referencia, palabras que el versículo no dice en ninguna versión de la app del idioma. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - Triaje 185: recibe `R9-540` (familia de esta): tres afirmaciones de `book-intros` que el propio texto de la app desmiente: 1 Reyes «termina con la caída de Israel (722) y el cautiverio en Babilonia (586)», Filipenses «la palabra "gozo" aparece 16 veces», y dos rangos que dejan afuera el versículo citado. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
 - **`R9-528` (S131, `A42` / notas de sermón y testimonios — P3) — 🐛 al volver del editor con un cambio de menos
   de 700 ms, la lista muestra el texto viejo.** MEDIDO con sonda en la 131. Familia de `R9-422` (la Mesa), en otras
@@ -13703,7 +13703,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     orden inverso, también «Viejo»; control (el foco tras terminar la escritura): «Domingo de Ramos». 3/3.
   - **Propuesta (sin escribir):** que `getAllSermonNotes` espere la cola (`await writeQueue`) y que el editor haga
     `flush` al perder el foco, no solo al desmontarse.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-422` (familia de): «Familia de `R9-422` (la Mesa), en otras pantallas.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-422` (familia de): «Familia de `R9-422` (la Mesa), en otras pantallas.». Aceptado con su destino (B).
 
 - **`R9-529` (S132, piloto de re-revisión de `A7` / respaldo / búsqueda — P3 bajo) — 🐛 el historial de búsqueda
   que el respaldo restaura lo pisa la primera búsqueda, si la pestaña Buscar ya estaba montada.** MEDIDO con sonda
@@ -13779,7 +13779,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     `{"leidos":true,"oidos":true}`, `{"crudo":true,"pantalla":"2,424"}`, `{"mas":true,"menos":true}`; control: con
     2, «2 verses heard».
   - **Propuesta (sin escribir):** claves `…One` como los hermanos y `toLocaleString` con el idioma de la UI.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488` y `R9-524`, en otra pantalla.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488` y `R9-524`, en otra pantalla.». Aceptado con su destino (B).
 
 - **`R9-532` (S134, `A43` / Mi lectura, la tira de ánimo — P3) — 🐛 la tira de ánimo bajo el heatmap tiene 17
   columnas y el registro de ánimo guarda 84 días: quien registra su ánimo todos los días ve siempre 4 o 5 semanas
@@ -13797,7 +13797,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
 "a11y":"Ánimo por semana: 13 de 17 semanas con un registro"}`; control, el mismo registro sin podar: 17 de 17.
   - P3: la historia vieja ya no existe (la poda es de diseño); lo que miente es la tira. **Propuesta (sin escribir):**
     retener 119 días (17 semanas) o pintar la tira solo sobre las columnas que la retención cubre.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-522` (familia de): «Familia de `R9-522` (otra poda que esconde historia).». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-522` (familia de): «Familia de `R9-522` (otra poda que esconde historia).». Hereda la espera de Victor de su destino (E).
 
 - **`R9-533` (S134, `A44` / Comparación de versiones, las guardadas — P2) — 🐛 abrir una comparación guardada de
   otro pasaje muestra el versículo con el mismo número en el capítulo que está abierto.** MEDIDO con sonda en la 134.
@@ -13858,7 +13858,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     `compareVerseRange`).
   - **Propuesta (sin escribir):** una tabla de correspondencias por versión (la de `R9-503`) aplicada en
     `compareVerse`, o, como mínimo, que la nota distinga «otra numeración» de «omitido» para RV1909, SSE1569 y WEB.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` (allí, referencias fijas del contenido; aquí, cualquier versículo que el lector compare)». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` (allí, referencias fijas del contenido; aquí, cualquier versículo que el lector compare)». Su arreglo tiene que cubrirlo.
 
 - **`R9-536` (S135, `A45` / devocional compartido, la cabecera — P3) — 🐛 un devocional compartido de un solo día dice
   «Devocional · 1 días» / «Devotional · 1 days».** MEDIDO con sonda en la 135 (agente 1, re-medido igual en el
@@ -13870,7 +13870,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
   - **Sonda:** `_scratch/S135-sondas-agente-1/S135-a1-landings.test.tsx.txt`, prueba 1a:
     `{"rotEs":"Devocional · 1 días","rotEn":"Devotional · 1 days"}`; control 1b, el constructor permite un día.
   - **Propuesta (sin escribir):** una clave `daysMetaOne`, como los hermanos de `R9-531`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-531`, en otra pantalla.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-531`, en otra pantalla.». Aceptado con su destino (B).
 
 - **`R9-537` (S135, `A45` / devocional compartido y explore-all, el día — P3) — 🐛 con la pantalla abierta de un día
   para otro, el «Hoy» sigue siendo el de ayer.** MEDIDO con sonda en la 135 (agentes 1 y 6, re-medido igual en el
@@ -13889,7 +13889,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     control, montada el 11.
   - P3: solo el rótulo queda viejo; lo que se abre es lo correcto. **Propuesta (sin escribir):** recalcular con
     `AppState` → `active` o con una clave del día local, como la propuesta de `R9-462`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-462` (familia de): «Familia de `R9-462` (Home)». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-462` (familia de): «Familia de `R9-462` (Home)». Aceptado con su destino (B).
 
 - **`R9-538` (S135, `A45` / landings compartidos, versificación — P3, fidelidad) — 🐛 el landing pone, bajo la
   referencia que eligió quien comparte, el versículo con ese número en la versión de quien recibe: con RV1909, un
@@ -13908,7 +13908,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     `{"puntos":3,"rvr":true,"web":false}`; control 3b, con RVR1960.
   - **Propuesta (sin escribir):** la tabla de correspondencias de `R9-503`, más la versión del que envía en el
     paquete.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` y `R9-535`». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` y `R9-535`». Su arreglo tiene que cubrirlo.
 
 - **`R9-539` (S135, `A45` / «Sobre este libro», «Cristo en este libro» — P3, fidelidad) — 🐛 la tarjeta pone entre «»,
   con su referencia, palabras que el versículo no dice en ninguna versión de la app del idioma.** MEDIDO con sonda y
@@ -13935,7 +13935,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     (`:1603`; el v.25 dice «al único y sabio Dios, nuestro Salvador» en cinco versiones, BSB agrega «through Jesus
     Christ»), y Malaquías 4:5 «Juan el Bautista» (`:968`; el versículo dice «Elías»; la identificación es del NT).
   - **Propuesta (sin escribir):** solo texto: citar literal, quitar las comillas o poner «…».
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-527` y `R9-528` (las citas de un texto curado)». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-527` y `R9-528` (las citas de un texto curado)». Hereda la espera de Victor de su destino (E).
 
 - **`R9-540` (S135, `A45` / «Sobre este libro», datos del libro — P3) — 🐛 tres afirmaciones de `book-intros` que el
   propio texto de la app desmiente: 1 Reyes «termina con la caída de Israel (722) y el cautiverio en Babilonia
@@ -13953,7 +13953,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     días», Neh 6:15 en las 6). La paridad es/en de `author`, `date`, `keyVerses`, números y referencias: ✅ en los 66.
   - **Propuesta (sin escribir):** solo texto («…termina con Ocozías; 2 Reyes continúa hasta el exilio»; quitar el
     16; «(3:23-25)», «(1:14-20)»). De paso, `:118` «Las cuarenta años».
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-539`». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-539`». Hereda la espera de Victor de su destino (E).
 
 - **`R9-541` (S135, `A45` / landings compartidos, la pila — P3) — 🐛 el mismo enlace tocado dos veces deja dos
   landings idénticos en la pila, y sobra un atrás.** MEDIDO con sonda en la 135 (agente 4, re-medido igual en el
@@ -13970,7 +13970,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     `[A, B]` con keys distintas (historial normal), del devocional al estudio `[A, S]`.
   - Sin daño en los datos (los landings no guardan nada). **Propuesta (sin escribir):** no empujar el landing si
     arriba ya está el mismo con el mismo `d` (o un `getId` por `d`).
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Su arreglo tiene que cubrirlo.
 
 - **`R9-542` (S135, `A45` / landings compartidos, accesibilidad — P3) — 🐛 el `accessibilityLabel` fijo de la tarjeta
   y de cada día del devocional compartido tapa lo que muestran: con lector de pantalla, la nota de quien comparte no
@@ -14066,7 +14066,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     «Promesas». Prueba 2, el «[]» (anotado en `R9-469`). Prueba 3, sin número: un campo que el motor agrega con el
     modal abierto sale vacío (`:447`) y guardar conserva «lo mío» (`:205-206`), mientras un cuadro vacío de los de
     siempre guarda `''` o `0`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-469` (familia de): «Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-469` (familia de): «Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).». Su arreglo tiene que cubrirlo.
 
 - **`R9-547` (S135, `A46` / Conflictos, el borrador de «Combinar» — P3) — 🐛 el id y el borrador de «Combinar»
   sobreviven a que el conflicto salga de la lista: si vuelve un conflicto con el mismo id, el modal se reabre solo
@@ -14105,7 +14105,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     (`total` = 1, `:443-448`, `:551-555`).
   - **Sonda:** `_scratch/S135-sondas-agente-13/S135-a13-rotulos.test.tsx.txt`, prueba 3a:
     `{"es":"Tienes 1 cambios locales en este","en":"You have 1 local changes on","ramaSingular":false}`.
-  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, `R9-524`, `R9-531`.». Lo que queda lo arregla su entrada.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, `R9-524`, `R9-531`.». Aceptado con su destino (B).
 
 - **`R9-549` (S135, `A34` / Mi camino, el resumen del trimestre — P3 bajo) — 🐛 en la última hora del día, después del
   atraso de hora, el resumen del trimestre cuenta un día de más y su ánimo incluye el registro del día anterior al
@@ -14390,7 +14390,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     `S139-rec2.xml.txt`). Con cuenta, cada toque sube una escritura (sin medir). Detalle: `detail/C42b-notas-lista.md`.
   - **Arreglo propuesto (sin escribir):** guardar solo si el borrador difiere de lo guardado (o del valor con que se
     abrió la hoja).
-  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: orden y fecha. «misma `id` y texto; `updated_at` 14:17:30 → 14:24:35 tras el toque».
+  - Triaje 185: A(1) en la duda (el orquestador, tras el triaje): el `updated_at` nuevo, con cuenta, sube una escritura (sin medir) que podría ganarle a una edición real de otro aparato. Sigue abierto; medirlo antes de arreglar.
 
 - **`R9-565` (S139, `C42b` / la cabecera de la hoja de nota — P3) — 🐛 con la hoja de nota abierta, un enlace a otro
   libro deja la hoja abierta con una referencia mezclada: el libro nuevo con el capítulo y versículo viejos.** MEDIDO
@@ -16785,7 +16785,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   donde hay 50, 3 días activos donde hay 2. Pasa en `America/Mexico_City` (caso de control).
   Detalle: `detail/A11-progreso-rachas.md`.
   **⬇️ Sesión 22: baja a P3** (sonda con `TZ` fijado desde PowerShell). Solo falla si la tarjeta se abre en la última hora del día (23:00-23:59) durante ~6 días después del atraso de hora, o en la primera (00:00-00:59) después del adelanto: 12 medias horas de 674. «El sábado desaparece» es FALSO: se pierde el día más viejo y el domingo sale dos veces. `listeningStats` usa un `Set` y no cuenta doble. **Ni local (`America/Mexico_City`) ni CI (UTC) tienen cambio de hora.** Vecino: `R9-147`.
-  - Triaje 185: recibe `R9-172` (familia de esta): el versículo, el dato bíblico y la profecía «del día» cambian a la 01:00 (o a las 23:00) con horario de verano. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-172` (familia de esta): el versículo, el dato bíblico y la profecía «del día» cambian a la 01:00 (o a las 23:00) con horario de verano. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 - **`R9-64` (A11, planes) — 🐛 `migratePlanProgress` BORRA el progreso de origen cuando el
   destino ya tiene el suyo, en vez de fusionarlo.** Severidad **baja**.
   `ReadingPlanProgressContext.tsx:264-268`: `if (!next[toId]) next[toId] = current;` protege el
