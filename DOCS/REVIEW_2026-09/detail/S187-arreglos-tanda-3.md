@@ -110,3 +110,23 @@ La 188: la revisión del diff de la 187 con emulador (`_scratch/S188-PROMPT.md`)
 resaltados, el diálogo de «Reabrir», el paseo del Salmo 102 partido en dos (y el orden de las entradas), la Mesa con
 la barra de otra sección, el devocional con un borrador ya pasado, y `R9-518` sin red en una instalación nueva si
 cabe, sin la cuenta de Victor.
+
+## 6. La 187c, tras el merge (`main` = `e4289cb2`, CI verde run `45893667445`)
+
+Victor, sobre las decisiones visibles y los dos sub-ítems de `R9-511`: «lo dejo a tu mejor criterio». Decidido por
+delegación y escrito en `CONTINUAR.md` §7, con su porqué:
+
+- `R9-498`: N entradas, como quedó. Mirado antes de sellarlo: `recordTodayPrayer` es por día y no por entrada;
+  el diario no tiene sync por documento ni logros por entrada; el respaldo lleva la lista entera. Sin medir: el
+  orden de las entradas (la 188).
+- `R9-511`: se frena, y el piso del `maxLength` es el largo propio. Sin medir: el comportamiento nativo (la 188).
+- `makeStudyBundle`: triaje A(1) (la copia del otro aparato no es lo escrito, sin aviso): `R9-640`, P3, candidato
+  a lote D, con la misma guarda que `R9-511`.
+- Cancelar la hoja en el camino normal: B (regla 3, sin entrada). Lo compartido queda entero en «Tus
+  devocionales»; se pierde la edición en curso, no el texto.
+- El muro sin contador a ~43 notas llenas: B (regla 3, sin entrada). No pierde ni altera nada: es el tope del
+  enlace, ahora visible al teclear. Un contador del total iría al backlog de ideas.
+
+Siguen sin respuesta de Victor: la pregunta de la Mesa (D o B) y la severidad de `R9-562` (§8).
+
+177 abiertos de 640 (1 P1, 73 P2, 102 P3 y el aviso). Rama `docs/review-s187c`, sin mergear.

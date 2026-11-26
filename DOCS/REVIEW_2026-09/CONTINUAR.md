@@ -373,10 +373,11 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);
   `R9-511` (el devocional recortado, y «Compartir» borra el borrador); `R9-562` (la ✕ del selector de colores borra
   el subrayado con su nota: **su severidad es una decisión abierta de Victor, §8**).
-  **Hecha en la 187 y la 187b** (`detail/S187-arreglos-tanda-3.md`), sin agentes ni emulador, en `fix/s187` (sin
-  mergear): los seis arreglados (`62d3cd94`, `0f0b7340`, `24606b9c`, `fd148c48`, `0883587a`, `9c939a05` y `1e1c5ccf`). Dos
-  decisiones visibles sin aprobar: `R9-498` guarda el paseo en N entradas del diario, y `R9-511` frena «Compartir»
-  si el paquete recorta. `R9-639` (nuevo, P3, por lectura): vecino de `R9-518`. `R9-562` sigue fuera (§8).
+  **Hecha en la 187 y la 187b** (`detail/S187-arreglos-tanda-3.md`), sin agentes ni emulador, en `fix/s187` (mergeada
+  con el OK de Victor: `main` = `e4289cb2`, CI verde): los seis arreglados (`62d3cd94`, `0f0b7340`, `24606b9c`, `fd148c48`, `0883587a`, `9c939a05` y `1e1c5ccf`). Las
+  decisiones visibles (N entradas del paseo, «Compartir» que frena, el piso del `maxLength`), tomadas en la 187c por
+  delegación (§7). `R9-639` (nuevo, P3, por lectura): vecino de `R9-518`. `R9-640` (P3, A, lote D): el estudio de
+  la Mesa compartido con una nota cortada. `R9-562` sigue fuera (§8).
   **La 188: la revisión del diff de la 187 con emulador** (`_scratch/S188-PROMPT.md`).
 - **Tanda 4 — planes propios y Juntos (5).** `R9-507`, `R9-508` y `R9-509` (el constructor: el plan viejo tras
   guardar, la vista previa que no es lo que se guarda, el renombre que rearma los días y mueve el progreso);
@@ -659,6 +660,25 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     lista de aceptados va en el detalle, y Victor la ve antes del merge. Estimación de Fable: quedan unos 73
     abiertos de 189 (de 53 a 93, según dónde caiga la frontera).
 
+- **`R9-498` y `R9-511`: cómo se guarda lo que no entra (decidido por Claude en la 187c, por delegación de Victor
+  del 2026-11-26: «lo dejo a tu mejor criterio»; Victor puede cambiarlo).** El detalle: `detail/S187-arreglos-tanda-3.md` §1, §2 y §6.
+  - **`R9-498`: el paseo «Orar la Escritura» se guarda en N entradas del diario** («Título (1/2)», «(2/2)»),
+    partidas por versículo entero. Por qué: la otra salida (cajas con tope) dejaba ~19 caracteres por versículo en
+    el Salmo 102, y subir el tope del diario no sirve (`parseOne` corta a 1000 al leer). Quién lo ve: el contador y
+    el vacío del diario y `PrayerCard` (`requests.length`). Mirado en la 187c: el registro de días de oración
+    (`recordTodayPrayer`) es por día, no por entrada; el diario no tiene sync por documento ni logros por entrada;
+    viaja en el respaldo (`@prayer_requests_v1`) como cualquier entrada. **Sin medir:** el orden en que quedan en
+    el diario (la 188, en vivo).
+  - **`R9-511`: si el paquete del devocional recortaría texto, «Compartir» se frena** (toast con cuánto sobra, el
+    borrador sigue) en vez de compartir y avisar. Por qué: con la hoja del sistema abierta el toast no se ve,
+    Android no dice si la hoja se canceló, y lo recortado entraría en «Tus devocionales» y en «Reenviar».
+  - **`R9-511`: el `maxLength` de una caja nunca baja de su propio texto.** Por qué: si un tope menor cortara un
+    borrador viejo ya pasado, sería la pérdida que el arreglo viene a quitar. **Sin medir (hipótesis):** que el
+    nativo no recorte al bajar el tope, y que `maxLength` 0 bloquee y no se lea como «sin límite» (la 188).
+  - **Triaje de lo visto (reglas 1 y 3):** `makeStudyBundle` es A(1): `R9-640`. Cancelar la hoja en el camino
+    normal es B (lo compartido queda entero en «Tus devocionales»). Con ~43 notas llenas, las cajas siguientes no
+    dejan escribir y no hay contador del total: B (no pierde ni altera nada; es el tope del enlace), una línea en
+    el detalle; un contador iría al backlog de ideas.
 - **`R9-32` y `R9-31`: qué promete el respaldo (decidido por Claude en la sesión 183, por delegación de Victor del
   2026-11-25).** El detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §2 y §3.
   - **`R9-32`: (a), un aviso neutro al volver de la hoja de Exportar.** Un `toast.info` tras `exportBackup` sin

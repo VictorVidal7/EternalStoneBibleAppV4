@@ -13512,7 +13512,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     `Share.share` no distingue).
   - **Propuesta (sin escribir):** mostrar lo que queda y cortar la caja en el tope, o no borrar el borrador si el
     paquete recortó algo.
-  - **✅ ARREGLADO en la sesión 187b** (`9c939a05`, y `1e1c5ccf` pone el aviso en cuatro líneas, rama `fix/s187`): si `makeCalBundle` deja fuera texto (`calNotesDropped`: las notas saneadas sin tope menos las del paquete), «Compartir» no comparte, no guarda en «Tus devocionales» ni borra el borrador, y un toast dice cuánto sobra (texto nuevo es/en). Complemento: el `maxLength` de cada caja para en el presupuesto, nunca por debajo de su propio texto. Prueba: `__tests__/devotionalShareNotesOverLimit.test.tsx` (la pantalla real), cada pieza roja sin el arreglo; controles de 30 días y de 12 000 justos. El cancelar de la hoja (P3, `:288-289`) queda resuelto en el camino recortado, no en el normal. `makeStudyBundle` (P3) sigue abierto. Detalle: `detail/S187-arreglos-tanda-3.md` §2.
+  - **✅ ARREGLADO en la sesión 187b** (`9c939a05`, y `1e1c5ccf` pone el aviso en cuatro líneas, rama `fix/s187`): si `makeCalBundle` deja fuera texto (`calNotesDropped`: las notas saneadas sin tope menos las del paquete), «Compartir» no comparte, no guarda en «Tus devocionales» ni borra el borrador, y un toast dice cuánto sobra (texto nuevo es/en). Complemento: el `maxLength` de cada caja para en el presupuesto, nunca por debajo de su propio texto. Prueba: `__tests__/devotionalShareNotesOverLimit.test.tsx` (la pantalla real), cada pieza roja sin el arreglo; controles de 30 días y de 12 000 justos. El cancelar de la hoja (P3, `:288-289`): resuelto en el camino recortado; en el normal, triaje B en la 187c (no cae en A: lo compartido queda entero en «Tus devocionales»; se pierde la edición en curso, no el texto). `makeStudyBundle` (P3): `R9-640`. Detalle: `detail/S187-arreglos-tanda-3.md` §2.
 
 - **`R9-512` (S129, `A37` / Juntos, invitar — P2) — 🐛 invitar a un plan curado con la duración elegida manda el
   plan con su duración por defecto: el grupo deja de leer lo mismo el mismo día.** MEDIDO con sonda en la 129
@@ -15590,6 +15590,18 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: camino estrecho; los marcadores siguen en la nube, sin camino para volver a leerlos.
   - **Arreglo propuesto (sin escribir):** la misma guarda que `R9-518`: si la lectura viene de la caché, no marcar
     `done`. Medible solo en el aparato (sin red, instalación nueva, sin la cuenta de Victor). Detalle: `detail/S187-arreglos-tanda-3.md` §3.
+
+- **`R9-640` (S187c, Juntos, compartir un estudio de la Mesa / de la misma raíz que `R9-511` — P3) — 🐛 compartir un
+  estudio con una nota de más de 4 000 caracteres manda la nota cortada a media palabra, sin aviso: quien lo recibe
+  lee otra cosa que lo que se escribió.** MEDIDO con sonda en la 129 (`S129-a3-codec`, «ESTUDIO LARGO»:
+  `{"escrito":6000,"viaja":4000,"terminaEnFin":false}`). Numerado en la 187c desde la entrada de `R9-511`.
+  - `makeStudyBundle` (`bundle.ts`) corta cada nota de la Mesa a `STUDY_NOTE_MAX` (4 000) y el total a
+    `STUDY_NOTES_TOTAL_MAX` (20 000); la Mesa no tiene `maxLength` ni aviso. `handleShareStudy`
+    (`app/features/prep/index.tsx`) comparte el paquete tal cual.
+  - No borra nada en el teléfono de quien comparte (la Mesa sigue entera): el daño está en el otro aparato.
+  - **Severidad:** P3; triaje A(1) («deja distinto entre aparatos algo que el usuario escribió»), candidato a lote D.
+  - **Arreglo propuesto (sin escribir):** la guarda de `R9-511` (`calNotesDropped` con `sanitizeNote` sin tope
+    contra lo que lleva el paquete): si recorta, un toast con cuánto sobra y no compartir. Detalle: `detail/S187-arreglos-tanda-3.md` §6.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,

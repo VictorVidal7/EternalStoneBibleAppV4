@@ -569,10 +569,12 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   181 abiertos de 638 (1 P1, 79 P2, 100 P3). Detalle: `detail/S186-revision-del-diff-y-r9-31.md`.
 
 - **Sesiones 187 y 187b — 2026-11-26.** Tanda P2 3 (sync, y texto del usuario que se pierde sin aviso), Opus 5.5,
-  sin agentes ni emulador, en `fix/s187` (sin mergear); la 187 cortada a ~95 llamadas, la 187b la cierra:
-  - Arreglados: `R9-415`, `R9-497`, `R9-473`, `R9-518`, `R9-498` (en N entradas del diario, sin aprobar) y
-    `R9-511` (frena «Compartir» si el paquete recorta, sin aprobar).
-  - `R9-639` (nuevo, P3, por lectura): la lectura de marcadores de la migración cae a la caché sin red.
+  sin agentes ni emulador, en `fix/s187` (mergeada, `main` = `e4289cb2`); la 187 cortada a ~95 llamadas, la 187b la cierra, la 187c
+  decide por delegación lo visible:
+  - Arreglados: `R9-415`, `R9-497`, `R9-473`, `R9-518`, `R9-498` (en N entradas del diario) y `R9-511`
+    (frena «Compartir» si el paquete recorta); las dos decisiones, en la §7.
+  - `R9-639` (nuevo, P3, por lectura): la lectura de marcadores de la migración cae a la caché sin red. `R9-640`
+    (P3, A): el estudio de la Mesa compartido con una nota cortada.
   - Fuera: `R9-562` (severidad en la §8) y la pregunta de la Mesa (D o B).
 
-  176 abiertos de 639 (1 P1, 73 P2, 101 P3). Detalle: `detail/S187-arreglos-tanda-3.md`.
+  177 abiertos de 640 (1 P1, 73 P2, 102 P3). Detalle: `detail/S187-arreglos-tanda-3.md`.
