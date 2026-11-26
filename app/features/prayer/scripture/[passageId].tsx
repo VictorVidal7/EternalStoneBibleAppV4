@@ -44,6 +44,7 @@ import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {parseChristRef} from '@/features/study/christConnections';
 import {getScripturePrayerById} from '@/features/prayer/scripturePrayers';
+import {PRAYER_DETAIL_MAX, splitPrayerDetail} from '@/features/prayer/prayer';
 import {
   borderRadius,
   fontSize as fontSizes,
@@ -52,6 +53,10 @@ import {
 } from '@/styles/designTokens';
 
 type LoadStatus = 'loading' | 'ready' | 'error';
+
+/** Room left in one journal entry after the longest reference prefix
+ *  («1 Tesalonicenses 3:13: »). */
+const VERSE_PRAYER_MAX = PRAYER_DETAIL_MAX - 40;
 
 export default function ScripturePrayerWalkScreen() {
   const router = useRouter();
@@ -182,17 +187,28 @@ export default function ScripturePrayerWalkScreen() {
     if (saving || writtenNotes.length === 0) return;
     setSaving(true);
     haptics.tap();
-    const detail = writtenNotes
-      .map(n => {
+    // R9-498 — the journal keeps a request's detail to PRAYER_DETAIL_MAX
+    // (1000) and cut the rest silently while this screen said «Guardado»: a
+    // long psalm prayed verse by verse lost its last verses. Psalm 102 has 28
+    // verses, so a cap on the boxes would leave ~19 characters a verse.
+    // Instead the walk is saved as as many entries as it needs, split between
+    // whole verses («Salmo 51 (1/2)», «(2/2)»).
+    const parts = splitPrayerDetail(
+      writtenNotes.map(n => {
         const info = localizedRef(n.ref);
         return `${info?.reference ?? n.ref}: ${n.text}`;
-      })
-      .join('\n\n');
-    await addToJournal({
-      title: passageMeta.title,
-      detail,
-      category: 'supplication',
-    });
+      }),
+    );
+    for (let i = 0; i < parts.length; i++) {
+      await addToJournal({
+        title:
+          parts.length > 1
+            ? `${passageMeta.title} (${i + 1}/${parts.length})`
+            : passageMeta.title,
+        detail: parts[i],
+        category: 'supplication',
+      });
+    }
     setSaving(false);
     setSaved(true);
     toast.success(ts.savedToast);
@@ -295,8 +311,15 @@ export default function ScripturePrayerWalkScreen() {
                     </AppText>
                     <TextInput
                       value={notes[phase] ?? ''}
+                      // One verse's prayer must fit one journal entry
+                      // with its reference (R9-498): capped in JS too,
+                      // since maxLength is only enforced natively.
+                      maxLength={VERSE_PRAYER_MAX}
                       onChangeText={text =>
-                        setNotes(prev => ({...prev, [phase]: text}))
+                        setNotes(prev => ({
+                          ...prev,
+                          [phase]: text.slice(0, VERSE_PRAYER_MAX),
+                        }))
                       }
                       placeholder={ts.yourPrayerPlaceholder}
                       placeholderTextColor={colors.textTertiary}

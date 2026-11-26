@@ -87,6 +87,31 @@ export const PRAYER_TITLE_MAX = 120;
 export const PRAYER_DETAIL_MAX = 1000;
 export const PRAYER_NOTE_MAX = 1000;
 
+/**
+ * R9-498 — split blocks (one per verse, already trimmed) into details that
+ * each fit `max` once joined with a blank line, never splitting a block. A
+ * block longer than `max` on its own gets a part to itself (the caller caps
+ * each block below `max`). Empty input → no parts.
+ */
+export function splitPrayerDetail(
+  blocks: readonly string[],
+  max: number = PRAYER_DETAIL_MAX,
+): string[] {
+  const parts: string[] = [];
+  let current = '';
+  for (const block of blocks) {
+    const next = current ? `${current}\n\n${block}` : block;
+    if (current && next.length > max) {
+      parts.push(current);
+      current = block;
+    } else {
+      current = next;
+    }
+  }
+  if (current) parts.push(current);
+  return parts;
+}
+
 /** Trim + collapse + cap a single-line field; returns '' for blank input. */
 function clean(value: string | undefined, max: number): string {
   if (typeof value !== 'string') return '';
