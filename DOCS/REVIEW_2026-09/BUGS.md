@@ -15567,7 +15567,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     Des…». A 1,3: «Backup ready. It's only kept / wherever you sent it (Drive, …». A 2,0: «Backup ready. It's /
     only kept wherever …»: dice que solo queda «donde», sin decir dónde. En español a 2,0, sin medir (por lectura,
     peor: el texto es más largo).
-  - De paso: el toast de arriba se monta sobre la barra de estado (la hora tapa su borde), a toda escala.
+  - De paso: el toast de arriba se monta sobre la barra de estado (la hora tapa su borde), visto a 1,3 y a 2,0.
   - **Severidad:** P3, A(2)/A(4): no pierde datos; el aviso de `R9-32` queda a medias con letra grande. Lote D.
   - **Arreglo propuesto (sin escribir):** un `numberOfLines` mayor (o libre) para este aviso, o un texto más corto
     que diga el destino en dos líneas a 2,0, en los dos idiomas. Detalle: `detail/S186-revision-del-diff-y-r9-31.md`
@@ -16482,16 +16482,18 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
       pierden y su promesa ya resolvió. 5000 subrayados: 28–33 s.
     - **Exclusiva sola (la 186b; los subrayados sobre `txn.runAsync`):** en commit y en rollback, cada escritor
       recibe `database is locked` a los 3–20 ms: `addReviewEvent` lo traga con un `warn` (el repaso se pierde
-      siempre), la racha y el crudo rechazan a su llamador. El lector no se bloquea. El import no falló; 5000
+      siempre), la racha y el crudo rechazan a su llamador. El lector no se bloquea. El import no falló en estos brazos; 5000
       subrayados: 9,4 s. **Es peor que hoy:** pierde siempre, no solo en un rollback.
     - **Exclusiva + `PRAGMA busy_timeout = 3000` en la compartida** (500 subrayados, commit): los escritores esperan
       ~1,4 s y entran tras el COMMIT; el lector de la compartida también espera detrás de ellos (1,46 s). Una
       ventana más larga que el timeout vuelve a dar `locked` (sin medir).
-  - **Recomendación (sin código):** exclusiva + `busy_timeout` (≥ 5 s) fijado al abrir la conexión compartida, con
-    todo el cuerpo del import sobre el `txn` (hoy escriben por la compartida `bibleDB.executeSql`,
-    `foldVerseNotesInTransaction` y los logros: no es mecánico); un respaldo real de cientos de filas cierra en
-    ~1 s. La alternativa barata: no exclusiva y aceptar (pierde solo en un rollback, un fallo de SQLite a mitad).
-    La exclusiva sola, descartada. Sigue abierto. Detalle: `detail/S186-revision-del-diff-y-r9-31.md` §2 y §2.1.
+  - **Sin medir:** una operación de la compartida justo en el primer `DELETE` del `txn` o en su `COMMIT` (el import
+    mismo recibiría `locked`); el rollback con timeout. La conexión del `txn` nace con `busy_timeout` 0.
+  - **Recomendación (sin código): por defecto, no exclusiva y aceptar** (pierde solo lo que cae dentro de un
+    rollback, un fallo de SQLite a mitad). La exclusiva sola, descartada. La exclusiva + `busy_timeout` (≥ 5 s, en
+    las dos conexiones) solo si lo sin medir sale bien: suma reescribir todo el cuerpo sobre el `txn` (hoy escriben
+    por la compartida `bibleDB.executeSql`, `foldVerseNotesInTransaction` y los logros: no es mecánico) y lecturas
+    en cola durante la ventana. Sigue abierto. Detalle: `detail/S186-revision-del-diff-y-r9-31.md` §2 y §2.1.
 
 - **`R9-32` (A7, respaldo) — 💡 el archivo de respaldo se escribe en caché y nunca se
   limpia.** `BackupService.ts:586-590`. `shareAsync` resuelve al cerrarse la hoja, no cuando

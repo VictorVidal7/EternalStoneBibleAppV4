@@ -557,3 +557,13 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   - Una pregunta para Victor: las seis pruebas de la Mesa (D o B), en E mientras tanto.
 
   179 abiertos de 637 (99 P3). Detalle: `detail/S185-triaje-p3.md`.
+
+- **Sesiones 186 y 186b — 2026-11-26.** La revisión del diff de la 182 a la 184, Opus 5.5, con emulador en solo
+  lectura y sin cambios de código; la 186 cortada a ~100 llamadas sin commits, la 186b la cierra en
+  `docs/review-s186`:
+  - `R9-32`: el aviso se ve en vivo. `R9-638` (nuevo, P3): a escala de fuente 2,0 se corta antes del destino.
+  - `R9-31`: medido en el aparato (no exclusiva, exclusiva en commit y rollback, exclusiva con `busy_timeout`). La
+    exclusiva sola pierde siempre; por defecto, aceptar. Sigue abierto.
+  - `R9-411` REABIERTO (P2): un `completedDays` que no es arreglo pasa las dos guardas y `planPace` tira Home.
+
+  181 abiertos de 638 (1 P1, 79 P2, 100 P3). Detalle: `detail/S186-revision-del-diff-y-r9-31.md`.

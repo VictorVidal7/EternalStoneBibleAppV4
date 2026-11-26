@@ -365,7 +365,7 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   toast de `R9-32` en vivo y la exclusiva de `R9-31`.
   **Revisión en la 186 y la 186b** (`detail/S186-revision-del-diff-y-r9-31.md`; la 186 cortada a ~100 llamadas y
   sin commits), emulador en solo lectura, sin cambios de código: se sostiene, salvo dos. `R9-32` visto en vivo;
-  `R9-31` medido en sus tres variantes (la exclusiva sola es peor que hoy; la recomendación, en su entrada);
+  `R9-31` medido en sus tres variantes (la exclusiva sola es peor que hoy; por defecto, aceptar; en su entrada);
   `R9-411` REABIERTO (P2: un `completedDays` que no es arreglo tumba Home, va con `R9-410`); `R9-638` nuevo (P3, el
   aviso del export cortado con letra grande, lote D). **Sigue la 187:** la tanda P2 3.
 - **Tanda 3 — sync, y texto del usuario que se pierde sin aviso (7).** `R9-518` (la migración de marcadores duplica

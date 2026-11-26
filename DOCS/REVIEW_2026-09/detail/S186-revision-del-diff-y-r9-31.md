@@ -21,7 +21,7 @@ commit de la 182 (`R9-413`/`R9-414`) y de la 183 (`R9-560`). Se revisó `621793f
   (escala 1,0, visto). El agente 2 lo predijo por lectura (`Toast.tsx:69`, 2 líneas por defecto;
   `DataSettings.tsx:110` sin tercer argumento; el `Text` sin `maxFontSizeMultiplier`): a escala 1,3 se cortaría en
   «…donde la hayas…» y a 2,0 quedaría «Copia lista. / Solo queda…», que es la creencia falsa que `R9-32` quitó.
-  **Sin medir a 1,3 y 2,0** (`settings put system font_scale`, en la instancia de solo lectura). Si se confirma, es
+  **Medido en la 186b: §1.1** (a 2,0 se pierde el destino, `R9-638`). Si se confirma, es
   A(2)/A(4) y se registra (P3, D: pasar `numberOfLines` o acortar).
 - **Sin medir:** el proceso de la app murió entre el brazo de Quick Share (vivo a +6,8 s) y el toque siguiente
   (~1–2 min después); el buffer de crash ya estaba limpio (`logcat -c`). Puede ser el sistema por memoria.
@@ -30,13 +30,13 @@ commit de la 182 (`R9-413`/`R9-414`) y de la 183 (`R9-560`). Se revisó `621793f
 
 ### 1.1 La 186b: el toast a escala 1,3 y 2,0 — se pierde el destino (`R9-638`)
 
-- Emulador Pixel_9_Pro `-read-only`, la app en inglés (el AVD quedó así), descartando la hoja con un toque arriba y
+- Emulador Pixel_9_Pro `-read-only`, la app en inglés, descartando la hoja con un toque arriba y
   una ráfaga de 14 antes del toque (`S141-s186b-f13-r*.png`, `S141-s186b-f20-r*.png`). `font_scale` vuelto a 1,0.
 - **1,3:** «Backup ready. It's only kept / wherever you sent it (Drive, …»: el destino se lee.
 - **2,0:** «Backup ready. It's / only kept wherever …»: dice que solo queda «donde», sin decir dónde. Es lo que el
   agente 2 predijo. **Registrado como `R9-638`** (P3, A(2)/A(4), D: `numberOfLines` o un texto más corto). En
   español a 2,0, sin medir; por lectura, peor (el texto es más largo).
-- De paso: el toast de arriba se monta sobre la barra de estado (la hora tapa su borde), a toda escala.
+- De paso: el toast de arriba se monta sobre la barra de estado (la hora tapa su borde), visto a 1,3 y a 2,0.
 
 ## 2. `R9-31`: la no exclusiva, medida en el aparato
 
@@ -62,7 +62,7 @@ commit de la 182 (`R9-413`/`R9-414`) y de la 183 (`R9-560`). Se revisó `621793f
   exactamente lo que dice la entrada de `R9-31`, ahora medido. Los repasos son lo que el usuario calificó (A(1)
   discutible: el evento es un registro de una acción suya); la racha es estadística derivada.
 
-- **Sin medir (a la 187 de cierre):** los dos brazos de la exclusiva (reescribir sobre el `txn` solo la sección de
+- **Medido en la 186b: §2.1.** Lo que sigue es la predicción de la 186. **Sin medir (a la 187 de cierre):** los dos brazos de la exclusiva (reescribir sobre el `txn` solo la sección de
   subrayados: el archivo no trae más). La predicción por lectura: sin `busy_timeout`, el escritor de la conexión
   compartida recibe «database is locked» al instante; `addReviewEvent` lo traga (se pierde, con un `warn`),
   `trackVersesRead` rechaza a su llamador, el adaptador de favoritos relanza (`R9-128`: el motor re-entrega).
@@ -93,8 +93,7 @@ commit de la 182 (`R9-413`/`R9-414`) y de la 183 (`R9-560`). Se revisó `621793f
   | exclusiva, rollback (`throw`), 5000  | igual                                                                             | igual                                   | rechaza con el `throw`, 9,7 s |
   | exclusiva + `busy_timeout` 3000, 500 | esperan ~1,4 s y entran tras el COMMIT                                            | espera 1,46 s detrás de ellos           | COMMIT a 1,1 s                |
 
-  En disco (`leer`), tras el commit: solo las filas del control (`post`), ninguna de las de dentro; 5000
-  subrayados. Los de control entraron en los tres brazos. Ningún productor quedó colgado (pendientes a +10 s: ninguno).
+  En disco (`leer`), solo tras el brazo de commit: las filas del control (`post`), ninguna de las de dentro; 5000 subrayados. En el rollback y con `busy_timeout`, «entran» sale del resultado de la promesa (`changes: 1`), no del disco. Dentro de la ventana de 1,1 s del tercer brazo cayó un solo disparo (`t300`). Ningún productor quedó colgado (pendientes a +10 s: ninguno).
 
 - **Lectura:**
   - La exclusiva sola **es peor que hoy**: con la no exclusiva, lo de dentro se pierde solo en un rollback; con la
@@ -103,12 +102,16 @@ commit de la 182 (`R9-413`/`R9-414`) y de la 183 (`R9-560`). Se revisó `621793f
   - Con `busy_timeout`, nada se pierde si la ventana es menor que el timeout, pero la conexión compartida queda en
     serie: el lector espera detrás del escritor que espera. Una ventana más larga que el timeout vuelve a dar
     `locked` (sin medir).
-  - La conexión propia es ~3 veces más rápida: 5000 subrayados en 9,4 s contra 28–33 s (~1,9 ms por `INSERT`
-    contra ~5,5). Un respaldo real de cientos de filas cierra en ~1 s.
-- **Recomendación para `R9-31`** (en su entrada, sin código): exclusiva + `PRAGMA busy_timeout` (≥ 5 s) fijado al
-  abrir la conexión compartida, con todo el cuerpo del import sobre el `txn` (hoy escriben por la compartida
-  `bibleDB.executeSql`, `foldVerseNotesInTransaction` y los logros: no es mecánico). La alternativa barata: no
-  exclusiva y aceptar (pierde solo en un rollback, que es un fallo de SQLite a mitad). La exclusiva sola, descartada.
+  - `txn.runAsync` es ~3 veces más rápido que `bibleDB.executeSql`: 5000 subrayados en 9,4 s contra 28–33 s (~1,9 ms por `INSERT` contra ~5,5). La causa (la conexión o el envoltorio), sin medir. Un respaldo real de cientos de filas cierra en ~1 s.
+- **Sin medir:** una operación de la compartida justo en el primer `DELETE` del `txn` (47–73 ms; el primer timer
+  cae a 300) o en su `COMMIT`: es el modo de fallo nuevo de la exclusiva (el import mismo recibiría `locked`). La
+  conexión del `txn` nace con `busy_timeout` 0 (visto en el tercer brazo): el timeout iría en las dos. Tampoco el
+  rollback con timeout.
+- **Recomendación para `R9-31`** (en su entrada, sin código): **por defecto, no exclusiva y aceptar**: hoy se
+  pierde solo lo que cae dentro de un rollback, que es un fallo de SQLite a mitad del import. La exclusiva sola,
+  descartada (pierde siempre). La exclusiva + `busy_timeout` (≥ 5 s, en las dos conexiones) solo si lo sin medir
+  sale bien: suma una reescritura no mecánica del cuerpo (hoy escriben por la compartida `bibleDB.executeSql`,
+  `foldVerseNotesInTransaction` y los logros) y lecturas en cola durante la ventana (medido).
 
 ## 3. La revisión del diff (parte 1: los informes, sin re-verificar)
 
