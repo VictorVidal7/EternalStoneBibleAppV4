@@ -96,3 +96,5 @@ Sesión 183, Opus 5.5, esfuerzo high, sin agentes. Rama `fix/s183` (sobre `04df9
 
 `NODE_ENV=development npm run validate` en `fix/s183` (`9095ffbf`), sin Metro ni emulador: verde, 443 suites y 5239
 pruebas (la 182: 441 y 5231; +2 suites, +8 pruebas). Salida: `_scratch/S183-validate.out.txt`.
+En `docs/review-s183` (`d0ff3286`, la 183b, solo docs): verde, 443 suites y 5239 pruebas, eslint sin errores
+(82 advertencias). Salida: `_scratch/S183b-validate.out.txt`.
