@@ -1116,6 +1116,9 @@ export default function PrepTableScreen() {
   // savePrepNote is idempotent + serialized, so this is harmless even when
   // onBlur/handleOpenPulpit already saved the same value.
   useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+  // Which (passage, section, template) the pending debounced save belongs
+  // to — see `handleNoteChange` (R9-473).
+  const pendingSaveKeyRef = useRef<string | null>(null);
 
   // R9-602 — a restore rewrote `@prep_notes` behind this screen. The focus
   // re-read above covers a restore made while the user was in Settings, not
@@ -1155,6 +1158,19 @@ export default function PrepTableScreen() {
       // `table.passageKey` may already have moved to a range the reader
       // selected while a reload was still in flight.
       const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+      // R9-473 — ONE debounce serves every section, and use-debounce keeps
+      // only the LAST arguments: a change in section B (its format toolbar
+      // does not blur A) replaced A's pending save, and the unmount
+      // `flush()` pushed B alone. Push the other section's pending save
+      // before scheduling this one.
+      const saveKey = `${passageKey}\u0000${section}\u0000${template}`;
+      if (
+        pendingSaveKeyRef.current !== saveKey &&
+        debouncedSaveNote.isPending()
+      ) {
+        debouncedSaveNote.flush();
+      }
+      pendingSaveKeyRef.current = saveKey;
       debouncedSaveNote(passageKey, section, value, template);
     },
     [table, debouncedSaveNote, template],
