@@ -4070,6 +4070,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - `migrateCanonicalBookKeys` ya corrió y no lo cura, y además convierte `"Juan"` y `"John"` del
     mismo versículo en dos notas canónicas.
   - **El gemelo en favoritos, en la 129:** `R9-520`.
+  - Triaje 185: A, A(1) (duda A/B que toca A(1); gemelo de R9-520 (A)).
 
 - **`R9-146` (S22, planes — P3) — 🐛 borrar un plan propio deja su progreso, y re-crearlo o
   re-importarlo desde Juntos lo resucita ya terminado.** CONFIRMADO con sonda:
@@ -4087,6 +4088,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - La víspera del adelanto a las 23:30, las 6 etiquetas futuras se corren un día
     (`0:sab 1:lun 2:mar…`).
   - Es la forma de `R9-63` en un archivo que la entrada no nombra. Es cosmético.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Es cosmético.».
 
 - **`R9-148` (S22, prueba de sync — P3) — 🐛 el flush del tick periódico (`SyncEngine.ts:760-772`)
   no lo vigila ninguna prueba.** CONFIRMADO por revert.
@@ -4095,6 +4097,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Con `// void this.flush();` en el `setInterval`, las 364 suites reales siguen verdes.
   - Consecuencia de la regresión: una escritura que falla una vez queda parada hasta el próximo
     arranque, o hasta que se edite ese documento. No se pierde, porque la cola está persistida.
+  - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-149` (S22, build de packs — P3) — 🐛 la pieza de `R9-74` que distingue «no se pudo LEER»
   de «ausente» no tiene prueba.** CONFIRMADO por revert.
@@ -4104,6 +4107,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     «deleted or moved file», que es falso para un archivo presente e ilegible.
   - **Con `--allow-shrink`**, la regresión apaga todas las comparaciones y reescribe el manifiesto:
     es `R9-74` entero de vuelta.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: compuerta de build, revert visto. «CONFIRMADO por revert.».
 
 - **`R9-150` (S22, lector web — P3) — 🐛 `R9-69` reabierto por la ida y vuelta: al volver de B a A
   con el pack de B en vuelo o FALLADO, el primer render pinta los offsets de A sobre el texto de
@@ -4114,6 +4118,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Con `R9-71`, un pack que falla no se asienta, así que la ventana dura todo lo que se lea en B.
   - Es un render transitorio, sin pérdida de datos. «La ventana de `R9-69` está cerrada por otra
     cosa» (`S14:92-97`) era falso para este camino.
+  - Triaje 185: lote D, A(2) (la letra roja sobre el texto de otra versión: fidelidad bíblica). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-151` (S22, build de packs — P3) — 🐛 la respuesta «no pude comprobar» (`null`) de
   `filesNotPinnedBy` no la vigila ninguna prueba.** CONFIRMADO con sonda (el `main()` real, con el
@@ -4123,6 +4128,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     con uno que no pina ningún sha256.
   - La baseline del fixture no lleva `file` ni `sha256`, así que la prueba que falta cabe en el
     mundo que el archivo ya tiene.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: compuerta de build, revert visto. «Colapsar a `[]` la rama `!previous` o la rama `pinned.size === 0` deja 63/63 verde.».
 
 - **`R9-152` (S22, compuerta de packs — P3) — 🐛 bajo un Node sin `node:sqlite`, `buildWebPacks`
   no ejecuta NI UNA aserción, contra lo que dicen `S16:102-105` y el comentario de
@@ -4132,6 +4138,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     `1d96a40`. Con él envuelto en un `try`, corren 37 pruebas de lógica pura, y las 26 rojas son las
     que sí necesitan base.
   - Hoy lo tapan el CI en Node 24 y `ciNodeVersion`. Solo lo ve un desarrollador con Node 22.0–22.12.
+  - Triaje 185: sin revert visto (rojo medido con Node 20, no un revert); queda abierto hasta correrlo. Sin él no es B (§7).
 
 - **`R9-154` (S23, prueba de sync — P3) — 🐛 tres de los cinco sitios de
   `withLocalWriteSuppressed` y su conteo de profundidad no los vigila ninguna prueba.** CONFIRMADO
@@ -4156,6 +4163,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Esa versión pierde la nota de un favorito EXISTENTE editado dos veces sin render en el medio:
     `{"note":"nota vieja","tags":["Evangelio"]}`. En `HEAD` la misma sonda pasa: el código
     está bien, y lo que falta es la prueba.
+  - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-156` (S23, docs y comentarios de la 20 — P3, agrupado).** Medidos contra el código, git y
   el mundo (agente 3; 25 de 30 afirmaciones son ciertas):
@@ -4182,6 +4190,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
      `mockSetGate` no mantiene el orden de escrituras de un mismo usuario.
   8. La prueba de `R9-105` dice que el SecureStore aislado es otra instancia, y es la MISMA
      (`outerStoreHasPreseed:"true"`). RevenueCat sí es otra. No cambia lo que discrimina.
+  - Triaje 185: A, A(1) (agrupado: el ítem 7 (la rama «vuelve Ana» sin prueba) protege el sync; el resto, docs).
 
 - **`R9-157` (S24, compuerta local / jest — P2) — 🐛 la compuerta local dependía del `NODE_ENV` del
   shell: verde en CI y roja en la máquina de Victor.** CONFIRMADO.
@@ -4296,6 +4305,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Como `settle()` sobre un conjunto vacío no cambia nada, no se llama a `saveUnsettled` (`:1070`),
     y la clave rota sigue en disco. Con 50 docs: 50 en cada enganche. El control, un cursor
     ilegible, se cura en el primero.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: costo. «Con 50 docs: 50 en cada enganche.».
 
 - **`R9-167` (S25, Mesa — P2) — 🐛 la «otra ventana» de `R9-143` sigue abierta si la sección ya
   tenía prosa: tocar Púlpito o el banco antes de que relea el foco borra la ilustración recién
@@ -4324,6 +4334,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   no lo vigila ninguna prueba.** MEDIDO por la nube: con `void flushDrafts()` en los dos botones
   (`index.tsx:1018`, `:1038`), las 8 pruebas de `prepTableScreenPassageKeying.test.tsx` siguen en
   verde. El comentario de `handleOpenPulpit` explica por qué hace falta esperar.
+  - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-170` (S25, build de packs — P3) — 🐛 los packs web no son reproducibles entre versiones de
   SQLite: el mismo texto da otro sha256.** MEDIDO por la nube.
@@ -4334,6 +4345,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     una máquina con el manifiesto de otra deja a los navegadores nuevos en la pantalla de error.
   - El `note` de `web-bootstrap.json` dice «byte-identical». **Arreglo (hipótesis):** normalizar la
     cabecera al construir, o pinar la versión de Node del build.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: build no reproducible. «Reconstruir con otro Node cambia los pines sin cambiar una letra.».
 
 - **`R9-171` (S25, compuerta local — P3) — 🐛 la suite depende de la zona horaria: roja en Madrid
   (1 prueba) y de UTC+12 a UTC+14 (2).** MEDIDO por la nube, en Linux.
@@ -4343,6 +4355,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     UTC+12», es falso.
   - `LANG` en español, `CI` y `NODE_ENV` no cambian nada. En `America/Mexico_City` todo da verde,
     por eso nadie lo vio. Es la clase de `R9-157`.
+  - Triaje 185: sin revert visto (rojo medido por zona horaria, no un revert); queda abierto hasta correrlo. Sin él no es B (§7).
 
 - **`R9-172` (S25, contenido diario — P3) — 🐛 el versículo, el dato bíblico y la profecía «del día»
   cambian a la 01:00 (o a las 23:00) con horario de verano.** MEDIDO por la nube.
@@ -4357,6 +4370,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     15-jul es la de ayer: `_scratch/S135-sondas-agente-6/S135-a6-indiceDiario.test.tsx.txt`, prueba 2). Una
     superficie más: los subtítulos «Hoy · …» de explore-all (`explore-all/index.tsx:117-125`). Las demás
     funciones «del día» de `src/` no usan la fórmula.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-63` (familia de): «Es la familia de `R9-63` y `R9-147`.». Lo que queda lo arregla su entrada.
 
 - **`R9-173` (S25, lector web — P3, decidido) — 🐛 la opción (b) de `R9-109` no cubre el fallo de red
   ni el 404 del pack en un navegador que ya tiene texto: igual ve la pantalla de error.** MEDIDO por
@@ -6176,6 +6190,7 @@ pending.remoteVersion.updatedAt`.
     de getter que fije que `change.doc.data()` es el mismo objeto en dos lecturas.
   - De paso: un mock con `get doc()` dentro de un spread no lo modela, porque Babel evalúa el getter
     al copiar las propiedades.
+  - Triaje 185: lote D, A(1) (ningún revert se ve (el mock sustituye firestore.ts) y protege el sync: prueba corta). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-242` (S41, `SyncEngine` / cola — P3) — 🐛 el `own` de una entrada que reemplazó una subida EN
   VUELO conserva relojes más viejos que el ack de esa subida. Mientras la entrada espera, el respaldo
@@ -7592,6 +7607,7 @@ get#3:Mark/1/1`. CONTROL: con el respaldo pedido después de la salida, `Mark/9/
     estado no tiene las tarjetas del disco: «3 versículos agregados» con 2 que ya estaban (con
     `R9-279`, esas conservan sus repasos y no suben).
   - Solo de pantalla. La ventana es la carga en frío o una lectura fallida.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: solo pantalla. «Solo de pantalla.».
 
 - **`R9-286` (S64, comentarios de la 63 / memoria / respaldo — P3) — 🐛 varios comentarios nuevos
   de la 63 no se sostienen: el orden en la ventana del respaldo, «los providers retienen», y dos
@@ -8071,6 +8087,7 @@ quienActual|vieja|contenido <pieza>`, generado por `S72-gen23.cjs.txt`). Lo abri
     clave (`@prep_notes`: 1). Con la unión (`conUnion`), no: las uniones piden el turno sin
     etiqueta, y da 0 con cualquier clave. Para leer el caso `durante` con la unión hace falta
     etiquetar también las uniones (o contar las que no llevan etiqueta). Sigue ABIERTO.
+  - Triaje 185: E. Las pruebas de la Mesa: §7 manda D (la puerta no atrapa y protege un A(1)), pero el ciclo de esas pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»). Decide Victor (`detail/S185-triaje-p3.md` §5).
 
 - **`R9-297` (S73, pruebas / respaldo / Mesa — P3) — 🐛 en la prueba de `R9-273`, `retenida` se lee
   al final, después de abrir: con la otra escritura más lenta y el código bueno, cae con el síntoma
@@ -8098,6 +8115,7 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     bueno, `_scratch/S84-sonda.cjs.txt`): el caso `store` cae con `antesDeAbrir: true`, también con
     la prueba de `a32be3b`. Es el único rojo de `prep` con `claveCapturadaLentaK`, con o sin
     `genTrasMultiSet` encima (`R9-318`).
+  - Triaje 185: sin revert visto (las piezas son de un rojo falso; el revert no se corrió); queda abierto hasta correrlo. Sin él no es B (§7).
 
 - **`R9-298` (S73, pruebas / respaldo / Mesa — P3) — 🐛 con `gone` calculado fuera del turno
   (`goneFuera`), lo restaurado queda bajo el uid borrado, y ninguna prueba lo ve.** MEDIDO por el
@@ -8150,6 +8168,7 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     y `restaurado: true`. Controles: sin pieza pasa; `sinTurno` y `sueltaAntes5` caen.
   - **¿Lo abrió la 73?** No. P3, como `R9-298`.
   - **Arreglo (hipótesis):** sumar el caso de la sonda `cola2`.
+  - Triaje 185: E. Las pruebas de la Mesa: §7 manda D (la puerta no atrapa y protege un A(1)), pero el ciclo de esas pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»). Decide Victor (`detail/S185-triaje-p3.md` §5).
 
 - **`R9-300` (S73, pruebas / respaldo / Mesa — P3) — 🐛 la devolución del respaldo sin la marca de
   «el origen se va» (`sinSourceGoes`) deja el pasaje más nuevo del respaldo bajo el uid borrado, y
@@ -8172,6 +8191,7 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     la prueba de R9-59 de `prepAccount.test.ts` («…al borrar la cuenta vuelve»). Lo que nadie ve es
     solo la devolución del respaldo.
   - **Sesión 94: se sostiene** (`devuelveSinSourceGoes`, agente 5, la misma pieza: 1004/1004).
+  - Triaje 185: E. Las pruebas de la Mesa: §7 manda D (la puerta no atrapa y protege un A(1)), pero el ciclo de esas pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»). Decide Victor (`detail/S185-triaje-p3.md` §5).
 
 - **`R9-301` (S73, pruebas / respaldo / Mesa — P3) — 🐛 `devolucionDosTurnos` solo la ve la sonda
   `devuelta`, y `devuelta` tal cual da falsos rojos con devoluciones benignas.** MEDIDO por el agente
@@ -8195,6 +8215,7 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
   - **Sesión 94: `devolucionGiveBack` no es benigna** (`R9-327`): con un store en la cola entre la
     escritura del respaldo y su devolución, pierde la sección restaurada. Lo benigno era el rojo de
     `devuelta`, no la pieza.
+  - Triaje 185: E. Las pruebas de la Mesa: §7 manda D (la puerta no atrapa y protege un A(1)), pero el ciclo de esas pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»). Decide Victor (`detail/S185-triaje-p3.md` §5).
 
 - **`R9-302` (S74, pruebas / respaldo — P3) — 🐛 la prueba de `R9-287` no tiene un control de que
   el store tenga el turno: con el store UNA vuelta más lento (el código bueno), cae con el mismo diff
@@ -8311,6 +8332,7 @@ tarde1`, código bueno, con `prepWrite` y la unión 1 vuelta más lentos antes d
     que lea el turno.
   - **Sesión 78:** con `turnoAntesDeClave`, `pedido antes` arma `antes`, con los controles en su
     sitio (`R9-310`). El mismo control lo vería.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: diagnóstico de prueba. «Ningún verde falso.».
 
 - **`R9-305` (S75, pruebas / Mesa — P3) — 🐛 en `prepSeriesDetailScreen.test.tsx`, con `prepWrite`
   más lento (el código bueno), `removes a passage` cae por el reloj del `waitFor`, y su escritura
@@ -8335,6 +8357,7 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
     las dos. El agente 3, en tres rondas: con carga, `tarde26` tumbó las dos; sin carga, `tarde26` y
     `tarde30` pasaron, y de 40 a 100 cayeron siempre las dos. Es de reloj, entre 26 y 40. De T8.4.4
     (`git log -S`: `da97edf`).
+  - Triaje 185: sin revert visto (las piezas son de un rojo falso; el revert no se corrió); queda abierto hasta correrlo. Sin él no es B (§7).
 
 - **`R9-306` (S76, pruebas / respaldo — P3) — 🐛 a la prueba de `R9-287` le falta el orden que
   armaba su versión de `bc845c0`: el store pedido ANTES de empezar el respaldo y en el turno
@@ -8444,6 +8467,7 @@ passage down via the move-down button`, que recibe `['John/3/16']`, lo que escri
   - **Arreglo (hipótesis, sin medir):** una prueba con relojes falsos que avance el reloj más allá
     de cualquier plazo con la Mesa ocupada, y compruebe que el `multiSet` del respaldo sigue
     esperando.
+  - Triaje 185: E. Las pruebas de la Mesa: §7 manda D (la puerta no atrapa y protege un A(1)), pero el ciclo de esas pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»). Decide Victor (`detail/S185-triaje-p3.md` §5).
 
 - **`R9-309` (S78, pruebas / respaldo / Mesa — P3) — 🐛 un store pedido antes del respaldo y con la
   clave resuelta cuando el respaldo ya escribe en su turno: si corre sin turno, no lo ve ninguna
@@ -10022,6 +10046,7 @@ ana`), primer estado nulo, la migración retenida en su lectura, y `savePrepNote
   - **Sesión 100: lo arreglado ve `llegar<X>` solo dentro de la espera de 1000 vueltas.** Ver
     `R9-349`.
   - **Sesión 101:** con el control de `R9-349`, también con el llamador más lento que la espera.
+  - Triaje 185: E. Las pruebas de la Mesa: §7 manda D (la puerta no atrapa y protege un A(1)), pero el ciclo de esas pruebas se cerró el 2026-10-27 («no hay una 113 de arreglos de estas pruebas»). Decide Victor (`detail/S185-triaje-p3.md` §5).
 
 - **`R9-348` (S100, pruebas / Mesa / `R9-336` — P3) — 🐛 la tabla de las 13 partes hace fallar cada
   parte UNA vez: si `finishRelease`, al fallar la lectura de la nota, la releyera en su `catch` (fuera
@@ -12120,6 +12145,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     (`saveStylePreset(...).then`, sin `catch`) y `:189` (el borrado), sobre `stylePresetsStore.ts:36-53` (atrapa
     la lectura, no la escritura). Sonda `_scratch/S121-presets.test.tsx.txt`, bloque 3: con `setItem` rechazando
     una vez, `{"setItem":6,"success":0,"error":0,"chips":0}` y el rechazo sin manejar. Mismo arreglo, en los dos.
+  - Triaje 185: lote D, A(1) (duda A/B que toca A(1): el preset borrado que quizá sigue en disco; catch y aviso). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-417` (S114, `A12` hilo 2 / runtime, observabilidad — P2) — 🐛 en release, ninguna promesa rechazada
   sin catch llega a Crashlytics ni a un log: el rastreo de Crashlytics engancha el `Promise` de la librería
@@ -12176,6 +12202,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     `[]`, la hoja pasa a `unavailable` y se cierra sin mensaje; el comentario de `:106` dice que es a propósito
     («degrade quietly»). Con la red de vuelta, el siguiente toque abre normal. Sin pérdida ni cobro.
   - **Propuesta (sin escribir):** un toast que distinga «sin conexión» de «no hay productos».
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: sin daño. «Sin pérdida ni cobro.».
 
 - **`R9-421` (S115, `C56` / preferencias del lector / `R9-413` — P2) — 🐛 Sepia elegido con premium queda
   «heredado» para siempre: `sepiaGrandfathered` se recalcula en CADA hidratación, no una sola vez.** MEDIDO en
@@ -12216,6 +12243,8 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
   - Sin pérdida: el dato se guarda. P3. Por lectura, `handleOpenSeries` (`:971-977`) tampoco hace flush (sin
     medir).
   - **Propuesta (sin escribir):** `flushDrafts()` antes de navegar, como `R9-143`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «Sin pérdida: el dato se guarda.».
+  - Triaje 185: recibe `R9-528` (familia de esta): al volver del editor con un cambio de menos de 700 ms, la lista muestra el texto viejo. Su arreglo lo cubre.
 
 - **`R9-423` (S116, `A13` / lector y audio — P2) — 🐛 al volver a cambiar de versión con el audio, la voz
   sigue leyendo la versión anterior.** MEDIDO con sonda en la sesión 116 (agente 1), re-medido igual en el
@@ -12293,6 +12322,10 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `{"RVR1960":200,"RV1909":30}`: rojo.
   - **Propuesta (sin escribir):** volver a buscar (o vaciar los resultados) cuando cambia la versión. Detalle:
     `detail/A16-busqueda.md`.
+  - Triaje 185: recibe `R9-478` (familia de esta): si la versión cambia con la Mesa abierta, la cabecera pasa a la versión nueva y el texto se queda en la vieja. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-486` (familia de esta): la vista previa de una parada no sigue a la versión: tras cambiarla en el lector y volver, sigue en la vieja bajo el chip en la nueva. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-521` (familia de esta): los datos ya abiertos no siguen a la versión. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-525` (familia de esta): con la versión cambiada con la pantalla abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la voz de la versión nueva. Su arreglo lo cubre.
 
 - **`R9-431` (S117, `A16` / búsqueda — P2) — 🐛 el resaltado de los resultados no sigue lo que encontró la
   búsqueda: con un apóstrofo en inglés no resalta nada, y con `OR` resalta «or» dentro de otras palabras.**
@@ -12346,6 +12379,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `"⏱ 5s"`, sin vencer.
   - **Propuesta (sin escribir):** pasarle al panel una pausa (`showExitConfirm`, o la pantalla sin foco).
     Detalle: `detail/A17-quiz.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el reloj sigue corriendo detrás del diálogo «¿Salir del quiz?»».
 
 - **`R9-434` (S118, `A18` / estudio de palabra — P3) — 🐛 al quitar el filtro por libro, las filas de ese libro
   vuelven sin el texto del versículo.** MEDIDO con sonda en la sesión 118.
@@ -12359,6 +12393,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     de Mateo vuelven con su texto.
   - **Propuesta (sin escribir):** limpiar la caché en el mismo efecto que pide. Detalle:
     `detail/A18-word-study.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «hasta el primer desplazamiento».
 
 - **`R9-435` (S118, `A18` / idiomas originales — P2) — 🐛 si la hoja de idiomas originales se cierra durante
   la descarga del pack y se abre sobre otro versículo, al terminar muestra las palabras del primero bajo la
@@ -12374,6 +12409,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     rojo. Control, la descarga termina en el mismo versículo: las palabras de 3:16.
   - **Propuesta (sin escribir):** recargar al terminar las palabras del versículo actual (un `ref` al último
     `loadWords`). Detalle: `detail/A18-word-study.md`.
+  - Triaje 185: recibe `R9-493` (familia de esta): el versículo de una escena aparece debajo de la siguiente. Su arreglo lo cubre.
 
 - **`R9-436` (S118, `A18` / estudio de palabra — P2) — 🐛 desde Datos bíblicos, el estudio de palabra muestra
   los fragmentos en RVR1960 aunque la interfaz esté en inglés.** MEDIDO con sonda en la sesión 118.
@@ -12453,6 +12489,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S120-ajustesCuenta.test.tsx.txt`, prueba 1 (la pantalla real): con `pendingWrites` 2 y
     sin red, «Sincronizando 2 cambios…»: rojo. Control 1b, sin red y sin cola: «Sin conexión».
   - **Propuesta (sin escribir):** mirar `isOnline` antes que `pendingWrites`. Detalle: `detail/A20-ajustes.md`.
+  - Triaje 185: lote D, A(2) (duda que toca A(2): dice «sincronizando» sin red; una línea). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-441` (S120, `A20` / Ajustes — P3) — 🐛 «Reportar un problema» no hace nada si no hay app de
   correo.** MEDIDO con sonda en la sesión 120.
@@ -12466,6 +12503,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `openTtsSettings` con el rechazo resuelve y cae a su respaldo (2 llamadas a `sendIntent`).
   - **Propuesta (sin escribir):** `catch` con un aviso que muestre la dirección (o la copie). Detalle:
     `detail/A20-ajustes.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: raro. ««Reportar un problema» no hace nada si no hay app de correo».
 
 - **`R9-442` (S121, `A22` / Compartir — P3) — 🐛 borrar un estilo guardado y guardar otro deja dos con el
   mismo nombre.** MEDIDO con sonda en la sesión 121.
@@ -12478,6 +12516,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `{"names":["2","3","3"],"chipLabels":["Estilo 2","Estilo 3","Estilo 3"]}`; el almacén compacto,
     `["2","3","3"]`: rojo.
   - **Propuesta (sin escribir):** el mayor número usado + 1. Detalle: `detail/A22-compartir.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «borrar un estilo guardado y guardar otro deja dos con el mismo nombre».
 
 - **`R9-443` (S121, `A22` / Compartir — P3) — 🐛 si el entitlement cae con el lector montado, la plantilla
   exclusiva elegida sigue en la tarjeta y se comparte.** MEDIDO con sonda en la sesión 121.
@@ -12494,6 +12533,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - P3: no cobra de más ni quita nada pagado. Sin medir, el mismo hueco en `useShareImage.ts:72-77` y
     `NoteImageModal`. **Propuesta (sin escribir):** revertir también `themeIndex`. Detalle:
     `detail/A22-compartir.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: premium. «P3: no cobra de más ni quita nada pagado.».
 
 - **`R9-444` (S121, `A23` / logros — P3) — 🐛 el lector desbloquea los logros de capítulo sin celebrarlos.**
   MEDIDO con sonda en la sesión 121.
@@ -12506,6 +12546,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     `["chapters_10","first_chapter"]`, celebrados `[]`: rojo. Control: el servicio los devuelve.
   - **Propuesta (sin escribir):** celebrar también lo que devuelve `trackChapterCompleted`. Detalle:
     `detail/A23-logros.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el lector desbloquea los logros de capítulo sin celebrarlos».
 
 - **`R9-445` (S121, `A23` / insignias — P3) — 🐛 la insignia «Evangelizador Digital» (`share_master`) no se
   puede ganar.** MEDIDO con sonda en la sesión 121.
@@ -12516,6 +12557,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     rojo. Control: 25 `trackShare()` → desbloqueada.
   - **Propuesta (sin escribir):** `trackShare` al compartir con éxito, o declararla sin seguimiento. Detalle:
     `detail/A23-logros.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «la insignia «Evangelizador Digital» (`share_master`) no se puede ganar».
 
 - **`R9-446` (S121, `A23` / logros — P3) — 🐛 dos revisiones de logros a la vez celebran dos veces el mismo
   logro o pierden puntos.** MEDIDO con sonda en la sesión 121.
@@ -12528,6 +12570,8 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     en serie: 30 de 30.
   - **Propuesta (sin escribir):** serializar, o `UPDATE … WHERE is_unlocked = 0` y sumar en SQL. Detalle:
     `detail/A23-logros.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «dos revisiones de logros a la vez celebran dos veces el mismo logro o pierden puntos».
+  - Triaje 185: recibe `R9-492` (raíz de esta): dos toques en «Terminar» celebran dos veces la insignia de la primera historia. Su arreglo lo cubre.
 
 - **`R9-447` (S121, `A23` / logros — P3) — 🐛 con la app viva de un día para otro, la «racha actual» de logros
   no baja.** MEDIDO con sonda en la sesión 121.
@@ -12538,6 +12582,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S121-rachaInsignias.test.ts.txt`, `rachaVieja`: `{"vivo":5,"delLog":0,"enFrio":0}`: rojo.
     Control: en frío, 0.
   - **Propuesta (sin escribir):** recalcular al leerla. Detalle: `detail/A23-logros.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «la «racha actual» de logros no baja».
 
 - **`R9-448` (S121, `A23` / insignias — P3) — 🐛 otra cuenta en el mismo teléfono re-celebra todas las
   insignias y pierde el título equipado.** MEDIDO con sonda en la sesión 121.
@@ -12548,6 +12593,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S121-rachaInsignias.test.ts.txt`, `insigniasOtraCuenta`: con otro uid, las mismas 4 y
     `equipadoB: null`: rojo. Control: mismo uid, 0. No es `R9-30` (el respaldo) ni `R9-22`/`R9-48`.
   - **Propuesta (sin escribir):** guardarlas como el progreso (del dispositivo). Detalle: `detail/A23-logros.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: insignias derivadas. «otra cuenta en el mismo teléfono re-celebra todas las insignias y pierde el título equipado».
 
 - **`R9-449` (S122, `A24` / i18n, planes — P3) — 🐛 el diálogo «Reiniciar plan» de un plan curado muestra el
   nombre crudo: «{{n}}» literal en 4 planes, y en español con la UI en inglés.** MEDIDO con sonda en la 122.
@@ -12558,6 +12604,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S122-fueraDiccionario.test.ts.txt`, prueba 1: 4 nombres con `{{n}}`, 17 de 17 distintos
     del inglés: rojo. Control: la pantalla llama a `getLocalizedPlan`.
   - **Propuesta (sin escribir):** `title={localizedPlan.name}`. Detalle: `detail/A24-i18n.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «el diálogo «Reiniciar plan» de un plan curado muestra el nombre crudo».
 
 - **`R9-450` (S122, `A24` / i18n, Mesa — P2) — 🐛 el PDF «Guía de discusión» sale en español aunque la UI y el
   estudio estén en inglés.** MEDIDO con sonda en la 122.
@@ -12583,6 +12630,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     trae los 198 versículos escritos, sigue el idioma del TELÉFONO y usa RVR1960 o WEB fijas, a propósito
     (`.kt:31-42`). Este hallazgo queda como lo que es: la vista previa de `features/widgets` no se parece al widget
     real (versión, fondo, cabecera). Lo del widget nativo: `R9-515`..`R9-517` y la nota en `R9-471`.
+  - Triaje 185: lote D, A(2) (frontera con sonda y propuesta: el texto bíblico en otro idioma). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-452` (S122, `A24` / i18n, fechas — P3) — 🐛 el BUG-9 de Fable (`textTransform: 'capitalize'` sobre
   fechas) se arregló solo en Daily Light: «Lunes, 2 De Noviembre» sigue en dos sitios.** MEDIDO con sonda en la 122.
@@ -12591,6 +12639,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `S122-fueraDiccionario`, prueba 4 (Intl real): «Lunes, 2 De Noviembre» y «Lunes, 2 Nov»: rojo.
     Control: Daily Light ya no capitaliza.
   - **Propuesta (sin escribir):** el arreglo de `21cd7cd`. Detalle: `detail/A24-i18n.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. ««Lunes, 2 De Noviembre» sigue en dos sitios».
 
 - **`R9-453` (S122, `A24` / i18n, Comparación de versiones — P3) — 🐛 la Comparación de versiones mezcla idiomas
   en tres sitios.** MEDIDO con sonda en la 122.
@@ -12601,6 +12650,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `S122-fueraDiccionario`, prueba 5 (`faltan: ["rv1909","sse1569","web"]`), y el barrido
     `_scratch/S122-sondas-agente-2/S122-a2-barrido` (`:1491`, `:1492`, `:1606`, `:1607`).
   - **Propuesta (sin escribir):** las claves que faltan y el locale de la UI. Detalle: `detail/A24-i18n.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma de rótulos. «la Comparación de versiones mezcla idiomas en tres sitios».
 
 - **`R9-454` (S122, `A25` / theming, avisos — P2) — 🐛 los avisos (toasts) quedan ilegibles en modo oscuro y en
   «Alto contraste».** MEDIDO con sonda en la 122.
@@ -12621,6 +12671,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Sonda:** `_scratch/S122-chipsInmersivo.test.ts.txt`, prueba 1: common 2.54, rare 3.68, epic 4.23, legendary
     2.15, mythic 3.53: rojo. Control: 17.85.
   - **Propuesta (sin escribir):** color y tinta de `rarityColors`. Detalle: `detail/A25-theming.md`.
+  - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-456` (S122, `A25` / theming, Home — P3) — 🐛 de mañana, con 6 temas, las cifras blancas del recuadro de
   cabecera de Home caen sobre un color claro.** MEDIDO con sonda en la 122 (la posición, por lectura).
@@ -12632,6 +12683,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     primer color pasa en 64 de 64.
   - **Propuesta (sin escribir):** una sombra o un velo bajo la fila, o fijar también el último color. Detalle:
     `detail/A25-theming.md`.
+  - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-457` (S123, `A26` / navegación, enlaces compartidos — P2) — 🐛 un enlace compartido abierto en frío deja
   su pantalla sin nada debajo: la flecha no hace nada y el atrás del sistema cierra la app.** MEDIDO con sonda en
@@ -12658,6 +12710,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     Control (prueba 7): con `backBehavior="fullHistory"`, pasa por `/verse/John/3`.
   - **Propuesta (sin escribir):** `fullHistory`, medido contra la pila de saltos. Detalle:
     `detail/A26-navegacion.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «una ida y vuelta lector → Estudio → lector pierde la lectura de partida: el atrás salta de Estudio a Home».
 
 - **`R9-459` (S123, `A26` / navegación, Niños — P3) — 🐛 en una historia de Niños, el atrás del sistema sale de
   la historia en vez de volver una escena, y al volver arranca de la primera.** MEDIDO con sonda en la 123.
@@ -12671,6 +12724,8 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     guarda `scenesSeen` en cada escena «para que una historia pueda reanudarse» (`:4-5`, `:26-27`), pero nada en
     `app/` ni `src/` lo lee y la escena arranca en `useState(0)` (`[storyId].tsx:98`): reabrir es la escena 1
     también al salir con la flecha.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «el atrás del sistema sale de la historia en vez de volver una escena».
+  - Triaje 185: recibe `R9-481` (familia de esta): tras «Buscar por tema», el atrás del sistema sale de la Mesa en vez de volver al pasaje. Su arreglo lo cubre.
 
 - **`R9-460` (S123, `A27` / deep links — P3) — 🐛 un enlace que no es de ninguna ruta abre la pantalla por
   defecto de expo-router, en inglés y con un «Sitemap» de todas las rutas.** MEDIDO con sonda en la 123.
@@ -12683,6 +12738,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     textos. Control (prueba 1): con `#d=`, `/features/together?d=…`.
   - **Propuesta (sin escribir):** un `+not-found.tsx` traducido y `sitemap: false`. Detalle:
     `detail/A27-deep-links.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: raro. «abre la pantalla por defecto de expo-router, en inglés y con un «Sitemap» de todas las rutas».
 
 - **`R9-461` (S123, `A27` / deep links, enlaces compartidos — P3) — 🐛 un enlace compartido con el `d` repetido
   tira la app entera a la pantalla de error.** MEDIDO con sonda en la 123.
@@ -12702,6 +12758,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     (re-medida igual en el principal). Solo a mano, como el original; misma propuesta. Sin medir:
     `constellation.tsx:121`, `reference-chain.tsx:83`, `study.tsx:125` y `prep/index.tsx:296` (pasan
     `params.book` a funciones de libro). Detalle: `detail/A30-seguridad-tipos.md`.
+  - Triaje 185: lote D, A(3) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-462` (S124, `A28` / hooks, Home — P3) — 🐛 con la app viva de un día para otro, las tarjetas de racha y
   de meta de Home muestran lo de ayer como hecho hoy.** MEDIDO con sonda en la 124 (agente 1, re-medido).
@@ -12713,6 +12770,8 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     Control: con foco, «pendiente hoy». `usePrayerStreak`: `todayDone` `true` sin foco, `false` con foco.
   - **Propuesta (sin escribir):** re-tomar `now` en `AppState` `active` y a medianoche. Detalle:
     `detail/A28-hooks.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «con la app viva de un día para otro, las tarjetas de racha y de meta de Home muestran lo de ayer como hecho hoy».
+  - Triaje 185: recibe `R9-537` (familia de esta): con la pantalla abierta de un día para otro, el «Hoy» sigue siendo el de ayer. Su arreglo lo cubre.
 
 - **`R9-463` (S124, `A28` / hooks, tema — P3) — 🐛 en cada arranque en frío, quien usa el modo oscuro o «Alto
   contraste» ve primero un cuadro blanco.** MEDIDO con sonda en la 124 (agente 1, re-medido; la duración, Modo C).
@@ -12726,6 +12785,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Nota de la 136 (`B8`, `R9-552`):** la premisa «el splash es oscuro (`app.json`: `#001122`)» de
     `detail/A28-hooks.md` no se cumple en el build: vc74 lleva el splash de la plantilla (blanco). El cuadro blanco
     sigue; lo que cambia es lo que hay antes. «Sostener el splash» pide instalar `expo-splash-screen`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «en cada arranque en frío, quien usa el modo oscuro o «Alto contraste» ve primero un cuadro blanco».
 
 - **`R9-464` (S124, `A29` / contexts, Favoritos — P2) — 🐛 con la pestaña Favoritos abierta, la app relee los
   favoritos de la base en un bucle sin fin.** MEDIDO con sonda en la 124 (agente 2, re-medido).
@@ -12802,6 +12862,7 @@ no idToken')` sin `code`. El `catch (err: any)` de `app/(tabs)/settings.tsx:156-
   - **Propuesta (sin escribir):** si `result?.type === 'cancelled'`, lanzar con `code: 'SIGN_IN_CANCELLED'`, y
     tipar la respuesta como `SignInResponse`. Confirmarlo en un teléfono es Modo C (`C26a`). Detalle:
     `detail/A30-seguridad-tipos.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mensaje impreciso. «No se guarda nada malo.».
 
 - **`R9-469` (S125, `A30` / sync, Conflictos — P3) — 🐛 «Combinar» guarda «—» (o un número como texto) sobre
   los campos que en este teléfono son `null`, en local y en la nube.** MEDIDO con sonda en la 125 (agente 6,
@@ -12828,6 +12889,7 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
     `FavoritesContext.tsx:285`), `formatValue([])` siembra «[]» y guardar crea la colección «[]» en los dos
     teléfonos (`_scratch/S135-sondas-agente-7/S135-a7-combinar.test.tsx.txt`, prueba 2:
     `{"local":["[]"],"subido":["[]"]}`). Vaciar un puntaje guarda `0` (por lectura). La coma dentro de un nombre es `R9-546`.
+  - Triaje 185: recibe `R9-546` (familia de esta): «Combinar» parte en dos una colección cuyo nombre tiene coma, aunque el usuario no toque ese cuadro. Su arreglo lo cubre.
 
 - **`R9-470` (S125, `A30` / respaldo, progreso de lectura — P3) — 🐛 un respaldo con la clave `__proto__` en el
   progreso de lectura escribe en `Object.prototype` durante toda la sesión.** MEDIDO con sonda en la 125 (agente
@@ -12849,6 +12911,7 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
   - **Propuesta (sin escribir):** saltar `__proto__`, `constructor` y `prototype`, o `Object.create(null)` para
     `out` y `target`. `detail/A11` había dado `progressKeys.ts` por defensivo sin mirar `__proto__`. Detalle:
     `detail/A30-seguridad-tipos.md`.
+  - Triaje 185: lote D, A(3) (frontera con sonda hecha y propuesta: el prototipo contaminado; «con otra raíz», no es C). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-471` (S125, `A30` / rutas, Widgets — P3) — 🐛 tocar el versículo en la vista previa de Widgets abre el
   capítulo arriba, no en el versículo.** MEDIDO con sonda en la 125 (agente 3, re-medido igual en el principal).
@@ -12866,6 +12929,7 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
     `_scratch/S129-sondas-agente-6/S129-a6-widgetNativo.test.tsx.txt`, prueba 5 (`renderRouter` y el
     `+native-intent` real): `{"book":"Romans","chapter":"10","highlight":"9"}`, sin `verse`. El mismo arreglo, en el
     generador.
+  - Triaje 185: lote D, A(2) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-472` (S125, `A31` / bundle — P3) — 🐛 cada bundle lleva también las pantallas de la otra plataforma: en
   web, unos 970 KB de fuente que nunca se evalúan.** MEDIDO en la 125 (agente 8: sonda, re-medida igual en el
@@ -12889,6 +12953,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
   - **Propuesta (sin escribir):** que cada ruta de `app/` sea un archivo sin sufijo que reexporte la pantalla de
     `src/screens/X` (Metro sí elige `X.tsx` o `X.web.tsx` por plataforma), o `asyncRoutes` en web. Renombrar a
     `.native.tsx` no sirve: el regex de web también lo toma. Detalle: `detail/A31-codigo-muerto.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: peso del bundle. «quedan empaquetados y no se evalúan.».
 
 - **`R9-473` (S126, `A32` / Mesa, notas — P2) — 🐛 un solo debounce para todas las secciones: tocar la barra de
   formato de otra tarjeta antes de 700 ms y salir pierde lo último escrito en la primera.** MEDIDO con sonda en
@@ -12920,6 +12985,8 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     el montaje, también su control: no miden nada.) Sin medir: el ancho del hueco en el dispositivo, la pila con
     `renderRouter`, y el banco de ilustraciones en modo insertar (dos `router.back()`).
   - **Propuesta (sin escribir):** un ref de «navegando» en los dos botones. Detalle: `detail/A32-mesa-altitud.md`.
+  - Triaje 185: lote D, A(1) (recibe R9-482: la ilustración insertada dos veces en la Mesa). Sigue abierto; el commit, con su revert por pieza.
+  - Triaje 185: recibe `R9-482` (familia de esta): dos toques en una ilustración en modo insertar cierran también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces. Su arreglo lo cubre.
 
 - **`R9-475` (S126, `A33` / Profecías, mazo — P2) — 🐛 con una versión en español, «Memorizar» en el Hilo
   profético crea una segunda carta del mismo versículo, y no reconoce la que ya estaba.** MEDIDO con sonda en la
@@ -13003,6 +13070,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     el texto en español. Control: antes del cambio, «Juan 3:16».
   - **Propuesta (sin escribir):** la cabecera con la lengua de la versión cargada, o `load` dependiente de
     `selectedVersion.id` cuando no hay `params.version`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Lo que queda lo arregla su entrada.
 
 - **`R9-479` (S127, `A32` / Mesa, buscar por tema — P3) — 🐛 en inglés, «Search by topic» no encuentra el
   ejemplo de su propio placeholder («fear»), ni 12 de 16 palabras de todos los días.** MEDIDO con sonda en la 127
@@ -13018,6 +13086,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     grief, direction); la Mesa real en inglés: «grace» da 5 filas (control) y «fear», «no encontramos».
   - **Propuesta (sin escribir):** los sustantivos de la descripción inglesa y una tabla de sinónimos inglesa, o
     quitar «fear» del placeholder.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: búsqueda incompleta. «en inglés, «Search by topic» no encuentra el ejemplo de su propio placeholder («fear»), ni 12 de 16 palabras de todos los días».
 
 - **`R9-480` (S127, `A32` / Mesa, comparar versiones — P3) — 🐛 «Comparar versiones» sigue diciendo «solo una
   versión» al volver de Ajustes con otra ya descargada.** MEDIDO con sonda en la 127 (agente 4, re-medido igual en
@@ -13030,6 +13099,7 @@ selectedVersion.id]` y no corre al volver el foco; el botón de «solo una versi
   - **Sonda:** `_scratch/S127-sondas-agente-4/S127-a4-mesaNav.test.tsx.txt` (`renderRouter`): `sigue «solo
 una»: true muestra elegir: false llamadas getAvailableVersions despues: 0`. Control: con dos versiones al abrir,
     el selector aparece.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «Sale cerrando y reabriendo la Mesa.».
 
 - **`R9-481` (S127, `A32` / Mesa, navegación — P3) — 🐛 tras «Buscar por tema», el atrás del sistema sale de la
   Mesa en vez de volver al pasaje.** MEDIDO con sonda en la 127 (agente 4, re-medido igual en el principal).
@@ -13041,6 +13111,7 @@ una»: true muestra elegir: false llamadas getAvailableVersions despues: 0`. Con
     el atrás. No se pierde nada (las notas están guardadas).
   - **Sonda:** la misma: `tema: tras el boton -> /features/prep {"version":"RVR1960"}`, `tema: atras ->
 consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa, el atrás vuelve al lector.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-459` (familia de): «Familia de `R9-459`.». Lo que queda lo arregla su entrada.
 
 - **`R9-482` (S127, `A32` / Mesa, ilustraciones — P3) — 🐛 dos toques en una ilustración en modo insertar cierran
   también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces.** MEDIDO
@@ -13054,6 +13125,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** `_scratch/S127-sondas-agente-4/S127-a4-ilustracionDoble.test.tsx.txt`, 3/3: `doble seguido ->
 /verse/John/3 insertada x 1`, `doble espaciado -> /verse/John/3 … insertada x 2`. Control: un toque vuelve a
     `/features/prep` con la ilustración una vez.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-474` (familia de): «Familia de `R9-474` (el tercero, tras el púlpito y el botón del banco de `A26`)». Lo que queda lo arregla su entrada.
 
 - **`R9-483` (S127, `A32` / Mesa, originales — P3) — 🐛 con el pack de originales de julio, los Salmos con título
   salen vacíos en la Mesa, y la Mesa no ofrece actualizar.** MEDIDO con sonda en la 127 (agente 3, re-medido
@@ -13063,6 +13135,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Camino:** quien bajó el pack antes del 2026-08-26 → Mesa del Salmo 3:1-2 → «No hay palabras…», sin oferta.
     Salida: actualizar desde la hoja del lector. Pesa más si se republica el pack por `R9-477`.
   - **Sonda:** la de `R9-477`: `VIEJO {"viejo":["empty",0],"nuevo":["ready",13],"mesaOfreceActualizar":false}`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: hay salida. «con el pack de originales de julio, los Salmos con título salen vacíos en la Mesa, y la Mesa no ofrece actualizar».
 
 - **`R9-484` (S127, `A32` / originales, morfología — P3) — 🐛 28 palabras del pack publicado tienen un código de
   morfología que el decodificador no conoce: 9 sin morfología y 13 compuestos que pierden el verbo.** MEDIDO con
@@ -13076,6 +13149,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** la de `R9-477`: `MORFO {"pares":4237,"nulos":9,…"segPerdidos":13,…}`; detalle en
     `S127-a3-morfoCodigos.out.txt`. `__tests__/morphologyDecoder.test.ts:149-160` prueba la tabla contra sí misma,
     no contra el pack.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: ayuda de estudio. «28 palabras del pack publicado tienen un código de morfología que el decodificador no conoce».
 
 - **`R9-485` (S127, `A32` / originales, el pack — P3) — 🐛 los dobles corchetes de crítica textual llegan a la
   palabra y a la glosa (Mc 16:9-20, Jn 7:53-8:11).** MEDIDO con sonda en la 127 (agente 3, re-medido igual en el
@@ -13083,6 +13157,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - `scripts/build-originals-pack.js:281-292` no limpia `[[`/`]]`: en Mc 16:9 la Mesa muestra `[[Ἀναστὰς` con la
     glosa `[[Habiendo levantado`; en Jn 8:11, `estés pecando]]`. Raíz distinta de la de `R9-477`.
   - **Sonda:** la de `R9-477`: `GLOSA {"griego":{"n":141861,"conMarca":25},…}` y `corchetes:55` filas. Cosmético.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».
 
 - **`R9-486` (S127, `A34` / Journeys — P3) — 🐛 la vista previa de una parada no sigue a la versión: tras cambiarla
   en el lector y volver, sigue en la vieja bajo el chip en la nueva.** MEDIDO con sonda en la 127 (agente 5,
@@ -13097,6 +13172,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `{"chipAntes":true,"chipDespues":true,"muestraRVR":true,"muestraWEB":false,"llamadas":["RVR1960"]}`; control
     (montada con WEB) `{"chip":true,"llamadas":["WEB"]}`. Que la ruta queda montada bajo el lector:
     `S127-a5-pilaLector.test.tsx.txt` (`renderRouter`), 1/1. Detalle: `detail/A34-journeys-camino.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Lo que queda lo arregla su entrada.
 
 - **`R9-487` (S127, `A34` / «Tu camino» — P3) — 🐛 en América (al oeste de UTC), «Tu camino» dice que empezaste un
   día antes.** MEDIDO con sonda en la 127 (agente 6, re-medido igual en el principal con
@@ -13110,6 +13186,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     («since June 16, 2026»). Al este de UTC sale bien; Fable no lo vio (emulador en GMT, QA área 50).
   - **Sonda:** `_scratch/S127-sondas-agente-6/S127-a6-caminoFecha.test.tsx.txt` (con la precondición de zona al
     oeste de UTC), 6/6: el 16 en los dos idiomas; control: el mismo día por un favorito (ms locales), el 17.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «en América (al oeste de UTC), «Tu camino» dice que empezaste un día antes».
 
 - **`R9-488` (S127, `A34` / «Tu camino» y recap por período — P3) — 🐛 rótulos sin singular («1 favoritos», «1
   reading days») y, en la tarjeta del recap que se comparte, números sin separador de miles.** MEDIDO con sonda en
@@ -13121,6 +13198,11 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Los hermanos, en la 130:** `R9-524` (colecciones y la línea de tiempo, también en la imagen que se comparte).
   - **Sonda:** las pruebas «plurales» de `S127-a6-caminoFecha` y `S127-a6-periodoNumeros.test.tsx.txt`, 2/2;
     control: `(12345).toLocaleString('en-US')` = «12,345». En español, el separador solo se nota desde 10 000.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «rótulos sin singular («1 favoritos», «1 reading days») y, en la tarjeta del recap que se comparte, números sin separador de miles».
+  - Triaje 185: recibe `R9-524` (familia de esta): la imagen que se comparte dice «1 versículos» y «1 hitos en tu camino». Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-531` (familia de esta): la tarjeta «Mi semana en la Palabra» que se comparte dice «1 versículos oídos» y pone los números sin separador de miles; la tendencia emocional dice «+1 días». Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-536` (familia de esta): un devocional compartido de un solo día dice «Devocional · 1 días» / «Devotional · 1 days». Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-548` (familia de esta): «Tienes 1 cambios locales» / «You have 1 local changes». Su arreglo lo cubre.
 
 - **`R9-489` (S128, `A35` / Niños, la historia — P3) — 🐛 «Ver versículo» muestra solo el primer versículo de la
   escena, sin la referencia, y a veces media frase.** MEDIDO con sonda en la 128 (agente 3, re-medido igual en el
@@ -13148,6 +13230,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - «Nunca dejaba de orar en voz alta» es defendible por Dn 6:10 («como lo solía hacer antes») y 6:16
     («continuamente»): el niño que la elige recibe «incorrecto». En inglés: «He never prayed out loud». La
     correcta («Tres veces») está bien en los dos. **Sonda:** la de `R9-489`, prueba del distractor.
+  - Triaje 185: A, A(6) (el niño recibe «incorrecto» por una respuesta que Dn 6 respalda; reescribir es contenido).
 
 - **`R9-492` (S128, `A35` / Niños, quiz — P3) — 🐛 dos toques en «Terminar» celebran dos veces la insignia de la
   primera historia.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Disparador nuevo de
@@ -13160,6 +13243,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     real sobre `node:sqlite`): `{"notifyCalls":2,"celebrados":["kids_first_story","kids_first_story"],"total_points":25}`
     (los puntos cuadran porque `addPoints` también corre en carrera); control, un toque: 1 y 25.
   - **Propuesta (sin escribir):** una guarda `finishedRef`; el arreglo de `R9-446` también lo cerraría.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-446` (raíz de): «Disparador nuevo de la raíz de `R9-446`.». Lo que queda lo arregla su entrada.
 
 - **`R9-493` (S128, `A35` / Niños, la historia — P3) — 🐛 el versículo de una escena aparece debajo de la
   siguiente.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Familia de
@@ -13169,11 +13253,13 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Camino:** «Ver versículo» y enseguida «Siguiente» (o el tour «Escuchar todo») con la base en frío.
   - **Sonda:** la de `R9-492`: `{"escena":2,"visto":"TEXTO 1:3 (escena 1)","llamadas":[[1,1,3]]}`; control
     (respuesta antes de pasar): `[[1,1,3],[1,1,6]]` y se ve el 1:6.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Lo que queda lo arregla su entrada.
 
 - **`R9-494` (S128, `A35` / Niños, la historia — P3) — 🐛 la pista única de «Escuchar todo» se gasta sin
   mostrarse.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Cosmético.
   - `[storyId].tsx:122-138`: `markListenAllHintSeen()` se guarda antes del temporizador de 900 ms; salir antes
     la gasta. **Sonda:** la de `R9-492`: `{"flag":"1","toastInfo":0}`, y al volver tampoco; control (1,1 s): una vez.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».
 
 - **`R9-495` (S128, `A35` / Niños, el plan — P3) — 🐛 una historia terminada desde la lista arranca el reloj del
   plan de 10 días, y no hay forma de empezarlo hoy ni de reiniciarlo.** MEDIDO con sonda en la 128 (agente 2,
@@ -13188,6 +13274,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     control: un perfil nuevo ve «Empieza hoy»).
   - **Propuesta (sin escribir):** que lo arranque una historia abierta desde el plan (`?from=plan`) o un botón
     «Empezar», y un «Empezar de nuevo» con el plan completo.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: ritmo derivado. «una historia terminada desde la lista arranca el reloj del plan de 10 días».
 
 - **`R9-496` (S128, `A36` / lectio — P2) — 🐛 con una versión en español, «Memorizar» en lectio no reconoce la
   carta del mazo y la duplica.** MEDIDO con sonda en la 128 (agente 4, re-medido igual en el principal). Gemelo de
@@ -13235,6 +13322,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `:113-120`); el testimonio, igual (`:696`, `:170`). **Sonda:** la de `R9-497`:
     `ATRAS y «+» -> titulo: "" | en disco: 0`; control: «Guardar» deja la petición en disco. Si el `BackHandler`
     del `Modal` gana siempre (como en `R9-57`), Modo C.
+  - Triaje 185: A, A(1) (la forma de R9-57 (P2): va con su camino).
 
 - **`R9-500` (S128, `A36` / orar la Escritura — P3) — 🐛 la flecha del encabezado sale del paseo sin preguntar y
   pierde lo escrito, mientras el atrás del sistema retrocede un versículo.** MEDIDO con sonda en la 128 (agente 7,
@@ -13243,11 +13331,13 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     retrocede un versículo y «Anterior» lleva la misma flecha; lo escrito vive solo en `notes` (`:77`).
   - **Sonda:** la de `R9-498`, prueba 3: `router.back=1 alert=0 guardado=null`; control: el atrás del sistema
     retrocede y conserva el texto.
+  - Triaje 185: lote D, A(1) (preguntar antes de salir). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-501` (S128, `A36` / orar la Escritura — P3) — 🐛 lo que se escribe después de guardar no se puede
   guardar.** MEDIDO con sonda en la 128 (agente 7, re-medido igual en el principal).
   - `[passageId].tsx:79`: `saved` nunca vuelve a `false`, y el botón depende de `!saved` (`:375`). **Sonda:** la de
     `R9-498`, prueba 4: `botonGuardar=false entradas=1 detail="Mateo 6:9: Primera oración"`.
+  - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-502` (S128, `A36` / ACTS y diario — P3) — 🐛 «Añadir al diario» desde ACTS, llegado desde el diario, deja
   dos diarios en la pila.** MEDIDO con sonda en la 128 (agentes 5 y 6 por separado, re-medido igual en el
@@ -13260,6 +13350,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     layouts): `DIARIO atras 1: /features/prayer ["diario#1 openAdd=-"] | atras 2: /`; control desde el Home: un
     atrás a `/`. La de `R9-497`: `atras x2: /features/prayer -> /features/prayer -> /`.
   - **Propuesta (sin escribir):** si debajo está el diario, volver a él con el param; si no, el `replace`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «Sin daño en los datos (el diario de abajo recarga en el foco, `usePrayerJournal.ts:63-76`); sobra un atrás.».
 
 - **`R9-503` (S128, `A36` / orar la Escritura, packs — P3) — 🐛 el pack RV1909 publicado sigue otra
   versificación en 12 capítulos: en Jonás 2 la oración empieza con el pez y no llega a «La salvación pertenece á
@@ -13281,12 +13372,15 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     («¿Dónde estabas tú cuando yo fundaba la tierra?»); RV1909 difiere al final del capítulo (38 contra 41). Sin
     defecto. De los seis «sin medir», quedan `kidsStories.ts:705`, `:739`, `messianicProphecies.ts:535` y
     `cross-references.ts:88`.
+  - Triaje 185: recibe `R9-535` (familia de esta): la comparación alinea las versiones por número: con RV1909 en Jonás 2:1 pone el pez al lado de la oración, y donde a una versión le falta el número dice «omitido en el texto crítico». Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-538` (familia de esta): el landing pone, bajo la referencia que eligió quien comparte, el versículo con ese número en la versión de quien recibe: con RV1909, un Jonás 2:1 compartido desde RVR1960 muestra el pez. Su arreglo lo cubre.
 
 - **`R9-504` (S128, `A36` / orar la Escritura — P3) — 🐛 el Salmo 51 está en la sección «Salmos que la Escritura
   titula "oración"», y su título no lo dice.** MEDIDO en la 128 (agente 7, re-medido igual en el principal).
   - `scripturePrayers.ts:100-101`, con las etiquetas de `translations.ts` (`:3726`, `:10274`). **Sonda:** la de
     `R9-498`, prueba 7: el pack BSB (títulos en el versículo 1) da «For the choirmaster. A Psalm of David. When
     Nathan…» para el 51; el 86, 90, 102 y 142 sí dicen «A prayer».
+  - Triaje 185: lote D, A(6) (arreglo restando: sacarlo de la sección). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-505` (S128, `A36` / recordatorios de oración — P3) — 🐛 las citas de los recordatorios: 1 Pe 5:7 en
   español es una paráfrasis presentada como cita, y en inglés es la redacción de la NIV sin atribución.** MEDIDO
@@ -13339,6 +13433,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     (2/2): `["/plan/custom-old [se ve: plan:custom-old]","/ [se ve: home]","exitApp"]`; control (crear): `["/","exitApp"]`.
   - **Propuesta (sin escribir):** `back`/`dismissTo` en vez de `replace`, y los planes propios resueltos desde el
     contexto. El mismo `replace` en `together/index.tsx:232`, `:241` (sin medir). Familia de `R9-502`.
+  - Triaje 185: recibe `R9-541` (familia de esta): el mismo enlace tocado dos veces deja dos landings idénticos en la pila, y sobra un atrás. Su arreglo lo cubre.
 
 - **`R9-508` (S129, `A37` / constructor y paquete — P2) — 🐛 la vista previa promete un plan y se guarda otro,
   recortado sin aviso a 400 días y 50 capítulos por día.** MEDIDO con sonda en la 129 (agentes 2 y 3 por separado,
@@ -13379,6 +13474,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
   - **Camino:** «Número de días» → escribir 25 → «Crear y empezar»: el campo dice 25, la vista previa sigue en 7 y
     se guardan 7; en el selector, Génesis → «Hasta el capítulo» 3 → «Añadir pasaje»: Génesis 1-50. Controles (con
     blur): 25 días y Génesis 1-3. **Sonda:** la de `R9-508`, casos `[3a]`, `[3b]`.
+  - Triaje 185: lote D, A(1) (arreglo corto en el stepper). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-511` (S129, `A37` / Juntos, devocional y estudio — P2) — 🐛 un devocional con más de 12 000 caracteres de
   notas se comparte recortado sin aviso, y «Compartir» borra el borrador: lo que no entró ya no está en el
@@ -13418,6 +13514,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     a «Llevas 6 días de ventaja» y desaparece «Ponte al día»; la fecha original se pierde (los días leídos no).
   - **Sonda:** la de `R9-506`, `S129B1`: `"ritmoAntes":{"status":"behind",…},"ritmoDespues":{"status":"ahead",…}`;
     control `S129B2`: re-unirse a una invitación curada conserva la fecha.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: fecha derivada. «importar otra vez el mismo plan propio reinicia su calendario» (la fecha de inicio no la escribió el usuario; los días leídos quedan).
 
 - **`R9-514` (S129, `A37` / planes propios — P3) — 🐛 un nombre con `$&`, `$$` o `` $` `` se deforma en los textos
   de la pantalla del plan.** MEDIDO con sonda en la 129 (agente 1, re-medido igual en el principal). Cosmético.
@@ -13425,6 +13522,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     patrones `$` del nombre; `sanitizePlanName` (`bundle.ts:247-271`) deja pasar el `$`. «Plan $& diario» →
     «Terminaste «Plan {{plan}} diario»…». El patrón está en toda la app (también en los mensajes de compartir y en
     `:788` con el nombre del grupo): sin barrer. **Sonda:** la de `R9-507`, test `planCompletedMessage…`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».
 
 - **`R9-515` (S129, `A38` / widget nativo — P3) — 🐛 el «VERSO DEL DÍA» del escritorio queda un día atrás buena
   parte del día.** MEDIDO con sonda en la 129 (agente 6, re-medido igual en el principal con
@@ -13439,17 +13537,20 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
   - **Sonda:** `_scratch/S129-sondas-agente-6/S129-a6-widgetNativo.test.tsx.txt` (8/8), prueba 4: `07:00 del 4-nov:
 el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el índice del `.kt` coincide con el
     de la app los 365 días. **Propuesta (sin escribir):** refrescar a la medianoche local, en el generador.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: desfase del widget. «queda un día atrás buena parte del día».
 
 - **`R9-516` (S129, `A38` / widget nativo — P3) — 🐛 con el teléfono en inglés, el widget dice «VERSO DEL DÍA»
   encima del versículo en inglés.** MEDIDO con sonda en la 129 (agente 6, re-medido igual en el principal).
   - `verse_widget.xml:10-19` pinta `@string/verse_widget_label`, que el plugin escribe solo en `values/`
     (`with-verse-widget.js:112-131`), sin `values-en`; `updateWidget` (`.kt:312-347`) cambia texto y referencia
     según el teléfono, no la cabecera. La descripción del selector, igual. **Sonda:** la de `R9-515`, prueba 6.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «con el teléfono en inglés, el widget dice «VERSO DEL DÍA» encima del versículo en inglés».
 
 - **`R9-517` (S129, `A38` / widget nativo — P3) — 🐛 comillas dobladas en 33 de los 198 versículos en inglés.**
   MEDIDO con sonda en la 129 (agente 6, re-medido igual en el principal). Cosmético.
   - `.kt:322` envuelve el texto en «“…”» y 33 textos WEB ya traen las suyas: «“The LORD will fight for you, and you
     shall be still.””». En español, 0. **Sonda:** la de `R9-515`, prueba 7.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».
 
 - **`R9-518` (S129, `A39` / marcadores retirados — P2) — 🐛 al iniciar sesión en una instalación nueva, la
   migración de los marcadores duplica favoritos que la cuenta ya tenía, en todos los dispositivos.** MEDIDO con
@@ -13490,6 +13591,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     viejo (la pila, por analogía con `S127-a5-pilaLector`). **Sonda:**
     `_scratch/S129-sondas-agente-8/S129-a8-factsVersion.test.tsx.txt` (4/4): `"textoRVR":true,"textoKJV":false`;
     control (montada con KJV), bien; cerrar y abrir lo cura.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Lo que queda lo arregla su entrada.
 
 - **`R9-522` (S129, `A39` / línea de tiempo — P3) — 🐛 «Tu línea de tiempo» pierde el récord de racha de devoción a
   los 400 días y muestra una racha menor como hito.** MEDIDO con sonda en la 129 (agente 8, re-medido igual en el
@@ -13498,6 +13600,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     `DEVOTION_RETENTION_DAYS = 400`); `streakRecordEvents` (`timeline.ts:150-199`) compara solo con lo que queda.
     La de lectura no se poda. **Sonda:** la de `R9-521`, prueba 4: `"antes":["devotion:2025-01-30=30"],
 "despues":["devotion:2026-03-06=10"]`; control sin poda, la de 30.
+  - Triaje 185: recibe `R9-532` (familia de esta): la tira de ánimo bajo el heatmap tiene 17 columnas y el registro de ánimo guarda 84 días: quien registra su ánimo todos los días ve siempre 4 o 5 semanas «sin registro» a la izquierda. Su arreglo lo cubre.
 
 - **`R9-523` (S129, `A39` / Datos bíblicos, contenido — P3, fidelidad) — 🐛 citas entre comillas que no son
   literales y un conteo inflado.** MEDIDO contra la base y los packs en la 129 (agente 8, re-medido igual en el
@@ -13528,6 +13631,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     en 2 Juan y 3 Juan (`src/features/memory/MemoryVersePickerSheet.tsx:321`, `{item.chapters} {tb.chapters}`); el
     de Notas de sermón, igual por lectura (`SermonVersePickerSheet.tsx:329`). La pestaña Biblia sí elige el singular
     (`app/(tabs)/bible.tsx:498`). Detalle: `detail/C20b-memoria-mazo.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, en otras pantallas.». Lo que queda lo arregla su entrada.
 
 - **`R9-525` (S130, `A40` / temas, sentimientos, Luz diaria — P3) — 🐛 con la versión cambiada con la pantalla
   abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la
@@ -13551,6 +13655,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
   - **Los gemelos sin audio, en la 131 (`A42`, por lectura):** el detalle de un método y el de una objeción de
     share-faith tienen el mismo `load` de montaje (`share-faith/methods/[id].tsx:208-234`,
     `objections/[id].tsx:199-225`): con la versión cambiada en el lector, siguen en la vieja hasta reabrirlos.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Lo que queda lo arregla su entrada.
 
 - **`R9-526` (S130, `A40` / devocional compartido — P3) — 🐛 el devocional que se recibe nombra el libro en el
   idioma de la interfaz y muestra el texto de la versión.** MEDIDO con sonda en la 130.
@@ -13564,6 +13669,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Sonda:** `_scratch/S130-versionAbierta.test.tsx.txt`, pruebas 3 y 4 (la pantalla real con un `d` de
     `makeCalBundle`): `{"john":true,"juan":false}` con el texto `RVR1960|43:3:16`; control, con la interfaz en
     español, «Juan 3:16».
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma del nombre del libro. «el devocional que se recibe nombra el libro en el idioma de la interfaz y muestra el texto de la versión».
 
 - **`R9-527` (S131, `A41` / Teología, contenido — P3, fidelidad) — 🐛 la cita del Salmo 90:2 en inglés no es la
   de ninguna versión que trae la app.** MEDIDO contra la base y los packs en la 131 (en el principal, sin agentes).
@@ -13577,6 +13683,8 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Sonda:** `_scratch/S131-citasTeologia.cjs.txt` (cada cita entre comillas de los cuerpos, normalizada,
     buscada en RVR1960 y RV1909, o en KJV, WEB y BSB; un versículo o dos seguidos); salida en
     `S131-citasTeologia.out.txt`. El texto lo decide Victor.
+  - Triaje 185: recibe `R9-539` (familia de esta): la tarjeta pone entre «», con su referencia, palabras que el versículo no dice en ninguna versión de la app del idioma. Su arreglo lo cubre.
+  - Triaje 185: recibe `R9-540` (familia de esta): tres afirmaciones de `book-intros` que el propio texto de la app desmiente: 1 Reyes «termina con la caída de Israel (722) y el cautiverio en Babilonia (586)», Filipenses «la palabra "gozo" aparece 16 veces», y dos rangos que dejan afuera el versículo citado. Su arreglo lo cubre.
 
 - **`R9-528` (S131, `A42` / notas de sermón y testimonios — P3) — 🐛 al volver del editor con un cambio de menos
   de 700 ms, la lista muestra el texto viejo.** MEDIDO con sonda en la 131. Familia de `R9-422` (la Mesa), en otras
@@ -13595,6 +13703,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     orden inverso, también «Viejo»; control (el foco tras terminar la escritura): «Domingo de Ramos». 3/3.
   - **Propuesta (sin escribir):** que `getAllSermonNotes` espere la cola (`await writeQueue`) y que el editor haga
     `flush` al perder el foco, no solo al desmontarse.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-422` (familia de): «Familia de `R9-422` (la Mesa), en otras pantallas.». Lo que queda lo arregla su entrada.
 
 - **`R9-529` (S132, piloto de re-revisión de `A7` / respaldo / búsqueda — P3 bajo) — 🐛 el historial de búsqueda
   que el respaldo restaura lo pisa la primera búsqueda, si la pestaña Buscar ya estaba montada.** MEDIDO con sonda
@@ -13613,6 +13722,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - P3 bajo: el historial es una comodidad, el aviso pide reiniciar y con reiniciar no pasa.
   - **Propuesta (sin escribir):** que la pantalla escuche `subscribeBackupRestored` y re-lea la clave, como los
     cuatro providers.
+  - Triaje 185: lote D, A(1) (arreglo corto en search.tsx). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-530` (S133, piloto de re-revisión de `B4` / reglas de Firestore / borrado de cuenta — P3) — 🐛 «Eliminar
   cuenta» borra una foto de la nube, y la regla deja que otro dispositivo de la misma cuenta siga escribiendo
@@ -13669,6 +13779,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     `{"leidos":true,"oidos":true}`, `{"crudo":true,"pantalla":"2,424"}`, `{"mas":true,"menos":true}`; control: con
     2, «2 verses heard».
   - **Propuesta (sin escribir):** claves `…One` como los hermanos y `toLocaleString` con el idioma de la UI.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488` y `R9-524`, en otra pantalla.». Lo que queda lo arregla su entrada.
 
 - **`R9-532` (S134, `A43` / Mi lectura, la tira de ánimo — P3) — 🐛 la tira de ánimo bajo el heatmap tiene 17
   columnas y el registro de ánimo guarda 84 días: quien registra su ánimo todos los días ve siempre 4 o 5 semanas
@@ -13686,6 +13797,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
 "a11y":"Ánimo por semana: 13 de 17 semanas con un registro"}`; control, el mismo registro sin podar: 17 de 17.
   - P3: la historia vieja ya no existe (la poda es de diseño); lo que miente es la tira. **Propuesta (sin escribir):**
     retener 119 días (17 semanas) o pintar la tira solo sobre las columnas que la retención cubre.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-522` (familia de): «Familia de `R9-522` (otra poda que esconde historia).». Lo que queda lo arregla su entrada.
 
 - **`R9-533` (S134, `A44` / Comparación de versiones, las guardadas — P2) — 🐛 abrir una comparación guardada de
   otro pasaje muestra el versículo con el mismo número en el capítulo que está abierto.** MEDIDO con sonda en la 134.
@@ -13720,6 +13832,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     `analyzeComparison` lanza con menos de dos versiones (`VersionComparison.ts:373-375`), así que todo análisis que
     se ve con una sola es viejo por construcción.
   - **Propuesta (sin escribir):** `setAnalysis(null)` en la rama de menos de dos versiones (y al empezar la carga).
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: análisis viejo. «si el versículo nuevo queda con menos de dos versiones, la tarjeta de análisis sigue mostrando la del anterior».
 
 - **`R9-535` (S134, `A44` / Comparación de versiones, versificación — P3, fidelidad) — 🐛 la comparación alinea las
   versiones por número: con RV1909 en Jonás 2:1 pone el pez al lado de la oración, y donde a una versión le falta el
@@ -13745,6 +13858,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
     `compareVerseRange`).
   - **Propuesta (sin escribir):** una tabla de correspondencias por versión (la de `R9-503`) aplicada en
     `compareVerse`, o, como mínimo, que la nota distinga «otra numeración» de «omitido» para RV1909, SSE1569 y WEB.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` (allí, referencias fijas del contenido; aquí, cualquier versículo que el lector compare)». Lo que queda lo arregla su entrada.
 
 - **`R9-536` (S135, `A45` / devocional compartido, la cabecera — P3) — 🐛 un devocional compartido de un solo día dice
   «Devocional · 1 días» / «Devotional · 1 days».** MEDIDO con sonda en la 135 (agente 1, re-medido igual en el
@@ -13756,6 +13870,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
   - **Sonda:** `_scratch/S135-sondas-agente-1/S135-a1-landings.test.tsx.txt`, prueba 1a:
     `{"rotEs":"Devocional · 1 días","rotEn":"Devotional · 1 days"}`; control 1b, el constructor permite un día.
   - **Propuesta (sin escribir):** una clave `daysMetaOne`, como los hermanos de `R9-531`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-531`, en otra pantalla.». Lo que queda lo arregla su entrada.
 
 - **`R9-537` (S135, `A45` / devocional compartido y explore-all, el día — P3) — 🐛 con la pantalla abierta de un día
   para otro, el «Hoy» sigue siendo el de ayer.** MEDIDO con sonda en la 135 (agentes 1 y 6, re-medido igual en el
@@ -13774,6 +13889,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     control, montada el 11.
   - P3: solo el rótulo queda viejo; lo que se abre es lo correcto. **Propuesta (sin escribir):** recalcular con
     `AppState` → `active` o con una clave del día local, como la propuesta de `R9-462`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-462` (familia de): «Familia de `R9-462` (Home)». Lo que queda lo arregla su entrada.
 
 - **`R9-538` (S135, `A45` / landings compartidos, versificación — P3, fidelidad) — 🐛 el landing pone, bajo la
   referencia que eligió quien comparte, el versículo con ese número en la versión de quien recibe: con RV1909, un
@@ -13792,6 +13908,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     `{"puntos":3,"rvr":true,"web":false}`; control 3b, con RVR1960.
   - **Propuesta (sin escribir):** la tabla de correspondencias de `R9-503`, más la versión del que envía en el
     paquete.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` y `R9-535`». Lo que queda lo arregla su entrada.
 
 - **`R9-539` (S135, `A45` / «Sobre este libro», «Cristo en este libro» — P3, fidelidad) — 🐛 la tarjeta pone entre «»,
   con su referencia, palabras que el versículo no dice en ninguna versión de la app del idioma.** MEDIDO con sonda y
@@ -13818,6 +13935,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     (`:1603`; el v.25 dice «al único y sabio Dios, nuestro Salvador» en cinco versiones, BSB agrega «through Jesus
     Christ»), y Malaquías 4:5 «Juan el Bautista» (`:968`; el versículo dice «Elías»; la identificación es del NT).
   - **Propuesta (sin escribir):** solo texto: citar literal, quitar las comillas o poner «…».
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-527` y `R9-528` (las citas de un texto curado)». Lo que queda lo arregla su entrada.
 
 - **`R9-540` (S135, `A45` / «Sobre este libro», datos del libro — P3) — 🐛 tres afirmaciones de `book-intros` que el
   propio texto de la app desmiente: 1 Reyes «termina con la caída de Israel (722) y el cautiverio en Babilonia
@@ -13835,6 +13953,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     días», Neh 6:15 en las 6). La paridad es/en de `author`, `date`, `keyVerses`, números y referencias: ✅ en los 66.
   - **Propuesta (sin escribir):** solo texto («…termina con Ocozías; 2 Reyes continúa hasta el exilio»; quitar el
     16; «(3:23-25)», «(1:14-20)»). De paso, `:118` «Las cuarenta años».
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-539`». Lo que queda lo arregla su entrada.
 
 - **`R9-541` (S135, `A45` / landings compartidos, la pila — P3) — 🐛 el mismo enlace tocado dos veces deja dos
   landings idénticos en la pila, y sobra un atrás.** MEDIDO con sonda en la 135 (agente 4, re-medido igual en el
@@ -13851,6 +13970,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     `[A, B]` con keys distintas (historial normal), del devocional al estudio `[A, S]`.
   - Sin daño en los datos (los landings no guardan nada). **Propuesta (sin escribir):** no empujar el landing si
     arriba ya está el mismo con el mismo `d` (o un `getId` por `d`).
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Lo que queda lo arregla su entrada.
 
 - **`R9-542` (S135, `A45` / landings compartidos, accesibilidad — P3) — 🐛 el `accessibilityLabel` fijo de la tarjeta
   y de cada día del devocional compartido tapa lo que muestran: con lector de pantalla, la nota de quien comparte no
@@ -13868,6 +13988,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
     control 1b, la nota en pantalla. Lo que TalkBack lee de verdad es Modo C.
   - P3 (el agente lo deja en P2 si se pesa a quien usa lector de pantalla: la nota le queda inalcanzable).
     **Propuesta (sin escribir):** que el label incluya lo que se ve, o la cita como `accessibilityHint`.
+  - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-543` (S135, `A45` / estudio compartido, el idioma — P3 bajo) — 🐛 la introducción del libro en un estudio
   compartido sigue el idioma de la VERSIÓN, sus rótulos el de la interfaz, y «Sobre este libro» la muestra en el de
@@ -13881,6 +14002,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
   - **Sonda:** `S135-a13-rotulos`, pruebas 2a-2c: `{"rotuloEs":1,"contextoEn":1,"metaEn":1}`; control 2b, con
     RVR1960, en español; about-book con WEB: `{"contextoEs":1}`. La Mesa (`prep/index.tsx:613`, `:1358`), gemela por
     lectura (Pendiente).
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma de rótulos. «la introducción del libro en un estudio compartido sigue el idioma de la VERSIÓN, sus rótulos el de la interfaz».
 
 - **`R9-544` (S135, `A46` / Conflictos, la auditoría — P3) — 🐛 el registro de cada conflicto resuelto se guarda con el
   id del documento: una resolución nueva sobre el mismo documento pisa la anterior, e Insights cuenta de menos.**
@@ -13906,6 +14028,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
   - P3: solo el tablero de estadísticas; los datos del usuario no se tocan. **Propuesta (sin escribir):** un id por
     resolución (`${conflict.id}__${resolvedAt}`) y guardar solo lo que Insights lee. Ojo: el id por resolución, solo,
     hace crecer la colección sin fin (no hay TTL ni limpieza; solo la borra `deleteAllCloudData`): va con el recorte.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «P3: solo el tablero de estadísticas; los datos del usuario no se tocan.».
 
 - **`R9-545` (S135, `A46` / Conflictos, la tarjeta — P3) — 🐛 la tarjeta del conflicto no dice de qué versículo es:
   muestra el id interno y los valores en crudo (la categoría como clave inglesa, el color como hex).** MEDIDO con
@@ -13943,6 +14066,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     «Promesas». Prueba 2, el «[]» (anotado en `R9-469`). Prueba 3, sin número: un campo que el motor agrega con el
     modal abierto sale vacío (`:447`) y guardar conserva «lo mío» (`:205-206`), mientras un cuadro vacío de los de
     siempre guarda `''` o `0`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-469` (familia de): «Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).». Lo que queda lo arregla su entrada.
 
 - **`R9-547` (S135, `A46` / Conflictos, el borrador de «Combinar» — P3) — 🐛 el id y el borrador de «Combinar»
   sobreviven a que el conflicto salga de la lista: si vuelve un conflicto con el mismo id, el modal se reabre solo
@@ -13969,6 +14093,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     en la sesión de Beto no abre el modal.
   - P3 por lo inalcanzable de la cadena; el DAÑO, si ocurre, es de privacidad entre cuentas (la severidad es de
     Victor). **Propuesta (sin escribir):** limpiar `mergingId` y `mergeDraft` cuando `mergingConflict` pasa a `null`.
+  - Triaje 185: E (la entrada deja la severidad a Victor, como R9-551 (desacuerdo)).
 
 - **`R9-548` (S135, `A46` / la migración al entrar — P3) — 🐛 «Tienes 1 cambios locales» / «You have 1 local
   changes».** MEDIDO con sonda en la 135 (agente 13, re-medido igual en el principal), de paso: fuera de las 6
@@ -13980,6 +14105,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     (`total` = 1, `:443-448`, `:551-555`).
   - **Sonda:** `_scratch/S135-sondas-agente-13/S135-a13-rotulos.test.tsx.txt`, prueba 3a:
     `{"es":"Tienes 1 cambios locales en este","en":"You have 1 local changes on","ramaSingular":false}`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, `R9-524`, `R9-531`.». Lo que queda lo arregla su entrada.
 
 - **`R9-549` (S135, `A34` / Mi camino, el resumen del trimestre — P3 bajo) — 🐛 en la última hora del día, después del
   atraso de hora, el resumen del trimestre cuenta un día de más y su ánimo incluye el registro del día anterior al
@@ -13995,6 +14121,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `{"diasMalo":31,"diasBueno":30,"animoMalo":{"dominantFeelingId":"peace","daysLogged":1},"animoBueno":null}`. El TZ
     se fija desde PowerShell (`$env:TZ`); con `America/Mexico_City` la precondición cae (sin cambio de hora desde
     2022). **Propuesta (sin escribir):** contar días de calendario como `dailyLight.ts:18-22`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el resumen del trimestre cuenta un día de más».
 
 - **`R9-550` (S136, `B6` / App Link de los enlaces compartidos — P3) — 🐛 `assetlinks.json` declara solo el
   certificado de debug PÚBLICO de la plantilla de Expo: en una instalación de Play el App Link no se verifica nunca y
@@ -14046,6 +14173,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Medida:** `_scratch/S136-B8-expo-doctor.out.txt`, `S136-B8-splash.out.txt`. **Propuesta (sin escribir):**
     `expo-splash-screen` con su plugin (imagen, fondo, variante oscura) y sin el `splash` de arriba; es lo que
     necesita también la propuesta de `R9-463`. Detalle: `detail/B8-expo-sdk57-deprecadas.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «vc74 se publicó con el splash de la plantilla de Expo».
 
 - **`R9-553` (S136, `B9` / dependencias nativas sin uso — P3) — 🐛 cuatro módulos nativos que nadie importa van en
   el release: `expo-image` (con Glide), `expo-status-bar`, y `slider` y `clipboard`, que están en `devDependencies`
@@ -14061,6 +14189,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     (237 048 B), 1,4 MB en arm64; el dex, sin medir.
   - **Medida:** `_scratch/S136-B9-nativos.out.txt`, `S136-B9-raiz.out.txt`. **Propuesta (sin escribir):** quitar los
     cuatro, con build nativo y una pasada por las pantallas con `Image`. Detalle: `detail/B9-dependencias-sin-usar.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: peso del release. «0 imports en `src/`, `app/`, las pruebas y los plugins.».
 
 - **`R9-554` (S136, `B10` / licencias de terceros — P3) — 🐛 la app de pago no trae ningún aviso de terceros, y las
   licencias de lo que publica lo piden.** MEDIDO por archivos en la 136.
@@ -14086,6 +14215,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     `Zocial`, y ningún otro paquete las pide (`expo-router` solo las nombra en un comentario).
   - **Medida:** `_scratch/S136-B10-iconos.out.txt`, `S136-B9-bundle.out.txt`. **Propuesta (sin escribir):** importar
     `@expo/vector-icons/Ionicons` y `/MaterialCommunityIcons` y medir el AAB. Detalle: `detail/B10-licencias.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: peso del AAB. «2,4 MB de fuentes que nunca se dibujan.».
 
 - **`R9-556` (S137, `C20a` / Memoria: el mazo y el registro de repasos — P3) — 🐛 un repaso puede quedar en el mazo
   y faltar en el registro, y entonces la racha y la meta no lo cuentan.** MEDIDO en el emulador, 2 de 2.
@@ -14104,6 +14234,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Severidad:** P3. La ventana es de décimas de segundo tras un toque; el daño es un repaso no contado (o una
     racha cortada), no tarjetas perdidas. Distinto de `R9-48` (el registro al cerrar sesión) y de `R9-29` (el
     import). Repro: `S137-a1-calificar-matar.sh.txt`. Detalle: `detail/C20a-memoria-srs.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el daño es un repaso no contado (o una racha cortada), no tarjetas perdidas.».
 
 - **`R9-557` (S137, `C26b` / respaldo: el aviso tras importar — P3) — 🐛 el diálogo bloqueante tras importar dice «Tu
   copia se importó correctamente» aunque una sección haya fallado o no se haya restaurado NADA.** MEDIDO en el
@@ -14121,6 +14252,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     lo está. Distinto de `R9-141` (la prueba del aviso), `R9-27` y `R9-32`. Detalle: `detail/C26b-respaldo.md`.
   - **Sesión 138:** el toast de `importPartial` no se ve nunca: queda detrás del modal «Datos» (`R9-560`, medido). Lo
     único visible tras un import parcial es este diálogo de éxito.
+  - Triaje 185: lote D, A(2) (arreglo acotado a DataSettings y translations). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-558` (S138, `C27a` / «Resetear datos de la Biblia» — P2) — 🐛 el reset borra en silencio las versiones
   descargadas y deja la app apuntando a una versión sin texto.** MEDIDO en el emulador (tres veces, dos en el mismo
@@ -14243,6 +14375,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     fila.
   - **Medida:** el primer atrás cierra el teclado; el segundo cierra la hoja sin preguntar (gana el `Modal`: la galería
     no navega); al reabrir, la nota guardada sin lo tecleado. Detalle: `detail/C43a-subrayados.md`.
+  - Triaje 185: A, A(1) (la forma de R9-57 (P2): va con su camino).
 
 - **`R9-564` (S139, `C42b` / el chip de referencia de la hoja de nota — P3) — 🐛 tocar un chip vuelve a guardar la
   nota aunque no cambió: `updated_at` nuevo, la nota salta al primer lugar de «Recientes».** MEDIDO en el emulador
@@ -14257,6 +14390,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     `S139-rec2.xml.txt`). Con cuenta, cada toque sube una escritura (sin medir). Detalle: `detail/C42b-notas-lista.md`.
   - **Arreglo propuesto (sin escribir):** guardar solo si el borrador difiere de lo guardado (o del valor con que se
     abrió la hoja).
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: orden y fecha. «misma `id` y texto; `updated_at` 14:17:30 → 14:24:35 tras el toque».
 
 - **`R9-565` (S139, `C42b` / la cabecera de la hoja de nota — P3) — 🐛 con la hoja de nota abierta, un enlace a otro
   libro deja la hoja abierta con una referencia mezclada: el libro nuevo con el capítulo y versículo viejos.** MEDIDO
@@ -14268,6 +14402,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     versículo citado de Romanos y el texto escrito. GUARDAR guarda en Romanos 8:1: el dato es correcto, la cabecera
     miente (`S139-cabecera-mezclada.png`, `S139-cab3.xml.txt`, `S139-n3b.db.txt`). Detalle:
     `detail/C42b-notas-lista.md`.
+  - Triaje 185: lote D, A(2) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-566` (S139, `C43b` / el filtro de color de la galería de subrayados — P3) — 🐛 las muestras de color del
   filtro no tienen nombre ni estado para el lector de pantalla: son botones mudos que solo se distinguen por el
@@ -14283,6 +14418,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     (`S139-pick4.xml.txt`). Lo que TalkBack dice de verdad, sin medir. Detalle: `detail/C43b-subrayados-galeria.md`.
   - **Arreglo propuesto (sin escribir):** la etiqueta del lector (`highlightColorNames`) con `accessibilityRole` y
     `accessibilityState={{selected}}`, y el nombre del color en la cabecera de grupo.
+  - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-567` (S139, `C43b` / el atrás del lector con un versículo seleccionado — P3) — 🐛 con la barra de acciones o el
   selector de colores abiertos, el atrás de Android no cierra la selección: sale del lector.** MEDIDO en el emulador
@@ -14294,6 +14430,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     atrás: la galería («Mis Resaltados»); otro atrás: Notas (`S139-at1.xml.txt`, `S139-at2.xml.txt`,
     `S139-at3.xml.txt`). No se pierde ningún dato: se pierde la selección y el lugar de lectura. Detalle:
     `detail/C43b-subrayados-galeria.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «No se pierde ningún dato: se pierde la selección y el lugar de lectura.».
 
 - **`R9-568` (S139, `C20b` / los buscadores de libros — P2) — 🐛 escribir un libro sin tilde no lo encuentra: «exodo»
   e «isaias» dan «No se encontraron resultados» en la pestaña Biblia, y nada en «Agregar versículo» de Memoria.**
@@ -14487,6 +14624,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     publicación del recibo); cuánto dura en un dispositivo no está medido. Tiene salida: tocar el monto otra vez
     cae en `alreadyOwned`. **Propuesta (sin escribir):** no cerrar la hoja mientras hay una compra en vuelo, o
     conservar el aviso hasta que se lea. Detalle: `detail/S145-revision-del-diff-s144.md`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: aviso perdido, con salida. «Tiene salida: tocar el monto otra vez cae en `alreadyOwned`.».
 
 - **`R9-576` (S145, revisión del diff de la 144 / las dos hojas — P3) — 🐛 dos toques en el mismo cuadro lanzan dos
   compras, y el resultado que llega segundo pisa el aviso del primero.** MEDIDO con sonda. La falta de guarda ya
@@ -14502,6 +14640,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   - **Severidad:** P3. Pide dos toques dentro de un cuadro; que el SDK rechace la segunda (`'15'`) y en qué orden
     llegan no está medido. **Propuesta (sin escribir):** una guarda con `useRef` al entrar a `handlePurchase` y a
     `handleRestore`. Detalle: `detail/S145-revision-del-diff-s144.md`.
+  - Triaje 185: lote D, A(2) (frontera con sonda y propuesta: dos cobros en el mock, guarda useRef). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-577` (S145, revisión del diff de la 144 / hoja de ofrenda / vecino de `R9-17` y `R9-18` — P3) — 🐛 la hoja
   no reacciona a la entitlement que llega con ella abierta: el aviso sigue diciendo «los extras todavía no se
@@ -14516,6 +14655,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
   - **Severidad:** P3: un texto que deja de ser cierto mientras se lee, y se corrige al cerrar. **Propuesta (sin
     escribir):** con `isPremium` en `true` y el estado en `notice` o `available`, pasar a `alreadyUnlocked`.
     Detalle: `detail/S145-revision-del-diff-s144.md`.
+  - Triaje 185: lote D, A(2) (frontera con sonda: el aviso falso con los extras activos y un toque que compra otra vez). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-578` (S145, revisión del diff de la 144 / pruebas — P3) — 🐛 la guarda de `outcomeFromError` contra
   `undefined === undefined` no tiene prueba, y «liquidada, el mismo monto se puede volver a dar» no mide la
@@ -14682,6 +14822,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     sin medir). Tras un reembolso, si RevenueCat conserva la transacción, diría «No hace falta volver a pagar»
     (sin medir).
   - **Severidad:** P3. **Propuesta (sin escribir):** un filtro positivo, con los ids de los paquetes de la oferta.
+  - Triaje 185: lote D, A(2) (frontera con sonda y propuesta: filtro positivo). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-586` (S147, revisión del diff de la 146 / donación / vecino de `R9-579` — P3) — 🐛 el toast «Extras
   restaurados» sale aunque los extras ya se veían.** MEDIDO con sonda (fila 13 de
@@ -14690,6 +14831,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     no lo que el usuario ve. Con la caché en `true` y `getCustomerInfo` fallando en el arranque: `PREMIUM=true`,
     y la donación «ya comprado» anuncia la restauración.
   - **Severidad:** P3. **Propuesta (sin escribir):** comparar con `usePremium()`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «el toast «Extras restaurados» sale aunque los extras ya se veían.».
 
 - **`R9-587` (S147, revisión del diff de la 146 / premium / anterior al diff — P3) — 🐛 si `linkUser` llega con el
   `getCustomerInfo()` del arranque en vuelo, la respuesta vieja llega después y pisa la de la cuenta que entró.**
@@ -14699,11 +14841,13 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     de ana durante ese proceso. El arranque siguiente lo corrige. Es el mismo camino en `ee262bf5`; `3190815b` lo
     hizo visible (antes RevenueCat quedaba en el anónimo, sin extras).
   - **Severidad:** P3: depende del orden real del SDK (sin medir) y dura un proceso.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «depende del orden real del SDK (sin medir) y dura un proceso.».
 
 - **`R9-588` (S147, revisión del diff de la 146 / pruebas / fuera del diff — P3) — 🐛 `R9-38 — deleteAccount › la
 cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDIDO por el agente 1
   (`_scratch/S147-a1-random.out.txt`), sin re-verificar por el orquestador: con `--randomize` cae en 7 de 8
   semillas (`AuthContext.test.tsx:1200`), y ya caía en `ee262bf5` (4 de 6). En el orden del archivo pasa.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: revert visto. «En el orden del archivo pasa.» (revert corrido en la 185: sin forgetStoreOwner, la prueba cae en orden (olvidado 0); solo depende del orden).
 
 - **`R9-589` (S149, revisión del diff de la 148 / premium / vecino de `R9-582`, anterior al diff — P3) — 🐛 el
   reintento del arranque mira `earlyUid`, que se fija antes de `configure()`: si la sesión cambia durante los
@@ -14828,6 +14972,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     confirma), y «Restaurar» lo recupera si el panel transfiere. **Propuesta (sin escribir):** que comprar y
     restaurar esperen el `logIn` en vuelo de la cuenta en sesión antes de ir a la tienda. Detalle:
     `detail/S151-revision-del-diff-s150.md` §6.
+  - Triaje 185: E (paga y queda sin extras: la salida depende de R9-135 (E)).
 
 - **`R9-594` (S152, arreglos de la 152 / premium / vecino de `R9-135` y `R9-587`, anterior a la 150 — P3) — 🐛 si el
   `getCustomerInfo()` del arranque rechaza, `initialize()` se salta el bloque del pendiente: la cuenta pendiente en
@@ -14848,6 +14993,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     sin caché del usuario del SDK, o por otra falla. Y «nada lo reintenta» es lo medido para la compra y «Restaurar»:
     un canje que sale bien o un inicio de sesión nuevo hacen `logIn(beto)` (por lectura). El bloque está hoy en
     `:246-256`. Sigue en P3, con un disparador más angosto. `detail/S153-revision-del-diff-s152.md` §5.
+  - Triaje 185: E (la compra queda en otra cuenta: depende de R9-135 (E)).
 
 - **`R9-595` (S155, revisión del diff de la 154 / sync / vecino de `R9-128` y `R9-212` — P3) — 🐛 un `apply*` que
   falla SIEMPRE deja el piso clavado bajo su doc: cada attach relee ese doc y todo lo posterior, sin salida.**
@@ -14916,6 +15062,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: costo, sin daño de datos. **Propuesta (sin escribir):** medirlo en el emulador con una
     colección grande; si pesa, pedir metadata solo hasta el primer snapshot del servidor (un listener de un tiro).
     `detail/S159-revision-del-diff-s158.md` §5.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: costo. «P3: costo, sin daño de datos.».
 
 - **`R9-600` (S161, Mesa / banco de ilustraciones, vecino de `R9-52` y `R9-129` — P2) — 🐛 insertar una
   ilustración con la lectura de `@prep_notes` fallida borra la prosa de la sección, con toast de éxito.** MEDIDO
@@ -14942,6 +15089,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - No lo abre el respaldo: es anterior. Los de oración y emociones abortan la escritura (sin daño).
   - **Severidad:** P3: marcas y progreso, no texto; pide un fallo de lectura. **Propuesta (sin escribir):** que el
     escritor relance en un fallo de lectura. `detail/S161-v3-arreglos.md` §5.
+  - Triaje 185: lote D, A(1) (relanzar en el catch de los stores de favoritos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-602` (S163, la Mesa / respaldo, vecino de `R9-30` — P2) — 🐛 una restauración que aterriza con la Mesa
   enfocada queda pisada por la tecla o el blur siguiente.** MEDIDO con la pantalla real.
@@ -15271,6 +15419,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto (sin escribir):** comparar `true` sin distinguir mayúsculas; marcar como «no puede fallar»
     una expresión que es la constante `true`; y que un `run:` que termina en `|| true` (o `|| exit 0`) cuente como
     no bloqueante, o que la compuerta lo rechace.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy el `ci.yml` usa `true` en minúscula: no hay daño.» (True en ci.yml: la compuerta queda verde; con true y sin «report», roja).
 
 - **`R9-629` (S179, compuerta de CI / `ciWorkflowHonesty`, la revisión de `R9-5` — P3) — 🐛 un job que SÍ bloquea,
   con un solo paso que solo reporta, tiene que llamarse «report».** MEDIDO con sonda.
@@ -15281,6 +15430,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     Codecov usa `fail_ci_if_error: false`, no `continue-on-error`.
   - **Arreglo propuesto (sin escribir):** exigir «report» en el job solo si el job entero no puede fallar
     (`continue-on-error` del job, o todos sus pasos); al paso, siempre.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación. «Hoy no pasa: el paso de Codecov usa `fail_ci_if_error: false`, no `continue-on-error`.» (continue-on-error en el paso de Codecov: la suite cae (el rojo falso que describe; el nombre de la prueba no se capturó)).
 
 - **`R9-630` (S179, compuerta de CI / `ciWorkflowHonesty`, la revisión de `R9-6` — P3) — 🐛 una imagen de Docker de
   terceros en un tag móvil pasa la compuerta de pins, y la cabecera dice «every action».** MEDIDO con sonda.
@@ -15293,6 +15443,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Hoy el repo no usa ninguna de esas formas: sin daño. Es el vecino del caso que cerró (`codecov@v4`).
   - **Arreglo propuesto (sin escribir):** exigir `@sha256:` de 64 hex en `docker://`, `container:` e `image:` de
     `services:`, salvo que se decida eximirlos por escrito en la cabecera.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy el repo no usa ninguna de esas formas: sin daño.» (un uses docker:// en un tag móvil: verde).
 
 - **`R9-631` (S179, compuerta de CI / `ciNodeVersion`, la revisión de `R9-107` — P3) — 🐛 «este job corre node» se
   decide por el TEXTO del `run:`: `shell: node {0}` y `./node_modules/.bin/jest` quedan fuera.** MEDIDO con sonda.
@@ -15309,6 +15460,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto (sin escribir):** contar también `shell:` (del paso, del job y de `defaults.run` del
     workflow) y `node_modules/.bin` en el regex; o pedir pin a todo job con algún `run:`, que es más simple y más
     ruidoso.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy ningún job lo hace: sin daño.» (sin setup-node y con ./node_modules/.bin/jest: verde; sin setup-node con npm, rojo).
 
 - **`R9-632` (S179, compuerta de CI / `ciNodeVersion`, la revisión de `R9-107` — P3) — 🐛 cuenta como pin cualquier
   `node-version` de cualquier acción, y en cualquier orden.** MEDIDO con sonda. Es anterior a la 178: el escáner viejo
@@ -15320,6 +15472,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - Hoy los tres jobs ponen `setup-node` antes de todo `run:`: sin daño.
   - **Arreglo propuesto (sin escribir):** contar el pin solo si sale de un `uses: actions/setup-node@…` y aparece
     antes del primer paso que corre node en ese job.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy los tres jobs ponen `setup-node` antes de todo `run:`: sin daño.» (setup-node después de npm ci: verde).
 
 - **`R9-633` (S181, reproductor flotante / la revisión de `R9-571` — P3) — 🐛 una vez, el panel quedó trabado a
   altura expandida con los controles PLEGADOS opacos encima de la cabecera expandida.** VISTO UNA VEZ, SIN
@@ -15391,6 +15544,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: el mismo daño que `R9-560` (el aviso no se ve), en flujos sin datos en juego conocidos.
   - **Arreglo propuesto:** una línea por modal, `<ToastHost />` dentro de su contenido (como en `d991b711`). Detalle:
     `detail/S183-arreglos-tanda-2-parte-2.md` §1.
+  - Triaje 185: lote D, A(2) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -15586,6 +15740,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   cede nunca: ni el timeout de jest ni los `setImmediate` de la prueba llegan a correr. La
   regresión no pasaría el CI, pero el rojo no dice qué ni dónde. (Corrige el «0/73 verde
   aislada» de la primera parte de la 21.)
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: revert visto. «regresión no pasaría el CI, pero el rojo no dice qué ni dónde.».
 
 - **`R9-110` (S19, build de packs) — 🐛 un error de E/S dentro del `catch` de FIRST FILE vuelve a
   borrar el mensaje entero.** Es el vecino de `R9-98`: aquel quitó UNA forma de lanzar dentro del
@@ -15816,6 +15971,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   9. «_ALL slices non-blank and in-range_» deja pasar un span `[-5,29]`: el verificador comprueba
      `slice(-5,29)` y el render (`redLetterText.ts:134`) pinta `[0,29]`. Solo es alcanzable con un
      bug del generador.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: mensajes del build. «Hoy es inalcanzable: las 6 revisiones históricas llevan `file` y `sha256`.» (solo al operador del build; ítem 1 con revert documentado (63/63 verde); 2 y 9, inalcanzables hoy).
 
 - **`R9-121` (S19, compuerta de CI — P3, agrupado).** Todo medido contra las funciones reales y el
   `ci.yml` real:
@@ -15856,6 +16012,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
        para 22.0–22.4;
      - «`node:sqlite` requires Node >= 22.5», sin la bandera, en `hebrewGlossEs.test.ts:39` y en
        `insertVersesBatchedSql.test.ts:17-18`.
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: compuerta CI sin daño. «Es preexistente, y ninguna de esas formas aparece en las plantillas.».
 
 - **`R9-122` (S19, dinero y sync — P3, agrupado).**
   1. «La suscripción pasa ANTES de la lectura» (`PremiumContext.tsx:72-73`, y el commit y el ledger
@@ -15877,6 +16034,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
      Es el mismo agujero que `R9-153` (`handleSnapshot` sin sesión), y el mismo arreglo los cierra.
      **✅ Sesión 24:** el punto 4 quedó ARREGLADO junto con `R9-153` (`a7d688e`). `advanceCursor` es
      síncrono hasta su `setItem`, así que no queda ventana.
+  - Triaje 185: A, A(1) (agrupado: el punto 3 es la raíz de R9-598 (A); 1 y 2, revert visto; 4, arreglado).
 
 - **`R9-123` (S19, docs de la revisión — P3, agrupado).** Afirmaciones falsas o rancias en los
   propios docs, medidas contra git y contra el código:
@@ -15902,6 +16060,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
      «7 a 16», 4263 pruebas, 64 hallazgos, «abiertos son 14», y 19 detalles cuando hay 28. También
      `INDEX.md:52-53` («subir `rvr1960-red-letter.json`», ya publicado). **Sin corregir una por
      una.**
+  - ✅ ACEPTADO en la sesión 185 (triaje): no-A: docs internos de revisión. «Afirmaciones falsas o rancias en los».
 
 - **`R9-90` (S17, CI) — 🐛 el control «still has a reason to require it» casaba TEXTO, y miraba 1
   de los 9 archivos que lo necesitan.** `expect(script).toContain("require('node:sqlite')")` sobre
@@ -16626,6 +16785,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   donde hay 50, 3 días activos donde hay 2. Pasa en `America/Mexico_City` (caso de control).
   Detalle: `detail/A11-progreso-rachas.md`.
   **⬇️ Sesión 22: baja a P3** (sonda con `TZ` fijado desde PowerShell). Solo falla si la tarjeta se abre en la última hora del día (23:00-23:59) durante ~6 días después del atraso de hora, o en la primera (00:00-00:59) después del adelanto: 12 medias horas de 674. «El sábado desaparece» es FALSO: se pierde el día más viejo y el domingo sale dos veces. `listeningStats` usa un `Set` y no cuenta doble. **Ni local (`America/Mexico_City`) ni CI (UTC) tienen cambio de hora.** Vecino: `R9-147`.
+  - Triaje 185: recibe `R9-172` (familia de esta): el versículo, el dato bíblico y la profecía «del día» cambian a la 01:00 (o a las 23:00) con horario de verano. Su arreglo lo cubre.
 - **`R9-64` (A11, planes) — 🐛 `migratePlanProgress` BORRA el progreso de origen cuando el
   destino ya tiene el suyo, en vez de fusionarlo.** Severidad **baja**.
   `ReadingPlanProgressContext.tsx:264-268`: `if (!next[toId]) next[toId] = current;` protege el

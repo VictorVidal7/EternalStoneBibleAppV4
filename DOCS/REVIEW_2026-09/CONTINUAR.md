@@ -395,6 +395,24 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   solos con su tanda P2 (`R9-559` y `R9-569` con la 2; `R9-525` con la 5; lo que suma a `R9-524` es una sola raíz).
   **Desde el 2026-11-25, antes van por el triaje de la §7** (la 185, solo docs): lo que quede en A sigue este
   orden; los lotes D van con agentes en paralelo.
+  **Triaje hecho en la 185** (`detail/S185-triaje-p3.md`): de 174 P3 triageados, 69 B y 22 C cerrados (91); quedan
+  98 P3 abiertos: 28 A, 28 D, 23 E (más los 15 del «NO»), y 4 pruebas sin revert visto. **Una pregunta para Victor**
+  (§5 del detalle): las seis pruebas de la Mesa, D o B.
+- **El orden que queda, desde la 186** (la 186 es la revisión del diff de la 182 a la 184, con emulador):
+  1. **Los P2, por tanda** (3 a 9). **No son disjuntas** (medido sobre los archivos que nombran sus entradas, no los
+     que tocará el arreglo): `[chapter].tsx` en 3, 5 y 7; `search.tsx` en 5 y 6; `FavoritesContext.tsx` en 3 y 7;
+     `highlights.tsx` en 3 y 9; `app/_layout.tsx` en 3 y 8; `prophecies/index.tsx` en 5 y 7; `translations.ts` en 4,
+     6 y 9. Olas posibles con agentes en paralelo: la 3 sola; después 4, 6 y 9 (con `translations.ts` en serie); 5 y
+     8; la 7 al final. Cada P2 sigue con su sesión de revisión de diff (§7, regla 4).
+  2. **Los lotes D en paralelo**, siete por zona de archivos (§6 del detalle), un agente por lote, cada commit con su
+     revert por pieza y sin sesión de revisión. El lote del lector (`[chapter].tsx`) no corre a la vez que las tandas
+     P2 3, 5 y 7.
+  3. **Los A largos, por área:** sync (`R9-198`, `R9-201` a `R9-213`, `R9-595` a `R9-598`, `R9-122` punto 3, `R9-156`
+     ítem 7), Conflictos (`R9-469` con `R9-546`, `R9-545`), favoritos y notas (`R9-145`, `R9-466`, `R9-519`,
+     `R9-520`, `R9-284`), borradores (`R9-499` y `R9-563` con `R9-57`), texto bíblico (`R9-489`, `R9-491`, `R9-503`
+     con `R9-535` y `R9-538`), y los sueltos (`R9-159`, `R9-168`, `R9-173`).
+  4. **Sin revert visto** (`R9-152`, `R9-171`, `R9-297`, `R9-305`): correr el revert que nombra su entrada; si la
+     prueba cae, B.
 - **Al terminar la fase:** Opus 5.5 como principal con Fable de asesor, y las filas C P1 que faltan (`C17`, `C23`:
   `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). Las filas de cuenta siguen esperando la cuenta de Google de PRUEBA.
 

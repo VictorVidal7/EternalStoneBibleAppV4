@@ -547,3 +547,13 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 
   269 abiertos de 637. El paso 5 (la revisión del diff de la 182 y la 183) va a la 186. Detalle:
   `detail/S184-arreglos-tanda-2-parte-3.md`.
+
+- **Sesión 185 — 2026-11-25.** El triaje de los P3 (§7), solo docs, Opus 5.5 con seis agentes de solo lectura, en
+  `docs/review-s185`:
+  - 174 P3 triageados (189 menos los 15 del «NO»): 69 B y 22 C cerrados con `✅ ACEPTADO en la sesión 185
+(triaje)`; 28 A, 28 D (viñeta «lote D»), 23 E y 4 sin revert visto siguen abiertos.
+  - Reverts de verificación: cinco mutaciones de `ci.yml` con control (`R9-628` a `R9-632`) y `R9-588`; todo
+    restaurado.
+  - Una pregunta para Victor: las seis pruebas de la Mesa (D o B), en E mientras tanto.
+
+  178 abiertos de 637 (98 P3). Detalle: `detail/S185-triaje-p3.md`.

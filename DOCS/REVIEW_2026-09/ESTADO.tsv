@@ -118,10 +118,10 @@ R9-116	P2	prueba de respaldo	abierto		por lectura: de `__tests__`, solo las prue
 R9-117	P2	favoritos / respaldo	arreglado	90f67a46	marca de su entrada: «✅ ARREGLADO en la sesión 160 (`90f67a46`, rama `fix/s160-v3`): `FavoritesContext` se suscribe a `subscribeBackupRestored`; `__tests__/favoritesRestore»
 R9-118	P2	CI	abierto		espera decisión de Victor (token o quitar el step): `.github/workflows/ci.yml:75-81` (`fail_ci_if_error: false`)
 R9-119	P2	premium	arreglado	3190815b	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`3190815b`): `AuthContext` ya no llama a `linkUser` para un usuario anónimo (tampoco en el primer arranque); cerrar sesi»
-R9-120	P3	build de packs	abierto		grupo de 9 ítems de P3 del build de packs; sin commit ni mención en el código; no re-medidos uno por uno
-R9-121	P3	compuerta de CI	abierto		grupo de P3 de la compuerta de CI; sin commit ni mención en el código; no re-medidos uno por uno
+R9-120	P3	build de packs	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mensajes del build. «Hoy es inalcanzable: las 6 revisiones históricas llevan `file` y `sha256`.» (solo al»
+R9-121	P3	compuerta de CI	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: compuerta CI sin daño. «Es preexistente, y ninguna de esas formas aparece en las plantillas.».»
 R9-122	P3	dinero y sync	abierto		parcial: el punto 4 se arregló con `R9-153` (`a7d688e`, sesión 24); los puntos 1 a 3 siguen (por ejemplo, el comentario de `src/context/PremiumContext.tsx:72-73`)
-R9-123	P3	docs de la revisión	abierto		docs rancios de la revisión («sin corregir una por una»); los absorbe la sesión de adelgazar docs
+R9-123	P3	docs de la revisión	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: docs internos de revisión. «Afirmaciones falsas o rancias en los».»
 R9-124	P0	SyncEngine	arreglado	34de18f	marca de su entrada: «✅ ARREGLADO en la sesión 26 (`34de18f`, rama `fix/review-s26-removed`): - ante un `removed`, `getDoc` FUERA de `withLocalWriteSuppressed`, con `isCurr»
 R9-125	P0	identidad	arreglado	e8c2031	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`e8c2031`, hecho en la nube y revisado en local): `signInWithGoogle` lee el dueño previo ANTES de bifurcar, y la rama sin»
 R9-126	P1	SyncEngine / respaldo	abierto	parcial: 46ad0e93	parcial: la marca de su entrada dice «✅ ARREGLADO EN PARTE en la sesión 156» (`46ad0e93`): entró la opción C (la cola); siguen el bulk push (E), restaurar (B, §8) y las reglas (R)
@@ -140,16 +140,16 @@ R9-138	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit n
 R9-139	P2	prueba de respaldo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-139`
 R9-140	P2	prueba de rachas	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-140`
 R9-141	P2	prueba de respaldo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-141`
-R9-142	P3	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-142`
+R9-142	P3	prueba de sync	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: revert visto. «regresión no pasaría el CI, pero el rojo no dice qué ni dónde.».»
 R9-143	P1	Mesa	arreglado	03ad214	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`03ad214`, `92cfc16`): los dos botones pasan por `flushDrafts`, con las dos guardas de `handleNoteBlur`. - Revert por pie»
 R9-144	P2	compuerta de paridad web/nativo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-144` (`git grep -w`: 0)
 R9-145	P3	notas	abierto		`src/lib/sync/adapters/notes.ts`: `grep canonical` da 0 (el `book_name` remoto se escribe tal cual)
 R9-146	P3	planes	abierto		`git grep -w R9-146` en el código: 0; que el progreso sobreviva al borrado es decisión documentada (`CustomPlansContext.tsx:46`), su efecto al re-crear no se decidió
-R9-147	P3	memoria	abierto		`app/features/memory/insights.tsx:828-831` (`weekdayShort` suma `offset * DAY_MS`)
+R9-147	P3	memoria	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Es cosmético.».»
 R9-148	P3	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-148`
-R9-149	P3	build de packs	abierto		hueco de prueba, por lectura: `scripts/build-web-packs.js:290` sigue sin prueba que lo nombre (`git grep -w R9-149`: 0)
+R9-149	P3	build de packs	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: compuerta de build, revert visto. «CONFIRMADO por revert.».»
 R9-150	P3	lector web	abierto		`app/(tabs)/verse/[book]/[chapter].web.tsx:132-133` (`redLetterReady` sin mirar la versión de los `verses`); `git grep -w R9-150`: 0
-R9-151	P3	build de packs	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-151`
+R9-151	P3	build de packs	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: compuerta de build, revert visto. «Colapsar a `[]` la rama `!previous` o la rama `pinned.size === 0` deja»
 R9-152	P3	compuerta de packs	abierto		`__tests__/buildWebPacks.test.js:45` (el `beforeAll` de archivo, sin `try`)
 R9-153	P1	SyncEngine / cuentas	arreglado	a7d688e	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`a7d688e`): `handleSnapshot` tiene la sesión del flush. Al volver de cada `await` después de un `stop()`, el lote corta s»
 R9-154	P3	prueba de sync	arreglado	42f6afb	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`42f6afb`): hay pruebas para `keepTheirs`, para `merge` y para la profundidad, y cada una cae con su sitio revertido. El»
@@ -163,14 +163,14 @@ R9-161	P1	SyncEngine / conflictos	arreglado	cf6e7f0	marca de su entrada: «✅ A
 R9-162	P2	prueba de sync	arreglado	542603b	marca de su entrada: «✅ ARREGLADO en la sesión 25 (`542603b`, solo pruebas): dos pruebas hacen caer el `stop()` durante el APPLY de un lote. Sin la guarda caen las 2 (medid»
 R9-163	P2	SyncEngine / cuentas	abierto		`src/lib/sync/SyncEngine.ts:2481` (`loadCursor`: `this.cursors.set` tras el `await`, sin mirar la sesión)
 R9-164	P2	SyncEngine / cuota	abierto		parcial: la mitad «en vivo» se cerró con `R9-124` (`34de18f`, sesión 26); la entrada dice «sigue ABIERTO» para la app cerrada y los huérfanos de un `deleteAccount` fallido (su entrada)
-R9-165	P3	SyncEngine / cuota	abierto		sin arreglo en git ni en el código (`git grep -w R9-165`: 0); no re-medido
+R9-165	P3	SyncEngine / cuota	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: costo. «Con 50 docs: 50 en cada enganche.».»
 R9-166	P0	identidad	arreglado	cf7c715	marca de su entrada: «✅ ARREGLADO en la sesión 25 (`cf7c715`; lo hizo la nube y se revisó en local): la rama del link pregunta ANTES de enlazar, como las otras dos ramas lo»
 R9-167	P2	Mesa	abierto		sin arreglo en git ni en el código (`git grep -w R9-167`: 0); no re-medido
 R9-168	P3	Mesa	abierto		`app/features/prep/index.tsx:628` y `:675` (el ref se asigna en la microtarea de la lectura); sin arreglo en git
 R9-169	P3	prueba de la Mesa	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-169` (los `await flushDrafts()` de `index.tsx:1018`, `:1038`)
-R9-170	P3	build de packs	abierto		sin arreglo en git; es del entorno de build (versión de SQLite), no re-medido
+R9-170	P3	build de packs	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: build no reproducible. «Reconstruir con otro Node cambia los pines sin cambiar una letra.».»
 R9-171	P3	compuerta local	abierto		`__tests__/readingInsights.test.ts:9-12` (el «hoy» escrito a mano y el comentario de UTC+12)
-R9-172	P3	contenido diario	abierto		`src/constants/daily-verses.ts:262-266` (`getDayOfYear` resta `new Date(año, 0, 0)`)
+R9-172	P3	contenido diario	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-63` (familia de): «Es la familia de `R9-63` y `R9-147`.». Lo que queda lo arregla su entrada.»
 R9-173	P3	lector web	abierto		decidido y sin hacer: la decisión delegada en la sesión 25 (su entrada) fue extender la opción (b); ningún commit ni el código nombran `R9-173`
 R9-174	P3	SyncEngine / conflictos	arreglado	36cf5be	marca de su entrada: «✅ ARREGLADO en la sesión 32 (`36cf5be`, rama `fix/s32-r192-r193-y-s31`): `+Npend` (en la rama `pending`, una copia es «suya» solo si su reloj difiere»
 R9-175	P2	SyncEngine / cursor	arreglado	c163659	marca de su entrada: «✅ ARREGLADO en la sesión 28 (`c163659`, rama `fix/s28-sync-r9175-r9181`). Una cadena de promesas por colección en el MOTOR (`enqueueSnapshot`). Medido»
@@ -283,7 +283,7 @@ R9-281	P3	memoria / R9-267 / respaldo	arreglado	01eee54	marca de su entrada: «�
 R9-282	P3	memoria / sync	arreglado	a95a68b	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`a95a68b`), con la hipótesis: mientras ninguna carga leyó el disco, el borrado se anota igual; la lectura lo aplica, y tr»
 R9-283	P3	pruebas / comentarios de la 61	arreglado	1c82327	marca de su entrada: «✅ ARREGLADO en la sesión 63 (`1c82327`, primero). - Toda operación de `@memory_deck` en `memoryDeckDisk.test.tsx` pasa por un modelo del ejecutor seri»
 R9-284	P3	progreso / preferencias / respaldo	abierto		el código lo nombra como límite vigente: `src/lib/backup/restoreSignal.ts:76` y `src/services/BackupService.ts:1633` (solo el mazo retiene)
-R9-285	P3	memoria / pantalla	abierto		`app/features/memory/index.tsx:145-147` (`newCount` filtra con `hasCard`, que mira el estado)
+R9-285	P3	memoria / pantalla	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: solo pantalla. «Solo de pantalla.».»
 R9-286	P3	comentarios de la 63 / memoria / respaldo	arreglado	2b05f4d	marca de su entrada: «✅ ARREGLADO en la sesión 65 (`2b05f4d`). Los siete comentarios, como la hipótesis: - el orden, con los dos casos, en `restoreSignal.ts` (que dice adem»
 R9-287	P3	pruebas / respaldo / memoria	arreglado	8c168fb	marca de su entrada: «✅ ARREGLADO en la sesión 67 (`8c168fb`, solo una prueba). En `backupRestoreSignal.test.ts`, «con la Mesa en su turno, avisa antes de esperarlo»: un `p»
 R9-288	P3	comentarios de la 65 / memoria / respaldo	arreglado	c847d8c	marca de su entrada: «✅ ARREGLADO en la sesión 67 (`c847d8c`, solo comentarios). No como la hipótesis: «la siguiente lectura» tampoco se sostiene, porque una carga vieja en»
@@ -302,7 +302,7 @@ R9-300	P3	pruebas / respaldo / Mesa	abierto		hueco de prueba sin commit; «Sesi�
 R9-301	P3	pruebas / respaldo / Mesa	abierto		hueco de prueba sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
 R9-302	P3	pruebas / respaldo	arreglado	a808c29	marca de su entrada: «✅ ARREGLADO en la sesión 75 (`a808c29`, solo la prueba), con la forma `f287`: la función del store marca `dentro`, la prueba espera esa marca hasta 40»
 R9-303	P3	pruebas / respaldo	arreglado	125736b	marca de su entrada: «✅ ARREGLADO en la sesión 75 (`125736b`, solo la prueba). La prueba de `R9-287` tiene dos casos (`it.each`): `antes` (como en `a808c29`) y `durante`: e»
-R9-304	P3	pruebas / respaldo	abierto		sin commit; del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
+R9-304	P3	pruebas / respaldo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: diagnóstico de prueba. «Ningún verde falso.».»
 R9-305	P3	pruebas / Mesa	abierto		sin commit (prueba frágil por reloj en `prepSeriesDetailScreen.test.tsx`); del ciclo de las pruebas de la Mesa, cerrado (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
 R9-306	P3	pruebas / respaldo	arreglado	a7a1feb	marca de su entrada: «✅ ARREGLADO en la sesión 77 (`a7a1feb`, solo la prueba), sobre el arreglo de `R9-307`. Un tercer caso, `pedido antes`: 1. el store se pide con la clav»
 R9-307	P3	pruebas / respaldo	arreglado	41c75fc	marca de su entrada: «✅ ARREGLADO en la sesión 77 (`41c75fc`, solo la prueba), con `puertaAlFinal` (el mismo texto), y el comentario de `respaldoEnSqlite`: «CONTROL: el res»
@@ -418,9 +418,9 @@ R9-416	P3	A12 hilo 2 / compartir	abierto		sin marca de cierre en su entrada (en 
 R9-417	P2	A12 hilo 2 / runtime, observabilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-418	P2	C15 / hoja de ofrenda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-419	P3	C39 / Play Console, fuera del repo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-420	P3	C39 / donación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-420	P3	C39 / donación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: sin daño. «Sin pérdida ni cobro.».»
 R9-421	P2	C56 / preferencias del lector / R9-413	arreglado	457a6494	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`457a6494`, rama `fix/s182`), la propuesta del agente 5: se deriva solo si el blob no trae la clave; si la trae, se obed»
-R9-422	P3	C6 / Mesa / R9-143	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-422	P3	C6 / Mesa / R9-143	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «Sin pérdida: el dato se guarda.». - Triaje 185: recibe `R9-528` (familia de esta): al volver»
 R9-423	P2	A13 / lector y audio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-424	P1	A14 / registro de versiones / useBibleVersion (fila A28)	arreglado	7d4a511f	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`7d4a511f`, rama `fix/s140-p1`): la red de seguridad espera la primera respuesta de `refreshInstalledVersions` (`install»
 R9-425	P1	A15 / temporizador de sueño y avance de capítulo	arreglado	a6a0ef13	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`a6a0ef13`, rama `fix/s140-p1`), por otro camino que la propuesta: lo honra el motor. Si lo que paró el capítulo fue el»
@@ -431,76 +431,76 @@ R9-429	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tan
 R9-430	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-431	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-432	P2	A17 / quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-433	P3	A17 / quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-434	P3	A18 / estudio de palabra	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-433	P3	A17 / quiz	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el reloj sigue corriendo detrás del diálogo «¿Salir del quiz?»».»
+R9-434	P3	A18 / estudio de palabra	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «hasta el primer desplazamiento».»
 R9-435	P2	A18 / idiomas originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-436	P2	A18 / estudio de palabra	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-437	P2	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-438	P2	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-439	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-440	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-441	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-442	P3	A22 / Compartir	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-443	P3	A22 / Compartir	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-444	P3	A23 / logros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-445	P3	A23 / insignias	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-446	P3	A23 / logros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-447	P3	A23 / logros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-448	P3	A23 / insignias	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-449	P3	A24 / i18n, planes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-441	P3	A20 / Ajustes	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: raro. ««Reportar un problema» no hace nada si no hay app de correo».»
+R9-442	P3	A22 / Compartir	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «borrar un estilo guardado y guardar otro deja dos con el mismo nombre».»
+R9-443	P3	A22 / Compartir	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: premium. «P3: no cobra de más ni quita nada pagado.».»
+R9-444	P3	A23 / logros	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el lector desbloquea los logros de capítulo sin celebrarlos».»
+R9-445	P3	A23 / insignias	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «la insignia «Evangelizador Digital» (`share_master`) no se puede ganar».»
+R9-446	P3	A23 / logros	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «dos revisiones de logros a la vez celebran dos veces el mismo logro o pierden punto»
+R9-447	P3	A23 / logros	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «la «racha actual» de logros no baja».»
+R9-448	P3	A23 / insignias	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: insignias derivadas. «otra cuenta en el mismo teléfono re-celebra todas las insignias y pierde el título e»
+R9-449	P3	A24 / i18n, planes	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «el diálogo «Reiniciar plan» de un plan curado muestra el nombre crudo».»
 R9-450	P2	A24 / i18n, Mesa	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-451	P3	A24 / i18n, widget	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-452	P3	A24 / i18n, fechas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-453	P3	A24 / i18n, Comparación de versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-452	P3	A24 / i18n, fechas	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. ««Lunes, 2 De Noviembre» sigue en dos sitios».»
+R9-453	P3	A24 / i18n, Comparación de versiones	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma de rótulos. «la Comparación de versiones mezcla idiomas en tres sitios».»
 R9-454	P2	A25 / theming, avisos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-455	P3	A25 / theming, insignias	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-456	P3	A25 / theming, Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-457	P2	A26 / navegación, enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-458	P3	A26 / navegación, lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-459	P3	A26 / navegación, Niños	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-460	P3	A27 / deep links	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-458	P3	A26 / navegación, lector	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «una ida y vuelta lector → Estudio → lector pierde la lectura de partida: el atrás salta de Es»
+R9-459	P3	A26 / navegación, Niños	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «el atrás del sistema sale de la historia en vez de volver una escena». - Triaje 185: recibe `»
+R9-460	P3	A27 / deep links	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: raro. «abre la pantalla por defecto de expo-router, en inglés y con un «Sitemap» de todas las rutas».»
 R9-461	P3	A27 / deep links, enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-462	P3	A28 / hooks, Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-463	P3	A28 / hooks, tema	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-462	P3	A28 / hooks, Home	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «con la app viva de un día para otro, las tarjetas de racha y de meta de Home muestr»
+R9-463	P3	A28 / hooks, tema	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «en cada arranque en frío, quien usa el modo oscuro o «Alto contraste» ve primero un cuadro bla»
 R9-464	P2	A29 / contexts, Favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-465	P3	A29 / contexts, lector	arreglado	41a2a356	marca de su entrada: «✅ ARREGLADO en la sesión 173 (`41a2a356`, con `R9-623`): un aviso ya no vuelve a llamar a `trackVersesRead` ni a `markChapterRead` (prueba con el prov»
 R9-466	P3	A29 / contexts, favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-467	P2	A30 / params, colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-468	P3	A30 / cuenta, Google	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-468	P3	A30 / cuenta, Google	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mensaje impreciso. «No se guarda nada malo.».»
 R9-469	P3	A30 / sync, Conflictos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-470	P3	A30 / respaldo, progreso de lectura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-471	P3	A30 / rutas, Widgets	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-472	P3	A31 / bundle	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-472	P3	A31 / bundle	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: peso del bundle. «quedan empaquetados y no se evalúan.».»
 R9-473	P2	A32 / Mesa, notas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-474	P3	A32 / Mesa, navegación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-475	P2	A33 / Profecías, mazo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-476	P2	A32 / Mesa, originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-477	P2	A32 / originales, el pack	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-478	P3	A32 / Mesa, versión	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-479	P3	A32 / Mesa, buscar por tema	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-480	P3	A32 / Mesa, comparar versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-481	P3	A32 / Mesa, navegación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-482	P3	A32 / Mesa, ilustraciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-483	P3	A32 / Mesa, originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-484	P3	A32 / originales, morfología	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-485	P3	A32 / originales, el pack	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-486	P3	A34 / Journeys	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-487	P3	A34 / «Tu camino»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-488	P3	A34 / «Tu camino» y recap por período	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-478	P3	A32 / Mesa, versión	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Lo que q»
+R9-479	P3	A32 / Mesa, buscar por tema	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: búsqueda incompleta. «en inglés, «Search by topic» no encuentra el ejemplo de su propio placeholder («fear»
+R9-480	P3	A32 / Mesa, comparar versiones	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «Sale cerrando y reabriendo la Mesa.».»
+R9-481	P3	A32 / Mesa, navegación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-459` (familia de): «Familia de `R9-459`.». Lo que queda lo arregla su entrada.»
+R9-482	P3	A32 / Mesa, ilustraciones	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-474` (familia de): «Familia de `R9-474` (el tercero, tras el púlpito y el botón del banco de `A»
+R9-483	P3	A32 / Mesa, originales	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: hay salida. «con el pack de originales de julio, los Salmos con título salen vacíos en la Mesa, y la Mesa»
+R9-484	P3	A32 / originales, morfología	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: ayuda de estudio. «28 palabras del pack publicado tienen un código de morfología que el decodificador no c»
+R9-485	P3	A32 / originales, el pack	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»
+R9-486	P3	A34 / Journeys	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Lo que qu»
+R9-487	P3	A34 / «Tu camino»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «en América (al oeste de UTC), «Tu camino» dice que empezaste un día antes».»
+R9-488	P3	A34 / «Tu camino» y recap por período	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «rótulos sin singular («1 favoritos», «1 reading days») y, en la tarjeta del recap que se compa»
 R9-489	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-490	P3	A35 / Niños, datos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-491	P3	A35 / Niños, quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-492	P3	A35 / Niños, quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-493	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-494	P3	A35 / Niños, la historia	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-495	P3	A35 / Niños, el plan	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-492	P3	A35 / Niños, quiz	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-446` (raíz de): «Disparador nuevo de la raíz de `R9-446`.». Lo que queda lo arregla su entrada.»
+R9-493	P3	A35 / Niños, la historia	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Lo que queda lo ar»
+R9-494	P3	A35 / Niños, la historia	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»
+R9-495	P3	A35 / Niños, el plan	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: ritmo derivado. «una historia terminada desde la lista arranca el reloj del plan de 10 días».»
 R9-496	P2	A36 / lectio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-497	P2	A36 / diario de oración	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-498	P2	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-499	P3	A36 / diario de oración	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-500	P3	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-501	P3	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-502	P3	A36 / ACTS y diario	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-502	P3	A36 / ACTS y diario	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «Sin daño en los datos (el diario de abajo recarga en el foco, `usePrayerJournal.ts:63-76`); s»
 R9-503	P3	A36 / orar la Escritura, packs	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-504	P3	A36 / orar la Escritura	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-505	P3	A36 / recordatorios de oración	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -511,50 +511,50 @@ R9-509	P2	A37 / constructor	abierto		sin marca de cierre en su entrada (en las t
 R9-510	P3	A37 / constructor	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-511	P2	A37 / Juntos, devocional y estudio	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-512	P2	A37 / Juntos, invitar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-513	P3	A37 / Juntos, importar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-514	P3	A37 / planes propios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-515	P3	A38 / widget nativo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-516	P3	A38 / widget nativo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-517	P3	A38 / widget nativo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-513	P3	A37 / Juntos, importar	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: fecha derivada. «importar otra vez el mismo plan propio reinicia su calendario» (la fecha de inicio no la»
+R9-514	P3	A37 / planes propios	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»
+R9-515	P3	A38 / widget nativo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: desfase del widget. «queda un día atrás buena parte del día».»
+R9-516	P3	A38 / widget nativo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «con el teléfono en inglés, el widget dice «VERSO DEL DÍA» encima del versículo en inglés».»
+R9-517	P3	A38 / widget nativo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»
 R9-518	P2	A39 / marcadores retirados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-519	P3	A39 / colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-520	P3	A39 / favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-521	P3	A39 / Datos bíblicos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-521	P3	A39 / Datos bíblicos	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Lo que queda lo arregla su entrada.»
 R9-522	P3	A39 / línea de tiempo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-523	P3	A39 / Datos bíblicos, contenido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-524	P3	A39 / colecciones y línea de tiempo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-525	P3	A40 / temas, sentimientos, Luz diaria	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-526	P3	A40 / devocional compartido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-524	P3	A39 / colecciones y línea de tiempo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, en otras pantallas.». Lo que queda lo arregla su entra»
+R9-525	P3	A40 / temas, sentimientos, Luz diaria	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Lo que queda lo arregla su entra»
+R9-526	P3	A40 / devocional compartido	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma del nombre del libro. «el devocional que se recibe nombra el libro en el idioma de la interfaz y mu»
 R9-527	P3	A41 / Teología, contenido	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-528	P3	A42 / notas de sermón y testimonios	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-528	P3	A42 / notas de sermón y testimonios	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-422` (familia de): «Familia de `R9-422` (la Mesa), en otras pantallas.». Lo que queda lo arregl»
 R9-529	P3	piloto de re-revisión de A7 / respaldo / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-530	P3	piloto de re-revisión de B4 / reglas de Firestore / borrado de cuenta	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-531	P3	A43 / Mi lectura, la semana y el ánimo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-532	P3	A43 / Mi lectura, la tira de ánimo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-531	P3	A43 / Mi lectura, la semana y el ánimo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488` y `R9-524`, en otra pantalla.». Lo que queda lo arregla»
+R9-532	P3	A43 / Mi lectura, la tira de ánimo	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-522` (familia de): «Familia de `R9-522` (otra poda que esconde historia).». Lo que queda lo arr»
 R9-533	P2	A44 / Comparación de versiones, las guardadas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-534	P3	A44 / Comparación de versiones, el análisis	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-535	P3	A44 / Comparación de versiones, versificación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-536	P3	A45 / devocional compartido, la cabecera	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-537	P3	A45 / devocional compartido y explore-all, el día	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-538	P3	A45 / landings compartidos, versificación	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-539	P3	A45 / «Sobre este libro», «Cristo en este libro»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-540	P3	A45 / «Sobre este libro», datos del libro	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-541	P3	A45 / landings compartidos, la pila	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-534	P3	A44 / Comparación de versiones, el análisis	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: análisis viejo. «si el versículo nuevo queda con menos de dos versiones, la tarjeta de análisis sigue most»
+R9-535	P3	A44 / Comparación de versiones, versificación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` (allí, referencias fijas del contenido; aquí, cualquier»
+R9-536	P3	A45 / devocional compartido, la cabecera	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-531`, en otra pantalla.». Lo que queda lo arregla su entrada»
+R9-537	P3	A45 / devocional compartido y explore-all, el día	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-462` (familia de): «Familia de `R9-462` (Home)». Lo que queda lo arregla su entrada.»
+R9-538	P3	A45 / landings compartidos, versificación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-503` (familia de): «Familia de `R9-503` y `R9-535`». Lo que queda lo arregla su entrada.»
+R9-539	P3	A45 / «Sobre este libro», «Cristo en este libro»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-527` y `R9-528` (las citas de un texto curado)». Lo que qued»
+R9-540	P3	A45 / «Sobre este libro», datos del libro	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-527` (familia de): «Familia de `R9-539`». Lo que queda lo arregla su entrada.»
+R9-541	P3	A45 / landings compartidos, la pila	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Lo que queda lo arregla su entrada.»
 R9-542	P3	A45 / landings compartidos, accesibilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-543	P3	A45 / estudio compartido, el idioma	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-544	P3	A46 / Conflictos, la auditoría	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-543	P3	A45 / estudio compartido, el idioma	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma de rótulos. «la introducción del libro en un estudio compartido sigue el idioma de la VERSIÓN, sus»
+R9-544	P3	A46 / Conflictos, la auditoría	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «P3: solo el tablero de estadísticas; los datos del usuario no se tocan.».»
 R9-545	P3	A46 / Conflictos, la tarjeta	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-546	P3	A46 / Conflictos, «Combinar»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-546	P3	A46 / Conflictos, «Combinar»	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-469` (familia de): «Familia de `R9-469` (que nombra el mecanismo, no esta consecuencia).». Lo q»
 R9-547	P3	A46 / Conflictos, el borrador de «Combinar»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-548	P3	A46 / la migración al entrar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-549	P3	A34 / Mi camino, el resumen del trimestre	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-548	P3	A46 / la migración al entrar	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-488` (familia de): «Familia de `R9-488`, `R9-524`, `R9-531`.». Lo que queda lo arregla su entra»
+R9-549	P3	A34 / Mi camino, el resumen del trimestre	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el resumen del trimestre cuenta un día de más».»
 R9-550	P3	B6 / App Link de los enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-551	P3	B6 / Firebase, cliente OAuth de Android	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-552	P3	B8 / el splash	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-553	P3	B9 / dependencias nativas sin uso	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-552	P3	B8 / el splash	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «vc74 se publicó con el splash de la plantilla de Expo».»
+R9-553	P3	B9 / dependencias nativas sin uso	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: peso del release. «0 imports en `src/`, `app/`, las pruebas y los plugins.».»
 R9-554	P3	B10 / licencias de terceros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-555	P3	de paso desde B10 para B9 / fuentes de íconos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-556	P3	C20a / Memoria: el mazo y el registro de repasos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-555	P3	de paso desde B10 para B9 / fuentes de íconos	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: peso del AAB. «2,4 MB de fuentes que nunca se dibujan.».»
+R9-556	P3	C20a / Memoria: el mazo y el registro de repasos	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el daño es un repaso no contado (o una racha cortada), no tarjetas perdidas.».»
 R9-557	P3	C26b / respaldo: el aviso tras importar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-558	P2	C27a / «Resetear datos de la Biblia»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-559	P3	C27a / lector nativo con 0 versículos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -562,10 +562,10 @@ R9-560	P2	C26b / los toasts del modal «Datos»	arreglado	d991b711	marca de su e
 R9-561	P2	C42a / la hoja de nota y el teclado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-562	P2	C43a / la ✕ del selector de colores del lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-563	P3	C43a / la hoja de edición del subrayado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-564	P3	C42b / el chip de referencia de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-564	P3	C42b / el chip de referencia de la hoja de nota	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: orden y fecha. «misma `id` y texto; `updated_at` 14:17:30 → 14:24:35 tras el toque».»
 R9-565	P3	C42b / la cabecera de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-566	P3	C43b / el filtro de color de la galería de subrayados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-567	P3	C43b / el atrás del lector con un versículo seleccionado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-567	P3	C43b / el atrás del lector con un versículo seleccionado	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «No se pierde ningún dato: se pierde la selección y el lugar de lectura.».»
 R9-568	P2	C20b / los buscadores de libros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-569	P3	arreglo de R9-424 / registro de versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-570	P3	revisión del diff de la 140 / arreglo de R9-424 / recordatorios	arreglado	ec99241a	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`ec99241a`, rama `fix/s180`): una cola por tipo de recordatorio en `NotificationService.ts` (`serializeByType`): cada re»
@@ -573,7 +573,7 @@ R9-571	P3	revisión del diff de la 140 / reproductor flotante / R9-427	arreglado
 R9-572	P3	revisión del diff de la 140 / pruebas / R9-427	arreglado	4f4c24e3	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`4f4c24e3`, rama `fix/s180`): prueba nueva con el `AudioPlayerProvider` real debajo del `MiniAudioPlayer` real (`__tests»
 R9-573	P3	revisión del diff de la 140 / temporizador de sueño / vecino de R9-425	arreglado	dd758313	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`dd758313`, rama `fix/s180`). Decisión: ocultar la opción con una lista cargada, y que uno armado antes venza al final d»
 R9-574	P2	revisión del diff de la 144 / hoja de ofrenda / vecino de R9-17 y R9-16	arreglado	593107eb	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`593107eb`): `restore()` tiene una cuarta respuesta, `'notActivated'` (la tienda respondió, la cuenta tiene una ofrenda»
-R9-575	P3	revisión del diff de la 144 / las dos hojas / vecino de R9-17 y R9-18	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-575	P3	revisión del diff de la 144 / las dos hojas / vecino de R9-17 y R9-18	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: aviso perdido, con salida. «Tiene salida: tocar el monto otra vez cae en `alreadyOwned`.».»
 R9-576	P3	revisión del diff de la 144 / las dos hojas	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-577	P3	revisión del diff de la 144 / hoja de ofrenda / vecino de R9-17 y R9-18	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-578	P3	revisión del diff de la 144 / pruebas	arreglado	14dea172	marca de su entrada: «✅ ARREGLADO en la sesión 146 (`14dea172`, solo pruebas): la guarda tiene tres pruebas, con la constante quitada del mock (con la guarda revertida caen»
@@ -584,9 +584,9 @@ R9-582	P3	revisión del diff de la 146 / premium / vecino de R9-135	arreglado	6e
 R9-583	P3	revisión del diff de la 146 / comentarios y docs	arreglado	0d64352e	marca de su entrada: «✅ ARREGLADO en la sesión 148 (`0d64352e`, solo comentarios): los cinco textos dicen lo que hace el código. `detail/S148-arreglos-r9-580.md`. - ⚠️ Sesi»
 R9-584	P3	revisión del diff de la 146 / pruebas	arreglado	f11d813e	marca de su entrada: «✅ ARREGLADO en la sesión 152 (`f11d813e`, rama `fix/s152-pruebas`), solo pruebas: el segundo `try/catch` de `logInAs` y el orden borrar/procesar (`des»
 R9-585	P3	revisión del diff de la 146 / ofrenda / vecino de R9-574	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-586	P3	revisión del diff de la 146 / donación / vecino de R9-579	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-587	P3	revisión del diff de la 146 / premium / anterior al diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-588	P3	revisión del diff de la 146 / pruebas / fuera del diff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-586	P3	revisión del diff de la 146 / donación / vecino de R9-579	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «el toast «Extras restaurados» sale aunque los extras ya se veían.».»
+R9-587	P3	revisión del diff de la 146 / premium / anterior al diff	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «depende del orden real del SDK (sin medir) y dura un proceso.».»
+R9-588	P3	revisión del diff de la 146 / pruebas / fuera del diff	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: revert visto. «En el orden del archivo pasa.» (revert corrido en la 185: sin forgetStoreOwner, la prueba c»
 R9-589	P3	revisión del diff de la 148 / premium / vecino de R9-582, anterior al diff	arreglado	6e1c48df	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`6e1c48df`, con `R9-582`): `initialize()` reintenta solo si el pendiente es la cuenta en sesión en el momento de reinten»
 R9-590	P3	revisión del diff de la 148 / comentarios y docs	arreglado	04b7b478	marca de su entrada: «✅ ARREGLADO en la sesión 150 (`04b7b478`, solo comentarios; el docstring de `earlyUid`, con la variable en `6e1c48df`): los cinco textos dicen lo medi»
 R9-591	P3	revisión del diff de la 148 / pruebas	arreglado	21f67f21	marca de su entrada: «✅ ARREGLADO en la sesión 152 (`21f67f21`, rama `fix/s152-pruebas`): `__reset` hace `mockReset` y repone la implementación por defecto (la suite entera»
@@ -597,7 +597,7 @@ R9-595	P3	revisión del diff de la 154 / sync / vecino de R9-128 y R9-212	abiert
 R9-596	P3	revisión del diff de la 154 / sync / memoryCards, vecino de R9-128 y R9-133	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-597	P3	revisión del diff de la 155 / sync / auth, vecino de R9-127 y R9-263	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-598	P3	revisión del diff de la 158 / sync / auth, vecino de R9-126 E y R9-122 punto 3	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-599	P3	revisión del diff de la 158 / sync / rendimiento, vecino de R9-126 E	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-599	P3	revisión del diff de la 158 / sync / rendimiento, vecino de R9-126 E	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: costo. «P3: costo, sin daño de datos.».»
 R9-600	P2	Mesa / banco de ilustraciones, vecino de R9-52 y R9-129	arreglado	4acd1834	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`4acd1834` y `39ddedd8`, rama `fix/s162-v3`): `getAllPrepNotes` y `getPrepNotes` aceptan `{strict: true}`. El banco de i»
 R9-601	P3	estudio y niños / persistencia, vecino de R9-30	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-602	P2	la Mesa / respaldo, vecino de R9-30	arreglado	9a2cc67d	marca de su entrada: «✅ ARREGLADO en la sesión 163 (`9a2cc67d`, rama `fix/s163-v3`): la Mesa escucha `subscribeBackupRestored`, cancela el guardado pendiente y relee las no»
@@ -626,11 +626,11 @@ R9-624	P3	notas / sync, la revisión de R9-51	arreglado	4d5e4777	marca de su ent
 R9-625	P3	notas / la regla de mergeNoteTexts	arreglado	4d5e4777	marca de su entrada: «✅ ARREGLADO en la sesión 176 (`4d5e4777`, rama `fix/s176`): `mergeNoteTexts` compara PÁRRAFOS (partidos por una línea en blanco, recortados, sin los v»
 R9-626	P3	notas / el plegado del adaptador con una app vieja	aceptado	sesión 176	marca de su entrada: «✅ ACEPTADO (sesión 176, delegado: «decidir con porqué»): no se arregla. (1) Es transitorio y estrecho: pide una app vieja CON sync que siga editando n»
 R9-627	P3	lectio / notas	arreglado	4d5e4777	marca de su entrada: «✅ ARREGLADO en la sesión 176 (`4d5e4777`, rama `fix/s176`): el `catch` de `handleFinish` muestra `t.notes.saveError` (el aviso del lector) y NO cierra»
-R9-628	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-5	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-629	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-5	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-630	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-6	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-631	P3	compuerta de CI / ciNodeVersion, la revisión de R9-107	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-632	P3	compuerta de CI / ciNodeVersion, la revisión de R9-107	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-628	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-5	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy el `ci.yml` usa `true` en minúscula: no hay daño.» (True en ci.yml: la compuert»
+R9-629	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-5	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación. «Hoy no pasa: el paso de Codecov usa `fail_ci_if_error: false`, no `continue-on-error`.» (contin»
+R9-630	P3	compuerta de CI / ciWorkflowHonesty, la revisión de R9-6	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy el repo no usa ninguna de esas formas: sin daño.» (un uses docker:// en un tag»
+R9-631	P3	compuerta de CI / ciNodeVersion, la revisión de R9-107	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy ningún job lo hace: sin daño.» (sin setup-node y con ./node_modules/.bin/jest:»
+R9-632	P3	compuerta de CI / ciNodeVersion, la revisión de R9-107	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: mutación con control. «Hoy los tres jobs ponen `setup-node` antes de todo `run:`: sin daño.» (setup-node d»
 R9-633	P3	reproductor flotante / la revisión de R9-571	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-634	P3	reproductor flotante / temporizador de sueño	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-635	P3	plan de lectura / temporizador de sueño / vecino de R9-573	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
