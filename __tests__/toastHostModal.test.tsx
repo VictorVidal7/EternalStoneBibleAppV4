@@ -153,6 +153,66 @@ it('an export error toast is drawn inside the «Datos» modal', async () => {
   expect(utils.getAllByText(ts.exportError)).toHaveLength(1);
 });
 
+// R9-32 — `shareAsync` resolves when the sheet closes whether or not a
+// destination kept the file, so a clean export says where the backup lives
+// (decided in S183, CONTINUAR §7), drawn inside the «Datos» modal.
+describe('R9-32 — the notice after a clean export', () => {
+  it('a clean export shows the neutral notice inside the «Datos» modal, once', async () => {
+    mockExport.mockResolvedValue({uri: 'file://b.json', degradedSections: []});
+    const utils = renderApp();
+
+    await act(async () => {
+      fireEvent.press(utils.getByText(ts.exportBackup));
+    });
+
+    await waitFor(() =>
+      expect(within(dataModal(utils)).getByText(ts.exportReady)).toBeTruthy(),
+    );
+    expect(utils.getAllByText(ts.exportReady)).toHaveLength(1);
+    expect(utils.queryByText(ts.exportPartial)).toBeNull();
+  });
+
+  it('control: a degraded export shows only the partial warning', async () => {
+    mockExport.mockResolvedValue({
+      uri: 'file://b.json',
+      degradedSections: ['notes'],
+    });
+    const utils = renderApp();
+
+    await act(async () => {
+      fireEvent.press(utils.getByText(ts.exportBackup));
+    });
+
+    await waitFor(() =>
+      expect(within(dataModal(utils)).getByText(ts.exportPartial)).toBeTruthy(),
+    );
+    expect(utils.queryByText(ts.exportReady)).toBeNull();
+  });
+
+  it('control: a failed export shows only the error', async () => {
+    mockExport.mockRejectedValue(new Error('share failed'));
+    const utils = renderApp();
+
+    await act(async () => {
+      fireEvent.press(utils.getByText(ts.exportBackup));
+    });
+
+    await waitFor(() =>
+      expect(within(dataModal(utils)).getByText(ts.exportError)).toBeTruthy(),
+    );
+    expect(utils.queryByText(ts.exportReady)).toBeNull();
+  });
+
+  it('the notice exists in both languages', () => {
+    expect(translations.es.settings.exportReady).toBe(
+      'Copia lista. Solo queda guardada donde la hayas enviado (Drive, Descargas…).',
+    );
+    expect(translations.en.settings.exportReady).toBe(
+      "Backup ready. It's only kept wherever you sent it (Drive, Downloads…).",
+    );
+  });
+});
+
 it('the partial-import warning is drawn in the restart dialog, the topmost window', async () => {
   mockPick.mockResolvedValue('file://parcial.json');
   mockRead.mockResolvedValue(

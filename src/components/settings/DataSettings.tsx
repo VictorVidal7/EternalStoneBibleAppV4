@@ -103,6 +103,11 @@ export default function DataSettings() {
           degradedSections: result.degradedSections,
         });
         toast.warning(t.settings.exportPartial);
+      } else {
+        // R9-32 — `shareAsync` resolves when the sheet closes, whether or
+        // not a destination kept the file (dismissing it looks the same).
+        // Say where the backup lives instead of a "saved" that may be false.
+        toast.info(t.settings.exportReady);
       }
     } catch (error) {
       toast.error(t.settings.exportError);

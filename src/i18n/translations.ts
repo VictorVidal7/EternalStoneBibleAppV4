@@ -4171,6 +4171,10 @@ export const translations = {
       exportError: 'No se pudo exportar la copia. Inténtalo de nuevo.',
       exportPartial:
         'Copia generada, pero algunos datos no se pudieron incluir. Puedes intentarlo de nuevo más tarde.',
+      // R9-32 — tras cerrar la hoja de compartir: la app no sabe si el
+      // destino guardó el archivo, así que no dice «guardada».
+      exportReady:
+        'Copia lista. Solo queda guardada donde la hayas enviado (Drive, Descargas…).',
       backupDialogTitle: 'Eternal Stone Bible · Copia de seguridad',
       importBackup: 'Importar copia de seguridad',
       importBackupDescription:
@@ -10735,6 +10739,10 @@ export const translations = {
       exportError: 'Backup export failed. Please try again.',
       exportPartial:
         "Backup created, but some data couldn't be included. You can try again later.",
+      // R9-32 — after the share sheet closes: the app can't tell whether the
+      // destination saved the file, so it doesn't say "saved".
+      exportReady:
+        "Backup ready. It's only kept wherever you sent it (Drive, Downloads…).",
       backupDialogTitle: 'Eternal Stone Bible · Backup',
       importBackup: 'Import backup',
       importBackupDescription:
