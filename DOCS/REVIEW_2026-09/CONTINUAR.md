@@ -378,7 +378,10 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   decisiones visibles (N entradas del paseo, «Compartir» que frena, el piso del `maxLength`), tomadas en la 187c por
   delegación (§7). `R9-639` (nuevo, P3, por lectura): vecino de `R9-518`. `R9-640` (P3, A, lote D): el estudio de
   la Mesa compartido con una nota cortada. `R9-562` sigue fuera (§8).
-  **La 188: la revisión del diff de la 187 con emulador** (`_scratch/S188-PROMPT.md`).
+  **La 188, cortada** (`detail/S188-revision-del-diff-s187.md`): el diff leído; en vivo, el devocional de `R9-511`
+  (frena, el borrador sigue, `maxLength` 0 bloquea al teclear). Por lectura: el toast de `R9-415` sale detrás del
+  editor (`R9-637`), y el paseo deja «(2/2)» arriba. **Sigue la 188b** (`_scratch/S188b-CIERRE-PROMPT.md`): pegar,
+  el aviso a 2,0 y en español, el paseo, «Reabrir», la Mesa y el toast de `R9-415`, en vivo.
 - **Tanda 4 — planes propios y Juntos (5).** `R9-507`, `R9-508` y `R9-509` (el constructor: el plan viejo tras
   guardar, la vista previa que no es lo que se guarda, el renombre que rearma los días y mueve el progreso);
   `R9-512` y `R9-506` (invitar con la duración elegida; pegar el mensaje entero).

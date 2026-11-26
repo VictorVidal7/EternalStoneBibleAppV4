@@ -578,3 +578,9 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   - Fuera: `R9-562` (severidad en la §8) y la pregunta de la Mesa (D o B).
 
   177 abiertos de 640 (1 P1, 73 P2, 102 P3). Detalle: `detail/S187-arreglos-tanda-3.md`.
+
+- **Sesión 188 — 2026-11-26 (cortada a ~90 llamadas).** Revisión del diff de la tanda P2 3 con un AVD, Opus 5.5,
+  sin agentes: el diff leído entero; en vivo, el devocional de `R9-511` (frena, el borrador sigue, `maxLength` 0
+  bloquea al teclear; pegar, sin medir). Por lectura: el toast de `R9-415` sale detrás del editor (`Modal` sin
+  `<ToastHost />`, la clase de `R9-637`), y el paseo de `R9-498` deja «(2/2)» arriba de «(1/2)». Sin entradas
+  nuevas. Sigue la 188b. Detalle: `detail/S188-revision-del-diff-s187.md`.
