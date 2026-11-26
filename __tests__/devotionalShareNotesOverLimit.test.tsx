@@ -115,6 +115,7 @@ const note = (i: number, len = 280) =>
 let shareSpy: jest.SpyInstance;
 beforeEach(async () => {
   mockToast.error.mockClear();
+  mockToast.show.mockClear();
   mockToast.info.mockClear();
   shareSpy = jest
     .spyOn(Share, 'share')
@@ -165,7 +166,13 @@ async function share(notes: string[]) {
       await AsyncStorage.getItem(DEVOTIONAL_SAVED_KEY),
     ).length,
     draftAfter: await AsyncStorage.getItem(DEVOTIONAL_DRAFT_KEY),
-    errors: mockToast.error.mock.calls.map(c => c[0]),
+    errors: [
+      ...mockToast.error.mock.calls.map(c => c[0]),
+      ...mockToast.show.mock.calls
+        .filter(c => c[0].variant === 'error')
+        .map(c => c[0].message),
+    ],
+    shows: mockToast.show.mock.calls.map(c => c[0]),
   };
 }
 
@@ -176,6 +183,8 @@ describe('R9-511 — devotional notes over the 12 000 budget', () => {
     expect(out.saved).toBe(0);
     expect(out.draftAfter).not.toBeNull();
     expect(out.errors).toEqual([db.notesOverLimit.replace('{{n}}', '2000')]);
+    // The default two lines would cut "tu borrador sigue aquí".
+    expect(out.shows[0].numberOfLines).toBe(4);
   });
 
   it('control: 30 × 280 (8 400) travel whole, and the draft is cleared', async () => {

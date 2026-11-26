@@ -321,7 +321,13 @@ export default function DevotionalBuilderScreen() {
     // say how much is over so the user can shorten it.
     const dropped = calNotesDropped(input, bundle);
     if (dropped > 0) {
-      toast.error(db.notesOverLimit.replace('{{n}}', String(dropped)));
+      // Four lines: the default two would cut "your draft is still here".
+      toast.show({
+        message: db.notesOverLimit.replace('{{n}}', String(dropped)),
+        variant: 'error',
+        duration: 5000,
+        numberOfLines: 4,
+      });
       return;
     }
     haptics.success();
