@@ -388,6 +388,8 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
 - **Después, los P3** (103 de `R9-410`..`R9-568`, más `R9-569`; los cuatro de la 141 van antes de la tanda 2): por área, en el mismo orden (datos y sync, audio y
   versión, búsqueda, pantallas, interfaz y accesibilidad), y al final los de pruebas, docs y dependencias. Varios caen
   solos con su tanda P2 (`R9-559` y `R9-569` con la 2; `R9-525` con la 5; lo que suma a `R9-524` es una sola raíz).
+  **Desde el 2026-11-25, antes van por el triaje de la §7** (la 185, solo docs): lo que quede en A sigue este
+  orden; los lotes D van con agentes en paralelo.
 - **Al terminar la fase:** Opus 5.5 como principal con Fable de asesor, y las filas C P1 que faltan (`C17`, `C23`:
   `_scratch/POSTARREGLOS-PROMPT-C17-C23.md`). Las filas de cuenta siguen esperando la cuenta de Google de PRUEBA.
 
@@ -411,7 +413,8 @@ tema:
 - **Medir, no leer.** Una sonda ejecutable vale más que una lectura, también para verificar un informe. Un «por
   lectura», un «benigno», un «sin daño» y una hipótesis escrita en una decisión son riesgos sin medir. La
   consecuencia de un hallazgo se mide donde el dato se consume. Antes de afirmar un estado, `git log`; antes de
-  creerle a un conteo, mirar qué se extrajo. Se mide después de formatear.
+  creerle a un conteo, mirar qué se extrajo. Se mide después de formatear. Excepción, solo para P3: el triaje de
+  la §7 (regla 2).
 - **Controles y sondas.** Un control se fuerza, se lee entero y se corre también contra un cambio BUENO de su
   superficie. Una pieza que no se aplicó da «sin daño». Una sonda puede romper lo que mide, o dejar de mostrar el
   daño por un arreglo hermano. Las sondas ejecutables se borran al cerrar, o salen de `testMatch`.
@@ -579,6 +582,44 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     defecto de arriba. Se corre cuando Victor lo pide. **El orquestador se lo recomienda** al cerrar una sesión si se
     cumple uno de los momentos de su sección «Cuándo recomendarlo» (un modelo nuevo, un defecto que se quiere bajar,
     un agente barato que se equivocó dos veces, la cuota que no alcanza, una tanda grande nueva).
+
+- **El triaje de los P3 y la entrada de hallazgos nuevos (Victor, 2026-11-25: «adelante con las reglas que
+  necesitan mi OK», con el criterio revisado por el asesor y por un agente Fable sobre 26 P3 reales).** Por qué:
+  desde la 142 se arreglaron 66 hallazgos y entraron 64, casi todos P3 de las revisiones de diff. Saldo neto: −4 en
+  40 sesiones. El final de la fase sigue siendo 0 P1 y 0 P2 abiertos; el triaje no lo acorta, quita el ruido.
+  - **Regla 1, el criterio.** Cada P3 abierto cae en un grupo:
+    - **A, se arregla.** (1) Pierde, altera, resucita o deja distinto entre aparatos, o con la nube, algo que el
+      usuario escribió o borró; puntos y estadísticas derivadas no cuentan. (2) Dice «guardado», «restaurado»,
+      «pagado» o «borrado» cuando no lo está, o muestra mal un texto o una cita bíblica. (3) Tira la app o la deja
+      sin salida. (4) Deja un contenido o una acción inalcanzable (lector de pantalla, texto grande, contraste).
+      (5) Expone datos o credenciales. (6) Contradice una decisión de esta §7 o una regla fija: el premium no quita
+      lo gratis, el cuidado teológico, la fidelidad bíblica.
+    - **B, aceptado.** Lo que no cae en A. Se cierra con `✅ ACEPTADO en la sesión N (triaje): <cláusula y una
+frase>`. Pruebas y CI van a B solo si un revert muestra que la puerta atrapa el bug. Si no atrapa y protege un
+      A(1), van a D.
+    - **C, fusionado.** «Familia de» o «raíz de» otro abierto; «vecino de» no es fusión (17 de 19 vecinos de la
+      muestra ya estaban arreglados). Se cierra en el que queda, que recibe la consecuencia en su entrada. Una
+      fusión hacia uno que espera a Victor hereda la espera.
+    - **D, lote.** Se arregla con un arreglo corto, en archivos propios, con prueba simple; también una frontera con
+      arreglo propuesto y sonda hecha. Lo reparten agentes en paralelo; cada commit, con su revert por pieza.
+    - **E, espera al dueño.** Lo decide Victor o vive fuera del repo (consola, legal). Sigue abierto, sin tocar. Además
+      de los del «NO» de cada mensaje, la muestra halló `R9-490`, `R9-505`, `R9-522`, `R9-523`, `R9-527`, `R9-551`,
+      `R9-419` y `R9-554`.
+    - **En la duda entre A y B, va a B**, salvo que toque A(1) o A(2): una divergencia silenciosa nadie la reporta,
+      así que no se acepta esperando que alguien la reabra.
+  - **Regla 2, una excepción a «medir, no leer» (§5).** Un P3 hallado por lectura, sin daño medido y fuera de A, se
+    acepta cuando medirlo cuesta más que el riesgo.
+  - **Regla 3, la entrada.** Una revisión de diff mira lo que el diff cambió, y lo que rompió se arregla antes del
+    merge. Un P3 nuevo, del diff o anterior a él, se registra solo si cae en A. El resto va en una línea del detalle,
+    sin entrada.
+  - **Regla 4, qué diff se revisa.** Solo el de un arreglo P1 o P2. Un arreglo P3 (también los lotes D) se verifica
+    con su revert por pieza y el validate, sin sesión de revisión.
+  - **La sesión de triaje (`_scratch/S185-PROMPT.md`).** Seis agentes de solo lectura, dos por familia (pruebas y
+    CI; sync, dinero y respaldo; pantallas), que no se ven entre sí. Cada uno devuelve un TSV: id, grupo, cláusula,
+    frase citada de la entrada y marca de frontera, calibrado con los 14 aceptados de `ESTADO.tsv`. El orquestador
+    lee los desacuerdos, toda frontera (Fable espera unas 40) y todo B que nombre pérdida, texto falso o crash. La
+    lista de aceptados va en el detalle, y Victor la ve antes del merge. Estimación de Fable: quedan unos 73
+    abiertos de 189 (de 53 a 93, según dónde caiga la frontera).
 
 - **`R9-32` y `R9-31`: qué promete el respaldo (decidido por Claude en la sesión 183, por delegación de Victor del
   2026-11-25).** El detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §2 y §3.
