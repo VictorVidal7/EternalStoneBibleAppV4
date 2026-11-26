@@ -140,6 +140,57 @@ export interface RetiredBookmarksMigrationDeps {
   uid?: string | null;
 }
 
+/** `in` takes a bounded list; 10 is the oldest Firestore limit. */
+const FAVORITE_KEYS_PER_QUERY = 10;
+
+/**
+ * R9-518 — which of `verseKeys` the account already has as a live favorite
+ * in Firestore (`users/{uid}/favorites`, field `verseId`; a `deleted: true`
+ * tombstone does not count). Reads only the docs that match. `null` when
+ * the answer did not come from the server: a failed query, or a snapshot
+ * served from the local cache (offline, one-shot `get()` falls back to the
+ * cache, which on a fresh install is empty and would read as "not there").
+ * Without Firestore there is no account copy to collide with: empty set.
+ *
+ * Same limit as the local check: a favorite stored under a pre-canonical
+ * `verseId` (before Sprint 58, 2026-06-01) is not matched.
+ */
+async function accountFavoriteVerseKeys(
+  uid: string,
+  verseKeys: readonly string[],
+): Promise<Set<string> | null> {
+  const fn = getFirestore();
+  if (!fn) return new Set();
+  const found = new Set<string>();
+  const unique = Array.from(new Set(verseKeys));
+  try {
+    for (let i = 0; i < unique.length; i += FAVORITE_KEYS_PER_QUERY) {
+      const snapshot = await fn()
+        .collection(`users/${uid}/favorites`)
+        .where('verseId', 'in', unique.slice(i, i + FAVORITE_KEYS_PER_QUERY))
+        .get();
+      if (snapshot.metadata?.fromCache) {
+        logger.warn('retiredBookmarksMigration: favorites check from cache', {
+          component: 'retiredBookmarksMigration',
+        });
+        return null;
+      }
+      for (const doc of snapshot.docs) {
+        const data = doc.data();
+        if (!data || data.deleted === true) continue;
+        if (typeof data.verseId === 'string') found.add(data.verseId);
+      }
+    }
+  } catch (error) {
+    logger.warn('retiredBookmarksMigration: favorites check failed', {
+      component: 'retiredBookmarksMigration',
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return null;
+  }
+  return found;
+}
+
 /** Guards against two overlapping invocations (e.g. a fast auth-state
  *  transition re-firing the caller's effect before the previous run
  *  finished) double-migrating the same bookmark into two favorites. */
@@ -219,10 +270,27 @@ export async function migrateRetiredBookmarksToFavorites(
     }
 
     // ---- migrate whatever survived, deduped against existing favorites ----
-    const toMigrate = selectBookmarksToMigrate(
+    let toMigrate = selectBookmarksToMigrate(
       Array.from(collected.values()),
       deps.existingFavoriteVerseKeys,
     );
+    // R9-518 — on a fresh install the caller's favorites are still EMPTY
+    // when the user signs in: the sync engine pulls the account's favorites
+    // later. A bookmark whose verse the account already favorited then got
+    // a second favorite (new random id; the table has no UNIQUE(verse_id)),
+    // and the original arrived next to it on every device. Ask the account
+    // itself, for just these verses. If that cannot be answered from the
+    // server, nothing is written, cleared or flagged: the next launch retries.
+    if (deps.uid && toMigrate.length > 0) {
+      const inAccount = await accountFavoriteVerseKeys(
+        deps.uid,
+        toMigrate.map(b => bookmarkVerseKey(b.book, b.chapter, b.verse)),
+      );
+      if (!inAccount) return;
+      toMigrate = toMigrate.filter(
+        b => !inAccount.has(bookmarkVerseKey(b.book, b.chapter, b.verse)),
+      );
+    }
     for (const bookmark of toMigrate) {
       try {
         await deps.addFavorite(

@@ -26,7 +26,31 @@ const mockGet = jest.fn(async () => ({
   docs: mockDocs.map(d => ({id: d.id, data: () => d.data})),
 }));
 const mockDoc = jest.fn(() => ({delete: mockDelete}));
-const mockCollection = jest.fn(() => ({get: mockGet, doc: mockDoc}));
+// R9-518 — the account's favorites (`users/{uid}/favorites`), queried with
+// `where('verseId', 'in', keys)`. The fake applies the filter for real: a
+// query on another field, or another operator, finds nothing.
+let mockFavoriteDocs: Array<{id: string; data: Record<string, unknown>}> = [];
+let mockFavoritesFromCache = false;
+const mockFavoritesWhere = jest.fn(
+  (field: string, op: string, values: unknown[]) => ({
+    get: async () => ({
+      metadata: {fromCache: mockFavoritesFromCache},
+      docs: mockFavoriteDocs
+        .filter(
+          d =>
+            field === 'verseId' &&
+            op === 'in' &&
+            values.includes(d.data[field]),
+        )
+        .map(d => ({id: d.id, data: () => d.data})),
+    }),
+  }),
+);
+const mockCollection = jest.fn((path: string) =>
+  path.endsWith('/favorites')
+    ? {where: mockFavoritesWhere}
+    : {get: mockGet, doc: mockDoc},
+);
 const mockFirestoreFn = jest.fn(() => ({collection: mockCollection}));
 jest.mock('../src/lib/sync/firestore', () => ({
   __esModule: true,
@@ -109,6 +133,9 @@ describe('migrateRetiredBookmarksToFavorites', () => {
     mockGet.mockClear();
     mockDoc.mockClear();
     mockCollection.mockClear();
+    mockFavoriteDocs = [];
+    mockFavoritesFromCache = false;
+    mockFavoritesWhere.mockClear();
   });
 
   it('does nothing when there are no local bookmarks and no uid', async () => {
@@ -323,6 +350,9 @@ describe('migrateRetiredBookmarksToFavorites — Firestore safety-net (signed-in
     mockGet.mockClear();
     mockDoc.mockClear();
     mockCollection.mockClear();
+    mockFavoriteDocs = [];
+    mockFavoritesFromCache = false;
+    mockFavoritesWhere.mockClear();
   });
 
   it('pulls a bookmark that only exists in Firestore (never synced to this device), migrates it, deletes the cloud doc, and marks the flag "done"', async () => {
@@ -442,5 +472,122 @@ describe('migrateRetiredBookmarksToFavorites — Firestore safety-net (signed-in
       uid: null,
     });
     expect(mockCollection).not.toHaveBeenCalled();
+  });
+
+  // R9-518 — a fresh install signing in: the caller's favorites are still
+  // empty (the engine pulls them later), but the account already has a
+  // favorite at the bookmark's verse.
+  describe('R9-518 — the account already favorited the verse', () => {
+    beforeEach(() => {
+      mockDocs = [
+        {
+          id: 'bm-remote',
+          data: {book: 'John', chapter: 3, verse: 16, text: 'For God so loved'},
+        },
+        {
+          id: 'bm-remote-2',
+          data: {
+            book: 'Genesis',
+            chapter: 1,
+            verse: 1,
+            text: 'In the beginning',
+          },
+        },
+      ];
+      mockFavoriteDocs = [
+        {id: 'fav_original', data: {verseId: 'John_3_16', book: 'John'}},
+      ];
+    });
+
+    it('does not create a second favorite for it; migrates the rest and finishes', async () => {
+      const addFavorite = jest.fn().mockResolvedValue(undefined);
+      await migrateRetiredBookmarksToFavorites({
+        existingFavoriteVerseKeys: [],
+        addFavorite,
+        uid: 'user-1',
+      });
+      expect(mockCollection).toHaveBeenCalledWith('users/user-1/favorites');
+      expect(addFavorite).toHaveBeenCalledTimes(1);
+      expect(addFavorite.mock.calls[0][0]).toMatchObject({
+        book: 'Genesis',
+        chapter: 1,
+        verse: 1,
+      });
+      expect(mockDelete).toHaveBeenCalledTimes(2);
+      expect(await AsyncStorage.getItem(BOOKMARKS_MIGRATION_FLAG_KEY)).toBe(
+        'done:user-1',
+      );
+    });
+
+    it('a tombstoned account favorite does not count', async () => {
+      mockFavoriteDocs = [
+        {id: 'fav_original', data: {verseId: 'John_3_16', deleted: true}},
+      ];
+      const addFavorite = jest.fn().mockResolvedValue(undefined);
+      await migrateRetiredBookmarksToFavorites({
+        existingFavoriteVerseKeys: [],
+        addFavorite,
+        uid: 'user-1',
+      });
+      expect(addFavorite).toHaveBeenCalledTimes(2);
+    });
+
+    it('a check served from the cache writes, clears and flags nothing (retries next launch)', async () => {
+      mockFavoritesFromCache = true;
+      await AsyncStorage.setItem(
+        LEGACY_BOOKMARKS_STORAGE_KEY,
+        JSON.stringify([bookmark({id: 'local-1'})]),
+      );
+      const addFavorite = jest.fn().mockResolvedValue(undefined);
+      await migrateRetiredBookmarksToFavorites({
+        existingFavoriteVerseKeys: [],
+        addFavorite,
+        uid: 'user-1',
+      });
+      expect(addFavorite).not.toHaveBeenCalled();
+      expect(mockDelete).not.toHaveBeenCalled();
+      expect(
+        await AsyncStorage.getItem(LEGACY_BOOKMARKS_STORAGE_KEY),
+      ).not.toBeNull();
+      expect(
+        await AsyncStorage.getItem(BOOKMARKS_MIGRATION_FLAG_KEY),
+      ).toBeNull();
+    });
+
+    it('a failed check does the same', async () => {
+      mockFavoritesWhere.mockImplementationOnce(() => {
+        throw new Error('unavailable');
+      });
+      const addFavorite = jest.fn().mockResolvedValue(undefined);
+      await migrateRetiredBookmarksToFavorites({
+        existingFavoriteVerseKeys: [],
+        addFavorite,
+        uid: 'user-1',
+      });
+      expect(addFavorite).not.toHaveBeenCalled();
+      expect(mockDelete).not.toHaveBeenCalled();
+      expect(
+        await AsyncStorage.getItem(BOOKMARKS_MIGRATION_FLAG_KEY),
+      ).toBeNull();
+    });
+
+    it('asks in batches of at most 10 verses', async () => {
+      mockDocs = Array.from({length: 23}, (_, i) => ({
+        id: 'bm-' + i,
+        data: {book: 'Psalms', chapter: 119, verse: i + 1, text: 'v'},
+      }));
+      mockFavoriteDocs = [{id: 'fav_x', data: {verseId: 'Psalms_119_23'}}];
+      const addFavorite = jest.fn().mockResolvedValue(undefined);
+      await migrateRetiredBookmarksToFavorites({
+        existingFavoriteVerseKeys: [],
+        addFavorite,
+        uid: 'user-1',
+      });
+      expect(mockFavoritesWhere).toHaveBeenCalledTimes(3);
+      for (const call of mockFavoritesWhere.mock.calls) {
+        expect((call[2] as unknown[]).length).toBeLessThanOrEqual(10);
+      }
+      expect(addFavorite).toHaveBeenCalledTimes(22);
+    });
   });
 });
