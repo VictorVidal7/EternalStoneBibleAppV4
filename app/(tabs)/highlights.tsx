@@ -193,10 +193,25 @@ export default function HighlightsScreen() {
     // in SQLite, a no-op in Firestore (`{merge: true}` keeps an omitted
     // key), and still toasted "Guardado" — the note came back on the next
     // focus. `null` is the clear; `undefined` stays "don't touch".
-    const saved = await highlightService.updateHighlight(editing.verseId, {
-      note: note || null,
-      category: categoryDraft ?? null,
-    });
+    // R9-415 — the row can be gone (a sync pull applied a delete made on
+    // another device while this editor was open) or SQLite can fail. The
+    // rejection used to escape the press handler: no toast, the editor stayed
+    // open, and Cancel, the only way out, dropped what was typed. The editor
+    // stays open with the draft, and the reader is told.
+    let saved: Awaited<ReturnType<typeof highlightService.updateHighlight>>;
+    try {
+      saved = await highlightService.updateHighlight(editing.verseId, {
+        note: note || null,
+        category: categoryDraft ?? null,
+      });
+    } catch (err) {
+      logger.warn('Error saving highlight', {
+        component: 'HighlightsScreen',
+        error: err instanceof Error ? err.message : String(err),
+      });
+      toast.error(t.highlights.saveError);
+      return;
+    }
     // `saved` is the plain Highlight the service wrote (authoritative
     // `updatedAt`); the row also carries the screen-only `text`/`bookName`.
     const updated: HighlightItem = {...editing, ...saved};

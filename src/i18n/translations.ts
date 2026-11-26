@@ -4046,6 +4046,8 @@ export const translations = {
       deleteMessage: '¿Quieres quitar este resaltado?',
       removed: 'Resaltado eliminado',
       saved: 'Resaltado actualizado',
+      saveError:
+        'No se pudo guardar. Tu nota sigue aquí: cópiala antes de cancelar.',
       notePlaceholder: 'Añade una nota personal...',
       category: 'Categoría',
       save: 'Guardar',
@@ -10616,6 +10618,8 @@ export const translations = {
       deleteMessage: 'Remove this highlight?',
       removed: 'Highlight removed',
       saved: 'Highlight updated',
+      saveError:
+        'Could not save. Your note is still here: copy it before you cancel.',
       notePlaceholder: 'Add a personal note...',
       category: 'Category',
       save: 'Save',
