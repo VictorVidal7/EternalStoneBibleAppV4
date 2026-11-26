@@ -373,6 +373,11 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);
   `R9-511` (el devocional recortado, y «Compartir» borra el borrador); `R9-562` (la ✕ del selector de colores borra
   el subrayado con su nota: **su severidad es una decisión abierta de Victor, §8**).
+  **Hecha en la 187 y la 187b** (`detail/S187-arreglos-tanda-3.md`), sin agentes ni emulador, en `fix/s187` (sin
+  mergear): los seis arreglados (`62d3cd94`, `0f0b7340`, `24606b9c`, `fd148c48`, `0883587a`, `9c939a05`). Dos
+  decisiones visibles sin aprobar: `R9-498` guarda el paseo en N entradas del diario, y `R9-511` frena «Compartir»
+  si el paquete recorta. `R9-639` (nuevo, P3, por lectura): vecino de `R9-518`. `R9-562` sigue fuera (§8).
+  **La 188: la revisión del diff de la 187 con emulador** (`_scratch/S188-PROMPT.md`).
 - **Tanda 4 — planes propios y Juntos (5).** `R9-507`, `R9-508` y `R9-509` (el constructor: el plan viejo tras
   guardar, la vista previa que no es lo que se guarda, el renombre que rearma los días y mueve el progreso);
   `R9-512` y `R9-506` (invitar con la duración elegida; pegar el mensaje entero).
@@ -403,11 +408,12 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   **Triaje hecho en la 185** (`detail/S185-triaje-p3.md`): de 174 P3 triageados, 68 B y 22 C cerrados (90); quedan
   99 P3 abiertos: 29 A, 28 D, 23 E (más los 15 del «NO»), y 4 pruebas sin revert visto. **Una pregunta para Victor**
   (§5 del detalle): las seis pruebas de la Mesa, D o B.
-- **El orden que queda, desde la 187** (la 186 y la 186b, la revisión del diff de la 182 a la 184, hechas):
-  1. **Los P2, por tanda** (3 a 9). **No son disjuntas** (medido sobre los archivos que nombran sus entradas, no los
+- **El orden que queda, desde la 188** (la tanda 3 hecha en la 187 y la 187b; la 188 revisa su diff con
+  emulador; `R9-562` espera su severidad, §8):
+  1. **Los P2, por tanda** (4 a 9). **No son disjuntas** (medido sobre los archivos que nombran sus entradas, no los
      que tocará el arreglo): `[chapter].tsx` en 3, 5 y 7; `search.tsx` en 5 y 6; `FavoritesContext.tsx` en 3 y 7;
      `highlights.tsx` en 3 y 9; `app/_layout.tsx` en 3 y 8; `prophecies/index.tsx` en 5 y 7; `translations.ts` en 4,
-     6 y 9. Olas posibles con agentes en paralelo: la 3 sola; después 4, 6 y 9 (con `translations.ts` en serie); 5 y
+     6 y 9. Olas posibles con agentes en paralelo: 4, 6 y 9 (con `translations.ts` en serie); 5 y
      8; la 7 al final. Cada P2 sigue con su sesión de revisión de diff (§7, regla 4). De la tanda 2 quedan `R9-410` y
      `R9-411` (los dos del import, una sesión corta), `R9-558` (con `R9-569` y `R9-559`) y `R9-31` (§2.1 del
      detalle de la 186).

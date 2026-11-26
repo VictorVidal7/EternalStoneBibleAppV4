@@ -12144,6 +12144,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     con el editor abierto, o un error de SQLite. Mismo patrón, sin medir: los `confirmDelete` de
     `highlights.tsx:167` y `notes.tsx:84` (el diálogo queda abierto).
   - **Arreglo propuesto (sin escribir):** `try`/`catch` con `toast.error`.
+  - **✅ ARREGLADO en la sesión 187** (`62d3cd94`, rama `fix/s187`): `saveEditor` con `try`/`catch` y `toast.error` (texto nuevo); el editor y lo escrito siguen. Prueba: `__tests__/highlightsSaveEditorRejects.test.tsx`, con el `HighlightService` real, roja sin el arreglo. Los `confirmDelete` de `highlights.tsx` y `notes.tsx` quedan fuera (no pierden texto escrito). Detalle: `detail/S187-arreglos-tanda-3.md` §1.
 
 - **`R9-416` (S114, `A12` hilo 2 / compartir — P3) — 🐛 guardar o borrar un estilo de compartir con el
   almacenamiento fallando no avisa nada.** MEDIDO en la sesión 114 (agente 8; re-medido igual en el
@@ -12985,6 +12986,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     Controles: con una pausa de 900 ms, o con `blur` de A, `bigIdea` se guarda.
   - **Propuesta (sin escribir):** un debounce por sección, o vaciar el pendiente de otra sección antes de agendar
     uno nuevo. Detalle: `detail/A32-mesa-altitud.md`.
+  - **✅ ARREGLADO en la sesión 187** (`24606b9c`, rama `fix/s187`): el debounce de la Mesa hace `flush()` de lo pendiente de otra sección (pasaje, sección o plantilla) antes de agendar. Prueba: `__tests__/prepSharedDebounceSections.test.tsx` (la Mesa real, el debounce real de 700 ms), roja sin el arreglo. Detalle: `detail/S187-arreglos-tanda-3.md` §1.
 
 - **`R9-474` (S126, `A32` / Mesa, navegación — P3) — 🐛 dos toques en «Modo púlpito» abren dos púlpitos, y atrás
   vuelve al primero.** MEDIDO con sonda en la 126 (agente 1, re-medido igual en el principal).
@@ -13314,6 +13316,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** `_scratch/S128-sondas-agente-5/S128-a5-diario.test.tsx.txt` (pantalla real, store real,
     `renderRouter`): `REABRIR -> en disco: {…,"answered":false} | dialogo: no`; al marcarla otra vez, el campo
     vacío; control: «Eliminar» muestra el diálogo y en disco quedan 2.
+  - **✅ ARREGLADO en la sesión 187** (`0f0b7340`, y `f26b5929` quita un import sobrante, rama `fix/s187`): con un testimonio escrito, «Reabrir» pide confirmación (`ConfirmDialog` destructivo); sin testimonio, como antes. Prueba: `__tests__/prayerReopenConfirm.test.tsx` (`renderRouter`, la pantalla y el store reales), 2 de 3 rojas sin el arreglo. Detalle: `detail/S187-arreglos-tanda-3.md` §1.
 
 - **`R9-498` (S128, `A36` / orar la Escritura — P2) — 🐛 la oración del paseo se guarda en el diario cortada a 1000
   caracteres, y la pantalla dice «Guardado».** MEDIDO con sonda en la 128 (agente 7, re-medido igual en el
@@ -13327,6 +13330,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** `_scratch/S128-sondas-agente-7/S128-a7-orarEscritura.test.tsx.txt`, 10/10:
     `escrito=1500 guardado=1000 versiculos enteros=1,…,12 toast=[["Guardado en tu diario de oración"]]`; control:
     una oración corta, entera. Sin medir si lectio o ACTS cortan igual.
+  - **✅ ARREGLADO en la sesión 187** (`0883587a`, y `a55f7722` quita un import sobrante, rama `fix/s187`): el paseo se guarda en varias entradas partidas por versículo entero (`splitPrayerDetail`, «Título (1/2)»); la caja de un versículo, 960 en JS. Decisión visible, sin aprobar todavía por Victor: N entradas en el diario (las cuentan el contador, el vacío del diario y `PrayerCard`); su orden, a mirar en la 188. Prueba: `__tests__/scripturePrayerWalkSplit.test.tsx` (la pantalla y el diario reales), roja sin el arreglo. Detalle: `detail/S187-arreglos-tanda-3.md` §1.
 
 - **`R9-499` (S128, `A36` / diario de oración — P3) — 🐛 el atrás de Android o «Cancelar» descartan sin avisar el
   borrador de una petición (y el del testimonio).** MEDIDO con sonda en la 128 (agente 5, re-medido igual en el
@@ -13508,6 +13512,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     `Share.share` no distingue).
   - **Propuesta (sin escribir):** mostrar lo que queda y cortar la caja en el tope, o no borrar el borrador si el
     paquete recortó algo.
+  - **✅ ARREGLADO en la sesión 187b** (`9c939a05`, rama `fix/s187`): si `makeCalBundle` deja fuera texto (`calNotesDropped`: las notas saneadas sin tope menos las del paquete), «Compartir» no comparte, no guarda en «Tus devocionales» ni borra el borrador, y un toast dice cuánto sobra (texto nuevo es/en). Complemento: el `maxLength` de cada caja para en el presupuesto, nunca por debajo de su propio texto. Prueba: `__tests__/devotionalShareNotesOverLimit.test.tsx` (la pantalla real), cada pieza roja sin el arreglo; controles de 30 días y de 12 000 justos. El cancelar de la hoja (P3, `:288-289`) queda resuelto en el camino recortado, no en el normal. `makeStudyBundle` (P3) sigue abierto. Detalle: `detail/S187-arreglos-tanda-3.md` §2.
 
 - **`R9-512` (S129, `A37` / Juntos, invitar — P2) — 🐛 invitar a un plan curado con la duración elegida manda el
   plan con su duración por defecto: el grupo deja de leer lo mismo el mismo día.** MEDIDO con sonda en la 129
@@ -13580,6 +13585,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
   - **Sonda:** `_scratch/S129-sondas-agente-7/S129-a7-migracionAlEntrar.test.tsx.txt` (`AppContent` real, la
     migración real): `antesDeEntrar=0 get=1 borrados=1 addFavorite=[{"book":"John","chapter":3,"verse":16,…}]`;
     control: `addFavorite=[]`.
+  - **✅ ARREGLADO en la sesión 187** (`fd148c48`, rama `fix/s187`): antes de crear, la migración consulta `users/{uid}/favorites` (`verseId in`, lotes de 10); si la respuesta no viene del servidor (`fromCache` o fallo), no escribe, no borra ni marca. Prueba: `__tests__/retiredBookmarksMigration.test.ts`, 4 de 22 rojas sin el arreglo. Sin medir en jest: que el `get()` sin red dé `fromCache` (en el aparato, la 188). Vecino nuevo: `R9-639`. Detalle: `detail/S187-arreglos-tanda-3.md` §1.
 
 - **`R9-519` (S129, `A39` / colecciones — P3) — 🐛 dos toques en chips distintos de «Agregar a colección» antes de
   que vuelva la primera escritura: se pierde la primera.** MEDIDO con sonda en la 129 (agente 7, re-medido igual en
@@ -15572,6 +15578,18 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto (sin escribir):** un `numberOfLines` mayor (o libre) para este aviso, o un texto más corto
     que diga el destino en dos líneas a 2,0, en los dos idiomas. Detalle: `detail/S186-revision-del-diff-y-r9-31.md`
     §1.1.
+
+- **`R9-639` (S187, la migración de marcadores retirados / vecino de `R9-518` — P3) — 🐛 sin red en una instalación
+  nueva, la lectura de los marcadores de la cuenta cae a la caché vacía, la migración se da por hecha y esos
+  marcadores no se vuelven a leer.** POR LECTURA, sin verificar. Visto al arreglar `R9-518`.
+  - `retiredBookmarksMigration.ts`, la lectura de `users/{uid}/bookmarks`: un `get()` de un tiro sin `source`. Sin
+    red y con persistencia, el SDK cae a la caché (vacía en una instalación nueva) sin lanzar: `firestoreSucceeded`
+    queda en `true`, la bandera en `done:<uid>`, y no hay interfaz para llegar a esos marcadores después.
+  - Mismo mecanismo que el que `R9-518` cubre en la consulta de favoritos (`metadata.fromCache`).
+  - **Camino:** primer arranque con sesión, sin red, en una cuenta con marcadores de antes de 2026-08-10.
+  - **Severidad:** P3: camino estrecho; los marcadores siguen en la nube, sin camino para volver a leerlos.
+  - **Arreglo propuesto (sin escribir):** la misma guarda que `R9-518`: si la lectura viene de la caché, no marcar
+    `done`. Medible solo en el aparato (sin red, instalación nueva, sin la cuenta de Victor). Detalle: `detail/S187-arreglos-tanda-3.md` §3.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
