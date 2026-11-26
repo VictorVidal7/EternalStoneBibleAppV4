@@ -95,7 +95,8 @@ emulador) no entró: pasada la llamada ~65 sin los tres hallazgos cerrados, va a
 
 ## 4. Validate
 
-`NODE_ENV=development npm run validate` en `docs/review-s184`: ver la sección 5.
+`NODE_ENV=development npm run validate` en `docs/review-s184` (`43ff7884`), sin Metro ni emulador: verde, 443 suites
+y 5245 pruebas (la 183: 443 y 5239; +6), eslint sin errores (82 advertencias). Salida: `_scratch/S184-validate.out.txt`.
 
 ## 5. Cierre
 
