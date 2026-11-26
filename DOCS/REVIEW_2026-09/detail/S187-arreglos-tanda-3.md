@@ -52,7 +52,7 @@ Decisiones de diseño (con su porqué):
 - `R9-415`: los `confirmDelete` de `highlights.tsx` y `notes.tsx` («mismo patrón, sin medir» en la entrada) quedan
   fuera: no pierden texto escrito.
 
-## 2. `R9-511`, en la 187b (`9c939a05`)
+## 2. `R9-511`, en la 187b (`9c939a05` y `1e1c5ccf`)
 
 El devocional con más de 12 000 caracteres de notas se compartía recortado, se guardaba recortado en «Tus
 devocionales» y el borrador se borraba.
@@ -78,6 +78,9 @@ devocionales» y el borrador se borraba.
   borrador; 42 × 280 + 240 = 12 000 justos se comparte sin aviso. Vecinos verdes: `devotionalDraft`,
   `devotionalDraftRestoreSignal`, `devotionalSavedRestoreSignal`, `togetherBundle`, `keepAwakeRoutes`,
   `functionalidadesSettings`.
+- **El aviso, en cuatro líneas** (`1e1c5ccf`): el toast corta a dos por defecto (`Toast.tsx`, la clase de
+  `R9-638`), y a escala 1,0 se perdía «tu borrador sigue aquí». Va por `toast.show` con `numberOfLines: 4` y 5 000
+  ms; la prueba lo afirma, roja sin él. Que entre entero a escala 2,0: en el aparato.
 - **No medible en jest:** que el `maxLength` nativo frene al teclear o al pegar (`fireEvent.changeText` se lo
   salta). A la 188.
 - **Queda, a la vista de Victor:** con ~43 notas llenas, las cajas siguientes no dejan escribir y no hay contador
@@ -85,8 +88,8 @@ devocionales» y el borrador se borraba.
 - **Fuera:** `makeStudyBundle` (P3 de la misma raíz): otra pantalla, otra guarda. El «visto de paso» (cancelar la
   hoja también vacía el formulario): resuelto solo en el camino recortado.
 
-`NODE_ENV=development npm run validate` sobre la rama entera (los 8 commits), justo después de este commit: verde,
-448 suites y 5 267 pruebas.
+`NODE_ENV=development npm run validate` sobre la rama entera, justo después de `9c939a05` y otra vez al cerrar:
+verde, 448 suites y 5 267 pruebas.
 
 ## 3. Hallazgo nuevo: `R9-639` (P3, por lectura, sin verificar)
 

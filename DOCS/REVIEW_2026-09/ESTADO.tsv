@@ -509,7 +509,7 @@ R9-507	P2	A37 / planes propios	abierto		sin marca de cierre en su entrada (en la
 R9-508	P2	A37 / constructor y paquete	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-509	P2	A37 / constructor	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-510	P3	A37 / constructor	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-511	P2	A37 / Juntos, devocional y estudio	arreglado	9c939a05	marca de su entrada: «✅ ARREGLADO en la sesión 187b (`9c939a05`, rama `fix/s187`): si `makeCalBundle` deja fuera texto (`calNotesDropped`: las notas saneadas sin tope menos»
+R9-511	P2	A37 / Juntos, devocional y estudio	arreglado	9c939a05	marca de su entrada: «✅ ARREGLADO en la sesión 187b (`9c939a05`, y `1e1c5ccf` pone el aviso en cuatro líneas, rama `fix/s187`): si `makeCalBundle` deja fuera texto (`calNot»
 R9-512	P2	A37 / Juntos, invitar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-513	P3	A37 / Juntos, importar	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: fecha derivada. «importar otra vez el mismo plan propio reinicia su calendario» (la fecha de inicio no la»
 R9-514	P3	A37 / planes propios	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Cosmético.».»

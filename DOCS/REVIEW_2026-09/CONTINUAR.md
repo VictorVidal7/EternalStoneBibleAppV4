@@ -374,7 +374,7 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   `R9-511` (el devocional recortado, y «Compartir» borra el borrador); `R9-562` (la ✕ del selector de colores borra
   el subrayado con su nota: **su severidad es una decisión abierta de Victor, §8**).
   **Hecha en la 187 y la 187b** (`detail/S187-arreglos-tanda-3.md`), sin agentes ni emulador, en `fix/s187` (sin
-  mergear): los seis arreglados (`62d3cd94`, `0f0b7340`, `24606b9c`, `fd148c48`, `0883587a`, `9c939a05`). Dos
+  mergear): los seis arreglados (`62d3cd94`, `0f0b7340`, `24606b9c`, `fd148c48`, `0883587a`, `9c939a05` y `1e1c5ccf`). Dos
   decisiones visibles sin aprobar: `R9-498` guarda el paseo en N entradas del diario, y `R9-511` frena «Compartir»
   si el paquete recorta. `R9-639` (nuevo, P3, por lectura): vecino de `R9-518`. `R9-562` sigue fuera (§8).
   **La 188: la revisión del diff de la 187 con emulador** (`_scratch/S188-PROMPT.md`).
