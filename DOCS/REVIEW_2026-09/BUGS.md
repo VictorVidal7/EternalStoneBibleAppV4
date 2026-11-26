@@ -12031,7 +12031,8 @@ undefined (reading 'morning')","disk":"constructor"}`; control `forest` monta. C
   - **Lo que cae:** los consumidores, por debajo del boundary (Home, `app/(tabs)/index.tsx:1586` y
     `:1668-1700`; `app/(tabs)/plan/[id].tsx:93`). Con `@reading_plan_progress = null`, Home cae, «Reintentar»
     vuelve a caer y relanzar también (el bucle de `R9-412`). `42`, `completedDays` de texto o
-    `read_chapters = null` no tumban nada.
+    `read_chapters = null` no tumban nada (**corregido en la 186b:** un `completedDays` que no es arreglo sí tumba
+    Home; abajo).
   - **Camino:** ningún escritor de la app produce `null` (el export manda `planProgress ?? {}` desde
     `32fceb49`): solo un archivo de respaldo editado o de otra herramienta. P2, con el criterio de `R9-410`.
   - **Sonda:** `_scratch/S114-sondas-agente-1/S114-a1-planes` 11/11 (los providers en el orden del layout,
@@ -12041,10 +12042,22 @@ undefined (reading 'morning')","disk":"constructor"}`; control `forest` monta. C
     (`R9-30`).
   - **Arreglo propuesto (sin escribir):** en `importBackup`, esas dos secciones como fallidas si no son
     `isPlainObject`; en `hydrateFromStorage`, aceptar solo un objeto plano.
-  - **✅ ARREGLADO en la sesión 182** (`fdc69e7c`, rama `fix/s182`), el arreglo propuesto: en `importBackup`, cada
+  - **✅ ARREGLADO EN PARTE en la sesión 182** (`fdc69e7c`, rama `fix/s182`), el arreglo propuesto: en `importBackup`, cada
     sección que no es un objeto plano va a `failedSections` y no se escribe; en `hydrateFromStorage`, solo un objeto
     plano es un mapa (lo demás se lee como `{}`). Pruebas con el `importBackup` y el provider reales, cada pieza vista
     caer. `R9-410` sigue esperando. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §5.
+  - **REABIERTO en la sesión 186b** (P2, como `R9-410`; el A1 de la revisión del diff de la 182). Las dos guardas
+    miran solo el nivel de arriba: una entrada con `completedDays: "1,2"` (o `42`, o un objeto) pasa `importBackup`
+    (sale en `restoredSections`) y `hydrateFromStorage`; `getCompletedDays` la devuelve tal cual (`?? []` solo cubre
+    nulos) y `planPace` (`planPace.ts:90`) lanza `TypeError: completedDays.filter is not a function` en la lectura
+    de Home (`app/(tabs)/index.tsx:1566-1590`, cada plan del catálogo) y de `plan/[id].tsx`; por `R9-412`,
+    «Reintentar» no sale. `null` no tumba (control). Sonda jest con el `importBackup`, el provider y `planPace`
+    reales: `_scratch/S186b-r9411-sonda.test.tsx.txt`. La de la 114 copiaba las lecturas de Home sin `planPace`.
+    El camino es el mismo: solo un archivo editado o ajeno.
+  - **Arreglo propuesto (sin escribir):** en las dos guardas, una entrada vale solo si es un objeto plano con
+    `completedDays` arreglo (de enteros); si no, la sección falla en el import y la entrada se descarta al hidratar.
+    Revert por pieza en cada guarda. `isDayComplete` y `toggleDay` también leen `completedDays` sin mirar. Detalle:
+    `detail/S186-revision-del-diff-y-r9-31.md` §3.1.
 
 - **`R9-412` (S114, `A12` hilo 3 / `ErrorBoundary` nativo / `R9-14` — P2) — 🐛 el boundary nativo es uno
   solo, el más interno de 19 providers, sin nada por encima, y «Reintentar» es un bucle sin salida ante un
@@ -15546,6 +15559,20 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `detail/S183-arreglos-tanda-2-parte-2.md` §1.
   - Triaje 185: lote D, A(2) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
 
+- **`R9-638` (S186b, la revisión del diff de la 184 / el aviso de `R9-32` — P3) — 🐛 el aviso «Copia lista» se corta
+  a 2 líneas, y con letra grande se pierde el destino, que es lo que el aviso viene a decir.** MEDIDO en vivo a
+  escala 1,0 (la 186, en español), 1,3 y 2,0 (la 186b, en inglés).
+  - `Toast.tsx:69` corta a 2 líneas por defecto; `DataSettings.tsx:110` no pasa un tercer argumento; el `Text` no
+    tiene `maxFontSizeMultiplier`. A 1,0: «Copia lista. Solo queda guardada / donde la hayas enviado (Drive,
+    Des…». A 1,3: «Backup ready. It's only kept / wherever you sent it (Drive, …». A 2,0: «Backup ready. It's /
+    only kept wherever …»: dice que solo queda «donde», sin decir dónde. En español a 2,0, sin medir (por lectura,
+    peor: el texto es más largo).
+  - De paso: el toast de arriba se monta sobre la barra de estado (la hora tapa su borde), a toda escala.
+  - **Severidad:** P3, A(2)/A(4): no pierde datos; el aviso de `R9-32` queda a medias con letra grande. Lote D.
+  - **Arreglo propuesto (sin escribir):** un `numberOfLines` mayor (o libre) para este aviso, o un texto más corto
+    que diga el destino en dos líneas a 2,0, en los dos idiomas. Detalle: `detail/S186-revision-del-diff-y-r9-31.md`
+    §1.1.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -16447,6 +16474,24 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     dice «reemplazará los datos de este dispositivo… lo que no esté en el archivo no se borra de [la cuenta]». Sigue
     abierto: la transacción exclusiva no es mecánica (el cuerpo usa `bibleDB.executeSql`) y pide medir en el
     aparato. Detalle: `detail/S184-arreglos-tanda-2-parte-3.md` §2.
+  - **Sesiones 186 y 186b: medido en el aparato** (Pixel_9_Pro, `expo-sqlite` 57.0.1; `journal_mode` `delete` y
+    `busy_timeout` 0 en las dos conexiones; sondas temporales, revertidas). Escritores de otras tablas durante el
+    import (`addReviewEvent`, un `INSERT` crudo, la racha de `trackVersesRead`) y un lector por la conexión
+    compartida:
+    - **No exclusiva (hoy; la 186):** los escritores entran en la transacción; con commit quedan; con rollback se
+      pierden y su promesa ya resolvió. 5000 subrayados: 28–33 s.
+    - **Exclusiva sola (la 186b; los subrayados sobre `txn.runAsync`):** en commit y en rollback, cada escritor
+      recibe `database is locked` a los 3–20 ms: `addReviewEvent` lo traga con un `warn` (el repaso se pierde
+      siempre), la racha y el crudo rechazan a su llamador. El lector no se bloquea. El import no falló; 5000
+      subrayados: 9,4 s. **Es peor que hoy:** pierde siempre, no solo en un rollback.
+    - **Exclusiva + `PRAGMA busy_timeout = 3000` en la compartida** (500 subrayados, commit): los escritores esperan
+      ~1,4 s y entran tras el COMMIT; el lector de la compartida también espera detrás de ellos (1,46 s). Una
+      ventana más larga que el timeout vuelve a dar `locked` (sin medir).
+  - **Recomendación (sin código):** exclusiva + `busy_timeout` (≥ 5 s) fijado al abrir la conexión compartida, con
+    todo el cuerpo del import sobre el `txn` (hoy escriben por la compartida `bibleDB.executeSql`,
+    `foldVerseNotesInTransaction` y los logros: no es mecánico); un respaldo real de cientos de filas cierra en
+    ~1 s. La alternativa barata: no exclusiva y aceptar (pierde solo en un rollback, un fallo de SQLite a mitad).
+    La exclusiva sola, descartada. Sigue abierto. Detalle: `detail/S186-revision-del-diff-y-r9-31.md` §2 y §2.1.
 
 - **`R9-32` (A7, respaldo) — 💡 el archivo de respaldo se escribe en caché y nunca se
   limpia.** `BackupService.ts:586-590`. `shareAsync` resuelve al cerrarse la hoja, no cuando
@@ -16459,6 +16504,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   - **✅ ARREGLADO en la sesión 184** (`8ed7e99a`, rama `fix/s184`): tras un export sin secciones degradadas,
     `toast.info` con el texto de la §7, en los dos idiomas, dentro del modal «Datos». Jest con el provider real;
     revert: cae el export limpio. Sin medir en vivo (a la 186). Detalle: `detail/S184-arreglos-tanda-2-parte-3.md` §1.
+  - **Visto en vivo en la 186 y la 186b:** el toast sale descartando la hoja (~4 s tras el toque) y con destino
+    elegido (Quick Share, ~3 s tras volver a la app). A escala de fuente 2,0 se corta antes del destino: `R9-638`.
+    Detalle: `detail/S186-revision-del-diff-y-r9-31.md` §1.
 
 - **`R9-2` (B2, `.gitignore`) — 💡 el `.gitignore` raíz solo cubre `.env*.local`, no un
   `.env` pelado.** Severidad **baja** (hardening), arreglo de una línea.

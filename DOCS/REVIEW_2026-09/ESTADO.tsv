@@ -409,7 +409,7 @@ R9-407	P3	pruebas / Mesa / R9-392, R9-383	arreglado	e503b87	marca de su entrada:
 R9-408	P3	pruebas / Mesa / R9-269, R9-292, R9-403	arreglado	9011b19	marca de su entrada: «✅ ARREGLADO en la sesión 113, una prueba por store, cada una con el espejo (la cuenta que sale en la ventana, con `releasePrepAccount`): - Series (`90»
 R9-409	P3	pruebas / respaldo y Mesa / R9-404, R9-393, R9-364	aceptado	decisión 2026-10-27	de la 112, sin daño medido: «lo que encuentre queda como costo conocido» (`CONTINUAR.md` (decisión de Victor del 2026-10-27: «El ciclo de las pruebas de la Mesa se CIERRA con la sesión 112»))
 R9-410	P2	A12 hilo 1 / tema y respaldo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-411	P2	A12 hilo 1 / respaldo y planes / R9-30	arreglado	fdc69e7c	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`fdc69e7c`, rama `fix/s182`), el arreglo propuesto: en `importBackup`, cada sección que no es un objeto plano va a `fail»
+R9-411	P2	A12 hilo 1 / respaldo y planes / R9-30	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-412	P2	A12 hilo 3 / ErrorBoundary nativo / R9-14	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-413	P2	A12 hilo 2 / preferencias del lector / R9-267, R9-28	arreglado	621793fd	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`621793fd`, rama `fix/s182`, con `R9-414`: la misma raíz). Tras un `getItem` que rechaza, el efecto no escribe sin cambi»
 R9-414	P2	A12 hilo 2 / progreso de lectura y de planes / R9-267, R9-284	arreglado	621793fd	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`621793fd`, rama `fix/s182`, con `R9-413`). En los dos contextos, la escritura siguiente a una lectura que rechazó relee»
@@ -636,3 +636,4 @@ R9-634	P3	reproductor flotante / temporizador de sueño	abierto		sin marca de ci
 R9-635	P3	plan de lectura / temporizador de sueño / vecino de R9-573	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-636	P3	preferencias del lector / vecino de R9-421 y R9-413	arreglado	69d3d052	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`69d3d052`, rama `fix/s182`): el parche del reset deja fuera la clave (sobrevive también con el disco sin leer, `R9-413`»
 R9-637	P3	los toasts y los Modal / vecino de R9-560	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-638	P3	S186b, la revisión del diff de la 184 / el aviso de R9-32	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

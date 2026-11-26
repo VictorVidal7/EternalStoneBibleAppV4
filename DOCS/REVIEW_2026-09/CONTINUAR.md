@@ -363,6 +363,11 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   abierto por la transacción exclusiva (en el aparato); `R9-53`, la propuesta subcuenta: sin arreglo, decide Victor.
   **Queda, para la 186** (la 185 es el triaje): la revisión del diff de la 182, la 183 y la 184 con emulador, el
   toast de `R9-32` en vivo y la exclusiva de `R9-31`.
+  **Revisión en la 186 y la 186b** (`detail/S186-revision-del-diff-y-r9-31.md`; la 186 cortada a ~100 llamadas y
+  sin commits), emulador en solo lectura, sin cambios de código: se sostiene, salvo dos. `R9-32` visto en vivo;
+  `R9-31` medido en sus tres variantes (la exclusiva sola es peor que hoy; la recomendación, en su entrada);
+  `R9-411` REABIERTO (P2: un `completedDays` que no es arreglo tumba Home, va con `R9-410`); `R9-638` nuevo (P3, el
+  aviso del export cortado con letra grande, lote D). **Sigue la 187:** la tanda P2 3.
 - **Tanda 3 — sync, y texto del usuario que se pierde sin aviso (7).** `R9-518` (la migración de marcadores duplica
   favoritos en la cuenta); `R9-415` (`saveEditor` de resaltados sin `try`); `R9-473` (un solo debounce para todas las
   secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);
@@ -398,12 +403,14 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   **Triaje hecho en la 185** (`detail/S185-triaje-p3.md`): de 174 P3 triageados, 68 B y 22 C cerrados (90); quedan
   99 P3 abiertos: 29 A, 28 D, 23 E (más los 15 del «NO»), y 4 pruebas sin revert visto. **Una pregunta para Victor**
   (§5 del detalle): las seis pruebas de la Mesa, D o B.
-- **El orden que queda, desde la 186** (la 186 es la revisión del diff de la 182 a la 184, con emulador):
+- **El orden que queda, desde la 187** (la 186 y la 186b, la revisión del diff de la 182 a la 184, hechas):
   1. **Los P2, por tanda** (3 a 9). **No son disjuntas** (medido sobre los archivos que nombran sus entradas, no los
      que tocará el arreglo): `[chapter].tsx` en 3, 5 y 7; `search.tsx` en 5 y 6; `FavoritesContext.tsx` en 3 y 7;
      `highlights.tsx` en 3 y 9; `app/_layout.tsx` en 3 y 8; `prophecies/index.tsx` en 5 y 7; `translations.ts` en 4,
      6 y 9. Olas posibles con agentes en paralelo: la 3 sola; después 4, 6 y 9 (con `translations.ts` en serie); 5 y
-     8; la 7 al final. Cada P2 sigue con su sesión de revisión de diff (§7, regla 4).
+     8; la 7 al final. Cada P2 sigue con su sesión de revisión de diff (§7, regla 4). De la tanda 2 quedan `R9-410` y
+     `R9-411` (los dos del import, una sesión corta), `R9-558` (con `R9-569` y `R9-559`) y `R9-31` (§2.1 del
+     detalle de la 186).
   2. **Los lotes D en paralelo**, siete por zona de archivos (§6 del detalle), un agente por lote, cada commit con su
      revert por pieza y sin sesión de revisión. El lote del lector (`[chapter].tsx`) no corre a la vez que las tandas
      P2 3, 5 y 7.
