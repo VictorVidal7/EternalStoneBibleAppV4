@@ -77,3 +77,10 @@ En vivo: pegar en la caja 44 y la «g» de la caja 43; el aviso del devocional a
 del Salmo 102 (el orden en disco y en pantalla); «Reabrir» con y sin testimonio; la Mesa (`R9-473`); el toast de
 `R9-415` detrás del editor, si se puede borrar la fila desde fuera en pocas llamadas. `R9-518` en vivo: no cabe
 (el inicio de sesión necesita red y la única cuenta del AVD es la de Victor); no se gastan llamadas.
+
+## 6. Tras el corte: el método rápido
+
+Victor, tras el merge de la 188 (`main` = `1852ee01`, CI verde): «¿hay forma de avanzar más rápido? no baja de 170»,
+y después «hay que aplicar todo». Diseñado con el asesor y escrito en `CONTINUAR.md` §7 («El método rápido»). La
+188b no se hace como sesión: sus pedidos en vivo van a los pendientes en vivo del método (punto 6). Sigue la 189,
+el re-triaje de los P2 (`_scratch/S189-PROMPT.md`).

@@ -130,6 +130,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 ## 4. Por dónde seguir
 
+**Desde el 2026-11-26 rige el método rápido de la §7** (re-triaje de los P2, carriles disjuntos, olas de agentes).
+Lo siguiente: la 189, el re-triaje de los P2 (`_scratch/S189-PROMPT.md`). Lo de abajo es el registro de antes.
+
 **Qué queda:** `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`. Al cierre de la 142: 274 abiertos de 573
 (ningún P0, 20 P1, 92 P2, 161 P3 y el aviso `R9-1`), 2 sin verificar que piden emulador (`R9-177`, `R9-240`), 285
 arreglados y 12 aceptados. De los abiertos, 113 son de `R9-1`..`R9-409` (los 20 P1); la lista por severidad y área
@@ -380,7 +383,7 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   la Mesa compartido con una nota cortada. `R9-562` sigue fuera (§8).
   **La 188, cortada** (`detail/S188-revision-del-diff-s187.md`): el diff leído; en vivo, el devocional de `R9-511`
   (frena, el borrador sigue, `maxLength` 0 bloquea al teclear). Por lectura: el toast de `R9-415` sale detrás del
-  editor (`R9-637`), y el paseo deja «(2/2)» arriba. **Sigue la 188b** (`_scratch/S188b-CIERRE-PROMPT.md`): pegar,
+  editor (`R9-637`), y el paseo deja «(2/2)» arriba. **Lo de la 188b pasa a los pendientes en vivo del método rápido (§7, punto 6)**: pegar,
   el aviso a 2,0 y en español, el paseo, «Reabrir», la Mesa y el toast de `R9-415`, en vivo.
 - **Tanda 4 — planes propios y Juntos (5).** `R9-507`, `R9-508` y `R9-509` (el constructor: el plan viejo tras
   guardar, la vista previa que no es lo que se guarda, el renombre que rearma los días y mueve el progreso);
@@ -589,6 +592,39 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   `toISOString().split('T')[0]` disfrazado de local.
 
 ## 7. Decisiones de Victor que NO hay que volver a preguntarle
+
+- **El método rápido (Victor, 2026-11-26, tras la 188: «hay que aplicar todo… avanzar muchísimo mejor y con un
+  método súper óptimo»; diseñado con el asesor).** Por qué: la tanda 3 costó cinco sesiones para seis P2; el ritmo
+  era menos de un P2 por sesión, y cada revisión registraba uno o dos nuevos. Manda sobre el orden de tandas de la
+  §4 y sobre «una tanda por sesión».
+  1. **Un número.** El final de la fase es 0 P1 y 0 P2: todo mensaje final da primero P1 + P2 (74 al cierre de la
+     188); el total de abiertos va después.
+  2. **Re-triaje de los P2 (la 189, solo lectura).** Cada P2 abierto cae en una clase: **ya arreglado** por trabajo
+     posterior (se cierra solo con una sonda o un sha, nunca por lectura; sobre todo los 37 viejos fuera de tanda,
+     `R9-3` a `R9-167`, `R9-558`, `R9-620`); **no es A** según la regla 1 del triaje (se propone bajarlo a P3;
+     Victor aprueba la lista; lo que toca A(1) o A(2) sigue P2; esto corrige severidades viejas, no arregla nada);
+     **espera a Victor** (un solo mensaje, cada uno con la respuesta recomendada); **P2 real**, repartido en
+     carriles disjuntos por los archivos que nombra su entrada. Los carriles reemplazan las tandas 4 a 9.
+  3. **Olas, no tandas.** Cada ola: 3 o 4 agentes con `isolation: "worktree"`, un carril cada uno (carriles P2 y
+     lotes D mezclados). Cada agente corre solo sus pruebas con `--maxWorkers` bajo; el orquestador corre el
+     validate una vez por ola. Un merge y un CI por ola.
+  4. **«Verla fallar primero», con un script.** Toma un sha y una ruta de prueba, pone los archivos de producción
+     del padre, corre jest esperando rojo, restaura y comprueba el `diff` vacío. El orquestador verifica cada commit
+     de agente con una llamada.
+  5. **La revisión, dentro de la ola.** Un agente de solo lectura que no escribió el carril lee su diff antes del
+     merge (consumidores, vecinos, la matriz de la §5). Sin sesión de revisión aparte.
+  6. **Lo vivo, en lote.** Cada arreglo anota lo «no medible en jest» en un solo archivo de pendientes en vivo; una
+     sesión de emulador cada dos olas. Lo que quedó de la 188b va ahí; nada de eso bloquea.
+  7. **La clase del toast, con una guarda y no con una lista.** Una prueba de jest que cae si un archivo tiene
+     `<Modal` y `useToast` sin `ToastHost`, y medir si subir el `numberOfLines` por defecto de `Toast.tsx` es
+     seguro. El `ToastHost` del editor de resaltados (`R9-415`) va primero en el primer lote D; no se gasta una
+     sesión en reproducirlo.
+  8. **Menos gasto fijo.** Un script de arranque (estado, conteos, las entradas que nombra el mensaje) y uno de
+     cierre (TSV, validador, checkpoint, validate). El detalle en prosa, solo para hallazgos.
+
+  No se promete un ritmo: la estimación sale de la clasificación de la 189. Preguntado a Victor junto con esto: el
+  modelo de los agentes y cuántos por ola; si una decisión enviada con su recomendación vale por defecto si no
+  objeta; si un checkpoint solo de docs puede saltarse el validate local (el CI lo corre).
 
 - **El flujo de trabajo, desde la sesión 153 (Victor, 2026-11-16: «apliquemos todo lo que nos convenga», tras el
   video de los 7 principios de Karpathy; el análisis está en `detail/S152-arreglos-pruebas.md` §10).**
