@@ -594,23 +594,25 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
       sin salida. (4) Deja un contenido o una acción inalcanzable (lector de pantalla, texto grande, contraste).
       (5) Expone datos o credenciales. (6) Contradice una decisión de esta §7 o una regla fija: el premium no quita
       lo gratis, el cuidado teológico, la fidelidad bíblica.
-    - **B, aceptado.** Lo que no cae en A. Se cierra con `✅ ACEPTADO en la sesión N (triaje): <cláusula y una
-frase>`. Pruebas y CI van a B solo si un revert muestra que la puerta atrapa el bug. Si no atrapa y protege un
+    - **B, aceptado.** Lo que no cae en A. Se cierra con la marca `✅ ACEPTADO en la sesión N (triaje)`, seguida de
+      la cláusula y una frase. Pruebas y CI van a B solo con un revert visto: el que ya documenta la entrada, o uno
+      que corre el orquestador (revert, jest, restaurar, `git diff` vacío). Si la puerta no atrapa y protege un
       A(1), van a D.
-    - **C, fusionado.** «Familia de» o «raíz de» otro abierto; «vecino de» no es fusión (17 de 19 vecinos de la
-      muestra ya estaban arreglados). Se cierra en el que queda, que recibe la consecuencia en su entrada. Una
-      fusión hacia uno que espera a Victor hereda la espera.
-    - **D, lote.** Se arregla con un arreglo corto, en archivos propios, con prueba simple; también una frontera con
-      arreglo propuesto y sonda hecha. Lo reparten agentes en paralelo; cada commit, con su revert por pieza.
+    - **C, fusionado.** «Familia de» o «raíz de» otro abierto; «vecino de» no es fusión. Se cierra en el que queda,
+      que recibe la consecuencia en su entrada. Una fusión hacia uno que espera a Victor hereda la espera.
+    - **D, lote.** Es una parte de A, no de B: lo que no cae en A no entra a D, aunque sea barato. Un A con arreglo
+      corto, en archivos propios y prueba simple; también una frontera con arreglo propuesto y sonda hecha. Lo
+      reparten agentes en paralelo; cada commit, con su revert por pieza. Ejemplo: `R9-637` es D solo para los
+      modales donde el toast tapado es un aviso de A(2) (un error al guardar, pagar o restaurar); los demás, B.
     - **E, espera al dueño.** Lo decide Victor o vive fuera del repo (consola, legal). Sigue abierto, sin tocar. Además
-      de los del «NO» de cada mensaje, la muestra halló `R9-490`, `R9-505`, `R9-522`, `R9-523`, `R9-527`, `R9-551`,
-      `R9-419` y `R9-554`.
+      de los del «NO» de cada mensaje, la muestra de Fable marcó como E a `R9-490`, `R9-505`, `R9-522`, `R9-523`,
+      `R9-527`, `R9-551`, `R9-419` y `R9-554` (los ocho, P3 abiertos en `ESTADO.tsv`); la 185 lo confirma.
+    - **Precedencia:** E, después C, después A (D si es corto), y B al final.
     - **En la duda entre A y B, va a B**, salvo que toque A(1) o A(2): una divergencia silenciosa nadie la reporta,
       así que no se acepta esperando que alguien la reabra.
   - **Regla 2, una excepción a «medir, no leer» (§5).** Un P3 hallado por lectura, sin daño medido y fuera de A, se
     acepta cuando medirlo cuesta más que el riesgo.
-  - **Regla 3, la entrada.** Una revisión de diff mira lo que el diff cambió, y lo que rompió se arregla antes del
-    merge. Un P3 nuevo, del diff o anterior a él, se registra solo si cae en A. El resto va en una línea del detalle,
+  - **Regla 3, la entrada.** Una revisión de diff mira lo que el diff cambió. Un P3 nuevo, del diff o anterior a él, se registra solo si cae en A. El resto va en una línea del detalle,
     sin entrada.
   - **Regla 4, qué diff se revisa.** Solo el de un arreglo P1 o P2. Un arreglo P3 (también los lotes D) se verifica
     con su revert por pieza y el validate, sin sesión de revisión.
