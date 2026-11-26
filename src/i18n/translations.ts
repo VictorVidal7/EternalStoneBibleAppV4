@@ -4187,7 +4187,7 @@ export const translations = {
         'Copia importada, pero algunos datos no se pudieron restaurar. El resto de tu información no se vio afectada.',
       importConfirmTitle: 'Importar copia de seguridad',
       importConfirmMessage:
-        'Esto reemplazará tus datos actuales con los del archivo elegido y no se puede deshacer.\n\nFavoritos, notas, resaltados, memorización y repasos (últimos 12 meses) también se sincronizan con la nube si iniciaste sesión. El progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
+        'Esto reemplazará los datos de este dispositivo con los del archivo elegido y no se puede deshacer.\n\nSi usas una cuenta, no se borra nada de ella: los favoritos, notas, resaltados y versículos de memorización que no estén en el archivo siguen ahí y pueden volver a este dispositivo (si reinstalas la app, si los editas desde otro dispositivo o, algunos de los cambiados más recientemente, al volver a abrir la app); tus otros dispositivos los conservan.\n\nEl progreso de lectura, logros y rachas, preferencias y la Mesa de preparación solo viven en este dispositivo — la Mesa de preparación nunca se sincroniza a propósito.',
       importConfirmCta: 'Importar y reemplazar',
       // R9-28 — mostrado como diálogo, no como toast: parte de la app (el
       // lector abierto, las pantallas ya montadas) sigue mostrando lo de
@@ -10755,7 +10755,7 @@ export const translations = {
         "Backup imported, but some data couldn't be restored. The rest of your data wasn't affected.",
       importConfirmTitle: 'Import backup',
       importConfirmMessage:
-        "This will replace your current data with the contents of the chosen file, and can't be undone.\n\nFavorites, notes, highlights, memorization, and reviews (last 12 months) also sync to the cloud if you're signed in. Reading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",
+        "This will replace the data on this device with the contents of the chosen file, and can't be undone.\n\nIf you use an account, nothing is deleted from it: favorites, notes, highlights and memory verses that aren't in the file stay there and can come back to this device (if you reinstall the app, if you edit them on another device, or, for some of the most recently changed, when you reopen the app); your other devices keep them.\n\nReading progress, achievements and streaks, preferences, and the Preparation table live only on this device — the Preparation table never syncs, by design.",
       importConfirmCta: 'Import and replace',
       // R9-28 — shown as a dialog, not a toast: part of the app (the open
       // reader, already-mounted screens) keeps showing the pre-import data

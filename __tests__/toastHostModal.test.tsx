@@ -213,6 +213,40 @@ describe('R9-32 — the notice after a clean export', () => {
   });
 });
 
+// R9-31 — the restore does not delete in the account (decided in S183,
+// CONTINUAR §7). Measured in S184 with the real SyncEngine, cursor and
+// highlights adapter: what the restore removed stays in the cloud and comes
+// back on a reinstall, when another device edits it, and — only the ones
+// changed within the cursor's 5-minute margin — on the next cold start. The
+// dialog says that instead of «replaces your data».
+describe('R9-31 — the import confirmation tells what happens to the account', () => {
+  it('the dialog shown before importing says this device, and that the account keeps it', async () => {
+    mockPick.mockResolvedValue('file://b.json');
+    const utils = renderApp();
+
+    await act(async () => {
+      fireEvent.press(utils.getByText(ts.importBackup));
+    });
+
+    const msg = utils.getByText(ts.importConfirmMessage);
+    expect(msg).toBeTruthy();
+    expect(ts.importConfirmMessage).toContain(
+      'reemplazará los datos de este dispositivo',
+    );
+    expect(ts.importConfirmMessage).toContain(
+      'Si usas una cuenta, no se borra nada de ella',
+    );
+    expect(ts.importConfirmMessage).not.toContain('tus datos actuales');
+  });
+
+  it('the English text says the same', () => {
+    const en = translations.en.settings.importConfirmMessage;
+    expect(en).toContain('replace the data on this device');
+    expect(en).toContain('If you use an account, nothing is deleted from it');
+    expect(en).not.toContain('your current data');
+  });
+});
+
 it('the partial-import warning is drawn in the restart dialog, the topmost window', async () => {
   mockPick.mockResolvedValue('file://parcial.json');
   mockRead.mockResolvedValue(
