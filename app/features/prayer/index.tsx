@@ -88,6 +88,9 @@ export default function PrayerJournalScreen() {
   // Share-as-testimony modal (Sprint 94) — the answered request being shared.
   const [shareReq, setShareReq] = useState<PrayerRequest | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<PrayerRequest | null>(null);
+  // R9-497 — reopening clears the testimony (`reopenRequest` drops
+  // `answeredNote` on purpose), so a written one is confirmed first.
+  const [reopenTarget, setReopenTarget] = useState<PrayerRequest | null>(null);
 
   const stats = useMemo(() => prayerStats(requests), [requests]);
   const active = useMemo(
@@ -162,6 +165,18 @@ export default function PrayerJournalScreen() {
     if (!deleteTarget) return;
     void remove(deleteTarget.id);
     setDeleteTarget(null);
+  };
+
+  const requestReopen = (r: PrayerRequest) => {
+    haptics.tap();
+    if (r.answeredNote) setReopenTarget(r);
+    else void reopen(r.id);
+  };
+
+  const handleConfirmReopen = () => {
+    if (!reopenTarget) return;
+    void reopen(reopenTarget.id);
+    setReopenTarget(null);
   };
 
   const openAnswer = (r: PrayerRequest) => {
@@ -353,10 +368,7 @@ export default function PrayerJournalScreen() {
         <View style={styles.answeredFooter}>
           <TouchableOpacity
             style={styles.reopenBtn}
-            onPress={() => {
-              haptics.tap();
-              void reopen(r.id);
-            }}
+            onPress={() => requestReopen(r)}
             accessibilityRole="button"
             accessibilityLabel={tp.reopen}>
             <Ionicons
@@ -768,6 +780,17 @@ export default function PrayerJournalScreen() {
             ),
           )}
           onClose={() => setShareReq(null)}
+        />
+
+        <ConfirmDialog
+          visible={!!reopenTarget}
+          title={tp.reopenConfirmTitle}
+          message={tp.reopenConfirmBody}
+          confirmLabel={tp.reopen}
+          cancelLabel={tp.cancel}
+          onConfirm={handleConfirmReopen}
+          onCancel={() => setReopenTarget(null)}
+          destructive
         />
 
         {/* Themed delete confirm (UX audit, replaces native Alert.alert) */}

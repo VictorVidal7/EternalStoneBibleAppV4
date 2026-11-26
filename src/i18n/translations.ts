@@ -3660,6 +3660,9 @@ export const translations = {
       delete: 'Eliminar',
       deleteConfirmTitle: '¿Eliminar esta oración?',
       deleteConfirmBody: 'Se quitará de tu diario. No se puede deshacer.',
+      reopenConfirmTitle: '¿Reabrir esta oración?',
+      reopenConfirmBody:
+        'Volverá a tus oraciones y se borrará el testimonio que escribiste. No se puede deshacer.',
       answeredPrompt: '¿Cómo respondió Dios?',
       answeredNotePlaceholder: 'Tu testimonio (opcional)…',
       answeredCelebrate: 'Dios es fiel 🙏',
@@ -10236,6 +10239,9 @@ export const translations = {
       deleteConfirmTitle: 'Delete this prayer?',
       deleteConfirmBody:
         "It will be removed from your journal. This can't be undone.",
+      reopenConfirmTitle: 'Reopen this prayer?',
+      reopenConfirmBody:
+        "It will go back to your prayers and the testimony you wrote will be deleted. This can't be undone.",
       answeredPrompt: 'How did God answer?',
       answeredNotePlaceholder: 'Your testimony (optional)…',
       answeredCelebrate: 'God is faithful 🙏',
