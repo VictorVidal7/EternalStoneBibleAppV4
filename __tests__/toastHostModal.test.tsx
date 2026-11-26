@@ -234,7 +234,7 @@ describe('R9-31 — the import confirmation tells what happens to the account', 
       'reemplazará los datos de este dispositivo',
     );
     expect(ts.importConfirmMessage).toContain(
-      'Si usas una cuenta, no se borra nada de ella',
+      'Si usas una cuenta, lo que no esté en el archivo no se borra de ella',
     );
     expect(ts.importConfirmMessage).not.toContain('tus datos actuales');
   });
@@ -242,7 +242,9 @@ describe('R9-31 — the import confirmation tells what happens to the account', 
   it('the English text says the same', () => {
     const en = translations.en.settings.importConfirmMessage;
     expect(en).toContain('replace the data on this device');
-    expect(en).toContain('If you use an account, nothing is deleted from it');
+    expect(en).toContain(
+      "If you use an account, what isn't in the file isn't deleted from it",
+    );
     expect(en).not.toContain('your current data');
   });
 });
