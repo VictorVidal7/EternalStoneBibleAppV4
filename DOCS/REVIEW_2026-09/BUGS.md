@@ -14194,6 +14194,10 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     roto se confirma («Esto reemplazará tus datos…») y no pasa nada visible, y en un import parcial lo único que se ve
     es el diálogo de `R9-557` («se importó correctamente»), porque el aviso de `importPartial` está tapado. Suma a
     `R9-557`, `R9-27` y `R9-32`; ninguno nombra la capa del toast. Detalle: `detail/C26b-respaldo.md`.
+  - **✅ ARREGLADO en la sesión 183** (`d991b711`, rama `fix/s183`): un `<ToastHost />` dentro del `Modal` dibuja el
+    toast en esa ventana (`ToastLayer.tsx`), en `DataSettings`, `ConfirmDialog`, `OfferingSheet` e `ImageShareModal`;
+    jest con revert por pieza y medido en vivo. Los otros modales sin host: `R9-637`. Detalle:
+    `detail/S183-arreglos-tanda-2-parte-2.md` §1.
 
 - **`R9-561` (S138, `C42a` / la hoja de nota y el teclado — P2) — 🐛 con el teclado abierto, la hoja de nota no sube:
   el campo y «GUARDAR NOTA» quedan debajo del teclado desde que se abre.** MEDIDO en el emulador (Android 16) y
@@ -15373,6 +15377,21 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     también con el disco sin leer, `R9-413`). Prueba en `__tests__/readerSepiaGrandfathering.test.tsx`, roja sin el
     arreglo. Detalle: `detail/S182-arreglos-tanda-2-parte-1.md` §4.
 
+- **`R9-637` (S183, los toasts y los `Modal` / vecino de `R9-560` — P3) — 🐛 22 archivos con un `Modal` y
+  `useToast` no montan `<ToastHost />`: un toast disparado con su modal abierto puede quedar detrás.** POR LECTURA,
+  sin medir. De antes de la 183.
+  - La búsqueda: `<Modal` ∩ `useToast`, sin `ToastHost`, en `src/` y `app/`. En `src/`: `CompareImageModal`,
+    `DonationSheet`, `MemoryShareCardModal`, `GoalsSettings`, `NotificationsSettings`, `RedeemCodeSheet`,
+    `ProphecyShareModal`, `ShareCustomPlanModal`, `ShareTogetherModal`, `BadgeCollectionScreen` y
+    `VersionComparisonScreen`. En `app/`: `(tabs)/conflicts`, `(tabs)/highlights`, `(tabs)/plan/[id]`,
+    `(tabs)/verse/[book]/[chapter]`, y `features/` `devotional`, `journey`, `memory`, `plan-builder`, `prayer`,
+    `prep/series/[id]` y `prep/series/index`.
+  - No todos dañan: en una pantalla, el toast puede salir solo con el modal cerrado. Cada uno pide mirar si su toast
+    sale con el modal abierto. La búsqueda no ve un modal que viene de otro componente.
+  - **Severidad:** P3: el mismo daño que `R9-560` (el aviso no se ve), en flujos sin datos en juego conocidos.
+  - **Arreglo propuesto:** una línea por modal, `<ToastHost />` dentro de su contenido (como en `d991b711`). Detalle:
+    `detail/S183-arreglos-tanda-2-parte-2.md` §1.
+
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
   que nunca se numeró ni se decidió. `adapters/highlights.ts:77-92` hace `catch → return null`,
@@ -16257,12 +16276,21 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   push solo hace `queueWrite`, nunca `queueDelete`: lo que el restore borró sigue en
   Firestore y **vuelve** en una reinstalación. "Restaurar = reemplazar" degrada a "restaurar
   = mezclar".
+  - **Sesión 183 (leído, sin código; va en la 184).** Qué hace el restore con la nube, DECIDIDO (`CONTINUAR.md` §7):
+    no borra en la cuenta; reemplaza los datos de este aparato y el diálogo lo dice. Lo que queda del bug es el
+    texto: «reemplaza tus datos» no es cierto para la cuenta. La 184 mide cuándo vuelve lo borrado (arranque en frío
+    o solo reinstalación) y escribe el diálogo con sesión iniciada, en los dos idiomas. La mitad técnica: la
+    exclusiva abre otra conexión y los demás escritores reciben «database is locked»; hay que medir quién escribe
+    durante un import y si reintenta. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §3.
 
 - **`R9-32` (A7, respaldo) — 💡 el archivo de respaldo se escribe en caché y nunca se
   limpia.** `BackupService.ts:586-590`. `shareAsync` resuelve al cerrarse la hoja, no cuando
   un destino guardó el archivo, y no hay toast de éxito **ni de fallo**: descartar la hoja se
   da por bueno y el usuario cree tener un respaldo que solo existe en un directorio que el
   sistema puede desalojar. N exports = N copias completas acumuladas.
+  - **Sesión 183: la caché, arreglada (`9095ffbf`); lo que promete Exportar, decidido: el aviso neutro, va en la 184.** Sigue abierto. Medido en vivo: dos exports descartados dejaban dos archivos de 15 370 B. Ahora el export
+    borra las copias anteriores y no escribe si no se puede compartir. El aviso (`CONTINUAR.md` §7) quita la
+    creencia falsa. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §2.
 
 - **`R9-2` (B2, `.gitignore`) — 💡 el `.gitignore` raíz solo cubre `.env*.local`, no un
   `.env` pelado.** Severidad **baja** (hardening), arreglo de una línea.
@@ -16449,6 +16477,10 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `d1:{total:10}` + los mismos 10 eventos → lectura 20, escritura 20, segundo ciclo 30.
   Detalle: `detail/A10-memoria-srs.md`.
   **⬇️ Sesión 22: baja a P2** (sonda con la cadena real). Los CONTEOS se duplican (10 → 20 → 30), pero la pantalla (`insights.tsx:181-207`) solo muestra PORCENTAJES, y duplicar el mismo conjunto no los mueve. El porcentaje solo se tuerce cuando el respaldo y la nube difieren: 50 % → 33 % → 25 % en la sonda. No hay pérdida de datos. La línea del import es hoy `BackupService.ts:1500-1523`. Cablear `resetDeck` no sería la vía de escape (ver `R9-61`).
+  - **Sesión 183 (propuesta, sin código; se mide en la 184).** Al importar `reviewEvents`, restar del floor, por
+    banda y con piso 0, solo los eventos que el import agrega y que no estaban en el log local de antes (por id): son
+    los que el floor ya puede contar. Lo que estaba local y se reimporta no toca el floor. Sin vía de escape en la UI
+    (`R9-61`), el arreglo tiene que ser exacto. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §3.
 
 - **`R9-55` (⬇️ de P1 en la sesión 22; A11, planes) — 🐛 editar un plan propio a menos días arrastra números de día que
   ya no existen: la pantalla muestra 250%.** Severidad **media**. `migratePlanProgress`

@@ -558,7 +558,7 @@ R9-556	P3	C20a / Memoria: el mazo y el registro de repasos	abierto		sin marca de
 R9-557	P3	C26b / respaldo: el aviso tras importar	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-558	P2	C27a / «Resetear datos de la Biblia»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-559	P3	C27a / lector nativo con 0 versículos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-560	P2	C26b / los toasts del modal «Datos»	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-560	P2	C26b / los toasts del modal «Datos»	arreglado	d991b711	marca de su entrada: «✅ ARREGLADO en la sesión 183 (`d991b711`, rama `fix/s183`): un `<ToastHost />` dentro del `Modal` dibuja el toast en esa ventana (`ToastLayer.tsx`), e»
 R9-561	P2	C42a / la hoja de nota y el teclado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-562	P2	C43a / la ✕ del selector de colores del lector	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-563	P3	C43a / la hoja de edición del subrayado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -635,3 +635,4 @@ R9-633	P3	reproductor flotante / la revisión de R9-571	abierto		sin marca de ci
 R9-634	P3	reproductor flotante / temporizador de sueño	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-635	P3	plan de lectura / temporizador de sueño / vecino de R9-573	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-636	P3	preferencias del lector / vecino de R9-421 y R9-413	arreglado	69d3d052	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`69d3d052`, rama `fix/s182`): el parche del reset deja fuera la clave (sobrevive también con el disco sin leer, `R9-413`»
+R9-637	P3	los toasts y los Modal / vecino de R9-560	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

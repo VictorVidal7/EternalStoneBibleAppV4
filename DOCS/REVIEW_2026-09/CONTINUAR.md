@@ -351,6 +351,13 @@ leer la entrada entera en su tanda, y si dos resultan la misma, van en un commit
   (nuevo, P3: «Restablecer» quitaba Sepia) y `R9-411` arreglados. `R9-569` y `R9-559` dependen de `R9-558` y quedan
   con él. **La 183: el resto** (`R9-560` con emulador, y los P2 viejos `R9-31`, `R9-32` y `R9-53`), tras el merge
   con el OK de Victor; después, la revisión del diff de la 182 y la 183.
+  **Parte 2 en la 183** (`detail/S183-arreglos-tanda-2-parte-2.md`), sin agentes, en `fix/s183`, mergeada
+  (`d991b711` y `9095ffbf`), cortada a ~95 llamadas: `R9-560` arreglado y medido en vivo; `R9-32`, la caché
+  arreglada. `R9-637` (P3, nuevo, por lectura): los otros 22 modales sin `ToastHost`. Lo que promete el respaldo,
+  decidido (§7). **Queda, para la 184:** el aviso de `R9-32` (lo cierra), `R9-31` (medir cuándo vuelve lo borrado,
+  el diálogo con sesión y la transacción exclusiva) y `R9-53` (la propuesta de su entrada); después, la revisión
+  del diff de la 182 y la 183 con emulador (a la 185 si no entra). `R9-410` y `R9-558` (con `R9-569` y `R9-559`)
+  siguen sin sesión.
 - **Tanda 3 — sync, y texto del usuario que se pierde sin aviso (7).** `R9-518` (la migración de marcadores duplica
   favoritos en la cuenta); `R9-415` (`saveEditor` de resaltados sin `try`); `R9-473` (un solo debounce para todas las
   secciones de la Mesa); `R9-497` («Reabrir» borra el testimonio); `R9-498` (la oración del paseo, cortada a 1000);
@@ -572,6 +579,22 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     defecto de arriba. Se corre cuando Victor lo pide. **El orquestador se lo recomienda** al cerrar una sesión si se
     cumple uno de los momentos de su sección «Cuándo recomendarlo» (un modelo nuevo, un defecto que se quiere bajar,
     un agente barato que se equivocó dos veces, la cuota que no alcanza, una tanda grande nueva).
+
+- **`R9-32` y `R9-31`: qué promete el respaldo (decidido por Claude en la sesión 183, por delegación de Victor del
+  2026-11-25).** El detalle: `detail/S183-arreglos-tanda-2-parte-2.md` §2 y §3.
+  - **`R9-32`: (a), un aviso neutro al volver de la hoja de Exportar.** Un `toast.info` tras `exportBackup` sin
+    secciones degradadas (con degradadas sigue el aviso parcial): «Copia lista. Solo queda guardada donde la hayas
+    enviado (Drive, Descargas…).»; en inglés, «Backup ready. It's only kept wherever you sent it (Drive,
+    Downloads…).». Por qué: `shareAsync` no sabe si un destino guardó el archivo. El daño que nombra `R9-32` es la
+    creencia falsa, y (a) la quita igual en Android e iOS, con una línea en los dos idiomas y sin flujo nativo nuevo
+    que medir. En el chat se había recomendado (b). (b), guardar con el selector de carpetas del sistema (SAF), solo
+    existe en Android (en iOS la hoja ya trae «Guardar en Archivos») y es una función, no un arreglo: va al backlog
+    de ideas. Se implementa en la 184, y con eso `R9-32` se cierra.
+  - **`R9-31`: el restore no borra en la nube.** Reemplaza los datos de ESTE aparato, y el diálogo lo dice. Por qué:
+    la asimetría de lo irreversible. Un borrado de más en la nube alcanza a todos los aparatos de la cuenta y no hay
+    copia en la nube para deshacerlo: un respaldo viejo borraría lo que se creó después en otro teléfono. Un elemento
+    de más que vuelve se borra a mano. Lo que queda del bug es la mentira: «reemplaza tus datos» con sesión iniciada
+    no es cierto para la cuenta. La 184 mide cuándo vuelve lo borrado y escribe el texto exacto, en los dos idiomas.
 
 - **El premium es de quien dio la ofrenda: en el aparato donde estuvo, no se pierde al cerrar sesión, y la cuenta
   lo lleva a otros aparatos (`R9-119`; decidido por Claude el 2026-11-12, por delegación de Victor: «lo dejo a tu

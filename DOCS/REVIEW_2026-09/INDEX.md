@@ -527,3 +527,13 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 
   `R9-569` y `R9-559` quedan con `R9-558`. 270 abiertos de 636. Validate 441/441, 5231 pruebas. La 183: el resto de
   la tanda 2 (`R9-560` con emulador, `R9-31`, `R9-32` y `R9-53`). Detalle: `detail/S182-arreglos-tanda-2-parte-1.md`.
+
+- **Sesión 183 — 2026-11-25 (docs en la 183b).** La tanda 2, parte 2, con Opus 5.5, sin agentes, cortada a ~95
+  llamadas, en `fix/s183` (mergeada por Victor):
+  - `R9-560` (`d991b711`): un `<ToastHost />` dentro del `Modal` dibuja el toast en esa ventana. Medido en vivo.
+  - `R9-32`, en parte (`9095ffbf`): el export borra las copias viejas de la caché y no escribe sin compartir.
+  - `R9-637` (nuevo, P3, por lectura): 22 modales con `useToast` sin `ToastHost`.
+  - Decididos por delegación (§7): el aviso neutro tras exportar (`R9-32`); el restore no borra en la nube (`R9-31`).
+
+  270 abiertos de 637. Validate 443/443, 5239 pruebas. La 184: el aviso de `R9-32`, `R9-31` y `R9-53`; después, la
+  revisión del diff de la 182 y la 183. Detalle: `detail/S183-arreglos-tanda-2-parte-2.md`.
