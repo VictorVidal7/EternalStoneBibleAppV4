@@ -14,9 +14,11 @@
  *   ahead of the write opened them without what was just typed. No test
  *   watched it (with `void flushDrafts()` in both buttons, every Mesa test
  *   stayed green).
+ * - R9-474 — a second tap during that wait pushed a second destination: two
+ *   pulpits (back led to the first one), or two banks.
  */
 import {Text, TouchableOpacity} from 'react-native';
-import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
+import {router, Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {
   renderRouter,
   act,
@@ -329,5 +331,125 @@ describe('R9-169 — the buttons wait for the flush before navigating', () => {
     });
     await screen.findByText(landing);
     expect((await getPrepNotes(KEY)).sections.bigIdea).toBe('Recién escrito');
+  });
+});
+
+describe('R9-474 — two taps open ONE destination, and back returns to the Mesa', () => {
+  const BUTTONS = [
+    {
+      name: 'Banco de ilustraciones',
+      label: BANK_LABEL,
+      route: 'features/prep/illustrations/index',
+      landing: 'banco',
+    },
+    {
+      name: 'Modo púlpito',
+      label: PULPIT_LABEL,
+      route: 'features/prep/pulpit',
+      landing: 'pulpito',
+    },
+  ];
+
+  // How many times `route` sits in the app's stack (under expo-router's
+  // own `__root`).
+  function stackCount(route: string) {
+    type Node = {name: string; state?: {routes: Node[]}};
+    const root = screen.getRouterState() as {routes: Node[]} | undefined;
+    const app = root?.routes.find(r => r.name === '__root')?.state;
+    return (app?.routes ?? []).filter(r => r.name === route).length;
+  }
+
+  async function tapWhileFlushHeld(label: string, taps: number) {
+    await mountMesa();
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(p.sections.bigIdea.label),
+        'Recién escrito',
+      );
+    });
+    // Hold the flush's write: the gap where the screen has not moved yet.
+    const realSave = prepNotesStore.savePrepNote;
+    let release!: () => void;
+    const held = new Promise<void>(r => {
+      release = r;
+    });
+    jest
+      .spyOn(prepNotesStore, 'savePrepNote')
+      .mockImplementation(async (...args) => {
+        await held;
+        return realSave(...args);
+      });
+    for (let i = 0; i < taps; i++) {
+      await pressLast(label);
+      await drain();
+    }
+    // Control: still on the Mesa while held.
+    expect(screen.getPathname()).toBe('/features/prep');
+    await act(async () => {
+      release();
+    });
+    await drain();
+  }
+
+  it.each(BUTTONS)('$name: double tap', async ({label, route, landing}) => {
+    await tapWhileFlushHeld(label, 2);
+    await screen.findByText(landing);
+    // Pre-fix: 2.
+    expect(stackCount(route)).toBe(1);
+
+    await act(async () => {
+      router.back();
+    });
+    await drain();
+    expect(screen.getPathname()).toBe('/features/prep');
+  });
+
+  it.each(BUTTONS)(
+    '$name: control, a single tap',
+    async ({label, route, landing}) => {
+      await tapWhileFlushHeld(label, 1);
+      await screen.findByText(landing);
+      expect(stackCount(route)).toBe(1);
+      await act(async () => {
+        router.back();
+      });
+      await drain();
+      expect(screen.getPathname()).toBe('/features/prep');
+    },
+  );
+
+  it('a failed flush keeps the Mesa, and the next tap navigates', async () => {
+    await mountMesa();
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(p.sections.bigIdea.label),
+        'Recién escrito',
+      );
+    });
+    const realSave = prepNotesStore.savePrepNote;
+    const saveSpy = jest
+      .spyOn(prepNotesStore, 'savePrepNote')
+      .mockRejectedValueOnce(new Error('disco lleno'));
+    await pressLast(PULPIT_LABEL);
+    await drain();
+    expect(screen.getPathname()).toBe('/features/prep');
+    expect(mockToast.error).toHaveBeenCalled();
+
+    saveSpy.mockImplementation(realSave);
+    await pressLast(PULPIT_LABEL);
+    await screen.findByText('pulpito');
+    expect(stackCount('features/prep/pulpit')).toBe(1);
+  });
+
+  it('the button works again once the Mesa is back in focus', async () => {
+    await tapWhileFlushHeld(PULPIT_LABEL, 1);
+    await screen.findByText('pulpito');
+    await act(async () => {
+      router.back();
+    });
+    await screen.findByText('Juan 3:16');
+    await pressLast(PULPIT_LABEL);
+    await screen.findByText('pulpito');
+    expect(stackCount('features/prep/pulpit')).toBe(1);
   });
 });

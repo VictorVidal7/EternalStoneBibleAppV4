@@ -705,6 +705,21 @@ export default function PrepTableScreen() {
     load();
   }, [load]);
 
+  // R9-474 — both buttons await the flush (and the pulpit, the version)
+  // before `router.push`, and the screen does not move meanwhile: a second
+  // tap in that gap pushed a second pulpit (back led to the first one), or a
+  // second bank. One navigation at a time: set on the tap, cleared when the
+  // flush fails (the Mesa stays) and when the Mesa is focused again — not
+  // right after the push, which would reopen the gap for the transition.
+  // (Kept above the notes re-read: harnesses that replay the LAST focus
+  // callback registered take that one for the re-read.)
+  const navigatingRef = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      navigatingRef.current = false;
+    }, []),
+  );
+
   // Tanda 4 — re-read ONLY the saved notes on refocus, not the whole heavy
   // `load()` above (which re-fetches cross-refs, book intro, comparison
   // versions, etc.). A plain `useEffect(() => load(), [load])` doesn't
@@ -1117,7 +1132,8 @@ export default function PrepTableScreen() {
   // revisit, since unlike history/series this entry point always opens in a
   // special insert mode rather than plain browsing.
   const handleOpenIllustrations = useCallback(async () => {
-    if (!table) return;
+    if (!table || navigatingRef.current) return;
+    navigatingRef.current = true;
     haptics.tap();
     // Same race handleOpenPulpit below guards against: flush any in-flight
     // note edits BEFORE navigating, so the illustrations screen's own read
@@ -1126,7 +1142,10 @@ export default function PrepTableScreen() {
     // own template sections (not the bare `PREP_SECTIONS` 7) so a
     // non-'expository' entry's just-typed prose (e.g. a `tension` note) is
     // actually persisted before the illustrations screen reads it back.
-    if (!(await flushDrafts())) return;
+    if (!(await flushDrafts())) {
+      navigatingRef.current = false;
+      return;
+    }
     router.push({
       pathname: '/features/prep/illustrations' as never,
       params: {insertPassageKey: table.passageKey},
@@ -1137,7 +1156,8 @@ export default function PrepTableScreen() {
   // passage (the destination gates itself + shows an empty state when there
   // are no notes yet), same discipline as history/series above.
   const handleOpenPulpit = useCallback(async () => {
-    if (!table) return;
+    if (!table || navigatingRef.current) return;
+    navigatingRef.current = true;
     haptics.tap();
     // Persist any in-flight note edits BEFORE navigating. The presenter screen
     // reads notes from STORAGE, so a note just typed (whose onBlur save is still
@@ -1146,7 +1166,10 @@ export default function PrepTableScreen() {
     // Uses THIS entry's own template sections (not the bare `PREP_SECTIONS`
     // 7) so a non-'expository' entry's prose is fully flushed too — the
     // pulpit screen resolves the SAME template independently from storage.
-    if (!(await flushDrafts())) return;
+    if (!(await flushDrafts())) {
+      navigatingRef.current = false;
+      return;
+    }
     // Resolve the version the SAME way this screen resolves it (explicit
     // param, else the device's last-picked reading version) and ALWAYS
     // forward it. The pulpit screen falls back independently to the
