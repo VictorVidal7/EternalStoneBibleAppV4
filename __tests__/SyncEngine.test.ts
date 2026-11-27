@@ -2690,6 +2690,73 @@ describe('R9-33 — retry backoff y la senal de descarte', () => {
   });
 });
 
+describe('R9-148 — el flush del tick periodico reintenta lo que vencio su espera', () => {
+  // Desde R9-33, el tick de 60 s es lo unico que reintenta una entrada cuando
+  // vence su espera sin que pase otra cosa. Sin el, una escritura que falla
+  // una vez queda parada hasta el proximo arranque, o hasta que se edite ese
+  // documento. Solo el `setInterval` es falso: el arnes vive de `setImmediate`
+  // y de los plazos reales.
+  let nowSpy: jest.SpyInstance | null = null;
+  afterEach(() => {
+    jest.useRealTimers();
+    nowSpy?.mockRestore();
+    nowSpy = null;
+  });
+
+  it('una escritura que fallo una vez sube con el tick, sin ninguna otra llamada', async () => {
+    jest.useFakeTimers({
+      doNotFake: [
+        'Date',
+        'hrtime',
+        'nextTick',
+        'performance',
+        'queueMicrotask',
+        'requestAnimationFrame',
+        'cancelAnimationFrame',
+        'requestIdleCallback',
+        'cancelIdleCallback',
+        'setImmediate',
+        'clearImmediate',
+        'setTimeout',
+        'clearTimeout',
+      ],
+    });
+    mockSetShouldFail = true;
+    const engine = new SyncEngine();
+    const {adapter} = makeAdapter();
+    engine.register(adapter);
+    await engine.start('uid');
+    engine.queueWrite('test', 'doc1', {value: 'no se queda', updatedAt: 100});
+    await drain();
+    const trasFallo = {
+      cola: engine.__getQueueForTests().length,
+      intentos: engine.__getQueueForTests()[0]?.attempts,
+    };
+    mockSetShouldFail = false;
+    // La espera del primer reintento (30 s) ya vencio; nada mas pasa.
+    const realNow = Date.now();
+    nowSpy = jest.spyOn(Date, 'now').mockReturnValue(realNow + 31_000);
+    await drain();
+    const antesDelTick = engine.__getQueueForTests().length;
+    jest.advanceTimersByTime(60_000);
+    await drain();
+
+    expect({
+      trasFallo,
+      antesDelTick,
+      cola: engine.__getQueueForTests().length,
+      subidas: mockDocSets.map(s => s.id),
+    }).toEqual({
+      trasFallo: {cola: 1, intentos: 1},
+      // Control: sin el tick, nada la reintenta.
+      antesDelTick: 1,
+      cola: 0,
+      subidas: ['doc1'],
+    });
+    engine.stop();
+  });
+});
+
 describe('R9-182 — cuando el motor se rinde, la reversion del rechazo no borra la copia local', () => {
   // El SDK muestra el `set()` en el acto y, al rechazarlo, lo retira de su
   // vista: si la nube no tiene el doc, sale de la query como `removed`. Mientras
