@@ -6739,18 +6739,27 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       unsettledStorageKey('test', uid),
       JSON.stringify({'doc-c': respaldo.updatedAt}),
     );
+    // R9-164 — doc-c no tiene copia en la nube al enganchar: el enganche lo
+    // lee y, sin encontrarlo, lo suelta, y la re-entrega ya no hallaba un doc
+    // retenido (la prueba pasaba por eso). La lectura fallida lo deja
+    // retenido como estaba.
+    mockGetShouldFail = true;
     const {engine, localStore} = await engineFor(uid, T);
+    mockGetShouldFail = false;
+    const retenidoAntes = (await persisted(uid)).unsettled['doc-c'] - T;
     localStore.set('doc-c', {value: 'lo mio', updatedAt: T + 60_000});
     const casaConElPiso = respaldo.updatedAt >= floorOf(uid);
     write(uid, 'doc-c', respaldo);
     await settle();
 
     expect({
+      retenidoAntes, // CONTROL
       casaConElPiso, // CONTROL
       conflictos: engine.__getConflictsForTests().length,
       local: localStore.get('doc-c')?.value,
       marca: await persisted(uid),
     }).toEqual({
+      retenidoAntes: -DAY,
       casaConElPiso: true,
       conflictos: 0,
       local: 'lo mio',
