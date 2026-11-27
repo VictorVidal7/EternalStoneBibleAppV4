@@ -2029,7 +2029,8 @@ export class SyncEngine {
     // meanwhile moves the cursor in that same chain (R9-183), so nothing moved
     // the cursor past it meanwhile, and the owner's next attach delivers it
     // again. One exception: a `removed` (the doc left the query, and no attach
-    // delivers it again: R9-164).
+    // delivers it again: R9-164). A held one is read by the owner's next
+    // attach instead (see `heldAtAttach`).
     //
     // R9-175 — `session` is the one the batch ARRIVED in (see
     // `attachListener`): a batch that waited in the chain across a `stop()` is
@@ -2152,9 +2153,11 @@ export class SyncEngine {
           // R9-186 — the read failed or timed out, and the doc is a held
           // conflict. Settled, its mark left disk: the doc is out of the query,
           // nothing delivers it again, and after a restart the conflict was
-          // gone. Kept as it is, it holds the floor down for good instead
+          // gone. Kept as it is, it held the floor down for good instead
           // (R9-164): no delivery ever settles it. So it keeps its mark and the
-          // next attach reads it again.
+          // next attach reads it again, first thing (since R9-164 a held doc
+          // the server does not name is read too, but only after the server's
+          // first snapshot).
           if (!current && this.isHeldConflict(adapter.collection, id)) {
             hold(
               id,
@@ -2269,8 +2272,8 @@ export class SyncEngine {
               // this one were never applied, and the next batch moved the
               // cursor past them. The doc itself is settled below, as before:
               // it is gone from the cloud, so no query delivers it again, and
-              // a mark held for it would pin the floor after a restart, where
-              // only a held conflict is read again (R9-164, R9-195).
+              // a mark held for it would cost a read on every attach (before
+              // R9-164 it pinned the floor; R9-195).
               try {
                 await this.withLocalWriteSuppressed(
                   adapter.collection,
@@ -2293,8 +2296,10 @@ export class SyncEngine {
             }
           }
           if (!currentData) {
-            // Deleted, or unreadable: nothing will ever come back to settle
-            // it, so keeping it would hold the floor down for good (R9-164).
+            // Deleted, or unreadable: no delivery will ever come back to
+            // settle it. Before R9-164, keeping it held the floor down for
+            // good; since then the next attach would read it (a held doc
+            // whose read failed on the unheard path is kept: see above).
             settle(id);
             continue;
           }
