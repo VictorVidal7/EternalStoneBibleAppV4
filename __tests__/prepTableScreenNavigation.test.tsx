@@ -9,6 +9,11 @@
  * - R9-167 — back from the bank, the drafts still hold `application` from
  *   BEFORE the insertion until the focus re-read lands; a flush in that window
  *   wrote the old text over the illustration.
+ * - R9-169 — both buttons WAIT for that flush before navigating: the
+ *   destinations read the notes from storage, so a navigation that ran
+ *   ahead of the write opened them without what was just typed. No test
+ *   watched it (with `void flushDrafts()` in both buttons, every Mesa test
+ *   stayed green).
  */
 import {Text, TouchableOpacity} from 'react-native';
 import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
@@ -274,5 +279,55 @@ describe('R9-167 — a flush right after the bank does not erase the illustratio
     const saved = await getPrepNotes(KEY);
     expect(saved.sections.bigIdea).toBe('Idea escrita al volver');
     expect(saved.sections.application).toBe(ILLUSTRATION);
+  });
+});
+
+describe('R9-169 — the buttons wait for the flush before navigating', () => {
+  const BUTTONS = [
+    {name: 'Banco de ilustraciones', label: BANK_LABEL, landing: 'banco'},
+    {name: 'Modo púlpito', label: PULPIT_LABEL, landing: 'pulpito'},
+  ];
+
+  it.each(BUTTONS)('$name', async ({label, landing}) => {
+    await mountMesa();
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(p.sections.bigIdea.label),
+        'Recién escrito',
+      );
+    });
+
+    // Hold the flush's write.
+    const realSave = prepNotesStore.savePrepNote;
+    let release!: () => void;
+    const held = new Promise<void>(r => {
+      release = r;
+    });
+    const saveSpy = jest
+      .spyOn(prepNotesStore, 'savePrepNote')
+      .mockImplementation(async (...args) => {
+        await held;
+        return realSave(...args);
+      });
+
+    await pressLast(label);
+    await drain();
+    // Control: the flush really is in flight.
+    expect(saveSpy).toHaveBeenCalledWith(
+      KEY,
+      'bigIdea',
+      'Recién escrito',
+      undefined,
+      'expository',
+    );
+    // While the write is held, the Mesa does not move.
+    expect(screen.getPathname()).toBe('/features/prep');
+    expect(screen.queryByText(landing)).toBeNull();
+
+    await act(async () => {
+      release();
+    });
+    await screen.findByText(landing);
+    expect((await getPrepNotes(KEY)).sections.bigIdea).toBe('Recién escrito');
   });
 });
