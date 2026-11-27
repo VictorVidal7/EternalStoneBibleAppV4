@@ -12,7 +12,7 @@ import {
 import {AppText as Text} from '@components/ui/AppText';
 import {staticColors} from '@/styles/designTokens';
 
-import {useState, useCallback, useMemo, useEffect, memo} from 'react';
+import {useState, useCallback, useMemo, useEffect, useRef, memo} from 'react';
 import {useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
@@ -424,12 +424,24 @@ export default function SearchScreen() {
     persistHistory([]);
   }, [persistHistory]);
 
+  // R9-430 — which search the list belongs to. Each search (typed, or redone
+  // for a new version) takes a new id; an answer, or a «Cargar más» page,
+  // whose id is no longer the current one is dropped, so the list never
+  // mixes two versions (or two queries).
+  const searchRunRef = useRef(0);
+
   const performSearch = useCallback(
-    async (query: string) => {
+    async (query: string, options?: {silent?: boolean}) => {
+      const runId = ++searchRunRef.current;
+      const isStale = () => searchRunRef.current !== runId;
       if (query.trim().length < 3) {
         setAllResults([]);
         setHasSearched(false);
         setSearchError(false);
+        // A search or a page still in flight is now stale and will not
+        // clear these.
+        setLoading(false);
+        setLoadingMore(false);
         return;
       }
 
@@ -447,6 +459,7 @@ export default function SearchScreen() {
           selectedVersion.id,
           SEARCH_RESULT_LIMIT,
         );
+        if (isStale()) return;
         setAllResults(searchResults);
         // A filled page is the only signal we have that more rows may
         // exist behind the cursor; a short page tells us we've hit the
@@ -455,7 +468,9 @@ export default function SearchScreen() {
         // Only successful searches earn a slot in history — typos and
         // wrong-version queries (0 results) would just clutter it. The same
         // "real search" signal feeds the search achievements (Sprint 81).
-        if (searchResults.length > 0) {
+        // A search redone because the version changed (`silent`) is the
+        // same search: it neither counts again nor reorders the history.
+        if (searchResults.length > 0 && !options?.silent) {
           recordSearch(query);
           achievementService
             ?.trackSearch()
@@ -463,6 +478,7 @@ export default function SearchScreen() {
             .catch(() => undefined);
         }
       } catch (error) {
+        if (isStale()) return;
         console.error('Search error:', error);
         setAllResults([]);
         setHasMore(false);
@@ -471,16 +487,33 @@ export default function SearchScreen() {
         // empty state (see the searchError doc comment above).
         setSearchError(true);
       } finally {
-        setLoading(false);
+        if (!isStale()) setLoading(false);
       }
     },
     [selectedVersion.id, recordSearch, achievementService, notifyAchievements],
   );
 
+  // R9-430 — nothing searched again when the reading version changed (in the
+  // reader, with this tab keeping its state): the list stayed in the old
+  // version under the new chip, and «Cargar más» appended the new version's
+  // page 2 to it. Redo the search on screen in the new version.
+  const searchedVersionRef = useRef(selectedVersion.id);
+  useEffect(() => {
+    if (searchedVersionRef.current === selectedVersion.id) return;
+    searchedVersionRef.current = selectedVersion.id;
+    if (searchQuery.trim().length < 3) return;
+    performSearch(searchQuery, {silent: true});
+    // Only the version triggers this; the query is read as it is now.
+  }, [selectedVersion.id]);
+
   const loadMoreResults = useCallback(async () => {
     if (loadingMore || !hasMore) return;
     if (!searchQuery.trim() || searchQuery.trim().length < 3) return;
     setLoadingMore(true);
+    // R9-430 — a page that arrives after another search took over is not
+    // this list's page.
+    const runId = searchRunRef.current;
+    const isStale = () => searchRunRef.current !== runId;
     try {
       await bibleDB.initialize();
       const nextPage = await bibleDB.searchVerses(
@@ -489,6 +522,7 @@ export default function SearchScreen() {
         SEARCH_RESULT_LIMIT,
         allResults.length,
       );
+      if (isStale()) return;
       if (nextPage.length === 0) {
         setHasMore(false);
         return;
@@ -497,10 +531,11 @@ export default function SearchScreen() {
       // A short page means we've drained the result set.
       setHasMore(nextPage.length >= SEARCH_RESULT_LIMIT);
     } catch (error) {
+      if (isStale()) return;
       console.error('Load-more error:', error);
       setHasMore(false);
     } finally {
-      setLoadingMore(false);
+      if (!isStale()) setLoadingMore(false);
     }
   }, [loadingMore, hasMore, searchQuery, selectedVersion.id, allResults]);
 
