@@ -462,6 +462,9 @@ export default function PrepTableScreen() {
   );
   const interpSlot = useMemo(() => interpretationSlotFor(template), [template]);
   const [versionLabel, setVersionLabel] = useState('');
+  // R9-478 — the language of the version `load()` resolved: the passage label
+  // follows the text on screen, not the reading version of the moment.
+  const [loadedLang, setLoadedLang] = useState<'es' | 'en' | null>(null);
   const [copied, setCopied] = useState(false);
   // T8.4.5 — PDF export (premium): a separate in-flight flag from `copied`
   // since printToFileAsync + shareAsync are real async I/O, not a clipboard
@@ -683,6 +686,7 @@ export default function PrepTableScreen() {
       // THAT entry's own stored template — never carry over a stale pick.
       setTemplate(saved.template ?? DEFAULT_PREP_TEMPLATE);
       setVersionLabel(versionAbbrev(version));
+      setLoadedLang(lang);
       hasLoadedRef.current = true;
       setStatus('ready');
     } catch (err) {
@@ -1325,9 +1329,18 @@ export default function PrepTableScreen() {
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
     : [colors.primary, colors.primaryDark];
-  // The passage label follows the reading version's language (RVR1960 → "Juan").
+  // The passage label follows the language of the version whose text is on
+  // screen (RVR1960 → "Juan"). R9-478 — it used to read `selectedVersion` on
+  // every render, while the text comes from `load()`, which resolves
+  // `params.version` and does not run again when the reader changes the
+  // version: back from the reader in KJV, «John 3:16» sat over the Spanish
+  // text (and headed the copied outline). Until the first load lands, the
+  // reading version's language.
   const passageLabel = table
-    ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
+    ? formatPassageLabel(
+        table,
+        loadedLang ?? (selectedVersion.language === 'es' ? 'es' : 'en'),
+      )
     : '';
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
