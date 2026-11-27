@@ -25,6 +25,7 @@ import {
   staticColors,
 } from '../styles/designTokens';
 import {useTheme} from '../hooks/useTheme';
+import {contrastRatio} from '../lib/a11y/contrast';
 
 type ToastVariant = 'success' | 'error' | 'warning' | 'info' | 'default';
 type ToastPosition = 'top' | 'bottom';
@@ -56,6 +57,16 @@ const ICONS: Record<ToastVariant, keyof typeof Ionicons.glyphMap> = {
   default: 'notifications',
 };
 
+/** The one of two inks with the higher contrast on `fill` (R9-454). A color
+ * the WCAG math cannot parse (a test mock, an rgba) falls back to `a`. */
+function inkOn(fill: string, a: string, b: string): string {
+  try {
+    return contrastRatio(a, fill) >= contrastRatio(b, fill) ? a : b;
+  } catch {
+    return a;
+  }
+}
+
 export const Toast: React.FC<ToastProps> = ({
   visible,
   message,
@@ -75,32 +86,25 @@ export const Toast: React.FC<ToastProps> = ({
   const opacity = useRef(new Animated.Value(0)).current;
   const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
+  // R9-454 — the ink on a status fill comes from the theme: whichever of
+  // `text` and `background` (the theme's own light/dark pair) reads better on
+  // that fill. A fixed white washed out on the light fills of dark mode and
+  // «Alto contraste» (high contrast success 1.74:1).
+  const fillColors = (fill: string) => {
+    const ink = inkOn(fill, colors.text, colors.background);
+    return {backgroundColor: fill, iconColor: ink, textColor: ink};
+  };
+
   const getVariantColors = () => {
     switch (variant) {
       case 'success':
-        return {
-          backgroundColor: colors.success,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
-        };
+        return fillColors(colors.success);
       case 'error':
-        return {
-          backgroundColor: colors.error,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
-        };
+        return fillColors(colors.error);
       case 'warning':
-        return {
-          backgroundColor: colors.warning,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
-        };
+        return fillColors(colors.warning);
       case 'info':
-        return {
-          backgroundColor: colors.info,
-          iconColor: '#ffffff',
-          textColor: '#ffffff',
-        };
+        return fillColors(colors.info);
       default:
         return {
           backgroundColor: colors.card,
