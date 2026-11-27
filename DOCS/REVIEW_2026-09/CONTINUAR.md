@@ -655,6 +655,9 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
       recientemente». Por qué: abrir no es editar; reescribir todo era lo que pisaba la ilustración.
     - **`R9-430`:** la búsqueda rehecha por el cambio de versión es silenciosa: no cuenta para logros ni entra al
       historial. Por qué: la búsqueda no es nueva, solo cambia de versión.
+    - **El tope por defecto del aviso (`R9-638`) pasa de 2 a 6 líneas en toda la app.** Por qué: con 2 se cortaban 15
+      de 138 textos a escala 1,0 y 65 a 2,0 (modelo de ajuste del agente, calibrado con las capturas de la 186; no
+      medido en vivo). Con 6, 0 a 1,0 y 8 a 2,0. Un aviso largo tapa más arriba: pendientes en vivo.
     - **`R9-601`:** ante una lectura fallida, el store no escribe y devuelve vacío, sin relanzar al llamador. Por qué:
       los cuatro llamadores no tienen `.catch`; relanzar daría un rechazo sin manejar. La pantalla vacía: `R9-641`.
 
