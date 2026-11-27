@@ -24,6 +24,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {staticColors} from '@/styles/designTokens';
 import GoalOptionRow from './GoalOptionRow';
@@ -213,6 +214,7 @@ export default function GoalsSettings() {
             {goalsCard}
           </ScrollView>
         </View>
+        <ToastHost />
       </Modal>
     </View>
   );

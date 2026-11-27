@@ -40,6 +40,7 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {useSyncEngineOptional, useConflicts} from '@context/SyncEngineContext';
 import type {ConflictChoice, ConflictRecord} from '@lib/sync';
 import {logger} from '@lib/utils/logger';
@@ -498,6 +499,7 @@ export default function ConflictsScreen() {
             </View>
           </View>
         </View>
+        <ToastHost />
       </Modal>
     </View>
   );

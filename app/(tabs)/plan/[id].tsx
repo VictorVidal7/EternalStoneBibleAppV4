@@ -40,6 +40,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useAudioPlayer, toAudioVerses} from '@/features/audio';
@@ -918,6 +919,7 @@ export default function ReadingPlanDetailScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        <ToastHost />
       </Modal>
     </View>
   );

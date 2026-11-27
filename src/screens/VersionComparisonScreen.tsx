@@ -36,6 +36,7 @@ import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '../context/ToastContext';
+import {ToastHost} from '../context/ToastLayer';
 import {haptics} from '@lib/haptics';
 import {useAudioPlayer} from '../features/audio';
 import {getBookByName} from '../constants/bible';
@@ -1248,6 +1249,7 @@ export const VersionComparisonScreen: React.FC<
             </ScrollView>
           </View>
         </View>
+        <ToastHost />
       </Modal>
 
       {/* Save Dialog */}
@@ -1413,6 +1415,7 @@ export const VersionComparisonScreen: React.FC<
             </ScrollView>
           </View>
         </View>
+        <ToastHost />
       </Modal>
 
       {/* Verse Picker Modal */}
@@ -1611,6 +1614,7 @@ export const VersionComparisonScreen: React.FC<
             )}
           </View>
         </View>
+        <ToastHost />
       </Modal>
 
       <FeatureGuideModal

@@ -57,6 +57,7 @@ import {logger} from '@lib/utils/logger';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {ConfirmDialog} from '@components/ui/ConfirmDialog';
 import {
@@ -936,6 +937,7 @@ export default function PrepSeriesDetailScreen() {
               </View>
             </View>
           </View>
+          <ToastHost />
         </Modal>
 
         <Modal
@@ -1007,6 +1009,7 @@ export default function PrepSeriesDetailScreen() {
               </View>
             </View>
           </View>
+          <ToastHost />
         </Modal>
 
         <ConfirmDialog

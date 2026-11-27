@@ -47,6 +47,7 @@ import {useBackHandlerStep} from '@hooks/useBackHandlerStep';
 import {useReducedMotion} from '@hooks/useReducedMotion';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {useFavorites} from '@context/FavoritesContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {useReadingProgress} from '@context/ReadingProgressContext';
@@ -3621,6 +3622,7 @@ export default function VerseReadingScreen() {
               setImmersiveOpen(null);
             }}
           />
+          <ToastHost />
         </Modal>
 
         {/* Reader Preferences Sheet — Sprint 31 typography + layout knobs.

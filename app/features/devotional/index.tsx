@@ -33,6 +33,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {haptics} from '@lib/haptics';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
@@ -727,6 +728,7 @@ export default function DevotionalBuilderScreen() {
             )}
           </View>
         </View>
+        <ToastHost />
       </Modal>
 
       <FeatureGuideModal

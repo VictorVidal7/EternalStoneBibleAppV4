@@ -26,6 +26,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {staticColors} from '@/styles/designTokens';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import NotificationReminderRow from './NotificationReminderRow';
 import {
@@ -553,6 +554,7 @@ export default function NotificationsSettings() {
             {remindersCard}
           </ScrollView>
         </View>
+        <ToastHost />
       </Modal>
     </View>
   );

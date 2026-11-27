@@ -58,6 +58,7 @@ import {haptics} from '@lib/haptics';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {
   getAllPrepSeries,
@@ -633,6 +634,7 @@ export default function PrepSeriesListScreen() {
               </View>
             </View>
           </View>
+          <ToastHost />
         </Modal>
       </View>
     </>

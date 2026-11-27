@@ -34,6 +34,7 @@ import {useLanguage} from '@hooks/useLanguage';
 import {useReducedMotion} from '@hooks/useReducedMotion';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {useMemoryDeck} from '@context/MemoryDeckContext';
 import {useFavorites, type Favorite} from '@context/FavoritesContext';
 import {useMemoryGoal} from '@hooks/useMemoryGoal';
@@ -626,6 +627,7 @@ const MilestoneCelebration: React.FC<{
           </TouchableOpacity>
         </Animated.View>
       </View>
+      <ToastHost />
     </Modal>
   );
 };

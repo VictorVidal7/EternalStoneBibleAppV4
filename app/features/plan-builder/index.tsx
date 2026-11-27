@@ -29,6 +29,7 @@ import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {useCustomPlans} from '@context/CustomPlansContext';
 import {useReadingPlanProgress} from '@context/ReadingPlanProgressContext';
 import {haptics} from '@lib/haptics';
@@ -587,6 +588,7 @@ export default function PlanBuilderScreen() {
             )}
           </View>
         </View>
+        <ToastHost />
       </Modal>
     </View>
   );

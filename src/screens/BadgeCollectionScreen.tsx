@@ -25,6 +25,7 @@ import {useTheme} from '../hooks/useTheme';
 import {useLanguage} from '../hooks/useLanguage';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useToast} from '../context/ToastContext';
+import {ToastHost} from '../context/ToastLayer';
 import {staticColors} from '../styles/designTokens';
 import {centeredMaxWidth, CONTENT_MAX_WIDTH} from '../styles/responsive';
 import {
@@ -757,6 +758,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               </View>
             </View>
           </View>
+          <ToastHost />
         </Modal>
       )}
 
@@ -848,6 +850,7 @@ export const BadgeCollectionScreen: React.FC<BadgeCollectionScreenProps> = ({
               )}
             </View>
           </View>
+          <ToastHost />
         </Modal>
       )}
 

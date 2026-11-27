@@ -29,6 +29,7 @@ import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {useBibleVersion} from '@hooks/useBibleVersion';
 import {useServices} from '@context/ServicesContext';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import bibleDB from '@lib/database';
 import {getBookByName} from '@/constants/bible';
 import {Highlight, HighlightCategory, HighlightColor} from '@lib/highlights';
@@ -675,6 +676,7 @@ export default function HighlightsScreen() {
             </View>
           </View>
         </View>
+        <ToastHost />
       </Modal>
 
       {/* Share my highlights gallery (Sprint 86) */}

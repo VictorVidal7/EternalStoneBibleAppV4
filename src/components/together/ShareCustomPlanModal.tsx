@@ -19,6 +19,7 @@ import {AppText as Text} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {haptics} from '@lib/haptics';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {encodeHttpsLink} from '@lib/together';
@@ -122,6 +123,7 @@ export function ShareCustomPlanModal({visible, plan, onClose}: Props) {
           </TouchableOpacity>
         </View>
       </View>
+      <ToastHost />
     </Modal>
   );
 }

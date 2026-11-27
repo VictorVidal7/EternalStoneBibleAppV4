@@ -37,6 +37,7 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {usePremium} from '@context/PremiumContext';
 import {useOfferingSheet} from '@context/OfferingSheetContext';
 import {haptics} from '@lib/haptics';
@@ -382,6 +383,7 @@ export const CompareImageModal: React.FC<CompareImageModalProps> = ({
           </View>
         )}
       </View>
+      <ToastHost />
     </Modal>
   );
 };

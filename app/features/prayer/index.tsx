@@ -33,6 +33,7 @@ import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {TestimonyImageModal} from '@components/insights/TestimonyImageModal';
@@ -698,6 +699,7 @@ export default function PrayerJournalScreen() {
               </View>
             </View>
           </View>
+          <ToastHost />
         </Modal>
 
         {/* Answer modal */}
@@ -766,6 +768,7 @@ export default function PrayerJournalScreen() {
               </View>
             </View>
           </View>
+          <ToastHost />
         </Modal>
 
         {/* Share an answered prayer as a testimony image (Sprint 94) */}

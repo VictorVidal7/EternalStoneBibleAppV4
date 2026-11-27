@@ -41,6 +41,7 @@ import {AppText} from '@components/ui/AppText';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {usePremium} from '@context/PremiumContext';
 import {haptics} from '@lib/haptics';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
@@ -295,6 +296,7 @@ export const RedeemCodeSheet: React.FC<Props> = ({visible, onClose}) => {
           </Pressable>
         </View>
       </KeyboardAvoidingView>
+      <ToastHost />
     </Modal>
   );
 };

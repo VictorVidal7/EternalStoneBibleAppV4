@@ -27,6 +27,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {logger} from '@lib/utils/logger';
 import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
 import {
@@ -247,6 +248,7 @@ export function ProphecyShareModal({
           ) : null}
         </View>
       </View>
+      <ToastHost />
     </Modal>
   );
 }

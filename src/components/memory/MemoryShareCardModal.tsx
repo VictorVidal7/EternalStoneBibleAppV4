@@ -24,6 +24,7 @@ import {haptics} from '@lib/haptics';
 import {useTheme} from '@hooks/useTheme';
 import {useLanguage} from '@hooks/useLanguage';
 import {useToast} from '@context/ToastContext';
+import {ToastHost} from '@context/ToastLayer';
 import {focusTrapProps, a11yHiddenProps} from '@lib/a11y/focusTrap';
 import {logger} from '@lib/utils/logger';
 import {shareOrDownloadImage} from '@/features/share/shareOrDownloadImage';
@@ -192,6 +193,7 @@ export const MemoryShareCardModal: React.FC<Props> = ({
           </TouchableOpacity>
         </View>
       </View>
+      <ToastHost />
     </Modal>
   );
 };
