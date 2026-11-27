@@ -25,6 +25,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  AppState,
   View,
   Text,
   ScrollView,
@@ -1116,6 +1117,20 @@ export default function PrepTableScreen() {
   // savePrepNote is idempotent + serialized, so this is harmless even when
   // onBlur/handleOpenPulpit already saved the same value.
   useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+  // R9-58 — the unmount flush above never runs when the process dies: the OS
+  // kills an app in the background (swipe-away, low memory) without
+  // unmounting anything, and while it sits there the debounce's timer does
+  // not fire either (measured on the emulator, S137). Whatever was typed since
+  // the last 700 ms pause was lost. Push the pending save the moment the app
+  // leaves the foreground. use-debounce's `flushOnExit` would not do it: it
+  // listens to `document`, which React Native does not have (on the web,
+  // AppState reports a hidden tab as 'background', so this covers it too).
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state !== 'active') debouncedSaveNote.flush();
+    });
+    return () => subscription.remove();
+  }, [debouncedSaveNote]);
   // Which (passage, section, template) the pending debounced save belongs
   // to — see `handleNoteChange` (R9-473).
   const pendingSaveKeyRef = useRef<string | null>(null);
