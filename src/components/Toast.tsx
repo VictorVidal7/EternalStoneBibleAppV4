@@ -43,11 +43,17 @@ interface ToastProps {
   };
   icon?: keyof typeof Ionicons.glyphMap;
   useBlur?: boolean;
-  /** Line cap for `message` — 2 fits the app's normal short confirmations; a
-   * genuinely longer one-time tip (e.g. an onboarding hint) can raise this
-   * instead of being silently ellipsized. */
+  /** Line cap for `message`. Defaults to `DEFAULT_MESSAGE_LINES`; a caller
+   * can set its own. */
   numberOfLines?: number;
 }
+
+/** R9-638 — the default cap was 2, and every toast that needed more lost its
+ * end: the backup notice lost where the copy went, at font scale 1.0. A
+ * short message still takes the lines it needs; only a long one grows,
+ * downward from the same top offset. 6 is the cap the longest toast already
+ * used (the Spanish-voice prompt). */
+const DEFAULT_MESSAGE_LINES = 6;
 
 const ICONS: Record<ToastVariant, keyof typeof Ionicons.glyphMap> = {
   success: 'checkmark-circle',
@@ -77,7 +83,7 @@ export const Toast: React.FC<ToastProps> = ({
   action,
   icon,
   useBlur = Platform.OS === 'ios',
-  numberOfLines = 2,
+  numberOfLines = DEFAULT_MESSAGE_LINES,
 }) => {
   const {colors, isDark} = useTheme();
   const translateY = useRef(
