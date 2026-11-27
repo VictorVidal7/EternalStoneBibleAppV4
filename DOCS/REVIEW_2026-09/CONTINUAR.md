@@ -622,9 +622,21 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   8. **Menos gasto fijo.** Un script de arranque (estado, conteos, las entradas que nombra el mensaje) y uno de
      cierre (TSV, validador, checkpoint, validate). El detalle en prosa, solo para hallazgos.
 
-  No se promete un ritmo: la estimación sale de la clasificación de la 189. Preguntado a Victor junto con esto: el
-  modelo de los agentes y cuántos por ola; si una decisión enviada con su recomendación vale por defecto si no
-  objeta; si un checkpoint solo de docs puede saltarse el validate local (el CI lo corre).
+  No se promete un ritmo: la estimación sale de la clasificación de la 189. **Las tres respuestas de Victor
+  (2026-11-26, «de acuerdo», sobre la recomendación hecha con el asesor):**
+  - **Agentes.** Opus 5.5 para todo lo que decide (clasificar, arreglar, revisar); Fable no (sin margen). En la
+    primera ola, Sonnet 5.5 en un solo lote D, a prueba: si el script de verla fallar y el revisor lo aprueban,
+    queda para los lotes simples. La 189: 4 de solo lectura, y el orquestador lee TODA bajada propuesta. Las olas:
+    3 que escriben y 1 revisor; a 4 o 5 si la primera sale sin caídas por carga ni conflictos. Una sola ola grande
+    por ventana de 5 h (la 129 se cortó entera en la segunda). Agentes × `--maxWorkers` por debajo de 32 núcleos.
+    `translations.ts` lo tocan casi todos: las ramas se mergean de a una.
+  - **Decisiones por defecto.** Una decisión técnica o de interfaz, reversible en el código, escrita en esta §7 con
+    su porqué y «Victor puede cambiarlo», rige si Victor arranca la sesión siguiente sin objetar. Nunca por
+    defecto: merge y push, la lista de bajadas de P2, dinero o premium, contenido teológico o bíblico, lo legal,
+    borrar datos de la nube o de cuentas, lo que vive fuera del repo. Se revisa al lanzar (hoy es prueba interna).
+  - **Validate de un checkpoint de docs.** Si `git diff --quiet <último sha con CI verde> HEAD -- . ':!DOCS'` sale
+    vacío, basta `npx prettier --check "DOCS/REVIEW_2026-09/**/*.md"` y el validador de estado; si cambió código,
+    el validate entero. El CI tras el push sigue siendo el control.
 
 - **El flujo de trabajo, desde la sesión 153 (Victor, 2026-11-16: «apliquemos todo lo que nos convenga», tras el
   video de los 7 principios de Karpathy; el análisis está en `detail/S152-arreglos-pruebas.md` §10).**
