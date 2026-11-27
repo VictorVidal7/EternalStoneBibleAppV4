@@ -589,3 +589,6 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   Victor y aplicadas (P1 + P2 = 50); 6 esperan a Victor; 40 P2 reales en 12 carriles y 4 olas. Scripts nuevos:
   `tools/revert-pieza.cjs.txt` (probado contra `62d3cd94`) y `tools/sesion.cjs.txt`. Sigue la ola 1. Detalle:
   `detail/S189-retriaje-p2.md`.
+- **Sesión 189b — 2026-11-26.** Las seis preguntas de la 189, decididas por delegación de Victor («qué advisor
+  decida»): `R9-31` aceptado; `R9-118` y `R9-4` al carril 13 nuevo («CI y reglas»); `R9-158` al carril 9;
+  `R9-136` abierto con la dirección aprobada; `R9-135` sin cambios. P1 + P2 = 49. `CONTINUAR.md` §7.

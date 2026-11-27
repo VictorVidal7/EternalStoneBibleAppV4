@@ -165,6 +165,13 @@ cualquier P3: casi todas irían a B.
 | `R9-158` | ¿fallar cerrado o abierto al no poder leer el dueño? | **Cerrado (preguntar),** junto con el fallo de escritura de `claimLocalStore`: abierto sube las notas de Ana a Beto; preguntar de más cuesta un diálogo.             |
 | `R9-135` | la raíz del enlace de RevenueCat                     | **Sigue esperando la medición con la cuenta de Google de prueba (§7).** Sin cambios hasta entonces.                                                                  |
 
+**Decididas el 2026-11-26** (Victor: «De acuerdo a las 6 preguntas … qué advisor decida»; el asesor las decidió
+igual que la recomendación, con dos precisiones): `R9-31` ACEPTADO (P1 + P2 baja a 49); `R9-118` y `R9-4` pasan
+a P2 real en un carril 13 nuevo, «CI y reglas» (`ci.yml` y sus suites; `firestore.rules` y `firebase.json`),
+fuera de la ola 1 y como cuarto carril solo tras una primera ola limpia; `R9-158` pasa a P2 real en el carril 9;
+`R9-136` queda abierto con la dirección aprobada y **no se fusiona** con `R9-4`; `R9-135`, sin cambios (pendientes
+en vivo). Cada entrada lleva su viñeta; la §7 de `CONTINUAR.md`, el porqué.
+
 Siguen sin tocar, por el «NO»: `R9-410`, `R9-411` y `R9-562` (P2), y la pregunta de la Mesa (D o B).
 
 Dos P2 reales también le piden algo a Victor al final, pero se arreglan en el repo: `R9-20` y `R9-21` (el canje de

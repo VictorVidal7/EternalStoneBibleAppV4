@@ -4231,6 +4231,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     del borrado. Si el start de esa cuenta no llega en el proceso y entra otra sin pregunta (marcador ilegible), la
     otra recibe las filas: `'2'` y 1 subida (antes de la 155, `skip` y 0). Pide dos fallos juntos, y las filas ya
     eran de quien eligió migrar: el daño es este fallo abierto. `detail/S157-revision-155-156.md` §5.
+  - **Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): fallar cerrado (preguntar)**, junto con el fallo de ESCRITURA de `claimLocalStore`. Por qué: abierto sube las notas de Ana a Beto (medido en la 25); preguntar de más cuesta un diálogo. Pasa a P2 real, carril 9 (el mismo archivo que `R9-26`, la forma de `R9-134`). La matriz: una lectura que sigue fallando, y la pregunta no puede repetirse en bucle ni bloquear el inicio de sesión.
 
 - **`R9-159` (S24, arnés de pruebas — P3) — 🐛 en unas 41 suites el mock de `useRouter` devuelve un
   objeto nuevo en cada render, así que ninguna ve una dependencia faltante de `useCallback` sobre
@@ -15731,6 +15732,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   saliendo bien es `R9-593`. La compra antes del primer evento de Firebase (fila N1) tampoco se corrige: beto paga,
   recibe `success` y, al llegar el evento, queda con `premium=false` y la compra en ana; igual antes de la 150, y
   angosto (el evento llega antes de `initialize()` en el orden medido en la 115). `detail/S151-revision-del-diff-s150.md` §4 y §5.
+  - **Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): nada que decidir.** Sigue abierto, esperando la medición con la cuenta de Google de prueba (§7); va a los pendientes en vivo (punto 6 del método rápido).
 
 - **`R9-136` (S21, reglas Firestore) — 🐛 cualquiera puede agotar la cuota diaria COMPARTIDA de
   Firestore con una cuenta anónima, y eso le corta el sync a todos.** PLAUSIBLE: medirlo exige
@@ -15763,6 +15765,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     de documentos que no existen, bajo el propio `users/{uid}/`, agotan la cuota de LECTURAS sin escribir nada.
     Las mitigaciones son las mismas (App Check; y en la regla, un tope de tamaño y la lista de colecciones).
   - **Sesión 169: propuesta, nada aplicado.** Borrador de reglas (lista de colecciones, topes generosos) y orden de App Check con Play Integrity (monitoreo antes de «Enforce»), en `detail/S169-tanda-v4.md` §4. Pide el OK de Victor aparte, paso por paso.
+  - **Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): dirección aprobada** (el borrador de la 169 §4, con App Check primero en monitoreo). Sigue abierto: cada paso en vivo pide el OK de Victor, como dice la entrada. No se fusiona con `R9-4` (aquel cierra pronto; este, al lanzar). El borrador en el repo va después de `R9-4`, en el carril 13, y ningún agente despliega.
 
 - **`R9-137` (S21, prueba de sync) — 🐛 el dedupe por uid de `upsertQueueEntry` (pieza de
   `R9-22`) no lo vigila ninguna prueba.** CONFIRMADO por revert y sonda. Quitar
@@ -15981,6 +15984,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **Decisión de Victor:** darle token (un secreto) o quitar el step. Lo que no vale es un verde que
   no mide nada.
   - **⚠️ Sesión 179:** sigue igual tras `R9-6`. En el CI de `eb0945a6` la acción sale del sha `b9fd7d16`, pero baja el CLI de `https://cli.codecov.io/latest/…` (con firma GPG y SHASUM, pero `latest`), y el log sigue diciendo «_Branch `main` is protected but no token was provided_». Esta vez termina en «_queued for processing_»; no se midió si Codecov lo procesó. Fijar la acción no fija lo que baja: si el step se queda, el input `version:` lo fijaría. `detail/S179-revision-del-diff-s178.md` §3.1.
+  - **Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): se quita el step de Codecov.** Por qué: la API pública da `count: 0` y el badge «unknown»; un verde que no mide confunde, y un token es un secreto más. Pasa a P2 real, carril 13 «CI y reglas»: `ci.yml` y las suites que lo leen (`ciWorkflowHonesty`, `ciNodeVersion`).
 
 - **`R9-119` (S19, premium) — 🐛 cerrar sesión le quita el premium a quien pagó, y dos docstrings
   dicen lo contrario.** Los docstrings son `offeringService.ts:218-223` y `AuthContext.tsx:335-338`
@@ -16540,6 +16544,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     las dos conexiones) solo si lo sin medir sale bien: suma reescribir todo el cuerpo sobre el `txn` (hoy escriben
     por la compartida `bibleDB.executeSql`, `foldVerseNotesInTransaction` y los logros: no es mecánico) y lecturas
     en cola durante la ventana. Sigue abierto. Detalle: `detail/S186-revision-del-diff-y-r9-31.md` §2 y §2.1.
+  - **✅ ACEPTADO en la Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo):** queda la transacción no exclusiva de hoy. Por qué: la exclusiva sola midió peor en el aparato (pierde siempre, no solo en un rollback); la no exclusiva pierde solo lo que cae dentro de un rollback de SQLite a mitad del import; y el ciclo de carreras del respaldo está cerrado (§5). Es una decisión explícita sobre un A(1), no un B del triaje. Detalle: `detail/S189-retriaje-p2.md` §5.
 
 - **`R9-32` (A7, respaldo) — 💡 el archivo de respaldo se escribe en caché y nunca se
   limpia.** `BackupService.ts:586-590`. `shareAsync` resuelve al cerrarse la hoja, no cuando
@@ -16610,6 +16615,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   capturado íntegro en el detalle de `B4`, así que es mecánico) + añadir
   `"firestore": {"rules": "firestore.rules"}` a `firebase.json`.
   - **Sesión 169: propuesta, nada aplicado.** Primer paso: `firestore.rules` = las reglas vivas tal cual y `"firestore": {"rules": "firestore.rules"}` en `firebase.json`. Corrección: hoy `firebase.json` no tiene sección `functions`. Detalle: `detail/S169-tanda-v4.md`.
+  - **Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): sí, versionar las reglas vivas tal cual** (el primer paso de la 169). Pasa a P2 real, carril 13, fuera de la ola 1 (Firebase está en el «NO» de cada mensaje). Cuando vaya: leer antes la memoria de la Rules API, solo GET, el texto byte a byte igual al vivo, y nunca desplegar.
 
 - **`R9-5` (B5, CI) — ⚠️ el job "Security Audit" no puede fallar nunca.** Severidad baja
   como riesgo, pero induce a error activamente. Los dos únicos pasos del job

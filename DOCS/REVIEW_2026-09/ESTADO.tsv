@@ -29,7 +29,7 @@ R9-27	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la s
 R9-28	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): nuevo `emitBackupRestored()` (`src/lib/backup/restoreSignal.ts`), emitido al final de `importBackup`, al que s»
 R9-29	P1	cuota	arreglado	fb2a0391	marca de su entrada: «✅ ARREGLADO en la sesión 169 (`fb2a0391`, rama `fix/s169-v4`): el import ya no sube `reviewEvents` (nadie los lee en la nube) y encola lo demás con un»
 R9-30	P1	respaldo	arreglado	dcd9d339	marca de su entrada: «✅ ARREGLADO en la sesión 165 (`dcd9d339` a `b61235db`, rama `fix/s165-v3`; tandas 1 a 5, sesiones 160 a 165): las 21 preferencias. Viajan 8: idioma, a»
-R9-31	P2	respaldo	abierto		mejora (💡): `src/services/BackupService.ts:1419` (`withTransactionAsync`, no la exclusiva)
+R9-31	P2	respaldo	aceptado	sesión 189	marca de su entrada: «✅ ACEPTADO en la Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): queda»
 R9-32	P2	respaldo	arreglado	8ed7e99a	marca de su entrada: «✅ ARREGLADO en la sesión 184 (`8ed7e99a`, rama `fix/s184`): tras un export sin secciones degradadas, `toast.info` con el texto de la §7, en los dos id»
 R9-33	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`, `c41c9cb`): las dos mitades. (a) El backoff que la documentación prometía ahora existe, medido desde el ÚLTIMO»
 R9-34	P0	SyncEngine	arreglado	0a4f0fc	marca de su entrada: «✅ ARREGLADO en la sesión 9 (`0a4f0fc`): la rama de error hace el spread de la entrada viva de la cola, no del snapshot `item`. Cayó del mismo cambio q»

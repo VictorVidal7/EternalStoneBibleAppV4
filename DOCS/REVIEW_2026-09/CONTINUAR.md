@@ -714,6 +714,16 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     lista de aceptados va en el detalle, y Victor la ve antes del merge. Estimación de Fable: quedan unos 73
     abiertos de 189 (de 53 a 93, según dónde caiga la frontera).
 
+- **Las seis preguntas de la 189 (decididas por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué
+  advisor decida»; Victor puede cambiarlo).** El detalle: `detail/S189-retriaje-p2.md` §5.
+  - `R9-31`: la transacción no exclusiva queda, ACEPTADO (la exclusiva sola midió peor; pierde solo un rollback).
+  - `R9-118`: se quita el step de Codecov (`count: 0`; un verde que no mide confunde). Carril 13.
+  - `R9-158`: fallar cerrado (preguntar), con el fallo de escritura de `claimLocalStore`. Carril 9.
+  - `R9-4`: versionar las reglas vivas tal cual; solo GET, nunca desplegar. Carril 13, fuera de la ola 1.
+  - `R9-136`: dirección aprobada (borrador de la 169 §4, App Check en monitoreo); cada paso en vivo, con el OK de
+    Victor. No se fusiona con `R9-4`.
+  - `R9-135`: sin cambios; espera la cuenta de Google de prueba (pendientes en vivo).
+
 - **`R9-498` y `R9-511`: cómo se guarda lo que no entra (decidido por Claude en la 187c, por delegación de Victor
   del 2026-11-26: «lo dejo a tu mejor criterio»; Victor puede cambiarlo).** El detalle: `detail/S187-arreglos-tanda-3.md` §1, §2 y §6.
   - **`R9-498`: el paseo «Orar la Escritura» se guarda en N entradas del diario** («Título (1/2)», «(2/2)»),
@@ -1034,9 +1044,9 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   por ejemplo un aviso si un conflicto lleva N días pendiente? **Medido en la 25:** con 300 docs,
   en un año son 300 928 lecturas contra 3 647. Ojo: un aviso no cubre `R9-164`, un retenido sin
   conflicto visible.
-- **`R9-158`:** si no se puede leer el marcador del dueño del almacén, ¿se pregunta (fallar
+- ~~**`R9-158`:** si no se puede leer el marcador del dueño del almacén, ¿se pregunta (fallar
   cerrado) o se sigue sin preguntar, como hoy? Desde la 25 está medido (suben las 12 notas), y va
-  junto con su gemelo: `claimLocalStore` también se traga el fallo al ESCRIBIR el marcador.
+  junto con su gemelo: `claimLocalStore` también se traga el fallo al ESCRIBIR el marcador.~~ **Decidido en la 189: fallar cerrado (§7).**
 - ~~**`R9-59`:** ¿«device-local» debe significar también «visible para cualquiera que use el
   aparato»?~~ **Decidido el 2026-10-03:** la Mesa, por cuenta (ver la §7).
 - **El diario de oración, ¿por cuenta o por aparato? (sesión 128, nota en `R9-59`):** hoy es del aparato
@@ -1070,10 +1080,11 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   `R9-119`, de quién es el premium, y los textos de dinero de la 144 ya están decididos: §7):
   - **`R9-24`, borrar lo que hay en el aparato:** no existe ninguna acción que borre el contenido local. La tanda
     V4 corrige el texto del diálogo de «Eliminar cuenta»; ¿se agrega además esa acción?
-  - **`R9-118`, Codecov:** el step sale verde sin haber recibido nada nunca. ¿Se le da un token (un secreto) o se
-    quita el step? Recomendación de Claude: quitarlo; un verde que no mide confunde.
+  - ~~**`R9-118`, Codecov:** el step sale verde sin haber recibido nada nunca. ¿Se le da un token (un secreto) o se
+    quita el step? Recomendación de Claude: quitarlo; un verde que no mide confunde.~~ **Decidido en la 189: quitarlo (§7).**
   - **`R9-136`, la cuota compartida de Firestore:** la entrada lo llama bloqueante antes del lanzamiento. Las
     mitigaciones (App Check, y un tope y la lista de colecciones en las reglas) tocan la consola de Firebase.
+    **La 189 aprobó la dirección (§7);** cada paso en vivo sigue pidiendo el OK de Victor.
 - **`R9-126`, opción B (sesión 154):** «Restaurar» un respaldo, ¿lleva lo restaurado a la cuenta (el import
   reestampa `updatedAt` y la nube queda con el respaldo) o solo a este teléfono (la nube no cambia)? Recomendación
   de Claude: «a la cuenta». `detail/S154-arreglos-v2.md` §6.
