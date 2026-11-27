@@ -353,6 +353,9 @@ export default function PrepTableScreen() {
    * SQLite read happens to finish last used to win.
    */
   const loadRunRef = useRef(0);
+  // R9-476 — the run ids of the originals and the comparison loads.
+  const originalsRunRef = useRef(0);
+  const compareRowsRunRef = useRef(0);
   /**
    * R9-47 — which passage the current `drafts` actually belong to. NOT the
    * same thing as `table.passageKey`: the table moves the instant the stepper
@@ -703,12 +706,21 @@ export default function PrepTableScreen() {
   // reader never even reaches the pack-installed check or a DB read, same
   // discipline as the T8.4.1 history screen ("premium stays a pure addition,
   // nothing here costs the free path anything").
+  //
+  // R9-476 — one run at a time wins, like `load()`'s run id (its own counter:
+  // sharing `loadRunRef` would disown a passage load). A read for the old
+  // range or passage that lands after the new one used to paint its words
+  // under the new label; so did the reload at the end of a download, which
+  // called the loader of the render where «Descargar» was tapped.
   const loadOriginalWords = useCallback(async () => {
+    const runId = ++originalsRunRef.current;
+    const isStale = () => originalsRunRef.current !== runId;
     if (!table || !isPremium) return;
     setOriginalsStatus('loading');
     try {
       let installed = await isOriginalsInstalled();
       if (!installed) installed = await importLocalOriginalsIfPresent();
+      if (isStale()) return;
       if (!installed) {
         setOriginalsStatus('notInstalled');
         return;
@@ -727,6 +739,7 @@ export default function PrepTableScreen() {
         })),
       );
 
+      if (isStale()) return;
       const groups = groupOriginalWordsByStrongs(perVerse);
       const rows: OriginalWordRow[] = groups.map(g => {
         const morphology = decodeMorphologyCode(g.grammar, g.lang);
@@ -744,10 +757,15 @@ export default function PrepTableScreen() {
       setOriginalWordRows(rows);
       setOriginalsStatus(rows.length > 0 ? 'ready' : 'empty');
     } catch (err) {
+      if (isStale()) return;
       logger.warn('Prep original words load failed', {error: String(err)});
       setOriginalsStatus('error');
     }
   }, [table, isPremium, language, params.version]);
+  // R9-476 — the download's reload has to read the passage on screen when it
+  // ENDS, not the one of the render that started it.
+  const loadOriginalWordsRef = useRef(loadOriginalWords);
+  loadOriginalWordsRef.current = loadOriginalWords;
 
   useEffect(() => {
     loadOriginalWords();
@@ -801,7 +819,11 @@ export default function PrepTableScreen() {
   // Resolve the selected versions' text for the FULL passage range (reuses
   // `compareVerseRange` — the same service that powers VersionComparisonScreen
   // — rather than re-deriving verse-by-verse lookups here).
+  // R9-476 — the same run-id rule: an answer for the previous range or
+  // selection never lands over the current one.
   const loadCompareRows = useCallback(async () => {
+    const runId = ++compareRowsRunRef.current;
+    const isStale = () => compareRowsRunRef.current !== runId;
     if (
       !table ||
       !isPremium ||
@@ -818,8 +840,10 @@ export default function PrepTableScreen() {
         table.endVerse,
         selectedCompareIds,
       );
+      if (isStale()) return;
       setCompareRows(rows);
     } catch (err) {
+      if (isStale()) return;
       logger.warn('Prep version compare: failed to load verse texts', {
         error: String(err),
       });
@@ -836,13 +860,13 @@ export default function PrepTableScreen() {
     setOriginalsProgress(0);
     try {
       await downloadAndImportOriginals(setOriginalsProgress);
-      await loadOriginalWords();
+      await loadOriginalWordsRef.current();
     } catch {
       setOriginalsStatus('error');
     } finally {
       setOriginalsDownloading(false);
     }
-  }, [loadOriginalWords]);
+  }, []);
 
   const handleUnlockOriginalWords = useCallback(() => {
     haptics.tap();
