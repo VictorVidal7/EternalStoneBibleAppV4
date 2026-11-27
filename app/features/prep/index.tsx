@@ -90,7 +90,7 @@ import {
   type PrepTable,
   type PrepTemplateId,
 } from '@/features/study/prepTable';
-import {isPrepNotesEmpty} from '@/features/study/prepNotes';
+import {isPrepNotesEmpty, type PrepNotes} from '@/features/study/prepNotes';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
 import {
   PREP_SELF_REVIEW_CATEGORIES,
@@ -365,6 +365,46 @@ export default function PrepTableScreen() {
    * it. `null` until the first load has adopted a passage.
    */
   const draftsPassageKeyRef = useRef<string | null>(null);
+  /**
+   * R9-167 — what storage holds for the passage the drafts belong to, as far
+   * as this screen knows: the notes it last read, plus every section it wrote
+   * since. `flushDrafts` writes only the sections whose draft differs from
+   * it. Coming back from the illustrations bank, the drafts still hold the
+   * `application` from BEFORE the insertion until the focus re-read lands;
+   * a flush in that window wrote that old text over the illustration just
+   * inserted. Unchanged, that draft is no edit, and is no longer written.
+   * `template` is the stored one: while the entry has none, the flush keeps
+   * writing every draft, because a write is what stamps the template the
+   * other screens resolve.
+   */
+  const syncedNotesRef = useRef<{
+    key: string | null;
+    sections: Partial<Record<PrepSection, string>>;
+    template?: PrepTemplateId;
+  }>({key: null, sections: {}});
+  const adoptSyncedNotes = useCallback((key: string, saved: PrepNotes) => {
+    syncedNotesRef.current = {
+      key,
+      sections: {...saved.sections},
+      template: saved.template,
+    };
+  }, []);
+  const markSectionSynced = useCallback(
+    (
+      key: string,
+      section: PrepSection,
+      value: string,
+      templateId: PrepTemplateId,
+    ) => {
+      const synced = syncedNotesRef.current;
+      // The drafts moved to another passage while the write was in flight.
+      if (synced.key !== key) return;
+      synced.sections = {...synced.sections, [section]: value};
+      // `setSectionNote` stamps the template on an entry that had none.
+      if (synced.template === undefined) synced.template = templateId;
+    },
+    [],
+  );
   const [maxVerse, setMaxVerse] = useState(0);
   const [lines, setLines] = useState<VerseLine[]>([]);
   const [crossRows, setCrossRows] = useState<CrossRow[]>([]);
@@ -635,6 +675,7 @@ export default function PrepTableScreen() {
       setDrafts(saved.sections);
       // The drafts now belong to THIS passage — see `handleNoteBlur`.
       draftsPassageKeyRef.current = table.passageKey;
+      adoptSyncedNotes(table.passageKey, saved);
       setSelfReview(savedSelfReview);
       // Unconditional (unlike the narrow refocus effect below): this is a
       // whole-passage (re)load, possibly for a DIFFERENT passageKey than
@@ -654,7 +695,7 @@ export default function PrepTableScreen() {
     } finally {
       if (!isStale()) setReloading(false);
     }
-  }, [table, params.version]);
+  }, [table, params.version, adoptSyncedNotes]);
 
   useEffect(() => {
     load();
@@ -685,6 +726,7 @@ export default function PrepTableScreen() {
           if (cancelled) return;
           setDrafts(saved.sections);
           draftsPassageKeyRef.current = key;
+          adoptSyncedNotes(key, saved);
           // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
           // the illustrations bank and back) must adopt a template another
           // screen just PERSISTED for this SAME entry, but must never reset
@@ -699,7 +741,7 @@ export default function PrepTableScreen() {
       return () => {
         cancelled = true;
       };
-    }, [table]),
+    }, [table, adoptSyncedNotes]),
   );
 
   // T8.4.2 — "Palabras clave en el idioma original". Entirely premium: a free
@@ -1034,12 +1076,18 @@ export default function PrepTableScreen() {
   const flushDrafts = useCallback(async (): Promise<boolean> => {
     if (!table) return false;
     const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+    // R9-167 — an unchanged draft is not an edit either (see
+    // `syncedNotesRef`), unless the entry still needs its template stamped.
+    const synced = syncedNotesRef.current;
+    const writeAll = synced.key !== passageKey || synced.template === undefined;
     try {
       await Promise.all(
-        templateSections.map(section => {
+        templateSections.map(async section => {
           const value = drafts[section];
-          if (value === undefined) return undefined;
-          return savePrepNote(passageKey, section, value, undefined, template);
+          if (value === undefined) return;
+          if (!writeAll && synced.sections[section] === value) return;
+          await savePrepNote(passageKey, section, value, undefined, template);
+          markSectionSynced(passageKey, section, value, template);
         }),
       );
       return true;
@@ -1047,7 +1095,14 @@ export default function PrepTableScreen() {
       reportSaveError();
       return false;
     }
-  }, [table, drafts, templateSections, template, reportSaveError]);
+  }, [
+    table,
+    drafts,
+    templateSections,
+    template,
+    reportSaveError,
+    markSectionSynced,
+  ]);
 
   // Tanda 4 — the "Banco de ilustraciones" entry point, opened in INSERT
   // mode (carries `insertPassageKey`): picking an illustration there appends
@@ -1127,9 +1182,9 @@ export default function PrepTableScreen() {
       value: string,
       templateId: PrepTemplateId,
     ) => {
-      savePrepNote(passageKey, section, value, undefined, templateId).catch(
-        reportSaveError,
-      );
+      savePrepNote(passageKey, section, value, undefined, templateId)
+        .then(() => markSectionSynced(passageKey, section, value, templateId))
+        .catch(reportSaveError);
     },
     700,
   );
@@ -1180,12 +1235,13 @@ export default function PrepTableScreen() {
             if (passageKeyRef.current !== key) return;
             setDrafts(saved.sections);
             draftsPassageKeyRef.current = key;
+            adoptSyncedNotes(key, saved);
             if (saved.template) setTemplate(saved.template);
           })
           // The store logged it; the fields keep what they show (R9-600).
           .catch(() => undefined);
       }),
-    [debouncedSaveNote],
+    [debouncedSaveNote, adoptSyncedNotes],
   );
 
   const handleNoteChange = useCallback(
@@ -1236,11 +1292,11 @@ export default function PrepTableScreen() {
       //     and typed for.
       if (value === undefined) return;
       const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
-      savePrepNote(passageKey, section, value, undefined, template).catch(
-        reportSaveError,
-      );
+      savePrepNote(passageKey, section, value, undefined, template)
+        .then(() => markSectionSynced(passageKey, section, value, template))
+        .catch(reportSaveError);
     },
-    [table, drafts, template, reportSaveError],
+    [table, drafts, template, reportSaveError, markSectionSynced],
   );
 
   const handleNoteSelectionChange = useCallback(
