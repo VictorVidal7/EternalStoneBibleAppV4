@@ -18,6 +18,8 @@ Lo mecánico de cada sesión, en menos de 3 KB. Las reglas: `CONTINUAR.md` §5 y
 
 Escribí la prueba; revertí solo la pieza; `npx jest <ruta>`; leé que cae por la razón correcta; restaurá; `git diff`
 vacío. Con el productor real, no un mock de fábrica. Si no es testeable en jest, decilo en el commit.
+Sobre un commit hecho: `node DOCS/REVIEW_2026-09/tools/revert-pieza.cjs.txt <sha> [prueba] [--solo a,b]` (sale 0
+solo con rojo y `git diff` vacío). Arranque y cierre: `tools/sesion.cjs.txt arranque [ids]` y `cierre [sha]`.
 
 ## Checkpoint de docs
 

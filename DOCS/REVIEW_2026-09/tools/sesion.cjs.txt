@@ -1,0 +1,94 @@
+// Arranque y cierre de una sesión (método rápido, CONTINUAR.md §7, punto 8). Solo lee, salvo `cierre`, que
+// regenera ESTADO.tsv. Desde cualquier lado:
+//   node DOCS/REVIEW_2026-09/tools/sesion.cjs.txt arranque [--fetch] [R9-NNN ...]
+//     git (rama, limpieza, worktrees, ramas docs/fix, origin/main), P1 + P2 y el conteo, y de cada id nombrado la
+//     cabecera de su entrada y sus marcas (✅, EN PARTE, Triaje, lote D).
+//   node DOCS/REVIEW_2026-09/tools/sesion.cjs.txt cierre [<sha con CI verde>] [--validate]
+//     ESTADO.tsv regenerado, el validador, prettier de DOCS, y si cambió código desde <sha> (por defecto
+//     origin/main): «validate entero» (lo corre con --validate) o «basta prettier + validador».
+'use strict';
+const { execFileSync, spawnSync } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const DIR = path.resolve(__dirname, '..');
+const ROOT = execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: DIR, encoding: 'utf8' }).trim();
+const sh = (cmd, args, opts = {}) =>
+  spawnSync(cmd, args, { cwd: ROOT, encoding: 'utf8', shell: process.platform === 'win32' && cmd === 'npx', ...opts });
+const out = (cmd, args) => {
+  const r = sh(cmd, args);
+  return ((r.stdout || '') + (r.stderr || '')).trimEnd();
+};
+const titulo = (t) => console.log('\n== ' + t);
+
+function conteo() {
+  const filas = fs.readFileSync(path.join(DIR, 'ESTADO.tsv'), 'utf8').split('\n').slice(1).filter(Boolean);
+  const ab = filas.map((l) => l.split('\t')).filter((c) => c[3] === 'abierto');
+  const n = (s) => ab.filter((c) => c[1] === s).length;
+  console.log(`P1 + P2 = ${n('P1') + n('P2')} (P1 ${n('P1')}, P2 ${n('P2')}); abiertos ${ab.length} de ${filas.length}`);
+}
+
+function entradas(ids) {
+  const lineas = fs.readFileSync(path.join(DIR, 'BUGS.md'), 'utf8').split('\n');
+  for (const id of ids) {
+    const i = lineas.findIndex((l) => l.startsWith('- **`' + id + '`'));
+    if (i < 0) {
+      console.log(`${id}: NO está en BUGS.md`);
+      continue;
+    }
+    let j = i + 1;
+    while (j < lineas.length && !lineas[j].startsWith('- **`R9-')) j++;
+    console.log(`\n${id} (BUGS.md:${i + 1}-${j}): ${lineas[i].slice(0, 220)}`);
+    for (let k = i + 1; k < j; k++)
+      if (/✅|EN PARTE|Triaje|lote D|ACEPTADO/.test(lineas[k])) console.log(`  :${k + 1} ${lineas[k].trim().slice(0, 200)}`);
+  }
+}
+
+const [modo, ...resto] = process.argv.slice(2);
+if (modo === 'arranque') {
+  if (resto.includes('--fetch')) out('git', ['fetch', '-q']);
+  titulo('git');
+  console.log(out('git', ['status', '-sb']));
+  console.log(out('git', ['worktree', 'list']));
+  console.log('ramas: ' + (out('git', ['branch', '--list', 'docs/*', 'fix/*']) || '(ninguna)'));
+  console.log('origin/main: ' + out('git', ['log', '-1', '--format=%h %s', 'origin/main']));
+  titulo('estado');
+  conteo();
+  console.log(out('node', [path.join(DIR, 'tools', 'validar-estado.cjs.txt'), '--corto']).split('\n').pop());
+  const ids = resto.filter((a) => /^R9-\d+$/.test(a));
+  if (ids.length) {
+    titulo('entradas');
+    entradas(ids);
+  }
+} else if (modo === 'cierre') {
+  const base = resto.find((a) => !a.startsWith('--')) || 'origin/main';
+  titulo('ESTADO.tsv');
+  console.log(out('node', [path.join(DIR, 'tools', 'estado.cjs.txt'), 'tsv']));
+  const v = sh('node', [path.join(DIR, 'tools', 'validar-estado.cjs.txt'), '--corto']);
+  console.log((v.stdout || '').trimEnd().split('\n').slice(-1)[0]);
+  conteo();
+  titulo('prettier de DOCS');
+  const p = sh('npx', ['prettier', '--check', '"DOCS/REVIEW_2026-09/**/*.md"']);
+  console.log(p.status === 0 ? 'prettier: limpio' : ((p.stdout || '') + (p.stderr || '')).trimEnd());
+  titulo('¿cambió código desde ' + base + '?');
+  const d = sh('git', ['diff', '--quiet', base, 'HEAD', '--', '.', ':!DOCS']);
+  const sucio = out('git', ['status', '--porcelain', '--', '.', ':!DOCS']);
+  if (d.status === 0 && !sucio) {
+    console.log('no: basta prettier + validador (§7, la respuesta de Victor sobre el validate de docs).');
+  } else {
+    console.log('sí: va el validate entero (NODE_ENV=development, sin worktrees ni Metro).');
+    if (resto.includes('--validate')) {
+      const r = sh('npm', ['run', 'validate'], {
+        stdio: 'inherit',
+        shell: process.platform === 'win32',
+        env: { ...process.env, NODE_ENV: 'development' },
+      });
+      console.log('validate: ' + (r.status === 0 ? 'verde' : 'ROJO (' + r.status + ')'));
+    }
+  }
+  const malos = (v.stdout || '').match(/avisos: (\d+); errores: (\d+)/);
+  if (!malos || malos[1] !== '0' || malos[2] !== '0' || p.status !== 0) process.exit(1);
+} else {
+  console.error('uso: sesion.cjs.txt arranque [--fetch] [R9-NNN ...] | cierre [<sha>] [--validate]');
+  process.exit(2);
+}

@@ -584,3 +584,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   bloquea al teclear; pegar, sin medir). Por lectura: el toast de `R9-415` sale detrás del editor (`Modal` sin
   `<ToastHost />`, la clase de `R9-637`), y el paseo de `R9-498` deja «(2/2)» arriba de «(1/2)». Sin entradas
   nuevas. Sigue la 188b. Detalle: `detail/S188-revision-del-diff-s187.md`.
+- **Sesión 189 — 2026-11-26.** Re-triaje de los 73 P2 (método rápido, punto 2), Opus 5.5 con cuatro agentes Opus de
+  solo lectura. De 70 leídos (sin `R9-410`, `R9-411` ni `R9-562`): ninguno ya arreglado; 24 bajadas a P3 propuestas,
+  sin aplicar hasta el OK de Victor; 6 esperan a Victor; 40 P2 reales en 12 carriles y 4 olas. Scripts nuevos:
+  `tools/revert-pieza.cjs.txt` (probado contra `62d3cd94`) y `tools/sesion.cjs.txt`. Sigue la ola 1. Detalle:
+  `detail/S189-retriaje-p2.md`.

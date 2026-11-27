@@ -1,0 +1,103 @@
+// «Verla fallar primero» (método rápido, CONTINUAR.md §7, punto 4).
+// Uso, desde la raíz del repo y con el árbol limpio en esos archivos:
+//   node DOCS/REVIEW_2026-09/tools/revert-pieza.cjs.txt <sha> [prueba ...] [--solo a,b] [--workers N]
+// - Las piezas: los archivos de producción que cambió <sha> (todo lo que no es prueba ni DOCS), o los de --solo.
+// - Las pruebas: las que se nombran, o las que cambió <sha> (`__tests__/` o `*.test.*`).
+// - Saca del árbol SOLO el diff de <sha> en las piezas (`git apply -R`, no el archivo entero del padre: lo que
+//   llegó después se queda), corre jest esperando ROJO, restaura con `git checkout --` y exige `git diff` vacío.
+// Sale 0 solo si: el revert aplicó, jest cayó, y el árbol quedó como estaba. Con la prueba verde sin el arreglo, 1.
+'use strict';
+const { execFileSync, spawnSync } = require('child_process');
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+function git(args, opts) {
+  return execFileSync('git', args, { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, ...opts });
+}
+function fail(msg) {
+  console.error('ERROR: ' + msg);
+  process.exit(2);
+}
+
+const argv = process.argv.slice(2);
+let solo = null;
+let workers = '2';
+const pos = [];
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === '--solo') solo = argv[++i].split(',').map((s) => s.trim()).filter(Boolean);
+  else if (argv[i] === '--workers') workers = argv[++i];
+  else pos.push(argv[i]);
+}
+const sha = pos.shift();
+if (!sha) fail('falta el sha');
+const full = git(['rev-parse', '--verify', sha + '^{commit}']).trim();
+process.chdir(git(['rev-parse', '--show-toplevel']).trim());
+
+const changed = git(['diff', '--name-only', '--no-renames', full + '^', full]).split('\n').filter(Boolean);
+const isTest = (f) => /(^|\/)__tests__\//.test(f) || /\.test\.[cm]?[jt]sx?$/.test(f);
+const isDoc = (f) => f.startsWith('DOCS/');
+const piezas = solo || changed.filter((f) => !isTest(f) && !isDoc(f));
+const pruebas = pos.length ? pos : changed.filter(isTest);
+if (!piezas.length) fail('el commit no tiene piezas de producción');
+if (!pruebas.length) fail('no hay pruebas: nombralas');
+for (const p of piezas) if (!changed.includes(p)) fail(`--solo ${p}: el commit no lo cambia`);
+
+const sucio = git(['status', '--porcelain', '--', ...piezas]).trim();
+if (sucio) fail('las piezas tienen cambios sin commitear:\n' + sucio);
+
+console.log(`sha ${full.slice(0, 8)}: ${git(['log', '-1', '--format=%s', full]).trim()}`);
+console.log('piezas: ' + piezas.join(', '));
+console.log('pruebas: ' + pruebas.join(', '));
+
+const patch = path.join(os.tmpdir(), `revert-pieza-${full.slice(0, 8)}-${process.pid}.patch`);
+fs.writeFileSync(patch, git(['diff', '--binary', '--no-renames', full + '^', full, '--', ...piezas]));
+
+function restaurar() {
+  // Lo que el revert borró (un archivo nuevo del commit) vuelve con checkout; lo que creó no puede existir.
+  spawnSync('git', ['checkout', '--', ...piezas], { stdio: 'inherit' });
+  const resto = git(['status', '--porcelain', '--', ...piezas]).trim();
+  try {
+    fs.unlinkSync(patch);
+  } catch {}
+  return resto;
+}
+
+const chk = spawnSync('git', ['apply', '-R', '--check', patch], { encoding: 'utf8' });
+if (chk.status !== 0) {
+  fs.unlinkSync(patch);
+  fail('el revert no aplica sobre HEAD (lo que llegó después pisa la pieza):\n' + chk.stderr);
+}
+git(['apply', '-R', patch]);
+console.log('revert aplicado; jest con --maxWorkers=' + workers + ' …');
+
+const jest = spawnSync('npx', ['jest', '--maxWorkers=' + workers, ...pruebas], {
+  encoding: 'utf8',
+  shell: process.platform === 'win32',
+  env: { ...process.env, NODE_ENV: process.env.NODE_ENV || 'test' },
+});
+const out = (jest.stdout || '') + (jest.stderr || '');
+const resto = restaurar();
+
+const lineas = out.split('\n');
+const caidas = lineas.filter((l) => /●/.test(l)).slice(0, 12);
+const resumen = lineas.filter((l) => /^Tests:|^Test Suites:/.test(l.trim()));
+console.log('--- jest sin el arreglo ---');
+for (const l of resumen) console.log(l.trim());
+for (const l of caidas) console.log(l.trim());
+if (resto) {
+  console.error('ERROR: el árbol NO quedó limpio tras restaurar:\n' + resto);
+  process.exit(3);
+}
+console.log('restaurado: git diff vacío en las piezas');
+if (jest.status === 0) {
+  console.log('VERDE sin el arreglo: la prueba NO discrimina (o el revert no tocó lo que mide).');
+  process.exit(1);
+}
+if (!resumen.some((l) => /^Tests:.*\bfailed\b/.test(l.trim()))) {
+  console.log('jest cayó sin una prueba roja (¿la suite no cargó?): no cuenta como verla fallar. Salida:');
+  console.log(out.slice(-3000));
+  process.exit(1);
+}
+console.log('ROJO sin el arreglo: leé arriba que caiga por la razón correcta.');
+process.exit(0);
