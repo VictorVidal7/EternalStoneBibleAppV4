@@ -12,7 +12,7 @@ Base: 73 P2 abiertos. `R9-410`, `R9-411` y `R9-562` quedan fuera sin leer (el «
 | Clase         | Cuántos | Qué pasa                                                                  |
 | ------------- | ------- | ------------------------------------------------------------------------- |
 | ya arreglado  | 0       | ningún agente encontró un sha que lo cierre entero; ninguna marca nueva   |
-| no es A       | 24      | se propone bajar a P3; **NO aplicado**: espera el OK de Victor (§4)       |
+| no es A       | 24      | bajan a P3, **aplicado con el OK de Victor** (2026-11-26, §4)             |
 | espera Victor | 6       | un solo mensaje, con la respuesta recomendada (§5)                        |
 | P2 real       | 40      | 36 de los agentes y 4 que el orquestador sacó de la lista de bajadas (§4) |
 
@@ -110,10 +110,11 @@ arreglan en el repo (§6) y 9 esperan una decisión (los 6 de §5 y los 3 del «
 | `R9-568` | 4   | no-A                       | queda la lista desplazable; solo comodidad                                 | «(«exodo», «isaias», «levitico»), y la lista queda vacía. La lista desplazable sigue ahí.»                            |
 | `R9-620` | 2   | P2-real                    | A(3)                                                                       | «conexión y no responde, el canje gira sin salida.»                                                                   |
 
-## 4. Las bajadas a P3, para que Victor las apruebe
+## 4. Las bajadas a P3 (aprobadas)
 
-**No se aplicó ninguna.** Con el OK, cada una lleva en su entrada «⬇️ Sesión 189 (re-triaje): baja a P3», la
-cláusula y la frase, y `estado.cjs.txt tsv`. Después del OK, el triaje de los P3 (regla 1) las decide como
+**Victor aprobó las 24 el 2026-11-26** («Ok a las 3»: el merge, las bajadas y Sonnet tras el primero de los tres).
+Cada entrada lleva «⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3» y su razón, y la
+cabecera dice «— P3» (`_scratch/S189-bajar.cjs.txt`). Al cierre: **P1 + P2 = 50** (1 P1, 49 P2). Ahora el triaje de los P3 (regla 1) las decide como
 cualquier P3: casi todas irían a B.
 
 | id       | Por qué no es A                                                                                                                                                                                                                                                                                                                                                                       |

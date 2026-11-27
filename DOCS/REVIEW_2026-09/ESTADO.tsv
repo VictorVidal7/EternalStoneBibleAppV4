@@ -1,16 +1,16 @@
 id	severidad	área	estado	cierre	evidencia
 R9-1	aviso	remediación de vulns	abierto		no es un bug: es la advertencia permanente de que `npm audit fix --force` rompería la app (regla fija de cada sesión); `npm audit` no se volvió a correr
 R9-2	P2	.gitignore	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8`, rama `fix/s178`): `.gitignore` pasa a `.env*`. Medido antes: ningún archivo versionado ni en el historial se»
-R9-3	P2	limpieza	abierto		mejora (💡): `git ls-files .yarn` sigue trayendo `yarn-3.6.4.cjs` y el plugin
+R9-3	P3	limpieza	abierto		mejora (💡): `git ls-files .yarn` sigue trayendo `yarn-3.6.4.cjs` y el plugin
 R9-4	P2	proceso	abierto		mejora (💡): no hay `firestore.rules` versionado (`git ls-files` solo trae `firebase.json`)
 R9-5	P2	CI	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8` y `36d63241`, rama `fix/s178`), por la segunda opción: `npm audit --audit-level=moderate` sale 1 hoy en todos»
 R9-6	P2	CI	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8`, rama `fix/s178`): `permissions: contents: read` a nivel de workflow, y `codecov/codecov-action` fijado a `b9»
 R9-7	P2	functions/	arreglado	2026-09-03	marca de su entrada: «✅ RESUELTO 2026-09-03. Era: código no desplegado que duplica la lógica de dinero, y `firebase.json` todavía lo declara. Severidad baja-media (mantenim»
-R9-8	P2	subproyectos	abierto		mejora (💡): `functions/package.json` y `vercel/gift-code-redeem/package.json` sin `overrides`
+R9-8	P3	subproyectos	abierto		mejora (💡): `functions/package.json` y `vercel/gift-code-redeem/package.json` sin `overrides`
 R9-9	P0	entitlements	arreglado	bb3b25b	marca de su entrada: «✅ ARREGLADO en la sesión 10 (`bb3b25b`), por la opción (c): `lastKnownUnlocked` pasa a `boolean | null`, con `null` = «RevenueCat todavía no ha contes»
 R9-10	P0	PremiumContext	arreglado	bb3b25b	marca de su entrada: «✅ ARREGLADO en la sesión 10 (`bb3b25b`), exactamente ese arreglo. Su severidad era más alta de lo que decía esta entrada: no solo «se auto-repara en e»
 R9-11	P0	A5/A4, SyncEngine	arreglado	261c053	marca de su entrada: «✅ ARREGLADO en la sesión 11 (`261c053`), y la identidad salió exacta y gratis, sin necesidad de `seq` ni de `queuedAt`: `items` viene de `this.queue.f»
-R9-12	P2	SyncEngine	abierto		mejora (💡): `grep writeBatch src`: 0
+R9-12	P3	SyncEngine	abierto		mejora (💡): `grep writeBatch src`: 0
 R9-13	P0	web	arreglado	2026-09-03	marca de su entrada: «✅ RESUELTO 2026-09-03 el "¿está en producción?": NO, y por 5 días. El último deploy de Firebase Hosting es del 2026-08-13T04:39Z (consultado por la AP»
 R9-14	P0	web	arreglado	sesión 12	marca de su entrada: «✅ ARREGLADO en la sesión 12 — la mitad estructural, que es la que tenía la severidad. Se tomó la opción (b) del detalle, no la (a): un `ErrorBoundary`»
 R9-15	P1	tests	arreglado	sesión 12	marca de su entrada: «✅ ARREGLADO en la sesión 12, y arreglado antes que `R9-13` a propósito, para ver el crash de producción aparecer en la compuerta: con la redirección p»
@@ -40,8 +40,8 @@ R9-38	P0	SyncEngine	arreglado	ea182dc	marca de su entrada: «✅ ARREGLADO en la
 R9-39	P0	conflictos	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`9c425a8`, junto con `R9-106`): - Hay un conjunto «no asentado» (conflictos pendientes y docs saltados por `R9-46`) por c»
 R9-40	P1	catálogo de versiones	arreglado	14bc4930	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`14bc4930`, rama `fix/s171-v5`): `withTimeout` (15 s, `AbortController` y carrera) en `fetchVersionCatalog` (el plazo re»
 R9-41	P1	lector	arreglado	12b83c37	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`12b83c37`, rama `fix/s171-v5`): `isReaderThemeDark` (`readerThemes.ts`) deriva la oscuridad del `background` de la pale»
-R9-42	P2	lector	abierto		decisión de diseño (💡): `app/(tabs)/verse/[book]/[chapter].tsx:2595` (`left: -(fontSizes.sm + spacing['0.5'])`)
-R9-43	P2	Mesa	abierto		`app/features/prep/index.tsx:3185` (`sectionCard` sin `gap`); `compareVerseBlock` (`:3424`) tiene `marginBottom` y `gap` propios, sin `marginTop`: no re-medido en pantalla
+R9-42	P3	lector	abierto		decisión de diseño (💡): `app/(tabs)/verse/[book]/[chapter].tsx:2595` (`left: -(fontSizes.sm + spacing['0.5'])`)
+R9-43	P3	Mesa	abierto		`app/features/prep/index.tsx:3185` (`sectionCard` sin `gap`); `compareVerseBlock` (`:3424`) tiene `marginBottom` y `gap` propios, sin `marginTop`: no re-medido en pantalla
 R9-44	P0	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): si el versículo ya tiene subrayado, recolorear es un `UPDATE` de solo color en vez de un `addHighlight` de 5 a»
 R9-45	P0	sync	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `queueWrite` —y el bulk push inicial— ponen ahora `deleted: false` / `deletedAt: null` explícitos. Era el únic»
 R9-46	P0	sync	arreglado	b3d73e1	marca de su entrada: «✅ ARREGLADO en la sesión 8 (`b3d73e1`): `findNoteById` inicializa primero (idempotente, coalesce llamadas concurrentes) y deja propagar un fallo real»
@@ -51,7 +51,7 @@ R9-49	P0	respaldo	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la s
 R9-50	P1	subrayados	arreglado	7f8e666	marca de su entrada: «✅ ARREGLADO en la sesión 7 (`7f8e666`): `updateHighlight` pasa a ser tri-estado (`undefined` = no tocar, `null` = borrar) y devuelve la entidad escrit»
 R9-51	P1	notas	arreglado	29c956ac	marca de su entrada: «✅ ARREGLADO en la sesión 174 (`29c956ac`, rama `fix/s174`): el id de una nota es el versículo (`vnote:<libro canónico>:<cap>:<vers>`, `src/lib/notes/v»
 R9-52	P1	Mesa	arreglado	dcbd9ced	marca de su entrada: «✅ ARREGLADO en la sesión 162 (`dcbd9ced`, rama `fix/s162-v3`): los 17 escritores de los tres bancos rechazan con la escritura fallida (los `create*` y»
-R9-53	P2	respaldo	abierto		sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
+R9-53	P3	respaldo	abierto		sin arreglo en git ni mención en el código (`git grep -w R9-53`: 0); no re-medido
 R9-54	P1	planes	arreglado	23a9793b	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`23a9793b`, rama `fix/s171-v5`): una lectura completa solo los días que contienen el capítulo leído; la historia no se b»
 R9-55	P2	planes	arreglado	2fdd61e6	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`2fdd61e6`, rama `fix/s171-v5`): `migratePlanProgress` recibe la duración nueva (obligatoria) y suelta los días que ya n»
 R9-56	P2	notas	abierto		`app/(tabs)/notes.tsx:276` (`localizeBook(item.book)` junto al texto congelado)
@@ -59,9 +59,9 @@ R9-57	P2	lector	abierto		`app/(tabs)/verse/[book]/[chapter].tsx:1049` (`saveNote
 R9-58	P2	Mesa	abierto		`grep flushOnExit` en `app` y `src`: 0
 R9-59	P2	privacidad local	aceptado	sesión 51	marca de su entrada: «✅ DECIDIDO por Victor el 2026-10-03 (tras la sesión 51): la opción (b). La Mesa se guarda por cuenta, y cerrar sesión no borra nada. Progreso y logros»
 R9-60	P2	respaldo	arreglado	90f67a46	marca de su entrada: «✅ ARREGLADO en la sesión 160 (`90f67a46`, rama `fix/s160-v3`): las tres claves viajan en `payload.local` (`LOCAL_BACKUP_KEYS`), con degradado por clav»
-R9-61	P2	recuperación	abierto		`resetDeck` sigue sin llamadores fuera de `MemoryDeckContext`
-R9-62	P2	hitos	abierto		`src/lib/memory/goalStore.ts:72` (`merged.slice(-MAX_CELEBRATED)`, con `MAX_CELEBRATED = 60` en `:22`)
-R9-63	P2	recap	abierto		`src/features/reading-insights/weeklyRecap.ts:86` (`listeningDateKey(now - i * MS_PER_DAY)`)
+R9-61	P3	recuperación	abierto		`resetDeck` sigue sin llamadores fuera de `MemoryDeckContext`
+R9-62	P3	hitos	abierto		`src/lib/memory/goalStore.ts:72` (`merged.slice(-MAX_CELEBRATED)`, con `MAX_CELEBRATED = 60` en `:22`)
+R9-63	P3	recap	abierto		`src/features/reading-insights/weeklyRecap.ts:86` (`listeningDateKey(now - i * MS_PER_DAY)`)
 R9-64	P2	planes	arreglado	2fdd61e6	marca de su entrada: «✅ ARREGLADO en la sesión 171 (`2fdd61e6`, rama `fix/s171-v5`): con progreso en el destino, se fusiona: la unión de los días (recortada), el inicio del»
 R9-65	P1	sync	arreglado	261c053	marca de su entrada: «✅ ARREGLADO en la sesión 11 (`261c053`): exactamente esa línea, con la rama de conflicto reordenada para que se lea como lo que es (o frena el cursor,»
 R9-66	P1	build de packs	arreglado	sesión 13	marca de su entrada: «✅ ARREGLADO en la sesión 13: dos pisos, uno antes de abrir la base y otro después del bucle (`spanCount === 0`), y el script pasa a ser requerible par»
@@ -108,10 +108,10 @@ R9-106	P1	SyncEngine	arreglado	9c425a8	marca de su entrada: «✅ ARREGLADO en l
 R9-107	P1	compuerta de CI	arreglado	324d98a8	marca de su entrada: «✅ ARREGLADO en la sesión 178 (`324d98a8`, rama `fix/s178`): `scanWorkflowSource` lee el workflow con `yaml` (`schema: 'failsafe'`, `merge: true`) y re»
 R9-108	P1	build de packs	arreglado	b8e812c	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`b8e812c`): el «Done.» enumera los packs y nombra el manifiesto como ÚLTIMO paso, con su ruta y el nombre con que se publ»
 R9-109	P1	lector web	arreglado	d2b1cc7	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`d2b1cc7`, `44a5d15` y `0631557`): - El lector web hashea los bytes antes de importar (`sha256Hex`, en JS puro: unos 200»
-R9-110	P2	build de packs	abierto		`scripts/build-web-packs.js:948` (`filesNotPinnedBy(out, previous)` sin su propio `try`, dentro del `catch` de FIRST FILE)
-R9-111	P2	build de packs	abierto		`scripts/build-web-packs.js:510-524` (`filesNotPinnedBy` recorre todo `.json`, sin excluir el manifiesto)
-R9-112	P2	build de packs	abierto		sin arreglo en git ni en el código (`git grep -w R9-112`: 0); los mensajes de FIRST FILE siguen en `scripts/build-web-packs.js:940-960`
-R9-113	P2	build de packs	abierto		`scripts/build-web-packs.js:907` (el preflight sigue con `openSync(destination, 'r+')`)
+R9-110	P3	build de packs	abierto		`scripts/build-web-packs.js:948` (`filesNotPinnedBy(out, previous)` sin su propio `try`, dentro del `catch` de FIRST FILE)
+R9-111	P3	build de packs	abierto		`scripts/build-web-packs.js:510-524` (`filesNotPinnedBy` recorre todo `.json`, sin excluir el manifiesto)
+R9-112	P3	build de packs	abierto		sin arreglo en git ni en el código (`git grep -w R9-112`: 0); los mensajes de FIRST FILE siguen en `scripts/build-web-packs.js:940-960`
+R9-113	P3	build de packs	abierto		`scripts/build-web-packs.js:907` (el preflight sigue con `openSync(destination, 'r+')`)
 R9-114	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-114`
 R9-115	P2	SyncEngine	arreglado	e97cd95	marca de su entrada: «✅ ARREGLADO en la sesión 51 (`e97cd95`, con `R9-254`): la hidratación une lo escrito durante su lectura (la más nueva gana, con los relojes de la viej»
 R9-116	P2	prueba de respaldo	abierto		por lectura: de `__tests__`, solo las pruebas del mazo y `backupRestoreSignal.test.ts` tocan la señal; ninguna monta `ReaderPreferences`, `ReadingPlanProgress` ni `ReadingProgress`
@@ -138,11 +138,11 @@ R9-136	P2	reglas Firestore	abierto		bloqueante antes del lanzamiento (lo dice la
 R9-137	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-137`
 R9-138	P2	prueba de sync	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-138`
 R9-139	P2	prueba de respaldo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-139`
-R9-140	P2	prueba de rachas	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-140`
+R9-140	P3	prueba de rachas	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-140`
 R9-141	P2	prueba de respaldo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-141`
 R9-142	P3	prueba de sync	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: revert visto. «regresión no pasaría el CI, pero el rojo no dice qué ni dónde.».»
 R9-143	P1	Mesa	arreglado	03ad214	marca de su entrada: «✅ ARREGLADO en la sesión 24 (`03ad214`, `92cfc16`): los dos botones pasan por `flushDrafts`, con las dos guardas de `handleNoteBlur`. - Revert por pie»
-R9-144	P2	compuerta de paridad web/nativo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-144` (`git grep -w`: 0)
+R9-144	P3	compuerta de paridad web/nativo	abierto		hueco de prueba, por lectura: ningún commit ni archivo de `__tests__` nombra `R9-144` (`git grep -w`: 0)
 R9-145	P3	notas	abierto		`src/lib/sync/adapters/notes.ts`: `grep canonical` da 0 (el `book_name` remoto se escribe tal cual)
 R9-146	P3	planes	abierto		`git grep -w R9-146` en el código: 0; que el progreso sobreviva al borrado es decisión documentada (`CustomPlansContext.tsx:46`), su efecto al re-crear no se decidió
 R9-147	P3	memoria	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «Es cosmético.».»
@@ -415,7 +415,7 @@ R9-413	P2	A12 hilo 2 / preferencias del lector / R9-267, R9-28	arreglado	621793f
 R9-414	P2	A12 hilo 2 / progreso de lectura y de planes / R9-267, R9-284	arreglado	621793fd	marca de su entrada: «✅ ARREGLADO en la sesión 182 (`621793fd`, rama `fix/s182`, con `R9-413`). En los dos contextos, la escritura siguiente a una lectura que rechazó relee»
 R9-415	P2	A12 hilo 2 / resaltados / R9-50	arreglado	62d3cd94	marca de su entrada: «✅ ARREGLADO en la sesión 187 (`62d3cd94`, rama `fix/s187`): `saveEditor` con `try`/`catch` y `toast.error` (texto nuevo); el editor y lo escrito sigue»
 R9-416	P3	A12 hilo 2 / compartir	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-417	P2	A12 hilo 2 / runtime, observabilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-417	P3	A12 hilo 2 / runtime, observabilidad	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-418	P2	C15 / hoja de ofrenda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-419	P3	C39 / Play Console, fuera del repo	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-420	P3	C39 / donación	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: sin daño. «Sin pérdida ni cobro.».»
@@ -426,17 +426,17 @@ R9-424	P1	A14 / registro de versiones / useBibleVersion (fila A28)	arreglado	7d4
 R9-425	P1	A15 / temporizador de sueño y avance de capítulo	arreglado	a6a0ef13	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`a6a0ef13`, rama `fix/s140-p1`), por otro camino que la propuesta: lo honra el motor. Si lo que paró el capítulo fue el»
 R9-426	P2	A15 / continuaciones programadas del audio / R9-425	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-427	P1	A15 / reproductor flotante	arreglado	e8700067	marca de su entrada: «✅ ARREGLADO en la sesión 140 (`e8700067`, rama `fix/s140-p1`): un efecto de `MiniAudioPlayer` hace que `expandProgress` siga a `state.isExpanded`, lo»
-R9-428	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-429	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-428	P3	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-429	P3	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-430	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-431	P2	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-432	P2	A17 / quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-431	P3	A16 / búsqueda	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-432	P3	A17 / quiz	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-433	P3	A17 / quiz	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «el reloj sigue corriendo detrás del diálogo «¿Salir del quiz?»».»
 R9-434	P3	A18 / estudio de palabra	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: transitorio. «hasta el primer desplazamiento».»
 R9-435	P2	A18 / idiomas originales	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-436	P2	A18 / estudio de palabra	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-437	P2	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-438	P2	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-438	P3	A19 / Home	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-439	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-440	P3	A20 / Ajustes	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-441	P3	A20 / Ajustes	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: raro. ««Reportar un problema» no hace nada si no hay app de correo».»
@@ -448,7 +448,7 @@ R9-446	P3	A23 / logros	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO 
 R9-447	P3	A23 / logros	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «la «racha actual» de logros no baja».»
 R9-448	P3	A23 / insignias	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: insignias derivadas. «otra cuenta en el mismo teléfono re-celebra todas las insignias y pierde el título e»
 R9-449	P3	A24 / i18n, planes	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «el diálogo «Reiniciar plan» de un plan curado muestra el nombre crudo».»
-R9-450	P2	A24 / i18n, Mesa	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-450	P3	A24 / i18n, Mesa	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-451	P3	A24 / i18n, widget	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-452	P3	A24 / i18n, fechas	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. ««Lunes, 2 De Noviembre» sigue en dos sitios».»
 R9-453	P3	A24 / i18n, Comparación de versiones	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: idioma de rótulos. «la Comparación de versiones mezcla idiomas en tres sitios».»
@@ -462,7 +462,7 @@ R9-460	P3	A27 / deep links	aceptado	sesión 185	marca de su entrada: «✅ ACEPT
 R9-461	P3	A27 / deep links, enlaces compartidos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-462	P3	A28 / hooks, Home	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: estadística derivada. «con la app viva de un día para otro, las tarjetas de racha y de meta de Home muestr»
 R9-463	P3	A28 / hooks, tema	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «en cada arranque en frío, quien usa el modo oscuro o «Alto contraste» ve primero un cuadro bla»
-R9-464	P2	A29 / contexts, Favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-464	P3	A29 / contexts, Favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-465	P3	A29 / contexts, lector	arreglado	41a2a356	marca de su entrada: «✅ ARREGLADO en la sesión 173 (`41a2a356`, con `R9-623`): un aviso ya no vuelve a llamar a `trackVersesRead` ni a `markChapterRead` (prueba con el prov»
 R9-466	P3	A29 / contexts, favoritos	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-467	P2	A30 / params, colecciones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
@@ -566,7 +566,7 @@ R9-564	P3	C42b / el chip de referencia de la hoja de nota	abierto		sin marca de 
 R9-565	P3	C42b / la cabecera de la hoja de nota	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-566	P3	C43b / el filtro de color de la galería de subrayados	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-567	P3	C43b / el atrás del lector con un versículo seleccionado	aceptado	sesión 185	marca de su entrada: «✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «No se pierde ningún dato: se pierde la selección y el lugar de lectura.».»
-R9-568	P2	C20b / los buscadores de libros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-568	P3	C20b / los buscadores de libros	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-569	P3	arreglo de R9-424 / registro de versiones	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-570	P3	revisión del diff de la 140 / arreglo de R9-424 / recordatorios	arreglado	ec99241a	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`ec99241a`, rama `fix/s180`): una cola por tipo de recordatorio en `NotificationService.ts` (`serializeByType`): cada re»
 R9-571	P3	revisión del diff de la 140 / reproductor flotante / R9-427	arreglado	4f4c24e3	marca de su entrada: «✅ ARREGLADO en la sesión 180 (`4f4c24e3`, rama `fix/s180`): `hidePlayer` pliega el ref antes de `stop()` (el patrón pause/stop), y la escritura de `st»

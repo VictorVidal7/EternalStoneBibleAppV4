@@ -4039,7 +4039,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
 
 ## P2 — resto + pulido
 
-- **`R9-144` (S22, compuerta de paridad web/nativo) — 🐛 el lector de nombres de export que
+- **`R9-144` (S22, compuerta de paridad web/nativo — P3) — 🐛 el lector de nombres de export que
   arregló `R9-67` no tiene ni un caso sintético.** CONFIRMADO por revert y sonda.
   - Se revirtió en `webNativeModuleParity.test.ts`, una por una, cada forma que lee el lector:
     - la lista `export {x}`;
@@ -4056,6 +4056,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     repo. «Sus 6 pruebas discriminan» (`S14:7`, `:26`) es falso para `R9-67`.
   - P2 y no P1: el código de hoy funciona, y para que se pierda alguien tiene que tocarlo. Es la
     clase de `R9-86` y de `R9-137`..`R9-141`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A (frontera): compuerta con revert visto; protege un A(3) futuro, no A(1) ni A(2).
 
 - **`R9-145` (S22, notas — P3) — 🐛 el `book_name` que llega de la nube o de un respaldo no se
   canonicaliza, y la nota queda invisible para el lector.** El mecanismo está CONFIRMADO con sonda
@@ -12161,7 +12162,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     una vez, `{"setItem":6,"success":0,"error":0,"chips":0}` y el rechazo sin manejar. Mismo arreglo, en los dos.
   - Triaje 185: lote D, A(1) (duda A/B que toca A(1): el preset borrado que quizá sigue en disco; catch y aviso). Sigue abierto; el commit, con su revert por pieza.
 
-- **`R9-417` (S114, `A12` hilo 2 / runtime, observabilidad — P2) — 🐛 en release, ninguna promesa rechazada
+- **`R9-417` (S114, `A12` hilo 2 / runtime, observabilidad — P3) — 🐛 en release, ninguna promesa rechazada
   sin catch llega a Crashlytics ni a un log: el rastreo de Crashlytics engancha el `Promise` de la librería
   `promise`, no el de Hermes.** MEDIDO en la sesión 114 (agente 7; re-medido igual en el principal).
   - `@react-native-firebase/crashlytics/lib/handlers.ts:159-177` (sobre
@@ -12187,6 +12188,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     abrir, código 1006, y después la lista de destinos vacía). Hace falta UN solo emulador conectado a Metro
     (o AVDs distintos). El script de solo lectura quedó listo: `_scratch/S115-sondas-agente-7/S115-a7-cdp-leer.cjs.txt`.
     Lo escrito arriba no cambia.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: observabilidad; no pierde datos por sí solo.
 
 - **`R9-418` (S115, `C15` / hoja de ofrenda — P2) — 🐛 la hoja de ofrenda se sale de la pantalla por arriba y
   no tiene scroll: con letra normal, en un Pixel 9 Pro, no se ven el título ni el comienzo de la intro.**
@@ -12294,7 +12296,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - **Propuesta (sin escribir):** un contador de generación que cada continuación compruebe al ejecutarse.
     Detalle: `detail/A15-audio-tts.md`.
 
-- **`R9-428` (S117, `A16` / búsqueda — P2) — 🐛 con una versión en español, la búsqueda sugerida «fe» no busca
+- **`R9-428` (S117, `A16` / búsqueda — P3) — 🐛 con una versión en español, la búsqueda sugerida «fe» no busca
   nada.** MEDIDO con sonda en la sesión 117.
   - `src/i18n/translations.ts:231` sugiere `['amor', 'fe', 'esperanza', 'paz', 'salvación']`; el chip
     (`app/(tabs)/search.tsx:957`) pasa por `handleSearchChange`, y `performSearch` (`:427-434`) descarta todo
@@ -12307,8 +12309,9 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `["amor","RVR1960",200]`.
   - **Propuesta (sin escribir):** cambiar la sugerencia («fe» por otra de 3+ letras) o dejar que un chip
     busque sin el mínimo. Detalle: `detail/A16-busqueda.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: un chip de sugerencia muerto; la caja y las demás sugerencias funcionan.
 
-- **`R9-429` (S117, `A16` / búsqueda — P2) — 🐛 «Probar otra búsqueda» vacía la caja pero deja «No se
+- **`R9-429` (S117, `A16` / búsqueda — P3) — 🐛 «Probar otra búsqueda» vacía la caja pero deja «No se
   encontraron resultados ""».** MEDIDO con sonda en la sesión 117.
   - `app/(tabs)/search.tsx:868`: la acción del estado vacío hace `setSearchQuery('')` y nada más; `hasSearched`
     sigue en `true`, así que el estado vacío (`:852-871`) se queda con la consulta vacía y el panel inicial
@@ -12319,6 +12322,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
 "panelInicial":false}`: rojo; control (vaciar escribiendo, lo mismo que la ✕): panel inicial.
   - **Propuesta (sin escribir):** que la acción llame a `handleSearchChange('')`. Detalle:
     `detail/A16-busqueda.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: el vacío con comillas tiene salida (la ✕, escribir).
 
 - **`R9-430` (S117, `A16` / búsqueda — P2) — 🐛 al cambiar de versión, la búsqueda sigue mostrando los
   resultados de la anterior con la etiqueta de la nueva, y «Cargar más» les pega la página 2 de la nueva.**
@@ -12341,7 +12345,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - Triaje 185: recibe `R9-521` (familia de esta): los datos ya abiertos no siguen a la versión. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
   - Triaje 185: recibe `R9-525` (familia de esta): con la versión cambiada con la pantalla abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la voz de la versión nueva. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
 
-- **`R9-431` (S117, `A16` / búsqueda — P2) — 🐛 el resaltado de los resultados no sigue lo que encontró la
+- **`R9-431` (S117, `A16` / búsqueda — P3) — 🐛 el resaltado de los resultados no sigue lo que encontró la
   búsqueda: con un apóstrofo en inglés no resalta nada, y con `OR` resalta «or» dentro de otras palabras.**
   MEDIDO con sonda en la sesión 117 (la base real).
   - `src/lib/search/highlightMatches.ts:53-70`: parte la consulta por espacios y busca cada trozo como
@@ -12359,8 +12363,9 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - **Propuesta (sin escribir):** resaltar con el mismo corte que el FTS (separar por lo que no es letra o
     número, sin `OR`/`AND`/`NOT`, `*` como prefijo, comillas fuera) y por palabra entera o prefijo. Detalle:
     `detail/A16-busqueda.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: el resaltado no sigue al FTS; los resultados son los correctos.
 
-- **`R9-432` (S118, `A17` / quiz — P2) — 🐛 al cambiar de categoría con la pregunta ya respondida, si la ronda
+- **`R9-432` (S118, `A17` / quiz — P3) — 🐛 al cambiar de categoría con la pregunta ya respondida, si la ronda
   nueva empieza con la misma pregunta, el panel queda respondido sobre el orden nuevo de opciones.** MEDIDO
   con sonda en la sesión 118.
   - `app/features/quiz/index.tsx:493` monta `QuizPanel` con `key={current.id}`. `restartWithSettings`
@@ -12378,6 +12383,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `{"tarjeta":"Aciertos: 7 · Errores: 0","tamañoRonda":8}`.
   - **Propuesta (sin escribir):** que la clave del panel cambie con cada ronda (un contador que suba en
     `restartWithSettings` y `startNextRound`, junto al id). Detalle: `detail/A17-quiz.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: el puntaje del quiz.
 
 - **`R9-433` (S118, `A17` / quiz — P3) — 🐛 en el modo cronometrado, el reloj sigue corriendo detrás del
   diálogo «¿Salir del quiz?».** MEDIDO con sonda en la sesión 118.
@@ -12452,7 +12458,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - **Propuesta (sin escribir):** pasar a la tarjeta si es favorito y un `onFavorite` que alterne, como el
     lector. Detalle: `detail/A19-home.md`.
 
-- **`R9-438` (S119, `A19` / Home — P2) — 🐛 al volver a Home, «Continuar leyendo» muestra el progreso del
+- **`R9-438` (S119, `A19` / Home — P3) — 🐛 al volver a Home, «Continuar leyendo» muestra el progreso del
   capítulo de cuando se montó la pantalla.** MEDIDO con sonda en la sesión 119.
   - `app/(tabs)/index.tsx:390-394`: `useFocusEffect(useCallback(() => loadHomeData(), [selectedVersion.id,
 achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData` del render en que
@@ -12467,6 +12473,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     el mismo mapa da `"40%"`.
   - **Propuesta (sin escribir):** leer el progreso con un `ref` al `getChapterProgress` actual, o calcular el %
     en el render. Detalle: `detail/A19-home.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: un porcentaje derivado congelado; la referencia sí se refresca.
 
 - **`R9-439` (S120, `A20` / Ajustes — P3) — 🐛 dos cambios seguidos de idioma o de versión dejan el aviso del
   versículo del día agendado dos veces.** MEDIDO con sonda en la sesión 120.
@@ -12620,7 +12627,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** `title={localizedPlan.name}`. Detalle: `detail/A24-i18n.md`.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «el diálogo «Reiniciar plan» de un plan curado muestra el nombre crudo».
 
-- **`R9-450` (S122, `A24` / i18n, Mesa — P2) — 🐛 el PDF «Guía de discusión» sale en español aunque la UI y el
+- **`R9-450` (S122, `A24` / i18n, Mesa — P3) — 🐛 el PDF «Guía de discusión» sale en español aunque la UI y el
   estudio estén en inglés.** MEDIDO con sonda en la 122.
   - `src/features/study/prepPdf.ts:78-112` (`DISCUSSION_GUIDE_STAGES`, solo español); `:419`
     `<html lang="es">` fijo; `buildPrepHtml` sin idioma (`:445`).
@@ -12630,6 +12637,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     texto literalmente?»: rojo. Control: pasaje y pie en inglés.
   - No es lo Pendiente de la Mesa. **Propuesta (sin escribir):** pasar el idioma y llevar las etapas a
     `translations.ts` (contenido sensible: en borrador, revisado en los dos idiomas). Detalle: `detail/A24-i18n.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: interfaz del PDF en otro idioma, no texto bíblico.
 
 - **`R9-451` (S122, `A24` / i18n, widget — P3) — 🐛 la vista previa del widget «Versículo del día» muestra
   siempre la RVR1960 en español.** MEDIDO con sonda en la 122.
@@ -12801,7 +12809,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     sigue; lo que cambia es lo que hay antes. «Sostener el splash» pide instalar `expo-splash-screen`.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: cosmético. «en cada arranque en frío, quien usa el modo oscuro o «Alto contraste» ve primero un cuadro blanco».
 
-- **`R9-464` (S124, `A29` / contexts, Favoritos — P2) — 🐛 con la pestaña Favoritos abierta, la app relee los
+- **`R9-464` (S124, `A29` / contexts, Favoritos — P3) — 🐛 con la pestaña Favoritos abierta, la app relee los
   favoritos de la base en un bucle sin fin.** MEDIDO con sonda en la 124 (agente 2, re-medido).
   - `FavoritesContext.tsx` no memoiza nada: `refreshFavorites` (`:474`) es nueva en cada render, y
     `app/(tabs)/favorites.tsx:53-61` la pone en las deps de su `useFocusEffect`, que expo-router re-corre al
@@ -12815,6 +12823,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     cada una con su `bibleDB.initialize()` («_already initialized, skipping_»), sin fin; al volver al lector se corta
     (`_scratch/S181-sondas/S181-fav-en.logcat.txt`, `S181-fav-fuera.logcat.txt`). La causa leída es la de arriba
     (hoy `FavoritesContext.tsx:490`). `detail/S181-revision-del-diff-s180.md` §6.2.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A (frontera): relectura en bucle, solo batería; sin dato perdido ni crash.
 
 - **`R9-465` (S124, `A29` / contexts, lector — P3) — 🐛 cada aviso en el lector vuelve a contar el capítulo: los
   versículos leídos, el tiempo y el libro más leído salen inflados.** MEDIDO con sonda en la 124 (agente 2,
@@ -14451,7 +14460,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     `detail/C43b-subrayados-galeria.md`.
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: navegación. «No se pierde ningún dato: se pierde la selección y el lugar de lectura.».
 
-- **`R9-568` (S139, `C20b` / los buscadores de libros — P2) — 🐛 escribir un libro sin tilde no lo encuentra: «exodo»
+- **`R9-568` (S139, `C20b` / los buscadores de libros — P3) — 🐛 escribir un libro sin tilde no lo encuentra: «exodo»
   e «isaias» dan «No se encontraron resultados» en la pestaña Biblia, y nada en «Agregar versículo» de Memoria.**
   MEDIDO en el emulador (buscado en `BUGS.md`: «MemoryVersePickerSheet», «SermonVersePickerSheet», «Buscar libro»,
   «sin tilde», «bible.tsx:9»).
@@ -14472,6 +14481,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     («exodo», «isaias», «levitico»), y la lista queda vacía. La lista desplazable sigue ahí. Detalle:
     `detail/C20b-memoria-mazo.md`.
   - **Arreglo propuesto (sin escribir):** el `foldDiacritics` de las otras búsquedas, en los tres filtros.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: el libro sigue alcanzable en la lista desplazable (no A(4)).
 
 - **`R9-569` (S140, arreglo de `R9-424` / registro de versiones — P3) — 🐛 el registro de versiones se lee una sola
   vez, al montar, a la par de la recarga de arranque: si esa lectura cae a mitad de una recarga, la lista queda
@@ -15779,10 +15789,11 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   P2 y no P1: cada una es una línea gemela de otra que sí está vigilada. Falta la tabla completa
   (un `it.each` sobre las etiquetas de `buildBackup`, con el servicio real).
 
-- **`R9-140` (S21, prueba de rachas) — 🐛 el `MAX(longest_streak, ?)` de
+- **`R9-140` (S21, prueba de rachas — P3) — 🐛 el `MAX(longest_streak, ?)` de
   `recomputeReadingStreak` (el remate de `R9-49`) no lo vigila ninguna prueba.** CONFIRMADO por
   revert: `AchievementService.ts:560` → `longest_streak = ?` deja verdes la dirigida 88/88 y la
   suite entera. La prueba necesita un SQLite de verdad o un mock que evalúe el `MAX`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: la racha más larga es una estadística derivada.
 
 - **`R9-141` (S21, prueba de respaldo) — 🐛 el aviso de «cerrá y volvé a abrir» tras importar
   (la mitad de `R9-28` que cubre lo que la señal no alcanza) no lo vigila ninguna prueba.**
@@ -15799,7 +15810,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   aislada» de la primera parte de la 21.)
   - ✅ ACEPTADO en la sesión 185 (triaje): no-A: revert visto. «regresión no pasaría el CI, pero el rojo no dice qué ni dónde.».
 
-- **`R9-110` (S19, build de packs) — 🐛 un error de E/S dentro del `catch` de FIRST FILE vuelve a
+- **`R9-110` (S19, build de packs — P3) — 🐛 un error de E/S dentro del `catch` de FIRST FILE vuelve a
   borrar el mensaje entero.** Es el vecino de `R9-98`: aquel quitó UNA forma de lanzar dentro del
   `catch` del rename, pero `filesNotPinnedBy` (llamada sin protección en `build-web-packs.js:943`)
   sigue haciendo `readdirSync(out)` y `readFileSync` de cada pack.
@@ -15819,8 +15830,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **Arreglo:** `filesNotPinnedBy` dentro de su propio `try`, que degrade a `null` («no pude
   comprobar») con el motivo.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: mensaje del build de packs; protege al operador, no al usuario (precedente `R9-149`).
 
-- **`R9-111` (S19, build de packs) — 🐛 en el `out` REAL, «IS coherent» es inalcanzable: la rama
+- **`R9-111` (S19, build de packs — P3) — 🐛 en el `out` REAL, «IS coherent» es inalcanzable: la rama
   que protegen las pruebas de `R9-97` solo existe en los fixtures.** El directorio de publicación
   contiene `web-bootstrap.json` (tiene que estar: es lo que se sube a Pages). Como
   `filesNotPinnedBy` recorre todo `.json`, lo reporta siempre como «_web-bootstrap.json (the
@@ -15835,8 +15847,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **Arreglo:** excluir el manifiesto por nombre (o compararlo con el del repo), y añadir un fixture
   que lo contenga.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: el build llama MIXED a un `out` coherente; el consejo es no subir (operador).
 
-- **`R9-112` (S19, build de packs) — 🐛 FIRST FILE y FAILED HALFWAY afirman una CAUSA que no
+- **`R9-112` (S19, build de packs — P3) — 🐛 FIRST FILE y FAILED HALFWAY afirman una CAUSA que no
   comprobaron.**
   - **FIRST FILE, rama «NOT coherent»** (`:957-959`). El encabezado dice «_An EARLIER run left
     this directory MIXED_ … _those files are an EARLIER run_», y ahora encabeza también los
@@ -15852,8 +15865,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   El consejo («Do NOT upload») es seguro en todos los casos; lo falso es la causa. Es vecino de
   `R9-93` y de `R9-84`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: la causa es falsa, pero el consejo («Do NOT upload») es seguro (operador).
 
-- **`R9-113` (S19, build de packs) — 🐛 el preflight de `R9-81` no caza la causa que él mismo
+- **`R9-113` (S19, build de packs — P3) — 🐛 el preflight de `R9-81` no caza la causa que él mismo
   nombra: un visor de SQLite.** El preflight abre cada destino con `openSync(dest, 'r+')`
   (`build-web-packs.js:885-919`), y su error dice «_Close whatever is holding that file (a SQLite
   browser, …)_».
@@ -15878,6 +15892,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
 
   **Arreglo:** que el preflight haga un rename real de ida y vuelta (o un `renameSync` a un nombre
   temporal en el mismo directorio) en vez de `open`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: el preflight no caza un visor de SQLite; HALFWAY dice la verdad y frena la subida (operador).
 
 - **`R9-114` (S19, prueba de sync) — 🐛 el «control de que la carrera ocurrió» de la prueba de
   `R9-34` no controla nada.** `SyncEngine.test.ts:1914-1918` fija `attempts === 1` como prueba de
@@ -16456,12 +16471,13 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   arreglo puesto, la misma sonda da `PremiumContext.web.tsx(70,7): error TS2741`. Detalle:
   `detail/S13-revision-del-diff.md`.
 
-- **`R9-12` (A5, `SyncEngine`) — 💡 no se usa `writeBatch` en ningún lado; los bucles
+- **`R9-12` (A5, `SyncEngine` — P3) — 💡 no se usa `writeBatch` en ningún lado; los bucles
   empujan de a un documento.** `SyncEngine.ts:1238-1240` empuja secuencialmente y
   `firestore.ts:94` lo dice explícito ("_not needed yet_"). Afecta a subrayar una selección
   entera, a `resetDeck()` y sobre todo a la restauración de un respaldo. **No es cuota**
   (Firestore cuenta documentos, y son N documentos igual): es latencia y exposición a fallo
   parcial. La cola se persiste, así que no se pierden. Cruza con `R9-29`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: latencia sin `writeBatch`; la cola se persiste y no se pierde nada.
 
 - **`R9-20` (A2, backend) — 💡 el endpoint de canje no valida la forma del código antes de
   gastar Auth+Firestore.** `redeem.ts:114-121`, `:159`. Un `{"code":"AB/CD"}` produce una
@@ -16562,7 +16578,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   **✅ ARREGLADO en la sesión 178** (`324d98a8`, rama `fix/s178`): `.gitignore` pasa a `.env*`. Medido antes: ningún archivo versionado ni en el historial se llama `.env*`, no hay ningún `.env` en el árbol, y nada versionado queda ignorado con la regla nueva. `gitignoreSecrets.test.ts` le pregunta a git (`check-ignore --no-index`); sin el arreglo caen exactamente `.env`, `.env.production`, `scripts/.env` y `src/.env`. Los archivos de Victor no se tocaron: `keystore.properties`, `keystores/` y `android/` ya estaban ignorados; `google-services.json` sigue versionado (lo usa `app.json:60`; su clave es pública por diseño, `detail/B2-secretos-arbol.md`). Detalle: `detail/S178-tanda-v6.md` §2.
   - **Revisado en la sesión 179** (`detail/S179-revision-del-diff-s178.md`): se sostiene. Revertido, caen las cuatro. Ahora también se ignoran `.env.example`, `.envrc` y una carpeta `.env…`, y ninguna existe; `git ls-files -ci --exclude-standard` sigue vacío. Ningún build lee un `.env`: `eas.json` no tiene `env`, no hay `.easignore` y la única `EXPO_PUBLIC_*` tiene valor por defecto.
 
-- **`R9-3` (B3, limpieza) — 💡 3.3 MB de artefactos de Yarn trackeados en un repo que
+- **`R9-3` (B3, limpieza — P3) — 💡 3.3 MB de artefactos de Yarn trackeados en un repo que
   usa npm.** Severidad **muy baja**, no es seguridad.
   Siguen trackeados `.yarn/releases/yarn-3.6.4.cjs` (2 231 402 bytes) y
   `.yarn/plugins/@yarnpkg/plugin-interactive-tools.cjs` (1 074 996 bytes), restos de la
@@ -16574,6 +16590,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `AKIA4QI`/`AKIA9`/`AKIAE`, ninguno con la forma AWS de `AKIA`+16). Borrarlos limpia el
   ruido además del peso. Encaja en la fila `B9`; se registró en `B3` porque ahí se
   encontró.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A (limpieza): artefactos de Yarn, sin daño al usuario.
 
 - **`R9-4` (B4, proceso) — 💡 las reglas de seguridad de Firestore no están versionadas
   en el repo.** Severidad **baja-media**: no es un hueco explotable hoy, es riesgo
@@ -16660,7 +16677,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   emergencia de un solo proveedor en una ruta de dinero. El problema del "duplicado
   invisible" se resolvió haciéndolo visible y etiquetado.
 
-- **`R9-8` (B1b, subproyectos) — 💡 replicar el `override` de `uuid` que la raíz ya
+- **`R9-8` (B1b, subproyectos — P3) — 💡 replicar el `override` de `uuid` que la raíz ya
   tiene.** Severidad **baja**; cierra la única vuln de runtime desplegado sin tocar
   `firebase-admin`.
   De las 26 vulns de `functions/` + `vercel/` (incluidas **7 HIGH**), la única en el
@@ -16677,8 +16694,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   de `R9-1`): `uuid@11.1.1` trae build dual (`exports.node.require → ./dist/cjs/index.js`)
   y la **raíz ya lo corre con ese mismo override** con `npm run validate` en verde.
   Verificar con un canje real contra el endpoint desplegado antes de darlo por cerrado.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: la vuln de `uuid` del backend no es alcanzable (`uuid.v4()` sin `buf`).
 
-- **`R9-42` (campo, lector) — 💡 el ícono de bocina del versículo que se está narrando
+- **`R9-42` (campo, lector — P3) — 💡 el ícono de bocina del versículo que se está narrando
   queda a **0 px** del borde de la tarjeta.** `app/(tabs)/verse/[book]/[chapter].tsx:2583-2591`.
   El ícono es `position: 'absolute'` con `left: -(fontSizes.sm + spacing['0.5'])` = **-16**,
   dentro de un `verseItem` cuyo `paddingHorizontal` es `spacing.md` = **16**
@@ -16694,8 +16712,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   canalón (subir `verseItem.paddingLeft` a ~20-22, que **sí** reflowa el texto, aunque solo
   estrecha la columna sin tocar la holgura derecha) o achicar el ícono. Es una decisión de
   diseño, no un arreglo mecánico. Detalle: `detail/CAMPO-victor-2026-09-07.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: la bocina a 0 px del borde es cosmética.
 
-- **`R9-43` (campo, Mesa) — 🐛 en «Comparar versiones» el número de versículo se encima
+- **`R9-43` (campo, Mesa — P3) — 🐛 en «Comparar versiones» el número de versículo se encima
   con la fila de chips: no hay separación vertical ninguna.**
   `app/features/prep/index.tsx:2160-2222`. En la rama premium de la tarjeta, los tres hijos
   se apilan sin margen alguno: `sectionCard` (`:3121-3126`) **no tiene `gap`** (solo
@@ -16710,8 +16729,9 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   las tarjetas de la Mesa) o, más acotado, `marginTop` en `compareVerseBlock` +
   `marginTop`/`marginBottom` en `chipWrap` dentro de esta tarjeta. Detalle:
   `detail/CAMPO-victor-2026-09-07.md`.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A (frontera): espaciado en «Comparar versiones»; el texto es el correcto.
 
-- **`R9-53` (⬇️ de P1 en la sesión 22; A10, respaldo) — 🐛 restaurar un respaldo rompe la invariante de disyunción del
+- **`R9-53` (⬇️ de P1 en la sesión 22; A10, respaldo — P3) — 🐛 restaurar un respaldo rompe la invariante de disyunción del
   _floor_: la retención se duplica y la corrupción se re-escribe a la nube, acumulándose.**
   Severidad **media**. `memoryStats.ts:20-22` declara la invariante (_"The floor is disjoint
   from local events […], so summing retention bands never double-counts"_), pero `importBackup`
@@ -16733,6 +16753,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
     guarda bandas sin ids, y restar eventos que nunca contó subcuenta (20 → 15; y un caso hoy correcto, 15 → 10).
     Decide Victor: aceptar la subcuenta, restar solo lo anterior al `updatedAt` del floor (no cubre todo), o ids en
     el resumen / una vía de reset. Detalle: `detail/S184-arreglos-tanda-2-parte-3.md` §3.
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: estadística derivada (A(1) no la cuenta); el porcentaje se tuerce si el respaldo y la nube difieren, sin pérdida. Recomendado, con la bajada: aceptar la subcuenta (el «Decide Victor» de la 184).
 
 - **`R9-55` (⬇️ de P1 en la sesión 22; A11, planes) — 🐛 editar un plan propio a menos días arrastra números de día que
   ya no existen: la pantalla muestra 250%.** Severidad **media**. `migratePlanProgress`
@@ -16834,7 +16855,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   respaldarlas empeoraría `R9-53`). Detalle: `detail/A10-memoria-srs.md`.
   **❌ Corrección de la sesión 22 (sonda): no se re-celebran «todos» los hitos, solo el más alto.** `pendingMilestone` devuelve el mayor no celebrado, y `milestoneKeysToMark` marca los inferiores a la vez: tras restaurar con racha 156 sale `["streak:100", …]`. Lo demás se sostiene. Sigue en P2.
   - **✅ ARREGLADO en la sesión 160** (`90f67a46`, rama `fix/s160-v3`): las tres claves viajan en `payload.local` (`LOCAL_BACKUP_KEYS`), con degradado por clave; `__tests__/backupKeyCoverage.test.ts` vigila la lista. Detalle: `detail/S160-v3-arreglos.md` §3.
-- **`R9-61` (A10, recuperación) — 🐛 `resetDeck` está en la API pública del contexto y no tiene
+- **`R9-61` (A10, recuperación — P3) — 🐛 `resetDeck` está en la API pública del contexto y no tiene
   ni un solo llamador: no hay forma de que el usuario borre sus datos de memoria.** Severidad
   **baja**. Declarado, documentado (_"handy for 'Reset' affordance"_), implementado
   (`MemoryDeckContext.tsx:88`, `:339-348`) y duplicado como no-op en el stub web (`:74-76`);
@@ -16843,7 +16864,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   ninguna acción en la app para limpiar. O se cablea a Ajustes, o se quita de la interfaz para
   que no aparente una vía de escape que no existe. Detalle: `detail/A10-memoria-srs.md`.
   **❌ Corrección de la sesión 22: cablear `resetDeck` a Ajustes NO sería la vía de escape.** Solo vacía el mazo y encola borrados de `memoryCards`. No toca `review_events`, ni `@memory_stats_floor`, ni `memoryStats/summary`, que es donde vive `R9-53`, así que hace falta otra función. `R9-48` ya está arreglado, y las tarjetas sí se pueden borrar una por una. Sigue en P2.
-- **`R9-62` (A10, hitos) — 🐛 el recorte FIFO de hitos celebrados expulsa las claves de racha y
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: la vía de escape de estadísticas derivadas (`R9-53`). La 22 lo sostuvo en P2 con la escala vieja.
+- **`R9-62` (A10, hitos — P3) — 🐛 el recorte FIFO de hitos celebrados expulsa las claves de racha y
   le re-celebra al usuario «¡3 días!» cuando lleva 156.** Severidad **baja**.
   `goalStore.ts:66-80` recorta con `merged.slice(-MAX_CELEBRATED)` y `MAX_CELEBRATED = 60`; el
   recorte quita **las más antiguas**, que son siempre las `streak:*`, porque las
@@ -16853,7 +16875,8 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   `60`, `100`— con la racha real en 156-161. Cosmético, pero trivializa el mecanismo de
   retención. Detalle: `detail/A10-memoria-srs.md`.
   **⚠️ Sesión 22 (sonda): es peor de lo escrito, y sigue en P2.** Simulando desde el día 1 a un usuario que cumple la meta todos los días, el primer «¡3 días!» repetido llega a los 59 días de racha y se repite cada ~55 días: 15 re-celebraciones en 200 días. La cascada que describe la entrada es la de su fixture, que arranca con los 6 hitos ya marcados.
-- **`R9-63` (A11, recap) — 🐛 el recap semanal se rompe en el cambio de horario: 6 días en vez
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** no-A: re-celebra un hito, cosmético. La 22 lo sostuvo en P2 con la escala vieja.
+- **`R9-63` (A11, recap — P3) — 🐛 el recap semanal se rompe en el cambio de horario: 6 días en vez
   de 7, y un día contado dos veces.** Severidad **baja-media**. `weeklyRecap.ts:85-86` (y el
   mismo patrón en `listeningStats.ts:156-157`) hace `listeningDateKey(now - i * MS_PER_DAY)` —
   bloques fijos de 24 h con clave de día local—, así que en un día de 25 h dos valores de `i`
@@ -16866,6 +16889,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   Detalle: `detail/A11-progreso-rachas.md`.
   **⬇️ Sesión 22: baja a P3** (sonda con `TZ` fijado desde PowerShell). Solo falla si la tarjeta se abre en la última hora del día (23:00-23:59) durante ~6 días después del atraso de hora, o en la primera (00:00-00:59) después del adelanto: 12 medias horas de 674. «El sábado desaparece» es FALSO: se pierde el día más viejo y el domingo sale dos veces. `listeningStats` usa un `Set` y no cuenta doble. **Ni local (`America/Mexico_City`) ni CI (UTC) tienen cambio de hora.** Vecino: `R9-147`.
   - Triaje 185: recibe `R9-172` (familia de esta): el versículo, el dato bíblico y la profecía «del día» cambian a la 01:00 (o a las 23:00) con horario de verano. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - **⬇️ Sesión 189 (re-triaje de los P2, OK de Victor del 2026-11-26): baja a P3.** alineado: ya había bajado a P3 en la sesión 22, y el TSV lo seguía contando P2. Lleva a `R9-172`.
 - **`R9-64` (A11, planes) — 🐛 `migratePlanProgress` BORRA el progreso de origen cuando el
   destino ya tiene el suyo, en vez de fusionarlo.** Severidad **baja**.
   `ReadingPlanProgressContext.tsx:264-268`: `if (!next[toId]) next[toId] = current;` protege el

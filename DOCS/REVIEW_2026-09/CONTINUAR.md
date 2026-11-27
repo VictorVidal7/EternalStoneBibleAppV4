@@ -132,9 +132,9 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 
 **Desde el 2026-11-26 rige el método rápido de la §7** (re-triaje de los P2, carriles disjuntos, olas de agentes).
 **La 189 hizo el re-triaje** (`detail/S189-retriaje-p2.md`): de 70 P2 leídos, ninguno ya arreglado, 24 bajadas
-propuestas (esperan el OK de Victor; con él, P1 + P2 = 50), 6 que esperan a Victor y 40 P2 reales en 12 carriles y
+a P3 (aprobadas por Victor y aplicadas: P1 + P2 = 50), 6 que esperan a Victor y 40 P2 reales en 12 carriles y
 4 olas. **Lo siguiente: la ola 1** (`_scratch/S190-PROMPT.md`): carriles Toasts, Sync, y Mesa y búsqueda, más
-Sonnet a prueba en `R9-601`. Lo de abajo es el registro de antes.
+Sonnet a prueba en `R9-601` (arranca cuando termina el primero de los tres, decidido por Victor). Lo de abajo es el registro de antes.
 
 **Qué queda:** `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`. Al cierre de la 142: 274 abiertos de 573
 (ningún P0, 20 P1, 92 P2, 161 P3 y el aviso `R9-1`), 2 sin verificar que piden emulador (`R9-177`, `R9-240`), 285
