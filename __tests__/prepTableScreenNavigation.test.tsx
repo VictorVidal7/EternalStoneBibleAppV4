@@ -181,13 +181,17 @@ async function pressLast(label: string) {
   });
 }
 
+// What `renderRouter` returns: the router's own queries (pathname, state).
+let routed: ReturnType<typeof renderRouter>;
+
 async function mountMesa() {
-  renderRouter(routes(), {initialUrl: MESA_URL});
+  routed = renderRouter(routes(), {initialUrl: MESA_URL});
   await screen.findByText('Juan 3:16');
   await screen.findByLabelText(PULPIT_LABEL);
 }
 
 beforeEach(async () => {
+  Object.values(mockToast).forEach(fn => fn.mockClear());
   await AsyncStorage.clear();
   await SecureStore.setItemAsync(ENTITLEMENT_CACHE_KEY, 'true');
 });
@@ -323,7 +327,7 @@ describe('R9-169 — the buttons wait for the flush before navigating', () => {
       'expository',
     );
     // While the write is held, the Mesa does not move.
-    expect(screen.getPathname()).toBe('/features/prep');
+    expect(routed.getPathname()).toBe('/features/prep');
     expect(screen.queryByText(landing)).toBeNull();
 
     await act(async () => {
@@ -354,7 +358,7 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
   // own `__root`).
   function stackCount(route: string) {
     type Node = {name: string; state?: {routes: Node[]}};
-    const root = screen.getRouterState() as {routes: Node[]} | undefined;
+    const root = routed.getRouterState() as {routes: Node[]} | undefined;
     const app = root?.routes.find(r => r.name === '__root')?.state;
     return (app?.routes ?? []).filter(r => r.name === route).length;
   }
@@ -384,7 +388,7 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
       await drain();
     }
     // Control: still on the Mesa while held.
-    expect(screen.getPathname()).toBe('/features/prep');
+    expect(routed.getPathname()).toBe('/features/prep');
     await act(async () => {
       release();
     });
@@ -401,7 +405,7 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
       router.back();
     });
     await drain();
-    expect(screen.getPathname()).toBe('/features/prep');
+    expect(routed.getPathname()).toBe('/features/prep');
   });
 
   it.each(BUTTONS)(
@@ -414,7 +418,7 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
         router.back();
       });
       await drain();
-      expect(screen.getPathname()).toBe('/features/prep');
+      expect(routed.getPathname()).toBe('/features/prep');
     },
   );
 
@@ -432,13 +436,42 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
       .mockRejectedValueOnce(new Error('disco lleno'));
     await pressLast(PULPIT_LABEL);
     await drain();
-    expect(screen.getPathname()).toBe('/features/prep');
+    expect(routed.getPathname()).toBe('/features/prep');
     expect(mockToast.error).toHaveBeenCalled();
 
     saveSpy.mockImplementation(realSave);
     await pressLast(PULPIT_LABEL);
     await screen.findByText('pulpito');
     expect(stackCount('features/prep/pulpit')).toBe(1);
+  });
+
+  it('a failed version read at the tap keeps the Mesa, and the next tap navigates', async () => {
+    await mountMesa();
+    // The Mesa was opened without `version`: the pulpit button reads the
+    // stored reading version at the tap. That one read fails, once.
+    const getItem = AsyncStorage.getItem as jest.Mock;
+    const realGetItem = getItem.getMockImplementation()!;
+    let armed = true;
+    getItem.mockImplementation((key: string, ...rest: unknown[]) => {
+      if (key === '@bible_version' && armed) {
+        armed = false;
+        return Promise.reject(new Error('lectura fallida'));
+      }
+      return realGetItem(key, ...rest);
+    });
+    try {
+      await pressLast(PULPIT_LABEL);
+      await drain();
+      // Control: the failing read happened, and the Mesa stayed.
+      expect(armed).toBe(false);
+      expect(routed.getPathname()).toBe('/features/prep');
+
+      await pressLast(PULPIT_LABEL);
+      await screen.findByText('pulpito');
+      expect(stackCount('features/prep/pulpit')).toBe(1);
+    } finally {
+      getItem.mockImplementation(realGetItem);
+    }
   });
 
   it('the button works again once the Mesa is back in focus', async () => {

@@ -1178,7 +1178,18 @@ export default function PrepTableScreen() {
     // (e.g. deep link with no version param + English UI: Mesa shows
     // RVR1960 via its own fallback, pulpit would show WEB via its own).
     // Forwarding the resolved version unconditionally closes that gap.
-    const version = await resolveVersion(params.version);
+    let version: string;
+    try {
+      version = await resolveVersion(params.version);
+    } catch (error) {
+      // R9-474 — a failed read is no navigation: the Mesa stays and the next
+      // tap retries. (It used to be an unhandled rejection of the onPress.)
+      navigatingRef.current = false;
+      logger.warn('Prep pulpit: failed to resolve the version', {
+        error: String(error),
+      });
+      return;
+    }
     router.push({
       pathname: '/features/prep/pulpit' as never,
       params: {
