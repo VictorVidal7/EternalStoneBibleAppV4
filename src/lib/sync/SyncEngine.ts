@@ -1773,7 +1773,7 @@ export class SyncEngine {
     // uid has never synced before) defaults to 0, so `where('updatedAt',
     // '>=', 0)` matches everything — the first attach still pulls full
     // history, exactly as before this change.
-    const cursor = await this.loadCursor(adapter.collection);
+    const cursor = await this.loadCursor(adapter.collection, uidAtAttach);
     const lowestUnsettled = await this.loadUnsettled(
       adapter.collection,
       uidAtAttach,
@@ -2716,15 +2716,19 @@ export class SyncEngine {
    * synced before. That 0 is exactly what makes the "new device still
    * gets full history" guarantee hold: there is no special-case branch
    * for it anywhere else, it falls straight out of this default.
+   *
+   * R9-163 — `uid` is the account the read is FOR (the attach's), not
+   * `this.uid` after the `await`: a `stop()` and another account's `start()`
+   * can land while the read is in flight.
    */
-  private async loadCursor(collection: string): Promise<number> {
+  private async loadCursor(collection: string, uid: string): Promise<number> {
     const cached = this.cursors.get(collection);
     if (cached !== undefined) return cached;
     let value = 0;
-    if (this.uid) {
+    if (uid) {
       try {
         const raw = await AsyncStorage.getItem(
-          cursorStorageKey(collection, this.uid),
+          cursorStorageKey(collection, uid),
         );
         const parsed = raw != null ? Number(raw) : NaN;
         if (Number.isFinite(parsed) && parsed > 0) {
@@ -2754,9 +2758,9 @@ export class SyncEngine {
               },
             );
             value = 0;
-            await AsyncStorage.removeItem(
-              cursorStorageKey(collection, this.uid),
-            );
+            // R9-163 — this account's key: with `this.uid`, a read that came
+            // back in the next account's session removed THAT one's cursor.
+            await AsyncStorage.removeItem(cursorStorageKey(collection, uid));
           } else {
             value = parsed;
           }
@@ -2771,7 +2775,16 @@ export class SyncEngine {
         // collection once more than strictly necessary, never less.
       }
     }
-    this.cursors.set(collection, value);
+    // R9-163 — the cache is the signed-in account's (`stop()` clears it). A
+    // read that came back after a `stop()` cached the cursor it read into the
+    // next account's session: that account's first attach took its floor from
+    // it (`cursor - 5 min`) and never pulled its own older docs. Cached only
+    // while the read's account is still the signed-in one (the same account
+    // signing back in reads its own cursor), and never over a value this
+    // session already holds.
+    if (this.uid === uid && !this.cursors.has(collection)) {
+      this.cursors.set(collection, value);
+    }
     return value;
   }
 

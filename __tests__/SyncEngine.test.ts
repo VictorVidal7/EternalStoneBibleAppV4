@@ -1992,6 +1992,113 @@ describe('attachListener — stop() racing an in-flight cursor load', () => {
   });
 });
 
+describe('R9-163 — el cursor de Ana que se leia al salir no queda en la sesion de Beto', () => {
+  // `loadCursor` guardaba en el cache lo que leia DESPUES de su `await`, sin
+  // mirar de quien era la sesion, y en la rama de R9-35 borraba la clave del
+  // `this.uid` de ese momento. Las dos necesitan la lectura del cursor de Ana
+  // EN VUELO al hacer `stop()`: sin eso pasarian por la razon trivial.
+  const restoreStorage: Array<() => void> = [];
+  afterEach(() => {
+    while (restoreStorage.length > 0) restoreStorage.pop()!();
+  });
+
+  /** Retiene la lectura de UNA clave hasta que la prueba la suelte. */
+  function holdGetItem(key: string): {release: () => void; hits: string[]} {
+    const mock = AsyncStorage.getItem as unknown as jest.Mock;
+    const real = mock.getMockImplementation()!;
+    let release!: () => void;
+    const gate = new Promise<void>(resolve => {
+      release = resolve;
+    });
+    const hits: string[] = [];
+    mock.mockImplementation(async (k: string, ...rest: unknown[]) => {
+      if (k === key) {
+        hits.push(k);
+        await gate;
+      }
+      return real(k, ...rest);
+    });
+    restoreStorage.push(() => mock.mockImplementation(real));
+    return {release, hits};
+  }
+
+  async function anaReadingHerCursor(anaCursor: number) {
+    await AsyncStorage.setItem(
+      cursorStorageKey('test', 'uid-ana'),
+      String(anaCursor),
+    );
+    const engine = new SyncEngine();
+    const {adapter, remoteUpsertCalls} = makeAdapter();
+    engine.register(adapter);
+    const held = holdGetItem(cursorStorageKey('test', 'uid-ana'));
+    const anaStart = engine.start('uid-ana');
+    for (let i = 0; i < 20 && held.hits.length === 0; i++) await flush();
+    // El caso se armo: la lectura del cursor de Ana esta en vuelo.
+    expect(held.hits).toHaveLength(1);
+    return {engine, remoteUpsertCalls, held, anaStart};
+  }
+
+  it('el primer enganche de Beto sale con SU piso, y un doc suyo de hace 1 hora baja', async () => {
+    const anaCursor = Date.now() - 60_000;
+    const {engine, remoteUpsertCalls, held, anaStart} =
+      await anaReadingHerCursor(anaCursor);
+    engine.stop();
+    held.release();
+    await anaStart;
+    await drain();
+
+    await engine.start('uid-beto');
+    await drain();
+    const betoColl = mockCollections.get('users/uid-beto/test')!;
+    const betoFloor = betoColl.__whereClauses[0]?.value;
+    const betoCachedCursor = engine.__getCursorForTests('test');
+    fireRemote('uid-beto', [
+      {
+        type: 'added',
+        doc: {
+          id: 'b-viejo',
+          exists: true,
+          data: () => ({value: 'de-beto', updatedAt: Date.now() - 3_600_000}),
+        },
+      },
+    ]);
+    await drain();
+
+    // Sin el arreglo: el cursor de Ana quedaba en el cache, el piso de Beto
+    // salia en `cursorAna - 5 min` y b-viejo no bajaba.
+    expect({
+      betoFloor,
+      betoCachedCursor,
+      betoOldDocApplied: remoteUpsertCalls.some(c => c.id === 'b-viejo'),
+    }).toEqual({betoFloor: 0, betoCachedCursor: 0, betoOldDocApplied: true});
+  });
+
+  it('el cursor de Ana fechado en el futuro (R9-35) se borra bajo SU clave, no bajo la de Beto', async () => {
+    const betoCursor = Date.now() - 60_000;
+    await AsyncStorage.setItem(
+      cursorStorageKey('test', 'uid-beto'),
+      String(betoCursor),
+    );
+    const {engine, held, anaStart} = await anaReadingHerCursor(
+      Date.now() + 24 * 3_600_000,
+    );
+    engine.stop();
+    // Beto ya es la sesion cuando vuelve la lectura de Ana.
+    const betoStart = engine.start('uid-beto');
+    held.release();
+    await anaStart;
+    await betoStart;
+    await drain();
+
+    // Sin el arreglo: se borraba el cursor de Beto (su proximo arranque relee
+    // la coleccion entera) y el de Ana, envenenado, seguia en disco.
+    expect({
+      ana: await AsyncStorage.getItem(cursorStorageKey('test', 'uid-ana')),
+      beto: await AsyncStorage.getItem(cursorStorageKey('test', 'uid-beto')),
+    }).toEqual({ana: null, beto: String(betoCursor)});
+  });
+});
+
 describe('exportLocalData', () => {
   it('returns per-adapter row counts (only non-empty)', async () => {
     const engine = new SyncEngine();
