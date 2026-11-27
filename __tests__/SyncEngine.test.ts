@@ -6146,6 +6146,323 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
     engine.stop();
   });
 
+  describe('R9-164 — un retenido que salio de la query sin listener', () => {
+    // Los disparadores que no pasan por el listener: la app cerrada mientras
+    // el otro telefono restaura un respaldo bajo el piso, un `deleteAccount`
+    // que borra la nube y falla, un `stop()` durante la lectura de su
+    // `removed`. Nada lo volvia a entregar, nada lo caducaba, y el piso
+    // quedaba clavado en el para siempre (sonda de la S190: el cursor en
+    // «ahora» y el piso en «retenido - 1 - 5 min» en dos arranques seguidos).
+
+    /** Las lecturas de un doc (`get()`) que hizo el motor en esa cuenta. */
+    function docReads(uid: string): number {
+      const coll = mockCollections.get(`users/${uid}/test`)!;
+      const refs = new Set(
+        coll.doc.mock.results.map(r => r.value as MockDocRef),
+      );
+      let n = 0;
+      for (const ref of refs) n += ref.get.mock.calls.length;
+      return n;
+    }
+
+    /** Cierra la app y la vuelve a abrir; despues, otro doc mueve el cursor
+     *  a «ahora», como el trafico normal de una sesion. */
+    async function restart(engine: SyncEngine, uid: string, n: number) {
+      engine.stop();
+      await engine.start(uid);
+      await settle();
+      write(uid, `otro-${n}`, {value: 'x', updatedAt: Date.now() - 1000});
+      await settle();
+    }
+
+    /** doc-s retenido sin conflicto: su lectura local fallo una vez (R9-46),
+     *  con su copia local ya escrita. */
+    async function heldSkipped(uid: string, T: number) {
+      const fixture = makeAdapter();
+      const {adapter, localStore} = fixture;
+      let failOnce = true;
+      adapter.getLocal = async (id: string) => {
+        if (id === 'doc-s' && failOnce) {
+          failOnce = false;
+          throw new Error('SQLITE_BUSY');
+        }
+        return localStore.get(id) ?? null;
+      };
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      const engine = new SyncEngine();
+      engine.register(adapter);
+      await engine.start(uid);
+      await settle();
+      const mio = {value: 'mio', updatedAt: T + 60_000};
+      localStore.set('doc-s', mio);
+      write(uid, 'doc-s', mio);
+      await settle();
+      // El caso se armo: doc-s esta retenido en disco.
+      expect((await persisted(uid)).unsettled['doc-s']).toBe(T + 60_000);
+      return {engine, ...fixture};
+    }
+
+    it('con la app cerrada, el respaldo del otro bajo el piso vuelve como conflicto y el piso no queda clavado', async () => {
+      const uid = 'uid-164-cerrada';
+      const T = Date.now() - HOUR;
+      const {engine, localStore} = await engineFor(uid, T);
+      localStore.set('doc-c', {value: 'lo mio', updatedAt: T + 60_000});
+      write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+      await settle();
+      const conflictosAntes = engine.__getConflictsForTests().map(c => c.docId);
+      engine.stop();
+      // App cerrada: sin listener, el otro reescribe doc-c un dia atras.
+      write(uid, 'doc-c', {value: 'su respaldo viejo', updatedAt: T - DAY});
+      await restart(engine, uid, 1);
+      await restart(engine, uid, 2);
+
+      // Sin el arreglo: el piso en `T + 65 s - 1 - 5 min` con el cursor en
+      // «ahora», doc-c retenido a `T + 65 s` y ningun conflicto que resolver.
+      expect({
+        conflictosAntes,
+        removed: removedDelivered(uid),
+        local: localStore.get('doc-c')?.value,
+        conflictos: engine.__getConflictsForTests().map(c => c.docId),
+        unsettled: (await persisted(uid)).unsettled['doc-c'] - T,
+        piso: floorOf(uid) - T,
+      }).toEqual({
+        conflictosAntes: ['doc-c'],
+        // Control: ningun `removed` paso por el listener.
+        removed: [],
+        local: 'lo mio',
+        conflictos: ['doc-c'],
+        unsettled: -DAY,
+        piso: -DAY - 1 - CURSOR_SAFETY_MARGIN_MS,
+      });
+      engine.stop();
+    });
+
+    it('borrado de la nube sin listener (un deleteAccount que falla): se suelta y la copia local se queda', async () => {
+      const uid = 'uid-164-borrado';
+      const T = Date.now() - HOUR;
+      const {engine, localStore, remoteDeleteCalls} = await heldSkipped(uid, T);
+      engine.stop();
+      fireRemote(uid, [
+        {
+          type: 'removed',
+          doc: {id: 'doc-s', exists: true, data: () => ({value: 'mio'})},
+        },
+      ]);
+      await restart(engine, uid, 1);
+      await restart(engine, uid, 2);
+
+      // Sin el arreglo: doc-s retenido a `T + 60 s` y el piso en
+      // `T + 60 s - 1 - 5 min`. Con la rama de un borrado de verdad, la fila
+      // local se habria borrado.
+      expect({
+        removed: removedDelivered(uid),
+        borrados: remoteDeleteCalls,
+        local: localStore.get('doc-s')?.value,
+        unsettled: (await persisted(uid)).unsettled,
+        cursorEnAhora: engine.__getCursorForTests('test')! > T + HOUR - 5000,
+        // El piso sigue al cursor (el del arranque 1, «ahora» menos 5 min),
+        // no al retenido.
+        pisoSobreElRetenido: floorOf(uid) > T + 60_000,
+      }).toEqual({
+        removed: [],
+        borrados: [],
+        local: 'mio',
+        unsettled: {},
+        cursorEnAhora: true,
+        pisoSobreElRetenido: true,
+      });
+      engine.stop();
+    });
+
+    it('si la lectura falla, sigue retenido y el arranque siguiente lo vuelve a leer', async () => {
+      const uid = 'uid-164-falla';
+      const T = Date.now() - HOUR;
+      const {engine, localStore} = await heldSkipped(uid, T);
+      engine.stop();
+      write(uid, 'doc-s', {value: 'viejo', updatedAt: T - DAY});
+      mockGetShouldFail = true;
+      const r0 = docReads(uid);
+      await restart(engine, uid, 1);
+      const tras1 = {
+        lecturas: docReads(uid) - r0,
+        unsettled: (await persisted(uid)).unsettled['doc-s'] - T,
+      };
+      mockGetShouldFail = false;
+      await restart(engine, uid, 2);
+
+      // Soltarlo con la lectura fallida dejaba sin aplicar un doc saltado
+      // cuya copia esta bajo el piso.
+      expect({
+        tras1,
+        lecturas: docReads(uid) - r0,
+        local: localStore.get('doc-s')?.value,
+        unsettled: (await persisted(uid)).unsettled,
+      }).toEqual({
+        tras1: {lecturas: 1, unsettled: 60_000},
+        lecturas: 2,
+        // LWW: lo local (T + 60 s) es mas nuevo que la copia leida.
+        local: 'mio',
+        unsettled: {},
+      });
+      engine.stop();
+    });
+
+    it('un stop() durante esa lectura lo deja para el arranque siguiente', async () => {
+      const uid = 'uid-164-stop';
+      const T = Date.now() - HOUR;
+      const {engine, localStore} = await heldSkipped(uid, T);
+      engine.stop();
+      write(uid, 'doc-s', {value: 'viejo', updatedAt: T - DAY});
+      let release!: () => void;
+      const gate = new Promise<void>(resolve => {
+        release = resolve;
+      });
+      const hits: string[] = [];
+      mockGetGate = (_path, id) => {
+        if (id !== 'doc-s') return undefined;
+        hits.push(id);
+        return gate;
+      };
+      await engine.start(uid);
+      await settle();
+      const enVuelo = hits.length;
+      engine.stop();
+      release();
+      await settle();
+      const trasCorte = (await persisted(uid)).unsettled['doc-s'] - T;
+      mockGetGate = null;
+      await engine.start(uid);
+      await settle();
+
+      expect({
+        enVuelo,
+        trasCorte,
+        local: localStore.get('doc-s')?.value,
+        unsettled: (await persisted(uid)).unsettled,
+      }).toEqual({
+        enVuelo: 1,
+        trasCorte: 60_000,
+        // LWW: lo local (T + 60 s) es mas nuevo que la copia leida.
+        local: 'mio',
+        unsettled: {},
+      });
+      engine.stop();
+    });
+
+    it('con la primera entrega desde la cache no lee nada hasta que llega la del servidor', async () => {
+      const uid = 'uid-164-cache';
+      const T = Date.now() - HOUR;
+      const {engine} = await heldSkipped(uid, T);
+      engine.stop();
+      write(uid, 'doc-s', {value: 'viejo', updatedAt: T - DAY});
+      mockAttachFromCache = true;
+      const r0 = docReads(uid);
+      await engine.start(uid);
+      await settle();
+      const desdeCache = {
+        lecturas: docReads(uid) - r0,
+        unsettled: (await persisted(uid)).unsettled['doc-s'] - T,
+      };
+      (
+        mockCollections.get(`users/${uid}/test`) as MockCollRef & {
+          __fireMetadataSync: () => void;
+        }
+      ).__fireMetadataSync();
+      await settle();
+
+      expect({
+        desdeCache,
+        lecturas: docReads(uid) - r0,
+        unsettled: (await persisted(uid)).unsettled,
+      }).toEqual({
+        desdeCache: {lecturas: 0, unsettled: 60_000},
+        lecturas: 1,
+        unsettled: {},
+      });
+      engine.stop();
+    });
+
+    it('costo: un reinicio normal, con el retenido entregado otra vez, no lee ningun doc', async () => {
+      const uid = 'uid-164-costo';
+      const T = Date.now() - HOUR;
+      const {engine, localStore} = await engineFor(uid, T);
+      localStore.set('doc-c', {value: 'lo mio', updatedAt: T + 60_000});
+      write(uid, 'doc-c', {value: 'lo suyo', updatedAt: T + 65_000});
+      await settle();
+      write(uid, 'otro', {value: 'x', updatedAt: Date.now() - 1000});
+      await settle();
+      const r0 = docReads(uid);
+      await restart(engine, uid, 1);
+      await restart(engine, uid, 2);
+
+      expect({
+        lecturas: docReads(uid) - r0,
+        conflictos: engine.__getConflictsForTests().map(c => c.docId),
+        unsettled: (await persisted(uid)).unsettled['doc-c'] - T,
+        cursorEnAhora: engine.__getCursorForTests('test')! > T + HOUR - 5000,
+      }).toEqual({
+        lecturas: 0,
+        conflictos: ['doc-c'],
+        unsettled: 65_000,
+        cursorEnAhora: true,
+      });
+      engine.stop();
+    });
+
+    it('costo: un conflicto que el enganche ya relee (R9-186) no se lee dos veces', async () => {
+      const uid = 'uid-164-relee';
+      const T = Date.now() - HOUR;
+      await AsyncStorage.setItem(
+        unsettledStorageKey('test', uid),
+        JSON.stringify({'doc-r': T + 65_000}),
+      );
+      await AsyncStorage.setItem(
+        `@sync_conflicted_test:${uid}`,
+        JSON.stringify(['doc-r']),
+      );
+      await AsyncStorage.setItem(
+        `@sync_reread_test:${uid}`,
+        JSON.stringify(['doc-r']),
+      );
+      // Su copia en la nube, bajo el piso: la query no la trae.
+      (
+        mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+          __fire: (c: unknown[]) => void;
+        }
+      ).__fire([
+        {
+          type: 'added',
+          doc: {
+            id: 'doc-r',
+            exists: true,
+            data: () => ({value: 'lo suyo', updatedAt: T - DAY}),
+          },
+        },
+      ]);
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      const {adapter, localStore} = makeAdapter({
+        getMaterialFields: () => ['value'],
+      });
+      localStore.set('doc-r', {value: 'lo mio', updatedAt: T + 60_000});
+      const engine = new SyncEngine();
+      engine.register(adapter);
+      await engine.start(uid);
+      await settle();
+
+      // La relectura lo deja retenido a la copia que encontro (sigue en
+      // conflicto), y el servidor tampoco dijo nada de el: sin excluirlo, se
+      // leia otra vez.
+      expect({
+        lecturas: docReads(uid),
+        unsettled: (await persisted(uid)).unsettled['doc-r'] - T,
+        conflictos: engine.__getConflictsForTests().map(c => c.docId),
+      }).toEqual({lecturas: 1, unsettled: -DAY, conflictos: ['doc-r']});
+      engine.stop();
+    });
+  });
+
   it('un borrado DE VERDAD sigue borrando de local', async () => {
     const uid = 'uid-124-borrado';
     const T = Date.now() - HOUR;
@@ -8827,6 +9144,11 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       `@sync_conflicted_test:${uid}`,
       JSON.stringify(['doc-c']),
     );
+    // R9-164 — doc-c no tiene copia en la nube: el enganche lo lee porque el
+    // servidor no dijo nada de el. Encontrado ausente, se suelta con sus
+    // sellos; la lectura fallida lo deja retenido, que es lo que esta prueba
+    // necesita (entregado, la copia del otro retira el sello: R9-238).
+    mockGetShouldFail = true;
     const {engine, localStore} = await engineFor(uid, T);
     // Cualquier escritura de la cola guarda la tabla que cambio.
     localStore.set('doc-z', {value: 'z', updatedAt: T + 300_000});

@@ -1821,6 +1821,19 @@ export class SyncEngine {
     }
 
     const lookup = (docId: string) => collectionRef.doc(docId).get();
+    // R9-164 — the held docs this attach starts with, and which of them the
+    // listener has said anything of. Each one sits at/above the floor (see
+    // above), so the server's first snapshot names every one the cloud still
+    // has there. One it says nothing of by then was deleted, or rewritten
+    // below the floor, while no listener was there to see it leave (the app
+    // closed while another phone restored a backup, a `deleteAccount` that
+    // erased the cloud and then failed, a `stop()` during the read of its
+    // `removed`): no delivery ever settles it, and it pinned the floor for
+    // good. The ones the attach reads anyway (R9-186) are left to that read.
+    const heldAtAttach = [...(this.unsettled.get(adapter.collection) ?? [])]
+      .filter(([, h]) => !h.reread)
+      .map(([id]) => id);
+    const told = new Set<string>();
     // R9-126 option E — this listener's wait for the server. A re-attach in
     // the same session replaces the old one: a bulk push waiting on it takes
     // the collection to its retry list (R9-257).
@@ -1851,6 +1864,9 @@ export class SyncEngine {
         for (const change of changes) {
           this.noteArrived(uid, adapter.collection, change);
         }
+        if (heldAtAttach.length > 0) {
+          for (const change of changes) told.add(fromDocId(change.doc.id));
+        }
         // R9-126 option E — the view's clocks, cache included: once the view
         // is in sync with the server, it IS the server's (a doc the server no
         // longer has leaves it as a `removed`).
@@ -1874,6 +1890,39 @@ export class SyncEngine {
           this.enqueueSnapshot(adapter.collection, async () =>
             sync.settle('server'),
           );
+          // R9-164 — the held docs the server's first snapshot said nothing
+          // of (see `heldAtAttach`) are read, as the `removed` that left them
+          // would have been. After this batch, in the same chain: what it
+          // settled or held is already in the set. Only from the server: an
+          // offline cache that lacks a doc proves nothing.
+          if (heldAtAttach.length > 0) {
+            this.enqueueSnapshot(adapter.collection, async () => {
+              const unheard = heldAtAttach.filter(
+                id =>
+                  !told.has(id) &&
+                  this.unsettled.get(adapter.collection)?.has(id) === true,
+              );
+              if (unheard.length === 0) return;
+              await this.handleSnapshot(
+                adapter,
+                unheard.map(
+                  id =>
+                    ({
+                      type: 'removed',
+                      doc: {
+                        id: toDocId(id),
+                        exists: false,
+                        data: () => undefined,
+                      },
+                    }) as unknown as DocumentChange,
+                ),
+                lookup,
+                session,
+                uid,
+                true,
+              );
+            });
+          }
         }
       },
       err => {
@@ -1961,6 +2010,9 @@ export class SyncEngine {
     lookup: (docId: string) => Promise<DocumentSnapshot>,
     session: number,
     uid: string | null,
+    /** R9-164 — the held docs the server's first snapshot said nothing of
+     *  (see `heldAtAttach`): `removed` made up by the attach, not a delete. */
+    unheard = false,
   ): Promise<void> {
     if (changes.length === 0) return;
     // R9-153 — the session this batch belongs to, like `flush()`'s. Every
@@ -2112,6 +2164,12 @@ export class SyncEngine {
             );
             continue;
           }
+          // R9-164 — a held doc the server's first snapshot said nothing of
+          // stays held as it is when its read fails: the next attach reads it
+          // again. Settled, a skipped doc whose copy is below the floor was
+          // never applied. A read that fails every time leaves the floor where
+          // it was before R9-164, at one read per attach.
+          if (!current && unheard) continue;
           const currentData = current?.exists ? current.data() : undefined;
           // R9-238 — the read found a copy of the other device: it retires
           // this device's clocks of the doc, like one delivered (see
@@ -2200,7 +2258,12 @@ export class SyncEngine {
             // takes nothing from the remote side, a delete included. Held
             // covers the ones in memory too (R9-65 holds each one as soon as
             // it is recorded) and the ones from before a restart.
-            if (!this.isHeldConflict(adapter.collection, id)) {
+            // R9-164 — nor a doc read because the server said nothing of it:
+            // gone while no listener was there, it is released and its local
+            // copy stays, as a doc deleted from the cloud with the app closed
+            // does when nothing holds it (a `deleteAccount` that erased the
+            // cloud and failed deleted the user's rows otherwise).
+            if (!unheard && !this.isHeldConflict(adapter.collection, id)) {
               // R9-128 — the adapter rejects when the delete did not reach
               // disk. Thrown from here, it ended the batch: the docs after
               // this one were never applied, and the next batch moved the
