@@ -1773,7 +1773,7 @@ export class SyncEngine {
     // uid has never synced before) defaults to 0, so `where('updatedAt',
     // '>=', 0)` matches everything — the first attach still pulls full
     // history, exactly as before this change.
-    const cursor = await this.loadCursor(adapter.collection);
+    const cursor = await this.loadCursor(adapter.collection, uidAtAttach);
     const lowestUnsettled = await this.loadUnsettled(
       adapter.collection,
       uidAtAttach,
@@ -1821,6 +1821,19 @@ export class SyncEngine {
     }
 
     const lookup = (docId: string) => collectionRef.doc(docId).get();
+    // R9-164 — the held docs this attach starts with, and which of them the
+    // listener has said anything of. Each one sits at/above the floor (see
+    // above), so the server's first snapshot names every one the cloud still
+    // has there. One it says nothing of by then was deleted, or rewritten
+    // below the floor, while no listener was there to see it leave (the app
+    // closed while another phone restored a backup, a `deleteAccount` that
+    // erased the cloud and then failed, a `stop()` during the read of its
+    // `removed`): no delivery ever settles it, and it pinned the floor for
+    // good. The ones the attach reads anyway (R9-186) are left to that read.
+    const heldAtAttach = [...(this.unsettled.get(adapter.collection) ?? [])]
+      .filter(([, h]) => !h.reread)
+      .map(([id]) => id);
+    const told = new Set<string>();
     // R9-126 option E — this listener's wait for the server. A re-attach in
     // the same session replaces the old one: a bulk push waiting on it takes
     // the collection to its retry list (R9-257).
@@ -1851,6 +1864,9 @@ export class SyncEngine {
         for (const change of changes) {
           this.noteArrived(uid, adapter.collection, change);
         }
+        if (heldAtAttach.length > 0) {
+          for (const change of changes) told.add(fromDocId(change.doc.id));
+        }
         // R9-126 option E — the view's clocks, cache included: once the view
         // is in sync with the server, it IS the server's (a doc the server no
         // longer has leaves it as a `removed`).
@@ -1874,6 +1890,39 @@ export class SyncEngine {
           this.enqueueSnapshot(adapter.collection, async () =>
             sync.settle('server'),
           );
+          // R9-164 — the held docs the server's first snapshot said nothing
+          // of (see `heldAtAttach`) are read, as the `removed` that left them
+          // would have been. After this batch, in the same chain: what it
+          // settled or held is already in the set. Only from the server: an
+          // offline cache that lacks a doc proves nothing.
+          if (heldAtAttach.length > 0) {
+            this.enqueueSnapshot(adapter.collection, async () => {
+              const unheard = heldAtAttach.filter(
+                id =>
+                  !told.has(id) &&
+                  this.unsettled.get(adapter.collection)?.has(id) === true,
+              );
+              if (unheard.length === 0) return;
+              await this.handleSnapshot(
+                adapter,
+                unheard.map(
+                  id =>
+                    ({
+                      type: 'removed',
+                      doc: {
+                        id: toDocId(id),
+                        exists: false,
+                        data: () => undefined,
+                      },
+                    }) as unknown as DocumentChange,
+                ),
+                lookup,
+                session,
+                uid,
+                true,
+              );
+            });
+          }
         }
       },
       err => {
@@ -1961,6 +2010,9 @@ export class SyncEngine {
     lookup: (docId: string) => Promise<DocumentSnapshot>,
     session: number,
     uid: string | null,
+    /** R9-164 — the held docs the server's first snapshot said nothing of
+     *  (see `heldAtAttach`): `removed` made up by the attach, not a delete. */
+    unheard = false,
   ): Promise<void> {
     if (changes.length === 0) return;
     // R9-153 — the session this batch belongs to, like `flush()`'s. Every
@@ -1977,7 +2029,8 @@ export class SyncEngine {
     // meanwhile moves the cursor in that same chain (R9-183), so nothing moved
     // the cursor past it meanwhile, and the owner's next attach delivers it
     // again. One exception: a `removed` (the doc left the query, and no attach
-    // delivers it again: R9-164).
+    // delivers it again: R9-164). A held one is read by the owner's next
+    // attach instead (see `heldAtAttach`).
     //
     // R9-175 — `session` is the one the batch ARRIVED in (see
     // `attachListener`): a batch that waited in the chain across a `stop()` is
@@ -2100,9 +2153,11 @@ export class SyncEngine {
           // R9-186 — the read failed or timed out, and the doc is a held
           // conflict. Settled, its mark left disk: the doc is out of the query,
           // nothing delivers it again, and after a restart the conflict was
-          // gone. Kept as it is, it holds the floor down for good instead
+          // gone. Kept as it is, it held the floor down for good instead
           // (R9-164): no delivery ever settles it. So it keeps its mark and the
-          // next attach reads it again.
+          // next attach reads it again, first thing (since R9-164 a held doc
+          // the server does not name is read too, but only after the server's
+          // first snapshot).
           if (!current && this.isHeldConflict(adapter.collection, id)) {
             hold(
               id,
@@ -2112,6 +2167,12 @@ export class SyncEngine {
             );
             continue;
           }
+          // R9-164 — a held doc the server's first snapshot said nothing of
+          // stays held as it is when its read fails: the next attach reads it
+          // again. Settled, a skipped doc whose copy is below the floor was
+          // never applied. A read that fails every time leaves the floor where
+          // it was before R9-164, at one read per attach.
+          if (!current && unheard) continue;
           const currentData = current?.exists ? current.data() : undefined;
           // R9-238 — the read found a copy of the other device: it retires
           // this device's clocks of the doc, like one delivered (see
@@ -2200,14 +2261,19 @@ export class SyncEngine {
             // takes nothing from the remote side, a delete included. Held
             // covers the ones in memory too (R9-65 holds each one as soon as
             // it is recorded) and the ones from before a restart.
-            if (!this.isHeldConflict(adapter.collection, id)) {
+            // R9-164 — nor a doc read because the server said nothing of it:
+            // gone while no listener was there, it is released and its local
+            // copy stays, as a doc deleted from the cloud with the app closed
+            // does when nothing holds it (a `deleteAccount` that erased the
+            // cloud and failed deleted the user's rows otherwise).
+            if (!unheard && !this.isHeldConflict(adapter.collection, id)) {
               // R9-128 — the adapter rejects when the delete did not reach
               // disk. Thrown from here, it ended the batch: the docs after
               // this one were never applied, and the next batch moved the
               // cursor past them. The doc itself is settled below, as before:
               // it is gone from the cloud, so no query delivers it again, and
-              // a mark held for it would pin the floor after a restart, where
-              // only a held conflict is read again (R9-164, R9-195).
+              // a mark held for it would cost a read on every attach (before
+              // R9-164 it pinned the floor; R9-195).
               try {
                 await this.withLocalWriteSuppressed(
                   adapter.collection,
@@ -2230,8 +2296,10 @@ export class SyncEngine {
             }
           }
           if (!currentData) {
-            // Deleted, or unreadable: nothing will ever come back to settle
-            // it, so keeping it would hold the floor down for good (R9-164).
+            // Deleted, or unreadable: no delivery will ever come back to
+            // settle it. Before R9-164, keeping it held the floor down for
+            // good; since then the next attach would read it (a held doc
+            // whose read failed on the unheard path is kept: see above).
             settle(id);
             continue;
           }
@@ -2716,15 +2784,19 @@ export class SyncEngine {
    * synced before. That 0 is exactly what makes the "new device still
    * gets full history" guarantee hold: there is no special-case branch
    * for it anywhere else, it falls straight out of this default.
+   *
+   * R9-163 — `uid` is the account the read is FOR (the attach's), not
+   * `this.uid` after the `await`: a `stop()` and another account's `start()`
+   * can land while the read is in flight.
    */
-  private async loadCursor(collection: string): Promise<number> {
+  private async loadCursor(collection: string, uid: string): Promise<number> {
     const cached = this.cursors.get(collection);
     if (cached !== undefined) return cached;
     let value = 0;
-    if (this.uid) {
+    if (uid) {
       try {
         const raw = await AsyncStorage.getItem(
-          cursorStorageKey(collection, this.uid),
+          cursorStorageKey(collection, uid),
         );
         const parsed = raw != null ? Number(raw) : NaN;
         if (Number.isFinite(parsed) && parsed > 0) {
@@ -2754,9 +2826,9 @@ export class SyncEngine {
               },
             );
             value = 0;
-            await AsyncStorage.removeItem(
-              cursorStorageKey(collection, this.uid),
-            );
+            // R9-163 — this account's key: with `this.uid`, a read that came
+            // back in the next account's session removed THAT one's cursor.
+            await AsyncStorage.removeItem(cursorStorageKey(collection, uid));
           } else {
             value = parsed;
           }
@@ -2771,7 +2843,16 @@ export class SyncEngine {
         // collection once more than strictly necessary, never less.
       }
     }
-    this.cursors.set(collection, value);
+    // R9-163 — the cache is the signed-in account's (`stop()` clears it). A
+    // read that came back after a `stop()` cached the cursor it read into the
+    // next account's session: that account's first attach took its floor from
+    // it (`cursor - 5 min`) and never pulled its own older docs. Cached only
+    // while the read's account is still the signed-in one (the same account
+    // signing back in reads its own cursor), and never over a value this
+    // session already holds.
+    if (this.uid === uid && !this.cursors.has(collection)) {
+      this.cursors.set(collection, value);
+    }
     return value;
   }
 
