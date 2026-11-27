@@ -25,6 +25,7 @@
 
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  AppState,
   View,
   Text,
   ScrollView,
@@ -89,7 +90,7 @@ import {
   type PrepTable,
   type PrepTemplateId,
 } from '@/features/study/prepTable';
-import {isPrepNotesEmpty} from '@/features/study/prepNotes';
+import {isPrepNotesEmpty, type PrepNotes} from '@/features/study/prepNotes';
 import {getPrepNotes, savePrepNote} from '@/features/study/prepNotesStore';
 import {
   PREP_SELF_REVIEW_CATEGORIES,
@@ -352,6 +353,9 @@ export default function PrepTableScreen() {
    * SQLite read happens to finish last used to win.
    */
   const loadRunRef = useRef(0);
+  // R9-476 — the run ids of the originals and the comparison loads.
+  const originalsRunRef = useRef(0);
+  const compareRowsRunRef = useRef(0);
   /**
    * R9-47 — which passage the current `drafts` actually belong to. NOT the
    * same thing as `table.passageKey`: the table moves the instant the stepper
@@ -361,6 +365,46 @@ export default function PrepTableScreen() {
    * it. `null` until the first load has adopted a passage.
    */
   const draftsPassageKeyRef = useRef<string | null>(null);
+  /**
+   * R9-167 — what storage holds for the passage the drafts belong to, as far
+   * as this screen knows: the notes it last read, plus every section it wrote
+   * since. `flushDrafts` writes only the sections whose draft differs from
+   * it. Coming back from the illustrations bank, the drafts still hold the
+   * `application` from BEFORE the insertion until the focus re-read lands;
+   * a flush in that window wrote that old text over the illustration just
+   * inserted. Unchanged, that draft is no edit, and is no longer written.
+   * `template` is the stored one: while the entry has none, the flush keeps
+   * writing every draft, because a write is what stamps the template the
+   * other screens resolve.
+   */
+  const syncedNotesRef = useRef<{
+    key: string | null;
+    sections: Partial<Record<PrepSection, string>>;
+    template?: PrepTemplateId;
+  }>({key: null, sections: {}});
+  const adoptSyncedNotes = useCallback((key: string, saved: PrepNotes) => {
+    syncedNotesRef.current = {
+      key,
+      sections: {...saved.sections},
+      template: saved.template,
+    };
+  }, []);
+  const markSectionSynced = useCallback(
+    (
+      key: string,
+      section: PrepSection,
+      value: string,
+      templateId: PrepTemplateId,
+    ) => {
+      const synced = syncedNotesRef.current;
+      // The drafts moved to another passage while the write was in flight.
+      if (synced.key !== key) return;
+      synced.sections = {...synced.sections, [section]: value};
+      // `setSectionNote` stamps the template on an entry that had none.
+      if (synced.template === undefined) synced.template = templateId;
+    },
+    [],
+  );
   const [maxVerse, setMaxVerse] = useState(0);
   const [lines, setLines] = useState<VerseLine[]>([]);
   const [crossRows, setCrossRows] = useState<CrossRow[]>([]);
@@ -418,6 +462,9 @@ export default function PrepTableScreen() {
   );
   const interpSlot = useMemo(() => interpretationSlotFor(template), [template]);
   const [versionLabel, setVersionLabel] = useState('');
+  // R9-478 — the language of the version `load()` resolved: the passage label
+  // follows the text on screen, not the reading version of the moment.
+  const [loadedLang, setLoadedLang] = useState<'es' | 'en' | null>(null);
   const [copied, setCopied] = useState(false);
   // T8.4.5 — PDF export (premium): a separate in-flight flag from `copied`
   // since printToFileAsync + shareAsync are real async I/O, not a clipboard
@@ -631,6 +678,7 @@ export default function PrepTableScreen() {
       setDrafts(saved.sections);
       // The drafts now belong to THIS passage — see `handleNoteBlur`.
       draftsPassageKeyRef.current = table.passageKey;
+      adoptSyncedNotes(table.passageKey, saved);
       setSelfReview(savedSelfReview);
       // Unconditional (unlike the narrow refocus effect below): this is a
       // whole-passage (re)load, possibly for a DIFFERENT passageKey than
@@ -638,6 +686,7 @@ export default function PrepTableScreen() {
       // THAT entry's own stored template — never carry over a stale pick.
       setTemplate(saved.template ?? DEFAULT_PREP_TEMPLATE);
       setVersionLabel(versionAbbrev(version));
+      setLoadedLang(lang);
       hasLoadedRef.current = true;
       setStatus('ready');
     } catch (err) {
@@ -650,11 +699,26 @@ export default function PrepTableScreen() {
     } finally {
       if (!isStale()) setReloading(false);
     }
-  }, [table, params.version]);
+  }, [table, params.version, adoptSyncedNotes]);
 
   useEffect(() => {
     load();
   }, [load]);
+
+  // R9-474 — both buttons await the flush (and the pulpit, the version)
+  // before `router.push`, and the screen does not move meanwhile: a second
+  // tap in that gap pushed a second pulpit (back led to the first one), or a
+  // second bank. One navigation at a time: set on the tap, cleared when the
+  // flush fails (the Mesa stays) and when the Mesa is focused again — not
+  // right after the push, which would reopen the gap for the transition.
+  // (Kept above the notes re-read: harnesses that replay the LAST focus
+  // callback registered take that one for the re-read.)
+  const navigatingRef = useRef(false);
+  useFocusEffect(
+    useCallback(() => {
+      navigatingRef.current = false;
+    }, []),
+  );
 
   // Tanda 4 — re-read ONLY the saved notes on refocus, not the whole heavy
   // `load()` above (which re-fetches cross-refs, book intro, comparison
@@ -681,6 +745,7 @@ export default function PrepTableScreen() {
           if (cancelled) return;
           setDrafts(saved.sections);
           draftsPassageKeyRef.current = key;
+          adoptSyncedNotes(key, saved);
           // CONDITIONAL, unlike `load()` above: a focus round-trip (e.g. to
           // the illustrations bank and back) must adopt a template another
           // screen just PERSISTED for this SAME entry, but must never reset
@@ -695,19 +760,28 @@ export default function PrepTableScreen() {
       return () => {
         cancelled = true;
       };
-    }, [table]),
+    }, [table, adoptSyncedNotes]),
   );
 
   // T8.4.2 — "Palabras clave en el idioma original". Entirely premium: a free
   // reader never even reaches the pack-installed check or a DB read, same
   // discipline as the T8.4.1 history screen ("premium stays a pure addition,
   // nothing here costs the free path anything").
+  //
+  // R9-476 — one run at a time wins, like `load()`'s run id (its own counter:
+  // sharing `loadRunRef` would disown a passage load). A read for the old
+  // range or passage that lands after the new one used to paint its words
+  // under the new label; so did the reload at the end of a download, which
+  // called the loader of the render where «Descargar» was tapped.
   const loadOriginalWords = useCallback(async () => {
+    const runId = ++originalsRunRef.current;
+    const isStale = () => originalsRunRef.current !== runId;
     if (!table || !isPremium) return;
     setOriginalsStatus('loading');
     try {
       let installed = await isOriginalsInstalled();
       if (!installed) installed = await importLocalOriginalsIfPresent();
+      if (isStale()) return;
       if (!installed) {
         setOriginalsStatus('notInstalled');
         return;
@@ -726,6 +800,7 @@ export default function PrepTableScreen() {
         })),
       );
 
+      if (isStale()) return;
       const groups = groupOriginalWordsByStrongs(perVerse);
       const rows: OriginalWordRow[] = groups.map(g => {
         const morphology = decodeMorphologyCode(g.grammar, g.lang);
@@ -743,10 +818,15 @@ export default function PrepTableScreen() {
       setOriginalWordRows(rows);
       setOriginalsStatus(rows.length > 0 ? 'ready' : 'empty');
     } catch (err) {
+      if (isStale()) return;
       logger.warn('Prep original words load failed', {error: String(err)});
       setOriginalsStatus('error');
     }
   }, [table, isPremium, language, params.version]);
+  // R9-476 — the download's reload has to read the passage on screen when it
+  // ENDS, not the one of the render that started it.
+  const loadOriginalWordsRef = useRef(loadOriginalWords);
+  loadOriginalWordsRef.current = loadOriginalWords;
 
   useEffect(() => {
     loadOriginalWords();
@@ -800,7 +880,11 @@ export default function PrepTableScreen() {
   // Resolve the selected versions' text for the FULL passage range (reuses
   // `compareVerseRange` — the same service that powers VersionComparisonScreen
   // — rather than re-deriving verse-by-verse lookups here).
+  // R9-476 — the same run-id rule: an answer for the previous range or
+  // selection never lands over the current one.
   const loadCompareRows = useCallback(async () => {
+    const runId = ++compareRowsRunRef.current;
+    const isStale = () => compareRowsRunRef.current !== runId;
     if (
       !table ||
       !isPremium ||
@@ -817,8 +901,10 @@ export default function PrepTableScreen() {
         table.endVerse,
         selectedCompareIds,
       );
+      if (isStale()) return;
       setCompareRows(rows);
     } catch (err) {
+      if (isStale()) return;
       logger.warn('Prep version compare: failed to load verse texts', {
         error: String(err),
       });
@@ -835,13 +921,13 @@ export default function PrepTableScreen() {
     setOriginalsProgress(0);
     try {
       await downloadAndImportOriginals(setOriginalsProgress);
-      await loadOriginalWords();
+      await loadOriginalWordsRef.current();
     } catch {
       setOriginalsStatus('error');
     } finally {
       setOriginalsDownloading(false);
     }
-  }, [loadOriginalWords]);
+  }, []);
 
   const handleUnlockOriginalWords = useCallback(() => {
     haptics.tap();
@@ -1009,12 +1095,18 @@ export default function PrepTableScreen() {
   const flushDrafts = useCallback(async (): Promise<boolean> => {
     if (!table) return false;
     const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+    // R9-167 — an unchanged draft is not an edit either (see
+    // `syncedNotesRef`), unless the entry still needs its template stamped.
+    const synced = syncedNotesRef.current;
+    const writeAll = synced.key !== passageKey || synced.template === undefined;
     try {
       await Promise.all(
-        templateSections.map(section => {
+        templateSections.map(async section => {
           const value = drafts[section];
-          if (value === undefined) return undefined;
-          return savePrepNote(passageKey, section, value, undefined, template);
+          if (value === undefined) return;
+          if (!writeAll && synced.sections[section] === value) return;
+          await savePrepNote(passageKey, section, value, undefined, template);
+          markSectionSynced(passageKey, section, value, template);
         }),
       );
       return true;
@@ -1022,7 +1114,14 @@ export default function PrepTableScreen() {
       reportSaveError();
       return false;
     }
-  }, [table, drafts, templateSections, template, reportSaveError]);
+  }, [
+    table,
+    drafts,
+    templateSections,
+    template,
+    reportSaveError,
+    markSectionSynced,
+  ]);
 
   // Tanda 4 — the "Banco de ilustraciones" entry point, opened in INSERT
   // mode (carries `insertPassageKey`): picking an illustration there appends
@@ -1033,7 +1132,8 @@ export default function PrepTableScreen() {
   // revisit, since unlike history/series this entry point always opens in a
   // special insert mode rather than plain browsing.
   const handleOpenIllustrations = useCallback(async () => {
-    if (!table) return;
+    if (!table || navigatingRef.current) return;
+    navigatingRef.current = true;
     haptics.tap();
     // Same race handleOpenPulpit below guards against: flush any in-flight
     // note edits BEFORE navigating, so the illustrations screen's own read
@@ -1042,7 +1142,10 @@ export default function PrepTableScreen() {
     // own template sections (not the bare `PREP_SECTIONS` 7) so a
     // non-'expository' entry's just-typed prose (e.g. a `tension` note) is
     // actually persisted before the illustrations screen reads it back.
-    if (!(await flushDrafts())) return;
+    if (!(await flushDrafts())) {
+      navigatingRef.current = false;
+      return;
+    }
     router.push({
       pathname: '/features/prep/illustrations' as never,
       params: {insertPassageKey: table.passageKey},
@@ -1053,7 +1156,8 @@ export default function PrepTableScreen() {
   // passage (the destination gates itself + shows an empty state when there
   // are no notes yet), same discipline as history/series above.
   const handleOpenPulpit = useCallback(async () => {
-    if (!table) return;
+    if (!table || navigatingRef.current) return;
+    navigatingRef.current = true;
     haptics.tap();
     // Persist any in-flight note edits BEFORE navigating. The presenter screen
     // reads notes from STORAGE, so a note just typed (whose onBlur save is still
@@ -1062,7 +1166,10 @@ export default function PrepTableScreen() {
     // Uses THIS entry's own template sections (not the bare `PREP_SECTIONS`
     // 7) so a non-'expository' entry's prose is fully flushed too — the
     // pulpit screen resolves the SAME template independently from storage.
-    if (!(await flushDrafts())) return;
+    if (!(await flushDrafts())) {
+      navigatingRef.current = false;
+      return;
+    }
     // Resolve the version the SAME way this screen resolves it (explicit
     // param, else the device's last-picked reading version) and ALWAYS
     // forward it. The pulpit screen falls back independently to the
@@ -1071,7 +1178,18 @@ export default function PrepTableScreen() {
     // (e.g. deep link with no version param + English UI: Mesa shows
     // RVR1960 via its own fallback, pulpit would show WEB via its own).
     // Forwarding the resolved version unconditionally closes that gap.
-    const version = await resolveVersion(params.version);
+    let version: string;
+    try {
+      version = await resolveVersion(params.version);
+    } catch (error) {
+      // R9-474 — a failed read is no navigation: the Mesa stays and the next
+      // tap retries. (It used to be an unhandled rejection of the onPress.)
+      navigatingRef.current = false;
+      logger.warn('Prep pulpit: failed to resolve the version', {
+        error: String(error),
+      });
+      return;
+    }
     router.push({
       pathname: '/features/prep/pulpit' as never,
       params: {
@@ -1102,9 +1220,9 @@ export default function PrepTableScreen() {
       value: string,
       templateId: PrepTemplateId,
     ) => {
-      savePrepNote(passageKey, section, value, undefined, templateId).catch(
-        reportSaveError,
-      );
+      savePrepNote(passageKey, section, value, undefined, templateId)
+        .then(() => markSectionSynced(passageKey, section, value, templateId))
+        .catch(reportSaveError);
     },
     700,
   );
@@ -1116,6 +1234,20 @@ export default function PrepTableScreen() {
   // savePrepNote is idempotent + serialized, so this is harmless even when
   // onBlur/handleOpenPulpit already saved the same value.
   useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+  // R9-58 — the unmount flush above never runs when the process dies: the OS
+  // kills an app in the background (swipe-away, low memory) without
+  // unmounting anything, and while it sits there the debounce's timer does
+  // not fire either (measured on the emulator, S137). Whatever was typed since
+  // the last 700 ms pause was lost. Push the pending save the moment the app
+  // leaves the foreground. use-debounce's `flushOnExit` would not do it: it
+  // listens to `document`, which React Native does not have (on the web,
+  // AppState reports a hidden tab as 'background', so this covers it too).
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', state => {
+      if (state !== 'active') debouncedSaveNote.flush();
+    });
+    return () => subscription.remove();
+  }, [debouncedSaveNote]);
   // Which (passage, section, template) the pending debounced save belongs
   // to — see `handleNoteChange` (R9-473).
   const pendingSaveKeyRef = useRef<string | null>(null);
@@ -1141,12 +1273,13 @@ export default function PrepTableScreen() {
             if (passageKeyRef.current !== key) return;
             setDrafts(saved.sections);
             draftsPassageKeyRef.current = key;
+            adoptSyncedNotes(key, saved);
             if (saved.template) setTemplate(saved.template);
           })
           // The store logged it; the fields keep what they show (R9-600).
           .catch(() => undefined);
       }),
-    [debouncedSaveNote],
+    [debouncedSaveNote, adoptSyncedNotes],
   );
 
   const handleNoteChange = useCallback(
@@ -1197,11 +1330,11 @@ export default function PrepTableScreen() {
       //     and typed for.
       if (value === undefined) return;
       const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
-      savePrepNote(passageKey, section, value, undefined, template).catch(
-        reportSaveError,
-      );
+      savePrepNote(passageKey, section, value, undefined, template)
+        .then(() => markSectionSynced(passageKey, section, value, template))
+        .catch(reportSaveError);
     },
-    [table, drafts, template, reportSaveError],
+    [table, drafts, template, reportSaveError, markSectionSynced],
   );
 
   const handleNoteSelectionChange = useCallback(
@@ -1230,9 +1363,18 @@ export default function PrepTableScreen() {
   const headerGradient: readonly [string, string, ...string[]] = highContrast
     ? (gradient.headerColors as readonly [string, string, ...string[]])
     : [colors.primary, colors.primaryDark];
-  // The passage label follows the reading version's language (RVR1960 → "Juan").
+  // The passage label follows the language of the version whose text is on
+  // screen (RVR1960 → "Juan"). R9-478 — it used to read `selectedVersion` on
+  // every render, while the text comes from `load()`, which resolves
+  // `params.version` and does not run again when the reader changes the
+  // version: back from the reader in KJV, «John 3:16» sat over the Spanish
+  // text (and headed the copied outline). Until the first load lands, the
+  // reading version's language.
   const passageLabel = table
-    ? formatPassageLabel(table, selectedVersion.language === 'es' ? 'es' : 'en')
+    ? formatPassageLabel(
+        table,
+        loadedLang ?? (selectedVersion.language === 'es' ? 'es' : 'en'),
+      )
     : '';
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
