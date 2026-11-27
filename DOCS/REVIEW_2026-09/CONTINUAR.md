@@ -133,8 +133,10 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 **Desde el 2026-11-26 rige el método rápido de la §7** (re-triaje de los P2, carriles disjuntos, olas de agentes).
 **La 189 hizo el re-triaje** (`detail/S189-retriaje-p2.md`): de 70 P2 leídos, ninguno ya arreglado, 24 bajadas
 a P3 (aprobadas por Victor y aplicadas: P1 + P2 = 50), 6 que esperan a Victor y 40 P2 reales en 12 carriles y
-4 olas. **Lo siguiente: la ola 1** (`_scratch/S190-PROMPT.md`): carriles Toasts, Sync, y Mesa y búsqueda, más
-Sonnet a prueba en `R9-601` (arranca cuando termina el primero de los tres, decidido por Victor). Lo de abajo es el registro de antes.
+4 olas. **La 190 hizo la ola 1** (`detail/S190-ola1.md`, rama `fix/s190-ola1`): carriles Toasts, Sync, y Mesa y
+búsqueda, más Sonnet en `R9-601`. 6 P2 cerrados (P1 + P2 = 43); `R9-430` y `R9-474` EN PARTE por sus familias
+(pregunta en la §8); 9 P3 nuevos (`R9-641` a `R9-649`); lo vivo, en `detail/PENDIENTES-EN-VIVO.md`. **Lo siguiente: la
+ola 2** (`_scratch/S191-PROMPT.md`): carriles 4, 5 y 6. Lo de abajo es el registro de antes.
 
 **Qué queda:** `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`. Al cierre de la 142: 274 abiertos de 573
 (ningún P0, 20 P1, 92 P2, 161 P3 y el aviso `R9-1`), 2 sin verificar que piden emulador (`R9-177`, `R9-240`), 285
@@ -640,6 +642,21 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   - **Validate de un checkpoint de docs.** Si `git diff --quiet <último sha con CI verde> HEAD -- . ':!DOCS'` sale
     vacío, basta `npx prettier --check "DOCS/REVIEW_2026-09/**/*.md"` y el validador de estado; si cambió código,
     el validate entero. El CI tras el push sigue siendo el control.
+  - **Decisiones por defecto de la ola 1 (la 190; Victor puede cambiarlas).**
+    - **Sonnet 5.5 queda para lotes D simples**, con el grep de consumidores a cargo del revisor. No va a lotes donde
+      el valor devuelto alimenta un estado o una pantalla. Por qué: en `R9-601` el arreglo y la prueba salieron
+      bien, pero no miró qué hacían los llamadores con lo devuelto (`R9-641`).
+    - **La tinta del aviso (`R9-454`) cambia también el modo claro:** cada variante usa la tinta del tema que más
+      contrasta. Por qué: una regla para todos los temas, sin colores fijos; success y warning en claro ganan contraste.
+    - **`R9-164`:** un retenido sin copia en la nube se suelta y la copia local se queda; con la lectura fallida,
+      sigue retenido para el enganche siguiente. Por qué: es el trato de la rama en vivo de `R9-160` (nunca borrar,
+      soltar), y un `deleteAccount` fallido no puede borrar filas del teléfono.
+    - **`R9-167`:** abrir la Mesa y tocar un botón sin editar ya no escribe ni sube la entrada en «editado más
+      recientemente». Por qué: abrir no es editar; reescribir todo era lo que pisaba la ilustración.
+    - **`R9-430`:** la búsqueda rehecha por el cambio de versión es silenciosa: no cuenta para logros ni entra al
+      historial. Por qué: la búsqueda no es nueva, solo cambia de versión.
+    - **`R9-601`:** ante una lectura fallida, el store no escribe y devuelve vacío, sin relanzar al llamador. Por qué:
+      los cuatro llamadores no tienen `.catch`; relanzar daría un rechazo sin manejar. La pantalla vacía: `R9-641`.
 
 - **El flujo de trabajo, desde la sesión 153 (Victor, 2026-11-16: «apliquemos todo lo que nos convenga», tras el
   video de los 7 principios de Karpathy; el análisis está en `detail/S152-arreglos-pruebas.md` §10).**
@@ -1032,6 +1049,12 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
   re-verificación del `⛔` de arriba: fue un intercambio consciente, no un olvido.
 
 ## 8. Decisiones abiertas para Victor (no son bugs)
+
+- **Las familias de `R9-430` y `R9-474` (sesión 190):** el arreglo de la búsqueda (`7a39e815`) y el de la cabecera
+  (`R9-478`, `0a8fbfd9`) están hechos, pero `R9-486`, `R9-521` y `R9-525` (fusionados en `R9-430` en la 185) y `R9-482`
+  (en `R9-474`) piden archivos de fuera del carril 3. **Recomendado:** terminarlas en la ola 2 con un cuarto agente
+  (carril 3b: sus archivos no tocan los carriles 4, 5 y 6, y la ola 1 salió limpia). Alternativa: reabrirlas como P3
+  propios y cerrar ya `R9-430` y `R9-474` (P1 + P2 bajaría a 42). Hasta que Victor diga, los dos quedan EN PARTE.
 
 - **La severidad de `R9-562` (sesión 138):** la ✕ del selector de colores del lector borra el subrayado con su nota
   y su categoría, sin confirmar ni deshacer (medido dos veces y re-verificado). Está en P2 PROPUESTO porque media un

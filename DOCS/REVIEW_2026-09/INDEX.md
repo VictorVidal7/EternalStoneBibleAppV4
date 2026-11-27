@@ -592,3 +592,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
 - **Sesión 189b — 2026-11-26.** Las seis preguntas de la 189, decididas por delegación de Victor («qué advisor
   decida»): `R9-31` aceptado; `R9-118` y `R9-4` al carril 13 nuevo («CI y reglas»); `R9-158` al carril 9;
   `R9-136` abierto con la dirección aprobada; `R9-135` sin cambios. P1 + P2 = 49. `CONTINUAR.md` §7.
+- **Sesión 190 — 2026-11-27.** La ola 1 del método rápido (rama `fix/s190-ola1`): tres agentes Opus 5.5 (Toasts,
+  Sync, Mesa y búsqueda), Sonnet 5.5 a prueba en `R9-601` y un revisor de solo lectura. 18 commits, 13 de 13 rojos con
+  `revert-pieza`, validate verde (458 suites, 5324 pruebas). Cerrados: `R9-454`, `R9-163`, `R9-164`, `R9-58`, `R9-167`,
+  `R9-476` (P2), y `R9-637`, `R9-148`, `R9-241`, `R9-169`, `R9-601` (P3). EN PARTE: `R9-430`, `R9-474`, `R9-638`.
+  Nuevos: `R9-641` a `R9-649` (P3). P1 + P2 = 43. Detalle: `detail/S190-ola1.md`.

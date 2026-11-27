@@ -4099,6 +4099,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   - Consecuencia de la regresión: una escritura que falla una vez queda parada hasta el próximo
     arranque, o hasta que se edite ese documento. No se pierde, porque la cola está persistida.
   - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 190** (`72f11604`, rama `fix/s190-ola1`): prueba en `__tests__/SyncEngine.test.ts` (describe R9-148), con el `setInterval` real del tick. Sin pieza que revertir: la mutación (comentar el `void this.flush()` de `startPeriodicFlush`) la pone roja, vista por el agente y por el orquestador. Detalle: `detail/S190-ola1.md` §2.
 
 - **`R9-149` (S22, build de packs — P3) — 🐛 la pieza de `R9-74` que distingue «no se pudo LEER»
   de «ausente» no tiene prueba.** CONFIRMADO por revert.
@@ -4268,6 +4269,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     viejo no baja, y su primer `advanceCursor` persiste ese valor.
   - Es la consecuencia de `R9-122.4` por otra puerta, igual de estrecha. De paso (leído): la rama de
     `R9-35` en el mismo `loadCursor` (`:1243-1245`) hace `removeItem` con el `this.uid` del momento.
+  - **✅ ARREGLADO en la sesión 190** (`0e82684c`, rama `fix/s190-ola1`): `loadCursor(collection, uid)` lee y borra con el uid del enganche y solo siembra el caché si la sesión sigue siendo esa y el caché está vacío. Pruebas en `__tests__/SyncEngine.test.ts` (describe R9-163): revert por pieza, 2 rojas. Detalle: `detail/S190-ola1.md` §2.
 
 - **`R9-164` (S25, `SyncEngine` / cuota — P2) — 🐛 un doc retenido en el conjunto no asentado que no
   vuelve a llegar queda retenido para siempre, sin conflicto que resolver.** MEDIDO por la nube,
@@ -4300,6 +4302,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     **Nota de la sesión 30 (A3):** con la app cerrada, una copia del otro reescrita bajo el piso no
     vuelve nunca en el mock (el caso `app-cerrada` a 10 min de `R9-193`): la marca queda fija y el
     piso retenido. Sin medir en nativo, donde la caché probablemente la entregue.
+  - **✅ ARREGLADO en la sesión 190** (`3177dbf1`, y `727b814c` y `3e614450`, rama `fix/s190-ola1`): MEDIDO antes (sonda del agente, tres casos, los tres reproducen). En la primera entrega del servidor, cada retenido del que el listener no dijo nada se lee por la rama de `R9-124`: sin copia en la nube, se suelta y la copia local se queda; con la lectura fallida, sigue retenido. Pruebas en `__tests__/SyncEngine.test.ts` (describe R9-164): revert por pieza, 5 rojas; cinco mutaciones. Las decisiones, en la §7. Vecinos: `R9-645`, `R9-646`. Detalle: `detail/S190-ola1.md` §2.
 
 - **`R9-165` (S25, `SyncEngine` / cuota — P3) — 🐛 un conjunto no asentado ilegible en disco no se
   cura: cada enganche relee la colección entera.** MEDIDO por la nube.
@@ -4321,6 +4324,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     `"afterPulpitTap":"Mi aplicación escrita a mano"` y `"illustrationSurvives":false`.
   - P2: la prosa escrita a mano sobrevive, y la ilustración sigue en el banco para volver a
     insertarla.
+  - **✅ ARREGLADO en la sesión 190** (`799e3187`, rama `fix/s190-ola1`): `syncedNotesRef` guarda lo que la Mesa sabe guardado, y `flushDrafts` escribe solo lo que difiere (todo, si falta estampar la plantilla). Un toque sin ediciones ya no sube la entrada en el historial (§7). Prueba: bloque R9-167 de `__tests__/prepTableScreenNavigation.test.tsx` (`renderRouter`): revert por pieza, rojo. Queda `handleNoteBlur` en la misma ventana, por lectura: `R9-648`. Detalle: `detail/S190-ola1.md` §3.
 
 - **`R9-168` (S25, Mesa — P3) — 🐛 el ref de la clave y los borradores se mueven en momentos
   distintos: un handler del render anterior puede escribir un sermón sobre otro.** MEDIDO por
@@ -4337,6 +4341,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
   (`index.tsx:1018`, `:1038`), las 8 pruebas de `prepTableScreenPassageKeying.test.tsx` siguen en
   verde. El comentario de `handleOpenPulpit` explica por qué hace falta esperar.
   - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 190** (`946eddc6`, rama `fix/s190-ola1`): bloque R9-169 de `__tests__/prepTableScreenNavigation.test.tsx` (`renderRouter`, la escritura real retenida). Sin pieza que revertir: la mutación (no esperar `flushDrafts()` en los dos botones) pone rojos los 2 casos, vista por el agente y por el orquestador. Detalle: `detail/S190-ola1.md` §3.
 
 - **`R9-170` (S25, build de packs — P3) — 🐛 los packs web no son reproducibles entre versiones de
   SQLite: el mismo texto da otro sha256.** MEDIDO por la nube.
@@ -6193,6 +6198,7 @@ pending.remoteVersion.updatedAt`.
   - De paso: un mock con `get doc()` dentro de un spread no lo modela, porque Babel evalúa el getter
     al copiar las propiedades.
   - Triaje 185: lote D, A(1) (ningún revert se ve (el mock sustituye firestore.ts) y protege el sync: prueba corta). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 190** (`7ae98763`, rama `fix/s190-ola1`): `__tests__/firestoreWrapContract.test.ts`, con el `firestore.ts` real y la clase real `FirestoreDocumentChange` de RNFirebase. Sin pieza que revertir: la mutación (`doc` como getter en `firestore.ts:156`) la pone roja, vista por el agente y por el orquestador. Detalle: `detail/S190-ola1.md` §2.
 
 - **`R9-242` (S41, `SyncEngine` / cola — P3) — 🐛 el `own` de una entrada que reemplazó una subida EN
   VUELO conserva relojes más viejos que el ack de esa subida. Mientras la entrada espera, el respaldo
@@ -12345,6 +12351,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - Triaje 185: recibe `R9-486` (familia de esta): la vista previa de una parada no sigue a la versión: tras cambiarla en el lector y volver, sigue en la vieja bajo el chip en la nueva. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
   - Triaje 185: recibe `R9-521` (familia de esta): los datos ya abiertos no siguen a la versión. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
   - Triaje 185: recibe `R9-525` (familia de esta): con la versión cambiada con la pantalla abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la voz de la versión nueva. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - **✅ ARREGLADO EN PARTE en la sesión 190** (`7a39e815`, rama `fix/s190-ola1`): la búsqueda se rehace en la versión nueva, en modo silencioso (sin logros ni historial), y descarta respuestas viejas de buscar y de «Cargar más». Prueba: `__tests__/searchVersionChange.test.tsx`: revert por pieza, 5 rojas. De la familia, `R9-478` queda cubierto (`0a8fbfd9`). Sigue ABIERTO por la familia: `R9-486` (`journeys/[routeId].tsx`), `R9-521` (`facts/index.tsx`) y `R9-525` (`themes/[theme].tsx`, `feelings/[feeling].tsx`, `daily-light/index.tsx`). La pregunta de separarlos, en la §8. Detalle: `detail/S190-ola1.md` §3.
 
 - **`R9-431` (S117, `A16` / búsqueda — P3) — 🐛 el resaltado de los resultados no sigue lo que encontró la
   búsqueda: con un apóstrofo en inglés no resalta nada, y con `OR` resalta «or» dentro de otras palabras.**
@@ -12686,6 +12693,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
     default, 15.84.
   - P2: en el modo para baja visión ningún aviso se lee, y el de error es a menudo la única señal de un fallo.
     **Propuesta (sin escribir):** una tinta por variante. Detalle: `detail/A25-theming.md`.
+  - **✅ ARREGLADO en la sesión 190** (`ff35c71b`, rama `fix/s190-ola1`): la tinta del aviso es, de `text` y `background` del tema, la que más contrasta con su fondo; sin colores fijos. Prueba: `__tests__/toastInkContrast.test.tsx` (el `Toast` y el `ThemeProvider` reales, 33 paletas, 132 casos): oscuro y alto contraste, todos ≥ 4.5:1; rojo sin el arreglo con los números de la sonda S122. También cambia el claro (success y warning, tinta oscura). Queda `ocean.light` info en 4.36:1 (antes 4.10), nombrado en la prueba: `R9-644`. Detalle: `detail/S190-ola1.md` §1.
 
 - **`R9-455` (S122, `A25` / theming, insignias — P3) — 🐛 las etiquetas de rareza de la colección de insignias
   tienen poco contraste en cualquier tema.** MEDIDO con sonda en la 122.
@@ -13012,6 +13020,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
   - **Propuesta (sin escribir):** un ref de «navegando» en los dos botones. Detalle: `detail/A32-mesa-altitud.md`.
   - Triaje 185: lote D, A(1) (recibe R9-482: la ilustración insertada dos veces en la Mesa). Sigue abierto; el commit, con su revert por pieza.
   - Triaje 185: recibe `R9-482` (familia de esta): dos toques en una ilustración en modo insertar cierran también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - **✅ ARREGLADO EN PARTE en la sesión 190** (`5bb1698e`, y `08117d6c`, rama `fix/s190-ola1`): un `navigatingRef` deja una sola navegación a la vez en «Modo púlpito» y en el banco; se libera si falla el flush o la lectura de la versión, y al volver el foco. Prueba: bloque R9-474 de `__tests__/prepTableScreenNavigation.test.tsx`: revert por pieza, rojo. Sigue ABIERTO por `R9-482` (familia): pide la misma guarda en `app/features/prep/illustrations/index.tsx` (`handleInsert`). Detalle: `detail/S190-ola1.md` §3.
 
 - **`R9-475` (S126, `A33` / Profecías, mazo — P2) — 🐛 con una versión en español, «Memorizar» en el Hilo
   profético crea una segunda carta del mismo versículo, y no reconoce la que ya estaba.** MEDIDO con sonda en la
@@ -13057,6 +13066,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     idioma (dos cambios en vuelo): la misma raíz.
   - **Propuesta (sin escribir):** llamar al `loadOriginalWords` actual por un `ref` al terminar, o un contador en
     las dependencias del efecto; el `runId` de `load()` para las dos cargas. Detalle: `detail/A32-mesa-altitud.md`.
+  - **✅ ARREGLADO en la sesión 190** (`7d4c0ef0`, rama `fix/s190-ola1`): `loadOriginalWords` y `loadCompareRows` llevan su contador de corrida y descartan la respuesta tardía; la descarga llama al cargador actual por un ref. Prueba: `__tests__/prepTableScreenOriginalsStale.test.tsx`: revert por pieza, 4 rojas. Su gemelo `R9-435` (carril 11) sigue abierto. Detalle: `detail/S190-ola1.md` §3.
 
 - **`R9-477` (S127, `A32` / originales, el pack — P2) — 🐛 el build del pack de originales descarta 235 palabras
   griegas: 2 Corintios 13:13-14 y Filipenses 1:16-17 quedan sin originales, y otros 34 versículos incompletos.**
@@ -13096,6 +13106,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
   - **Propuesta (sin escribir):** la cabecera con la lengua de la versión cargada, o `load` dependiente de
     `selectedVersion.id` cuando no hay `params.version`.
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (búsqueda) y `R9-438` (Home), otra pantalla.». Su arreglo tiene que cubrirlo.
+  - Sesión 190: cubierto por `0a8fbfd9` (rama `fix/s190-ola1`): la cabecera de la Mesa usa la lengua de la versión que cargó `load()`. Prueba: `__tests__/prepTableScreenVersionHeader.test.tsx`: revert por pieza, 2 rojas. Sospecha del revisor sobre un id desconocido: `R9-649`.
 
 - **`R9-479` (S127, `A32` / Mesa, buscar por tema — P3) — 🐛 en inglés, «Search by topic» no encuentra el
   ejemplo de su propio placeholder («fear»), ni 12 de 16 palabras de todos los días.** MEDIDO con sonda en la 127
@@ -15120,6 +15131,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3: marcas y progreso, no texto; pide un fallo de lectura. **Propuesta (sin escribir):** que el
     escritor relance en un fallo de lectura. `detail/S161-v3-arreglos.md` §5.
   - Triaje 185: lote D, A(1) (relanzar en el catch de los stores de favoritos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 190** (`4f90454a`, rama `fix/s190-ola1`, Sonnet 5.5 a prueba): cada store tiene una lectura estricta; ante una lectura fallida, el escritor no escribe y devuelve vacío (no relanza: los llamadores no tienen `.catch`; §7). Prueba: `__tests__/studyStoresReadFailureKeepsData.test.ts` (los stores reales): revert por pieza, 8 de 8 rojas. La pantalla se vacía hasta el próximo montaje: `R9-641`. Detalle: `detail/S190-ola1.md` §4.
 
 - **`R9-602` (S163, la Mesa / respaldo, vecino de `R9-30` — P2) — 🐛 una restauración que aterriza con la Mesa
   enfocada queda pisada por la tecla o el blur siguiente.** MEDIDO con la pantalla real.
@@ -15575,6 +15587,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto:** una línea por modal, `<ToastHost />` dentro de su contenido (como en `d991b711`). Detalle:
     `detail/S183-arreglos-tanda-2-parte-2.md` §1.
   - Triaje 185: lote D, A(2) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 190** (`f3591bac`, rama `fix/s190-ola1`): un `<ToastHost />` como último hijo de cada `<Modal` (26 modales en 21 archivos; `journey` era un falso positivo: su `<Modal` está en un comentario). La guarda `__tests__/toastHostEveryModal.test.tsx` mira cada `<Modal` hasta su cierre, con la excepción nombrada; más la conducta del editor de `highlights.tsx` (el resto de `R9-415`). Revert por pieza: rojo. La guarda no ve un toast que llega por un hook o desde el padre: `R9-642`. En vivo: los pendientes. Detalle: `detail/S190-ola1.md` §1.
 
 - **`R9-638` (S186b, la revisión del diff de la 184 / el aviso de `R9-32` — P3) — 🐛 el aviso «Copia lista» se corta
   a 2 líneas, y con letra grande se pierde el destino, que es lo que el aviso viene a decir.** MEDIDO en vivo a
@@ -15589,6 +15602,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto (sin escribir):** un `numberOfLines` mayor (o libre) para este aviso, o un texto más corto
     que diga el destino en dos líneas a 2,0, en los dos idiomas. Detalle: `detail/S186-revision-del-diff-y-r9-31.md`
     §1.1.
+  - **✅ ARREGLADO EN PARTE en la sesión 190** (`84cc9135`, rama `fix/s190-ola1`): el tope por defecto de `Toast.tsx` sube de 2 a 6 líneas; los topes explícitos mandan. Prueba: `__tests__/toastMessageLines.test.tsx` (rojo con 2). Modelo de ajuste del agente sobre 138 textos: cortados a 1,0/1,3/2,0, de 15/26/65 a 0/0/8. Sigue abierto hasta medir en vivo «Copia lista» a 2,0 en español (77 caracteres, cerca del tope) y el solape con la barra de estado. Detalle: `detail/S190-ola1.md` §1.
 
 - **`R9-639` (S187, la migración de marcadores retirados / vecino de `R9-518` — P3) — 🐛 sin red en una instalación
   nueva, la lectura de los marcadores de la cuenta cae a la caché vacía, la migración se da por hecha y esos
@@ -15613,6 +15627,88 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3; triaje A(1) («deja distinto entre aparatos algo que el usuario escribió»), candidato a lote D.
   - **Arreglo propuesto (sin escribir):** la guarda de `R9-511` (`calNotesDropped` con `sanitizeNote` sin tope
     contra lo que lleva el paquete): si recorta, un toast con cuánto sobra y no compartir. Detalle: `detail/S187-arreglos-tanda-3.md` §6.
+
+- **`R9-641` (S190, revisión de la ola 1 / vecino de `R9-601` — P3) — 🐛 tras una lectura fallida, las pantallas de estudio
+  apagan todas las estrellas o todas las paradas visitadas.** POR LECTURA (el revisor, líneas leídas).
+  - Desde `4f90454a`, el escritor devuelve `new Set()` (o un perfil vacío) si la lectura falla. `facts/index.tsx:89`,
+    `prophecies/index.tsx:151` y `journeys/[routeId].tsx:170` hacen `.then(setFavorites)`; `journeys/[routeId].tsx:158-159`,
+    `setVisited(next)`. El disco queda intacto; la pantalla, vacía hasta el próximo montaje. En `kids/[storyId].tsx`, no se
+    disparan los logros de ese tramo.
+  - De paso: el comentario «the caller keeps what it shows» de los cuatro stores es falso; la prueba solo pide
+    `resolves.toBeDefined()` del valor devuelto; `readStrict` está copiado cuatro veces.
+  - **Severidad:** P3; triaje B salvo que se mida peor (no pierde lo escrito: el disco manda al volver).
+  - **Arreglo propuesto (sin escribir):** devolver `null` y que el llamador no toque el estado, o relanzar con un `.catch` en
+    los cuatro llamadores (archivos de los carriles 7 y 12). Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-642` (S190, la ola 1, la guarda de `R9-637` — P3) — 🐛 la guarda no ve los modales cuyo toast llega por un hook o
+  desde la pantalla padre: esos avisos siguen detrás.** POR LECTURA (el agente del carril 1 y el revisor).
+  - Once modales sin host disparan avisos desde un hook: los 9 `*ImageModal`/`*RecapModal` de insights, `NoteImageModal` y
+    `CollectionImageModal`, por `useShareImage.ts:95` y `:108` (`imageShareError`) y `PremiumShareExtras.tsx:132`
+    (`imageStyleSaved`). El aviso de éxito sí se ve (`onShared: onClose` cierra antes).
+  - `NoteEditorModal` no tiene host: el lector dispara `notes.saveError` con él abierto. 31 archivos tienen `<Modal` sin
+    `useToast` ni host; cada uno pide mirar su padre.
+  - De paso: el comentario «Defaults to 2» de `ToastContext.tsx:32` quedó falso tras `84cc9135`.
+  - **Severidad:** P3; triaje A(2) donde el aviso tapado es un error al guardar (`notes.saveError`, `imageShareError`): lote D.
+  - **Arreglo propuesto:** ampliar la guarda a los modales que reciben un toast de un hook propio o de su padre, y un host en
+    cada uno. `NoteEditorModal` va con el carril 5. Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-643` (S190, la ola 1, los hosts de toast — P3) — 🐛 un toast vivo se remonta al abrir o cerrar un modal con host: se
+  anuncia otra vez y su temporizador vuelve a empezar.** MEDIDO con sonda (el agente del carril 1, fuera del repo).
+  - Con un toast en pantalla, abrir o cerrar un modal con `<ToastHost />` lo remonta en el host nuevo: el lector de pantalla
+    lo anuncia otra vez y dura hasta unos 5,5 s en vez de 4. Viene del diseño de `R9-560`; desde `f3591bac`, alcanza 26
+    modales más.
+  - **Severidad:** P3; triaje B (no pierde ni dice nada falso; un anuncio repetido).
+  - **Arreglo propuesto (sin escribir):** que el host conserve el instante de inicio y la clave del toast al moverlo.
+    Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-644` (S190, la ola 1, theming — P3) — 🐛 en `ocean.light`, el azul `primary` (#0284c7) no llega a 4.5:1 con
+  blanco ni con ningún color del tema.** MEDIDO (la prueba de `ff35c71b` lo nombra).
+  - `primary` con `onPrimary` blanco: 4.10:1; el aviso info, con la mejor tinta del tema: 4.36:1. Texto normal pide 4.5:1.
+  - **Severidad:** P3; triaje A(4) (contraste), frontera: el tema es opcional y queda por encima de 3:1.
+  - **Arreglo propuesto (sin escribir):** oscurecer `primary` de `ocean.light` (decisión de diseño). Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-645` (S190, la ola 1, `SyncEngine` / vecino de `R9-164` — P3) — 🐛 con lecturas que no vuelven, el enganche de una
+  colección espera N veces 60 s.** MEDIDO con sonda (el agente del carril 2, plazo bajado a 100 ms: 3 docs, 338 ms, 3 lecturas
+  por enganche).
+  - Desde `3177dbf1`, cada retenido sin nombrar se lee en serie en la cadena de la colección, con
+    `REMOVED_LOOKUP_TIMEOUT_MS` (60 s) por lectura, y otra vez en cada enganche. Lo mismo pasa con la relectura de `R9-186`.
+  - **Severidad:** P3; triaje B salvo que se mida en nativo: retrasa, no pierde (la sonda no midió RNFirebase sin red).
+  - **Arreglo propuesto (sin escribir):** leer en paralelo con un plazo total, o lanzar las lecturas fuera de la cadena.
+    Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-646` (S190, la ola 1, `SyncEngine` / vecino de `R9-164` — P3) — 🐛 la rama `removed` en vivo suelta un retenido
+  sin conflicto si su lectura falla; la rama nueva de `R9-164` lo deja retenido.** POR LECTURA (el agente del carril 2).
+  - Dos caminos, dos tratos para el mismo caso. El retenido suelto vuelve a dejar avanzar el piso.
+  - **Severidad:** P3; triaje: frontera de A(1) (un doc saltado puede no bajar), por lectura. Medir antes.
+  - **Arreglo propuesto (sin escribir):** el mismo trato en las dos ramas (seguir retenido). Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-647` (S190, la ola 1, la Mesa / versión — P3) — 🐛 si la Mesa se abrió sin `version` y el lector la cambió, «Modo
+  púlpito» abre en la versión nueva con la Mesa en la vieja.** MEDIDO con sonda (el agente del carril 3:
+  `{"header":"Juan 3:16","text":"RVR1960","pushedVersion":["KJV"]}`). De antes de la 190.
+  - «Modo púlpito» vuelve a resolver la versión al tocar, en vez de reenviar la que cargó `load()`.
+  - De paso: el comentario de `prep/index.tsx:1382` («same language convention as `passageLabel`») ya es falso tras
+    `0a8fbfd9`.
+  - **Severidad:** P3; triaje A(2) («muestra mal un texto bíblico»: el púlpito en otra versión que la preparada): lote D, carril 3.
+  - **Arreglo propuesto:** reenviar la versión cargada. Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-648` (S190, la ola 1, la Mesa / vecino de `R9-167` — P3) — 🐛 `handleNoteBlur` todavía escribe un borrador sin
+  cambios en la ventana de `R9-167`; y el flush de los botones no cancela el guardado pendiente del debounce.** POR LECTURA
+  (el agente del carril 3; el orquestador leyó `prep/index.tsx:1095-1120`, `:1216-1236` y `:1312-1335`).
+  - El blur escribe `drafts[section]` sin mirar `syncedNotesRef`. Si un campo conserva el foco al volver del banco y la
+    relectura sigue retenida, un blur posterior podría escribir el borrador viejo sobre la ilustración (el daño de `R9-167`).
+  - El debounce de 700 ms sigue pendiente tras el flush, con el mismo valor; para pisar, la inserción en el banco tendría que
+    llegar antes de 700 ms del último tecleo (improbable a mano).
+  - **Severidad:** P3 POR LECTURA, frontera de A(1): si se mide que el blur pisa la ilustración, sube a P2. Pendientes en vivo.
+  - **Arreglo propuesto (sin escribir):** el blur salta lo que `syncedNotesRef` ya tiene; el flush de los botones cancela el
+    debounce. Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-649` (S190, revisión de la ola 1, la Mesa / `R9-478` — P3) — 🐛 con un `params.version` desconocido, la cabecera de
+  la Mesa sale en inglés.** SOSPECHA del revisor, por lectura.
+  - `0a8fbfd9` toma la lengua de `christLangForVersion` (`prep/index.tsx:557`), que cae en `en`; para nombres de libros,
+    `christConnections.ts:348-362` pide `bookLangForVersion`. `study.tsx:409` reenvía su parámetro tal cual. Antes seguía a
+    `selectedVersion`, siempre conocida. En ese caso el texto del pasaje probablemente también falla.
+  - **Severidad:** P3; triaje B salvo que se mida un camino real con un id desconocido.
+  - **Arreglo propuesto (sin escribir):** `bookLangForVersion`. Detalle: `detail/S190-ola1.md` §5.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -16808,6 +16904,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   OOM, cierre de pestaña). Detalle: `detail/A9-mesa-persistencia.md`.
   **❌ Corrección de la sesión 22: el remedio que sugiere la entrada NO cierra el bug en el teléfono** (medido). `flushOnExit` de `use-debounce` 10.1.1 hace dos cosas: un `flush()` al desmontar, que la Mesa ya hace a mano, y un listener de `document.visibilitychange`. **En React Native no hay `document`**, así que ese listener nunca se engancha; la sonda da `{"hadDocument":false,"appStateListenersRegisteredByHook":0}`. Solo arregla la mitad web. En nativo hace falta un listener de `AppState` → `'background'` que llame a `flush()`. Además, «púlpito, ilustraciones… todos persisten» es cierto, pero esos dos caminos conservan las trampas de `R9-47`: ver `R9-143`.
   **Sesión 137 (`C1a`, medido en el emulador): la ventana no es de 700 ms.** Con la app en segundo plano el debounce no corre: a los 5 s y a los 30 s el texto no estaba en RKStorage, y se guardó al volver al primer plano (`_scratch/S137-sondas-agente-1/S137-a1-f3c-*`, `S137-a1-f3d-*`). Si el proceso muere en segundo plano se pierde lo tecleado desde la última pausa de 700 ms antes de salir, por mucho tiempo que haya pasado. La severidad se sostiene; el remedio es el de la sesión 22. Detalle: `detail/C1a-mesa-persistencia.md`.
+  - **✅ ARREGLADO en la sesión 190** (`b442a231`, rama `fix/s190-ola1`): un listener de `AppState` llama a `debouncedSaveNote.flush()` al pasar a `background` o `inactive` (en web, la pestaña oculta). Prueba: `__tests__/prepTableScreenBackgroundFlush.test.tsx`: revert por pieza, 3 rojas. Que el proceso muera de verdad: pendientes en vivo. Detalle: `detail/S190-ola1.md` §3.
 - **`R9-59` (A9, privacidad local) — 🐛 `@prep_notes` no se limpia al cerrar sesión ni al
   cambiar de cuenta: en un teléfono compartido, el sermón sin terminar del predicador anterior
   queda a la vista del siguiente.** Severidad **baja**. No existe ningún
