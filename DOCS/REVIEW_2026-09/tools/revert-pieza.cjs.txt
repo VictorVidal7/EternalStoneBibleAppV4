@@ -4,7 +4,9 @@
 // - Las piezas: los archivos de producción que cambió <sha> (todo lo que no es prueba ni DOCS), o los de --solo.
 // - Las pruebas: las que se nombran, o las que cambió <sha> (`__tests__/` o `*.test.*`).
 // - Saca del árbol SOLO el diff de <sha> en las piezas (`git apply -R`, no el archivo entero del padre: lo que
-//   llegó después se queda), corre jest esperando ROJO, restaura con `git checkout --` y exige `git diff` vacío.
+//   llegó después se queda), corre jest esperando ROJO, restaura con el mismo parche hacia adelante y exige
+//   `git diff` vacío. Si el revert no aplica sobre HEAD (otro commit apilado tocó la pieza después) y el árbol
+//   está limpio, va al sha (`checkout --detach`), corre ahí la prueba de ese commit y vuelve a la rama.
 // Sale 0 solo si: el revert aplicó, jest cayó, y el árbol quedó como estaba. Con la prueba verde sin el arreglo, 1.
 'use strict';
 const { execFileSync, spawnSync } = require('child_process');
@@ -53,10 +55,16 @@ console.log('pruebas: ' + pruebas.join(', '));
 const patch = path.join(os.tmpdir(), `revert-pieza-${full.slice(0, 8)}-${process.pid}.patch`);
 fs.writeFileSync(patch, git(['diff', '--binary', '--no-renames', full + '^', full, '--', ...piezas]));
 
+let volver = null;
 function restaurar() {
-  // Lo que el revert borró (un archivo nuevo del commit) vuelve con checkout; lo que creó no puede existir.
-  spawnSync('git', ['checkout', '--', ...piezas], { stdio: 'inherit' });
+  // El mismo parche hacia adelante: también devuelve un archivo que el commit creó o borró.
+  const fw = spawnSync('git', ['apply', patch], { encoding: 'utf8' });
+  if (fw.status !== 0) console.error('el parche hacia adelante no aplicó:\n' + fw.stderr);
   const resto = git(['status', '--porcelain', '--', ...piezas]).trim();
+  if (volver && !resto) {
+    git(['checkout', '-q', volver]);
+    console.log('de vuelta en ' + volver);
+  }
   try {
     fs.unlinkSync(patch);
   } catch {}
@@ -65,8 +73,24 @@ function restaurar() {
 
 const chk = spawnSync('git', ['apply', '-R', '--check', patch], { encoding: 'utf8' });
 if (chk.status !== 0) {
-  fs.unlinkSync(patch);
-  fail('el revert no aplica sobre HEAD (lo que llegó después pisa la pieza):\n' + chk.stderr);
+  const todo = git(['status', '--porcelain', '--untracked-files=no']).trim();
+  if (todo) {
+    fs.unlinkSync(patch);
+    fail('el revert no aplica sobre HEAD y el árbol tiene cambios: no se puede ir al sha.\n' + chk.stderr);
+  }
+  try {
+    volver = git(['symbolic-ref', '-q', '--short', 'HEAD'], { stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+  } catch {
+    volver = git(['rev-parse', 'HEAD']).trim();
+  }
+  console.log('el revert no aplica sobre HEAD (un commit posterior tocó la pieza): se corre en el sha');
+  git(['checkout', '-q', '--detach', full]);
+  const chk2 = spawnSync('git', ['apply', '-R', '--check', patch], { encoding: 'utf8' });
+  if (chk2.status !== 0) {
+    git(['checkout', '-q', volver]);
+    fs.unlinkSync(patch);
+    fail('el revert no aplica ni en el sha:\n' + chk2.stderr);
+  }
 }
 git(['apply', '-R', patch]);
 console.log('revert aplicado; jest con --maxWorkers=' + workers + ' …');
