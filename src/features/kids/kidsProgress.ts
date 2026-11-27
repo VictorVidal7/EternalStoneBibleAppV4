@@ -63,10 +63,15 @@ function isValidProfile(value: unknown): value is KidsProfileProgress {
   );
 }
 
-async function readState(): Promise<KidsProgressState> {
+/**
+ * Reads the stored state. Rejects when the storage read itself fails
+ * (R9-601), so a writer never mistakes "could not read" for "nothing saved".
+ * A corrupt value still reads as empty: there is nothing to preserve in it.
+ */
+async function readStateStrict(): Promise<KidsProgressState> {
+  const raw = await AsyncStorage.getItem(STORAGE_KEY);
+  if (!raw) return {};
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (!raw) return {};
     const parsed: unknown = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return {};
     const state: KidsProgressState = {};
@@ -85,6 +90,27 @@ async function readState(): Promise<KidsProgressState> {
     return state;
   } catch {
     return {};
+  }
+}
+
+/** Display read: a failed storage read shows as empty. */
+async function readState(): Promise<KidsProgressState> {
+  try {
+    return await readStateStrict();
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * Write-path read: null when the storage read failed, so the writer skips the
+ * write instead of replacing what is saved with only its own change.
+ */
+async function readStateForWrite(): Promise<KidsProgressState | null> {
+  try {
+    return await readStateStrict();
+  } catch {
+    return null;
   }
 }
 
@@ -110,7 +136,8 @@ export async function markKidsSceneSeen(
   sceneIndex: number,
   profileId: string = DEFAULT_KIDS_PROFILE,
 ): Promise<KidsProfileProgress> {
-  const state = await readState();
+  const state = await readStateForWrite();
+  if (!state) return emptyProfile(); // unreadable: do not overwrite (R9-601)
   const profile = state[profileId] ?? emptyProfile();
   const current = profile.scenesSeen[storyId] ?? -1;
   const next: KidsProfileProgress = {
@@ -131,7 +158,8 @@ export async function recordKidsQuizScore(
   correct: number,
   profileId: string = DEFAULT_KIDS_PROFILE,
 ): Promise<KidsProfileProgress> {
-  const state = await readState();
+  const state = await readStateForWrite();
+  if (!state) return emptyProfile(); // unreadable: do not overwrite (R9-601)
   const profile = state[profileId] ?? emptyProfile();
   const best = Math.max(profile.quizBest[storyId] ?? 0, correct);
   const next: KidsProfileProgress = {
@@ -153,7 +181,8 @@ export async function markKidsStoryCompleted(
   storyId: string,
   profileId: string = DEFAULT_KIDS_PROFILE,
 ): Promise<KidsProfileProgress> {
-  const state = await readState();
+  const state = await readStateForWrite();
+  if (!state) return emptyProfile(); // unreadable: do not overwrite (R9-601)
   const profile = state[profileId] ?? emptyProfile();
   const alreadyDone = profile.storiesCompleted.includes(storyId);
   const next: KidsProfileProgress = {
