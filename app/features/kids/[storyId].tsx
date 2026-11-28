@@ -19,7 +19,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useEffect, useMemo, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -111,7 +111,11 @@ export default function KidsStoryScreen() {
     void markKidsSceneSeen(storyId, sceneIndex);
   }, [storyId, sceneIndex]);
 
+  // R9-493 — the verse lookup of a scene can land after «Siguiente»: each
+  // lookup has its run id, and changing scene disowns the one in flight.
+  const verseRunRef = useRef(0);
   useEffect(() => {
+    verseRunRef.current++;
     setShowVerse(false);
     setVerseText(undefined);
   }, [sceneIndex, storyId]);
@@ -200,14 +204,18 @@ export default function KidsStoryScreen() {
       setVerseText(null);
       return;
     }
+    const runId = ++verseRunRef.current;
+    const isStale = () => verseRunRef.current !== runId;
     void (async () => {
       try {
         await bibleDB.initialize();
         const row = await bibleDB
           .getVerse(book.id, parsed.chapter, parsed.verse, selectedVersion.id)
           .catch(() => null);
+        if (isStale()) return;
         setVerseText(row?.text ?? null);
       } catch {
+        if (isStale()) return;
         setVerseText(null);
       }
     })();

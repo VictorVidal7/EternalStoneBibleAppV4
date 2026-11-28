@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   Modal,
   View,
@@ -104,16 +104,29 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   const [updateAvailable, setUpdateAvailable] = useState(false);
   const [guideVisible, setGuideVisible] = useState(false);
 
+  // R9-435 — the sheet stays mounted while closed, so a read (or the reload at
+  // the end of a download) can land after the verse changed. Each read has its
+  // run id and drops a late answer, like the Mesa's (R9-476).
+  const loadRunRef = useRef(0);
   const loadWords = useCallback(async () => {
+    const runId = ++loadRunRef.current;
     if (sourceVerse == null) return;
     const rows = await getVerseOriginal(sourceBook, sourceChapter, sourceVerse);
+    if (loadRunRef.current !== runId) return;
     setWords(rows);
     setStatus(rows.length > 0 ? 'ready' : 'empty');
   }, [sourceBook, sourceChapter, sourceVerse]);
+  // R9-435 — the download's reload reads the verse on screen when it ENDS,
+  // not the one of the render where «Descargar» was tapped.
+  const loadWordsRef = useRef(loadWords);
+  loadWordsRef.current = loadWords;
 
   useEffect(() => {
     let cancelled = false;
     if (!visible || sourceVerse == null) return;
+    // R9-435 — a read for the previous verse still in flight is disowned now,
+    // not only when this verse's own read starts (after the install check).
+    loadRunRef.current++;
     setExpanded(null);
     setLex(null);
     setStatus('loading');
@@ -156,13 +169,13 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
     try {
       await downloadAndImportOriginals(setProgress);
       setUpdateAvailable(false);
-      await loadWords();
+      await loadWordsRef.current();
     } catch {
       setStatus('error');
     } finally {
       setDownloading(false);
     }
-  }, [loadWords]);
+  }, []);
 
   const handleWordPress = useCallback(
     async (word: OriginalWord) => {

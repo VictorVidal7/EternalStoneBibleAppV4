@@ -262,17 +262,37 @@ function cleanHebrew(w) {
  *  text every version here actually translates. They reuse the verse's own
  *  1-based position numbering, so importing them both fabricates text that
  *  isn't in the verse AND collides key-for-key with the real word at that
- *  position (e.g. Deu.30.16, Jdg.16.14, 2Sa.23.33, 2Ki.25.3). Skip them. */
+ *  position (e.g. Deu.30.16, Jdg.16.14, 2Sa.23.33, 2Ki.25.3). Skip them.
+ *  TAGNT marks the ENGLISH versification, where it differs from the Greek
+ *  edition's, with a `[ch.v]` right after the Greek reference (R9-477):
+ *  "2Co.13.13[13.14]#01" (the benediction, 2 Co 13:14 in English),
+ *  "Php.1.16[1.17]#01" (Phil 1:16-17 come in the opposite order). Here the
+ *  number IN the brackets is ours (bible-seed.db follows the English
+ *  numbering, like RVR1960/KJV/WEB), so the row is filed under it; a fragment
+ *  that lands on a verse that already has rows is renumbered onto its end by
+ *  main(), as in case 2 above. These rows used to fail the regex and vanish
+ *  (235 Greek words, 38 groups). So that no other unknown annotation can be
+ *  dropped silently again, a line shaped like a word row (a reference and a
+ *  `#NN=` in its first field) that the row regex does not match is counted,
+ *  and the file aborts the build once read. */
 function* parseStep(text, lang) {
   const lines = text.split(/\r?\n/);
   const rowRe =
-    /^([A-Za-z0-9]{2,4})\.(\d+)\.(\d+)(?:[{(][^)}]*[)}])?#(\d+)=([A-Za-z()]+)/;
+    /^([A-Za-z0-9]{2,4})\.(\d+)\.(\d+)(?:\[(\d+)\.(\d+)\])?(?:[{(][^)}]*[)}])?#(\d+)=([A-Za-z()]+)/;
+  const wordRowShape = /^[A-Za-z0-9]{2,4}\.\d+\.\d+[^\t]*#\d+=/;
+  const unparsed = [];
   for (const line of lines) {
     const m = rowRe.exec(line);
-    if (!m) continue;
-    if (lang === 'H' && m[5] === 'X') continue;
+    if (!m) {
+      if (wordRowShape.test(line)) unparsed.push(line.split('\t')[0]);
+      continue;
+    }
+    if (lang === 'H' && m[7] === 'X') continue;
     const c = line.split('\t');
-    const [, code, chStr, vStr, posStr] = m;
+    const [, code, mainCh, mainV, engCh, engV, posStr] = m;
+    // R9-477 — the English reference, when given, is our verse.
+    const chStr = engCh ?? mainCh;
+    const vStr = engV ?? mainV;
     const bookId = STEP_BOOK_TO_ID[code];
     if (bookId === undefined) {
       throw new Error(`Unknown STEPBible book code "${code}" in "${c[0]}"`);
@@ -313,6 +333,13 @@ function* parseStep(text, lang) {
       strongs: primaryStrongs(strongsCell),
       grammar: grammarCell || null,
     };
+  }
+  if (unparsed.length > 0) {
+    throw new Error(
+      `${unparsed.length} word rows with an unknown reference format ` +
+        `(e.g. ${unparsed.slice(0, 5).join(', ')}) — teach parseStep the ` +
+        'format instead of dropping them',
+    );
   }
 }
 
@@ -454,4 +481,7 @@ function main() {
   console.log(`   ${OUT}  ${bytes} B (${(bytes / 1048576).toFixed(2)} MB)`);
 }
 
-main();
+// Run as a script; required (by its test), it only exposes the parser.
+if (require.main === module) main();
+
+module.exports = {parseStep};
