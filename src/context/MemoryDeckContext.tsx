@@ -54,8 +54,36 @@ import {
   subscribeBackupRestoring,
 } from '../lib/backup/restoreSignal';
 import {useSyncEngineOptional} from './SyncEngineContext';
+import {canonicalBookName} from '../constants/bible';
 
 const STORAGE_KEY = '@memory_deck';
+
+// R9-475 / R9-496 — the verse a key names, whatever language its book name is
+// in: "Génesis/3/15" and "Genesis/3/15" are one verse. A card is added under
+// the canonical (English) name, as every other caller does; the cards saved
+// under a Spanish name stay under it (the key is the Firestore doc id, so
+// renaming one would delete a doc in the cloud), and are found by identity.
+const identityCache = new Map<string, string>();
+function verseIdentity(key: string): string {
+  let id = identityCache.get(key);
+  if (id === undefined) {
+    const v = key.lastIndexOf('/');
+    const c = v > 0 ? key.lastIndexOf('/', v - 1) : -1;
+    id = c > 0 ? canonicalBookName(key.slice(0, c)) + key.slice(c) : key;
+    identityCache.set(key, id);
+  }
+  return id;
+}
+
+/** The key `deck` holds the verse `key` names under: itself first. */
+function storedKey(
+  deck: Record<string, MemoryCard>,
+  key: string,
+): string | undefined {
+  if (deck[key]) return key;
+  const id = verseIdentity(key);
+  return Object.keys(deck).find(k => verseIdentity(k) === id);
+}
 
 interface AddCardInput {
   bookName: string;
@@ -242,9 +270,10 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
                   };
                 }
               }
-              missing = missing.filter(k => !clean[k]);
+              // R9-475 — the disk may hold the verse under its Spanish name.
+              missing = missing.filter(k => !storedKey(clean, k));
               for (const [k, v] of unsaved.current ?? []) {
-                if (ifAbsent.current.has(k) && clean[k]) continue;
+                if (ifAbsent.current.has(k) && storedKey(clean, k)) continue;
                 if (v) clean[k] = v;
                 else delete clean[k];
               }
@@ -466,12 +495,15 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
 
   const addCard = useCallback(
     (input: AddCardInput) => {
-      const key = buildVerseKey(input.bookName, input.chapter, input.verse);
-      if (deckRef.current[key]) return; // already in deck — no-op
+      // R9-475 — under the canonical name, and a no-op if the verse is there
+      // under any name.
+      const bookName = canonicalBookName(input.bookName);
+      const key = buildVerseKey(bookName, input.chapter, input.verse);
+      if (storedKey(deckRef.current, key)) return; // already in deck — no-op
       const now = new Date().toISOString();
       const card = createCard({
         verseKey: key,
-        bookName: input.bookName,
+        bookName,
         chapter: input.chapter,
         verse: input.verse,
         text: input.text,
@@ -495,9 +527,11 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   );
 
   const removeCard = useCallback(
-    (verseKey: string) => {
+    (key: string) => {
+      // R9-475 — the card the verse is saved under, whatever its book name.
+      const verseKey = storedKey(deckRef.current, key);
+      if (!verseKey) return;
       const existing = deckRef.current[verseKey];
-      if (!existing) return;
       // R9-279 — removing a card added if absent takes the add back: nothing
       // went to the cloud, and the read that lets the edits go decides what
       // the disk had. Only while a backup writes can an earlier read have
@@ -517,9 +551,11 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
   );
 
   const reviewCard = useCallback(
-    (verseKey: string, grade: ReviewGrade) => {
+    (key: string, grade: ReviewGrade) => {
+      // R9-475 — the card the verse is saved under, whatever its book name.
+      const verseKey = storedKey(deckRef.current, key);
+      if (!verseKey) return;
       const existing = deckRef.current[verseKey];
-      if (!existing) return;
       const now = new Date();
       const updated = applyReview(existing, grade, now);
       // R9-279 — a card added if absent stays so: if the disk has it, its
@@ -579,9 +615,17 @@ export const MemoryDeckProvider: React.FC<MemoryDeckProviderProps> = ({
     [cards, dueCards.length],
   );
 
-  const hasCard = useCallback(
-    (verseKey: string) => Boolean(deck[verseKey]),
+  // R9-475 — the verses in the deck, by identity: a screen asks with the book
+  // name of its version ("Génesis/3/15"), and the card may be saved under the
+  // other one.
+  const identities = useMemo(
+    () => new Set(Object.keys(deck).map(verseIdentity)),
     [deck],
+  );
+  const hasCard = useCallback(
+    (verseKey: string) =>
+      Boolean(deck[verseKey]) || identities.has(verseIdentity(verseKey)),
+    [deck, identities],
   );
 
   const value = useMemo<MemoryDeckContextValue>(
