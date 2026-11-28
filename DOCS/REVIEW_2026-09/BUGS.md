@@ -4166,6 +4166,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     `{"note":"nota vieja","tags":["Evangelio"]}`. En `HEAD` la misma sonda pasa: el código
     está bien, y lo que falta es la prueba.
   - Triaje 185: lote D, A(1) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`a66ec6bc`, rama `fix/s191-ola2`): solo prueba. Dos ediciones seguidas de un favorito existente (`__tests__/favoritesUpdateQueuesSync.test.tsx`). Con el arreglo a medias (el ref y el SQLite de respaldo) da `note:'nota vieja'`; el orquestador la mutó otra vez. Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-156` (S23, docs y comentarios de la 20 — P3, agrupado).** Medidos contra el código, git y
   el mundo (agente 3; 25 de 30 afirmaciones son ciertas):
@@ -4233,6 +4234,7 @@ AbortSignal.timeout` sobre `src/` da **cero resultados** en los **6** call sites
     otra recibe las filas: `'2'` y 1 subida (antes de la 155, `skip` y 0). Pide dos fallos juntos, y las filas ya
     eran de quien eligió migrar: el daño es este fallo abierto. `detail/S157-revision-155-156.md` §5.
   - **Sesión 189 (decidido por delegación de Victor, 2026-11-26: «De acuerdo a las 6 … qué advisor decida»; Victor puede cambiarlo): fallar cerrado (preguntar)**, junto con el fallo de ESCRITURA de `claimLocalStore`. Por qué: abierto sube las notas de Ana a Beto (medido en la 25); preguntar de más cuesta un diálogo. Pasa a P2 real, carril 9 (el mismo archivo que `R9-26`, la forma de `R9-134`). La matriz: una lectura que sigue fallando, y la pregunta no puede repetirse en bucle ni bloquear el inicio de sesión.
+  - **✅ ARREGLADO EN PARTE en la sesión 191** (`76d677df`, rama `fix/s191-ola2`): un marcador ilegible, o un reclamo que no llegó al disco en este proceso, es dueño desconocido: se pregunta. Prueba: «R9-158» de `__tests__/AuthContextLinkPromptColdStart.test.tsx` (5 y un control): revert por pieza, 7 rojas. Sigue ABIERTO, P2 (A(1), aunque raro), para el carril 14 o 15 de la 192: (1) el reclamo fallido vive en memoria; si AsyncStorage falla al ESCRIBIR, cerrar sesión y cerrar la app bastan para que el proceso siguiente no pregunte y suban las 12 notas a la otra cuenta (MEDIDO por el agente y por el revisor E): falta una señal en disco; (2) el dueño legítimo con la marca ilegible: «Solo iniciar sesión» o el atrás dejan `skip` para siempre y sus notas de invitado no suben, sin aviso, con un texto que habla de una cuenta «ya registrada» (MEDIDO, revisor E): pide un texto propio; (3) `declinesPreviousOwnersData` devuelve `undefined` (no pregunta) si no hay motor o si la comprobación lanza (por lectura; hoy `exportLocalData` no lanza). La red del borrado de `R9-127` quedó sin puerta de producción, sin perder protección (revisor E). Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-159` (S24, arnés de pruebas — P3) — 🐛 en unas 41 suites el mock de `useRouter` devuelve un
   objeto nuevo en cada render, así que ninguna ve una dependencia faltante de `useCallback` sobre
@@ -12211,6 +12213,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     esta hoja (su emulador no tenía ofertas).
   - **Propuesta (sin escribir):** el contenido dentro de un `ScrollView` con `maxHeight` (los niveles y el
     enlace al alcance), y medir también con letra grande.
+  - **✅ ARREGLADO en la sesión 191** (`45fa88c2`, rama `fix/s191-ola2`): la hoja tiene `maxHeight` 90 % y un `ScrollView`; montos, leyendas y «Restaurar» quedan fuera del scroll. Prueba: bloque R9-418 de `__tests__/OfferingSheet.test.tsx`: revert por pieza, rojo. **Sin medir con letra grande:** la parte fija sola puede pasar el 90 %. No se publica sin mirar la hoja en el emulador (`detail/PENDIENTES-EN-VIVO.md`). Detalle: `detail/S191-ola2.md` §5.
 
 - **`R9-419` (S115, `C39` / Play Console, fuera del repo — P3) — 🐛 los productos de donación llevan un precio
   en DÓLARES en el título: el diálogo de Play muestra «Donación $1.99» junto a «MX$34.00», y en México «$» es
@@ -12285,6 +12288,7 @@ convert null value to object` (`ReadingPlanProgressContext.tsx:212`) y sale «Al
     motor = RVR1960 | pantalla = WEB».
   - **Propuesta (sin escribir):** comparar contra `audioState.contentVersionId` en vez de recordar la última
     clave. Detalle: `detail/A13-lector-capitulo.md`.
+  - **✅ ARREGLADO en la sesión 191** (`b21e604d`, rama `fix/s191-ola2`): el seguro del re-sync se suelta cuando el motor reporta la versión en pantalla, sin tocar el contexto de audio. Prueba: `__tests__/readerAudioResyncLatch.test.tsx`: revert por pieza, rojo. El revisor A: sin bucle (por lectura); soltar el seguro SIEMPRE deja la prueba verde porque el motor falso aterriza al instante (hueco de prueba, no fallo). En vivo: el segundo cambio de versión con audio. Detalle: `detail/S191-ola2.md` §2.
 
 - **`R9-426` (S116, `A15` / continuaciones programadas del audio / `R9-425` — P2) — 🐛 lo que se pausa o se
   cierra en el hueco entre dos versículos (50 ms) o dos capítulos (~150 ms) vuelve a sonar.** MEDIDO con sonda
@@ -12302,6 +12306,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     `textos=["Juan 3:1","Juan 4:1"]` con `visible=false`.
   - **Propuesta (sin escribir):** un contador de generación que cada continuación compruebe al ejecutarse.
     Detalle: `detail/A15-audio-tts.md`.
+  - **✅ ARREGLADO en la sesión 191** (`54add44f`, rama `fix/s191-ola2`): un `playbackRunRef` descarta las continuaciones programadas; el avanzador no carga ni reproduce si el usuario intervino (oculto, pausado o sonando). Prueba: `__tests__/audioScheduledContinuations.test.tsx` (12): revert por pieza, rojo; el revisor D, 19 de 20 con un motor fiel. Lo que queda: el segundo plano en el hueco entre capítulos (`R9-654`), la regresión del re-sync (`R9-656`) y las pruebas que faltan (`R9-660`). Detalle: `detail/S191-ola2.md` §8.
 
 - **`R9-428` (S117, `A16` / búsqueda — P3) — 🐛 con una versión en español, la búsqueda sugerida «fe» no busca
   nada.** MEDIDO con sonda en la sesión 117.
@@ -12352,6 +12357,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - Triaje 185: recibe `R9-521` (familia de esta): los datos ya abiertos no siguen a la versión. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
   - Triaje 185: recibe `R9-525` (familia de esta): con la versión cambiada con la pantalla abierta, el detalle de un tema o de un sentimiento sigue en la versión vieja, y «Escuchar» lee ese texto con la voz de la versión nueva. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
   - **✅ ARREGLADO EN PARTE en la sesión 190** (`7a39e815`, rama `fix/s190-ola1`): la búsqueda se rehace en la versión nueva, en modo silencioso (sin logros ni historial), y descarta respuestas viejas de buscar y de «Cargar más». Prueba: `__tests__/searchVersionChange.test.tsx`: revert por pieza, 5 rojas. De la familia, `R9-478` queda cubierto (`0a8fbfd9`). Sigue ABIERTO por la familia: `R9-486` (`journeys/[routeId].tsx`), `R9-521` (`facts/index.tsx`) y `R9-525` (`themes/[theme].tsx`, `feelings/[feeling].tsx`, `daily-light/index.tsx`). Recomendado: terminarla en la ola 2 (carril 3b); la pregunta, en la §8. Detalle: `detail/S190-ola1.md` §3.
+  - **✅ ARREGLADO en la sesión 191** (`d77dc6b9`, `5f4608a3` y `5151058f`, rama `fix/s191-ola2`): la familia que faltaba (`R9-486`, `R9-521`, `R9-525`). Con la búsqueda (`7a39e815`) y la cabecera (`0a8fbfd9`) de la 190, cierra. Detalle: `detail/S191-ola2.md` §1.
 
 - **`R9-431` (S117, `A16` / búsqueda — P3) — 🐛 el resaltado de los resultados no sigue lo que encontró la
   búsqueda: con un apóstrofo en inglés no resalta nada, y con `OR` resalta «or» dentro de otras palabras.**
@@ -12438,6 +12444,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
   - **Propuesta (sin escribir):** recargar al terminar las palabras del versículo actual (un `ref` al último
     `loadWords`). Detalle: `detail/A18-word-study.md`.
   - Triaje 185: recibe `R9-493` (familia de esta): el versículo de una escena aparece debajo de la siguiente. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - **✅ ARREGLADO en la sesión 191** (`8bebe018`, y `b5e8a6b5`, rama `fix/s191-ola2`): la hoja carga las palabras con un contador de corrida, y la descarga llama al `loadWords` actual por un ref. Con él, `R9-493` (Niños, `59f71651` y `956eeadc`). Pruebas: `OriginalLanguagesSheetStaleWords.test.tsx` y `kidsStoryVerseStale.test.tsx`: revert por pieza, rojo; el revisor D: reabrir sobre el mismo versículo termina con las palabras. Detalle: `detail/S191-ola2.md` §8.
 
 - **`R9-436` (S118, `A18` / estudio de palabra — P2) — 🐛 desde Datos bíblicos, el estudio de palabra muestra
   los fragmentos en RVR1960 aunque la interfaz esté en inglés.** MEDIDO con sonda en la sesión 118.
@@ -12465,6 +12472,7 @@ speakVerseByIndex(index + 1), 50)` no mira al ejecutarse si se pausó; `speakVer
     primer toque: `{"corazon":"quitar","esFavorito":true}`.
   - **Propuesta (sin escribir):** pasar a la tarjeta si es favorito y un `onFavorite` que alterne, como el
     lector. Detalle: `detail/A19-home.md`.
+  - **✅ ARREGLADO en la sesión 191** (`ca591b62`, rama `fix/s191-ola2`): la tarjeta recibe `isFavorite` y el corazón alterna con `removeFavorite`, con guarda de doble toque. Prueba: `__tests__/homeVerseOfDayFavoriteToggle.test.tsx`: revert por pieza, rojo. Quitar no avisa (el lector sí): `R9-658`. Detalle: `detail/S191-ola2.md` §7.
 
 - **`R9-438` (S119, `A19` / Home — P3) — 🐛 al volver a Home, «Continuar leyendo» muestra el progreso del
   capítulo de cuando se montó la pantalla.** MEDIDO con sonda en la sesión 119.
@@ -12715,6 +12723,7 @@ achievementService, servicesInitialized]))`. En cada foco corre el `loadHomeData
   - **Propuesta (sin escribir):** una sombra o un velo bajo la fila, o fijar también el último color. Detalle:
     `detail/A25-theming.md`.
   - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`85b8840f`, rama `fix/s191-ola2`): la fila va sobre un velo de la tinta oscura del tema al 40 %, y la tinta sigue el criterio de `ff35c71b`. Prueba: `__tests__/homeHeroStatsContrast.test.tsx` (129 paletas): revert por pieza, rojo. En vivo: el velo en seis temas de mañana, uno oscuro de noche y alto contraste. Detalle: `detail/S191-ola2.md` §7.
 
 - **`R9-457` (S123, `A26` / navegación, enlaces compartidos — P2) — 🐛 un enlace compartido abierto en frío deja
   su pantalla sin nada debajo: la flecha no hace nada y el atrás del sistema cierra la app.** MEDIDO con sonda en
@@ -12944,6 +12953,7 @@ ConflictRecord['localVersion']` (`:226`) se lo entrega al motor como la entidad,
     `out` y `target`. `detail/A11` había dado `progressKeys.ts` por defensivo sin mirar `__proto__`. Detalle:
     `detail/A30-seguridad-tipos.md`.
   - Triaje 185: lote D, A(3) (frontera con sonda hecha y propuesta: el prototipo contaminado; «con otra raíz», no es C). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`67909f27`, rama `fix/s191-ola2`): una clave heredada (`__proto__`, `constructor`, `toString`…) no es un libro ni un capítulo: se salta. Prueba: `__tests__/backupProgressProtoKey.test.ts`: revert por pieza, rojo. El revisor A: 245 nombres de libro por 150 capítulos, ninguno se salta. Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-471` (S125, `A30` / rutas, Widgets — P3) — 🐛 tocar el versículo en la vista previa de Widgets abre el
   capítulo arriba, no en el versículo.** MEDIDO con sonda en la 125 (agente 3, re-medido igual en el principal).
@@ -13021,6 +13031,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
   - Triaje 185: lote D, A(1) (recibe R9-482: la ilustración insertada dos veces en la Mesa). Sigue abierto; el commit, con su revert por pieza.
   - Triaje 185: recibe `R9-482` (familia de esta): dos toques en una ilustración en modo insertar cierran también la Mesa, y si el segundo cae tras la escritura del primero, la ilustración entra dos veces. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
   - **✅ ARREGLADO EN PARTE en la sesión 190** (`5bb1698e`, y `08117d6c`, rama `fix/s190-ola1`): un `navigatingRef` deja una sola navegación a la vez en «Modo púlpito» y en el banco; se libera si falla el flush o la lectura de la versión, y al volver el foco. Prueba: bloque R9-474 de `__tests__/prepTableScreenNavigation.test.tsx`: revert por pieza, rojo. Sigue ABIERTO por `R9-482` (familia): pide la misma guarda en `app/features/prep/illustrations/index.tsx` (`handleInsert`). Detalle: `detail/S190-ola1.md` §3.
+  - **✅ ARREGLADO en la sesión 191** (`8f96cf80`, rama `fix/s191-ola2`): la familia que faltaba (`R9-482`, la inserción en el banco). Con `5bb1698e` y `08117d6c` de la 190, cierra. Detalle: `detail/S191-ola2.md` §1.
 
 - **`R9-475` (S126, `A33` / Profecías, mazo — P2) — 🐛 con una versión en español, «Memorizar» en el Hilo
   profético crea una segunda carta del mismo versículo, y no reconoce la que ya estaba.** MEDIDO con sonda en la
@@ -13043,6 +13054,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
   - **Propuesta (sin escribir):** `canonicalBookName(info.display)` en la clave y en `addCard`, como `6b2c5ca2`,
     más una migración que fusione las cartas ya guardadas con el nombre en español. Sin medir, para `A36`:
     `lectio.tsx:101-105` y `:233-239` hacen lo mismo con `bookDisplay`. Detalle: `detail/A33-profecias.md`.
+  - **✅ ARREGLADO en la sesión 191** (`8cc87383`, rama `fix/s191-ola2`, con `R9-496`): `MemoryDeckContext` busca por la identidad del versículo (libro canónico, capítulo y versículo); `addCard` guarda con `canonicalBookName` y no duplica. Prueba: `__tests__/memoryDeckVerseIdentity.test.tsx`: revert por pieza, rojo. Las cartas viejas en español no se renombran (su clave es el id del documento). Un par ya duplicado: `R9-659`. Detalle: `detail/S191-ola2.md` §7.
 
 - **`R9-476` (S127, `A32` / Mesa, originales — P2) — 🐛 si se mueve el rango o se cambia de pasaje mientras se
   descarga el pack de originales, al terminar «Palabras clave» muestra las del pasaje de cuando se tocó
@@ -13088,6 +13100,7 @@ web`). `detail/A6`:313-318 lo vio y lo dejó «no es un hallazgo» sin medir el 
     que siguen RVR1960 y WEB) con el renumerado de `24d1cfd9`; un contador de filas descartadas que haga fallar el
     build; reconstruir y republicar el pack (y su `sha256`). Ojo con `R9-483`: republicar deja viejos todos los
     packs instalados. Detalle: `detail/A32-mesa-altitud.md`.
+  - **✅ ARREGLADO EN PARTE en la sesión 191** (`dedf6dd5`, rama `fix/s191-ola2`): `[ch.v]` en el regex: la fila va a la referencia inglesa del corchete, y una fila que el regex no entiende aborta el build. Prueba: `__tests__/buildOriginalsPackParseStep.test.js`: revert por pieza, rojo. Sigue ABIERTO: no se corrió contra la fuente real. La regla del corchete queda aceptada, acotada al griego (§7). La 192 (carril 17) la acota a `lang === 'G'`, corrige el comentario de `:235-238` (revisor D, hallazgo 3), reconstruye el pack y MIDE: sin aborto, `total` 235 más alto y ninguna clave duplicada. Republicarlo en Pages va por la autorización durable de la §7, con sus condiciones (`R9-483`). Detalle: `detail/S191-ola2.md` §8.
 
 - **`R9-478` (S127, `A32` / Mesa, versión — P3) — 🐛 si la versión cambia con la Mesa abierta, la cabecera pasa a
   la versión nueva y el texto se queda en la vieja.** MEDIDO con sonda en la 127 (agente 2, re-medido igual en el
@@ -13162,6 +13175,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
 /verse/John/3 insertada x 1`, `doble espaciado -> /verse/John/3 … insertada x 2`. Control: un toque vuelve a
     `/features/prep` con la ilustración una vez.
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-474` (familia de): «Familia de `R9-474` (el tercero, tras el púlpito y el botón del banco de `A26`)». Su arreglo tiene que cubrirlo.
+  - Sesión 191: cubierto por `8f96cf80` (rama `fix/s191-ola2`): `insertingRef` deja una inserción a la vez. Prueba: `__tests__/prepIllustrationsInsertDoubleTap.test.tsx`.
 
 - **`R9-483` (S127, `A32` / Mesa, originales — P3) — 🐛 con el pack de originales de julio, los Salmos con título
   salen vacíos en la Mesa, y la Mesa no ofrece actualizar.** MEDIDO con sonda en la 127 (agente 3, re-medido
@@ -13209,6 +13223,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     (montada con WEB) `{"chip":true,"llamadas":["WEB"]}`. Que la ruta queda montada bajo el lector:
     `S127-a5-pilaLector.test.tsx.txt` (`renderRouter`), 1/1. Detalle: `detail/A34-journeys-camino.md`.
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430` (otra pantalla, otra clave: `previewText`).». Su arreglo tiene que cubrirlo.
+  - Sesión 191: cubierto por `d77dc6b9` (rama `fix/s191-ola2`): la tarjeta abierta se vuelve a pedir en la versión nueva y se descarta la respuesta vieja. Prueba: `__tests__/journeyRouteVersionChange.test.tsx`.
 
 - **`R9-487` (S127, `A34` / «Tu camino» — P3) — 🐛 en América (al oeste de UTC), «Tu camino» dice que empezaste un
   día antes.** MEDIDO con sonda en la 127 (agente 6, re-medido igual en el principal con
@@ -13290,6 +13305,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
   - **Sonda:** la de `R9-492`: `{"escena":2,"visto":"TEXTO 1:3 (escena 1)","llamadas":[[1,1,3]]}`; control
     (respuesta antes de pasar): `[[1,1,3],[1,1,6]]` y se ve el 1:6.
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-435` (familia de): «Familia de `R9-435`/`R9-476` (búsqueda sin `isStale`).». Su arreglo tiene que cubrirlo.
+  - Sesión 191: cubierto por `59f71651` y `956eeadc` (en `R9-435`, rama `fix/s191-ola2`): `toggleVerse` con contador de corrida. Prueba: `__tests__/kidsStoryVerseStale.test.tsx`.
 
 - **`R9-494` (S128, `A35` / Niños, la historia — P3) — 🐛 la pista única de «Escuchar todo» se gasta sin
   mostrarse.** MEDIDO con sonda en la 128 (agente 1, re-medido igual en el principal). Cosmético.
@@ -13326,6 +13342,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `MemoryDeckProvider` real, `{"cards":["John/3/16","Juan/3/16"]}`; control (KJV): `alreadyToast:true`, 0.
   - **Propuesta (sin escribir):** `canonicalBookName(bookDisplay)` en la clave y en `addCard`, con la migración
     que ya propone `R9-475`. Detalle: `detail/A36-oracion-lectio.md`.
+  - **✅ ARREGLADO en la sesión 191** (`8cc87383`, rama `fix/s191-ola2`, con `R9-475`): el mismo arreglo, en el contexto; lectio no se tocó. Prueba: `__tests__/memoryDeckVerseIdentity.test.tsx`: revert por pieza, rojo. Detalle: `detail/S191-ola2.md` §7.
 
 - **`R9-497` (S128, `A36` / diario de oración — P2) — 🐛 «Reabrir» borra el testimonio escrito, sin confirmación
   ni deshacer.** MEDIDO con sonda en la 128 (agente 5, re-medido igual en el principal).
@@ -13452,6 +13469,7 @@ consumido /verse/John/3 Juan 3:16 visible: false`. Control: del lector a la Mesa
     `_scratch/S129-sondas-agente-5/S129-a5-compartir.test.tsx.txt` (es, en, curado, estudio).
   - **Propuesta (sin escribir):** tomar solo `/[?#]d=([A-Za-z0-9_-]+)/` y, si no hay, buscar `EB1[- ]…` en el
     texto. Detalle: `detail/A37-planes-juntos.md`.
+  - **✅ ARREGLADO en la sesión 191** (`fe909c46`, rama `fix/s191-ola2`): del mensaje pegado se toma solo el enlace; si no decodifica, el código EB1 citado. Prueba: `__tests__/togetherJoinPastedMessage.test.tsx`: revert por pieza, rojo. El revisor B midió dos enlaces, un enlace ajeno con código y un código de otro plan: ninguno une al plan equivocado. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-507` (S129, `A37` / planes propios — P2) — 🐛 tras editar un plan propio y «Guardar cambios», el atrás
   muestra el plan VIEJO (que ya no existe) con 0 %, y un toque ahí guarda progreso huérfano.** MEDIDO con sonda en
@@ -13472,6 +13490,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
   - **Propuesta (sin escribir):** `back`/`dismissTo` en vez de `replace`, y los planes propios resueltos desde el
     contexto. El mismo `replace` en `together/index.tsx:232`, `:241` (sin medir). Familia de `R9-502`.
   - Triaje 185: recibe `R9-541` (familia de esta): el mismo enlace tocado dos veces deja dos landings idénticos en la pila, y sobra un atrás. Su arreglo tiene que cubrirlo (si el destino se acepta o espera, esto también).
+  - **✅ ARREGLADO en la sesión 191** (`4b86416d`, y `ffae7e73`, rama `fix/s191-ola2`): al guardar una edición, `router.dismissTo` reemplaza al `replace` y el atrás ya no muestra el plan viejo. Con él, `R9-541` (`42a171d8`): si debajo está el mismo landing con el mismo paquete, vuelve atrás. Pruebas: `planBuilderEditBack.test.tsx` y `togetherSameLinkTwice.test.tsx` (`renderRouter`): revert por pieza, rojo; el revisor B midió el enlace profundo y el constructor empujado desde el Home. La parte R2 no se tocó: sin la pantalla vieja debajo no queda camino vivo al plan borrado. En vivo: `dismissTo` en el aparato. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-508` (S129, `A37` / constructor y paquete — P2) — 🐛 la vista previa promete un plan y se guarda otro,
   recortado sin aviso a 400 días y 50 capítulos por día.** MEDIDO con sonda en la 129 (agentes 2 y 3 por separado,
@@ -13488,6 +13507,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     `[1a]`..`[1e]`) y `_scratch/S129-sondas-agente-3/S129-a3-codec.test.ts.txt` (8/8, `PLAN GRANDE`).
   - **Propuesta (sin escribir):** la vista previa sobre el plan ya recortado, con aviso, o «Crear» deshabilitado
     pasado el tope. Subir el tope rompe la decodificación en una app vieja (`bundle.ts:712`).
+  - **✅ ARREGLADO en la sesión 191** (`eee43785`, y `2dd056d5`, rama `fix/s191-ola2`): un solo valor de días; pasado el tope, «Crear» se bloquea con el aviso `planBuilder.tooLong` (los topes no suben: una app vieja no decodificaría). Prueba: `__tests__/planBuilderCaps.test.tsx`: revert por pieza (`--solo`, sin `translations.ts`), rojo. El revisor B: ningún plan guardado pasa el tope, y un plan viejo recortado abre y se renombra sin aviso. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-509` (S129, `A37` / constructor — P2) — 🐛 cambiar solo el nombre de un plan hecho con «Número de días» lo
   rearma con otros días, y el progreso pasa a marcar capítulos que el usuario no leyó.** MEDIDO con sonda en la 129
@@ -13501,6 +13521,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     Es otra fuente de `R9-55`, con otro daño.
   - **Sonda:** la de `R9-508`, casos `[2a]`, `[2b]` y su control:
     `dia6 antes Juan 11,Juan 12 | despues Juan 16,Juan 17,Juan 18 | dias 1-5 = 10 caps antes y 15 despues`.
+  - **✅ ARREGLADO en la sesión 191** (`20ea7a46`, rama `fix/s191-ola2`): `inferPace` en el prellenado; sin tocar ritmo ni pasajes, guarda los días originales. Prueba: `__tests__/planBuilderRenameKeepsDays.test.tsx`: revert por pieza, rojo. Cambiar ritmo o pasajes rearma el plan (§7), y el progreso sigue por número de día: `R9-653`. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-510` (S129, `A37` / constructor — P3) — 🐛 el número escrito en un stepper se ignora si se toca el botón
   sin salir antes del campo.** MEDIDO con sonda en la 129 (agente 2, re-medido igual en el principal); que el toque
@@ -13513,6 +13534,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
     se guardan 7; en el selector, Génesis → «Hasta el capítulo» 3 → «Añadir pasaje»: Génesis 1-50. Controles (con
     blur): 25 días y Génesis 1-3. **Sonda:** la de `R9-508`, casos `[3a]`, `[3b]`.
   - Triaje 185: lote D, A(1) (arreglo corto en el stepper). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`72bfea40`, rama `fix/s191-ola2`): el stepper aplica lo escrito sin esperar al blur, y un «+1» descarta el borrador viejo. Un valor bajo el mínimo espera al blur; uno sobre el máximo se acota. Prueba: `__tests__/planBuilderStepperTyped.test.tsx`: revert por pieza, rojo. En vivo: un toque real que no desenfoque. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-511` (S129, `A37` / Juntos, devocional y estudio — P2) — 🐛 un devocional con más de 12 000 caracteres de
   notas se comparte recortado sin aviso, y «Compartir» borra el borrador: lo que no entró ya no está en el
@@ -13544,6 +13566,7 @@ tiene el viejo: false`; control (volver sin guardar), bien. `_scratch/S129-sonda
   - **Camino:** «Los 4 Evangelios» en 80 días → invitar → el otro se une: 40 días («Mateo 6, Mateo 7» el día 3
     contra «Mateo 3»). **Sonda:** la de `R9-511`, `S129A5-2`: `"senderDays":80,"recipientDays":40`.
   - **Propuesta (sin escribir):** la duración en el paquete como campo opcional, o avisar al compartir.
+  - **✅ ARREGLADO en la sesión 191** (`7d91a3a1`, y la corrección `629cefc7`, rama `fix/s191-ola2`): la duración elegida viaja en el enlace (campo opcional `n`, sin subir `v`) y en el código (4.ª parte, solo unida con guion: una palabra detrás del código lo invalida, como antes). Pruebas: `togetherInviteChosenDuration.test.tsx` y `togetherBundle.test.ts`: revert por pieza, rojo. Con la duración por defecto, enlace y código son idénticos a los de antes (revisor B, 17 planes). Una app vieja: por enlace se une callada a la duración por defecto; por código, «no válido» (§7). Queda quien se une con días ya marcados: `R9-652`. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-513` (S129, `A37` / Juntos, importar — P3) — 🐛 importar otra vez el mismo plan propio reinicia su
   calendario.** MEDIDO con sonda en la 129 (agente 4, re-medido igual en el principal con `TZ=America/Mexico_City`).
@@ -13632,6 +13655,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     `_scratch/S129-sondas-agente-8/S129-a8-factsVersion.test.tsx.txt` (4/4): `"textoRVR":true,"textoKJV":false`;
     control (montada con KJV), bien; cerrar y abrir lo cura.
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`/`R9-486`.». Su arreglo tiene que cubrirlo.
+  - Sesión 191: cubierto por `5f4608a3` (rama `fix/s191-ola2`): cada dato ya resuelto se vuelve a resolver. Prueba: `__tests__/bibleFactsScreenVersionChange.test.tsx`.
 
 - **`R9-522` (S129, `A39` / línea de tiempo — P3) — 🐛 «Tu línea de tiempo» pierde el récord de racha de devoción a
   los 400 días y muestra una racha menor como hito.** MEDIDO con sonda en la 129 (agente 8, re-medido igual en el
@@ -13696,6 +13720,7 @@ el widget dice Romanos 8:38; el inicio, Romanos 10:9`; control (prueba 3): el í
     share-faith tienen el mismo `load` de montaje (`share-faith/methods/[id].tsx:208-234`,
     `objections/[id].tsx:199-225`): con la versión cambiada en el lector, siguen en la vieja hasta reabrirlos.
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-430` (familia de): «Familia de `R9-430`, `R9-486` y `R9-521`». Su arreglo tiene que cubrirlo.
+  - Sesión 191: cubierto por `5151058f` y `30ba5604` (rama `fix/s191-ola2`): las cinco pantallas toman la versión de `useBibleVersion` y solo aterriza la corrida nueva (§7). Pruebas: `versionChangeOpenDetailScreens.test.tsx` y `shareFaithDetailVersionChange.test.tsx`; el revisor A lo midió con el proveedor real.
 
 - **`R9-526` (S130, `A40` / devocional compartido — P3) — 🐛 el devocional que se recibe nombra el libro en el
   idioma de la interfaz y muestra el texto de la versión.** MEDIDO con sonda en la 130.
@@ -13763,6 +13788,7 @@ shared?d=…`): «John 3:16 “Porque de tal manera amó Dios…”»; el mismo 
   - **Propuesta (sin escribir):** que la pantalla escuche `subscribeBackupRestored` y re-lea la clave, como los
     cuatro providers.
   - Triaje 185: lote D, A(1) (arreglo corto en search.tsx). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`53565bec`, y `1ab584ee`, rama `fix/s191-ola2`): Buscar relee el historial con `subscribeBackupRestored`. Prueba: `__tests__/searchHistoryRestoreSignal.test.tsx` (espera el hecho, no 700 ms): revert por pieza, rojo. Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-530` (S133, piloto de re-revisión de `B4` / reglas de Firestore / borrado de cuenta — P3) — 🐛 «Eliminar
   cuenta» borra una foto de la nube, y la regla deja que otro dispositivo de la misma cuenta siga escribiendo
@@ -14011,6 +14037,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
   - Sin daño en los datos (los landings no guardan nada). **Propuesta (sin escribir):** no empujar el landing si
     arriba ya está el mismo con el mismo `d` (o un `getId` por `d`).
   - ✅ ACEPTADO en la sesión 185 (triaje): fusionado en `R9-507` (familia de): «Familia de `R9-502` y `R9-507`». Su arreglo tiene que cubrirlo.
+  - Sesión 191: cubierto por `42a171d8` (en `R9-507`, rama `fix/s191-ola2`). Prueba: `__tests__/togetherSameLinkTwice.test.tsx`.
 
 - **`R9-542` (S135, `A45` / landings compartidos, accesibilidad — P3) — 🐛 el `accessibilityLabel` fijo de la tarjeta
   y de cada día del devocional compartido tapa lo que muestran: con lector de pantalla, la nota de quien comparte no
@@ -14029,6 +14056,7 @@ days.length > 0`) → quien recibe toca el enlace: «Devocional · 1 días».
   - P3 (el agente lo deja en P2 si se pesa a quien usa lector de pantalla: la nota le queda inalcanzable).
     **Propuesta (sin escribir):** que el label incluya lo que se ve, o la cita como `accessibilityHint`.
   - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO EN PARTE en la sesión 191** (`281cfe6e`, rama `fix/s191-ola2`): en los dos avisos de sync de Ajustes, el label es el texto visible y el viejo pasa a hint. Prueba: `__tests__/settingsSyncBadgesA11y.test.tsx`: revert por pieza, rojo. Sigue ABIERTO: `devotional-shared/index.tsx` (la tarjeta de hoy y cada día) y `study-shared/index.tsx` (cada referencia cruzada), del carril 7. Detalle: `detail/S191-ola2.md` §3.
 
 - **`R9-543` (S135, `A45` / estudio compartido, el idioma — P3 bajo) — 🐛 la introducción del libro en un estudio
   compartido sigue el idioma de la VERSIÓN, sus rótulos el de la interfaz, y «Sobre este libro» la muestra en el de
@@ -14293,6 +14321,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
   - **Sesión 138:** el toast de `importPartial` no se ve nunca: queda detrás del modal «Datos» (`R9-560`, medido). Lo
     único visible tras un import parcial es este diálogo de éxito.
   - Triaje 185: lote D, A(2) (arreglo acotado a DataSettings y translations). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`02e7affa`, rama `fix/s191-ola2`): un import parcial da un aviso con texto propio; si no se restauró nada, un toast de error y ningún aviso. Prueba: `__tests__/dataSettingsImportNotice.test.tsx`: revert por pieza, rojo. El revisor A midió 48 archivos de una sola sección: 47 coherentes (el que solo trae `sideBySide` dice «No se restauró nada»; línea del detalle). Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-558` (S138, `C27a` / «Resetear datos de la Biblia» — P2) — 🐛 el reset borra en silencio las versiones
   descargadas y deja la app apuntando a una versión sin texto.** MEDIDO en el emulador (tres veces, dos en el mismo
@@ -14330,6 +14359,7 @@ false, textoDelVersiculo: false, categoriaCruda: true`) y `_scratch/S135-sondas-
     detalle de tema: disco `RV1909`, nueve «texto no disponible». Control `KJV` instalada: texto. El lector cae a
     RVR1960 en vivo y en frío. Igual en `de2d0f56`. Ya anotado sin entrada en la §8 de la 165. Caso real: un
     teléfono nuevo restaura el respaldo de otro que tenía RV1909 descargada.
+  - **✅ ARREGLADO EN PARTE en la sesión 191** (`7f6f4c6a`, rama `fix/s191-ola2`): el reset borra solo RVR1960 y WEB; los packs conservan filas, índice y bandera, y el diálogo lo dice. Prueba: `__tests__/resetBibleDataKeepsPacks.test.tsx` (`node:sqlite` con FTS5, Node 24): revert por pieza, rojo. Sigue ABIERTO: el respaldo que restaura `@bible_version` de un pack sin descargar (medido en la 168) y los aparatos ya rotos por el reset viejo; piden `app/(tabs)/features/study.tsx` (carril 7 de la 192). En vivo: el reset con KJV descargada y elegida, y buscar en KJV. Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-559` (S138, `C27a` / lector nativo con 0 versículos — P3) — 🐛 el lector pinta una página en blanco, sin
   mensaje ni reintento, cuando el capítulo no tiene filas.** MEDIDO en el emulador por el camino de `R9-558` (John 4 y
@@ -14386,8 +14416,9 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **La misma raíz en otra hoja (`C43a`, medido):** la hoja de edición del subrayado en la galería
     (`app/(tabs)/highlights.tsx:553-663`, `Modal` transparente sin `KeyboardAvoidingView`): el teclado tapa el campo de
     nota y Cancel/Save (`_scratch/S138-sondas-agente-3/S138-a3-16-tecleado.png`). Detalle: `detail/C43a-subrayados.md`.
+  - **✅ ARREGLADO en la sesión 191** (`20480a39`, rama `fix/s191-ola2`): las dos hojas (la nota del lector y el editor de la galería) van en un `KeyboardAvoidingView`. Prueba: `__tests__/noteSheetKeyboardAvoid.test.tsx`: revert por pieza, rojo. En vivo: que suban con el teclado en pantallas chicas (`minHeight: 450`). Detalle: `detail/S191-ola2.md` §2.
 
-- **`R9-562` (S138, `C43a` / la ✕ del selector de colores del lector — P2) — 🐛 quitar el color con la ✕ borra el
+- **`R9-562` (S138, `C43a` / la ✕ del selector de colores del lector — P1, ⬆️ en la sesión 191) — 🐛 quitar el color con la ✕ borra el
   subrayado CON su nota y su categoría al primer toque, sin confirmación ni deshacer, y el lector no muestra que ese
   versículo tenga nota.** MEDIDO en el emulador (dos veces) y re-verificado por lectura; no estaba en `BUGS.md` ni en
   `detail/`.
@@ -14406,6 +14437,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     el mismo selector) por la otra puerta, la que el arreglo de la 7 no cubre. Lo que lo deja abajo de P0 es que media
     un gesto de quitar. Con cuenta, `queueDelete` lleva el borrado a la nube (sin medir). Detalle:
     `detail/C43a-subrayados.md`.
+  - **⬆️ Sesión 191: sube a P1** (decidido por el orquestador con la delegación de Victor del 2026-11-27, «del cuello de botella lo dejo a tu mejor criterio»; Victor puede cambiarlo). Por qué: pierde texto que el usuario escribió (la nota), sin confirmar ni deshacer. No es P0 porque media un gesto de quitar; `R9-44`, el mismo dato, fue P0 en la 6. Entra en la 192.
 
 - **`R9-563` (S138, `C43a` / la hoja de edición del subrayado — P3) — 🐛 el atrás de Android descarta sin avisar el
   borrador de la nota y la categoría.** MEDIDO en el emulador; la forma de `R9-57` (lector) y `R9-499` (oración) en otra
@@ -14443,6 +14475,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
     miente (`S139-cabecera-mezclada.png`, `S139-cab3.xml.txt`, `S139-n3b.db.txt`). Detalle:
     `detail/C42b-notas-lista.md`.
   - Triaje 185: lote D, A(2) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`991afa50`, rama `fix/s191-ola2`): la cabecera de la hoja usa el libro de `selectedVerseForNote`, no el de la ruta. Prueba: bloque R9-565 de `__tests__/readerNoteSheet.test.tsx`: revert por pieza, rojo. Detalle: `detail/S191-ola2.md` §2.
 
 - **`R9-566` (S139, `C43b` / el filtro de color de la galería de subrayados — P3) — 🐛 las muestras de color del
   filtro no tienen nombre ni estado para el lector de pantalla: son botones mudos que solo se distinguen por el
@@ -14459,6 +14492,7 @@ JSON`). Al cerrar el modal 1,15 s después de confirmar, el toast rojo aparece e
   - **Arreglo propuesto (sin escribir):** la etiqueta del lector (`highlightColorNames`) con `accessibilityRole` y
     `accessibilityState={{selected}}`, y el nombre del color en la cabecera de grupo.
   - Triaje 185: lote D, A(4) (acuerdo de los dos). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`5d8c1c0d`, rama `fix/s191-ola2`): las muestras tienen nombre, rol y estado `selected`; la cabecera dice color y cantidad. Un color fuera de la paleta se nombra por su hex. Prueba: `__tests__/highlightsColorFilterA11y.test.tsx`: revert por pieza, rojo. En vivo: TalkBack. Detalle: `detail/S191-ola2.md` §2.
 
 - **`R9-567` (S139, `C43b` / el atrás del lector con un versículo seleccionado — P3) — 🐛 con la barra de acciones o el
   selector de colores abiertos, el atrás de Android no cierra la selección: sale del lector.** MEDIDO en el emulador
@@ -14682,6 +14716,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     llegan no está medido. **Propuesta (sin escribir):** una guarda con `useRef` al entrar a `handlePurchase` y a
     `handleRestore`. Detalle: `detail/S145-revision-del-diff-s144.md`.
   - Triaje 185: lote D, A(2) (frontera con sonda y propuesta: dos cobros en el mock, guarda useRef). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`95a7f0f5`, y la corrección `e9a62b68`, rama `fix/s191-ola2`): una `useRef` por hoja, soltada en `finally`; en la ofrenda la comparten compra y «Restaurar». La guarda NO se suelta al cerrar (soltarla puede cobrar dos veces): al reabrir con una llamada en vuelo se ve «Procesando…» o «Restaurando…»; con el premium ya llegado, «Extras desbloqueados». Pruebas: `OfferingSheet.test.tsx` y `DonationSheet.test.tsx`: revert por pieza, rojo. Si la promesa no vuelve nunca, comprar sigue bloqueado hasta reiniciar: `R9-655`. Detalle: `detail/S191-ola2.md` §5.
 
 - **`R9-577` (S145, revisión del diff de la 144 / hoja de ofrenda / vecino de `R9-17` y `R9-18` — P3) — 🐛 la hoja
   no reacciona a la entitlement que llega con ella abierta: el aviso sigue diciendo «los extras todavía no se
@@ -14697,6 +14732,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     escribir):** con `isPremium` en `true` y el estado en `notice` o `available`, pasar a `alreadyUnlocked`.
     Detalle: `detail/S145-revision-del-diff-s144.md`.
   - Triaje 185: lote D, A(2) (frontera con sonda: el aviso falso con los extras activos y un toque que compra otra vez). Sigue abierto; el commit, con su revert por pieza.
+  - **✅ ARREGLADO en la sesión 191** (`423576ce`, rama `fix/s191-ola2`): con `isPremium` en true y la hoja en aviso o en montos, pasa a «Extras desbloqueados». Prueba: bloque R9-577 de `__tests__/OfferingSheet.test.tsx` (3 y un control): revert por pieza, rojo. Detalle: `detail/S191-ola2.md` §5.
 
 - **`R9-578` (S145, revisión del diff de la 144 / pruebas — P3) — 🐛 la guarda de `outcomeFromError` contra
   `undefined === undefined` no tiene prueba, y «liquidada, el mismo monto se puede volver a dar» no mide la
@@ -14864,6 +14900,7 @@ cuenta.` y los montos. (2) Pendiente → reabrir → el mismo monto, «ya compra
     (sin medir).
   - **Severidad:** P3. **Propuesta (sin escribir):** un filtro positivo, con los ids de los paquetes de la oferta.
   - Triaje 185: lote D, A(2) (frontera con sonda y propuesta: filtro positivo). Sigue abierto; el commit, con su revert por pieza.
+  - Sesión 191: no entró en el carril 8 (`hasOfferingPurchase` vive en `src/lib/offering/offeringService.ts`, fuera de su lista). Va con `R9-655`, el mismo archivo.
 
 - **`R9-586` (S147, revisión del diff de la 146 / donación / vecino de `R9-579` — P3) — 🐛 el toast «Extras
   restaurados» sale aunque los extras ya se veían.** MEDIDO con sonda (fila 13 de
@@ -15327,6 +15364,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - El canje es dinero: un plazo que vence DESPUÉS de que el servidor canjeó deja al usuario con un error y el código
     gastado. Antes de arreglarlo, medir qué devuelve el endpoint al reintentar el mismo código desde la misma cuenta.
   - `withTimeout` (`src/lib/utils/withTimeout.ts`, de la 171) sirve para los cuatro.
+  - **✅ ARREGLADO en la sesión 191** (`b189c505`, rama `fix/s191-ola2`): plazos en el canje (20 s), el manifiesto web (15 s), red-letter (30 s) y los packs (`withStallTimeout`: 30 s sin bytes). Pruebas: `giftCodeService`, `dataLoaderWebVersionGate`, `redLetterTextWeb`: revert por pieza, rojo. **Orden de publicación (§7 y `RECETAS.md`):** ninguna app con estos plazos sale sin desplegar antes `vercel/gift-code-redeem` (con el servidor viejo, un reintento tras el plazo dice «ya fue canjeado»). `getIdToken()` queda fuera del plazo: `R9-655`. Detalle: `detail/S191-ola2.md` §5.
 
 - **`R9-621` (S172, interfaz / barra de estado — P3) — 🐛 la hora y los íconos del sistema salen siempre blancos:
   con el sistema claro no se ven en Inicio ni en el lector, y con Papel tampoco en oscuro.** MEDIDO en el emulador
@@ -15651,6 +15689,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3; triaje A(2) donde el aviso tapado es un error al guardar (`notes.saveError`, `imageShareError`): lote D.
   - **Arreglo propuesto:** ampliar la guarda a los modales que reciben un toast de un hook propio o de su padre, y un host en
     cada uno. `NoteEditorModal` va con el carril 5. Detalle: `detail/S190-ola1.md` §5.
+  - **✅ ARREGLADO EN PARTE en la sesión 191** (`324348cf`, rama `fix/s191-ola2`): `NoteEditorModal` tiene su `<ToastHost />`. Prueba: `__tests__/noteEditorToastHost.test.tsx`: revert por pieza, rojo. Sigue ABIERTO por los once modales con toast desde un hook (`useShareImage`, `PremiumShareExtras`) y por la guarda que no los ve. Detalle: `detail/S191-ola2.md` §2.
 
 - **`R9-643` (S190, la ola 1, los hosts de toast — P3) — 🐛 un toast vivo se remonta al abrir o cerrar un modal con host: se
   anuncia otra vez y su temporizador vuelve a empezar.** MEDIDO con sonda (el agente del carril 1, fuera del repo).
@@ -15675,12 +15714,14 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3; triaje B salvo que se mida en nativo: retrasa, no pierde (la sonda no midió RNFirebase sin red).
   - **Arreglo propuesto (sin escribir):** leer en paralelo con un plazo total, o lanzar las lecturas fuera de la cadena.
     Detalle: `detail/S190-ola1.md` §5.
+  - **✅ ARREGLADO en la sesión 191** (`70aab0ff`, y `d352347f`, rama `fix/s191-ola2`): MEDIDO (3 lecturas, 480 ms con un plazo de 150 ms). Tras un plazo vencido, los retenidos siguientes del lote no se leen en ese enganche (saltar, no leer en paralelo: §7). Prueba: describe «R9-645» de `__tests__/SyncEngine.test.ts`: revert por pieza, rojo. Regresión medida y aceptada: si la primera lectura vuelve tarde, los de detrás esperan al próximo arranque (`R9-657`). Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-646` (S190, la ola 1, `SyncEngine` / vecino de `R9-164` — P3) — 🐛 la rama `removed` en vivo suelta un retenido
   sin conflicto si su lectura falla; la rama nueva de `R9-164` lo deja retenido.** POR LECTURA (el agente del carril 2).
   - Dos caminos, dos tratos para el mismo caso. El retenido suelto vuelve a dejar avanzar el piso.
   - **Severidad:** P3; triaje: frontera de A(1) (un doc saltado puede no bajar), por lectura. Medir antes.
   - **Arreglo propuesto (sin escribir):** el mismo trato en las dos ramas (seguir retenido). Detalle: `detail/S190-ola1.md` §5.
+  - **✅ ARREGLADO en la sesión 191** (`a92f6c58`, rama `fix/s191-ola2`): MEDIDO y confirmado. El `removed` en vivo con la lectura fallida deja el doc retenido, como la rama de `R9-164`. Prueba: describe «R9-646» de `__tests__/SyncEngine.test.ts`: revert por pieza, rojo (`retenido:NaN` tras dos arranques). El revisor E: con una escritura en cola, base y rama terminan igual. Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-647` (S190, la ola 1, la Mesa / versión — P3) — 🐛 si la Mesa se abrió sin `version` y el lector la cambió, «Modo
   púlpito» abre en la versión nueva con la Mesa en la vieja.** MEDIDO con sonda (el agente del carril 3:
@@ -15690,8 +15731,9 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `0a8fbfd9`.
   - **Severidad:** P3; triaje A(2) («muestra mal un texto bíblico»: el púlpito en otra versión que la preparada): lote D, carril 3.
   - **Arreglo propuesto:** reenviar la versión cargada. Detalle: `detail/S190-ola1.md` §5.
+  - **✅ ARREGLADO en la sesión 191** (`66224d68`, rama `fix/s191-ola2`): «Modo púlpito» reenvía la versión que resolvió `load()` (`loadedVersionRef`). Prueba: bloque R9-647 de `__tests__/prepTableScreenNavigation.test.tsx`: revert por pieza, rojo. La rama vieja de `handleOpenPulpit` (`prep/index.tsx:1205-1217`) quedó inalcanzable (revisor A; línea del detalle). Detalle: `detail/S191-ola2.md` §1.
 
-- **`R9-648` (S190, la ola 1, la Mesa / vecino de `R9-167` — P3) — 🐛 `handleNoteBlur` todavía escribe un borrador sin
+- **`R9-648` (S190, la ola 1, la Mesa / vecino de `R9-167` — P2, ⬆️ en la sesión 191) — 🐛 `handleNoteBlur` todavía escribe un borrador sin
   cambios en la ventana de `R9-167`; y el flush de los botones no cancela el guardado pendiente del debounce.** POR LECTURA
   (el agente del carril 3; el orquestador leyó `prep/index.tsx:1095-1120`, `:1216-1236` y `:1312-1335`).
   - El blur escribe `drafts[section]` sin mirar `syncedNotesRef`. Si un campo conserva el foco al volver del banco y la
@@ -15701,6 +15743,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Severidad:** P3 POR LECTURA, frontera de A(1): si se mide que el blur pisa la ilustración, sube a P2. Pendientes en vivo.
   - **Arreglo propuesto (sin escribir):** el blur salta lo que `syncedNotesRef` ya tiene; el flush de los botones cancela el
     debounce. Detalle: `detail/S190-ola1.md` §5.
+  - **✅ ARREGLADO en la sesión 191** (`3a2fe4e6`, y `99f9c87f`, rama `fix/s191-ola2`): **sube a P2**, porque la sonda previa (`_scratch/S191-sondas/c3b-648-sonda.out.txt`) pierde la ilustración por el blur y por el debounce (A(1)), y queda arreglado. El blur salta un borrador sin cambios; `flushDrafts` empuja y espera el debounce (no lo cancela). Prueba: bloque R9-648 de `__tests__/prepTableScreenNavigation.test.tsx`: revert por pieza, rojo. En vivo: un blur real y la ventana de 700 ms. Detalle: `detail/S191-ola2.md` §1.
 
 - **`R9-649` (S190, revisión de la ola 1, la Mesa / `R9-478` — P3) — 🐛 con un `params.version` desconocido, la cabecera de
   la Mesa sale en inglés.** SOSPECHA del revisor, por lectura.
@@ -15709,6 +15752,119 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
     `selectedVersion`, siempre conocida. En ese caso el texto del pasaje probablemente también falla.
   - **Severidad:** P3; triaje B salvo que se mida un camino real con un id desconocido.
   - **Arreglo propuesto (sin escribir):** `bookLangForVersion`. Detalle: `detail/S190-ola1.md` §5.
+
+- **`R9-650` (S191, la ola 2, carril 6 / respaldo, el aviso tras importar — P2) — 🐛 tres secciones degradadas del
+  respaldo no se reportan en `failedSections`: el import dice que restauró sin restaurarlas.** MEDIDO (el agente del
+  carril 6).
+  - `readerPreferences`, `readerPreferencesFull` y `appTheme`: con su sección degradada en el archivo,
+    `failedSections` no las nombra, y el aviso tras importar (`R9-557`, `02e7affa`) da el texto completo.
+  - **Severidad:** P2; A(2) («dice restaurado cuando no lo está»). Las tres son preferencias, no texto del usuario.
+  - **Arreglo propuesto (sin escribir):** reportarlas en `failedSections` como las demás; la tabla de `R9-139`
+    (`backupDegradedSectionsTable.test.ts`) las suma. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-651` (S191, la ola 2, carril 8 / canje de códigos, lo que queda tras `R9-21` — P2) — 🐛 `redeemed: true` ya no
+  distingue «reservado» de «entregado»: un código revocado a mano vuelve a dar premium, y el script de Victor informa
+  mal.** MEDIDO (revisor C, celda 15) y por lectura (el script).
+  - Celda 15 (`_scratch/S191-sondas/revC-servidor-tabla.out.txt`): un código canjeado cuyo entitlement Victor revocó en
+    RevenueCat; su cuenta reintenta y recibe 200 y el grant otra vez (antes, 409). Es el «re-grant permanente» que
+    trajo `84c79ab9`. Victor no lo decidió: decidió solo «no liberar nunca» (§7).
+  - `scripts/generate-gift-codes.js`: `list` muestra `REDEEMED` para un código solo reservado (`:153`), y `revoke` se
+    niega a borrarlo («refusing to delete a fulfilled code», `:172`). Liberar uno hoy es a mano en la consola (§7).
+  - De paso: `functions/src/index.ts` (copia de referencia, no desplegada) quedó atrás de `R9-20` y `R9-21`; el
+    `fetch` del servidor a RevenueCat no lleva plazo.
+  - **Severidad:** P2; dinero, A(2) (un premium vuelve tras revocarlo; el script llama «canjeado» a uno sin entregar).
+  - **Arreglo propuesto (sin escribir; decide dinero: se pregunta a Victor al tocarlo):** un campo «entregado» escrito
+    tras el grant; el script los distingue, y un código entregado no vuelve a dar grant. Pide `redeem.ts`, el script y
+    la copia de `functions/`. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-652` (S191, la ola 2, carril 4 / Juntos, unirse con días marcados, resto de `R9-512` — P2) — 🐛 quien se une a
+  un plan con días ya marcados conserva su duración, y la tarjeta nombra la del grupo.** MEDIDO (revisor B, Q1: con
+  días marcados `customDuration` se queda en la suya); el agente del carril 4, por lectura.
+  - `setPlanDuration` no hace nada si el plan ya tiene progreso (pide `ReadingPlanProgressContext.tsx`, fuera del
+    carril 4): el grupo vuelve a leer otra cosa el mismo día, la forma de `R9-512`.
+  - **Severidad:** P2; A(1), la clase de `R9-512`.
+  - **Arreglo propuesto (sin escribir):** al unirse con progreso, preguntar si se cambia la duración, o avisar.
+    Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-653` (S191, la ola 2, carril 4 / planes propios, el progreso al rearmar, familia de `R9-509` — P2) — 🐛
+  cambiar el ritmo o los pasajes de un plan propio lo rearma, y el progreso sigue por número de día: marca capítulos
+  que el usuario no leyó.** El mecanismo, MEDIDO en `R9-509` (la sonda de la 129, caso `[2a]`); con cambio de ritmo,
+  por lectura (el agente del carril 4).
+  - `migratePlanProgress` lleva `completedDays` por número de día. Desde `20ea7a46`, solo renombrar conserva los días;
+    cambiar ritmo o pasajes los rearma (§7), y el día 3 pasa a ser otros capítulos.
+  - **Severidad:** P2; A(1) (altera el progreso que marcó el usuario), la clase de `R9-509`.
+  - **Arreglo propuesto (sin escribir):** llevar el progreso por capítulo leído, o avisar antes de rearmar un plan con
+    progreso. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-654` (S191, la ola 2, carril 11 / audio, resto de `R9-426` — P2) — 🐛 si la app pasa a segundo plano en el
+  hueco entre dos capítulos, el capítulo siguiente suena igual.** MEDIDO
+  (`_scratch/S191-sondas/c11-sonda-bg-chapter-gap.txt`, el agente del carril 11).
+  - El avanzador corta solo si el reproductor está oculto, pausado o sonando. El segundo plano sube la corrida del
+    motor, pero el avanzador carga el capítulo y suena «Juan 4:1». Es la repro (3) de `R9-426` en el hueco de capítulo.
+  - Por lectura: `onStopped` y `onError` de una locución vieja no miran la corrida.
+  - **Severidad:** P2; A(3), la clase de `R9-426` (suena sin que el usuario lo vea).
+  - **Arreglo propuesto (sin escribir):** que el avanzador corte también por el segundo plano o por la corrida del
+    motor. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-655` (S191, la ola 2, carril 8 / dinero, plazos que faltan — P3) — 🐛 dos esperas de dinero sin plazo: una
+  compra o un «Restaurar» que no vuelve deja comprar bloqueado hasta reiniciar, y `getIdToken()` queda fuera del plazo
+  del canje.** Por lectura (el orquestador de la 191, tras `e9a62b68`, y el agente del carril 8).
+  - `src/lib/offering/offeringService.ts` (`purchaseUnlock`, `restoreOffering`) no tiene plazo. Desde `e9a62b68` la
+    guarda no se suelta: reabrir muestra «Procesando…» hasta reiniciar la app.
+  - `giftCodeService.ts`: `getIdToken()` va antes del plazo de 20 s de `R9-620`.
+  - **Severidad:** P3; A(3) (sin salida hasta reiniciar). No es A(1) ni A(2): no cobra dos veces ni dice «pagado», y
+    «Procesando…» es cierto.
+  - **Arreglo propuesto (sin escribir):** un plazo en `offeringService.ts` (con `R9-585`, el mismo archivo) y
+    `getIdToken()` dentro del plazo del canje. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-656` (S191, revisor D, carril 11 / audio, regresión de `54add44f` — P3) — 🐛 fin de capítulo con avance
+  continuo: si el re-sync de versión recarga la cola mientras el avanzador lee el capítulo siguiente, el avance se
+  descarta y queda en silencio.** MEDIDO (caso A10 de `_scratch/S191-sondas/revD-audio-motor-fiel.test.tsx.txt`: la
+  base suena «Juan 4:1»; la rama calla, con la cola en el capítulo viejo).
+  - `AudioChapterAdvancer.tsx:155` (`versesRef.current !== finishedVerses`); lo dispara `[chapter].tsx:1350`.
+  - **Severidad:** P3; mergeada a sabiendas: calla, no pierde. La ventana es una lectura de la base (milisegundos) y
+    pide un cambio de versión justo ahí. Carril 17 de la 192.
+  - **Arreglo propuesto (sin escribir):** comparar la identidad del capítulo terminado, no la referencia de la cola.
+    Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-657` (S191, revisor E, carril 9 / `SyncEngine`, regresión de `70aab0ff` — P3) — 🐛 si la primera lectura de un
+  retenido pasa del plazo y vuelve tarde, los de detrás se saltan y no bajan hasta el próximo arranque.** MEDIDO
+  (`_scratch/S191-sondas/revE-q3-sonda.txt`, Q3A2: en la base, doc-2 y doc-3 bajan; en la rama, los tres siguen
+  retenidos en 3 enganches).
+  - `src/lib/sync/SyncEngine.ts:2147-2162`. El comentario de `:2101-2110` («changes nothing») es falso en ese caso.
+  - **Severidad:** P3; mergeada a sabiendas: retrasa, no pierde (se cura en el primer arranque cuya primera lectura
+    conteste). Carril 17 de la 192.
+  - **Arreglo propuesto (sin escribir):** saltar solo mientras la lectura vencida siga sin volver, o releer los
+    saltados cuando vuelva; corregir el comentario. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-658` (S191, revisor D, carril 10 / Home, el corazón del versículo del día — P3) — 🐛 el corazón quita el
+  favorito con su categoría y sus colecciones sin avisar; el del lector avisa.** Por lectura (el revisor D; el
+  orquestador leyó `app/(tabs)/index.tsx:1021-1040` y `[chapter].tsx:1750-1768`).
+  - Desde `ca591b62` el corazón alterna. La nota de un favorito no la muestra ni la edita ninguna pantalla (nativa ni
+    web); la escribe la migración de Marcadores con la etiqueta del marcador (`retiredBookmarksMigration.ts:306`), y
+    el corazón del lector también la quita.
+  - **Severidad:** P3; no es A(1): quitar es el propósito visible del gesto, como en el lector. Decidido (§7): un
+    toast, como el del lector. Carril 17 de la 192.
+  - **Arreglo:** el toast `removedFromFavorites` al quitar. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-659` (S191, la ola 2, carril 10 / el mazo, un par ya duplicado — P3) — 🐛 un par de cartas ya duplicado
+  («Génesis/3/15» y «Genesis/3/15») no se fusiona.** MEDIDO (el agente del carril 10 y el revisor D: no se pierde
+  carta; gana la clave exacta).
+  - Por lectura: con ese par, quitar desde Favoritos pide dos toques; otro aparato viejo o un respaldo pueden traer
+    la segunda clave (`applyRemoteUpsert` compara por id exacto).
+  - **Severidad:** P3. Decidido (§7): no se borra nada de la nube; las dos cartas se leen como una (la misma identidad
+    de versículo). Sin carril todavía. Detalle: `detail/S191-ola2.md` §10.
+
+- **`R9-660` (S191, revisor D, carriles 10 y 11 / pruebas que faltan — P3) — 🐛 cuatro piezas del arreglo del audio y
+  una del mazo quedan sin una prueba que las vigile.** MEDIDO por mutación (el revisor D,
+  `_scratch/S191-sondas/revD-mut-audio.json.txt` y `revD-mut-deck.json.txt`).
+  - Audio (`54add44f`): quedan verdes M3 (`run++` en `loadChapter`), M6 (`run++` en `stop`), M10 (`isPlaying` en
+    `userSteppedIn`) y M11 (la guarda de corrida en `onDone`). Los casos A8 y A9 del revisor
+    (`revD-audio-motor-fiel.test.tsx.txt`) discriminan M3 y M6.
+  - Mazo (`8cc87383`): D7 (la identidad ignora el libro) queda verde; falta el control negativo
+    (`revD-mazo-identidad.test.tsx.txt` lo cae).
+  - **Severidad:** P3; lote D: el control del mazo vigila un A(1) (repasar una carta actualizaría la de otro libro).
+    Carril 17 de la 192: sumar A8, A9 y el control. Detalle: `detail/S191-ola2.md` §10.
 
 - **`R9-132` (S21, adaptadores de sync) — 🐛 el `getLocal` de SUBRAYADOS sigue fallando
   ABIERTO.** CONFIRMADO con sonda (motor y adaptador reales). Es la «nota de alcance» de `R9-46`,
@@ -15775,6 +15931,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   P0 (el historial de Ana en el agregado de Beto, para siempre). El disparador, un `getItem` de
   AsyncStorage que falla justo ahí en un teléfono compartido, es muy raro. **Arreglo (hipótesis):**
   solo un `null` LEÍDO puede reclamar; un fallo de lectura salta la escritura.
+  - **✅ ARREGLADO en la sesión 191** (`bfd6641f`, rama `fix/s191-ola2`): la escritura del agregado lee al dueño en modo estricto; si no puede leerlo, no escribe ni reclama. El sembrado sigue sin estricto (medido inocuo, con un control). Prueba: describe «R9-134» de `__tests__/memoryStatsSync.test.ts`: revert por pieza, 2 rojas; el revisor E la mutó. Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-135` (S21, premium) — 🐛 si el `logIn` de RevenueCat falla al cambiar de cuenta,
   RevenueCat queda atado a la cuenta anterior, porque el `linkUser` del arranque en frío se
@@ -15869,6 +16026,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   la escritura aparcada de Ana (`Juan/3/16`) la REEMPLAZA la de Beto en cuanto Beto toca el mismo
   versículo, o en su bulk push. Ana no sube nunca su edición, sin error ni insignia. La prueba
   titular siembra las dos entradas por `hydrate`, que no pasa por `upsertQueueEntry`.
+  - **✅ ARREGLADO en la sesión 191** (`24af5b07`, rama `fix/s191-ola2`): solo prueba. El dedupe por cuenta, por `queueWrite` y por el bulk push. Sin `e.uid === entry.uid &&` caen las 2 nuevas (y `R9-194` y una de `R9-212`, por relojes); el revisor E la mutó. Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-138` (S21, prueba de sync) — 🐛 el `deleted:false` / `deletedAt:null` del bulk push
   inicial (pieza de `R9-45`) no lo vigila ninguna prueba.** CONFIRMADO por revert y sonda. Quitar
@@ -15876,6 +16034,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   `{"hasDeletedKey":false}`. Ningún `*ToRemote` pone `deleted`, así que bajo `{merge: true}` la
   lápida vieja del servidor sobrevive: es `R9-45` entero por la puerta del bulk push. Las 4
   pruebas de «initial bulk push» solo miran los ids.
+  - **✅ ARREGLADO en la sesión 191** (`fd596e2f`, rama `fix/s191-ola2`): solo prueba. El bulk push limpia la lápida vieja (la copia fundida de la nube). Sin las dos líneas, cae sola con `deleted:true`; el revisor E la mutó. Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-139` (S21, prueba de respaldo) — 🐛 la protección por sección de `R9-27` solo está
   vigilada en `favorites`, `highlights`, `prepNotes` y el flag `streakLog`.** CONFIRMADO por
@@ -15887,6 +16046,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
 
   P2 y no P1: cada una es una línea gemela de otra que sí está vigilada. Falta la tabla completa
   (un `it.each` sobre las etiquetas de `buildBackup`, con el servicio real).
+  - **✅ ARREGLADO en la sesión 191** (`8f5aa2c9`, rama `fix/s191-ola2`): solo prueba. `__tests__/backupDegradedSectionsTable.test.ts` recorre las 57 etiquetas del export (173 casos). Nueve mutaciones, rojas; el orquestador la mutó otra vez. Tres secciones degradadas no se reportan: `R9-650`. Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-140` (S21, prueba de rachas — P3) — 🐛 el `MAX(longest_streak, ?)` de
   `recomputeReadingStreak` (el remate de `R9-49`) no lo vigila ninguna prueba.** CONFIRMADO por
@@ -15899,6 +16059,7 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   CONFIRMADO por revert: quitar `setRestartNoticeVisible(true)` (`DataSettings.tsx:158`) deja
   verdes las 2 pruebas de import y la suite entera. Mientras `R9-117` siga abierto, es la ÚNICA
   defensa de los favoritos restaurados.
+  - **✅ ARREGLADO en la sesión 191** (`3778cceb`, rama `fix/s191-ola2`): solo prueba, en `__tests__/dataSettingsImportNotice.test.tsx`. Mutación: sin `setRestartNoticeVisible`, roja para el agente y para el orquestador. Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-142` (S21, prueba de sync — P3) — 🐛 el bucle caliente de `R9-22` solo lo delata un OOM
   del proceso de jest, sin nombre de prueba.** CONFIRMADO, 2 de 2 corridas. Revertidas las dos
@@ -16008,6 +16169,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   Hoy la prueba sí cae con `R9-34` revertido; lo que no protege es su propia premisa.
 
   **Arreglo:** controlar con el registro de llamadas a `set()`, que con la carrera es solo `['v1']`.
+  - **✅ ARREGLADO en la sesión 191** (`12d6c1fd`, rama `fix/s191-ola2`): solo prueba. El control de la carrera de `R9-34` lee el registro de `set()` (`['v1']`). La mutación M2 con `R9-34` revertido cae en la línea del control (el agente; el orquestador la mutó otra vez). Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-115` (S19, `SyncEngine`) — 🐛 la premisa del arreglo de `R9-11` es falsa: `!== item` no
   significa «me reemplazó una edición más NUEVA».** `hydrateQueue` (`:515-526`) también mete
@@ -16046,6 +16208,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   de la 18: comprobar la afirmación ENTERA.
 
   **Arreglo:** una prueba parametrizada sobre los cuatro providers.
+  - **✅ ARREGLADO en la sesión 191** (`52537f67`, rama `fix/s191-ola2`): solo prueba. `__tests__/backupRestoreSignalProviders.test.tsx` vigila la señal de restauración en los cuatro providers de `R9-28`. Sin pieza que revertir: cuatro mutaciones (una por provider), rojas para el agente y para el orquestador (`_scratch/S191-mutaciones.out.txt`). Detalle: `detail/S191-ola2.md` §4.
 
 - **`R9-117` (S19, favoritos / respaldo) — 🐛 `FavoritesContext` no escucha la señal de
   restauración, y pisa lo restaurado.** No está entre los suscriptores de
@@ -16586,6 +16749,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   sin facturación por exceso** (elegido a propósito), suficientes POST dejan el canje **fuera
   de servicio**. **La fuerza bruta NO es la preocupación** (31⁸ ≈ 8,5·10¹¹). Un regex lo
   cierra.
+  - **✅ ARREGLADO en la sesión 191** (`36f95852`, rama `fix/s191-ola2`): el endpoint valida `^[A-Z0-9]{4}-[A-Z0-9]{4}$` antes del Bearer y de `verifyIdToken`, y responde 400. Prueba: `__tests__/giftCodeRedeemEndpoint.test.ts` (el handler real): verla fallar a mano sobre `0508f0fc`, 2 rojas. **Por desplegar** `vercel/gift-code-redeem` (autorización durable, §7). Detalle: `detail/S191-ola2.md` §5.
 
 - **`R9-21` (A2, backend) — 💡 si el grant funciona pero falla el marcado, el código vuelve
   a la piscina en silencio.** `redeem.ts:189-213` loguea por `console.error` y devuelve 200.
@@ -16593,6 +16757,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   obtener otro entitlement vitalicio. Sin alerta ni campo barrible. **Adjunto:** el
   comentario de `:194-196` remite a un tradeoff que **no está en la cabecera de este
   fichero** — está en `functions/src/index.ts`, la copia no desplegada. Puntero colgante.
+  - **✅ ARREGLADO en la sesión 191** (`84c79ab9`, y `66c577d2`, rama `fix/s191-ola2`): primero se reserva el código para el uid y después va el grant. **Un código reservado no se libera nunca** (decisión de Victor, 2026-11-27, §7): la misma cuenta reintenta y lo recibe; otra cuenta recibe 409 hasta que Victor lo libere a mano. Cierra el hueco que midieron el agente y el revisor C (celda 09: un código, dos entitlements). Prueba: `__tests__/giftCodeRedeemEndpoint.test.ts`: verla fallar sobre `0508f0fc`, 4 rojas; `66c577d2`, roja sin su arreglo. Lo que queda (la celda 15, el script, la copia de `functions/`): `R9-651`. **Por desplegar** antes de publicar. Detalle: `detail/S191-ola2.md` §5.
 
 - **`R9-26` (A3, auth) — 💡 tras eliminar la cuenta la app probablemente se queda sin
   usuario hasta el siguiente arranque.** `AuthContext.tsx:569` rearma
@@ -16600,6 +16765,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   de `:464`), así que el evento `null` llega con la bandera aún en `true` y no relanza el
   sign-in anónimo. Rompe el contrato de la cabecera ("siempre hay uid estable") y deja los
   Crashlytics de esa sesión sin identificar. **Pendiente de verificar en dispositivo.**
+  - **✅ ARREGLADO en la sesión 191** (`d847f521`, rama `fix/s191-ola2`): MEDIDO y vivo; el rearme del anónimo se mueve a antes de `deleteUser` (no se duplica). Prueba: describe «R9-26» de `__tests__/AuthContext.test.tsx`: revert por pieza, rojo. El revisor E midió cinco casos: un borrado que falla deja la cuenta viva; uno con éxito, un anónimo y 0 subidas. En vivo: el orden real entre el evento `null` y la promesa. Detalle: `detail/S191-ola2.md` §6.
 
 - **`R9-31` (A7, respaldo) — 💡 la restauración no aísla a los demás escritores de SQLite ni
   propaga los borrados a la nube.** `BackupService.ts:1277-1278` usa `withTransactionAsync`,
@@ -16895,6 +17061,7 @@ memory` a los ~63 s y 8,1 GB. Bajo el mock de AsyncStorage es un bucle de MICROT
   sin avisar, con la pila de saltos vacía y armada. **La duda abierta, cerrada: gana el `Modal`** (el lector no navega
   y la pila no se consume). El borrador tampoco sobrevive a `force-stop` ni a HOME + `force-stop`. Detalle:
   `detail/C42a-notas-versiculo.md`.
+  - **✅ ARREGLADO en la sesión 191** (`fe0ac107`, rama `fix/s191-ola2`): la hoja de nota del lector tiene papelera con confirmación (lápida a la nube con `queueDelete`, como Notas); la X y el atrás preguntan si el borrador cambió. Prueba: `__tests__/readerNoteSheet.test.tsx` (el lector real con `NoteEditorModal` y `ConfirmDialog` reales): revert por pieza, rojo; el revisor B mutó cinco piezas y las cinco caen. Borra solo la fila de `notes`: no copia `R9-562`. Detalle: `detail/S191-ola2.md` §2.
 - **`R9-58` (A9, Mesa) — 🐛 matar la app (o cerrar la pestaña en web) pierde hasta 700 ms de
   tecleo: `use-debounce` expone `flushOnExit` y no se usa.** Severidad **baja**.
   `prep/index.tsx:1024-1042`. **El resto de los caminos de salida están bien** y se auditaron

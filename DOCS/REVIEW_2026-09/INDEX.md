@@ -597,3 +597,8 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   `revert-pieza`, validate verde (458 suites, 5324 pruebas). Cerrados: `R9-454`, `R9-163`, `R9-164`, `R9-58`, `R9-167`,
   `R9-476` (P2), y `R9-637`, `R9-148`, `R9-241`, `R9-169`, `R9-601` (P3). EN PARTE: `R9-430`, `R9-474`, `R9-638`.
   Nuevos: `R9-641` a `R9-649` (P3). P1 + P2 = 43. Detalle: `detail/S190-ola1.md`.
+- **Sesión 191 y 191b — 2026-11-27 y 28.** La ola 2 ampliada (rama `fix/s191-ola2`): ocho carriles (3b, 4, 5, 6, 8,
+  9, 10 y 11), Opus 5.5 y Fable 5.2 en datos y cuentas, cinco revisores. 46 commits con pieza, todos rojos sin su
+  arreglo; validate verde (490 suites, 5728 pruebas). 41 cerrados, entre ellos `R9-430` y `R9-474`; EN PARTE `R9-158`,
+  `R9-558`, `R9-477`, `R9-542`, `R9-642`. `R9-21`: «no liberar nunca» (Victor). `R9-562` sube a P1. Nuevos:
+  `R9-650` a `R9-654` (P2) y `R9-655` a `R9-660` (P3). P1 + P2 = 22. Detalle: `detail/S191-ola2.md`.

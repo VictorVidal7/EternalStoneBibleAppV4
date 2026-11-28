@@ -135,8 +135,13 @@ divergencia permanente con la nube (`R9-44`, `R9-45`, `R9-50` son la misma raíz
 a P3 (aprobadas por Victor y aplicadas: P1 + P2 = 50), 6 que esperan a Victor y 40 P2 reales en 12 carriles y
 4 olas. **La 190 hizo la ola 1** (`detail/S190-ola1.md`, rama `fix/s190-ola1`): carriles Toasts, Sync, y Mesa y
 búsqueda, más Sonnet en `R9-601`. 6 P2 cerrados (P1 + P2 = 43); `R9-430` y `R9-474` EN PARTE por sus familias
-(pregunta en la §8); 9 P3 nuevos (`R9-641` a `R9-649`); lo vivo, en `detail/PENDIENTES-EN-VIVO.md`. **Lo siguiente: la
-ola 2** (`_scratch/S191-PROMPT.md`): carriles 4, 5 y 6. Lo de abajo es el registro de antes.
+(pregunta en la §8); 9 P3 nuevos (`R9-641` a `R9-649`); lo vivo, en `detail/PENDIENTES-EN-VIVO.md`. **La 191 hizo la
+ola 2 ampliada** (`detail/S191-ola2.md`, ocho carriles: 3b, 4, 5, 6, 8, 9, 10 y 11; cierre en la 191b): hallazgos
+cerrados (41), entre ellos `R9-430` y `R9-474` con sus familias; EN PARTE `R9-158`, `R9-558`, `R9-477`, `R9-542` y `R9-642`;
+no entró `R9-585`. `R9-562` sube a P1 (§7). Once nuevos (`R9-650` a `R9-660`): cinco P2 (`R9-650` a `R9-654`, todavía
+sin carril) y seis P3. **P1 + P2 = 22.** **Lo siguiente: la 192** (`_scratch/S192-PROMPT.md`), arreglos; la sesión de
+emulador (`_scratch/S192e-PROMPT.md`) toca ya (van dos olas sin emulador), en otra ventana de 5 h que la ola. El orden
+entre las dos lo elige Victor. Lo de abajo es el registro de antes.
 
 **Qué queda:** `node DOCS/REVIEW_2026-09/tools/validar-estado.cjs.txt`. Al cierre de la 142: 274 abiertos de 573
 (ningún P0, 20 P1, 92 P2, 161 P3 y el aviso `R9-1`), 2 sin verificar que piden emulador (`R9-177`, `R9-240`), 285
@@ -629,7 +634,8 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
 
   No se promete un ritmo: la estimación sale de la clasificación de la 189. **Las tres respuestas de Victor
   (2026-11-26, «de acuerdo», sobre la recomendación hecha con el asesor):**
-  - **Agentes.** Opus 5.5 para todo lo que decide (clasificar, arreglar, revisar); Fable no (sin margen). En la
+  - **Agentes** (superado en el modelo y en el tamaño de la ola por «Olas con Max», abajo, 2026-11-27). Opus 5.5
+    para todo lo que decide (clasificar, arreglar, revisar); Fable no (sin margen). En la
     primera ola, Sonnet 5.5 en un solo lote D, a prueba: si el script de verla fallar y el revisor lo aprueban,
     queda para los lotes simples. La 189: 4 de solo lectura, y el orquestador lee TODA bajada propuesta. Las olas:
     3 que escriben y 1 revisor; a 4 o 5 si la primera sale sin caídas por carga ni conflictos. Una sola ola grande
@@ -660,6 +666,109 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
       medido en vivo). Con 6, 0 a 1,0 y 8 a 2,0. Un aviso largo tapa más arriba: pendientes en vivo.
     - **`R9-601`:** ante una lectura fallida, el store no escribe y devuelve vacío, sin relanzar al llamador. Por qué:
       los cuatro llamadores no tienen `.catch`; relanzar daría un rechazo sin manejar. La pantalla vacía: `R9-641`.
+  - **Olas con Max (Victor, 2026-11-27: contrató Max x5).** Fable 5.2 vuelve para lo que decide: los carriles de
+    datos y de cuentas, los revisores, y como principal en las sesiones de ola. El resto de los agentes, Opus 5.5. El
+    cierre de una ola, con Opus 5.5 y esfuerzo `medium`. Medido en la 191: 8 que escriben y 4 revisores Fable
+    agotaron la ventana de 5 h en unas 2 h. Por eso: los que escriben en una ventana (dos lotes de 4), y los
+    revisores en la siguiente, de a dos. Todo agente escribe su avance en disco desde el principio. Victor no quiere
+    gastar los reinicios gratis de la ventana sin decirlo él.
+  - **Decisiones por defecto de la ola 2 (la 191; Victor puede cambiarlas).** Las de dinero no van aquí (abajo).
+    - **Lector (`R9-57`):** la guarda del atrás va en `onRequestClose` de la hoja (el atrás lo recibe el Modal, S138).
+      Borrar manda una lápida con confirmación, como Notas. «Sucio» es el borrador recortado distinto del texto con
+      que abrió. El salto por chip sigue guardando y cerrando sin preguntar. Por qué: el mismo trato que Notas.
+    - **`R9-566`:** sin claves nuevas; un color fuera de la paleta se nombra por su hex. Por qué: no hay nombre.
+    - **`R9-525`:** las cinco pantallas leen la versión del proveedor también al montar. Sin elección guardada usan
+      la del proveedor, no RVR1960; la recarga muestra el spinner completo; «Memorizar» en la Luz diaria archiva la
+      versión del texto en pantalla. Por qué: una sola fuente de la versión.
+    - **`R9-482`:** la guarda no se limpia tras el éxito. Por qué: limpiarla reabre el hueco durante la salida.
+    - **`R9-648`:** el debounce se empuja (flush), no se cancela. Por qué: cancelar perdería un pendiente de otro
+      pasaje.
+    - **`R9-508`:** pasado el tope, bloquear y avisar en vez de recortar; los topes no suben. Por qué: una app vieja
+      no decodificaría un paquete más grande.
+    - **`R9-509`:** solo cambiar el nombre conserva los días; cambiar ritmo o pasajes rearma el plan. Por qué: el
+      plan es otro. Su costo, el progreso por número de día, es `R9-653` (P2).
+    - **`R9-512`:** la clave del enlace es `n` y `v` no sube (una app vieja la ignora y lee la duración por
+      defecto); el código lleva la duración como 4.ª parte, solo unida con guion (una app vieja lo rechaza). Una
+      palabra detrás del código lo invalida, sin caer a la duración por defecto. Por qué: con la duración por
+      defecto, enlace y código son los de antes. Alternativa (revisor B, H2): subir `v` solo cuando viaja `n`.
+    - **`R9-510`:** un valor bajo el mínimo espera al blur; uno sobre el máximo se acota. **`R9-542`:** el texto
+      visible es el label y la acción va al hint. Por qué: lo que se oye coincide con lo que se ve.
+    - **`R9-558`:** el reset conserva los packs y borra solo las versiones que vienen con la app; ya no repara un
+      pack corrupto (Quitar y Descargar); el diálogo cambió en los dos idiomas. Por qué: no pierde nada descargado.
+    - **`R9-470`:** se salta todo nombre heredado del prototipo, no una lista de tres. **`R9-557`:** «nada
+      restaurado» va en un toast de error, sin diálogo; no se rechaza por `app.package`. **`R9-529`:** sin retener
+      escrituras durante la relectura. Por qué: lo mínimo que cierra cada uno.
+    - **El mazo (`R9-475`, `R9-496`):** el arreglo va en el contexto; las cartas viejas con nombre en español no se
+      renombran. Por qué: su clave es el id del documento en la nube.
+    - **`R9-456`:** un velo de la tinta oscura del tema al 40 % bajo la fila; las etiquetas pierden su alfa de 0,75.
+      Por qué: elegir solo la tinta no alcanzaba (la oscura falla en 64 de 65 degradados); con 35 %, forest de mañana
+      da 4,45.
+    - **`R9-426`:** el corte del avanzador mira solo señales positivas (oculto, pausado o sonando), y un arranque
+      directo abre una corrida nueva. Su resto es `R9-654`. **`R9-477`:** el script expone `parseStep` y corre
+      `main()` solo como script.
+    - **Cuentas y sync:** `R9-158`, el reclamo fallido vive en memoria (el disco es lo que falló; el resto, en su
+      entrada); `R9-134`, el sembrado sigue sin estricto (medido inocuo); `R9-26`, el rearme se mueve, no se duplica
+      (duplicado dejaba pasar un segundo `signInAnonymously`); `R9-646`, la regla va antes de la rama de la escritura
+      en cola (el trato de `R9-164`); `R9-645`, saltar en vez de leer en paralelo (no cambia el orden de ninguna
+      lectura; su costo es `R9-657`).
+    - **El dinero (carril 8) no rige por defecto** (arriba, «Nunca por defecto»): queda en el código y Victor lo ve
+      antes de publicar. `R9-20`, el regex laxo (A-Z0-9, como `formatCodeInput`); `R9-620`, los plazos (20, 15 y 30 s;
+      packs sin tope total); `R9-576`, la guarda no se suelta al cerrar (soltarla puede cobrar dos veces); `R9-418`,
+      lo que toca el dinero queda fuera del scroll. El «re-grant permanente» y el significado de `redeemed` siguen
+      abiertos en `R9-651` (§8).
+  - **Decididas por Victor el 2026-11-27.** **`R9-21`: un código reservado no se libera nunca** (pregunta directa en
+    el chat). Un código cuyo grant fue rechazado queda atado a la cuenta que lo intentó; esa cuenta reintenta y lo
+    recibe; otra cuenta, 409. **Liberarlo a mano:** tras comprobar en RevenueCat que esa cuenta no tiene el
+    entitlement, en `giftCodes/<código>` poner `redeemed: false`, y `redeemedByUid` y `redeemedAt` en `null`.
+  - **Decididas por el orquestador con la delegación de Victor del 2026-11-27** («del cuello de botella lo dejo a tu
+    mejor criterio»; Victor puede cambiarlas):
+    - **`R9-126`, opción B: «a la cuenta».** Restaurar un respaldo lleva lo restaurado a la cuenta (el import
+      reestampa `updatedAt`). Por qué: era la recomendación de la 154 (`detail/S154-arreglos-v2.md` §6); el usuario
+      que restaura espera verlo en sus otros aparatos.
+    - **`R9-410` y `R9-411` entran en la 192.**
+    - **`R9-562` pasa a P1** y entra en la 192. Por qué: pierde texto que el usuario escribió (la nota), sin
+      confirmar ni deshacer. No es P0 porque media un gesto de quitar; `R9-44`, el mismo dato, fue P0 en la 6.
+  - **Decididas por el orquestador con la delegación de Victor del 2026-11-27, al cerrar la 191** («con respecto a lo
+    que me espera a mí, lo dejo a tu mejor criterio»; Victor puede cambiarlas):
+    - **`R9-477`, la regla del corchete: se acepta, acotada al griego.** Por qué: es la referencia inglesa que trae la
+      propia fuente, y el revisor D la comprobó en los 38 grupos contra la semilla, en RVR1960 y en WEB. No se
+      inventa ni se mueve ninguna palabra. La 192 (carril 17) la acota a `lang === 'G'`, corrige el comentario,
+      reconstruye el pack y mide (sin aborto, `total` 235 más alto, ninguna clave duplicada). Republicarlo en Pages va
+      por la autorización durable (abajo, punto 2), con sus condiciones (`R9-483`: deja viejos los packs instalados).
+    - **El corazón de Home avisa al quitar un favorito** (un toast, como el del lector; `R9-658`). Por qué: quita la
+      categoría y las colecciones con el favorito, y el mismo gesto en el lector ya avisa. Carril 17.
+    - **El par de cartas ya duplicado en el mazo: no se borra nada de la nube** (`R9-659`). Las dos cartas se tratan
+      como una al leer (la misma identidad de versículo). Por qué: borrar un documento de la nube nunca va por
+      defecto, y no se pierde carta. P3, sin carril todavía.
+    - **El orden de publicación es regla** (`RECETAS.md`, «Publicar»): ninguna versión de la app con los plazos de
+      `R9-620` se publica sin desplegar antes `vercel/gift-code-redeem` y sin mirar la hoja de ofrenda en el
+      emulador. El despliegue va por la autorización durable
+      (abajo, punto 1), con su comprobación previa.
+    - **La cuenta de Google de prueba (`R9-135`) la crea la sesión de emulador con Victor presente** (Victor,
+      2026-11-28: «también ocupo que me ayudes con eso»). Victor dicta nombre y fecha de nacimiento, y da el número y
+      el SMS en ese momento; la contraseña la teclea él en el navegador. Ni la contraseña ni el número pasan a un
+      archivo, a la memoria ni a un commit.
+  - **Autorización durable de Victor (2026-11-27: «yo te doy la autorización para lo de las credenciales y todo»).**
+    Cuatro acciones hacia afuera, y solo esas, cada una con su condición. Reemplaza, para ellas, el «cada paso en vivo
+    pide el OK de Victor» de la 189. Fuera de la lista rigen las reglas de siempre: merge y push con su OK, nada con
+    dinero real, no borrar datos, colecciones ni cuentas, nunca su teléfono.
+    1. **Desplegar `vercel/gift-code-redeem` en producción**, tras el merge a `main` con CI verde, y solo si antes pasa
+       esta comprobación (una sonda de jest sin commitear): el cliente VIEJO (`git show
+b54ac0fa:src/lib/offering/giftCodeService.ts`) contra el handler NUEVO da lo mismo que hoy en canje bueno,
+       código inexistente, código ya canjeado por otro y código mal formado. Si una celda empeora para el usuario, no
+       se despliega y se le dice. Desde `vercel/gift-code-redeem`, `npx vercel --prod` (enlazado en
+       `.vercel/project.json`; sin sesión, Victor corre `! npx vercel login`). Sin tocar variables de entorno. Después,
+       una llamada de humo con un código MAL FORMADO y sin token (400 o 401), nunca un código real. Se anotan la URL y
+       el id del despliegue anterior, para `npx vercel rollback`.
+    2. **Republicar el pack de originales en Pages**, solo reconstruido y MEDIDO (sin aborto, `total` 235 más alto,
+       ninguna clave duplicada, 2 Co 13:13-14 y Fil 1:16-17 con palabras), tras leer ENTERA la memoria
+       `reference_essb-github-pages-pack-publishing` y la entrada `R9-483`. Si deja sin originales a quien ya tiene el
+       pack instalado, se para y se le pregunta.
+    3. **La consola de Firebase, para `R9-4` y `R9-136`:** leer las reglas vivas y versionarlas; App Check SOLO en
+       monitoreo; un cambio de reglas se publica solo tras pasar contra la app real en el emulador, con el release
+       anterior anotado. Nunca «enforce» de App Check ni reglas más estrictas sin esa medida.
+    4. **La cuenta de Google de prueba (`R9-135`):** la crea la sesión de emulador con Victor presente (arriba); con
+       ella, tester de licencias en Play Console, la cuenta en el AVD y la medición. Sin compras con dinero real.
 
 - **El flujo de trabajo, desde la sesión 153 (Victor, 2026-11-16: «apliquemos todo lo que nos convenga», tras el
   video de los 7 principios de Karpathy; el análisis está en `detail/S152-arreglos-pruebas.md` §10).**
@@ -1053,17 +1162,13 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
 
 ## 8. Decisiones abiertas para Victor (no son bugs)
 
-- **Las familias de `R9-430` y `R9-474` (sesión 190):** el arreglo de la búsqueda (`7a39e815`) y el de la cabecera
-  (`R9-478`, `0a8fbfd9`) están hechos, pero `R9-486`, `R9-521` y `R9-525` (fusionados en `R9-430` en la 185) y `R9-482`
-  (en `R9-474`) piden archivos de fuera del carril 3. **Recomendado:** terminarlas en la ola 2 con un cuarto agente
-  (carril 3b: sus archivos no tocan los carriles 4, 5 y 6, y la ola 1 salió limpia). Alternativa: reabrirlas como P3
-  propios y cerrar ya `R9-430` y `R9-474` (P1 + P2 bajaría a 42). Hasta que Victor diga, los dos quedan EN PARTE.
-
-- **La severidad de `R9-562` (sesión 138):** la ✕ del selector de colores del lector borra el subrayado con su nota
-  y su categoría, sin confirmar ni deshacer (medido dos veces y re-verificado). Está en P2 PROPUESTO porque media un
-  gesto de quitar; pero la regla dice P0 para la pérdida irrecuperable de datos del usuario, y `R9-44` (el mismo dato,
-  el mismo selector) fue P0 en la 6. **P2, P1 o P0: lo decide Victor.** Hasta entonces, «ningún P0 abierto» vale con
-  esa salvedad.
+- **Lo que pide a Victor en persona (sesión 191):** estar presente cuando la sesión de emulador cree la cuenta de
+  Google de prueba (`R9-135`: dicta nombre y fecha, da el número y el SMS, teclea la contraseña), y un
+  `! npx vercel login` si la CLI no tiene sesión. El resto de lo de afuera va por la autorización durable (§7).
+- **`R9-651`, celda 15 (dinero, sesión 191):** un código canjeado cuyo entitlement Victor revocó a mano en RevenueCat,
+  ¿vuelve a dar premium a su cuenta si reintenta? Hoy sí (el «re-grant permanente» de `84c79ab9`); antes daba 409.
+  **Recomendado: no.** Revocar es una decisión de Victor y el reintento la deshace. El arreglo: un campo «entregado»
+  tras el grant, que además deja al script distinguir reservado de entregado.
 
 - **El tope de cuota del piso de no asentados (`R9-39`, sesión 24):** mientras un conflicto siga
   sin resolver, cada enganche de esa colección vuelve a leer desde su piso. ¿Se le pone un tope,
@@ -1110,10 +1215,7 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
     quita el step? Recomendación de Claude: quitarlo; un verde que no mide confunde.~~ **Decidido en la 189: quitarlo (§7).**
   - **`R9-136`, la cuota compartida de Firestore:** la entrada lo llama bloqueante antes del lanzamiento. Las
     mitigaciones (App Check, y un tope y la lista de colecciones en las reglas) tocan la consola de Firebase.
-    **La 189 aprobó la dirección (§7);** cada paso en vivo sigue pidiendo el OK de Victor.
-- **`R9-126`, opción B (sesión 154):** «Restaurar» un respaldo, ¿lleva lo restaurado a la cuenta (el import
-  reestampa `updatedAt` y la nube queda con el respaldo) o solo a este teléfono (la nube no cambia)? Recomendación
-  de Claude: «a la cuenta». `detail/S154-arreglos-v2.md` §6.
+    **La 189 aprobó la dirección (§7);** desde el 2026-11-27, los pasos van por la autorización durable (§7, punto 3).
 
 ## 9. Abierto, sin relación con la revisión
 

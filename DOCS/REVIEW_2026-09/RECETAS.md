@@ -42,3 +42,8 @@ APK debug en un AVD, nunca el teléfono de Victor; no más de 2 emuladores. Ayud
 `tap`, `seq`, `leer`, `frio`, `burst`, `link`). Coordenadas físicas (1280×2856) sacadas de `uiautomator dump`, no a
 ojo; rutas con `eternalbible://`; el estado real se lee del disco (`leer`); un toast, con `burst` antes del toque.
 La receta larga: la memoria `reference_essb-device-testing-and-automation`.
+
+## Publicar
+
+Desde la 191: nada con los plazos de `R9-620` sin desplegar antes `vercel/gift-code-redeem` (§7, autorización durable) y mirar la hoja
+de ofrenda en el emulador.
