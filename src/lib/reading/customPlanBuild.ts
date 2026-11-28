@@ -135,6 +135,27 @@ export function inferPerDay(days: CustomReading[][]): number {
 }
 
 /**
+ * R9-509 — the pace that rebuilds EXACTLY these days, to pre-fill the editor:
+ * "chapters per day" for a per-day plan, "number of days" for an even
+ * `totalDays` split (where {@link inferPerDay} alone gave fewer days and
+ * shifted every chapter). Neither fits an irregular layout (an imported
+ * plan): falls back to {@link inferPerDay}.
+ */
+export function inferPace(days: CustomReading[][]): PlanPace {
+  const chapters = days.flat();
+  const target = JSON.stringify(days);
+  const perDay: PlanPace = {mode: 'perDay', chaptersPerDay: inferPerDay(days)};
+  if (JSON.stringify(distributeChapters(chapters, perDay)) === target) {
+    return perDay;
+  }
+  const totalDays: PlanPace = {mode: 'totalDays', days: days.length};
+  if (JSON.stringify(distributeChapters(chapters, totalDays)) === target) {
+    return totalDays;
+  }
+  return perDay;
+}
+
+/**
  * End-to-end: ordered passages + pace + name → a shareable custom-plan bundle.
  * The bundle's own caps still apply, so an over-long plan is clamped, not
  * rejected.

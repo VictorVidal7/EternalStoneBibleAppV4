@@ -42,13 +42,14 @@ import {
   MAX_PLAN_DAYS,
   MAX_PLAN_READINGS,
   makeCustomPlanBundle,
+  type CustomReading,
 } from '@lib/together';
 import {
   countChapters,
   daysToPassages,
   distributeChapters,
   exceedsPlanCaps,
-  inferPerDay,
+  inferPace,
   passagesToChapters,
   type PlanPace,
   type PlanPassage,
@@ -141,16 +142,29 @@ export default function PlanBuilderScreen() {
   // useState initializers, and reconstructs the editor passages from the saved
   // days (which is all a custom plan stores).
   const prefilled = useRef(false);
+  // R9-509 — the edited plan's own days and the editor values they were
+  // pre-filled into: while passages and pace stay untouched (only the name
+  // changed), those days are saved as they are, so progress keeps pointing at
+  // the chapters actually read.
+  const original = useRef<{
+    days: CustomReading[][];
+    passages: PlanPassage[];
+    pace: PlanPace;
+  } | null>(null);
   useEffect(() => {
     if (!editId || prefilled.current) return;
     const plan = getCustomPlanById(editId);
     if (!plan) return;
     prefilled.current = true;
     const days = bundleFromCustomPlan(plan).d;
+    const prefillPassages = daysToPassages(days);
+    const prefillPace = inferPace(days);
+    original.current = {days, passages: prefillPassages, pace: prefillPace};
     setName(plan.name);
-    setPassages(daysToPassages(days));
-    setPaceMode('perDay');
-    setPerDay(inferPerDay(days));
+    setPassages(prefillPassages);
+    setPaceMode(prefillPace.mode);
+    if (prefillPace.mode === 'perDay') setPerDay(prefillPace.chaptersPerDay);
+    else setTotalDays(prefillPace.days);
   }, [editId, getCustomPlanById]);
 
   // Add-passage modal state.
@@ -173,11 +187,19 @@ export default function PlanBuilderScreen() {
   const totalChapters = useMemo(() => countChapters(passages), [passages]);
   // The days that will be saved — the preview, the button and `onCreate` all
   // read this one value.
-  const draftDays = useMemo(
-    () => distributeChapters(passagesToChapters(passages), pace),
+  const draftDays = useMemo(() => {
+    const o = original.current;
+    const untouched =
+      o !== null &&
+      passages === o.passages &&
+      paceMode === o.pace.mode &&
+      (o.pace.mode === 'perDay'
+        ? perDay === o.pace.chaptersPerDay
+        : totalDays === o.pace.days);
+    if (untouched) return o.days;
+    return distributeChapters(passagesToChapters(passages), pace);
     // pace is rebuilt each render; its fields are the real signals.
-    [passages, paceMode, perDay, totalDays],
-  );
+  }, [passages, paceMode, perDay, totalDays]);
   const dayCount = draftDays.length;
   // R9-508 — the bundle caps would cut such a plan short without a word (the
   // preview promised 1189 days, 400 were saved): block it and say why.
