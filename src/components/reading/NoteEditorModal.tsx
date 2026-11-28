@@ -61,6 +61,7 @@ import {
 import {parseNoteMarkdownRanges} from '@lib/notes/noteMarkdownRanges';
 import {NoteImageModal} from './NoteImageModal';
 import {ConfirmDialog} from '../ui/ConfirmDialog';
+import {ToastHost} from '@context/ToastLayer';
 import {staticColors} from '../../styles/designTokens';
 import {
   borderRadius,
@@ -378,6 +379,10 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
         onCancel={() => setConfirmDelete(false)}
         destructive
       />
+      {/* The reader fires its toasts (notes.saveError, notes.deleteError)
+          with this sheet open: without a host here they draw behind it, in
+          the main window (R9-560, R9-642). */}
+      <ToastHost />
     </Modal>
   );
 };
