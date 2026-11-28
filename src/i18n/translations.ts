@@ -5776,7 +5776,7 @@ export const translations = {
       previewEmpty: 'Añade pasajes para ver el plan',
       preview: '{{days}} días · {{chapters}} capítulos',
       tooLong:
-        'Este plan es demasiado largo para guardarse entero: admite hasta {{days}} días, {{perDay}} capítulos por día y {{total}} capítulos en total. Cambia el ritmo o quita pasajes.',
+        'Este plan es demasiado largo para guardarse entero: un plan admite hasta {{days}} días, {{perDay}} capítulos por día y {{total}} capítulos en total. Cambia el ritmo o quita pasajes.',
       create: 'Crear y empezar',
       editTitle: 'Editar plan',
       save: 'Guardar cambios',
@@ -12346,7 +12346,7 @@ export const translations = {
       previewEmpty: 'Add passages to preview the plan',
       preview: '{{days}} days · {{chapters}} chapters',
       tooLong:
-        'This plan is too long to be saved in full: it allows up to {{days}} days, {{perDay}} chapters per day and {{total}} chapters in all. Change the pace or remove passages.',
+        'This plan is too long to be saved in full: a plan allows up to {{days}} days, {{perDay}} chapters per day and {{total}} chapters in all. Change the pace or remove passages.',
       create: 'Create and start',
       editTitle: 'Edit plan',
       save: 'Save changes',
