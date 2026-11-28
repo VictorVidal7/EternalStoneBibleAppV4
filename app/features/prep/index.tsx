@@ -465,6 +465,9 @@ export default function PrepTableScreen() {
   // R9-478 — the language of the version `load()` resolved: the passage label
   // follows the text on screen, not the reading version of the moment.
   const [loadedLang, setLoadedLang] = useState<'es' | 'en' | null>(null);
+  // R9-647 — the version `load()` resolved, the one whose text is on
+  // screen: «Modo púlpito» forwards it.
+  const loadedVersionRef = useRef<string | null>(null);
   const [copied, setCopied] = useState(false);
   // T8.4.5 — PDF export (premium): a separate in-flight flag from `copied`
   // since printToFileAsync + shareAsync are real async I/O, not a clipboard
@@ -687,6 +690,7 @@ export default function PrepTableScreen() {
       setTemplate(saved.template ?? DEFAULT_PREP_TEMPLATE);
       setVersionLabel(versionAbbrev(version));
       setLoadedLang(lang);
+      loadedVersionRef.current = version;
       hasLoadedRef.current = true;
       setStatus('ready');
     } catch (err) {
@@ -1178,9 +1182,16 @@ export default function PrepTableScreen() {
     // (e.g. deep link with no version param + English UI: Mesa shows
     // RVR1960 via its own fallback, pulpit would show WEB via its own).
     // Forwarding the resolved version unconditionally closes that gap.
+    //
+    // R9-647 — the version `load()` resolved, not a new read at the tap:
+    // with the Mesa opened without `version` and the reading version
+    // changed in the reader since, the read gave the new one, and the
+    // pulpit opened in it under a Mesa still in the old one. (The read is
+    // left for a tap before any load landed; the button shows only after.)
     let version: string;
     try {
-      version = await resolveVersion(params.version);
+      version =
+        loadedVersionRef.current ?? (await resolveVersion(params.version));
     } catch (error) {
       // R9-474 — a failed read is no navigation: the Mesa stays and the next
       // tap retries. (It used to be an unhandled rejection of the onPress.)
@@ -1378,8 +1389,8 @@ export default function PrepTableScreen() {
     : '';
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
-  // Topic suggester — a display label for a suggested ref, same language
-  // convention as `passageLabel` above ("Juan 3:16" for an 'es' reader).
+  // Topic suggester — a display label for a suggested ref, in the reading
+  // version's language (`bookLang`: "Juan 3:16" for an 'es' reader).
   // Falls back to the raw canonical ref on the defensive parse-miss path
   // (kept in step with handleOpenTopicSuggestion's own guards).
   const formatSuggestionLabel = useCallback(
