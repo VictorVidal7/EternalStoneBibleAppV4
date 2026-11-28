@@ -124,6 +124,9 @@ export const OriginalLanguagesSheet: React.FC<Props> = ({
   useEffect(() => {
     let cancelled = false;
     if (!visible || sourceVerse == null) return;
+    // R9-435 — a read for the previous verse still in flight is disowned now,
+    // not only when this verse's own read starts (after the install check).
+    loadRunRef.current++;
     setExpanded(null);
     setLex(null);
     setStatus('loading');

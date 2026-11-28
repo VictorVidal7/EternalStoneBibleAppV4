@@ -55,6 +55,9 @@ const mockState = {
   // verse -> pending resolver, when that verse's read is gated
   gated: new Set<number>(),
   pending: new Map<number, () => void>(),
+  // when set, isOriginalsInstalled waits for this gate
+  gateInstalled: false,
+  releaseInstalled: null as null | (() => void),
 };
 jest.mock('../src/lib/database/originals-download-service', () => ({
   downloadAndImportOriginals: jest.fn(
@@ -83,7 +86,13 @@ jest.mock('../src/features/study/originals', () => {
   const actual = jest.requireActual('../src/features/study/originals');
   return {
     ...actual,
-    isOriginalsInstalled: jest.fn(async () => mockState.installed),
+    isOriginalsInstalled: jest.fn(
+      () =>
+        new Promise(res => {
+          if (!mockState.gateInstalled) return res(mockState.installed);
+          mockState.releaseInstalled = () => res(mockState.installed);
+        }),
+    ),
     getVerseOriginal: jest.fn(
       (_b: string, _c: number, v: number) =>
         new Promise(res => {
@@ -132,6 +141,8 @@ beforeEach(() => {
   mockState.resolveDownload = null;
   mockState.gated.clear();
   mockState.pending.clear();
+  mockState.gateInstalled = false;
+  mockState.releaseInstalled = null;
 });
 
 it('control: the download ends with the sheet open on the same verse', async () => {
@@ -173,6 +184,29 @@ it('a read for the previous verse that lands late does not paint over the curren
   await flush();
   expect(seen()).toMatchObject({ref317: true, word17: true});
   await act(async () => mockState.pending.get(16)!());
+  await flush();
+  expect(seen()).toEqual({
+    ref316: false,
+    ref317: true,
+    word16: false,
+    word17: true,
+  });
+});
+
+it('a late read for the previous verse is dropped while the new verse is still checking the pack', async () => {
+  mockState.installed = true;
+  mockState.gated.add(16);
+  const view = render(sheet(true, 16));
+  await flush();
+  expect(mockState.pending.has(16)).toBe(true);
+  mockState.gateInstalled = true;
+  view.rerender(sheet(true, 17));
+  await flush();
+  expect(mockState.releaseInstalled).not.toBeNull();
+  await act(async () => mockState.pending.get(16)!());
+  await flush();
+  expect(seen()).toMatchObject({ref317: true, word16: false});
+  await act(async () => mockState.releaseInstalled!());
   await flush();
   expect(seen()).toEqual({
     ref316: false,
