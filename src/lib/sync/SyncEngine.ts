@@ -180,12 +180,17 @@ function tombstoneEntity(lastKnownData?: object): SyncEntity<object> {
   };
 }
 
+/** R9-645 — the name of the error `withDeadline` rejects with when the time
+ *  ran out: no answer at all, which a rejection of the promise is not. */
+const DEADLINE_ERROR_NAME = 'SyncDeadlineError';
+
 function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`no answer after ${ms} ms`)),
-      ms,
-    );
+    const timer = setTimeout(() => {
+      const err = new Error(`no answer after ${ms} ms`);
+      err.name = DEADLINE_ERROR_NAME;
+      reject(err);
+    }, ms);
     promise.then(
       value => {
         clearTimeout(timer);
@@ -2093,6 +2098,17 @@ export class SyncEngine {
         this.forgetOwnStamps(adapter.collection, id);
       }
     };
+    // R9-645 — a read of this batch got no answer within the deadline. The
+    // held docs after it in the batch are not read: each one waited its own
+    // deadline, one after another (the docs an attach reads, R9-164 and
+    // R9-186: N x 60 s with the batches behind waiting), and behind a read
+    // that does not come back the next ones do not either (one executor on
+    // RNFirebase, R9-177). They count as a failed read at once, which for a
+    // held doc changes nothing: it stays held and the next attach reads it
+    // (R9-186, R9-646). Only held ones: any other doc's failed read settles
+    // it for good, so its read is still tried. Only on the deadline: a read
+    // that was rejected had an answer, and says nothing of the next.
+    let lookupTimedOut = false;
     try {
       for (const change of changes) {
         // Decode the Firestore doc id back to the logical id (see toDocId):
@@ -2127,16 +2143,24 @@ export class SyncEngine {
           // stays outside `withLocalWriteSuppressed`, so an edit of this doc
           // meanwhile is still queued.
           let current: DocumentSnapshot | null = null;
+          // R9-645 — see `lookupTimedOut`.
+          const notRead =
+            lookupTimedOut && this.unsettledOf(adapter.collection).has(id);
           try {
             // R9-175 — with the batches in a chain, a read that never came
             // back would hold every later batch of this collection until
             // `stop()`. Past the deadline it counts as a failed read; its
             // answer, if it ever comes, is dropped.
-            current = await withDeadline(
-              lookup(change.doc.id),
-              this.lookupTimeoutMs,
-            );
+            if (!notRead) {
+              current = await withDeadline(
+                lookup(change.doc.id),
+                this.lookupTimeoutMs,
+              );
+            }
           } catch (err) {
+            if (err instanceof Error && err.name === DEADLINE_ERROR_NAME) {
+              lookupTimedOut = true;
+            }
             logger.warn(
               'SyncEngine: could not tell a removed doc from a deleted one — ' +
                 'leaving the local copy alone',

@@ -6746,6 +6746,169 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       engine.stop();
     });
 
+    // R9-645 — los retenidos sin nombrar se leen en serie, en la cadena de la
+    // coleccion, cada uno con su plazo: con lecturas que no vuelven, el
+    // enganche esperaba N plazos (N x 60 s), y los lotes de detras con el. En
+    // RNFirebase las lecturas van por un solo hilo (R9-177): detras de una
+    // colgada, las demas tampoco vuelven.
+    it('R9-645: con lecturas que no vuelven, el enganche espera UN plazo y no uno por retenido; nada se suelta y el arranque sano los lee todos', async () => {
+      const uid = 'uid-645-plazo';
+      const T = Date.now() - HOUR;
+      const PLAZO = 150;
+      const ids = ['doc-1', 'doc-2', 'doc-3'];
+      // Tres docs del otro telefono que este salto (R9-46), retenidos en
+      // disco; en la nube quedaron bajo el piso, asi que el servidor no los
+      // nombra y el enganche los lee.
+      const marcas = Object.fromEntries(
+        ids.map((id, i) => [id, T + 60_000 + i * 1000]),
+      );
+      await AsyncStorage.setItem(
+        unsettledStorageKey('test', uid),
+        JSON.stringify(marcas),
+      );
+      (
+        mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+          __fire: (c: unknown[]) => void;
+        }
+      ).__fire(
+        ids.map(id => ({
+          type: 'added',
+          doc: {
+            id,
+            exists: true,
+            data: () => ({value: `nube ${id}`, updatedAt: T - DAY}),
+          },
+        })),
+      );
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      const {adapter, localStore} = makeAdapter();
+      const engine = new SyncEngine();
+      engine.register(adapter);
+      engine.__setLookupTimeoutForTests(PLAZO);
+      mockGetGate = () => new Promise<void>(() => {}); // ninguna vuelve
+      const t0 = Date.now();
+      await engine.start(uid);
+      await settle();
+      // Un cambio en vivo: su lote espera detras de las lecturas del enganche.
+      write(uid, 'Y', {value: 'y', updatedAt: Date.now() - 1000});
+      await settle();
+      const yEsperaba = !localStore.has('Y');
+      const leidasAlEmpezar = docReads(uid);
+      while (!localStore.has('Y') && Date.now() - t0 < 20 * PLAZO) {
+        await new Promise(r => setTimeout(r, 10));
+      }
+      const plazos = (Date.now() - t0) / PLAZO;
+      const colgada = {
+        lecturas: docReads(uid),
+        retenidos: (await persisted(uid)).unsettled,
+        y: localStore.get('Y')?.value,
+      };
+      engine.stop();
+      // Otro proceso, con la red sana (la lectura colgada ya no ocupa el hilo).
+      mockGetGate = null;
+      mockExecutorTail = Promise.resolve();
+      const otro = new SyncEngine();
+      otro.register(adapter);
+      await otro.start(uid);
+      await settle();
+
+      // Sin R9-645: lecturas 3 con la red colgada (y unos 3 plazos de espera).
+      expect({
+        yEsperaba, // CONTROL: la cadena estaba ocupada por la lectura
+        leidasAlEmpezar, // CONTROL: la primera lectura salio y no volvio
+        colgada,
+        sana: {
+          lecturas: docReads(uid) - colgada.lecturas,
+          local: ids.map(id => localStore.get(id)?.value),
+          retenidos: (await persisted(uid)).unsettled,
+        },
+      }).toEqual({
+        yEsperaba: true,
+        leidasAlEmpezar: 1,
+        colgada: {lecturas: 1, retenidos: marcas, y: 'y'},
+        sana: {
+          lecturas: 3,
+          local: ids.map(id => `nube ${id}`),
+          retenidos: {},
+        },
+      });
+      // Menos de dos plazos: no se afirma un numero mas fino que eso.
+      expect(plazos).toBeLessThan(2);
+      otro.stop();
+    });
+
+    it('R9-645: una lectura RECHAZADA tuvo respuesta: las de los retenidos siguientes se intentan igual', async () => {
+      const uid = 'uid-645-rechazo';
+      const T = Date.now() - HOUR;
+      const ids = ['doc-1', 'doc-2', 'doc-3'];
+      const marcas = Object.fromEntries(
+        ids.map((id, i) => [id, T + 60_000 + i * 1000]),
+      );
+      await AsyncStorage.setItem(
+        unsettledStorageKey('test', uid),
+        JSON.stringify(marcas),
+      );
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      const {adapter} = makeAdapter();
+      const engine = new SyncEngine();
+      engine.register(adapter);
+      mockGetShouldFail = true;
+      await engine.start(uid);
+      await settle();
+      await settle();
+
+      expect({
+        lecturas: docReads(uid),
+        retenidos: (await persisted(uid)).unsettled,
+      }).toEqual({lecturas: 3, retenidos: marcas});
+      engine.stop();
+    });
+
+    it('R9-645: tras un plazo vencido, la lectura de un doc que NO esta retenido se sigue intentando', async () => {
+      // Para un doc sin retener, una lectura fallida lo da por asentado para
+      // siempre: saltarla sin intentarla perdia un borrado o un respaldo.
+      const uid = 'uid-645-sin-retener';
+      const T = Date.now() - HOUR;
+      const PLAZO = 40;
+      const {engine, localStore} = await engineFor(uid, T, false);
+      write(uid, 'X', {value: 'x', updatedAt: T + 60_000});
+      write(uid, 'Z', {value: 'z', updatedAt: T + 61_000});
+      await settle();
+      const aplicados = [localStore.has('X'), localStore.has('Z')];
+      engine.__setLookupTimeoutForTests(PLAZO);
+      mockGetGate = () => new Promise<void>(() => {});
+      // Los dos salen de la query en UN lote.
+      fireRemote(
+        uid,
+        ['X', 'Z'].map(id => ({
+          type: 'modified',
+          doc: {
+            id,
+            exists: true,
+            data: () => ({value: 'respaldo', updatedAt: T - DAY}),
+          },
+        })),
+      );
+      await settle();
+      await new Promise(r => setTimeout(r, 4 * PLAZO));
+      await settle();
+
+      expect({
+        aplicados, // CONTROL: estaban asentados, no retenidos
+        retenidos: (await persisted(uid)).unsettled, // CONTROL
+        removed: removedDelivered(uid), // CONTROL: los dos, por el listener
+        lecturas: docReads(uid),
+      }).toEqual({
+        aplicados: [true, true],
+        retenidos: {},
+        removed: ['X', 'Z'],
+        lecturas: 2,
+      });
+      engine.stop();
+    });
+
     it('R9-646: con una escritura mia del doc en cola tambien sigue retenido, y el eco de esa escritura lo asienta', async () => {
       // Donde va la regla: antes de la rama de la escritura en cola, como la
       // de los no nombrados. Despues de ella, este caso se soltaba en el acto.
