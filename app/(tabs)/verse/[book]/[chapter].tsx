@@ -1319,6 +1319,13 @@ export default function VerseReadingScreen() {
   const audioVersionResyncRef = useRef<string | null>(null);
   useEffect(() => {
     const loadedVersionId = audioState.contentVersionId;
+    // The re-sync landed (the engine reports the version on screen): release
+    // the latch, or a later switch back to this same version would be blocked
+    // as a "re-entry" and the voice would stay in the other version (R9-423).
+    // `loadChapter` tags the version in the same update as the verses.
+    if (loadedVersionId === selectedVersion.id) {
+      audioVersionResyncRef.current = null;
+    }
     if (
       !shouldResyncAudioToVersion({
         isAudioVisible,
