@@ -24,7 +24,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import {haptics} from '@lib/haptics';
 import bibleDB from '@lib/database';
-import {BibleVerse} from '@/types/bible';
+import {BibleVerse, Note} from '@/types/bible';
 import {getBookByName, getBookById, canonicalBookName} from '@/constants/bible';
 import {findProphecyForVerseKey} from '@/features/study/messianicProphecies';
 import {
@@ -311,6 +311,10 @@ export default function VerseReadingScreen() {
   // first selected verse peeked in another translation (S77 card idiom).
   const [showAlsoPanel, setShowAlsoPanel] = useState(false);
   const [noteText, setNoteText] = useState('');
+  // The stored note the sheet opened on (null for a new one): its text is the
+  // baseline the sheet compares the draft with before discarding, and its id
+  // is what the sheet's delete removes (R9-57).
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
   const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
   );
@@ -1102,6 +1106,33 @@ export default function VerseReadingScreen() {
     }
   }
 
+  // Delete the stored note from the sheet (R9-57) — the same steps as the
+  // Notes tab's confirmDelete: remove, then a tombstone carrying the verse
+  // identity for the sync. The sheet already asked for confirmation.
+  async function deleteNote() {
+    const target = editingNote;
+    if (!target) return;
+    haptics.tap();
+    try {
+      await bibleDB.removeNote(target.id);
+      getSyncEngine()?.queueDelete(
+        'notes',
+        target.id,
+        buildNoteRemotePayload(target),
+      );
+      setNoteModalVisible(false);
+      setNoteText('');
+      setEditingNote(null);
+      toast.success(t.notes.deleted);
+    } catch (err) {
+      logger.error('Error deleting note', err as Error, {
+        component: 'VerseReadingScreen',
+        action: 'deleteNote',
+      });
+      toast.error(t.notes.deleteError);
+    }
+  }
+
   // Auto-scroll a newly SELECTED verse clear of the floating selection
   // action bar (verse-selection-bar-blocking fix — Victor couldn't select
   // Números 6:26 because the bar visually covered it with no way to reach
@@ -1759,6 +1790,7 @@ export default function VerseReadingScreen() {
     } else {
       setNoteText('');
     }
+    setEditingNote(existingNote);
 
     setNoteModalVisible(true);
     clearSelection();
@@ -3603,6 +3635,8 @@ export default function VerseReadingScreen() {
           onChangeText={setNoteText}
           onSave={saveNote}
           onClose={() => setNoteModalVisible(false)}
+          initialValue={editingNote?.note ?? ''}
+          onDelete={editingNote ? () => void deleteNote() : undefined}
           onJump={() =>
             jumpStackRef.current.push({
               book,

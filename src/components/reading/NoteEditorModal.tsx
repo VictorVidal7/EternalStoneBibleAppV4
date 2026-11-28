@@ -60,6 +60,7 @@ import {
 } from '@/features/study/sermonNotes';
 import {parseNoteMarkdownRanges} from '@lib/notes/noteMarkdownRanges';
 import {NoteImageModal} from './NoteImageModal';
+import {ConfirmDialog} from '../ui/ConfirmDialog';
 import {staticColors} from '../../styles/designTokens';
 import {
   borderRadius,
@@ -85,6 +86,17 @@ export interface NoteEditorModalProps {
    * back-navigation stack) before this modal's own `router.push`.
    */
   onJump?: () => void;
+  /**
+   * The text the sheet opened with (the stored note, or '' for a new one).
+   * Closing with the X or the Android back while the draft differs from it
+   * asks before discarding (R9-57): the draft lives only in the parent's state.
+   */
+  initialValue?: string;
+  /**
+   * Deletes the stored note (after a confirm). Pass it only when the verse
+   * already has a stored note; without it there is no delete action (R9-57).
+   */
+  onDelete?: () => void;
 }
 
 export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
@@ -96,6 +108,8 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
   onSave,
   onClose,
   onJump,
+  initialValue = '',
+  onDelete,
 }) => {
   const {colors} = useTheme();
   const {t} = useLanguage();
@@ -109,6 +123,18 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
   const trimmed = value.trim();
   // Share-as-image (Sprint 70): a designer card of the verse + this note.
   const [shareVisible, setShareVisible] = useState(false);
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  // The X and the Android back (the Modal's onRequestClose wins over the
+  // reader's useBackHandlerStep, measured in S138) ask before dropping an
+  // edited draft. The chip jump below saves first and closes unguarded.
+  const requestClose = () => {
+    if (trimmed !== initialValue.trim()) {
+      setConfirmDiscard(true);
+      return;
+    }
+    onClose();
+  };
 
   // Must be a stable reference, not an inline object literal: MarkdownTextInput
   // re-derives its native style (JSON clone + processColor) and re-registers
@@ -168,7 +194,7 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}>
+      onRequestClose={requestClose}>
       {/* The input autofocuses, so the keyboard opens with the sheet: without
           this the field and SAVE sit under it (R9-561). Same shape as
           AddToCollectionSheet / RedeemCodeSheet. */}
@@ -202,8 +228,20 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
                   />
                 </TouchableOpacity>
               ) : null}
+              {onDelete ? (
+                <TouchableOpacity
+                  onPress={() => setConfirmDelete(true)}
+                  accessibilityRole="button"
+                  accessibilityLabel={t.notes.deleteNote}>
+                  <Ionicons
+                    name="trash-outline"
+                    size={22}
+                    color={colors.error}
+                  />
+                </TouchableOpacity>
+              ) : null}
               <TouchableOpacity
-                onPress={onClose}
+                onPress={requestClose}
                 accessibilityRole="button"
                 accessibilityLabel={t.close}>
                 <Ionicons name="close" size={24} color={colors.textSecondary} />
@@ -310,6 +348,36 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
           onClose={() => setShareVisible(false)}
         />
       </KeyboardAvoidingView>
+      {/* Both confirms live INSIDE this Modal, so they present over it, and
+        outside the focus-trapped sheet (accessibilityViewIsModal hides its
+        siblings from screen readers). */}
+      <ConfirmDialog
+        visible={confirmDiscard}
+        title={t.notes.discardTitle}
+        message={t.notes.discardMessage}
+        confirmLabel={t.notes.discardConfirm}
+        cancelLabel={t.notes.keepEditing}
+        onConfirm={() => {
+          setConfirmDiscard(false);
+          onClose();
+        }}
+        onCancel={() => setConfirmDiscard(false)}
+        destructive
+        icon="alert-circle-outline"
+      />
+      <ConfirmDialog
+        visible={confirmDelete}
+        title={t.notes.deleteTitle}
+        message={t.notes.deleteMessage}
+        confirmLabel={t.delete}
+        cancelLabel={t.cancel}
+        onConfirm={() => {
+          setConfirmDelete(false);
+          onDelete?.();
+        }}
+        onCancel={() => setConfirmDelete(false)}
+        destructive
+      />
     </Modal>
   );
 };
