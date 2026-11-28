@@ -523,3 +523,97 @@ describe('R9-647 — «Modo púlpito» opens in the version the Mesa loaded', ()
     expect(screen.getByText('version:KJV')).toBeTruthy();
   });
 });
+
+describe('R9-648 — after the bank, a blur or the pending debounce does not erase the illustration', () => {
+  /**
+   * Type in `application` and open the bank (its flush saves the text);
+   * insert there and come back with the Mesa's focus re-read of the notes
+   * HELD: the window where the drafts still hold the text from before.
+   * `typedAt` is the fake clock when the text was typed.
+   */
+  async function insertAndComeBackWithRereadHeld() {
+    await mountMesa();
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(p.sections.application.label),
+        HANDWRITTEN,
+      );
+    });
+    const typedAt = Date.now();
+    await pressLast(BANK_LABEL);
+    await screen.findByText('banco');
+    const realGet = prepNotesStore.getPrepNotes;
+    let release!: () => void;
+    const held = new Promise<void>(r => {
+      release = r;
+    });
+    const getSpy = jest
+      .spyOn(prepNotesStore, 'getPrepNotes')
+      .mockImplementation(async (key, options) => {
+        const result = await realGet(key, options);
+        if (getSpy.mock.calls.length > 1) await held;
+        return result;
+      });
+    await pressLast('insertar-ilustracion');
+    await screen.findByText('Juan 3:16');
+    await drain();
+    // Control: the re-read is held, the field still shows the old text, and
+    // storage has the illustration.
+    expect(getSpy.mock.calls.length).toBeGreaterThan(1);
+    expect(
+      screen.getByLabelText(p.sections.application.label).props.value,
+    ).toBe(HANDWRITTEN);
+    expect((await realGet(KEY)).sections.application).toBe(
+      `${HANDWRITTEN}\n\n${ILLUSTRATION}`,
+    );
+    return {release, realGet, typedAt};
+  }
+
+  it('a blur of the field in the window does not erase it', async () => {
+    const {release, realGet} = await insertAndComeBackWithRereadHeld();
+    await act(async () => {
+      fireEvent(screen.getByLabelText(p.sections.application.label), 'blur');
+    });
+    await drain();
+    // Pre-fix: the blur wrote HANDWRITTEN alone over it.
+    expect((await realGet(KEY)).sections.application).toBe(
+      `${HANDWRITTEN}\n\n${ILLUSTRATION}`,
+    );
+    await act(async () => {
+      release();
+    });
+  });
+
+  it('the save the debounce held before the bank does not fire after the insertion', async () => {
+    const {release, realGet, typedAt} = await insertAndComeBackWithRereadHeld();
+    // Control: the insertion came within the debounce's 700 ms.
+    expect(Date.now() - typedAt).toBeLessThan(700);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+    await drain();
+    // Pre-fix: the pending save wrote HANDWRITTEN alone over it.
+    expect((await realGet(KEY)).sections.application).toBe(
+      `${HANDWRITTEN}\n\n${ILLUSTRATION}`,
+    );
+    await act(async () => {
+      release();
+    });
+  });
+
+  it('control: a blur after a real edit still saves it', async () => {
+    await mountMesa();
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(p.sections.bigIdea.label),
+        'Idea editada',
+      );
+    });
+    await act(async () => {
+      fireEvent(screen.getByLabelText(p.sections.bigIdea.label), 'blur');
+    });
+    await drain();
+    // No timer advanced: the debounce has not fired; the blur saved it.
+    expect((await getPrepNotes(KEY)).sections.bigIdea).toBe('Idea editada');
+  });
+});

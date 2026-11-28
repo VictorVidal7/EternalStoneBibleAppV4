@@ -365,6 +365,10 @@ export default function PrepTableScreen() {
    * it. `null` until the first load has adopted a passage.
    */
   const draftsPassageKeyRef = useRef<string | null>(null);
+  /** R9-648 — pushes the debounced save still pending (see `flushDrafts`). */
+  const flushPendingSaveRef = useRef<() => Promise<void> | undefined>(
+    () => undefined,
+  );
   /**
    * R9-167 — what storage holds for the passage the drafts belong to, as far
    * as this screen knows: the notes it last read, plus every section it wrote
@@ -1096,6 +1100,12 @@ export default function PrepTableScreen() {
   // R9-52 — resolves `false` when a save failed (after the error toast): the
   // two buttons then stay here, with the drafts still on screen, instead of
   // opening a screen that reads the notes from storage without them.
+  //
+  // R9-648 — and the save the 700 ms debounce still holds goes out too,
+  // before the screen moves: left pending, it fired after an insertion made
+  // in the bank inside those 700 ms, and wrote the old text over the
+  // illustration. (`debouncedSaveNote` is declared further down; a ref
+  // reaches it.)
   const flushDrafts = useCallback(async (): Promise<boolean> => {
     if (!table) return false;
     const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
@@ -1113,6 +1123,9 @@ export default function PrepTableScreen() {
           markSectionSynced(passageKey, section, value, template);
         }),
       );
+      // After the drafts' own writes: a failed one returned above and left
+      // the pending save as it was. This one reports its own failure.
+      await flushPendingSaveRef.current();
       return true;
     } catch {
       reportSaveError();
@@ -1230,11 +1243,11 @@ export default function PrepTableScreen() {
       section: PrepSection,
       value: string,
       templateId: PrepTemplateId,
-    ) => {
+    ) =>
+      // Returned so `flushDrafts` can wait for it (R9-648); it never rejects.
       savePrepNote(passageKey, section, value, undefined, templateId)
         .then(() => markSectionSynced(passageKey, section, value, templateId))
-        .catch(reportSaveError);
-    },
+        .catch(reportSaveError),
     700,
   );
 
@@ -1244,7 +1257,13 @@ export default function PrepTableScreen() {
   // silently dropped. Flushing on unmount forces that queued save through —
   // savePrepNote is idempotent + serialized, so this is harmless even when
   // onBlur/handleOpenPulpit already saved the same value.
-  useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+  useEffect(
+    () => () => {
+      debouncedSaveNote.flush();
+    },
+    [debouncedSaveNote],
+  );
+  flushPendingSaveRef.current = () => debouncedSaveNote.flush();
   // R9-58 — the unmount flush above never runs when the process dies: the OS
   // kills an app in the background (swipe-away, low memory) without
   // unmounting anything, and while it sits there the debounce's timer does
@@ -1341,6 +1360,13 @@ export default function PrepTableScreen() {
       //     and typed for.
       if (value === undefined) return;
       const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+      // R9-648 — and an unchanged draft is no edit: the same rule as
+      // `flushDrafts` (R9-167). Back from the bank, a blur before the focus
+      // re-read landed wrote the text from before over the illustration.
+      const synced = syncedNotesRef.current;
+      const writeAll =
+        synced.key !== passageKey || synced.template === undefined;
+      if (!writeAll && synced.sections[section] === value) return;
       savePrepNote(passageKey, section, value, undefined, template)
         .then(() => markSectionSynced(passageKey, section, value, template))
         .catch(reportSaveError);
