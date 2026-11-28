@@ -224,20 +224,70 @@ describe('R9-21 — a grant never leaves the code available to a second account'
     expect(grantCalls()).toHaveLength(1);
   });
 
-  it('RevenueCat refuses the grant: 500, and the code goes back (never burned without the grant)', async () => {
+  it('RevenueCat refuses: the code stays bound to uid-1; uid-1 retries and gets it; uid-2 gets 409', async () => {
     fetchMock.mockResolvedValueOnce({
       ok: false,
       status: 503,
       text: async () => 'x',
     });
     expect((await post(CODE, 'uid-1')).status).toBe(500);
+    // Never released (Victor's decision): still uid-1's.
     expect(mockDocs.get(CODE)).toMatchObject({
-      redeemed: false,
-      redeemedByUid: null,
+      redeemed: true,
+      redeemedByUid: 'uid-1',
     });
-    // Anyone can still redeem it — the first account included.
-    expect((await post(CODE, 'uid-2')).status).toBe(200);
-    expect(mockDocs.get(CODE)?.redeemedByUid).toBe('uid-2');
+    expect(await post(CODE, 'uid-1')).toEqual({
+      status: 200,
+      body: {status: 'success'},
+    });
+    expect(await post(CODE, 'uid-2')).toEqual({
+      status: 409,
+      body: {status: 'already_redeemed'},
+    });
+    expect(mockDocs.get(CODE)?.redeemedByUid).toBe('uid-1');
+    expect(
+      grantCalls().map(([url]) => String(url).includes('/uid-1/')),
+    ).toEqual([true, true]);
+  });
+
+  it('uid-1 in flight, its retry gets 200, then the first grant comes back refused: the code stays uid-1 only, uid-2 gets 409 and no grant', async () => {
+    let refuseFirst!: () => void;
+    fetchMock.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          refuseFirst = () =>
+            resolve({ok: false, status: 503, text: async () => ''});
+        }),
+    );
+    let firstSettled = false;
+    const first = post(CODE, 'uid-1').then(r => {
+      firstSettled = true;
+      return r;
+    });
+    for (let i = 0; i < 10 && grantCalls().length === 0; i++) {
+      await new Promise(r => setImmediate(r));
+    }
+    // Race control: the first request has claimed and its grant is in flight.
+    expect(grantCalls()).toHaveLength(1);
+    expect(mockDocs.get(CODE)?.redeemedByUid).toBe('uid-1');
+    const retry = await post(CODE, 'uid-1');
+    expect(retry).toEqual({status: 200, body: {status: 'success'}});
+    // The retry answered while the first request was still in flight.
+    expect(firstSettled).toBe(false);
+    refuseFirst();
+    expect((await first).status).toBe(500);
+    const other = await post(CODE, 'uid-2');
+    // Before this fix: the refusal released the code and uid-2 got a second
+    // grant (one code, two entitlements).
+    expect(
+      grantCalls().filter(([url]) => String(url).includes('/uid-2/')),
+    ).toEqual([]);
+    expect(other).toEqual({status: 409, body: {status: 'already_redeemed'}});
+    // One owner at the end: uid-1.
+    expect(mockDocs.get(CODE)).toMatchObject({
+      redeemed: true,
+      redeemedByUid: 'uid-1',
+    });
   });
 
   it('no answer from RevenueCat (the grant may have landed): the code stays bound to that uid; others get 409, and that uid retries to a 200', async () => {
@@ -253,30 +303,6 @@ describe('R9-21 — a grant never leaves the code available to a second account'
     expect(grantCalls().every(([url]) => String(url).includes('/uid-1/'))).toBe(
       true,
     );
-  });
-
-  it('refused, and the release write fails too: still bound to that uid only, and its retry completes', async () => {
-    fetchMock.mockResolvedValueOnce({
-      ok: false,
-      status: 500,
-      text: async () => '',
-    });
-    // The claim succeeds; the release (the next transaction) fails.
-    const realRun = mockDb.runTransaction;
-    let calls = 0;
-    mockDb.runTransaction = (async (fn: Parameters<typeof realRun>[0]) => {
-      calls++;
-      if (calls === 2) throw new Error('UNAVAILABLE');
-      return realRun(fn);
-    }) as typeof realRun;
-    try {
-      expect((await post(CODE, 'uid-1')).status).toBe(500);
-    } finally {
-      mockDb.runTransaction = realRun;
-    }
-    expect(mockDocs.get(CODE)?.redeemedByUid).toBe('uid-1');
-    expect((await post(CODE, 'uid-2')).status).toBe(409);
-    expect((await post(CODE, 'uid-1')).status).toBe(200);
   });
 
   it('a retry by the account that already redeemed it answers 200 (the app may never have heard the first answer)', async () => {

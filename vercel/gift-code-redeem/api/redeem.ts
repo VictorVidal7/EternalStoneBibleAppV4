@@ -80,18 +80,7 @@ type RedeemResult =
   | {httpStatus: 409; body: {status: 'already_redeemed'}}
   | {httpStatus: 500; body: {status: 'server_error'; message: string}};
 
-/**
- * RevenueCat ANSWERED and refused the grant (a non-2xx). Unlike a fetch that
- * throws (no answer at all: the grant may or may not have landed), this one
- * is known not to have granted anything.
- */
-class GrantRefusedError extends Error {}
-
-/**
- * Calls RevenueCat's REST API to grant the promotional entitlement. Throws a
- * GrantRefusedError when RevenueCat answers with an error, and whatever fetch
- * throws when there is no answer.
- */
+/** Calls RevenueCat's REST API to grant the promotional entitlement. Throws on failure. */
 async function grantPromotionalEntitlement(
   uid: string,
   secretKey: string,
@@ -114,7 +103,7 @@ async function grantPromotionalEntitlement(
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    throw new GrantRefusedError(
+    throw new Error(
       `RevenueCat promotional-entitlement grant failed: ${res.status} ${detail}`,
     );
   }
@@ -203,6 +192,8 @@ async function handleRedeem(
   //    THIS uid's retry with the grant (again) and a 200. That is also what
   //    makes a client-side timeout safe (R9-620): a retry after a redemption
   //    the app never heard back from is a success, not "already redeemed".
+  // A claimed code is never released, not even when RevenueCat refuses (Victor's
+  // decision): a parallel retry of this uid may already hold the grant.
   let claim: 'claimed' | 'ownRetry' | 'not_found' | 'already_redeemed';
   try {
     claim = await db.runTransaction(async tx => {
@@ -249,32 +240,7 @@ async function handleRedeem(
       claim,
       error: String(err),
     });
-    // Give the code back only when RevenueCat said NO and this request is the
-    // one that claimed it. With no answer (the grant may have landed) or on a
-    // retry (an earlier grant may have landed), it stays bound to this uid,
-    // whose next retry completes it.
-    if (claim === 'claimed' && err instanceof GrantRefusedError) {
-      try {
-        await db.runTransaction(async tx => {
-          const fresh = await tx.get(codeRef);
-          if (!fresh.exists) return;
-          const freshData = fresh.data() as GiftCodeDoc;
-          if (!freshData.redeemed || freshData.redeemedByUid !== uid) return;
-          tx.update(codeRef, {
-            redeemed: false,
-            redeemedByUid: null,
-            redeemedAt: null,
-          });
-        });
-      } catch (releaseErr) {
-        // Still bound to this uid, so no one else can take it, and this uid's
-        // retry grants it. Logged for manual follow-up.
-        console.error(
-          'redeemGiftCode: grant refused and the claim could not be released',
-          {code, uid, error: String(releaseErr)},
-        );
-      }
-    }
+    // No release, even on a refusal: see "never released" above.
     return {
       httpStatus: 500,
       body: {
