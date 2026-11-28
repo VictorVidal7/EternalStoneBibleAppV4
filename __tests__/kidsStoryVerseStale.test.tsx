@@ -7,7 +7,6 @@
  * The real story screen; the Bible DB's `getVerse` is gated so the test
  * decides when it answers.
  */
-import React from 'react';
 import {render, fireEvent, act, screen} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
