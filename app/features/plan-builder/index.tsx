@@ -83,6 +83,11 @@ function StepperValueInput({
   accessibilityLabel: string;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  // A change from outside (the − / + buttons, or a clamp) drops a draft that
+  // no longer matches, so the field shows it and a later blur can't undo it.
+  useEffect(() => {
+    setDraft(d => (d !== null && parseInt(d, 10) !== value ? null : d));
+  }, [value]);
   const commit = () => {
     const n = parseInt(draft ?? '', 10);
     if (!Number.isNaN(n)) onCommit(Math.min(max, Math.max(min, n)));
@@ -97,7 +102,16 @@ function StepperValueInput({
           {color: textColor},
         ]}
         value={draft ?? String(value)}
-        onChangeText={txt => setDraft(txt.replace(/[^0-9]/g, '').slice(0, 3))}
+        onChangeText={txt => {
+          const next = txt.replace(/[^0-9]/g, '').slice(0, 3);
+          setDraft(next);
+          // R9-510 — apply as it's typed: a tap on a button doesn't blur the
+          // field (`keyboardShouldPersistTaps="handled"`), so «Crear» or
+          // «Añadir pasaje» used the old value. Below the minimum waits for
+          // blur (more digits may still come); above the maximum clamps.
+          const n = parseInt(next, 10);
+          if (!Number.isNaN(n) && n >= min) onCommit(Math.min(max, n));
+        }}
         onBlur={commit}
         onSubmitEditing={commit}
         keyboardType="number-pad"
