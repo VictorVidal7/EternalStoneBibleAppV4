@@ -72,13 +72,20 @@ jest.mock('@hooks/useBibleVersion', () => ({
   useBibleVersion: () => mockVer,
   useBibleVersionOptional: () => mockVer,
 }));
+// Each version answers with its own text; `mockHold`, when set, keeps the
+// answers for that version until released.
+const mockHold: {version: string | null; gate: Promise<void> | null} = {
+  version: null,
+  gate: null,
+};
 jest.mock('@lib/database', () => ({
   __esModule: true,
   default: {
     initialize: jest.fn(async () => undefined),
-    getVerse: jest.fn(async (b: number, c: number, v: number, ver: string) => ({
-      text: `${ver}|${b}:${c}:${v}`,
-    })),
+    getVerse: jest.fn(async (b: number, c: number, v: number, ver: string) => {
+      if (mockHold.version === ver && mockHold.gate) await mockHold.gate;
+      return {text: `${ver}|${b}:${c}:${v}`};
+    }),
   },
 }));
 
@@ -89,6 +96,8 @@ const settle = () =>
 
 beforeEach(async () => {
   mockVer = mockRVR;
+  mockHold.version = null;
+  mockHold.gate = null;
   await AsyncStorage.setItem('@bible_version', 'RVR1960');
 });
 
@@ -121,6 +130,30 @@ describe.each(cases)(
       console.log('R9-525 twin ' + JSON.stringify({params, old, fresh}));
       expect(old).toBe(0);
       expect(fresh).toBeGreaterThan(0);
+    });
+
+    it('a mount load still in flight when the version changes does not land', async () => {
+      mockParams = params;
+      let release: () => void = () => undefined;
+      mockHold.version = 'RVR1960';
+      mockHold.gate = new Promise<void>(r => {
+        release = r;
+      });
+      const u = render(<Screen />);
+      await settle();
+      await AsyncStorage.setItem('@bible_version', 'KJV');
+      mockVer = mockKJV;
+      u.rerender(<Screen />);
+      await waitFor(() =>
+        expect(u.queryAllByText(/KJV\|/).length).toBeGreaterThan(0),
+      );
+      // The RVR1960 reads of the mount load land now.
+      await act(async () => {
+        release();
+        await new Promise(r => setTimeout(r, 50));
+      });
+      expect(u.queryAllByText(/RVR1960\|/).length).toBe(0);
+      expect(u.queryAllByText(/KJV\|/).length).toBeGreaterThan(0);
     });
 
     it('control: mounted in KJV, its rows are in KJV', async () => {

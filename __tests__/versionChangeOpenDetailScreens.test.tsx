@@ -247,6 +247,28 @@ describe('R9-525 — the Daily Light follows the reading version', () => {
     expect(String(mockAddCard.mock.calls[0][0].text)).toContain('KJV|');
   });
 
+  it('a mount load still in flight when the version changes does not land', async () => {
+    let release: () => void = () => undefined;
+    mockHold.version = 'RVR1960';
+    mockHold.gate = new Promise<void>(r => {
+      release = r;
+    });
+    const u = render(<DailyLightScreen />);
+    await settle();
+    await changeToKJV(() => u.rerender(<DailyLightScreen />));
+    await waitFor(() =>
+      expect(u.queryAllByText(/KJV\|/).length).toBeGreaterThan(0),
+    );
+    // The RVR1960 read of the mount load lands now.
+    await act(async () => {
+      release();
+      await new Promise(r => setTimeout(r, 50));
+    });
+    expect(u.queryAllByText(/RVR1960\|/).length).toBe(0);
+    expect(u.queryAllByText(/KJV\|/).length).toBeGreaterThan(0);
+    expect(u.queryByLabelText(TR.en.dailyLight.memorize)).not.toBeNull();
+  });
+
   it('«Memorizar» files the version of the text on screen, not the one on disk', async () => {
     // The provider shows KJV while the disk still says RVR1960 (its
     // not-persisted fallback, or a pick whose write has not landed yet).
