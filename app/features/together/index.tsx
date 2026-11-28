@@ -60,15 +60,24 @@ const PLAN_IDS = READING_PLANS.map(p => p.id);
  */
 function decodeJoinInput(raw: string): DecodeResult {
   const trimmed = raw.trim();
-  // A pasted invite carries its payload after `?d=` (the eternalbible:// scheme
-  // link) or `#d=` (the https redirector keeps it in the fragment). Either way
-  // everything past the marker is the opaque base64url payload.
-  const marker = trimmed.search(/[?#]d=/);
-  if (marker >= 0) return decodeTogetherParam(trimmed.slice(marker + 3));
+  // R9-506 — the share messages ask to paste the WHOLE message here, so the
+  // link may sit between other text. A pasted invite carries its payload after
+  // `?d=` (the eternalbible:// scheme link) or `#d=` (the https redirector
+  // keeps it in the fragment): take only the base64url run that follows.
+  const link = trimmed.match(/[?#]d=([A-Za-z0-9_-]+)/);
+  // A generated code (`EB1-<date>-<PLAN>`) quoted inside a message.
+  const quotedCode = trimmed.match(/\bEB1-[0-9A-Z]+-[0-9A-Z]+\b/);
+  if (link) {
+    const fromLink = decodeTogetherParam(link[1]);
+    if (fromLink.ok || !quotedCode) return fromLink;
+    return decodePlanCode(quotedCode[0], PLAN_IDS);
+  }
   if (/^eb1[- ]/i.test(trimmed)) return decodePlanCode(trimmed, PLAN_IDS);
-  // Try as a raw bundle payload first, then fall back to a curated code.
+  // Try as a raw bundle payload first, then a code quoted in a message, then
+  // the whole input as a curated code.
   const asPayload = decodeTogetherParam(trimmed);
-  return asPayload.ok ? asPayload : decodePlanCode(trimmed, PLAN_IDS);
+  if (asPayload.ok) return asPayload;
+  return decodePlanCode(quotedCode ? quotedCode[0] : trimmed, PLAN_IDS);
 }
 
 /** Total chapters across a plan's days — for the custom-plan meta line. */
