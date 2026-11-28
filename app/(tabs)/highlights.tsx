@@ -15,6 +15,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
@@ -126,6 +128,20 @@ export default function HighlightsScreen() {
   );
 
   const usedColors = Array.from(new Set(items.map(i => i.color)));
+  // The spoken name of a highlight color (the reader's picker names them the
+  // same way): the swatches are otherwise told apart only by color (R9-566).
+  // A stored color outside the palette falls back to its value.
+  const colorName = (c: string): string => {
+    const key = (
+      Object.keys(HighlightColor) as (keyof typeof HighlightColor)[]
+    ).find(k => HighlightColor[k].toLowerCase() === c.toLowerCase());
+    if (!key) return c;
+    return (
+      t.verse.highlightColorNames[
+        key.toLowerCase() as keyof typeof t.verse.highlightColorNames
+      ] ?? c
+    );
+  };
   // Categories actually present on the user's highlights, in enum order.
   const usedCategories = CATEGORY_KEYS.filter(cat =>
     items.some(i => i.category === cat),
@@ -297,6 +313,9 @@ export default function HighlightsScreen() {
               <TouchableOpacity
                 key={c}
                 onPress={() => setColorFilter(c === colorFilter ? null : c)}
+                accessibilityRole="button"
+                accessibilityLabel={colorName(c)}
+                accessibilityState={{selected: c === colorFilter}}
                 style={[
                   styles.filterSwatch,
                   {
@@ -457,7 +476,11 @@ export default function HighlightsScreen() {
           renderItem={({item: row}) => {
             if (row.kind === 'group') {
               return (
-                <View style={styles.groupHeader}>
+                <View
+                  style={styles.groupHeader}
+                  accessible
+                  accessibilityRole="header"
+                  accessibilityLabel={`${colorName(row.color)}, ${row.count}`}>
                   <View
                     style={[styles.groupSwatch, {backgroundColor: row.color}]}
                   />
@@ -571,7 +594,10 @@ export default function HighlightsScreen() {
         transparent
         animationType="slide"
         onRequestClose={() => setEditing(null)}>
-        <View style={styles.modalOverlay}>
+        {/* The keyboard would cover the note field and Cancel/Save (R9-561). */}
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View
             style={[
               styles.modalCard,
@@ -675,7 +701,7 @@ export default function HighlightsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
         <ToastHost />
       </Modal>
 

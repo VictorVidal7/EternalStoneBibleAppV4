@@ -24,7 +24,7 @@ import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import {haptics} from '@lib/haptics';
 import bibleDB from '@lib/database';
-import {BibleVerse} from '@/types/bible';
+import {BibleVerse, Note} from '@/types/bible';
 import {getBookByName, getBookById, canonicalBookName} from '@/constants/bible';
 import {findProphecyForVerseKey} from '@/features/study/messianicProphecies';
 import {
@@ -311,6 +311,20 @@ export default function VerseReadingScreen() {
   // first selected verse peeked in another translation (S77 card idiom).
   const [showAlsoPanel, setShowAlsoPanel] = useState(false);
   const [noteText, setNoteText] = useState('');
+  // The stored note the sheet opened on (null for a new one): its text is the
+  // baseline the sheet compares the draft with before discarding, and its id
+  // is what the sheet's delete removes (R9-57).
+  const [editingNote, setEditingNote] = useState<Note | null>(null);
+  // The note sheet's header names the book of the verse the note is on, in
+  // the reading version's language (same rule as `localizedBookName`).
+  const noteBookInfo = selectedVerseForNote
+    ? getBookByName(selectedVerseForNote.book)
+    : null;
+  const noteBookName = noteBookInfo
+    ? bookNameLang === 'en'
+      ? noteBookInfo.nameEn
+      : noteBookInfo.name
+    : '';
   const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
   );
@@ -1102,6 +1116,33 @@ export default function VerseReadingScreen() {
     }
   }
 
+  // Delete the stored note from the sheet (R9-57) — the same steps as the
+  // Notes tab's confirmDelete: remove, then a tombstone carrying the verse
+  // identity for the sync. The sheet already asked for confirmation.
+  async function deleteNote() {
+    const target = editingNote;
+    if (!target) return;
+    haptics.tap();
+    try {
+      await bibleDB.removeNote(target.id);
+      getSyncEngine()?.queueDelete(
+        'notes',
+        target.id,
+        buildNoteRemotePayload(target),
+      );
+      setNoteModalVisible(false);
+      setNoteText('');
+      setEditingNote(null);
+      toast.success(t.notes.deleted);
+    } catch (err) {
+      logger.error('Error deleting note', err as Error, {
+        component: 'VerseReadingScreen',
+        action: 'deleteNote',
+      });
+      toast.error(t.notes.deleteError);
+    }
+  }
+
   // Auto-scroll a newly SELECTED verse clear of the floating selection
   // action bar (verse-selection-bar-blocking fix — Victor couldn't select
   // Números 6:26 because the bar visually covered it with no way to reach
@@ -1319,6 +1360,13 @@ export default function VerseReadingScreen() {
   const audioVersionResyncRef = useRef<string | null>(null);
   useEffect(() => {
     const loadedVersionId = audioState.contentVersionId;
+    // The re-sync landed (the engine reports the version on screen): release
+    // the latch, or a later switch back to this same version would be blocked
+    // as a "re-entry" and the voice would stay in the other version (R9-423).
+    // `loadChapter` tags the version in the same update as the verses.
+    if (loadedVersionId === selectedVersion.id) {
+      audioVersionResyncRef.current = null;
+    }
     if (
       !shouldResyncAudioToVersion({
         isAudioVisible,
@@ -1752,6 +1800,7 @@ export default function VerseReadingScreen() {
     } else {
       setNoteText('');
     }
+    setEditingNote(existingNote);
 
     setNoteModalVisible(true);
     clearSelection();
@@ -3586,8 +3635,10 @@ export default function VerseReadingScreen() {
           visible={noteModalVisible}
           verseReference={
             selectedVerseForNote
-              ? `${
-                  localizedBookName || selectedVerseForNote.book
+              ? // The NOTE's book, not the route's: a link to another book can
+                // swap the chapter under the open sheet (R9-565).
+                `${
+                  noteBookName || selectedVerseForNote.book
                 } ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
               : ''
           }
@@ -3596,6 +3647,8 @@ export default function VerseReadingScreen() {
           onChangeText={setNoteText}
           onSave={saveNote}
           onClose={() => setNoteModalVisible(false)}
+          initialValue={editingNote?.note ?? ''}
+          onDelete={editingNote ? () => void deleteNote() : undefined}
           onJump={() =>
             jumpStackRef.current.push({
               book,

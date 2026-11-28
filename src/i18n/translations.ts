@@ -296,6 +296,12 @@ export const translations = {
       referencedVersesHint:
         'Se detectan automáticamente al escribir, p. ej. "Juan 3:16"',
       markdownHint: 'Usa **negrita**, *cursiva* o "- " para viñetas',
+      discardTitle: '¿Descartar los cambios?',
+      discardMessage: 'Lo que escribiste en esta nota no se guardará.',
+      discardConfirm: 'Descartar',
+      keepEditing: 'Seguir editando',
+      deleted: 'Nota eliminada',
+      deleteError: 'No se pudo eliminar la nota. Intenta de nuevo.',
     },
 
     bookIntro: {
@@ -6913,6 +6919,12 @@ export const translations = {
       referencedVersesHint:
         'Detected automatically as you type, e.g. "John 3:16"',
       markdownHint: 'Use **bold**, *italic* or "- " for bullets',
+      discardTitle: 'Discard changes?',
+      discardMessage: 'What you wrote in this note will not be saved.',
+      discardConfirm: 'Discard',
+      keepEditing: 'Keep editing',
+      deleted: 'Note deleted',
+      deleteError: 'Could not delete the note. Try again.',
     },
 
     readingInsights: {
