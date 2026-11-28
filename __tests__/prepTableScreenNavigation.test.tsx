@@ -603,17 +603,26 @@ describe('R9-648 — after the bank, a blur or the pending debounce does not era
 
   it('control: a blur after a real edit still saves it', async () => {
     await mountMesa();
+    const field = () => screen.getByLabelText(p.sections.bigIdea.label);
+    // A first edit and blur: it stamps the template, so the second blur
+    // goes through the "unchanged draft" comparison.
     await act(async () => {
-      fireEvent.changeText(
-        screen.getByLabelText(p.sections.bigIdea.label),
-        'Idea editada',
-      );
+      fireEvent.changeText(field(), 'Idea editada');
     });
     await act(async () => {
-      fireEvent(screen.getByLabelText(p.sections.bigIdea.label), 'blur');
+      fireEvent(field(), 'blur');
     });
     await drain();
-    // No timer advanced: the debounce has not fired; the blur saved it.
-    expect((await getPrepNotes(KEY)).sections.bigIdea).toBe('Idea editada');
+    await act(async () => {
+      fireEvent.changeText(field(), 'Idea editada otra vez');
+    });
+    await act(async () => {
+      fireEvent(field(), 'blur');
+    });
+    await drain();
+    // No timer advanced: the debounce has not fired; the blurs saved it.
+    expect((await getPrepNotes(KEY)).sections.bigIdea).toBe(
+      'Idea editada otra vez',
+    );
   });
 });
