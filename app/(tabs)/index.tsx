@@ -41,6 +41,7 @@ import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {effectivePlanDays} from '@/lib/reading/planReflow';
 import {getDailyVerseRef} from '@/constants/daily-verses';
 import {getBookByName, canonicalBookName} from '@/constants/bible';
+import {heroStatsColors} from '@components/celestial/StatsCard';
 import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
 import {
   shiftDaysBack,
@@ -730,6 +731,13 @@ export default function HomeScreen() {
           )
         : t.home.nudgeDaily;
 
+  const heroStops =
+    gradient?.headerColors && gradient.headerColors.length >= 2
+      ? [...gradient.headerColors]
+      : [colors.primary, colors.primaryDark];
+  // R9-456 — the stats row on a veil and an ink from the theme (StatsCard).
+  const heroStats = heroStatsColors(heroStops, colors.text, colors.background);
+
   return (
     <View style={styles.container}>
       {/* Gradiente de fondo */}
@@ -785,15 +793,7 @@ export default function HomeScreen() {
               }
             }}>
             <LinearGradient
-              colors={
-                (gradient?.headerColors && gradient.headerColors.length >= 2
-                  ? [...gradient.headerColors]
-                  : [colors.primary, colors.primaryDark]) as [
-                  string,
-                  string,
-                  ...string[],
-                ]
-              }
+              colors={heroStops as [string, string, ...string[]]}
               start={{x: 0, y: 0}}
               end={{x: 1, y: 1}}
               style={[
@@ -814,12 +814,18 @@ export default function HomeScreen() {
                 </View>
 
                 {/* Stats Row - Compact */}
-                <View style={styles.statsRow}>
+                <View
+                  style={[
+                    styles.statsRow,
+                    heroStats && {backgroundColor: heroStats.veil},
+                  ]}>
                   <StatsCard
                     icon="flame"
                     value={userStats.streak}
                     label={t.home.streakDays}
                     iconColor="#fbbf24"
+                    valueColor={heroStats?.ink}
+                    labelColor={heroStats?.ink}
                     iconSize={18}
                     pulse={userStats.streak > 0}
                     countUp
@@ -832,6 +838,8 @@ export default function HomeScreen() {
                     value={userStats.level}
                     label={t.home.level}
                     iconColor="#fbbf24"
+                    valueColor={heroStats?.ink}
+                    labelColor={heroStats?.ink}
                     iconSize={18}
                     countUp
                   />
@@ -843,6 +851,8 @@ export default function HomeScreen() {
                     value={`${Math.round(userStats.progress)}%`}
                     label={t.home.progress}
                     iconColor="#fbbf24"
+                    valueColor={heroStats?.ink}
+                    labelColor={heroStats?.ink}
                     iconSize={18}
                   />
                 </View>
