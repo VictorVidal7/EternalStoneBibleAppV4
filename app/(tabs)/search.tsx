@@ -19,6 +19,7 @@ import {LinearGradient} from 'expo-linear-gradient';
 import {useDebouncedCallback} from 'use-debounce';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '@lib/database';
+import {subscribeBackupRestored} from '@lib/backup/restoreSignal';
 import {BibleVerse} from '@/types/bible';
 import {useTheme, ThemeColors} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
@@ -370,8 +371,11 @@ export default function SearchScreen() {
     [testamentResults],
   );
 
-  // Hydrate recent searches from storage on mount.
-  useEffect(() => {
+  // Hydrate recent searches from storage: on mount, and again when a backup
+  // is restored (R9-529). This tab stays mounted, and `recordSearch` writes
+  // the WHOLE list from memory: without the re-read, the first search after
+  // an import put the pre-import list back over the restored one.
+  const loadHistory = useCallback(() => {
     AsyncStorage.getItem(SEARCH_HISTORY_KEY)
       .then(raw => {
         if (!raw) return;
@@ -390,6 +394,10 @@ export default function SearchScreen() {
       })
       .catch(() => undefined);
   }, []);
+  useEffect(() => {
+    loadHistory();
+  }, [loadHistory]);
+  useEffect(() => subscribeBackupRestored(loadHistory), [loadHistory]);
 
   const persistHistory = useCallback((next: string[]) => {
     setSearchHistory(next);

@@ -4160,10 +4160,13 @@ export const translations = {
       dataEntryTitle: 'Gestionar datos',
       dataEntryDesc: 'Exportar, importar o resetear los datos de la Biblia',
       resetData: 'Resetear Datos de la Biblia',
-      resetDescription: 'Elimina y recarga todos los versículos',
+      // R9-558 — el reset solo toca las dos versiones que vienen con la app;
+      // las descargadas se conservan, y el diálogo lo dice.
+      resetDescription:
+        'Elimina y recarga los versículos de las versiones que vienen con la app',
       resetTitle: 'Resetear Datos',
       resetMessage:
-        '¿Estás seguro de que quieres resetear todos los datos de la Biblia? Esto borra y vuelve a cargar los 62.000+ versículos. Tus favoritos, notas y resaltados no se ven afectados. La recarga puede tardar un minuto.',
+        '¿Estás seguro de que quieres resetear los datos de la Biblia? Esto borra y vuelve a cargar los 62.000+ versículos de las versiones que vienen con la app (RVR1960 y WEB). Las versiones que descargaste, y tus favoritos, notas y resaltados, no se ven afectados. La recarga puede tardar un minuto.',
       resetConfirm: 'Resetear',
       resetSuccess: 'Datos Reseteados',
       resetSuccessMessage: 'Los versículos se han recargado correctamente.',
@@ -4201,6 +4204,16 @@ export const translations = {
       importRestartMessage:
         'Tu copia se importó correctamente.\n\nCierra la app por completo y vuelve a abrirla para que todas las pantallas carguen los datos restaurados.',
       importRestartCta: 'Entendido',
+      // R9-557 — el mismo aviso cuando una parte no entró: no puede decir
+      // «se importó correctamente».
+      importRestartPartialTitle: 'Restauración parcial',
+      importRestartPartialMessage:
+        'Una parte de tu copia no se pudo restaurar; el resto sí se importó.\n\nCierra la app por completo y vuelve a abrirla para que todas las pantallas carguen los datos restaurados.',
+      // R9-557 — el archivo se leyó, pero no dejó nada en el dispositivo (un
+      // JSON de otra app, o todas sus secciones inválidas): sin aviso de
+      // reiniciar, porque no hay nada restaurado que cargar.
+      importNothingRestored:
+        'No se restauró nada: el archivo no contiene datos que esta app pueda importar.',
 
       about: 'Acerca de',
       version: 'Versión',
@@ -10735,10 +10748,13 @@ export const translations = {
       dataEntryTitle: 'Manage data',
       dataEntryDesc: 'Export, import, or reset your Bible data',
       resetData: 'Reset Bible Data',
-      resetDescription: 'Delete and reload all verses',
+      // R9-558 — the reset only touches the two versions that ship with the
+      // app; downloaded ones are kept, and the dialog says so.
+      resetDescription:
+        'Delete and reload the verses of the versions that come with the app',
       resetTitle: 'Reset Data',
       resetMessage:
-        'Are you sure you want to reset all Bible data? This deletes and reloads the 62,000+ verses. Your favorites, notes and highlights are not affected. The reload may take a minute.',
+        'Are you sure you want to reset the Bible data? This deletes and reloads the 62,000+ verses of the versions that come with the app (RVR1960 and WEB). The versions you downloaded, and your favorites, notes and highlights, are not affected. The reload may take a minute.',
       resetConfirm: 'Reset',
       resetSuccess: 'Data Reset',
       resetSuccessMessage: 'Verses have been reloaded successfully.',
@@ -10776,6 +10792,16 @@ export const translations = {
       importRestartMessage:
         'Your backup was imported successfully.\n\nClose the app completely and open it again so every screen loads the restored data.',
       importRestartCta: 'Got it',
+      // R9-557 — the same notice when part of it did not land: it cannot say
+      // "imported successfully".
+      importRestartPartialTitle: 'Partially restored',
+      importRestartPartialMessage:
+        "Part of your backup couldn't be restored; the rest was imported.\n\nClose the app completely and open it again so every screen loads the restored data.",
+      // R9-557 — the file was read but left nothing on the device (another
+      // app's JSON, or every section invalid): no restart notice, since there
+      // is nothing restored to load.
+      importNothingRestored:
+        'Nothing was restored: the file has no data this app can import.',
 
       about: 'About',
       version: 'Version',

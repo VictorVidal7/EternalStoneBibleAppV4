@@ -36,8 +36,15 @@ export function canonicalizeProgressMap(
   for (const [book, chapters] of Object.entries(progress)) {
     if (!chapters || typeof chapters !== 'object') continue;
     const key = canonicalBookName(book);
+    // R9-470 — the map comes from a file (a backup, the disk). A key every
+    // object already answers to is not a book: `out['__proto__'] ??= {}`
+    // hands back `Object.prototype` (and `constructor`, `toString`… the one
+    // function all objects share), and the chapters were then written on it,
+    // for every object in the app until the next start.
+    if (key in Object.prototype) continue;
     const target = (out[key] ??= {});
     for (const [chapter, pct] of Object.entries(chapters)) {
+      if (chapter in Object.prototype) continue;
       if (typeof pct !== 'number' || !Number.isFinite(pct)) continue;
       const prev = target[chapter];
       target[chapter] = prev == null ? pct : Math.max(prev, pct);

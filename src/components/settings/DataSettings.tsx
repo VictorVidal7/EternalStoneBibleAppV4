@@ -64,6 +64,10 @@ export default function DataSettings() {
   // reload), so the user still has to be told. `importBackup`'s own docstring
   // has always claimed Settings asks for this; it never actually did.
   const [restartNoticeVisible, setRestartNoticeVisible] = useState(false);
+  // R9-557 — whether that notice follows a PARTIAL import: its words then
+  // cannot be "imported correctly". Kept apart from the visibility (and not
+  // cleared on close) so the text does not flip while the dialog goes away.
+  const [restartNoticePartial, setRestartNoticePartial] = useState(false);
   const pendingImportUriRef = useRef<string | null>(null);
 
   function handleResetData() {
@@ -148,19 +152,31 @@ export default function DataSettings() {
       // AsyncStorage write step then failed outright. Either way,
       // `failedSections` is non-empty and a flat "success" toast would be a
       // lie — surface the honest, non-alarming partial message instead.
-      if (result.failedSections.length > 0) {
+      const partial = result.failedSections.length > 0;
+      if (partial) {
         logger.warn('Backup import completed with partial failures', {
           component: 'DataSettings',
           action: 'performImport',
           failedSections: result.failedSections,
           asyncStorageWriteFailed: result.asyncStorageWriteFailed,
         });
+      }
+      // R9-557 — the file was read and NOTHING of it landed (another app's
+      // JSON that happens to carry a `formatVersion`, or every section it has
+      // failed). Saying "restored" — in a toast or in the blocking notice —
+      // was false, and there is nothing restored to restart for.
+      if (result.restoredSections.length === 0) {
+        toast.error(t.settings.importNothingRestored);
+        return;
+      }
+      if (partial) {
         toast.warning(t.settings.importPartial);
       } else {
         toast.success(t.settings.importSuccess);
       }
       // Shown for a partial import too: whatever DID land is subject to the
-      // same stale-screen problem.
+      // same stale-screen problem. Its words differ (R9-557).
+      setRestartNoticePartial(partial);
       setRestartNoticeVisible(true);
     } catch (error) {
       logger.error('Backup import failed', error as Error, {
@@ -345,8 +361,16 @@ export default function DataSettings() {
       />
       <ConfirmDialog
         visible={restartNoticeVisible}
-        title={t.settings.importRestartTitle}
-        message={t.settings.importRestartMessage}
+        title={
+          restartNoticePartial
+            ? t.settings.importRestartPartialTitle
+            : t.settings.importRestartTitle
+        }
+        message={
+          restartNoticePartial
+            ? t.settings.importRestartPartialMessage
+            : t.settings.importRestartMessage
+        }
         confirmLabel={t.settings.importRestartCta}
         onConfirm={() => setRestartNoticeVisible(false)}
         onCancel={() => setRestartNoticeVisible(false)}
