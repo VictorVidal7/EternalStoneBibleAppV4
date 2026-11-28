@@ -9,9 +9,13 @@
  */
 
 import {render, waitFor, fireEvent, act} from '@testing-library/react-native';
-import {StyleSheet} from 'react-native';
+import {Modal, Pressable, StyleSheet, Text} from 'react-native';
 import Purchases from 'react-native-purchases';
 import {DonationSheet} from '../src/components/donation/DonationSheet';
+import {
+  DonationSheetProvider,
+  useDonationSheet,
+} from '../src/context/DonationSheetContext';
 import {
   initialize,
   __resetForTests,
@@ -399,6 +403,96 @@ describe('R9-576 — dos toques en el mismo cuadro, una sola donación', () => {
       expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(1),
     );
     fireEvent.press(await view.findByLabelText('$1.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(2),
+    );
+  });
+});
+
+describe('R9-576 — cerrar y reabrir la hoja con la tienda sin responder', () => {
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setProducts(fakeProducts);
+  });
+
+  async function flush() {
+    for (let i = 0; i < 12; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  }
+
+  function OpenButton() {
+    const {open} = useDonationSheet();
+    return (
+      <Pressable onPress={open}>
+        <Text>abrir la hoja</Text>
+      </Pressable>
+    );
+  }
+
+  // La hoja real, montada por su provider real (que la deja montada cerrada).
+  function renderWithProvider() {
+    return render(
+      <DonationSheetProvider>
+        <OpenButton />
+      </DonationSheetProvider>,
+    );
+  }
+
+  async function closeAndReopen(view: ReturnType<typeof renderWithProvider>) {
+    act(() => {
+      view.UNSAFE_getByType(Modal).props.onRequestClose();
+    });
+    await flush();
+    expect(view.UNSAFE_getByType(Modal).props.visible).toBe(false);
+    fireEvent.press(view.getByText('abrir la hoja'));
+    await flush();
+  }
+
+  it('una donación que no vuelve: al reabrir, «Procesando…», no montos que no hacen nada', async () => {
+    mockPurchases.purchaseStoreProduct.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$1.99'));
+    await flush();
+
+    await closeAndReopen(view);
+
+    expect(view.queryByLabelText('$1.99')).toBeNull();
+    expect(view.queryByLabelText('$4.99')).toBeNull();
+    expect(view.getByText('Procesando…')).toBeTruthy();
+    expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(1);
+  });
+
+  it('CONTROL: cancelada después de reabrir, los montos vuelven y donar funciona', async () => {
+    let rejectFirst!: (e: unknown) => void;
+    mockPurchases.purchaseStoreProduct.mockImplementationOnce(
+      () => new Promise((_res, rej) => (rejectFirst = rej)),
+    );
+    mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({
+      userCancelled: true,
+    });
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$1.99'));
+    await flush();
+
+    await closeAndReopen(view);
+    await act(async () => {
+      rejectFirst({userCancelled: true});
+    });
+
+    fireEvent.press(await view.findByLabelText('$4.99'));
     await waitFor(() =>
       expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(2),
     );

@@ -7,11 +7,15 @@
  */
 
 import {render, waitFor, fireEvent, act} from '@testing-library/react-native';
-import {StyleSheet} from 'react-native';
+import {Modal, Pressable, StyleSheet, Text} from 'react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';
 import {OfferingSheet} from '../src/components/offering/OfferingSheet';
 import {PremiumProvider} from '../src/context/PremiumContext';
+import {
+  OfferingSheetProvider,
+  useOfferingSheet,
+} from '../src/context/OfferingSheetContext';
 import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
 import {
   ENTITLEMENT_ID,
@@ -865,5 +869,159 @@ describe('R9-577 — la entitlement que llega con la hoja abierta', () => {
       await view.findByText('Gracias por sembrar en esta obra'),
     ).toBeTruthy();
     expect(view.queryByText('Extras desbloqueados')).toBeNull();
+  });
+});
+
+describe('R9-576 — cerrar y reabrir la hoja con la tienda sin responder', () => {
+  const es = require('../src/i18n/translations').translations.es;
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+  });
+
+  async function flush() {
+    for (let i = 0; i < 12; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  }
+
+  function OpenButton() {
+    const {open} = useOfferingSheet();
+    return (
+      <Pressable onPress={open}>
+        <Text>abrir la hoja</Text>
+      </Pressable>
+    );
+  }
+
+  // La hoja real, montada por su provider real (que la deja montada cerrada).
+  function renderWithProvider() {
+    return render(
+      <PremiumProvider>
+        <OfferingSheetProvider>
+          <OpenButton />
+        </OfferingSheetProvider>
+      </PremiumProvider>,
+    );
+  }
+
+  async function closeAndReopen(view: ReturnType<typeof renderWithProvider>) {
+    act(() => {
+      view.UNSAFE_getByType(Modal).props.onRequestClose();
+    });
+    await flush();
+    expect(view.UNSAFE_getByType(Modal).props.visible).toBe(false);
+    fireEvent.press(view.getByText('abrir la hoja'));
+    await flush();
+  }
+
+  it('una compra que no vuelve: al reabrir, «Procesando…», no montos que no hacen nada', async () => {
+    mockPurchases.purchasePackage.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+
+    await closeAndReopen(view);
+
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(view.queryByLabelText('$2.99')).toBeNull();
+    expect(view.getByText(es.offering.purchasing)).toBeTruthy();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('una compra que no vuelve pero la entitlement llega: al reabrir, «Extras desbloqueados»', async () => {
+    mockPurchases.purchasePackage.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+    // La tienda confirma por su listener; la promesa de la compra sigue sin volver.
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    await closeAndReopen(view);
+
+    expect(view.getByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByText(es.offering.purchasing)).toBeNull();
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('una restauración que no vuelve: al reabrir, «Restaurando…»', async () => {
+    mockPurchases.restorePurchases.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    await view.findByLabelText('$0.99');
+    fireEvent.press(view.getByLabelText(es.offering.restoreLink));
+    await flush();
+
+    await closeAndReopen(view);
+
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(view.getByText(es.offering.restoring)).toBeTruthy();
+    expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+  });
+
+  it('la compra sigue viva al reabrir: su resultado llega a la hoja, y no hubo una segunda', async () => {
+    let resolveFirst!: (v: unknown) => void;
+    mockPurchases.purchasePackage.mockImplementationOnce(
+      () => new Promise(res => (resolveFirst = res)),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+
+    await closeAndReopen(view);
+    await act(async () => {
+      resolveFirst({customerInfo: activeEntitlementInfo});
+    });
+
+    expect(
+      await view.findByText('Gracias por sembrar en esta obra'),
+    ).toBeTruthy();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('CONTROL: cancelada después de reabrir, los montos vuelven y comprar funciona', async () => {
+    let rejectFirst!: (e: unknown) => void;
+    mockPurchases.purchasePackage.mockImplementationOnce(
+      () => new Promise((_res, rej) => (rejectFirst = rej)),
+    );
+    mockPurchases.purchasePackage.mockRejectedValueOnce({userCancelled: true});
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+
+    await closeAndReopen(view);
+    await act(async () => {
+      rejectFirst({userCancelled: true});
+    });
+
+    fireEvent.press(await view.findByLabelText('$2.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(2),
+    );
   });
 });

@@ -84,16 +84,23 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
     setState({kind: 'available', products});
   }, []);
 
-  useEffect(() => {
-    if (visible) load().catch(() => setState({kind: 'unavailable'}));
-  }, [visible, load]);
-
   // R9-576 — one store call at a time. Hiding the amounts ('purchasing')
   // takes a re-render, and two taps inside the same frame used to start two
   // donations: two charges, the second result overwriting the first one's
   // screen. A ref answers in the same frame; it is released when the call is
   // done, whatever it returned. Mirrors OfferingSheet.
   const busyRef = useRef(false);
+
+  useEffect(() => {
+    // R9-576 — the sheet stays mounted when closed, and so does a donation
+    // the store has not answered yet: reopening leaves its 'purchasing' on
+    // screen instead of amounts that would do nothing. The guard is not
+    // released on reopen: a second donation beside a live one charges twice.
+    if (visible && !busyRef.current) {
+      load().catch(() => setState({kind: 'unavailable'}));
+    }
+  }, [visible, load]);
+
   const runExclusive = useCallback(async (task: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true;

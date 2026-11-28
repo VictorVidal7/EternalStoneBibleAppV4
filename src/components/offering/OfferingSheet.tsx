@@ -108,12 +108,32 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
   const loadRef = useRef(load);
   loadRef.current = load;
 
+  // R9-576 — one store call at a time (see runExclusive below). Declared
+  // here because the open effect reads it too, with the latest `isPremium`.
+  const busyRef = useRef(false);
+  const isPremiumRef = useRef(isPremium);
+  isPremiumRef.current = isPremium;
+
   useEffect(() => {
     // Also wait out PremiumContext's own initial cache read — otherwise an
     // already-unlocked reader briefly sees the tier picker before `isPremium`
     // resolves to true. `premiumLoading` only ever flips once, at mount, so
     // (unlike `load`) it's safe to depend on without re-triggering later.
-    if (visible && !premiumLoading) {
+    //
+    // R9-576 — this sheet stays mounted when closed, and so does a store
+    // call that has not answered yet. Reopening used to load the tiers over
+    // it, and those tiers did nothing (the guard was still held). The call
+    // still owns the state ('purchasing'/'restoring'), so it is left on
+    // screen; its own result lands when it comes. The guard is NOT released
+    // here: the sheet cannot tell a hung call from one still alive in the
+    // store, and a second purchase beside a live one can charge twice.
+    // Unless the entitlement already arrived: then `load` shows
+    // 'alreadyUnlocked', which has no tiers to charge twice with.
+    if (
+      visible &&
+      !premiumLoading &&
+      (!busyRef.current || isPremiumRef.current)
+    ) {
       loadRef.current().catch(() => setState({kind: 'unavailable'}));
     }
   }, [visible, premiumLoading]);
@@ -136,7 +156,6 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
   // purchases (two charges for a donation), the second result overwriting
   // the first one's notice. A ref answers in the same frame; it is released
   // when the call is done, whatever it returned.
-  const busyRef = useRef(false);
   const runExclusive = useCallback(async (task: () => Promise<void>) => {
     if (busyRef.current) return;
     busyRef.current = true;
