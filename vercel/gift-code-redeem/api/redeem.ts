@@ -54,6 +54,14 @@ const ENTITLEMENT_ID = 'extras';
  */
 const GRANT_DURATION = 'lifetime';
 
+/**
+ * R9-20 — what a code can look like: two groups of 4 A-Z0-9, the shape the
+ * app's RedeemCodeSheet formatCodeInput() always sends. Deliberately wider
+ * than scripts/generate-gift-codes.js's CODE_CHARSET (no 0/O, 1/I/L): a typo
+ * with an O still reaches the lookup and answers "not found", as before.
+ */
+const CODE_SHAPE = /^[A-Z0-9]{4}-[A-Z0-9]{4}$/;
+
 interface GiftCodeDoc {
   redeemed: boolean;
   createdAt: FirebaseFirestore.Timestamp;
@@ -117,6 +125,18 @@ async function handleRedeem(
     return {
       httpStatus: 400,
       body: {status: 'invalid_request', message: 'Missing "code" in body'},
+    };
+  }
+  // R9-20 — the shape BEFORE anything that costs a quota: verifyIdToken and a
+  // Firestore read per POST, on a Hobby plan whose hard cap takes the endpoint
+  // offline once spent. It also keeps a "/" out of the document path (that used
+  // to throw inside doc() and answer 500). Exactly as lenient as the app's
+  // formatCodeInput (RedeemCodeSheet.tsx: A-Z0-9, XXXX-XXXX), so every code the
+  // app can send is still looked up and a typo still reads as "not found".
+  if (!CODE_SHAPE.test(code)) {
+    return {
+      httpStatus: 400,
+      body: {status: 'invalid_request', message: 'Malformed "code"'},
     };
   }
 
