@@ -72,6 +72,12 @@ export interface SharedPlanBundle {
   s: string;
   /** Optional group label (creator's free text, already sanitized). */
   g?: string;
+  /**
+   * Optional reader-chosen duration in days (R9-512), present only when it
+   * differs from the plan's default, so the whole group reads the same day's
+   * chapters. An older app ignores it (and reads the default).
+   */
+  n?: number;
 }
 
 /**

@@ -15,6 +15,9 @@
  */
 
 import {
+  MAX_DAY_READINGS,
+  MAX_PLAN_DAYS,
+  MAX_PLAN_READINGS,
   makeCustomPlanBundle,
   type CustomPlanBundle,
   type CustomReading,
@@ -71,6 +74,22 @@ export function distributeChapters(
   return days;
 }
 
+/**
+ * R9-508 — true when distributed days don't fit a custom-plan bundle
+ * (`makeCustomPlanBundle` would silently drop days or readings): more than
+ * {@link MAX_PLAN_DAYS} days, a day over {@link MAX_DAY_READINGS} chapters, or
+ * more than {@link MAX_PLAN_READINGS} chapters in all.
+ */
+export function exceedsPlanCaps(days: CustomReading[][]): boolean {
+  if (days.length > MAX_PLAN_DAYS) return true;
+  let total = 0;
+  for (const day of days) {
+    if (day.length > MAX_DAY_READINGS) return true;
+    total += day.length;
+  }
+  return total > MAX_PLAN_READINGS;
+}
+
 /** Total chapters across all passages — for the editor's live preview. */
 export function countChapters(passages: PlanPassage[]): number {
   return passages.reduce(
@@ -113,6 +132,27 @@ export function daysToPassages(days: CustomReading[][]): PlanPassage[] {
  */
 export function inferPerDay(days: CustomReading[][]): number {
   return days.reduce((max, day) => Math.max(max, day.length), 1);
+}
+
+/**
+ * R9-509 — the pace that rebuilds EXACTLY these days, to pre-fill the editor:
+ * "chapters per day" for a per-day plan, "number of days" for an even
+ * `totalDays` split (where {@link inferPerDay} alone gave fewer days and
+ * shifted every chapter). Neither fits an irregular layout (an imported
+ * plan): falls back to {@link inferPerDay}.
+ */
+export function inferPace(days: CustomReading[][]): PlanPace {
+  const chapters = days.flat();
+  const target = JSON.stringify(days);
+  const perDay: PlanPace = {mode: 'perDay', chaptersPerDay: inferPerDay(days)};
+  if (JSON.stringify(distributeChapters(chapters, perDay)) === target) {
+    return perDay;
+  }
+  const totalDays: PlanPace = {mode: 'totalDays', days: days.length};
+  if (JSON.stringify(distributeChapters(chapters, totalDays)) === target) {
+    return totalDays;
+  }
+  return perDay;
 }
 
 /**

@@ -850,6 +850,9 @@ export default function ReadingPlanDetailScreen() {
           onClose={() => setShareOpen(false)}
           initialStartDate={membership?.startDate}
           initialGroupName={membership?.name}
+          durationDays={
+            effectiveDuration !== plan.duration ? effectiveDuration : undefined
+          }
         />
       )}
 

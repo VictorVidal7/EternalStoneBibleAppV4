@@ -319,6 +319,7 @@ export function makePlanBundle(
   planId: string,
   startDate: string,
   groupName?: string,
+  durationDays?: number,
 ): SharedPlanBundle {
   const bundle: SharedPlanBundle = {
     v: TOGETHER_BUNDLE_VERSION,
@@ -328,6 +329,7 @@ export function makePlanBundle(
   };
   const g = groupName ? sanitizeGroupName(groupName) : '';
   if (g) bundle.g = g;
+  if (isInt(durationDays, 1, MAX_PLAN_READINGS)) bundle.n = durationDays;
   return bundle;
 }
 
@@ -578,10 +580,17 @@ export function encodeCalLink(bundle: CalBundle): string {
 export function encodePlanCode(
   planId: string,
   startDate: string,
+  durationDays?: number,
 ): string | null {
   const days = dateToDays(startDate);
   if (days === null) return null;
-  return `EB1-${toBase32(days)}-${planToken(planId)}`;
+  const code = `EB1-${toBase32(days)}-${planToken(planId)}`;
+  // R9-512 — a reader-chosen duration rides as a 4th part, so the code joins
+  // the same plan the link does (an older app rejects it as invalid instead
+  // of silently reading the default).
+  return isInt(durationDays, 1, MAX_PLAN_READINGS)
+    ? `${code}-${toBase32(durationDays as number)}`
+    : code;
 }
 
 // ───────────────────────────── decode ───────────────────────────────────────
@@ -608,6 +617,9 @@ function validateBundle(raw: unknown): DecodeResult {
       const g = sanitizeGroupName(o.g); // re-sanitize untrusted input
       if (g) bundle.g = g;
     }
+    // Optional duration (R9-512): a plan never has more days than chapters,
+    // so the reading cap bounds it; out-of-range is dropped, not fatal.
+    if (isInt(o.n, 1, MAX_PLAN_READINGS)) bundle.n = o.n as number;
     return {ok: true, bundle};
   }
   if (o.t === 'cplan') {
@@ -788,24 +800,44 @@ export function decodePlanCode(
   input: string,
   knownPlanIds: readonly string[],
 ): DecodeResult {
-  const cleaned = input
+  // Spaces/underscores and hyphens both delimit parts; keep which hyphen-
+  // joined parts shared a word (needed for the 4th part, below).
+  const words = input
     .toUpperCase()
-    .replace(/[\s_]+/g, '-') // treat spaces/underscores as delimiters
-    .replace(/[^A-Z0-9-]/g, '');
-  const parts = cleaned.split('-').filter(Boolean);
-  if (parts.length !== 3 || parts[0] !== 'EB1') return fail('format');
+    .split(/[\s_]+/)
+    .map(w =>
+      w
+        .replace(/[^A-Z0-9-]/g, '')
+        .split('-')
+        .filter(Boolean),
+    )
+    .filter(w => w.length > 0);
+  const parts = words.flat();
+  if ((parts.length !== 3 && parts.length !== 4) || parts[0] !== 'EB1') {
+    return fail('format');
+  }
   const days = fromBase32(parts[1]);
   if (days === null) return fail('format');
+  // Optional 4th part: the reader-chosen duration (R9-512). Only when
+  // hyphen-joined to the plan token, as the code is written: a word that
+  // merely follows the code («EB1-…-PLAN en», from «Usa el código … en
+  // Ajustes») would read as a made-up duration. Rejected, as before R9-512.
+  if (parts.length === 4 && words[words.length - 1].length < 2) {
+    return fail('format');
+  }
+  const duration = parts.length === 4 ? fromBase32(parts[3]) : null;
+  if (parts.length === 4 && !isInt(duration, 1, MAX_PLAN_READINGS)) {
+    return fail('format');
+  }
   const token = parts[2];
   const planId = knownPlanIds.find(id => planToken(id) === token);
   if (!planId) return fail('unknown-plan');
-  return {
-    ok: true,
-    bundle: {
-      v: TOGETHER_BUNDLE_VERSION,
-      t: 'plan',
-      p: planId,
-      s: daysToDate(days),
-    },
+  const bundle: SharedPlanBundle = {
+    v: TOGETHER_BUNDLE_VERSION,
+    t: 'plan',
+    p: planId,
+    s: daysToDate(days),
   };
+  if (duration !== null) bundle.n = duration;
+  return {ok: true, bundle};
 }

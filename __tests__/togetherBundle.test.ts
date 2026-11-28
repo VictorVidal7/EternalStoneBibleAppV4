@@ -742,3 +742,79 @@ describe('cal round-trip / hardening (Sprint 110)', () => {
     expect(decodeTogetherParam(param(link)).ok).toBe(false);
   });
 });
+
+describe('R9-512 — the optional chosen duration of a curated plan', () => {
+  it('rides in the link and comes back', () => {
+    const bundle = makePlanBundle('nt-30', '2026-06-22', 'Casa', 60);
+    expect(bundle.n).toBe(60);
+    const res = decodeTogetherParam(param(encodeBundleLink(bundle)));
+    expect(res.ok && res.bundle.t === 'plan' && res.bundle.n).toBe(60);
+  });
+
+  it('is left out when absent, and dropped (not fatal) when out of range', () => {
+    expect('n' in makePlanBundle('nt-30', '2026-06-22')).toBe(false);
+    for (const n of [0, -3, 1.5, 99999, '60']) {
+      const link = encodeBundleLink({
+        v: 1,
+        t: 'plan',
+        p: 'nt-30',
+        s: '2026-06-22',
+        n,
+      } as never);
+      const res = decodeTogetherParam(param(link));
+      expect(res.ok).toBe(true);
+      expect(res.ok && res.bundle.t === 'plan' && 'n' in res.bundle).toBe(
+        false,
+      );
+    }
+  });
+
+  it('rides in the code as a 4th part; a plain code stays 3 parts', () => {
+    const plain = encodePlanCode('nt-30', '2026-06-22')!;
+    expect(plain.split('-')).toHaveLength(3);
+    const code = encodePlanCode('nt-30', '2026-06-22', 60)!;
+    expect(code.split('-')).toHaveLength(4);
+    const res = decodePlanCode(code.toLowerCase(), PLAN_IDS);
+    expect(res.ok && res.bundle).toEqual({
+      v: TOGETHER_BUNDLE_VERSION,
+      t: 'plan',
+      p: 'nt-30',
+      s: '2026-06-22',
+      n: 60,
+    });
+    expect(decodePlanCode(`${plain}-0`, PLAN_IDS).ok).toBe(false);
+  });
+
+  // The invite says «Usa el código X en Ajustes» / «Use code X in Settings»:
+  // a word after a 3-part code is not its duration (each of these decodes
+  // in base32 to 1..1500, so it would join with made-up days).
+  it.each(['en', 'in', 'ok', 'si', 'y', 'a', 'to', 'los'])(
+    'a word after a 3-part code is not a duration: «%s»',
+    w => {
+      const plain = encodePlanCode('nt-30', '2026-06-22')!;
+      for (const txt of [
+        `${plain} ${w}`,
+        `${plain}  ${w}\n`,
+        `${plain}- ${w}`,
+        `${plain} -${w}`,
+        `${plain} - ${w}`,
+        `${plain}_${w}`,
+        `${plain}, ${w}`,
+      ]) {
+        const res = decodePlanCode(txt, PLAN_IDS);
+        // Rejected (as before R9-512) or the default; never a duration.
+        expect(res.ok && res.bundle.t === 'plan' && 'n' in res.bundle).toBe(
+          false,
+        );
+      }
+    },
+  );
+
+  it('the hyphen-joined 4th part still reads, in any case and padding', () => {
+    const code = encodePlanCode('nt-30', '2026-06-22', 60)!;
+    for (const txt of [code, code.toLowerCase(), `  ${code}\n`]) {
+      const res = decodePlanCode(txt, PLAN_IDS);
+      expect(res.ok && res.bundle.t === 'plan' && res.bundle.n).toBe(60);
+    }
+  });
+});

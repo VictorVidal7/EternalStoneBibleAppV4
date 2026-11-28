@@ -21,7 +21,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -49,6 +54,7 @@ import {
   type SharedPlanBundle,
 } from '@lib/together';
 import {customPlanFromBundle} from '@lib/reading/customPlans';
+import {isReflowable, maxReflowDays} from '@lib/reading/planReflow';
 import {FeatureGuideModal} from '@components/FeatureGuideModal';
 import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 
@@ -60,15 +66,27 @@ const PLAN_IDS = READING_PLANS.map(p => p.id);
  */
 function decodeJoinInput(raw: string): DecodeResult {
   const trimmed = raw.trim();
-  // A pasted invite carries its payload after `?d=` (the eternalbible:// scheme
-  // link) or `#d=` (the https redirector keeps it in the fragment). Either way
-  // everything past the marker is the opaque base64url payload.
-  const marker = trimmed.search(/[?#]d=/);
-  if (marker >= 0) return decodeTogetherParam(trimmed.slice(marker + 3));
+  // R9-506 — the share messages ask to paste the WHOLE message here, so the
+  // link may sit between other text. A pasted invite carries its payload after
+  // `?d=` (the eternalbible:// scheme link) or `#d=` (the https redirector
+  // keeps it in the fragment): take only the base64url run that follows.
+  const link = trimmed.match(/[?#]d=([A-Za-z0-9_-]+)/);
+  // A generated code (`EB1-<date>-<PLAN>`, plus `-<days>` when it carries a
+  // chosen duration, R9-512) quoted inside a message.
+  const quotedCode = trimmed.match(
+    /\bEB1-[0-9A-Z]+-[0-9A-Z]+(?:-[0-9A-Z]+)?\b/,
+  );
+  if (link) {
+    const fromLink = decodeTogetherParam(link[1]);
+    if (fromLink.ok || !quotedCode) return fromLink;
+    return decodePlanCode(quotedCode[0], PLAN_IDS);
+  }
   if (/^eb1[- ]/i.test(trimmed)) return decodePlanCode(trimmed, PLAN_IDS);
-  // Try as a raw bundle payload first, then fall back to a curated code.
+  // Try as a raw bundle payload first, then a code quoted in a message, then
+  // the whole input as a curated code.
   const asPayload = decodeTogetherParam(trimmed);
-  return asPayload.ok ? asPayload : decodePlanCode(trimmed, PLAN_IDS);
+  if (asPayload.ok) return asPayload;
+  return decodePlanCode(quotedCode ? quotedCode[0] : trimmed, PLAN_IDS);
 }
 
 /** Total chapters across a plan's days — for the custom-plan meta line. */
@@ -98,6 +116,7 @@ function formatDate(iso: string, language: string): string {
 
 export default function TogetherJoinScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
   const {t, language} = useLanguage();
@@ -105,7 +124,8 @@ export default function TogetherJoinScreen() {
   const toast = useToast();
   const {joinPlan} = useTogether();
   const {saveCustomPlan} = useCustomPlans();
-  const {setPlanStart} = useReadingPlanProgress();
+  const {setPlanStart, setPlanDuration, getPlanDuration} =
+    useReadingPlanProgress();
 
   const params = useLocalSearchParams<{d?: string}>();
 
@@ -129,6 +149,26 @@ export default function TogetherJoinScreen() {
       default:
         return fromLink ? tt.linkInvalid : tt.codeInvalid;
     }
+  };
+
+  /**
+   * Swap this screen for a read-only landing. R9-541 — the same link tapped
+   * again (back in the messenger) pushes another `together` on top of the
+   * landing it opened before: when that landing, with the same bundle, is
+   * right below, go back to it instead of stacking an identical copy.
+   */
+  const openLanding = (route: string, d: string) => {
+    const state = navigation.getState();
+    const below = state ? state.routes[state.index - 1] : undefined;
+    const belowD = (below?.params as {d?: unknown} | undefined)?.d;
+    if (below?.name === `${route}/index` && typeof belowD === 'string') {
+      const decoded = decodeTogetherParam(belowD);
+      if (decoded.ok && encodeBundleParam(decoded.bundle) === d) {
+        router.back();
+        return;
+      }
+    }
+    router.replace(`/${route}?d=${d}` as never);
   };
 
   /** Accept a decoded bundle into the right confirmation state. */
@@ -160,16 +200,12 @@ export default function TogetherJoinScreen() {
     }
     if (res.bundle.t === 'study') {
       // A shared study isn't a group to join — open the read-only viewer.
-      router.replace(
-        `/features/study-shared?d=${encodeBundleParam(res.bundle)}` as never,
-      );
+      openLanding('features/study-shared', encodeBundleParam(res.bundle));
       return;
     }
     if (res.bundle.t === 'cal') {
       // A baked devotional calendar isn't a group either — open its viewer.
-      router.replace(
-        `/features/devotional-shared?d=${encodeBundleParam(res.bundle)}` as never,
-      );
+      openLanding('features/devotional-shared', encodeBundleParam(res.bundle));
       return;
     }
     setError(tt.linkInvalid);
@@ -211,9 +247,15 @@ export default function TogetherJoinScreen() {
   };
 
   const plan = shared ? getReadingPlanById(shared.p) : undefined;
+  // R9-512 — the inviter's chosen duration (untrusted: bounded to what this
+  // plan can be spread over); the plan's default when none travels.
+  const groupDays =
+    plan && shared?.n && isReflowable(plan)
+      ? Math.min(shared.n, maxReflowDays(plan))
+      : plan?.duration;
   const planName = useMemo(
-    () => (plan ? getLocalizedPlan(plan, t).name : ''),
-    [plan, t],
+    () => (plan ? getLocalizedPlan(plan, t, groupDays).name : ''),
+    [plan, t, groupDays],
   );
 
   const submitCode = () => {
@@ -224,6 +266,15 @@ export default function TogetherJoinScreen() {
   const onJoin = async () => {
     if (!shared || !plan) return;
     haptics.success();
+    // R9-512 — read the plan over the group's days. Before the start write
+    // (both rewrite the same progress entry), and only when it changes
+    // something: a chosen duration, or one of our own to reset.
+    if (
+      groupDays !== undefined &&
+      (groupDays !== plan.duration || getPlanDuration(shared.p) !== null)
+    ) {
+      await setPlanDuration(shared.p, groupDays);
+    }
     await Promise.all([
       joinPlan(shared.p, {name: shared.g, startDate: shared.s}),
       setPlanStart(shared.p, dateToISO(shared.s)),

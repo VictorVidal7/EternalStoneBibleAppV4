@@ -38,11 +38,18 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {BIBLE_BOOKS, getBookById} from '@/constants/bible';
 import {
-  buildCustomPlan,
+  MAX_DAY_READINGS,
+  MAX_PLAN_DAYS,
+  MAX_PLAN_READINGS,
+  makeCustomPlanBundle,
+  type CustomReading,
+} from '@lib/together';
+import {
   countChapters,
   daysToPassages,
   distributeChapters,
-  inferPerDay,
+  exceedsPlanCaps,
+  inferPace,
   passagesToChapters,
   type PlanPace,
   type PlanPassage,
@@ -76,6 +83,11 @@ function StepperValueInput({
   accessibilityLabel: string;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  // A change from outside (the − / + buttons, or a clamp) drops a draft that
+  // no longer matches, so the field shows it and a later blur can't undo it.
+  useEffect(() => {
+    setDraft(d => (d !== null && parseInt(d, 10) !== value ? null : d));
+  }, [value]);
   const commit = () => {
     const n = parseInt(draft ?? '', 10);
     if (!Number.isNaN(n)) onCommit(Math.min(max, Math.max(min, n)));
@@ -90,7 +102,16 @@ function StepperValueInput({
           {color: textColor},
         ]}
         value={draft ?? String(value)}
-        onChangeText={txt => setDraft(txt.replace(/[^0-9]/g, '').slice(0, 3))}
+        onChangeText={txt => {
+          const next = txt.replace(/[^0-9]/g, '').slice(0, 3);
+          setDraft(next);
+          // R9-510 — apply as it's typed: a tap on a button doesn't blur the
+          // field (`keyboardShouldPersistTaps="handled"`), so «Crear» or
+          // «Añadir pasaje» used the old value. Below the minimum waits for
+          // blur (more digits may still come); above the maximum clamps.
+          const n = parseInt(next, 10);
+          if (!Number.isNaN(n) && n >= min) onCommit(Math.min(max, n));
+        }}
         onBlur={commit}
         onSubmitEditing={commit}
         keyboardType="number-pad"
@@ -135,16 +156,29 @@ export default function PlanBuilderScreen() {
   // useState initializers, and reconstructs the editor passages from the saved
   // days (which is all a custom plan stores).
   const prefilled = useRef(false);
+  // R9-509 — the edited plan's own days and the editor values they were
+  // pre-filled into: while passages and pace stay untouched (only the name
+  // changed), those days are saved as they are, so progress keeps pointing at
+  // the chapters actually read.
+  const original = useRef<{
+    days: CustomReading[][];
+    passages: PlanPassage[];
+    pace: PlanPace;
+  } | null>(null);
   useEffect(() => {
     if (!editId || prefilled.current) return;
     const plan = getCustomPlanById(editId);
     if (!plan) return;
     prefilled.current = true;
     const days = bundleFromCustomPlan(plan).d;
+    const prefillPassages = daysToPassages(days);
+    const prefillPace = inferPace(days);
+    original.current = {days, passages: prefillPassages, pace: prefillPace};
     setName(plan.name);
-    setPassages(daysToPassages(days));
-    setPaceMode('perDay');
-    setPerDay(inferPerDay(days));
+    setPassages(prefillPassages);
+    setPaceMode(prefillPace.mode);
+    if (prefillPace.mode === 'perDay') setPerDay(prefillPace.chaptersPerDay);
+    else setTotalDays(prefillPace.days);
   }, [editId, getCustomPlanById]);
 
   // Add-passage modal state.
@@ -165,13 +199,31 @@ export default function PlanBuilderScreen() {
       : {mode: 'totalDays', days: totalDays};
 
   const totalChapters = useMemo(() => countChapters(passages), [passages]);
-  const dayCount = useMemo(
-    () => distributeChapters(passagesToChapters(passages), pace).length,
+  // The days that will be saved — the preview, the button and `onCreate` all
+  // read this one value.
+  const draftDays = useMemo(() => {
+    const o = original.current;
+    const untouched =
+      o !== null &&
+      passages === o.passages &&
+      paceMode === o.pace.mode &&
+      (o.pace.mode === 'perDay'
+        ? perDay === o.pace.chaptersPerDay
+        : totalDays === o.pace.days);
+    if (untouched) return o.days;
+    return distributeChapters(passagesToChapters(passages), pace);
     // pace is rebuilt each render; its fields are the real signals.
-    [passages, paceMode, perDay, totalDays],
-  );
+  }, [passages, paceMode, perDay, totalDays]);
+  const dayCount = draftDays.length;
+  // R9-508 — the bundle caps would cut such a plan short without a word (the
+  // preview promised 1189 days, 400 were saved): block it and say why.
+  const overCap = exceedsPlanCaps(draftDays);
+  const tooLongText = tb.tooLong
+    .replace('{{days}}', String(MAX_PLAN_DAYS))
+    .replace('{{perDay}}', String(MAX_DAY_READINGS))
+    .replace('{{total}}', String(MAX_PLAN_READINGS));
 
-  const canCreate = name.trim().length > 0 && passages.length > 0;
+  const canCreate = name.trim().length > 0 && passages.length > 0 && !overCap;
 
   const openPicker = () => {
     haptics.tap();
@@ -206,10 +258,10 @@ export default function PlanBuilderScreen() {
 
   const onCreate = async () => {
     if (!canCreate) {
-      toast.info(tb.needNameAndPassage);
+      toast.info(overCap ? tooLongText : tb.needNameAndPassage);
       return;
     }
-    const bundle = buildCustomPlan(name, passages, pace);
+    const bundle = makeCustomPlanBundle(name, draftDays);
     const plan = customPlanFromBundle(bundle);
     if (!plan) {
       toast.info(tb.needNameAndPassage);
@@ -225,12 +277,17 @@ export default function PlanBuilderScreen() {
       }
       await replaceCustomPlan(editId, plan);
       toast.success(tb.updated);
-    } else {
-      await saveCustomPlan(plan);
-      // Seed today's start so the plan opens already guiding "Day 1".
-      await setPlanStart(plan.id, new Date().toISOString());
-      toast.success(tb.created);
+      // R9-507 — the builder was pushed from the plan screen: go BACK to it
+      // with the new id. A `replace` from the root Stack stacked a second
+      // `(tabs)` and left the old (now deleted) plan underneath, so the next
+      // back showed it at 0 %.
+      router.dismissTo(`/plan/${plan.id}` as never);
+      return;
     }
+    await saveCustomPlan(plan);
+    // Seed today's start so the plan opens already guiding "Day 1".
+    await setPlanStart(plan.id, new Date().toISOString());
+    toast.success(tb.created);
     router.replace(`/plan/${plan.id}` as never);
   };
 
@@ -426,6 +483,13 @@ export default function PlanBuilderScreen() {
                   .replace('{{chapters}}', String(totalChapters))}
           </Text>
         </View>
+        {overCap ? (
+          <Text
+            style={[styles.tooLong, {color: colors.error}]}
+            accessibilityRole="alert">
+            {tooLongText}
+          </Text>
+        ) : null}
 
         <TouchableOpacity
           style={[
@@ -685,6 +749,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   previewText: {fontSize: 15, fontWeight: '700'},
+  tooLong: {fontSize: 14, lineHeight: 20, marginTop: 10},
   createBtn: {
     flexDirection: 'row',
     alignItems: 'center',
