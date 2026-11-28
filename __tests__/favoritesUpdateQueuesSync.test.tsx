@@ -221,6 +221,32 @@ describe('R9-102 — editar un favorito encola su subida', () => {
     });
   });
 
+  it('R9-155 — dos ediciones seguidas de un favorito que YA existia: la segunda lleva tambien la primera', async () => {
+    // La prueba de arriba cubre «la edicion anterior del mismo favorito» solo
+    // con un favorito NUEVO, que no esta en el estado de React. Un arreglo a
+    // medias (la fila sale del ref que copia el estado, y de SQLite solo si
+    // el favorito no esta en el ref) la pasaba, y perdia la primera edicion
+    // de un favorito que ya existia: el ref todavia no la tiene.
+    await mountAndSettle();
+
+    await act(async () => {
+      const before = renders;
+      await captured!.updateFavorite('fav-1', {note: 'para el domingo'});
+      await captured!.updateFavorite('fav-1', {tags: ['Evangelio']});
+      // Control: nada se renderizo entre las dos ediciones.
+      expect(renders).toBe(before);
+    });
+
+    const queued = queuedFor('fav-1');
+    expect(queued).toHaveLength(2);
+    // La cola del motor se queda con la ULTIMA por id. Con el arreglo a
+    // medias: {note: 'nota vieja', tags: ['Evangelio']}.
+    expect({note: queued[1].note, tags: queued[1].tags}).toEqual({
+      note: 'para el domingo',
+      tags: ['Evangelio'],
+    });
+  });
+
   it('editar un favorito que ya no existe no encola nada', async () => {
     // Control, y no discrimina contra R9-102 a proposito: el arreglo no puede
     // subir un favorito fantasma (borrado en otro dispositivo, o en otra
