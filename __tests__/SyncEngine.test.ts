@@ -1084,6 +1084,68 @@ describe('initial bulk push', () => {
     await engine.__flushForTests();
     expect(mockDocSets).toHaveLength(0);
   });
+
+  it('R9-138 — la fila que sube el bulk push limpia la lapida vieja de la nube (deleted: false, deletedAt: null)', async () => {
+    // R9-45 by the door of the bulk push. The cloud keeps a tombstone of a
+    // natural-key id (a highlight removed on another phone, long ago), and
+    // this phone holds the row again, newer. No `*ToRemote` writes `deleted`,
+    // and `pushOne` merges: without the two keys the bulk push stamps, the
+    // cloud's copy took the new value AND kept the tombstone, and every other
+    // device read it as deleted. The tests above only look at the ids.
+    const uid = 'uid-138';
+    const T = Date.now() - 24 * 60 * 60 * 1000;
+    const coll = mockMakeCollection(`users/${uid}/test`) as MockCollRef & {
+      __fire: (c: unknown[]) => void;
+    };
+    coll.__fire([
+      {
+        type: 'added',
+        doc: {
+          id: 'doc-reused',
+          exists: true,
+          data: () => ({
+            value: 'v1',
+            updatedAt: T,
+            deleted: true,
+            deletedAt: T,
+          }),
+        },
+      },
+    ]);
+    const engine = new SyncEngine();
+    const {adapter, localStore, remoteDeleteCalls} = makeAdapter();
+    // As an adapter's `pullAllLocal` returns it: no `deleted` key at all.
+    localStore.set('doc-reused', {value: 'v2', updatedAt: T + 60 * 60 * 1000});
+    engine.register(adapter);
+    await engine.start(uid);
+    await drain();
+    await engine.__flushForTests();
+    await drain();
+
+    const cloud = (await coll.doc('doc-reused').get()).data() as Record<
+      string,
+      unknown
+    >;
+    expect({
+      // CONTROL: la lapida llego por el listener y LWW no la aplico (lo local
+      // es mas nuevo): la fila seguia viva cuando corrio el bulk push.
+      lapidaEntregada: mockDelivered.some(
+        d => d.id === 'doc-reused' && d.via === 'attach',
+      ),
+      borradosLocales: remoteDeleteCalls,
+      subidas: mockDocSets.map(d => d.id), // CONTROL: el bulk push la subio
+      nube: {
+        value: cloud.value,
+        deleted: cloud.deleted,
+        deletedAt: cloud.deletedAt,
+      },
+    }).toEqual({
+      lapidaEntregada: true,
+      borradosLocales: [],
+      subidas: ['doc-reused'],
+      nube: {value: 'v2', deleted: false, deletedAt: null},
+    });
+  });
 });
 
 describe('R9-38 — lo editado sin sesion', () => {
