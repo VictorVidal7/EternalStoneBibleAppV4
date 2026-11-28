@@ -67,15 +67,35 @@ const mockDb = {
   },
 };
 
-jest.mock('firebase-admin/app', () => ({
+// The mocks are registered on the path redeem.ts itself resolves, not on the
+// bare name: with `vercel/gift-code-redeem/node_modules` installed (it is
+// git-ignored, so only some checkouts have it) the endpoint resolves ITS OWN
+// firebase-admin, a different file from the one a bare `jest.mock` (resolved
+// from this test) intercepts, and the real Admin SDK ran at load time. With
+// neither copy resolvable, the mock is virtual.
+const ENDPOINT_DIR = require('path').join(
+  __dirname,
+  '../vercel/gift-code-redeem/api',
+);
+function mockForEndpoint(name: string, factory: () => unknown) {
+  let target = name;
+  let virtual = false;
+  try {
+    target = require.resolve(name, {paths: [ENDPOINT_DIR]});
+  } catch {
+    virtual = true;
+  }
+  jest.doMock(target, factory, {virtual});
+}
+mockForEndpoint('firebase-admin/app', () => ({
   cert: (x: unknown) => x,
   getApps: () => [],
   initializeApp: jest.fn(),
 }));
-jest.mock('firebase-admin/auth', () => ({
+mockForEndpoint('firebase-admin/auth', () => ({
   getAuth: () => ({verifyIdToken: mockVerifyIdToken}),
 }));
-jest.mock('firebase-admin/firestore', () => ({
+mockForEndpoint('firebase-admin/firestore', () => ({
   getFirestore: () => mockDb,
   FieldValue: {serverTimestamp: () => 'SERVER_TS'},
 }));
