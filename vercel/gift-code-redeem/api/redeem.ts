@@ -1,7 +1,9 @@
 /**
  * redeemGiftCode — Vercel serverless port of functions/src/index.ts.
  *
- * Same logic, same request/response shape (the client, giftCodeService.ts,
+ * Same request/response shape; the logic is AHEAD of that undeployed copy
+ * since R9-20 (the code's shape is checked first) and R9-21 (the code is
+ * claimed before the grant), which were fixed here only (the client, giftCodeService.ts,
  * only needed its REDEEM_GIFT_CODE_URL constant updated — outcomeFromResponse()
  * there already parses a generic `{status: ...}` body). Ported off Firebase
  * Cloud Functions because Cloud Functions requires the Blaze billing plan
@@ -78,7 +80,18 @@ type RedeemResult =
   | {httpStatus: 409; body: {status: 'already_redeemed'}}
   | {httpStatus: 500; body: {status: 'server_error'; message: string}};
 
-/** Calls RevenueCat's REST API to grant the promotional entitlement. Throws on failure. */
+/**
+ * RevenueCat ANSWERED and refused the grant (a non-2xx). Unlike a fetch that
+ * throws (no answer at all: the grant may or may not have landed), this one
+ * is known not to have granted anything.
+ */
+class GrantRefusedError extends Error {}
+
+/**
+ * Calls RevenueCat's REST API to grant the promotional entitlement. Throws a
+ * GrantRefusedError when RevenueCat answers with an error, and whatever fetch
+ * throws when there is no answer.
+ */
 async function grantPromotionalEntitlement(
   uid: string,
   secretKey: string,
@@ -101,7 +114,7 @@ async function grantPromotionalEntitlement(
 
   if (!res.ok) {
     const detail = await res.text().catch(() => '');
-    throw new Error(
+    throw new GrantRefusedError(
       `RevenueCat promotional-entitlement grant failed: ${res.status} ${detail}`,
     );
   }
@@ -177,21 +190,37 @@ async function handleRedeem(
   const uid = decoded.uid;
 
   const codeRef = db.collection('giftCodes').doc(code);
-  const snap = await codeRef.get();
-  if (!snap.exists) {
-    return {httpStatus: 404, body: {status: 'not_found'}};
-  }
-  const data = snap.data() as GiftCodeDoc;
-  if (data.redeemed) {
-    return {httpStatus: 409, body: {status: 'already_redeemed'}};
-  }
 
-  // Grant FIRST, mark-redeemed SECOND — a code must never be burned without
-  // the person actually receiving the entitlement.
+  // R9-21 — claim FIRST, grant SECOND. The code used to be granted first and
+  // marked after; when that bookkeeping write failed, the reader got a 200 and
+  // the code stayed available, so a second account could redeem it for a
+  // second lifetime entitlement. Now the mark is a transaction that binds the
+  // code to THIS uid before anything is granted, which keeps both promises:
+  //  - no second account after a grant: once claimed, any other uid gets 409
+  //    (a concurrent second request loses the same transaction, so the old
+  //    double-grant race is gone too);
+  //  - never burned without the grant: a code claimed by this uid answers
+  //    THIS uid's retry with the grant (again) and a 200. That is also what
+  //    makes a client-side timeout safe (R9-620): a retry after a redemption
+  //    the app never heard back from is a success, not "already redeemed".
+  let claim: 'claimed' | 'ownRetry' | 'not_found' | 'already_redeemed';
   try {
-    await grantPromotionalEntitlement(uid, revenueCatSecretKey);
+    claim = await db.runTransaction(async tx => {
+      const snap = await tx.get(codeRef);
+      if (!snap.exists) return 'not_found';
+      const data = snap.data() as GiftCodeDoc;
+      if (data.redeemed) {
+        return data.redeemedByUid === uid ? 'ownRetry' : 'already_redeemed';
+      }
+      tx.update(codeRef, {
+        redeemed: true,
+        redeemedByUid: uid,
+        redeemedAt: FieldValue.serverTimestamp(),
+      });
+      return 'claimed';
+    });
   } catch (err) {
-    console.error('redeemGiftCode: RevenueCat grant failed', {
+    console.error('redeemGiftCode: claim transaction failed', {
       code,
       uid,
       error: String(err),
@@ -200,34 +229,59 @@ async function handleRedeem(
       httpStatus: 500,
       body: {
         status: 'server_error',
-        message:
-          'Could not grant the entitlement — code was NOT marked redeemed, safe to retry',
+        message: 'Could not claim the code — nothing was granted, safe to retry',
       },
     };
   }
+  if (claim === 'not_found') {
+    return {httpStatus: 404, body: {status: 'not_found'}};
+  }
+  if (claim === 'already_redeemed') {
+    return {httpStatus: 409, body: {status: 'already_redeemed'}};
+  }
 
   try {
-    await db.runTransaction(async tx => {
-      const fresh = await tx.get(codeRef);
-      if (!fresh.exists) return; // deleted mid-flight — nothing left to mark
-      const freshData = fresh.data() as GiftCodeDoc;
-      // A concurrent request already won the race and marked this code
-      // redeemed — leave their record canonical. The grant to THIS caller's
-      // uid already happened either way (see file header's accepted tradeoff).
-      if (freshData.redeemed) return;
-      tx.update(codeRef, {
-        redeemed: true,
-        redeemedByUid: uid,
-        redeemedAt: FieldValue.serverTimestamp(),
-      });
-    });
+    await grantPromotionalEntitlement(uid, revenueCatSecretKey);
   } catch (err) {
-    // The entitlement WAS granted; only the bookkeeping write failed. Log
-    // loudly for manual follow-up rather than telling this user it failed.
-    console.error(
-      'redeemGiftCode: grant succeeded but mark-redeemed write failed',
-      {code, uid, error: String(err)},
-    );
+    console.error('redeemGiftCode: RevenueCat grant failed', {
+      code,
+      uid,
+      claim,
+      error: String(err),
+    });
+    // Give the code back only when RevenueCat said NO and this request is the
+    // one that claimed it. With no answer (the grant may have landed) or on a
+    // retry (an earlier grant may have landed), it stays bound to this uid,
+    // whose next retry completes it.
+    if (claim === 'claimed' && err instanceof GrantRefusedError) {
+      try {
+        await db.runTransaction(async tx => {
+          const fresh = await tx.get(codeRef);
+          if (!fresh.exists) return;
+          const freshData = fresh.data() as GiftCodeDoc;
+          if (!freshData.redeemed || freshData.redeemedByUid !== uid) return;
+          tx.update(codeRef, {
+            redeemed: false,
+            redeemedByUid: null,
+            redeemedAt: null,
+          });
+        });
+      } catch (releaseErr) {
+        // Still bound to this uid, so no one else can take it, and this uid's
+        // retry grants it. Logged for manual follow-up.
+        console.error(
+          'redeemGiftCode: grant refused and the claim could not be released',
+          {code, uid, error: String(releaseErr)},
+        );
+      }
+    }
+    return {
+      httpStatus: 500,
+      body: {
+        status: 'server_error',
+        message: 'Could not grant the entitlement — safe to retry',
+      },
+    };
   }
 
   return {httpStatus: 200, body: {status: 'success'}};
