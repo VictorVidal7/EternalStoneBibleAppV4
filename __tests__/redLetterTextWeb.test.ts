@@ -155,6 +155,8 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(
       expect.stringContaining('web-red-letter.json'),
+      // R9-620 — the request carries the deadline's abort signal.
+      expect.objectContaining({signal: expect.anything()}),
     );
   });
 
@@ -221,6 +223,52 @@ describe('getRedLetterSpans / loadRedLetterSpans', () => {
     await redLetterTextWeb.loadRedLetterSpans('WEB');
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('R9-620 — the red-letter pack has a deadline', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  it('a pack that never answers: the load settles after the deadline, unsettled, and the next call fetches again', async () => {
+    (global.fetch as jest.Mock).mockImplementation(() => new Promise(() => {}));
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    let done = false;
+    void redLetterTextWeb.loadRedLetterSpans('WEB').then(() => (done = true));
+
+    await jest.advanceTimersByTimeAsync(
+      redLetterTextWeb.RED_LETTER_TIMEOUT_MS - 1,
+    );
+    expect(done).toBe(false);
+    await jest.advanceTimersByTimeAsync(1);
+    expect(done).toBe(true);
+    expect(
+      redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16),
+    ).toBeUndefined();
+
+    // Not settled into an empty map (R9-71): the next caller retries.
+    mockFetchOnce({
+      ok: true,
+      json: async () => [{book_id: 43, chapter: 3, verse: 16, spans: [[0, 5]]}],
+    });
+    await redLetterTextWeb.loadRedLetterSpans('WEB');
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+    expect(redLetterTextWeb.getRedLetterSpans('WEB', 43, 3, 16)).toEqual([
+      [0, 5],
+    ]);
+  });
+
+  it('headers that arrive with a body that never does: the deadline covers the body too', async () => {
+    mockFetchOnce({ok: true, json: () => new Promise(() => {})});
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+    let done = false;
+    void redLetterTextWeb.loadRedLetterSpans('WEB').then(() => (done = true));
+
+    await jest.advanceTimersByTimeAsync(redLetterTextWeb.RED_LETTER_TIMEOUT_MS);
+    expect(done).toBe(true);
   });
 });
 

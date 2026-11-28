@@ -45,8 +45,12 @@ import type {RedLetterVerse} from '@lib/database/bible-data-web-redletter';
  * native file. Type-only, so it is erased at compile time.
  */
 import type {RedLetterRun} from './redLetterText';
+import {withTimeout} from '@lib/utils/withTimeout';
 
 export type {RedLetterRun};
+
+/** R9-620 — the red-letter pack's deadline, headers and body (see below). */
+export const RED_LETTER_TIMEOUT_MS = 30_000;
 
 /**
  * Base URL for the web-only bootstrap packs. Duplicated from
@@ -158,11 +162,21 @@ export async function loadRedLetterSpans(versionId: string): Promise<void> {
 
   const promise = (async () => {
     try {
-      const res = await fetch(`${WEB_PACKS_BASE_URL}${file}`);
-      if (!res.ok) {
-        throw new Error(`Red-letter pack fetch failed: HTTP ${res.status}`);
-      }
-      const rows = (await res.json()) as RedLetterVerse[];
+      // R9-620 — a deadline over headers and body. The pack is ~116 KB
+      // (web-bootstrap.json), so a fixed 30 s still lets a ~4 KB/s
+      // connection through. Timing out lands in the catch below: unsettled,
+      // and the next caller retries.
+      const rows = await withTimeout(
+        async signal => {
+          const res = await fetch(`${WEB_PACKS_BASE_URL}${file}`, {signal});
+          if (!res.ok) {
+            throw new Error(`Red-letter pack fetch failed: HTTP ${res.status}`);
+          }
+          return (await res.json()) as RedLetterVerse[];
+        },
+        RED_LETTER_TIMEOUT_MS,
+        `red-letter pack ${file}`,
+      );
       const map: SpanMap = new Map();
       for (const entry of rows) {
         map.set(

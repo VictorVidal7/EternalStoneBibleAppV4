@@ -35,6 +35,7 @@ jest.mock('../src/lib/offering/offeringService', () => ({
 import {
   redeemGiftCode,
   REDEEM_GIFT_CODE_URL,
+  REDEEM_TIMEOUT_MS,
   __resetForTests,
 } from '../src/lib/offering/giftCodeService';
 
@@ -195,5 +196,80 @@ describe('giftCodeService.redeemGiftCode', () => {
     (global.fetch as jest.Mock).mockRejectedValue(new Error('network down'));
     const outcome = await redeemGiftCode('ABCD-1234');
     expect(outcome.status).toBe('error');
+  });
+});
+
+describe('R9-620 — the redemption has a deadline', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+    __resetForTests();
+    mockGetIdToken.mockReset().mockResolvedValue('fake-id-token');
+    mockCurrentUser = {uid: 'uid-123', getIdToken: mockGetIdToken};
+    mockLinkUser.mockClear().mockResolvedValue(undefined);
+  });
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  /** Settles `p` into a box, so a hang reads as `undefined`, not a stuck test. */
+  function track<T>(p: Promise<T>): {value?: T} {
+    const box: {value?: T} = {};
+    void p.then(v => (box.value = v));
+    return box;
+  }
+
+  it('a server that never answers (and ignores the abort): an error, not a spinner forever', async () => {
+    global.fetch = jest.fn(() => new Promise(() => {})) as never;
+    const outcome = track(redeemGiftCode('ABCD-1234'));
+    await jest.advanceTimersByTimeAsync(REDEEM_TIMEOUT_MS - 1);
+    expect(outcome.value).toBeUndefined();
+    await jest.advanceTimersByTimeAsync(1);
+    expect(outcome.value).toEqual({status: 'error', message: 'Timed out'});
+    expect(mockLinkUser).not.toHaveBeenCalled();
+  });
+
+  it('the request carries a signal, and the deadline aborts it', async () => {
+    let signal: AbortSignal | undefined;
+    global.fetch = jest.fn(
+      (_url: string, init?: {signal?: AbortSignal}) =>
+        new Promise((_, reject) => {
+          signal = init?.signal;
+          signal?.addEventListener('abort', () => reject(new Error('Aborted')));
+        }),
+    ) as never;
+    const outcome = track(redeemGiftCode('ABCD-1234'));
+    await jest.advanceTimersByTimeAsync(0);
+    expect(signal?.aborted).toBe(false);
+    await jest.advanceTimersByTimeAsync(REDEEM_TIMEOUT_MS);
+    expect(signal?.aborted).toBe(true);
+    expect(outcome.value?.status).toBe('error');
+  });
+
+  it('headers that arrive with a body that never does: the deadline covers the body too', async () => {
+    global.fetch = jest.fn(async () => ({
+      status: 200,
+      json: () => new Promise(() => {}),
+    })) as never;
+    const outcome = track(redeemGiftCode('ABCD-1234'));
+    await jest.advanceTimersByTimeAsync(REDEEM_TIMEOUT_MS);
+    expect(outcome.value).toEqual({status: 'error', message: 'Timed out'});
+  });
+
+  it('CONTROL: an answer just under the deadline is still a success', async () => {
+    global.fetch = jest.fn(
+      () =>
+        new Promise(resolve =>
+          setTimeout(
+            () =>
+              resolve({status: 200, json: async () => ({status: 'success'})}),
+            REDEEM_TIMEOUT_MS - 1,
+          ),
+        ),
+    ) as never;
+    const outcome = track(redeemGiftCode('ABCD-1234'));
+    await jest.advanceTimersByTimeAsync(REDEEM_TIMEOUT_MS - 1);
+    expect(outcome.value).toEqual({status: 'success'});
+    expect(mockLinkUser).toHaveBeenCalledWith('uid-123');
   });
 });

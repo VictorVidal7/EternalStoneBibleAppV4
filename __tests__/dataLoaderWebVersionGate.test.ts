@@ -34,7 +34,11 @@
 import {createHash} from 'crypto';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from '../src/lib/database';
-import {initializeBibleData} from '../src/lib/database/data-loader.web';
+import {
+  initializeBibleData,
+  MANIFEST_TIMEOUT_MS,
+  WEB_PACK_STALL_MS,
+} from '../src/lib/database/data-loader.web';
 import {packLoadedKey, packVersionKey} from '../src/lib/database/pack-import';
 
 const mockGetAllAsync = jest.fn(async (_sql: unknown) => [
@@ -558,5 +562,139 @@ describe('a manifest that pins nothing for a pack is the flag-only check (R9-109
     // Nothing verified these bytes, so nothing claims a version for them: the
     // first boot whose manifest does pin WEB re-imports it, checked.
     expect(await AsyncStorage.getItem(packVersionKey('WEB'))).toBeNull();
+  });
+});
+
+describe('R9-620 — the web loaders have a deadline that does not cut a slow, live download', () => {
+  beforeEach(() => jest.useFakeTimers());
+  afterEach(() => {
+    jest.clearAllTimers();
+    jest.useRealTimers();
+  });
+
+  /** Settles `p` into a box, so a hang reads as `pending`, not a stuck test. */
+  function track(p: Promise<unknown>): {state: string; error?: unknown} {
+    const box: {state: string; error?: unknown} = {state: 'pending'};
+    p.then(
+      () => (box.state = 'resolved'),
+      error => {
+        box.state = 'rejected';
+        box.error = error;
+      },
+    );
+    return box;
+  }
+
+  /** A pack response whose body arrives in `chunks`, one every `everyMs`. */
+  function streamedPack(
+    chunks: Uint8Array[],
+    everyMs: number,
+    stopAfter?: number,
+  ) {
+    let i = 0;
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({}),
+      arrayBuffer: async () => {
+        throw new Error('the stream is what must be read');
+      },
+      body: {
+        getReader: () => ({
+          read: () =>
+            new Promise<{done: boolean; value?: Uint8Array}>(resolve => {
+              if (stopAfter !== undefined && i >= stopAfter) return; // stalls
+              if (i >= chunks.length) {
+                resolve({done: true});
+                return;
+              }
+              const value = chunks[i++];
+              setTimeout(() => resolve({done: false, value}), everyMs);
+            }),
+        }),
+      },
+    };
+  }
+
+  /** Splits `bytes` into `n` pieces. */
+  function split(bytes: Uint8Array, n: number): Uint8Array[] {
+    const size = Math.ceil(bytes.length / n);
+    const out: Uint8Array[] = [];
+    for (let o = 0; o < bytes.length; o += size) {
+      out.push(bytes.slice(o, o + size));
+    }
+    return out;
+  }
+
+  const manifestResponse = () => ({
+    ok: true,
+    status: 200,
+    json: async () => buildManifest(),
+  });
+
+  it('a manifest that never answers: after its deadline the boot goes on flag-only, as offline', async () => {
+    await AsyncStorage.setItem(packLoadedKey('RVR1960'), 'true');
+    await AsyncStorage.setItem(packLoadedKey('WEB'), 'true');
+    const fetchMock = jest.fn(() => new Promise(() => {}));
+    global.fetch = fetchMock as unknown as typeof fetch;
+    jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+    const boot = track(initializeBibleData());
+    await jest.advanceTimersByTimeAsync(MANIFEST_TIMEOUT_MS - 1);
+    expect(boot.state).toBe('pending');
+    await jest.advanceTimersByTimeAsync(1);
+    expect(boot.state).toBe('resolved');
+    expect(fetchMock).toHaveBeenCalledTimes(1); // the manifest only
+  });
+
+  it('a pack that never answers: the boot fails after the stall window instead of hanging', async () => {
+    global.fetch = jest.fn(async (input: unknown) =>
+      String(input).endsWith('web-bootstrap.json')
+        ? manifestResponse()
+        : new Promise(() => {}),
+    ) as unknown as typeof fetch;
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const boot = track(initializeBibleData());
+    await jest.advanceTimersByTimeAsync(WEB_PACK_STALL_MS - 1);
+    expect(boot.state).toBe('pending');
+    await jest.advanceTimersByTimeAsync(1);
+    expect(boot.state).toBe('rejected');
+    expect(String(boot.error)).toContain('timed out');
+    expect(mockDeserializeDatabaseAsync).not.toHaveBeenCalled();
+  });
+
+  it('a pack that keeps arriving slowly is NOT cut, even when the whole download outlasts the window', async () => {
+    const step = WEB_PACK_STALL_MS - 1000;
+    global.fetch = jest.fn(async (input: unknown) => {
+      const url = String(input);
+      if (url.endsWith('web-bootstrap.json')) return manifestResponse();
+      const bytes = url.endsWith('rvr1960.sqlite') ? RVR_BYTES : WEB_BYTES;
+      return streamedPack(split(bytes, 4), step);
+    }) as unknown as typeof fetch;
+
+    const boot = track(initializeBibleData());
+    // Two packs, 4 chunks each, every chunk just under the window: the whole
+    // download takes ~8 windows.
+    await jest.advanceTimersByTimeAsync(step * 10);
+    expect(boot.state).toBe('resolved');
+    // The streamed pieces were put back together: both pins verified.
+    expect(deserializedShas()).toEqual([RVR_SHA, WEB_SHA]);
+  });
+
+  it('a pack that stops arriving mid-body: aborted after the window of silence', async () => {
+    global.fetch = jest.fn(async (input: unknown) =>
+      String(input).endsWith('web-bootstrap.json')
+        ? manifestResponse()
+        : streamedPack(split(RVR_BYTES, 4), 1000, 2),
+    ) as unknown as typeof fetch;
+    jest.spyOn(console, 'error').mockImplementation(() => {});
+
+    const boot = track(initializeBibleData());
+    await jest.advanceTimersByTimeAsync(2000 + WEB_PACK_STALL_MS - 1);
+    expect(boot.state).toBe('pending');
+    await jest.advanceTimersByTimeAsync(1);
+    expect(boot.state).toBe('rejected');
+    expect(mockDeserializeDatabaseAsync).not.toHaveBeenCalled();
   });
 });

@@ -26,6 +26,7 @@
  */
 
 import {logger} from '@lib/utils/logger';
+import {TimeoutError, withTimeout} from '@lib/utils/withTimeout';
 import {linkUser} from './offeringService';
 
 /**
@@ -43,6 +44,14 @@ import {linkUser} from './offeringService';
  */
 export const REDEEM_GIFT_CODE_URL =
   'https://essb-gift-redeem.vercel.app/api/redeem';
+
+/**
+ * R9-620 — how long a redemption may take, answer included. Longer than the
+ * 15 s of the version catalog: the endpoint verifies the token, runs a
+ * Firestore transaction and calls RevenueCat, on a function that may be
+ * starting cold.
+ */
+export const REDEEM_TIMEOUT_MS = 20_000;
 
 /** Mirrors offeringService.ts's PurchaseOutcome shape/style for consistency. */
 export type RedeemOutcome =
@@ -153,34 +162,51 @@ export async function redeemGiftCode(code: string): Promise<RedeemOutcome> {
     return {status: 'error', message: 'Could not get an auth token'};
   }
 
-  let res: Awaited<ReturnType<typeof fetch>>;
+  // R9-620 — a deadline over the request AND its body: on a network that
+  // accepts the connection and never answers, the redemption used to spin
+  // with no way out. Safe for money because the endpoint answers the SAME
+  // account's retry of a code it already claimed with a success (R9-21), so a
+  // deadline that fires after the server redeemed is fixed by trying again.
+  let httpStatus: number;
+  let body: RedeemResponseBody = {};
   try {
-    res = await fetch(REDEEM_GIFT_CODE_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${idToken}`,
+    ({httpStatus, body} = await withTimeout(
+      async signal => {
+        const res = await fetch(REDEEM_GIFT_CODE_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${idToken}`,
+          },
+          body: JSON.stringify({code: trimmed}),
+          signal,
+        });
+        let parsed: RedeemResponseBody = {};
+        try {
+          parsed = await res.json();
+        } catch (err) {
+          if (signal.aborted) throw err;
+          // Non-JSON body (e.g. a proxy/edge error page) — falls through to
+          // the generic error mapping below via the empty `body`.
+        }
+        return {httpStatus: res.status, body: parsed};
       },
-      body: JSON.stringify({code: trimmed}),
-    });
+      REDEEM_TIMEOUT_MS,
+      'gift-code redemption',
+    ));
   } catch (err) {
     logger.warn('giftCodeService: network request failed', {
       component: 'giftCodeService',
       action: 'redeemGiftCode',
       error: err,
     });
-    return {status: 'error', message: 'Network error'};
+    return {
+      status: 'error',
+      message: err instanceof TimeoutError ? 'Timed out' : 'Network error',
+    };
   }
 
-  let body: RedeemResponseBody = {};
-  try {
-    body = await res.json();
-  } catch {
-    // Non-JSON body (e.g. a proxy/edge error page) — falls through to the
-    // generic error mapping below via the empty `body`.
-  }
-
-  const outcome = outcomeFromResponse(res.status, body);
+  const outcome = outcomeFromResponse(httpStatus, body);
   if (outcome.status === 'success') {
     // Defensive re-link — closes a real gap, not a hypothetical one: on
     // cold start, AuthContext's onAuthStateChanged can call

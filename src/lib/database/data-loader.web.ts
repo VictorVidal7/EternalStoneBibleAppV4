@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import bibleDB from './index';
 import {packLoadedKey, packVersionKey} from './pack-import';
 import {sha256Hex} from './sha256';
+import {withStallTimeout, withTimeout} from '@lib/utils/withTimeout';
 
 /**
  * Web variant of data-loader.ts (T21). Native embeds RVR1960 + WEB in
@@ -64,6 +65,44 @@ interface PackRow {
 class WebPackMismatchError extends Error {}
 
 /**
+ * R9-620 — the plazos of the two fetches here. The manifest is ~1 KB, so a
+ * fixed 15 s (the version catalog's, R9-40). A pack is ~4.7 MB: 30 s without
+ * a single byte, however long the whole download takes.
+ */
+export const MANIFEST_TIMEOUT_MS = 15_000;
+export const WEB_PACK_STALL_MS = 30_000;
+
+/**
+ * Reads a response body to the end, reporting every chunk to `progress` so
+ * withStallTimeout's clock restarts while bytes keep arriving. A response
+ * with no readable stream falls back to arrayBuffer() (the clock then covers
+ * the whole body from the headers on).
+ */
+async function readBodyBytes(
+  res: Response,
+  progress: () => void,
+): Promise<Uint8Array> {
+  const reader = res.body?.getReader();
+  if (!reader) return new Uint8Array(await res.arrayBuffer());
+  const chunks: Uint8Array[] = [];
+  let length = 0;
+  for (;;) {
+    const {done, value} = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    length += value.length;
+    progress();
+  }
+  const bytes = new Uint8Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return bytes;
+}
+
+/**
  * Fetch + import one web-bootstrap pack into the main db, tagged `versionId`.
  *
  * R9-109: when the manifest pins a sha256 for this pack, the bytes are hashed
@@ -95,11 +134,24 @@ async function importWebPack(
   expectedSha256: string | null,
   onProgress?: (loaded: number, total: number) => void,
 ): Promise<void> {
-  const res = await fetch(`${WEB_PACKS_BASE_URL}${fileName}`);
-  if (!res.ok) {
-    throw new Error(`Web pack fetch failed (${fileName}): HTTP ${res.status}`);
-  }
-  const bytes = new Uint8Array(await res.arrayBuffer());
+  // R9-620 — a ~4.7 MB download: no fixed total, which would cut a slow
+  // connection that is still delivering. Only WEB_PACK_STALL_MS without a
+  // byte (or without the headers) aborts it; the error is an ordinary one,
+  // the same path as a dropped connection.
+  const bytes = await withStallTimeout(
+    async (signal, progress) => {
+      const res = await fetch(`${WEB_PACKS_BASE_URL}${fileName}`, {signal});
+      progress();
+      if (!res.ok) {
+        throw new Error(
+          `Web pack fetch failed (${fileName}): HTTP ${res.status}`,
+        );
+      }
+      return readBodyBytes(res, progress);
+    },
+    WEB_PACK_STALL_MS,
+    `web pack ${fileName}`,
+  );
 
   if (expectedSha256 !== null) {
     const actualSha256 = sha256Hex(bytes);
@@ -171,11 +223,21 @@ interface WebBootstrapManifest {
  */
 async function fetchWebBootstrapManifest(): Promise<WebBootstrapManifest | null> {
   try {
-    const res = await fetch(`${WEB_PACKS_BASE_URL}web-bootstrap.json`);
-    if (!res.ok) {
-      throw new Error(`Manifest fetch failed: HTTP ${res.status}`);
-    }
-    const parsed = (await res.json()) as WebBootstrapManifest;
+    // R9-620 — a small JSON: a fixed deadline over headers and body. Timing
+    // out lands in the catch below, like being offline.
+    const parsed = await withTimeout(
+      async signal => {
+        const res = await fetch(`${WEB_PACKS_BASE_URL}web-bootstrap.json`, {
+          signal,
+        });
+        if (!res.ok) {
+          throw new Error(`Manifest fetch failed: HTTP ${res.status}`);
+        }
+        return (await res.json()) as WebBootstrapManifest;
+      },
+      MANIFEST_TIMEOUT_MS,
+      'web bootstrap manifest',
+    );
     if (!Array.isArray(parsed?.packs)) {
       throw new Error('Manifest fetch succeeded but had an unexpected shape');
     }
