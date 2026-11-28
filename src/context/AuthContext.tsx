@@ -786,6 +786,13 @@ export function AuthProvider({children}: AuthProviderProps) {
       throw err;
     }
 
+    // R9-26 — re-armed BEFORE the deletion, as `signOut` does: its `null`
+    // event arrives while the rest of this function still runs. Re-armed at
+    // the end, that event found the ref set by an earlier `null` of this
+    // process (a first launch, a sign-out) and started no anonymous sign-in:
+    // no user at all until the next cold start. A deletion that fails leaves
+    // it re-armed, which is what an account in session has after a cold start.
+    triggeredAnonymousRef.current = false;
     try {
       await authMod.deleteUser(current);
     } catch (err: any) {
@@ -848,7 +855,6 @@ export function AuthProvider({children}: AuthProviderProps) {
       }
     }
 
-    triggeredAnonymousRef.current = false;
     // Shared-device guard — see signOut above. The deleted account's own
     // restore floor (if any) must not leak into whoever signs in next.
     void clearMemoryStatsFloor();
