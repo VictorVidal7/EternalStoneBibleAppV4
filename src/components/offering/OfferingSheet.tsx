@@ -22,6 +22,7 @@ import {
   Pressable,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
 } from 'react-native';
 import type {PurchasesPackage} from 'react-native-purchases';
@@ -291,26 +292,32 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
 
           {state.kind === 'alreadyUnlocked' && (
             <>
-              <View style={styles.centerState}>
-                <View
-                  style={[
-                    styles.badge,
-                    {backgroundColor: colors.primary + '22'},
-                  ]}>
-                  <Ionicons name="leaf" size={28} color={colors.primary} />
+              {/* R9-418 — the same 7 extras as the picker: they scroll, the
+                  close button stays in reach below. */}
+              <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}>
+                <View style={styles.centerState}>
+                  <View
+                    style={[
+                      styles.badge,
+                      {backgroundColor: colors.primary + '22'},
+                    ]}>
+                    <Ionicons name="leaf" size={28} color={colors.primary} />
+                  </View>
+                  <AppText
+                    scaleRole="display"
+                    style={[styles.title, {color: colors.text}]}>
+                    {t.offering.settingsUnlockedTitle}
+                  </AppText>
                 </View>
-                <AppText
-                  scaleRole="display"
-                  style={[styles.title, {color: colors.text}]}>
-                  {t.offering.settingsUnlockedTitle}
-                </AppText>
-              </View>
 
-              {/* Full-width, unlike the centered badge/title above — this is
+                {/* Full-width, unlike the centered badge/title above — this is
                   the same informational list the tier picker shows, just
                   with no pricing/purchase UI since there's nothing left to
                   unlock. */}
-              {renderExtrasList()}
+                {renderExtrasList()}
+              </ScrollView>
 
               <TouchableOpacity
                 style={[styles.doneButton, {backgroundColor: colors.primary}]}
@@ -400,18 +407,26 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
             state.kind === 'purchasing' ||
             state.kind === 'restoring') && (
             <>
-              <AppText
-                scaleRole="display"
-                style={[styles.title, {color: colors.text}]}>
-                {t.offering.sheetTitle}
-              </AppText>
-              <AppText
-                scaleRole="compact"
-                style={[styles.intro, {color: colors.textSecondary}]}>
-                {t.offering.sheetIntro}
-              </AppText>
+              {/* R9-418 — the title, the offering's framing and the extras
+                  scroll inside a sheet capped below the top of the screen;
+                  the tiers, the store legend, the transparency line and the
+                  restore link stay outside the scroll, always in view. */}
+              <ScrollView
+                style={styles.scroll}
+                contentContainerStyle={styles.scrollContent}>
+                <AppText
+                  scaleRole="display"
+                  style={[styles.title, {color: colors.text}]}>
+                  {t.offering.sheetTitle}
+                </AppText>
+                <AppText
+                  scaleRole="compact"
+                  style={[styles.intro, {color: colors.textSecondary}]}>
+                  {t.offering.sheetIntro}
+                </AppText>
 
-              {renderExtrasList()}
+                {renderExtrasList()}
+              </ScrollView>
 
               {state.kind === 'available' && (
                 <View style={styles.tierRow}>
@@ -496,7 +511,11 @@ const styles = StyleSheet.create({
     padding: spacing.lg,
     paddingBottom: spacing['2xl'],
     gap: spacing.sm,
+    // R9-418 — taller content used to run off the top of the screen.
+    maxHeight: '90%',
   },
+  scroll: {flexShrink: 1},
+  scrollContent: {gap: spacing.sm},
   handle: {
     alignSelf: 'center',
     width: 40,

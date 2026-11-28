@@ -637,3 +637,65 @@ describe('R9-584 — «ya comprado» y la tienda trae la compra sin entitlement'
     expect(queryByText('$0.99')).toBeNull();
   });
 });
+
+describe('R9-418 — la hoja no se sale de la pantalla por arriba', () => {
+  const {ScrollView} = require('react-native');
+  const es = require('../src/i18n/translations').translations.es;
+  type Node = {type: unknown; parent: Node | null; props: {style?: unknown}};
+  // Un nodo esta dentro del ScrollView si alguno de sus ancestros lo es.
+  const insideScroll = (node: Node): boolean => {
+    for (let cur = node.parent; cur; cur = cur.parent) {
+      if (cur.type === ScrollView) return true;
+    }
+    return false;
+  };
+  // El tope de alto de la hoja (un ancestro del ScrollView).
+  const sheetMaxHeight = (scroll: Node): unknown => {
+    for (let cur = scroll.parent; cur; cur = cur.parent) {
+      const flat = StyleSheet.flatten(cur.props.style) as
+        {maxHeight?: unknown} | undefined;
+      if (flat?.maxHeight !== undefined) return flat.maxHeight;
+    }
+    return undefined;
+  };
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+  });
+
+  it('los montos: titulo, intro y extras se desplazan; montos, leyendas y «Restaurar» quedan fuera, en una hoja con tope', async () => {
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+    const view = renderSheet();
+    const title = await view.findByText('Una ofrenda voluntaria');
+
+    expect(insideScroll(title)).toBe(true);
+    expect(insideScroll(view.getByText(es.offering.sheetIntro))).toBe(true);
+    expect(insideScroll(view.getByText('Mesa de preparación'))).toBe(true);
+    // Lo que toca el dinero queda a la vista, fuera del desplazamiento.
+    expect(insideScroll(view.getByText('$0.99'))).toBe(false);
+    expect(insideScroll(view.getByText(es.offering.legend))).toBe(false);
+    expect(insideScroll(view.getByText(es.offering.transparency))).toBe(false);
+    expect(insideScroll(view.getByText(es.offering.restoreLink))).toBe(false);
+    expect(sheetMaxHeight(view.UNSAFE_getByType(ScrollView))).toBeDefined();
+  });
+
+  it('«Extras desbloqueados»: los extras se desplazan y «Cerrar» queda fuera', async () => {
+    mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    const view = renderSheet();
+
+    expect(insideScroll(await view.findByText('Extras desbloqueados'))).toBe(
+      true,
+    );
+    expect(insideScroll(view.getByText('Diccionario bíblico'))).toBe(true);
+    expect(insideScroll(view.getByText('Cerrar'))).toBe(false);
+    expect(sheetMaxHeight(view.UNSAFE_getByType(ScrollView))).toBeDefined();
+  });
+});
