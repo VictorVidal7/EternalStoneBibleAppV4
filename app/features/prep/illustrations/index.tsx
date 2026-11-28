@@ -34,7 +34,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useMemo, useState} from 'react';
+import {useCallback, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -226,10 +226,20 @@ export default function PrepIllustrationsListScreen() {
   // return. Reads the CURRENT saved text first (savePrepNote overwrites a
   // whole section, it doesn't append) so this adds to whatever the preparer
   // already wrote rather than replacing it.
+  //
+  // R9-482 (familia de R9-474) — the tap reads, appends, saves and goes
+  // back, and nothing stopped a second one: a double tap went back twice
+  // (out of the Mesa, into the reader), and a second tap landing after the
+  // first one's write appended the illustration twice. One insertion at a
+  // time: set on the tap, cleared only when the read or the write fails (the
+  // bank stays, the next tap retries) — never after the success, which would
+  // reopen the gap for the exit transition.
+  const insertingRef = useRef(false);
   const handleInsert = useCallback(
     async (item: PrepIllustration) => {
       const passageKey = params.insertPassageKey;
-      if (!passageKey) return;
+      if (!passageKey || insertingRef.current) return;
+      insertingRef.current = true;
       haptics.tap();
       // R9-600 — a strict read: a failed one used to come back as "no
       // notes", and the illustration was saved alone over the section.
@@ -237,6 +247,7 @@ export default function PrepIllustrationsListScreen() {
       try {
         existing = await getPrepNotes(passageKey, {strict: true});
       } catch {
+        insertingRef.current = false;
         toast.error(saveError);
         return;
       }
@@ -252,6 +263,7 @@ export default function PrepIllustrationsListScreen() {
       try {
         await savePrepNote(passageKey, INSERT_TARGET_SECTION, next);
       } catch {
+        insertingRef.current = false;
         toast.error(saveError);
         return;
       }
