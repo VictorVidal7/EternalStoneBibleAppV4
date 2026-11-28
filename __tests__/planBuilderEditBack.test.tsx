@@ -238,6 +238,56 @@ describe('R9-507 — el atrás tras «Guardar cambios» de un plan propio', () =
     expect(router.canGoBack()).toBe(false);
   });
 
+  test('crear, después Editar → Guardar → atrás: también vuelve al Home', async () => {
+    const r = renderRouter(routes(), {initialUrl: '/'});
+    await screen.findByText('HOME');
+    await waitFor(() => expect(ctxRef?.customPlans?.length).toBe(1));
+    act(() => router.push('/features/plan-builder' as never));
+    await screen.findByText(es.planBuilder.title);
+    fireEvent.changeText(
+      screen.getByPlaceholderText(es.planBuilder.namePlaceholder),
+      'Génesis entero',
+    );
+    await act(async () => {
+      fireEvent.press(screen.getAllByLabelText(es.planBuilder.addPassage)[0]);
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByText('Génesis'));
+    });
+    const confirm = screen.getAllByLabelText(es.planBuilder.addThisPassage);
+    await act(async () => {
+      fireEvent.press(confirm[confirm.length - 1]);
+    });
+    await act(async () => {
+      fireEvent.press(screen.getByLabelText(es.planBuilder.create));
+    });
+    await waitFor(() => expect(r.getPathname()).toMatch(/^\/plan\/custom-/));
+    const createdId = r.getPathname().split('/').pop();
+    const edit = await screen.findAllByLabelText(es.planBuilder.editTitle);
+    await act(async () => {
+      fireEvent.press(edit[edit.length - 1]);
+    });
+    fireEvent.changeText(
+      await screen.findByDisplayValue('Génesis entero'),
+      'Génesis completo',
+    );
+    await act(async () => {
+      fireEvent.press(screen.getAllByLabelText(es.planBuilder.save)[0]);
+    });
+    await waitFor(() =>
+      expect(r.getPathname()).not.toBe('/features/plan-builder'),
+    );
+    const editedId = ctxRef!.customPlans[0].id;
+    expect(editedId).not.toBe(createdId);
+    expect(r.getPathname()).toBe(`/plan/${editedId}`);
+    await act(async () => {
+      router.back();
+    });
+    expect(r.getPathname()).toBe('/');
+    expect(screen.queryAllByText('Génesis entero')).toHaveLength(0);
+    expect(router.canGoBack()).toBe(false);
+  });
+
   test('control: abrir el editor y volver sin guardar deja el mismo plan', async () => {
     const r = await openPlanAndEditor();
     await act(async () => {
