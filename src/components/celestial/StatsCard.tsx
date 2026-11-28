@@ -14,8 +14,57 @@ import type {ComponentProps} from 'react';
 import {AppText} from '@components/ui/AppText';
 import {CountUpText} from '@components/ui/CountUpText';
 import {useReducedMotion} from '@hooks/useReducedMotion';
+import {
+  contrastRatio,
+  parseHexColor,
+  relativeLuminance,
+} from '../../lib/a11y/contrast';
 
 type IoniconsName = ComponentProps<typeof Ionicons>['name'];
+
+/** R9-456 — the veil's opacity: the lowest that reads ≥ 4.5:1 everywhere. */
+const HERO_VEIL_ALPHA = 0.4;
+
+const hex2 = (n: number) => Math.round(n).toString(16).padStart(2, '0');
+
+/**
+ * R9-456 — the colors of the stats row over a gradient (Home's hero).
+ * The row was a fixed white over a white glass, and on the light end of six
+ * morning gradients the numbers fell under 3:1. Now the row lies on a veil of
+ * the darker of the theme's two inks (`text` and `background`), and its ink
+ * is, of those two, the one whose worst contrast over the veiled stops is
+ * highest (the criterion of R9-454's toast). `null` when a color is not
+ * `#RGB`/`#RRGGBB`: the caller keeps its own look.
+ */
+export function heroStatsColors(
+  stops: readonly string[],
+  inkA: string,
+  inkB: string,
+): {veil: string; ink: string} | null {
+  try {
+    const dark = parseHexColor(
+      relativeLuminance(inkA) <= relativeLuminance(inkB) ? inkA : inkB,
+    );
+    const a = HERO_VEIL_ALPHA;
+    const veiled = stops.map(stop => {
+      const s = parseHexColor(stop);
+      return (
+        '#' +
+        hex2(dark.r * a + s.r * (1 - a)) +
+        hex2(dark.g * a + s.g * (1 - a)) +
+        hex2(dark.b * a + s.b * (1 - a))
+      );
+    });
+    const worst = (ink: string) =>
+      Math.min(...veiled.map(c => contrastRatio(ink, c)));
+    return {
+      veil: '#' + hex2(dark.r) + hex2(dark.g) + hex2(dark.b) + hex2(a * 255),
+      ink: worst(inkA) >= worst(inkB) ? inkA : inkB,
+    };
+  } catch {
+    return null;
+  }
+}
 
 interface StatsCardProps {
   /**

@@ -76,9 +76,16 @@ interface VerseOfDayCardProps {
   onShare?: () => void;
 
   /**
-   * Callback al presionar el botón de favorito
+   * Callback al presionar el botón de favorito (el dueño alterna)
    */
   onFavorite?: () => void;
+
+  /**
+   * R9-437 — si el versículo ya está en Favoritos: el corazón lo refleja
+   * (lo sabe el dueño, no la tarjeta).
+   * @default false
+   */
+  isFavorite?: boolean;
 
   /**
    * Modo oscuro
@@ -211,6 +218,7 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   onPress,
   onShare,
   onFavorite,
+  isFavorite: isFavorited = false,
   isDark = false,
   versionLabel,
   onStudy,
@@ -250,7 +258,6 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   });
   // Sprint 67: shared, reduce-motion-aware press depress (see usePressScale).
   const press = usePressScale();
-  const [isFavorited, setIsFavorited] = useState(false);
   // "Christ in this passage" reveal — collapsed by default to keep the card
   // minimal; resets whenever the day's note changes (history nav / new day).
   const [christExpanded, setChristExpanded] = useState(false);
@@ -269,8 +276,9 @@ const VerseOfDayCard: React.FC<VerseOfDayCardProps> = ({
   // Use translation if title not provided
   const displayTitle = title || t.home.dailyVerse;
 
+  // R9-437 — the heart was local state, false on every mount, flipped on
+  // each tap whatever Favorites held.
   const handleFavorite = () => {
-    setIsFavorited(!isFavorited);
     onFavorite?.();
   };
 
