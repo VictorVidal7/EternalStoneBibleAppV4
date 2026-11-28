@@ -225,12 +225,17 @@ export default function PlanBuilderScreen() {
       }
       await replaceCustomPlan(editId, plan);
       toast.success(tb.updated);
-    } else {
-      await saveCustomPlan(plan);
-      // Seed today's start so the plan opens already guiding "Day 1".
-      await setPlanStart(plan.id, new Date().toISOString());
-      toast.success(tb.created);
+      // R9-507 — the builder was pushed from the plan screen: go BACK to it
+      // with the new id. A `replace` from the root Stack stacked a second
+      // `(tabs)` and left the old (now deleted) plan underneath, so the next
+      // back showed it at 0 %.
+      router.dismissTo(`/plan/${plan.id}` as never);
+      return;
     }
+    await saveCustomPlan(plan);
+    // Seed today's start so the plan opens already guiding "Day 1".
+    await setPlanStart(plan.id, new Date().toISOString());
+    toast.success(tb.created);
     router.replace(`/plan/${plan.id}` as never);
   };
 
