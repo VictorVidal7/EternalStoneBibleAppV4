@@ -218,6 +218,12 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // Mirror of the repeat-verse toggle, read by the speech onDone callback so a
   // toggle mid-verse is honoured the instant the current verse finishes.
   const repeatVerseRef = useRef(repeatVerse);
+  // R9-426 — the playback run. Every scheduled continuation (the next verse,
+  // the repeat-verse loop, the playlist wrap) carries the run it was
+  // scheduled under and gives up if a pause, a stop, backgrounding, a load or
+  // a new direct start has advanced it since: what is paused in the 50 ms gap
+  // between two verses used to sound again.
+  const playbackRunRef = useRef(0);
   // Queue identity/options mirrors for the onDone end-of-queue branch (the
   // repeat decision) — updated EAGERLY in their setters, never via effects,
   // so a toggle right before the last verse ends is always honoured.
@@ -561,8 +567,19 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
   // ==================== PLAYBACK CONTROLS ====================
 
   // Speak a verse by index - uses refs to avoid stale closures
+  // `run` is passed only by the engine's own continuations; a direct start
+  // (play, next, previous, go to) opens a new run, which disowns any
+  // continuation still pending from the previous one (R9-426).
   const speakVerseByIndex = useCallback(
-    async (index: number) => {
+    async (index: number, run?: number) => {
+      if (run !== undefined && run !== playbackRunRef.current) {
+        logger.info('Scheduled continuation dropped (paused or replaced)', {
+          index,
+        });
+        return;
+      }
+      const myRun = run ?? ++playbackRunRef.current;
+      const isCurrentRun = () => playbackRunRef.current === myRun;
       const currentVerses = versesRef.current;
 
       if (index < 0 || index >= currentVerses.length) {
@@ -579,7 +596,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         logger.warn('Found empty verse or no text at index', {index});
         // If we have more verses, try skip to next, otherwise stop
         if (index + 1 < currentVerses.length) {
-          speakVerseByIndex(index + 1);
+          speakVerseByIndex(index + 1, myRun);
         } else {
           setState(prev => ({...prev, isPlaying: false, isLoading: false}));
         }
@@ -622,6 +639,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
         await Speech.stop().catch((err: any) =>
           logger.warn('Error in Speech.stop', {error: String(err)}),
         );
+        // R9-426 — paused (or replaced) while the engine was being stopped.
+        if (!isCurrentRun()) return;
 
         await Speech.speak(textToSpeak, {
           language,
@@ -630,6 +649,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
           pitch: 1.0,
           onStart: () => {
             logger.info('Speech started callback', {index});
+            // R9-426 — a start that lands after a pause must not undo it.
+            if (!isCurrentRun()) return;
             setState(prev => ({
               ...prev,
               isPlaying: true,
@@ -644,6 +665,13 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             const freshState = stateRef.current;
             const freshVerses = versesRef.current;
             const freshSleepTimer = sleepTimerStateRef.current;
+
+            // R9-426 — the end of an utterance from a run that was paused or
+            // replaced since drives nothing.
+            if (!isCurrentRun()) {
+              logger.info('Auto-advance skipped (run replaced)');
+              return;
+            }
 
             // Don't auto-advance if paused or not playing
             if (freshState.isPaused || !freshState.isPlaying) {
@@ -662,7 +690,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
               )
             ) {
               logger.info('Repeating verse for memorization', {index});
-              setTimeout(() => speakVerseByIndex(index), 50);
+              setTimeout(() => speakVerseByIndex(index, myRun), 50);
               return;
             }
 
@@ -688,7 +716,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
                 !stoppedBySleepTimer
               ) {
                 logger.info('Playlist repeating from the start');
-                setTimeout(() => speakVerseByIndex(0), 50);
+                setTimeout(() => speakVerseByIndex(0, myRun), 50);
                 return;
               }
               logger.info('Reached end of chapter');
@@ -722,7 +750,7 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
             // Small delay before next verse to avoid rapid recursive calls
             setTimeout(() => {
               const nextIdx = index + 1;
-              speakVerseByIndex(nextIdx);
+              speakVerseByIndex(nextIdx, myRun);
             }, 50);
           },
           onStopped: () => {
@@ -807,6 +835,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   const pause = useCallback(async () => {
     safeHaptic();
+    // R9-426 — a continuation already scheduled must not resume playback.
+    playbackRunRef.current++;
     // Update ref immediately so callbacks see paused state synchronously
     const nextState = {
       ...stateRef.current,
@@ -826,6 +856,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
 
   const stop = useCallback(async () => {
     safeHaptic();
+    // R9-426 — same as pause: nothing scheduled sounds after a stop.
+    playbackRunRef.current++;
     // Update ref immediately so callbacks see stopped state synchronously
     const nextState = {
       ...stateRef.current,
@@ -1190,6 +1222,8 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
     const sub = AppState.addEventListener('change', next => {
       if (next !== 'background') return;
       if (!stateRef.current.isPlaying) return;
+      // R9-426 — the next verse, if already scheduled, stays unsaid.
+      playbackRunRef.current++;
       const nextState = {
         ...stateRef.current,
         isPlaying: false,
@@ -1234,6 +1268,9 @@ export const AudioPlayerProvider: React.FC<AudioPlayerProviderProps> = ({
       Speech.stop().catch(e =>
         logger.warn('Error stopping speech during loadChapter', e),
       );
+      // R9-426 — a continuation of the previous queue never speaks into this
+      // one.
+      playbackRunRef.current++;
 
       // Tag the loaded text with its language so narration speaks it correctly
       // (Sprint 100): the explicit option wins; otherwise the live selected

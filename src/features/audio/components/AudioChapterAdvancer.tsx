@@ -41,6 +41,7 @@ export const AudioChapterAdvancer: React.FC = () => {
     play,
     queueInfo,
     cancelSleepTimer,
+    isVisible,
   } = useAudioPlayer();
   const {selectedVersion} = useBibleVersion();
 
@@ -80,6 +81,15 @@ export const AudioChapterAdvancer: React.FC = () => {
   playRef.current = play;
   const cancelSleepTimerRef = useRef(cancelSleepTimer);
   cancelSleepTimerRef.current = cancelSleepTimer;
+  // R9-426 — what the user did in the gap between the chapter end and the
+  // next chapter's start (close the player, pause it through a sleep timer,
+  // start something else). Mirrored eagerly like the rest, never as deps.
+  const isVisibleRef = useRef(isVisible);
+  isVisibleRef.current = isVisible;
+  const isPausedRef = useRef(state.isPaused);
+  isPausedRef.current = state.isPaused;
+  const isPlayingRef = useRef(state.isPlaying);
+  isPlayingRef.current = state.isPlaying;
 
   // Dedup: each chapter-end bump is handled exactly once (back-to-back chapter
   // ends increment the counter, so a value-equality guard fires per chapter).
@@ -124,6 +134,12 @@ export const AudioChapterAdvancer: React.FC = () => {
     const target = nextChapterLocation(bookInfo.id, last.chapter);
     if (!target) return; // end of the canon — stay stopped
 
+    // R9-426 — only positive signs of the user stepping in abort: the refs
+    // can lag a render, but a lagging value is the chapter-end state, which
+    // never reads as hidden, paused or playing.
+    const finishedVerses = versesRef.current;
+    const userSteppedIn = () =>
+      !isVisibleRef.current || isPausedRef.current || isPlayingRef.current;
     let cancelled = false;
     void (async () => {
       try {
@@ -134,6 +150,12 @@ export const AudioChapterAdvancer: React.FC = () => {
           versionRef.current.id,
         );
         if (cancelled || raw.length === 0) return;
+        // Closed, paused or replaced while the DB read ran: loadChapter would
+        // reopen the player (and the play below would start it).
+        if (userSteppedIn() || versesRef.current !== finishedVerses) {
+          logger.info('Auto-advance dropped: the user stepped in');
+          return;
+        }
 
         logger.info('Auto-advancing audio to next chapter', {
           bookId: target.bookId,
@@ -147,7 +169,13 @@ export const AudioChapterAdvancer: React.FC = () => {
         // invocation's own cleanup (unmount), never by loadChapter's state
         // update, since the effect no longer depends on the values it mutates.
         setTimeout(() => {
-          if (!cancelled) playRef.current();
+          if (cancelled) return;
+          // R9-426 — closed or paused in these 150 ms: stay quiet.
+          if (userSteppedIn()) {
+            logger.info('Auto-advance play dropped: the user stepped in');
+            return;
+          }
+          playRef.current();
         }, 150);
       } catch (error) {
         logger.warn('Auto-advance to next chapter failed', {
