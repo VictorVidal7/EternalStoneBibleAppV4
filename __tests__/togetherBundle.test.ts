@@ -742,3 +742,46 @@ describe('cal round-trip / hardening (Sprint 110)', () => {
     expect(decodeTogetherParam(param(link)).ok).toBe(false);
   });
 });
+
+describe('R9-512 — the optional chosen duration of a curated plan', () => {
+  it('rides in the link and comes back', () => {
+    const bundle = makePlanBundle('nt-30', '2026-06-22', 'Casa', 60);
+    expect(bundle.n).toBe(60);
+    const res = decodeTogetherParam(param(encodeBundleLink(bundle)));
+    expect(res.ok && res.bundle.t === 'plan' && res.bundle.n).toBe(60);
+  });
+
+  it('is left out when absent, and dropped (not fatal) when out of range', () => {
+    expect('n' in makePlanBundle('nt-30', '2026-06-22')).toBe(false);
+    for (const n of [0, -3, 1.5, 99999, '60']) {
+      const link = encodeBundleLink({
+        v: 1,
+        t: 'plan',
+        p: 'nt-30',
+        s: '2026-06-22',
+        n,
+      } as never);
+      const res = decodeTogetherParam(param(link));
+      expect(res.ok).toBe(true);
+      expect(res.ok && res.bundle.t === 'plan' && 'n' in res.bundle).toBe(
+        false,
+      );
+    }
+  });
+
+  it('rides in the code as a 4th part; a plain code stays 3 parts', () => {
+    const plain = encodePlanCode('nt-30', '2026-06-22')!;
+    expect(plain.split('-')).toHaveLength(3);
+    const code = encodePlanCode('nt-30', '2026-06-22', 60)!;
+    expect(code.split('-')).toHaveLength(4);
+    const res = decodePlanCode(code.toLowerCase(), PLAN_IDS);
+    expect(res.ok && res.bundle).toEqual({
+      v: TOGETHER_BUNDLE_VERSION,
+      t: 'plan',
+      p: 'nt-30',
+      s: '2026-06-22',
+      n: 60,
+    });
+    expect(decodePlanCode(`${plain}-0`, PLAN_IDS).ok).toBe(false);
+  });
+});

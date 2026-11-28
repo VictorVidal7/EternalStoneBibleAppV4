@@ -52,6 +52,12 @@ interface Props {
   initialStartDate?: string;
   /** Pre-fill the group label from the existing membership (Sprint 108). */
   initialGroupName?: string;
+  /**
+   * The reader-chosen duration, when it differs from the plan's default
+   * (R9-512): it travels in the link and the code so the group reads the
+   * same chapters on the same day.
+   */
+  durationDays?: number;
 }
 
 /** Format an ISO calendar date `YYYY-MM-DD` as a friendly localized string. */
@@ -76,6 +82,7 @@ export function ShareTogetherModal({
   onClose,
   initialStartDate,
   initialGroupName,
+  durationDays,
 }: Props) {
   const {colors} = useTheme();
   const {t, language} = useLanguage();
@@ -104,13 +111,13 @@ export function ShareTogetherModal({
     initialStartDate && initialStartDate < today ? initialStartDate : today;
 
   const bundle = useMemo(
-    () => makePlanBundle(planId, startDate, groupName),
-    [planId, startDate, groupName],
+    () => makePlanBundle(planId, startDate, groupName, durationDays),
+    [planId, startDate, groupName, durationDays],
   );
   const link = useMemo(() => encodeHttpsLink(bundle), [bundle]);
   const code = useMemo(
-    () => encodePlanCode(planId, startDate),
-    [planId, startDate],
+    () => encodePlanCode(planId, startDate, durationDays),
+    [planId, startDate, durationDays],
   );
 
   const dateLabel = formatDate(startDate, language);

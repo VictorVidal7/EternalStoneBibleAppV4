@@ -54,6 +54,7 @@ import {
   type SharedPlanBundle,
 } from '@lib/together';
 import {customPlanFromBundle} from '@lib/reading/customPlans';
+import {isReflowable, maxReflowDays} from '@lib/reading/planReflow';
 import {FeatureGuideModal} from '@components/FeatureGuideModal';
 import {getFeatureGuideContent} from '@lib/onboarding/featureGuides';
 
@@ -70,8 +71,11 @@ function decodeJoinInput(raw: string): DecodeResult {
   // `?d=` (the eternalbible:// scheme link) or `#d=` (the https redirector
   // keeps it in the fragment): take only the base64url run that follows.
   const link = trimmed.match(/[?#]d=([A-Za-z0-9_-]+)/);
-  // A generated code (`EB1-<date>-<PLAN>`) quoted inside a message.
-  const quotedCode = trimmed.match(/\bEB1-[0-9A-Z]+-[0-9A-Z]+\b/);
+  // A generated code (`EB1-<date>-<PLAN>`, plus `-<days>` when it carries a
+  // chosen duration, R9-512) quoted inside a message.
+  const quotedCode = trimmed.match(
+    /\bEB1-[0-9A-Z]+-[0-9A-Z]+(?:-[0-9A-Z]+)?\b/,
+  );
   if (link) {
     const fromLink = decodeTogetherParam(link[1]);
     if (fromLink.ok || !quotedCode) return fromLink;
@@ -120,7 +124,8 @@ export default function TogetherJoinScreen() {
   const toast = useToast();
   const {joinPlan} = useTogether();
   const {saveCustomPlan} = useCustomPlans();
-  const {setPlanStart} = useReadingPlanProgress();
+  const {setPlanStart, setPlanDuration, getPlanDuration} =
+    useReadingPlanProgress();
 
   const params = useLocalSearchParams<{d?: string}>();
 
@@ -242,9 +247,15 @@ export default function TogetherJoinScreen() {
   };
 
   const plan = shared ? getReadingPlanById(shared.p) : undefined;
+  // R9-512 — the inviter's chosen duration (untrusted: bounded to what this
+  // plan can be spread over); the plan's default when none travels.
+  const groupDays =
+    plan && shared?.n && isReflowable(plan)
+      ? Math.min(shared.n, maxReflowDays(plan))
+      : plan?.duration;
   const planName = useMemo(
-    () => (plan ? getLocalizedPlan(plan, t).name : ''),
-    [plan, t],
+    () => (plan ? getLocalizedPlan(plan, t, groupDays).name : ''),
+    [plan, t, groupDays],
   );
 
   const submitCode = () => {
@@ -255,6 +266,15 @@ export default function TogetherJoinScreen() {
   const onJoin = async () => {
     if (!shared || !plan) return;
     haptics.success();
+    // R9-512 — read the plan over the group's days. Before the start write
+    // (both rewrite the same progress entry), and only when it changes
+    // something: a chosen duration, or one of our own to reset.
+    if (
+      groupDays !== undefined &&
+      (groupDays !== plan.duration || getPlanDuration(shared.p) !== null)
+    ) {
+      await setPlanDuration(shared.p, groupDays);
+    }
     await Promise.all([
       joinPlan(shared.p, {name: shared.g, startDate: shared.s}),
       setPlanStart(shared.p, dateToISO(shared.s)),
