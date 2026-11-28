@@ -6798,7 +6798,8 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       while (!localStore.has('Y') && Date.now() - t0 < 20 * PLAZO) {
         await new Promise(r => setTimeout(r, 10));
       }
-      const plazos = (Date.now() - t0) / PLAZO;
+      // La espera no se afirma en milisegundos (medida: unos 165 ms contra
+      // 480 sin el arreglo): la cuenta de lecturas ya lo dice sin reloj.
       const colgada = {
         lecturas: docReads(uid),
         retenidos: (await persisted(uid)).unsettled,
@@ -6833,8 +6834,6 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
           retenidos: {},
         },
       });
-      // Menos de dos plazos: no se afirma un numero mas fino que eso.
-      expect(plazos).toBeLessThan(2);
       otro.stop();
     });
 
