@@ -2915,9 +2915,18 @@ describe('R9-34 — la rama de error no puede hacer retroceder la cola', () => {
     engine.queueWrite('test', 'doc1', {value: 'v2-REEDITADO', updatedAt: 2000});
     await flush();
 
-    // Control de que la carrera ocurrio de verdad: si `flush()` hubiera salido
-    // temprano no habria intento ninguno, y entonces este `toBe(1)` —no la
-    // asercion de abajo— seria lo que falla.
+    // Control de que la carrera ocurrio de verdad (R9-114): el UNICO push que
+    // salio llevaba v1, y fallo, con v2 ya en la cola. `attempts === 1` solo no
+    // lo dice: la reedicion estrena `attempts: 0`, y su propio push fallido
+    // tambien la deja en 1. Con un `flush()` que arrancara despues de la
+    // reedicion (diferido), el push seria el de v2, no habria carrera, y la
+    // asercion de abajo pasaria con R9-34 revertido. `mockDocSets` no sirve:
+    // solo anota los `set()` que el servidor tomo.
+    const pushed = mockCollections
+      .get('users/uid/test')!
+      .doc('doc1')
+      .set.mock.calls.map(([data]) => (data as {value: string}).value);
+    expect(pushed).toEqual(['v1']);
     expect(engine.__getQueueForTests()[0].attempts).toBe(1);
 
     // Pre-fix la rama de error escribia `{...item}` —el snapshot tomado al
