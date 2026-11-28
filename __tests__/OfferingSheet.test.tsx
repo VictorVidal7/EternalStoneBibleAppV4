@@ -792,3 +792,78 @@ describe('R9-576 — dos toques en el mismo cuadro, una sola llamada a la tienda
     );
   });
 });
+
+describe('R9-577 — la entitlement que llega con la hoja abierta', () => {
+  const es = require('../src/i18n/translations').translations.es;
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+  });
+
+  it('con el aviso del pago pendiente a la vista: al confirmarse, «Extras desbloqueados» sin cerrar la hoja', async () => {
+    mockPurchases.purchasePackage.mockRejectedValueOnce({code: '20'});
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    expect(await view.findByText(es.offering.pendingTitle)).toBeTruthy();
+
+    // La tienda confirma el pago: el SDK avisa por su listener.
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    expect(await view.findByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByText(es.offering.pendingTitle)).toBeNull();
+  });
+
+  it('con «cobrado sin activar» a la vista: al activarse, deja de decir que no se activaron', async () => {
+    mockPurchases.purchasePackage.mockResolvedValueOnce({
+      customerInfo: noEntitlementInfo,
+    });
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    expect(await view.findByText(es.offering.notActivatedTitle)).toBeTruthy();
+
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    expect(await view.findByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByText(es.offering.notActivatedTitle)).toBeNull();
+  });
+
+  it('con los montos a la vista: al llegar la entitlement, los montos se van (no hay una segunda compra que tocar)', async () => {
+    const view = renderSheet();
+    expect(await view.findByLabelText('$0.99')).toBeTruthy();
+
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    expect(await view.findByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(mockPurchases.purchasePackage).not.toHaveBeenCalled();
+  });
+
+  it('CONTROL: una compra que sale bien sigue en «Gracias», no salta a «Extras desbloqueados»', async () => {
+    mockPurchases.purchasePackage.mockResolvedValueOnce({
+      customerInfo: activeEntitlementInfo,
+    });
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+
+    expect(
+      await view.findByText('Gracias por sembrar en esta obra'),
+    ).toBeTruthy();
+    expect(view.queryByText('Extras desbloqueados')).toBeNull();
+  });
+});

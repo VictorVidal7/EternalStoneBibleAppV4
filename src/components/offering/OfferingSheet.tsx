@@ -118,6 +118,19 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
     }
   }, [visible, premiumLoading]);
 
+  // R9-577 — the entitlement can arrive while the sheet is open (a pending
+  // payment that settles, a restore that lands late). The load effect above is
+  // scoped to visibility on purpose, so nothing used to react: the notice kept
+  // saying the extras were not active yet, and the tiers stayed tappable for
+  // a purchase that would be a second one. Only those two states move;
+  // 'purchasing'/'restoring'/'success' are left to their own flow (the
+  // listener flips `isPremium` before a purchase sets 'success').
+  useEffect(() => {
+    if (isPremium && (state.kind === 'notice' || state.kind === 'available')) {
+      setState({kind: 'alreadyUnlocked'});
+    }
+  }, [isPremium, state.kind]);
+
   // R9-576 — one store call at a time. Hiding the tiers ('purchasing') takes
   // a re-render, and two taps inside the same frame used to start two
   // purchases (two charges for a donation), the second result overwriting
