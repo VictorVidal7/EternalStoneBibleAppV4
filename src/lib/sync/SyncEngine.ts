@@ -3294,8 +3294,9 @@ export class SyncEngine {
   /**
    * R9-127 — an account deletion that went through leaves a skip for the
    * NEXT account to start, whichever it is: the rows still on this device
-   * were just deleted from the cloud, and a sign-in that does not ask (the
-   * store's owner unreadable, or never recorded) would upload them again.
+   * were just deleted from the cloud, and a sign-in that does not ask (its
+   * check of the local data could not run; before R9-158, the store's owner
+   * unreadable or never recorded too) would upload them again.
    * A sign-in that asks overrules it with its answer: «Migrar» suspends it
    * (`suspendSkipAfterAccountDeletion`), and declining queues its own.
    */
