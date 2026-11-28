@@ -699,3 +699,96 @@ describe('R9-418 — la hoja no se sale de la pantalla por arriba', () => {
     expect(sheetMaxHeight(view.UNSAFE_getByType(ScrollView))).toBeDefined();
   });
 });
+
+describe('R9-576 — dos toques en el mismo cuadro, una sola llamada a la tienda', () => {
+  const es = require('../src/i18n/translations').translations.es;
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+  });
+
+  // Lets the store calls behind each press start (they sit behind awaits).
+  async function flush() {
+    for (let i = 0; i < 12; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  }
+
+  function deferred() {
+    let resolve!: (v: unknown) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return {promise, resolve, reject};
+  }
+
+  it('dos toques al mismo monto antes del re-render: una compra, y el aviso del pendiente no queda pisado', async () => {
+    const first = deferred();
+    mockPurchases.purchasePackage.mockImplementationOnce(() => first.promise);
+    mockPurchases.purchasePackage.mockImplementationOnce(() =>
+      Promise.reject({code: '15'}),
+    );
+    const view = renderSheet();
+    const tier = await view.findByLabelText('$0.99');
+    act(() => {
+      fireEvent.press(tier);
+      fireEvent.press(tier);
+    });
+
+    await flush();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      first.reject({code: '20'});
+    });
+    expect(await view.findByText(es.offering.pendingTitle)).toBeTruthy();
+    expect(mockToast.error).not.toHaveBeenCalled();
+    expect(view.queryByText('$0.99')).toBeNull();
+  });
+
+  it('un monto y «Restaurar» en el mismo cuadro: una sola llamada a la tienda', async () => {
+    const first = deferred();
+    mockPurchases.purchasePackage.mockImplementationOnce(() => first.promise);
+    const view = renderSheet();
+    const tier = await view.findByLabelText('$0.99');
+    const restore = view.getByLabelText(es.offering.restoreLink);
+    act(() => {
+      fireEvent.press(tier);
+      fireEvent.press(restore);
+    });
+
+    await flush();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+    expect(mockPurchases.restorePurchases).not.toHaveBeenCalled();
+    await act(async () => {
+      first.reject({userCancelled: true});
+    });
+  });
+
+  it('CONTROL: terminada una compra (cancelada), el monto se puede volver a tocar', async () => {
+    mockPurchases.purchasePackage.mockRejectedValueOnce({userCancelled: true});
+    mockPurchases.purchasePackage.mockRejectedValueOnce({userCancelled: true});
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1),
+    );
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(2),
+    );
+  });
+});

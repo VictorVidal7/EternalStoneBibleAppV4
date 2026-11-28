@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso.
  */
 
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   Modal,
   View,
@@ -87,6 +87,22 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
   useEffect(() => {
     if (visible) load().catch(() => setState({kind: 'unavailable'}));
   }, [visible, load]);
+
+  // R9-576 — one store call at a time. Hiding the amounts ('purchasing')
+  // takes a re-render, and two taps inside the same frame used to start two
+  // donations: two charges, the second result overwriting the first one's
+  // screen. A ref answers in the same frame; it is released when the call is
+  // done, whatever it returned. Mirrors OfferingSheet.
+  const busyRef = useRef(false);
+  const runExclusive = useCallback(async (task: () => Promise<void>) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      await task();
+    } finally {
+      busyRef.current = false;
+    }
+  }, []);
 
   const handlePurchase = useCallback(
     async (product: PurchasesStoreProduct) => {
@@ -291,7 +307,9 @@ export const DonationSheet: React.FC<Props> = ({visible, onClose}) => {
                   {state.products.map(product => (
                     <Pressable
                       key={product.identifier}
-                      onPress={() => handlePurchase(product)}
+                      onPress={() =>
+                        runExclusive(() => handlePurchase(product))
+                      }
                       accessibilityRole="button"
                       accessibilityLabel={product.priceString}
                       style={[styles.amountCard, {borderColor: colors.border}]}>

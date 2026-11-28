@@ -118,6 +118,22 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
     }
   }, [visible, premiumLoading]);
 
+  // R9-576 — one store call at a time. Hiding the tiers ('purchasing') takes
+  // a re-render, and two taps inside the same frame used to start two
+  // purchases (two charges for a donation), the second result overwriting
+  // the first one's notice. A ref answers in the same frame; it is released
+  // when the call is done, whatever it returned.
+  const busyRef = useRef(false);
+  const runExclusive = useCallback(async (task: () => Promise<void>) => {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    try {
+      await task();
+    } finally {
+      busyRef.current = false;
+    }
+  }, []);
+
   const handlePurchase = useCallback(
     async (pkg: PurchasesPackage) => {
       haptics.tap();
@@ -433,7 +449,7 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
                   {state.packages.map(pkg => (
                     <Pressable
                       key={pkg.identifier}
-                      onPress={() => handlePurchase(pkg)}
+                      onPress={() => runExclusive(() => handlePurchase(pkg))}
                       accessibilityRole="button"
                       accessibilityLabel={pkg.product.priceString}
                       style={[styles.tierCard, {borderColor: colors.border}]}>
@@ -472,7 +488,7 @@ export const OfferingSheet: React.FC<Props> = ({visible, onClose}) => {
               </AppText>
 
               <Pressable
-                onPress={handleRestore}
+                onPress={() => runExclusive(handleRestore)}
                 disabled={state.kind !== 'available'}
                 accessibilityRole="button"
                 accessibilityLabel={t.offering.restoreLink}

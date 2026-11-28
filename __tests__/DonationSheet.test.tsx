@@ -8,7 +8,7 @@
  * anything and is repeatable, so there's no "already given" state to test.
  */
 
-import {render, waitFor, fireEvent} from '@testing-library/react-native';
+import {render, waitFor, fireEvent, act} from '@testing-library/react-native';
 import {StyleSheet} from 'react-native';
 import Purchases from 'react-native-purchases';
 import {DonationSheet} from '../src/components/donation/DonationSheet';
@@ -340,5 +340,67 @@ describe('DonationSheet', () => {
     rerender(<DonationSheet visible={false} onClose={onClose} />);
     rerender(<DonationSheet visible onClose={onClose} />);
     expect(await findByLabelText('$1.99')).toBeTruthy();
+  });
+});
+
+describe('R9-576 — dos toques en el mismo cuadro, una sola donación', () => {
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setProducts(fakeProducts);
+  });
+
+  async function flush() {
+    for (let i = 0; i < 12; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  }
+
+  it('dos toques al mismo monto antes del re-render: un solo cobro, y las gracias no quedan pisadas', async () => {
+    let resolveFirst!: (v: unknown) => void;
+    mockPurchases.purchaseStoreProduct.mockImplementationOnce(
+      () => new Promise(res => (resolveFirst = res)),
+    );
+    mockPurchases.purchaseStoreProduct.mockImplementationOnce(() =>
+      Promise.resolve({customerInfo: {entitlements: {active: {}, all: {}}}}),
+    );
+    const view = renderSheet();
+    const amount = await view.findByLabelText('$1.99');
+    act(() => {
+      fireEvent.press(amount);
+      fireEvent.press(amount);
+    });
+
+    await flush();
+    expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      resolveFirst({customerInfo: {entitlements: {active: {}, all: {}}}});
+    });
+    expect(await view.findByText('Gracias por tu generosidad')).toBeTruthy();
+  });
+
+  it('CONTROL: terminada una donación (cancelada), el monto se puede volver a tocar', async () => {
+    mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({
+      userCancelled: true,
+    });
+    mockPurchases.purchaseStoreProduct.mockRejectedValueOnce({
+      userCancelled: true,
+    });
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$1.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(1),
+    );
+    fireEvent.press(await view.findByLabelText('$1.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchaseStoreProduct).toHaveBeenCalledTimes(2),
+    );
   });
 });
