@@ -1495,6 +1495,85 @@ describe('queue persistence', () => {
     ]);
   });
 
+  // R9-137 — the test above seeds both entries through `hydrate`, which never
+  // goes through `upsertQueueEntry`: the uid in ITS dedupe key had no test.
+  // Without it, the write Beto queues for the same natural-key id takes the
+  // slot of Ana's parked one, and hers never goes up, with no error.
+  describe('R9-137 — el dedupe de la cola es por cuenta', () => {
+    const parked = async () => {
+      await AsyncStorage.setItem(
+        '@sync_queue_v1',
+        JSON.stringify([persistedEntry('uid-ana', 'Juan/3/16')]),
+      );
+    };
+    const queueOf = (engine: SyncEngine) =>
+      engine
+        .__getQueueForTests()
+        .map(q => `${q.uid}:${(q.data as unknown as TestEntity).value}`);
+    const pushes = () =>
+      mockDocSets.map(d => `${d.path}/${d.id}=${(d.data as TestEntity).value}`);
+    /** Ana signs back in on the same phone: what goes up for her. */
+    const anaReturns = async (engine: SyncEngine) => {
+      engine.stop();
+      mockDocSets.length = 0;
+      await AsyncStorage.setItem('@sync_first_push_done:uid-ana', '2');
+      await engine.start('uid-ana');
+      await drain();
+      await engine.__flushForTests();
+      await drain();
+      return pushes();
+    };
+
+    it('una edicion en vivo de Beto del mismo versiculo no reemplaza la escritura aparcada de Ana', async () => {
+      await parked();
+      // No initial bulk push: only the live write is looked at.
+      await AsyncStorage.setItem('@sync_first_push_done:uid-beto', '2');
+      const engine = new SyncEngine();
+      const {adapter} = makeAdapter();
+      engine.register(adapter);
+      await engine.start('uid-beto');
+      await drain();
+      const antes = queueOf(engine);
+
+      engine.queueWrite('test', 'Juan/3/16', {value: 'de-beto', updatedAt: 2});
+      await drain();
+      const deBeto = pushes();
+      const despues = queueOf(engine);
+      const deAna = await anaReturns(engine);
+
+      // Sin el uid en el dedupe: `despues` [] y `deAna` []. La escritura de
+      // Ana se fue con la de Beto.
+      expect({antes, deBeto, despues, deAna}).toEqual({
+        antes: ['uid-ana:from-disk'], // CONTROL: aparcada, sin subir
+        deBeto: ['users/uid-beto/test/Juan~3~16=de-beto'],
+        despues: ['uid-ana:from-disk'],
+        deAna: ['users/uid-ana/test/Juan~3~16=from-disk'],
+      });
+    });
+
+    it('el bulk push inicial de Beto tampoco', async () => {
+      await parked();
+      const engine = new SyncEngine();
+      const {adapter, localStore} = makeAdapter();
+      localStore.set('Juan/3/16', {value: 'fila-de-beto', updatedAt: 2});
+      engine.register(adapter);
+      await engine.start('uid-beto');
+      await drain();
+      await engine.__flushForTests();
+      await drain();
+      const deBeto = pushes();
+      const despues = queueOf(engine);
+      const deAna = await anaReturns(engine);
+
+      expect({deBeto, despues, deAna}).toEqual({
+        // CONTROL: el bulk push corrio y subio la fila de Beto.
+        deBeto: ['users/uid-beto/test/Juan~3~16=fila-de-beto'],
+        despues: ['uid-ana:from-disk'],
+        deAna: ['users/uid-ana/test/Juan~3~16=from-disk'],
+      });
+    });
+  });
+
   it('R9-22 — drops a pre-fix entry that carries no owner uid', async () => {
     await AsyncStorage.setItem(
       '@sync_queue_v1',
