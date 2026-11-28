@@ -22,7 +22,9 @@ jest.mock('expo-router', () => ({
   Stack: {Screen: () => null},
   useLocalSearchParams: () => mockParams.current,
   useRouter: () => mockRouter,
+  useNavigation: () => mockNavigation,
 }));
+const mockNavigation = {getState: () => undefined};
 jest.mock('@expo/vector-icons', () => ({Ionicons: () => null}));
 const mockInsets = {top: 0, bottom: 0, left: 0, right: 0};
 jest.mock('react-native-safe-area-context', () => ({

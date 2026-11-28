@@ -21,7 +21,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
+import {
+  Stack,
+  useLocalSearchParams,
+  useNavigation,
+  useRouter,
+} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -107,6 +112,7 @@ function formatDate(iso: string, language: string): string {
 
 export default function TogetherJoinScreen() {
   const router = useRouter();
+  const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const {colors} = useTheme();
   const {t, language} = useLanguage();
@@ -140,6 +146,26 @@ export default function TogetherJoinScreen() {
     }
   };
 
+  /**
+   * Swap this screen for a read-only landing. R9-541 — the same link tapped
+   * again (back in the messenger) pushes another `together` on top of the
+   * landing it opened before: when that landing, with the same bundle, is
+   * right below, go back to it instead of stacking an identical copy.
+   */
+  const openLanding = (route: string, d: string) => {
+    const state = navigation.getState();
+    const below = state ? state.routes[state.index - 1] : undefined;
+    const belowD = (below?.params as {d?: unknown} | undefined)?.d;
+    if (below?.name === `${route}/index` && typeof belowD === 'string') {
+      const decoded = decodeTogetherParam(belowD);
+      if (decoded.ok && encodeBundleParam(decoded.bundle) === d) {
+        router.back();
+        return;
+      }
+    }
+    router.replace(`/${route}?d=${d}` as never);
+  };
+
   /** Accept a decoded bundle into the right confirmation state. */
   const applyResult = (res: DecodeResult, fromLink: boolean) => {
     if (!res.ok) {
@@ -169,16 +195,12 @@ export default function TogetherJoinScreen() {
     }
     if (res.bundle.t === 'study') {
       // A shared study isn't a group to join — open the read-only viewer.
-      router.replace(
-        `/features/study-shared?d=${encodeBundleParam(res.bundle)}` as never,
-      );
+      openLanding('features/study-shared', encodeBundleParam(res.bundle));
       return;
     }
     if (res.bundle.t === 'cal') {
       // A baked devotional calendar isn't a group either — open its viewer.
-      router.replace(
-        `/features/devotional-shared?d=${encodeBundleParam(res.bundle)}` as never,
-      );
+      openLanding('features/devotional-shared', encodeBundleParam(res.bundle));
       return;
     }
     setError(tt.linkInvalid);
