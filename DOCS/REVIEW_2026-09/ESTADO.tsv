@@ -656,6 +656,6 @@ R9-654	P2	la ola 2, carril 11 / audio, resto de R9-426	abierto		sin marca de cie
 R9-655	P3	la ola 2, carril 8 / dinero, plazos que faltan	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-656	P3	revisor D, carril 11 / audio, regresión de 54add44f	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-657	P3	revisor E, carril 9 / SyncEngine, regresión de 70aab0ff	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
-R9-658	P3	revisor D, carril 10 / Home, el corazón del versículo del día	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
+R9-658	P2	revisor D, carril 10 / Home y lector, el corazón y la etiqueta de un marcador migrado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-659	P3	la ola 2, carril 10 / el mazo, un par ya duplicado	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)
 R9-660	P3	revisor D, carriles 10 y 11 / pruebas que faltan	abierto		sin marca de cierre en su entrada (en las tandas de arreglos)

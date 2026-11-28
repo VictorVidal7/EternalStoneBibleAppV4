@@ -15837,15 +15837,20 @@ cuenta borrada deja de ser la duena…` depende del orden de las pruebas.** MEDI
   - **Arreglo propuesto (sin escribir):** saltar solo mientras la lectura vencida siga sin volver, o releer los
     saltados cuando vuelva; corregir el comentario. Detalle: `detail/S191-ola2.md` §10.
 
-- **`R9-658` (S191, revisor D, carril 10 / Home, el corazón del versículo del día — P3) — 🐛 el corazón quita el
-  favorito con su categoría y sus colecciones sin avisar; el del lector avisa.** Por lectura (el revisor D; el
-  orquestador leyó `app/(tabs)/index.tsx:1021-1040` y `[chapter].tsx:1750-1768`).
-  - Desde `ca591b62` el corazón alterna. La nota de un favorito no la muestra ni la edita ninguna pantalla (nativa ni
-    web); la escribe la migración de Marcadores con la etiqueta del marcador (`retiredBookmarksMigration.ts:306`), y
-    el corazón del lector también la quita.
-  - **Severidad:** P3; no es A(1): quitar es el propósito visible del gesto, como en el lector. Decidido (§7): un
-    toast, como el del lector. Carril 17 de la 192.
-  - **Arreglo:** el toast `removedFromFavorites` al quitar. Detalle: `detail/S191-ola2.md` §10.
+- **`R9-658` (S191, revisor D, carril 10 / Home y lector, el corazón y la etiqueta de un marcador migrado — P2) — 🐛
+  el corazón quita el favorito con su nota, que es la etiqueta que el usuario escribió en un marcador; el de Home sin
+  avisar, el del lector con un toast que no deshace.** Por lectura (el revisor D; el orquestador leyó
+  `app/(tabs)/index.tsx:1021-1040`, `[chapter].tsx:1750-1768` y `retiredBookmarksMigration.ts:306`).
+  - Desde `ca591b62` el corazón de Home alterna: un toque quita el favorito con su categoría, sus colecciones y su
+    nota. La nota la escribe la migración de Marcadores con `bookmark.label`, que el usuario tecleaba en la pantalla
+    de Marcadores (`labelDraft`, retirada en `d0b3a75b`). Ninguna pantalla la muestra ni la edita (nativa ni web);
+    solo la encuentra la búsqueda de favoritos (`FavoritesContext.tsx:483`).
+  - **Severidad:** P2; A(1) (pierde texto que el usuario escribió, sin confirmar ni deshacer: la clase de `R9-562`).
+    Lo trae `ca591b62` por el Home; por el lector es anterior. Quitar el favorito es el propósito visible del gesto,
+    pero la etiqueta no se ve.
+  - **Arreglo propuesto (sin escribir):** el toast decidido en la 191 (§7) avisa pero no salva la etiqueta. Con nota o
+    colecciones, confirmar o deshacer; o mostrar la etiqueta en Favoritos. Carril 17 de la 192. Detalle:
+    `detail/S191-ola2.md` §10.
 
 - **`R9-659` (S191, la ola 2, carril 10 / el mazo, un par ya duplicado — P3) — 🐛 un par de cartas ya duplicado
   («Génesis/3/15» y «Genesis/3/15») no se fusiona.** MEDIDO (el agente del carril 10 y el revisor D: no se pierde

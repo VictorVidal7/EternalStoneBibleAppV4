@@ -601,4 +601,4 @@ además su detalle en `detail/`. Desde la 142, una línea por sesión:
   9, 10 y 11), Opus 5.5 y Fable 5.2 en datos y cuentas, cinco revisores. 46 commits con pieza, todos rojos sin su
   arreglo; validate verde (490 suites, 5728 pruebas). 41 cerrados, entre ellos `R9-430` y `R9-474`; EN PARTE `R9-158`,
   `R9-558`, `R9-477`, `R9-542`, `R9-642`. `R9-21`: «no liberar nunca» (Victor). `R9-562` sube a P1. Nuevos:
-  `R9-650` a `R9-654` (P2) y `R9-655` a `R9-660` (P3). P1 + P2 = 22. Detalle: `detail/S191-ola2.md`.
+  `R9-650` a `R9-654` y `R9-658` (P2), y `R9-655` a `R9-660` (P3). P1 + P2 = 23. Detalle: `detail/S191-ola2.md`.

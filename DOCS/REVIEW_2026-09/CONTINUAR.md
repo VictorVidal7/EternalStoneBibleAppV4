@@ -138,8 +138,8 @@ búsqueda, más Sonnet en `R9-601`. 6 P2 cerrados (P1 + P2 = 43); `R9-430` y `R9
 (pregunta en la §8); 9 P3 nuevos (`R9-641` a `R9-649`); lo vivo, en `detail/PENDIENTES-EN-VIVO.md`. **La 191 hizo la
 ola 2 ampliada** (`detail/S191-ola2.md`, ocho carriles: 3b, 4, 5, 6, 8, 9, 10 y 11; cierre en la 191b): hallazgos
 cerrados (41), entre ellos `R9-430` y `R9-474` con sus familias; EN PARTE `R9-158`, `R9-558`, `R9-477`, `R9-542` y `R9-642`;
-no entró `R9-585`. `R9-562` sube a P1 (§7). Once nuevos (`R9-650` a `R9-660`): cinco P2 (`R9-650` a `R9-654`, todavía
-sin carril) y seis P3. **P1 + P2 = 22.** **Lo siguiente: la 192** (`_scratch/S192-PROMPT.md`), arreglos; la sesión de
+no entró `R9-585`. `R9-562` sube a P1 (§7). Once nuevos (`R9-650` a `R9-660`): seis P2 (`R9-650` a `R9-654`, todavía sin carril, y
+`R9-658`, en el carril 17) y cinco P3. **P1 + P2 = 23.** **Lo siguiente: la 192** (`_scratch/S192-PROMPT.md`), arreglos; la sesión de
 emulador (`_scratch/S192e-PROMPT.md`) toca ya (van dos olas sin emulador), en otra ventana de 5 h que la ola. El orden
 entre las dos lo elige Victor. Lo de abajo es el registro de antes.
 
@@ -736,7 +736,9 @@ dump` falla («could not get idle state»): pausar antes, o usar capturas y logc
       reconstruye el pack y mide (sin aborto, `total` 235 más alto, ninguna clave duplicada). Republicarlo en Pages va
       por la autorización durable (abajo, punto 2), con sus condiciones (`R9-483`: deja viejos los packs instalados).
     - **El corazón de Home avisa al quitar un favorito** (un toast, como el del lector; `R9-658`). Por qué: quita la
-      categoría y las colecciones con el favorito, y el mismo gesto en el lector ya avisa. Carril 17.
+      categoría y las colecciones con el favorito, y el mismo gesto en el lector ya avisa. Carril 17. **Corregido en el
+      cierre de la 191:** la nota que se lleva es la etiqueta que el usuario escribió en un marcador migrado, y el
+      toast no la salva; `R9-658` sube a P2 y el carril 17 decide confirmar o deshacer cuando hay nota.
     - **El par de cartas ya duplicado en el mazo: no se borra nada de la nube** (`R9-659`). Las dos cartas se tratan
       como una al leer (la misma identidad de versículo). Por qué: borrar un documento de la nube nunca va por
       defecto, y no se pierde carta. P3, sin carril todavía.
