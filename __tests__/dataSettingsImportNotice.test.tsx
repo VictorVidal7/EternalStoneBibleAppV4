@@ -10,9 +10,9 @@
  * Qué cubre hoy ese aviso (medido por lectura en la sesión 191, con R9-117 ya
  * arreglado): las pantallas montadas que ni escuchan la señal ni releen al
  * volver el foco. El lector abierto (los subrayados del capítulo se cargan por
- * capítulo), `reading-insights` (lee al montar) y el historial de Buscar
- * (R9-529). Notas, Subrayados e Inicio releen con el foco; favoritos, mazo,
- * progreso, preferencias, tema, idioma y versión escuchan la señal.
+ * capítulo) y `reading-insights` (lee al montar). Notas, Subrayados e Inicio
+ * releen con el foco; favoritos, mazo, progreso, preferencias, tema, idioma,
+ * versión y, desde R9-529, el historial de Buscar escuchan la señal.
  *
  * La pantalla real (`DataSettings`) con `parseBackupPayload` e `importBackup`
  * REALES: el resultado que decide el aviso es el del servicio, no un mock con
@@ -146,6 +146,20 @@ const FILE_OK = backupFile([note('n1')]);
 const FILE_PARTIAL = backupFile([{foo: 'roto-1'}, {foo: 'roto-2'}]);
 const FILE_MALFORMED =
   '{"formatVersion": 2, "bible": {"notes": [ {"note": "mal"';
+/** The S137 file of another app: valid JSON, a formatVersion, none of ours. */
+const FILE_OTHER_APP = JSON.stringify({
+  formatVersion: 1,
+  generatedAt: '2026-11-10T00:00:00Z',
+  app: {name: 'OtraApp', package: 'com.otra.app'},
+  data: {notes: [{id: 'x', text: 'de otra app'}]},
+});
+/** Ours, but all it carries is a section whose every row is invalid. */
+const FILE_ONLY_BROKEN_NOTES = JSON.stringify({
+  formatVersion: 2,
+  generatedAt: '2026-11-10T22:40:00.000Z',
+  app: {name: 'Eternal Stone Bible', package: 'com.eternalstonebible.app'},
+  bible: {notes: [{foo: 'roto-1'}]},
+});
 
 beforeEach(async () => {
   jest.clearAllMocks();
@@ -209,6 +223,7 @@ describe('R9-141 — the blocking «close and reopen» notice after an import', 
       JSON.stringify({John: {'3': 100}}),
     );
     expect(getByText(ts.importRestartCta)).toBeTruthy();
+    expect(getByText(ts.importRestartPartialTitle)).toBeTruthy();
   });
 
   it('CONTROL: an import that fails restored nothing, and asks for no restart', async () => {
@@ -224,6 +239,63 @@ describe('R9-141 — the blocking «close and reopen» notice after an import', 
     fireEvent.press(getByText(ts.dataEntryTitle));
 
     expect(queryByText(ts.importRestartTitle)).toBeNull();
+    expect(queryByText(ts.importRestartCta)).toBeNull();
+  });
+});
+
+/**
+ * R9-557 — el diálogo decía «Tu copia se importó correctamente» aunque una
+ * sección hubiera fallado, o aunque no se hubiera restaurado NADA. Los dos
+ * archivos son los de la sesión 137 (medidos en el emulador): las filas de
+ * notas inválidas, y un JSON de otra app que trae `formatVersion: 1`.
+ */
+describe('R9-557 — the notice says what the import really did', () => {
+  it('a partial import does not claim the backup was imported correctly', async () => {
+    const {getByText, queryByText} = await importFile(FILE_PARTIAL);
+
+    expect(getByText(ts.importRestartPartialTitle)).toBeTruthy();
+    expect(getByText(ts.importRestartPartialMessage)).toBeTruthy();
+    expect(queryByText(ts.importRestartTitle)).toBeNull();
+    expect(queryByText(ts.importRestartMessage)).toBeNull();
+    expect(mockToastSuccess).not.toHaveBeenCalled();
+
+    // The words stay the partial ones while it closes.
+    fireEvent.press(getByText(ts.importRestartCta));
+    expect(queryByText(ts.importRestartPartialTitle)).toBeNull();
+    expect(queryByText(ts.importRestartTitle)).toBeNull();
+  });
+
+  it('CONTROL: a whole backup still gets the plain «imported correctly» notice', async () => {
+    const {getByText, queryByText} = await importFile(FILE_OK);
+
+    expect(getByText(ts.importRestartMessage)).toBeTruthy();
+    expect(queryByText(ts.importRestartPartialTitle)).toBeNull();
+    expect(mockToastWarning).not.toHaveBeenCalled();
+    expect(mockToastError).not.toHaveBeenCalled();
+  });
+
+  it("another app's JSON with a formatVersion: nothing is written, and nothing is called restored", async () => {
+    await AsyncStorage.setItem('readingProgress', '{"Mark":{"1":30}}');
+    const {queryByText} = await importFile(FILE_OTHER_APP);
+
+    // Nothing landed…
+    expect(await AsyncStorage.getItem('readingProgress')).toBe(
+      '{"Mark":{"1":30}}',
+    );
+    // …so no «Datos restaurados», no success, no restart to ask for.
+    expect(mockToastError).toHaveBeenCalledWith(ts.importNothingRestored);
+    expect(mockToastSuccess).not.toHaveBeenCalled();
+    expect(queryByText(ts.importRestartTitle)).toBeNull();
+    expect(queryByText(ts.importRestartPartialTitle)).toBeNull();
+    expect(queryByText(ts.importRestartCta)).toBeNull();
+  });
+
+  it('a file whose only section failed whole restored nothing either', async () => {
+    const {queryByText} = await importFile(FILE_ONLY_BROKEN_NOTES);
+
+    expect(mockToastError).toHaveBeenCalledWith(ts.importNothingRestored);
+    expect(mockToastWarning).not.toHaveBeenCalled();
+    expect(queryByText(ts.importRestartPartialTitle)).toBeNull();
     expect(queryByText(ts.importRestartCta)).toBeNull();
   });
 });

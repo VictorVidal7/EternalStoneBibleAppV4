@@ -140,7 +140,11 @@ describe('DataSettings', () => {
     mockPickBackupFileUri.mockResolvedValue('file://backup.json');
     mockReadBackupFileFromUri.mockResolvedValue('{"raw":"data"}');
     mockParseBackupPayload.mockReturnValue({sections: {}});
+    // The whole `ImportResult`, as the service returns it (R9-557: the
+    // screen reads `restoredSections` too).
     mockImportBackup.mockResolvedValue({
+      formatVersion: 2,
+      restoredSections: ['favorites', 'notes'],
       failedSections: [],
       asyncStorageWriteFailed: false,
     });
@@ -171,6 +175,8 @@ describe('DataSettings', () => {
     mockReadBackupFileFromUri.mockResolvedValue('{"raw":"data"}');
     mockParseBackupPayload.mockReturnValue({sections: {}});
     mockImportBackup.mockResolvedValue({
+      formatVersion: 2,
+      restoredSections: ['favorites'],
       failedSections: ['notes'],
       asyncStorageWriteFailed: false,
     });

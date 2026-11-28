@@ -4204,6 +4204,16 @@ export const translations = {
       importRestartMessage:
         'Tu copia se importó correctamente.\n\nCierra la app por completo y vuelve a abrirla para que todas las pantallas carguen los datos restaurados.',
       importRestartCta: 'Entendido',
+      // R9-557 — el mismo aviso cuando una parte no entró: no puede decir
+      // «se importó correctamente».
+      importRestartPartialTitle: 'Restauración parcial',
+      importRestartPartialMessage:
+        'Una parte de tu copia no se pudo restaurar; el resto sí se importó.\n\nCierra la app por completo y vuelve a abrirla para que todas las pantallas carguen los datos restaurados.',
+      // R9-557 — el archivo se leyó, pero no dejó nada en el dispositivo (un
+      // JSON de otra app, o todas sus secciones inválidas): sin aviso de
+      // reiniciar, porque no hay nada restaurado que cargar.
+      importNothingRestored:
+        'No se restauró nada: el archivo no contiene datos que esta app pueda importar.',
 
       about: 'Acerca de',
       version: 'Versión',
@@ -10782,6 +10792,16 @@ export const translations = {
       importRestartMessage:
         'Your backup was imported successfully.\n\nClose the app completely and open it again so every screen loads the restored data.',
       importRestartCta: 'Got it',
+      // R9-557 — the same notice when part of it did not land: it cannot say
+      // "imported successfully".
+      importRestartPartialTitle: 'Partially restored',
+      importRestartPartialMessage:
+        "Part of your backup couldn't be restored; the rest was imported.\n\nClose the app completely and open it again so every screen loads the restored data.",
+      // R9-557 — the file was read but left nothing on the device (another
+      // app's JSON, or every section invalid): no restart notice, since there
+      // is nothing restored to load.
+      importNothingRestored:
+        'Nothing was restored: the file has no data this app can import.',
 
       about: 'About',
       version: 'Version',

@@ -254,7 +254,11 @@ it('the partial-import warning is drawn in the restart dialog, the topmost windo
   mockRead.mockResolvedValue(
     JSON.stringify({formatVersion: 1, app: {}, data: {}}),
   );
+  // The whole `ImportResult` (R9-557: with nothing restored there is no
+  // restart dialog at all, and a partial import has its own title).
   mockImport.mockResolvedValue({
+    formatVersion: 1,
+    restoredSections: ['favorites'],
     failedSections: ['notes'],
     asyncStorageWriteFailed: false,
   });
@@ -269,7 +273,7 @@ it('the partial-import warning is drawn in the restart dialog, the topmost windo
 
   await waitFor(() => expect(mockImport).toHaveBeenCalledTimes(1));
   const restart = visibleModals(utils).find(
-    x => within(x).queryByText(ts.importRestartTitle) !== null,
+    x => within(x).queryByText(ts.importRestartPartialTitle) !== null,
   );
   expect(restart).toBeTruthy();
   // includeHiddenElements: the dialog's card carries accessibilityViewIsModal
