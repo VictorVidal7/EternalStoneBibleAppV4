@@ -15,6 +15,7 @@ import {render, screen, act, fireEvent} from '@testing-library/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const mockEs = require('../src/i18n/translations').translations.es;
+const en = require('../src/i18n/translations').translations.en;
 
 const mockParams: {current: Record<string, string>} = {current: {}};
 const mockRouter = {
@@ -232,4 +233,81 @@ describe('R9-512 — invitar a un plan curado con la duración elegida', () => {
     const joiner = await joinWith(msg, CHOSEN);
     expect(fmt(joiner)).toEqual(fmt(PLAN.days));
   });
+});
+
+/** Paste → Continuar on a fresh device, without joining. */
+async function pasteOnly(pasted: string) {
+  await AsyncStorage.clear();
+  mockParams.current = {};
+  const r = render(
+    <Providers>
+      <TogetherJoinScreen />
+    </Providers>,
+  );
+  await flush();
+  fireEvent.changeText(
+    screen.getByPlaceholderText(tt.pasteOrCodePlaceholder),
+    pasted,
+  );
+  fireEvent.press(screen.getByLabelText(tt.continueLabel));
+  await flush();
+  return r;
+}
+
+const linkOf = (msg: string) => (msg.match(/https:\/\/\S+/) ?? [''])[0];
+const sentence = (T: {together: {inviteMessage: string}}, code: string) =>
+  (T.together.inviteMessage.split('\n').pop() ?? '').replace('{{code}}', code);
+
+describe('R9-512 — una palabra tras el código no es la duración', () => {
+  // «Usa el código X en Ajustes» / «Use code X in Settings»: a 3-part code
+  // followed by one short word joined with a made-up duration (base32).
+  test.each(['en', 'in', 'ok', 'si', 'y', 'a', 'to', 'los'])(
+    'el código de 3 partes y «%s» no se une con días inventados',
+    async w => {
+      const msg = await inviteMessage(null);
+      const code = codeOf(msg);
+      expect(code.split('-')).toHaveLength(3);
+      const r = await pasteOnly(`${code} ${w}`);
+      expect(screen.getByText(tt.codeInvalid)).toBeTruthy();
+      expect(screen.queryByLabelText(tt.join)).toBeNull();
+      r.unmount();
+    },
+  );
+
+  test('el código de 4 partes escrito a mano, en minúsculas o mayúsculas', async () => {
+    const code = codeOf(await inviteMessage(CHOSEN));
+    expect(code.split('-')).toHaveLength(4);
+    const chosen = fmt(effectivePlanDays(PLAN, CHOSEN));
+    expect(fmt(await joinWith(code.toLowerCase()))).toEqual(chosen);
+    expect(fmt(await joinWith(`  ${code}\n`))).toEqual(chosen);
+  });
+
+  test('el mensaje entero en inglés, con la duración elegida', async () => {
+    const es = await inviteMessage(CHOSEN);
+    const msg = en.together.inviteMessage
+      .replace('{{plan}}', 'X')
+      .replace('{{date}}', 'Monday')
+      .replace('{{link}}', linkOf(es))
+      .replace('{{code}}', codeOf(es));
+    expect(fmt(await joinWith(msg))).toEqual(
+      fmt(effectivePlanDays(PLAN, CHOSEN)),
+    );
+  });
+
+  test.each([
+    ['es', mockEs],
+    ['en', en],
+  ])(
+    'solo la última frase (%s): 4 partes elegida, 3 partes por defecto',
+    async (_l, T) => {
+      const chosen = codeOf(await inviteMessage(CHOSEN));
+      expect(fmt(await joinWith(sentence(T, chosen)))).toEqual(
+        fmt(effectivePlanDays(PLAN, CHOSEN)),
+      );
+      const plain = codeOf(await inviteMessage(null));
+      expect(fmt(await joinWith(sentence(T, plain), CHOSEN))).toEqual(
+        fmt(PLAN.days),
+      );
+    },
+  );
 });

@@ -784,4 +784,37 @@ describe('R9-512 — the optional chosen duration of a curated plan', () => {
     });
     expect(decodePlanCode(`${plain}-0`, PLAN_IDS).ok).toBe(false);
   });
+
+  // The invite says «Usa el código X en Ajustes» / «Use code X in Settings»:
+  // a word after a 3-part code is not its duration (each of these decodes
+  // in base32 to 1..1500, so it would join with made-up days).
+  it.each(['en', 'in', 'ok', 'si', 'y', 'a', 'to', 'los'])(
+    'a word after a 3-part code is not a duration: «%s»',
+    w => {
+      const plain = encodePlanCode('nt-30', '2026-06-22')!;
+      for (const txt of [
+        `${plain} ${w}`,
+        `${plain}  ${w}\n`,
+        `${plain}- ${w}`,
+        `${plain} -${w}`,
+        `${plain} - ${w}`,
+        `${plain}_${w}`,
+        `${plain}, ${w}`,
+      ]) {
+        const res = decodePlanCode(txt, PLAN_IDS);
+        // Rejected (as before R9-512) or the default; never a duration.
+        expect(res.ok && res.bundle.t === 'plan' && 'n' in res.bundle).toBe(
+          false,
+        );
+      }
+    },
+  );
+
+  it('the hyphen-joined 4th part still reads, in any case and padding', () => {
+    const code = encodePlanCode('nt-30', '2026-06-22', 60)!;
+    for (const txt of [code, code.toLowerCase(), `  ${code}\n`]) {
+      const res = decodePlanCode(txt, PLAN_IDS);
+      expect(res.ok && res.bundle.t === 'plan' && res.bundle.n).toBe(60);
+    }
+  });
 });

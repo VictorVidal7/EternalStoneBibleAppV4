@@ -800,17 +800,31 @@ export function decodePlanCode(
   input: string,
   knownPlanIds: readonly string[],
 ): DecodeResult {
-  const cleaned = input
+  // Spaces/underscores and hyphens both delimit parts; keep which hyphen-
+  // joined parts shared a word (needed for the 4th part, below).
+  const words = input
     .toUpperCase()
-    .replace(/[\s_]+/g, '-') // treat spaces/underscores as delimiters
-    .replace(/[^A-Z0-9-]/g, '');
-  const parts = cleaned.split('-').filter(Boolean);
+    .split(/[\s_]+/)
+    .map(w =>
+      w
+        .replace(/[^A-Z0-9-]/g, '')
+        .split('-')
+        .filter(Boolean),
+    )
+    .filter(w => w.length > 0);
+  const parts = words.flat();
   if ((parts.length !== 3 && parts.length !== 4) || parts[0] !== 'EB1') {
     return fail('format');
   }
   const days = fromBase32(parts[1]);
   if (days === null) return fail('format');
-  // Optional 4th part: the reader-chosen duration (R9-512).
+  // Optional 4th part: the reader-chosen duration (R9-512). Only when
+  // hyphen-joined to the plan token, as the code is written: a word that
+  // merely follows the code («EB1-…-PLAN en», from «Usa el código … en
+  // Ajustes») would read as a made-up duration. Rejected, as before R9-512.
+  if (parts.length === 4 && words[words.length - 1].length < 2) {
+    return fail('format');
+  }
   const duration = parts.length === 4 ? fromBase32(parts[3]) : null;
   if (parts.length === 4 && !isInt(duration, 1, MAX_PLAN_READINGS)) {
     return fail('format');
