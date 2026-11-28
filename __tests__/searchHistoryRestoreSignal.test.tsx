@@ -13,7 +13,7 @@
  * prueba). Debajo se sustituyen SQLite, el servicio de logros y el motor de
  * sync; la búsqueda de «amor» devuelve filas para que se registre.
  */
-import {act, fireEvent, render} from '@testing-library/react-native';
+import {act, fireEvent, render, waitFor} from '@testing-library/react-native';
 
 jest.mock('../src/lib/database', () => {
   const rows = (count: number, query: string) =>
@@ -122,10 +122,29 @@ const backup = {
   user: {searchHistory: RESTORED},
 } as unknown as BackupPayload;
 
-const wait = (ms: number) =>
-  act(() => new Promise<void>(resolve => setTimeout(resolve, ms)));
 const onDisk = async () =>
   JSON.parse((await AsyncStorage.getItem(KEY)) ?? 'null');
+
+type Screen = ReturnType<typeof render>;
+/** The tab has hydrated: the chips of this list are on screen. */
+const shows = (screen: Screen, list: string[]) =>
+  waitFor(() => {
+    for (const query of list) expect(screen.getByText(query)).toBeTruthy();
+  });
+/**
+ * Type «amor» and wait until that search is RECORDED (it heads the list on
+ * disk), however long the screen's 500 ms debounce takes under load. What
+ * follows it in the list is what each case asserts.
+ */
+async function searchAmor(screen: Screen) {
+  fireEvent.changeText(
+    screen.getByPlaceholderText(t.search.placeholder),
+    'amor',
+  );
+  await waitFor(async () => expect((await onDisk())[0]).toBe('amor'), {
+    timeout: 5000,
+  });
+}
 
 async function importTheBackup() {
   let restored: string[] = [];
@@ -147,30 +166,22 @@ beforeEach(async () => {
 describe('R9-529 — the search history after a backup is restored', () => {
   it('the mounted tab shows the restored searches, not the ones from before', async () => {
     const screen = render(<SearchScreen />);
-    await wait(50);
     // The tab really held the pre-import list.
-    for (const query of BEFORE) expect(screen.getByText(query)).toBeTruthy();
+    await shows(screen, BEFORE);
 
     await importTheBackup();
-    await wait(50);
 
-    for (const query of RESTORED) expect(screen.getByText(query)).toBeTruthy();
+    await shows(screen, RESTORED);
     for (const query of BEFORE) expect(screen.queryByText(query)).toBeNull();
     screen.unmount();
   });
 
   it('the first search after the import keeps what was restored', async () => {
     const screen = render(<SearchScreen />);
-    await wait(50);
-    for (const query of BEFORE) expect(screen.getByText(query)).toBeTruthy();
+    await shows(screen, BEFORE);
 
     await importTheBackup();
-    await wait(50);
-    fireEvent.changeText(
-      screen.getByPlaceholderText(t.search.placeholder),
-      'amor',
-    );
-    await wait(700);
+    await searchAmor(screen);
 
     expect(await onDisk()).toEqual(['amor', ...RESTORED]);
     screen.unmount();
@@ -179,12 +190,8 @@ describe('R9-529 — the search history after a backup is restored', () => {
   it('CONTROL: a tab mounted after the import (a restart) always kept it', async () => {
     await importTheBackup();
     const screen = render(<SearchScreen />);
-    await wait(50);
-    fireEvent.changeText(
-      screen.getByPlaceholderText(t.search.placeholder),
-      'amor',
-    );
-    await wait(700);
+    await shows(screen, RESTORED);
+    await searchAmor(screen);
 
     expect(await onDisk()).toEqual(['amor', ...RESTORED]);
     screen.unmount();
