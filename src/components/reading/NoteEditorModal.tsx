@@ -25,6 +25,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   useWindowDimensions,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 // Deep import, NOT `from '@expensify/react-native-live-markdown'` (the
 // package root barrel). That barrel's `src/index.tsx` re-exports
@@ -167,7 +169,12 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
       transparent
       animationType="slide"
       onRequestClose={onClose}>
-      <View style={[styles.overlay, {backgroundColor: colors.overlay}]}>
+      {/* The input autofocuses, so the keyboard opens with the sheet: without
+          this the field and SAVE sit under it (R9-561). Same shape as
+          AddToCollectionSheet / RedeemCodeSheet. */}
+      <KeyboardAvoidingView
+        style={[styles.overlay, {backgroundColor: colors.overlay}]}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View
           style={[
             styles.content,
@@ -302,7 +309,7 @@ export const NoteEditorModal: React.FC<NoteEditorModalProps> = ({
           cardSize={screenWidth - 80}
           onClose={() => setShareVisible(false)}
         />
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

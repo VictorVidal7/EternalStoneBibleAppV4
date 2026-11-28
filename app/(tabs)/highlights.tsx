@@ -15,6 +15,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import {staticColors} from '@/styles/designTokens';
 
@@ -571,7 +573,10 @@ export default function HighlightsScreen() {
         transparent
         animationType="slide"
         onRequestClose={() => setEditing(null)}>
-        <View style={styles.modalOverlay}>
+        {/* The keyboard would cover the note field and Cancel/Save (R9-561). */}
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <View
             style={[
               styles.modalCard,
@@ -675,7 +680,7 @@ export default function HighlightsScreen() {
               </TouchableOpacity>
             </View>
           </View>
-        </View>
+        </KeyboardAvoidingView>
         <ToastHost />
       </Modal>
 
