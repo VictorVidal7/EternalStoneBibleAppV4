@@ -144,18 +144,31 @@ export async function checkDataStatus(): Promise<{
 export async function resetBibleData(): Promise<void> {
   console.log('🔄 Resetting Bible data...');
 
-  // Clear the "loaded" flag for EVERY known version (bundled base + any
-  // downloaded pack), so the next initializeBibleData rebuilds the bundled base
-  // from scratch and a wiped pack isn't left falsely marked as installed.
+  // R9-558 — only the BUNDLED base is reset: it is what `initializeBibleData`
+  // can put back. A downloaded pack (KJV, RV1909…) keeps its rows, its index
+  // and its flag: the reset used to wipe every version and reload two, so the
+  // chosen pack was left with no text (and, offline, no way to get it back).
+  const bundledIds = BIBLE_VERSIONS.filter(v => v.bundled).map(v => v.id);
+
+  // Flags first: a process killed from here on finds the base unflagged and
+  // reloads it on the next start.
   await Promise.all(
-    BIBLE_VERSIONS.map(v => AsyncStorage.removeItem(packLoadedKey(v.id))),
+    bundledIds.map(id => AsyncStorage.removeItem(packLoadedKey(id))),
   );
 
   // Limpiar la base de datos
   try {
     const db = await bibleDB.getDatabase();
-    await db.execAsync('DELETE FROM verses;');
-    await db.execAsync('DELETE FROM verses_fts;');
+    // The `verses_ad` trigger drops each deleted row from `verses_fts`. No
+    // `DELETE FROM verses_fts` after it: on this external-content index that
+    // statement walks the rows LEFT in `verses`, i.e. it would unindex the
+    // packs just kept (measured on SQLite with FTS5: their search goes to 0).
+    await db.runAsync(
+      `DELETE FROM verses WHERE version COLLATE NOCASE IN (${bundledIds
+        .map(() => '?')
+        .join(', ')})`,
+      bundledIds,
+    );
     console.log('✅ Database cleared successfully');
   } catch (error) {
     console.error('❌ Error clearing database:', error);

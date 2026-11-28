@@ -4160,10 +4160,13 @@ export const translations = {
       dataEntryTitle: 'Gestionar datos',
       dataEntryDesc: 'Exportar, importar o resetear los datos de la Biblia',
       resetData: 'Resetear Datos de la Biblia',
-      resetDescription: 'Elimina y recarga todos los versículos',
+      // R9-558 — el reset solo toca las dos versiones que vienen con la app;
+      // las descargadas se conservan, y el diálogo lo dice.
+      resetDescription:
+        'Elimina y recarga los versículos de las versiones que vienen con la app',
       resetTitle: 'Resetear Datos',
       resetMessage:
-        '¿Estás seguro de que quieres resetear todos los datos de la Biblia? Esto borra y vuelve a cargar los 62.000+ versículos. Tus favoritos, notas y resaltados no se ven afectados. La recarga puede tardar un minuto.',
+        '¿Estás seguro de que quieres resetear los datos de la Biblia? Esto borra y vuelve a cargar los 62.000+ versículos de las versiones que vienen con la app (RVR1960 y WEB). Las versiones que descargaste, y tus favoritos, notas y resaltados, no se ven afectados. La recarga puede tardar un minuto.',
       resetConfirm: 'Resetear',
       resetSuccess: 'Datos Reseteados',
       resetSuccessMessage: 'Los versículos se han recargado correctamente.',
@@ -10735,10 +10738,13 @@ export const translations = {
       dataEntryTitle: 'Manage data',
       dataEntryDesc: 'Export, import, or reset your Bible data',
       resetData: 'Reset Bible Data',
-      resetDescription: 'Delete and reload all verses',
+      // R9-558 — the reset only touches the two versions that ship with the
+      // app; downloaded ones are kept, and the dialog says so.
+      resetDescription:
+        'Delete and reload the verses of the versions that come with the app',
       resetTitle: 'Reset Data',
       resetMessage:
-        'Are you sure you want to reset all Bible data? This deletes and reloads the 62,000+ verses. Your favorites, notes and highlights are not affected. The reload may take a minute.',
+        'Are you sure you want to reset the Bible data? This deletes and reloads the 62,000+ verses of the versions that come with the app (RVR1960 and WEB). The versions you downloaded, and your favorites, notes and highlights, are not affected. The reload may take a minute.',
       resetConfirm: 'Reset',
       resetSuccess: 'Data Reset',
       resetSuccessMessage: 'Verses have been reloaded successfully.',
