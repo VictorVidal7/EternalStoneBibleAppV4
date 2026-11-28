@@ -146,8 +146,8 @@ export const CURSOR_SAFETY_MARGIN_MS = 5 * 60 * 1000; // 5 minutes
  * server does, or from cache (or `unavailable`) once it considers itself
  * offline, which its OnlineStateTracker decides 10 s after the stream starts
  * or at its first failure. Generous on purpose: past it, the batch goes on as
- * if the read had failed (the doc is left as it is locally, and a held
- * conflict is read again on the next attach: R9-186).
+ * if the read had failed (the doc is left as it is locally, and a held one
+ * is read again on the next attach: R9-186 a conflict, R9-646 any other).
  *
  * R9-186 — the deadline releases the engine's `await`, not the SDK. On
  * RNFirebase every doc `get()`, `set()` and `delete()` of the process runs on
@@ -180,12 +180,17 @@ function tombstoneEntity(lastKnownData?: object): SyncEntity<object> {
   };
 }
 
+/** R9-645 — the name of the error `withDeadline` rejects with when the time
+ *  ran out: no answer at all, which a rejection of the promise is not. */
+const DEADLINE_ERROR_NAME = 'SyncDeadlineError';
+
 function withDeadline<T>(promise: Promise<T>, ms: number): Promise<T> {
   return new Promise<T>((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`no answer after ${ms} ms`)),
-      ms,
-    );
+    const timer = setTimeout(() => {
+      const err = new Error(`no answer after ${ms} ms`);
+      err.name = DEADLINE_ERROR_NAME;
+      reject(err);
+    }, ms);
     promise.then(
       value => {
         clearTimeout(timer);
@@ -2093,6 +2098,17 @@ export class SyncEngine {
         this.forgetOwnStamps(adapter.collection, id);
       }
     };
+    // R9-645 — a read of this batch got no answer within the deadline. The
+    // held docs after it in the batch are not read: each one waited its own
+    // deadline, one after another (the docs an attach reads, R9-164 and
+    // R9-186: N x 60 s with the batches behind waiting), and behind a read
+    // that does not come back the next ones do not either (one executor on
+    // RNFirebase, R9-177). They count as a failed read at once, which for a
+    // held doc changes nothing: it stays held and the next attach reads it
+    // (R9-186, R9-646). Only held ones: any other doc's failed read settles
+    // it for good, so its read is still tried. Only on the deadline: a read
+    // that was rejected had an answer, and says nothing of the next.
+    let lookupTimedOut = false;
     try {
       for (const change of changes) {
         // Decode the Firestore doc id back to the logical id (see toDocId):
@@ -2127,16 +2143,24 @@ export class SyncEngine {
           // stays outside `withLocalWriteSuppressed`, so an edit of this doc
           // meanwhile is still queued.
           let current: DocumentSnapshot | null = null;
+          // R9-645 — see `lookupTimedOut`.
+          const notRead =
+            lookupTimedOut && this.unsettledOf(adapter.collection).has(id);
           try {
             // R9-175 — with the batches in a chain, a read that never came
             // back would hold every later batch of this collection until
             // `stop()`. Past the deadline it counts as a failed read; its
             // answer, if it ever comes, is dropped.
-            current = await withDeadline(
-              lookup(change.doc.id),
-              this.lookupTimeoutMs,
-            );
+            if (!notRead) {
+              current = await withDeadline(
+                lookup(change.doc.id),
+                this.lookupTimeoutMs,
+              );
+            }
           } catch (err) {
+            if (err instanceof Error && err.name === DEADLINE_ERROR_NAME) {
+              lookupTimedOut = true;
+            }
             logger.warn(
               'SyncEngine: could not tell a removed doc from a deleted one — ' +
                 'leaving the local copy alone',
@@ -2172,7 +2196,18 @@ export class SyncEngine {
           // again. Settled, a skipped doc whose copy is below the floor was
           // never applied. A read that fails every time leaves the floor where
           // it was before R9-164, at one read per attach.
-          if (!current && unheard) continue;
+          // R9-646 — and so does a held doc whose `removed` came through the
+          // live listener: the same doc, the same failed read. Settled here
+          // (below), the floor moved on, and a doc of the other device this
+          // one had skipped never came down. Before the branch of a write
+          // still queued, like the unheard ones: that write's echo settles
+          // it, or the next attach's read does.
+          if (
+            !current &&
+            (unheard || this.unsettledOf(adapter.collection).has(id))
+          ) {
+            continue;
+          }
           const currentData = current?.exists ? current.data() : undefined;
           // R9-238 — the read found a copy of the other device: it retires
           // this device's clocks of the doc, like one delivered (see
@@ -2296,10 +2331,9 @@ export class SyncEngine {
             }
           }
           if (!currentData) {
-            // Deleted, or unreadable: no delivery will ever come back to
-            // settle it. Before R9-164, keeping it held the floor down for
-            // good; since then the next attach would read it (a held doc
-            // whose read failed on the unheard path is kept: see above).
+            // Deleted, or unreadable and not held (a held doc whose read
+            // failed is kept: see above, R9-164 and R9-646): no delivery will
+            // ever come back to settle it.
             settle(id);
             continue;
           }
@@ -3294,8 +3328,9 @@ export class SyncEngine {
   /**
    * R9-127 — an account deletion that went through leaves a skip for the
    * NEXT account to start, whichever it is: the rows still on this device
-   * were just deleted from the cloud, and a sign-in that does not ask (the
-   * store's owner unreadable, or never recorded) would upload them again.
+   * were just deleted from the cloud, and a sign-in that does not ask (its
+   * check of the local data could not run; before R9-158, the store's owner
+   * unreadable or never recorded too) would upload them again.
    * A sign-in that asks overrules it with its answer: «Migrar» suspends it
    * (`suspendSkipAfterAccountDeletion`), and declining queues its own.
    */

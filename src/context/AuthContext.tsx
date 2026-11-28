@@ -102,21 +102,46 @@ export interface AuthContextValue {
  *
  * The marker is `LOCAL_STORE_OWNER_KEY`: R9-38 — the sync engine queues for
  * that account what is edited with no session.
+ *
+ * R9-158 — a marker that cannot be read is not an empty one. Read as `null`
+ * («first sign-in, don't ask»), the sign-in asked nothing and the bulk push
+ * uploaded the previous owner's store into the incoming account. It is
+ * `UNKNOWN_STORE_OWNER`: no account's, so the sign-in asks (when there is
+ * anything to ask about), and the rightful owner pays one dialog.
  */
-async function getLocalStoreOwner(): Promise<string | null> {
+const UNKNOWN_STORE_OWNER = Symbol('unknown local-store owner');
+type StoreOwner = string | null | typeof UNKNOWN_STORE_OWNER;
+
+/**
+ * R9-158 — the claims of this process, counted: the last one that reached
+ * disk and the last one that did not. A claim that failed leaves an older
+ * owner on disk, or none, and the next sign-in read it as the truth. While the
+ * latest failure is newer than the latest write, the owner is unknown. Memory
+ * only: it holds for this process. In the next one a session that is restored
+ * claims again (R9-270); a claim that never reached disk and a process that
+ * ended signed out leave the older marker, and nothing here can tell.
+ */
+type StoreClaims = {asked: number; written: number; failed: number};
+
+async function getLocalStoreOwner(claims: StoreClaims): Promise<StoreOwner> {
+  if (claims.failed > claims.written) return UNKNOWN_STORE_OWNER;
   try {
     return await AsyncStorage.getItem(LOCAL_STORE_OWNER_KEY);
   } catch {
-    // Unreadable marker: behave as before this existed rather than
-    // interrogating a user who may well be the rightful owner.
-    return null;
+    return UNKNOWN_STORE_OWNER;
   }
 }
 
-async function claimLocalStore(uid: string): Promise<void> {
+async function claimLocalStore(
+  uid: string,
+  claims: StoreClaims,
+): Promise<void> {
+  const turn = ++claims.asked;
   try {
     await AsyncStorage.setItem(LOCAL_STORE_OWNER_KEY, uid);
+    claims.written = Math.max(claims.written, turn);
   } catch (err) {
+    claims.failed = Math.max(claims.failed, turn);
     logger.warn('AuthProvider: could not record local-store owner', {
       component: 'AuthProvider',
       error: err instanceof Error ? err.message : String(err),
@@ -296,6 +321,8 @@ export function AuthProvider({children}: AuthProviderProps) {
   // we do not loop if the first onAuthStateChanged fires with a null
   // user (which it will on a fresh install). Re-armed on signOut.
   const triggeredAnonymousRef = useRef(false);
+  // R9-158 — see `StoreClaims`.
+  const storeClaims = useRef<StoreClaims>({asked: 0, written: 0, failed: 0});
   // R9-59 — the Mesa is kept per account (see `prepAccount`): its keys wait
   // for the first auth state's work (see `prepKey`), said here before any
   // screen below can ask.
@@ -313,7 +340,9 @@ export function AuthProvider({children}: AuthProviderProps) {
     // signed out in the next process waited for that account and went up to
     // its cloud. The account here already went through the question (it is
     // asked before signing in), and a restored session is one that did.
-    if (user && !user.isAnonymous) void claimLocalStore(user.uid);
+    if (user && !user.isAnonymous) {
+      void claimLocalStore(user.uid, storeClaims.current);
+    }
   }, [user, isLoading]);
   // Themed replacement for the old Alert.alert-wrapped migration prompt
   // (UX audit): the dialog is state-driven, but the calling code below still
@@ -443,7 +472,9 @@ export function AuthProvider({children}: AuthProviderProps) {
     // offline, and nothing retries it until the next auth event or cold
     // start) went straight to `signInWithCredential` and bulk-pushed the
     // previous owner's notes into the incoming account without a word.
-    const previousOwner = await getLocalStoreOwner();
+    // R9-158 — unknown (unreadable, or its last claim never reached disk) is
+    // another owner's on every branch below: it is neither `null` nor a uid.
+    const previousOwner = await getLocalStoreOwner(storeClaims.current);
     // The store belongs to a DIFFERENT account than the one signing in: the
     // person in front of the phone is not the one whose notes are on it, and
     // the engine is about to bulk-push all of them into the incoming account.
@@ -514,7 +545,7 @@ export function AuthProvider({children}: AuthProviderProps) {
         // before a link that then fails, it would outlive this attempt and
         // swallow the bulk push of whichever account starts the engine next.
         if (declined) skipBulkPush(String(current.uid));
-        await claimLocalStore(current.uid);
+        await claimLocalStore(current.uid, storeClaims.current);
         if (keepsLocal) await adoptNoAccountPrep(current.uid);
 
         // linkWithCredential doesn't copy the Google profile onto the
@@ -636,7 +667,9 @@ export function AuthProvider({children}: AuthProviderProps) {
     // sign-in with no anonymous user claims the store. Without it the marker
     // stays `null`, which every guard above reads as "first sign-in, don't
     // ask", and the next account to sign in inherits this one's data.
-    if (signedIn?.uid) await claimLocalStore(signedIn.uid);
+    if (signedIn?.uid) {
+      await claimLocalStore(signedIn.uid, storeClaims.current);
+    }
     if (signedIn?.uid && keepsLocal) await adoptNoAccountPrep(signedIn.uid);
     // Same reasoning as the linked-anonymous-account return above: return
     // the fresh user directly instead of making the caller read `user`
@@ -666,7 +699,9 @@ export function AuthProvider({children}: AuthProviderProps) {
     // here, so one that failed in this process does not leave the previous
     // account on disk for the next one.
     const leaving = authMod?.().currentUser;
-    if (leaving && !leaving.isAnonymous) await claimLocalStore(leaving.uid);
+    if (leaving && !leaving.isAnonymous) {
+      await claimLocalStore(leaving.uid, storeClaims.current);
+    }
 
     if (gs) {
       try {
@@ -711,9 +746,11 @@ export function AuthProvider({children}: AuthProviderProps) {
    *     session created below does NOT push anything on its own. The skip
    *     guards a sign-in in this same app session (no restart) that does
    *     not ask: the store is claimed for `(deleted)` below, so a sign-in
-   *     normally asks first (R9-23), but with that marker unreadable, or
-   *     never recorded, it would upload the exact data just deleted. An
-   *     answer overrules it: «Migrar» suspends it, declining queues its own.
+   *     asks first (R9-23; with that marker unreadable, or its claim not
+   *     recorded in this process, too: R9-158), but one whose check could
+   *     not run (the local data could not be counted) would upload the exact
+   *     data just deleted. An answer overrules it: «Migrar» suspends it,
+   *     declining queues its own.
    *     Not before step 3: a wipe that fails restarts the engine for this
    *     account, and that start took the skip and wrote 'skip' over it.
    *  3. Delete every users/{uid}/* doc (see deleteAllCloudData — verified
@@ -749,6 +786,13 @@ export function AuthProvider({children}: AuthProviderProps) {
       throw err;
     }
 
+    // R9-26 — re-armed BEFORE the deletion, as `signOut` does: its `null`
+    // event arrives while the rest of this function still runs. Re-armed at
+    // the end, that event found the ref set by an earlier `null` of this
+    // process (a first launch, a sign-out) and started no anonymous sign-in:
+    // no user at all until the next cold start. A deletion that fails leaves
+    // it re-armed, which is what an account in session has after a cold start.
+    triggeredAnonymousRef.current = false;
     try {
       await authMod.deleteUser(current);
     } catch (err: any) {
@@ -796,7 +840,7 @@ export function AuthProvider({children}: AuthProviderProps) {
     // ends before the claim leaves the store owned by the deleted uid, which
     // gets nothing (nobody signs in as it) and is still asked about.
     await releasePrepAccount(uid);
-    await claimLocalStore(DELETED_STORE_OWNER);
+    await claimLocalStore(DELETED_STORE_OWNER, storeClaims.current);
 
     if (gs) {
       try {
@@ -811,7 +855,6 @@ export function AuthProvider({children}: AuthProviderProps) {
       }
     }
 
-    triggeredAnonymousRef.current = false;
     // Shared-device guard — see signOut above. The deleted account's own
     // restore floor (if any) must not leak into whoever signs in next.
     void clearMemoryStatsFloor();

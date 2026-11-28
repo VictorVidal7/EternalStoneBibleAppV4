@@ -75,12 +75,23 @@ const RESTORE_BANNER_KEY = '@memory_stats_floor_banner_pending';
  */
 const REVIEW_LOG_OWNER_KEY = '@review_log_owner_uid';
 
-/** The uid whose reviews the local log holds, or null if unclaimed. */
-async function getReviewLogOwner(): Promise<string | null> {
+/**
+ * The uid whose reviews the local log holds, or null if unclaimed.
+ *
+ * R9-134 — `strict` is for the write: a marker that could not be read is not
+ * an unclaimed log. Read as `null` there, the account in session claimed the
+ * log and wrote it over its own cloud doc (`.set()`), the previous owner's
+ * history included, for good. Thrown, the write waits for the next time. The
+ * seed reads it loosely: with no owner read it hands nothing over, and the
+ * guards below it (a floor, local events) still stand.
+ */
+async function getReviewLogOwner(
+  opts: {strict?: boolean} = {},
+): Promise<string | null> {
   try {
     return await AsyncStorage.getItem(REVIEW_LOG_OWNER_KEY);
-  } catch {
-    // Unreadable marker: treat as unclaimed rather than blocking the write.
+  } catch (err) {
+    if (opts.strict) throw err;
     return null;
   }
 }
@@ -218,7 +229,9 @@ export async function maybeWriteMemoryStatsSummary(): Promise<void> {
     // anchors this user's memory stats in the cloud; writing Ana's history
     // into Beto's document destroys his outright. An unclaimed log is this
     // user's by definition (they are the first to write from this device).
-    const owner = await getReviewLogOwner();
+    // R9-134 — unclaimed only when READ so: a failed read ends in the catch
+    // below, with nothing claimed and nothing written.
+    const owner = await getReviewLogOwner({strict: true});
     if (owner !== null && owner !== uid) {
       logger.warn(
         'memoryStatsSync: local review log belongs to another account — ' +

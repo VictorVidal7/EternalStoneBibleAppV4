@@ -2040,3 +2040,119 @@ describe('R9-591 — el await del borrado del pendiente', () => {
     await expect(getPendingLinkUid()).resolves.toBeNull();
   });
 });
+
+/**
+ * R9-26 — after deleting the account the app was left with no user until the
+ * next cold start. `deleteAccount` re-armed the anonymous sign-in at its very
+ * end, after `deleteUser`; the `null` event of that deletion arrives while the
+ * rest of it still runs (five awaits, two of them Google's), found the ref
+ * still armed from an earlier `null` of this process, and started nothing.
+ * `signOut` re-arms BEFORE signing out.
+ */
+describe('R9-26 — tras eliminar la cuenta vuelve a haber un usuario anonimo', () => {
+  /** `deleteUser` as the SDK does it: the session is gone, and the listener
+   *  hears `null`. `before`: the event comes before the promise resolves. */
+  function deleteUserEmitsNull(when: 'before' | 'after') {
+    mockDeleteUser.mockImplementationOnce(async () => {
+      mockCurrentUser = null;
+      const emit = () => mockListeners.forEach(l => l(null));
+      if (when === 'before') emit();
+      else setTimeout(emit, 0);
+    });
+  }
+
+  /** A first launch: `null`, the anonymous user it triggers, and that user
+   *  linked to a Google account, all in this process. */
+  async function firstLaunchThenLink(ref: {current: AuthApi | null}) {
+    flushListenerWith(null);
+    mockCurrentUser = {
+      uid: 'anon-uid',
+      isAnonymous: true,
+      linkWithCredential: mockLinkWithCredential,
+    };
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('anon-uid'));
+    await act(async () => {
+      await ref.current!.signInWithGoogle();
+    });
+    mockCurrentUser = {uid: 'anon-uid', isAnonymous: false};
+    expect(ref.current?.user?.isAnonymous).toBe(false);
+  }
+
+  it.each(['before', 'after'] as const)(
+    'una cuenta creada en este proceso (null, anonimo, link): el null del borrado relanza el anonimo (evento %s de resolver)',
+    async when => {
+      const {ref, onReady} = captureAuthApi();
+      render(
+        <AuthProvider>
+          <Probe onReady={onReady} />
+        </AuthProvider>,
+      );
+      await firstLaunchThenLink(ref);
+      const antes = mockSignInAnonymously.mock.calls.length;
+
+      deleteUserEmitsNull(when);
+      await act(async () => {
+        await ref.current!.deleteAccount();
+        await new Promise(r => setTimeout(r, 5));
+      });
+
+      // Sin R9-26, con el evento antes de resolver: relanzados 0, y la app
+      // se queda sin usuario hasta el arranque siguiente.
+      expect({
+        antes, // CONTROL: el anonimo del primer arranque ya se habia pedido
+        relanzados: mockSignInAnonymously.mock.calls.length - antes,
+        usuario: ref.current?.user ?? null,
+      }).toEqual({antes: 1, relanzados: 1, usuario: null});
+
+      // Re-armed once, not again at the end: a second `null` (the anonymous
+      // sign-in still on its way) starts no second one.
+      flushListenerWith(null);
+      expect(mockSignInAnonymously.mock.calls.length - antes).toBe(1);
+    },
+  );
+
+  it('control — con la sesion de Google restaurada en frio ya lo relanzaba', async () => {
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    mockCurrentUser = {uid: 'ana-uid', isAnonymous: false};
+    flushListenerWith(mockCurrentUser);
+    await waitFor(() => expect(ref.current?.user?.uid).toBe('ana-uid'));
+
+    deleteUserEmitsNull('before');
+    await act(async () => {
+      await ref.current!.deleteAccount();
+    });
+    expect(mockSignInAnonymously).toHaveBeenCalledTimes(1);
+  });
+
+  it('un borrado que falla no relanza nada: la cuenta sigue en sesion', async () => {
+    const {ref, onReady} = captureAuthApi();
+    render(
+      <AuthProvider>
+        <Probe onReady={onReady} />
+      </AuthProvider>,
+    );
+    await firstLaunchThenLink(ref);
+    const antes = mockSignInAnonymously.mock.calls.length;
+
+    mockDeleteUser.mockRejectedValueOnce(
+      Object.assign(new Error('net'), {code: 'auth/network-request-failed'}),
+    );
+    let err: unknown = null;
+    await act(async () => {
+      await ref.current!.deleteAccount().catch(e => {
+        err = e;
+      });
+    });
+    expect({
+      fallo: err instanceof Error, // CONTROL
+      relanzados: mockSignInAnonymously.mock.calls.length - antes,
+      usuario: ref.current?.user?.uid,
+    }).toEqual({fallo: true, relanzados: 0, usuario: 'anon-uid'});
+  });
+});

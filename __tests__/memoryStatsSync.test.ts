@@ -345,3 +345,82 @@ describe('R9-48 — one account’s review log cannot reach another’s cloud do
     expect(mockClearAllReviewEvents).not.toHaveBeenCalled();
   });
 });
+
+/**
+ * R9-134 — the owner guard of R9-48 failed OPEN: `getReviewLogOwner` answered
+ * `null` («unclaimed») for a marker it could not read, so the write claimed
+ * Ana's log for Beto and `.set()` it over his cloud doc, for good.
+ */
+describe('R9-134 — con el dueño del log sin poder leerse, el agregado no se escribe', () => {
+  const getItem = AsyncStorage.getItem as unknown as jest.Mock;
+  const realGet = getItem.getMockImplementation()!;
+  let failedReads = 0;
+  let ownerUnreadable = false;
+
+  beforeEach(() => {
+    failedReads = 0;
+    ownerUnreadable = false;
+    getItem.mockImplementation(async (k: string, ...rest: unknown[]) => {
+      if (k === OWNER_KEY && ownerUnreadable) {
+        failedReads += 1;
+        throw new Error('marca ilegible');
+      }
+      return realGet(k, ...rest);
+    });
+  });
+  afterEach(() => {
+    getItem.mockImplementation(realGet);
+  });
+
+  it('el log es de Ana y la marca no se puede leer: ni se escribe en el doc de Beto ni se le reclama el log', async () => {
+    await AsyncStorage.setItem(OWNER_KEY, 'ana');
+    mockGetAllReviewEvents.mockResolvedValue([mkEvent(86400000)]);
+    fakeEngine('beto');
+
+    ownerUnreadable = true;
+    await maybeWriteMemoryStatsSummary();
+    ownerUnreadable = false;
+
+    // Sin R9-134: escritos 1 (el historial de Ana en users/beto/memoryStats)
+    // y dueño 'beto'.
+    expect({
+      ilegible: failedReads, // CONTROL: la lectura fallo, una vez
+      escritos: mockDocSet.mock.calls.length,
+      dueno: await AsyncStorage.getItem(OWNER_KEY),
+    }).toEqual({ilegible: 1, escritos: 0, dueno: 'ana'});
+  });
+
+  it('la escritura espera: con la marca legible otra vez, la cuenta dueña escribe', async () => {
+    await AsyncStorage.setItem(OWNER_KEY, 'ana');
+    mockGetAllReviewEvents.mockResolvedValue([mkEvent(86400000)]);
+    fakeEngine('ana');
+
+    ownerUnreadable = true;
+    await maybeWriteMemoryStatsSummary();
+    const conFallo = mockDocSet.mock.calls.length;
+    ownerUnreadable = false;
+    await maybeWriteMemoryStatsSummary();
+
+    expect({conFallo, despues: mockDocSet.mock.calls.length}).toEqual({
+      conFallo: 0,
+      despues: 1,
+    });
+  });
+
+  it('control — en el sembrado el mismo fallo no entrega nada ni siembra sobre el historial de otro', async () => {
+    await AsyncStorage.setItem(OWNER_KEY, 'ana');
+    mockGetAllReviewEvents.mockResolvedValue([mkEvent(86400000)]);
+    mockSummaryDoc = SAMPLE_SUMMARY;
+
+    ownerUnreadable = true;
+    await seedMemoryStatsFloorIfFresh('beto');
+    ownerUnreadable = false;
+
+    expect({
+      ilegible: failedReads, // CONTROL
+      borrados: mockClearAllReviewEvents.mock.calls.length,
+      piso: await getMemoryStatsFloor(),
+      dueno: await AsyncStorage.getItem(OWNER_KEY),
+    }).toEqual({ilegible: 1, borrados: 0, piso: null, dueno: 'ana'});
+  });
+});

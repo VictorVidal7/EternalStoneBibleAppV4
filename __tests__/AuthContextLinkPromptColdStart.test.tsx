@@ -449,3 +449,247 @@ describe('R9-166 — the link branch decides before the account exists', () => {
     );
   });
 });
+
+/**
+ * R9-158 — the owner guard failed OPEN. `getLocalStoreOwner` answered `null`
+ * for a marker it could not read, which every branch reads as «first sign-in,
+ * don't ask», and `claimLocalStore` swallowed a write that failed, so the
+ * marker on disk stayed an older owner (or none) and the next sign-in took it
+ * for the truth. Either way the bulk push uploaded Ana's 12 notes into Beto's
+ * account without a word (measured in session 25). Decided: fail CLOSED, ask.
+ *
+ * Same harness as above: the real AuthProvider, SyncEngineProvider and engine.
+ * AsyncStorage fails for the marker's key only, a read or a write.
+ */
+describe('R9-158 — con el dueño del almacén sin poder saberse, se pregunta', () => {
+  const OWNER = '@local_store_owner_uid';
+  const getItem = AsyncStorage.getItem as unknown as jest.Mock;
+  const setItem = AsyncStorage.setItem as unknown as jest.Mock;
+  const realGet = getItem.getMockImplementation()!;
+  const realSet = setItem.getMockImplementation()!;
+  /** How many times the marker was asked for and could not be read. */
+  let failedReads = 0;
+  /** How many claims did not reach disk. */
+  let failedClaims = 0;
+
+  function markerUnreadable() {
+    getItem.mockImplementation(async (k: string, ...rest: unknown[]) => {
+      if (k === OWNER) {
+        failedReads += 1;
+        throw new Error('marca ilegible');
+      }
+      return realGet(k, ...rest);
+    });
+  }
+  function claimsFail() {
+    setItem.mockImplementation(
+      async (k: string, v: string, ...rest: unknown[]) => {
+        if (k === OWNER) {
+          failedClaims += 1;
+          throw new Error('disco');
+        }
+        return realSet(k, v, ...rest);
+      },
+    );
+  }
+  /** Whether the question came up; answered with `label` if it did. */
+  async function answerIfAsked(screen: Screen, label: string) {
+    const asked = await waitFor(() => screen.getByText(label)).then(
+      () => true,
+      () => false,
+    );
+    if (asked) await answer(screen, label);
+    return asked;
+  }
+
+  beforeEach(() => {
+    failedReads = 0;
+    failedClaims = 0;
+    // The collision tests above queue a `...Once` each that the one killed
+    // with the question open never takes, and `mockClear()` keeps it: left
+    // there, the first link here collided.
+    mockLinkWithCredential.mockReset();
+    mockLinkWithCredential.mockImplementation(async user => {
+      user.isAnonymous = false;
+      return {user};
+    });
+    mockSignInWithCredential.mockReset();
+    mockSignInWithCredential.mockImplementation(async () => ({
+      user: mockCurrentUser,
+    }));
+  });
+  afterEach(() => {
+    getItem.mockImplementation(realGet);
+    setItem.mockImplementation(realSet);
+  });
+
+  it.each([
+    [JUST_SIGN_IN, 0, 'skip'],
+    [MIGRATE, 12, '2'],
+  ])(
+    'la marca ilegible, rama del link: pregunta, y el inicio de sesion termina con cualquiera de las dos respuestas (%s → %i)',
+    async (label, pushes, flag) => {
+      markerUnreadable();
+      const screen = launch();
+      await rehydrate();
+
+      const signIn = tapSignIn();
+      const asked = await answerIfAsked(screen, label);
+      await act(async () => {
+        await signIn;
+      });
+      await settle();
+      // Sin R9-158: asked false y 12 subidas, con las dos respuestas.
+      expect({
+        ilegible: failedReads > 0, // CONTROL: la lectura fallo de verdad
+        asked,
+        subidas: pushesInto(BETO),
+        flag: await bulkPushFlag(BETO),
+        cuenta: account(screen),
+        sigueAbierta: screen.queryByText(JUST_SIGN_IN) !== null,
+      }).toEqual({
+        ilegible: true,
+        asked: true,
+        subidas: pushes,
+        flag,
+        cuenta: 'google',
+        sigueAbierta: false,
+      });
+    },
+  );
+
+  it('la marca ilegible, sin anonimo que enlazar: pregunta antes del signInWithCredential', async () => {
+    markerUnreadable();
+    // The anonymous sign-in after Ana's sign-out failed offline (R9-125).
+    mockCurrentUser = null;
+    mockSignInAnonymously.mockRejectedValueOnce(new Error('offline'));
+    mockSignInWithCredential.mockImplementationOnce(async () => {
+      mockCurrentUser = {uid: BETO_EXISTING, isAnonymous: false};
+      mockAuthListeners.forEach(l => l(mockCurrentUser));
+      return {user: mockCurrentUser};
+    });
+    const screen = launch();
+    await rehydrate();
+    expect(account(screen)).toBe('none');
+
+    const signIn = tapSignIn();
+    const asked = await answerIfAsked(screen, JUST_SIGN_IN);
+    await act(async () => {
+      await signIn;
+    });
+    await settle();
+    // Sin R9-158: asked false y 12 subidas a la cuenta que entra.
+    expect({
+      ilegible: failedReads > 0, // CONTROL
+      asked,
+      subidas: pushesInto(BETO_EXISTING),
+      cuenta: account(screen),
+    }).toEqual({ilegible: true, asked: true, subidas: 0, cuenta: 'google'});
+  });
+
+  it('una lectura que sigue fallando: una pregunta por intento, nunca sola ni dos veces', async () => {
+    markerUnreadable();
+    const screen = launch();
+    await rehydrate();
+
+    // First attempt: asked, and the link fails for another reason.
+    mockLinkWithCredential.mockRejectedValueOnce(
+      Object.assign(new Error('network'), {
+        code: 'auth/network-request-failed',
+      }),
+    );
+    const first = tapSignIn();
+    first.catch(() => {});
+    const askedFirst = await answerIfAsked(screen, JUST_SIGN_IN);
+    await expect(first).rejects.toMatchObject({
+      code: 'auth/network-request-failed',
+    });
+    await settle();
+    // Nobody tapped «Iniciar sesión» again: nothing asks on its own.
+    const askedAlone = screen.queryByText(JUST_SIGN_IN) !== null;
+
+    const second = tapSignIn();
+    const askedSecond = await answerIfAsked(screen, JUST_SIGN_IN);
+    await act(async () => {
+      await second;
+    });
+    await settle();
+    expect({
+      askedFirst,
+      askedAlone,
+      askedSecond,
+      askedAgain: screen.queryByText(JUST_SIGN_IN) !== null,
+      subidas: pushesInto(BETO),
+      cuenta: account(screen),
+    }).toEqual({
+      askedFirst: true,
+      askedAlone: false,
+      askedSecond: true,
+      askedAgain: false,
+      subidas: 0,
+      cuenta: 'google',
+    });
+  });
+
+  it('control — la marca ilegible con el almacen vacio: nada que preguntar, y el inicio de sesion termina solo', async () => {
+    markerUnreadable();
+    mockLocalNotes.clear();
+    const screen = launch();
+    await rehydrate();
+
+    // Nobody answers anything here: it resolves on its own or the test hangs.
+    await act(async () => {
+      await app.auth!.signInWithGoogle();
+    });
+    await settle();
+    expect({
+      ilegible: failedReads > 0, // CONTROL
+      preguntando: screen.queryByText(JUST_SIGN_IN) !== null,
+      cuenta: account(screen),
+    }).toEqual({ilegible: true, preguntando: false, cuenta: 'google'});
+  });
+
+  it('el gemelo: un reclamo que no llego al disco no deja pasar a la cuenta siguiente sin pregunta, en el mismo proceso', async () => {
+    // Ana's first session on this phone: the store was never claimed, and no
+    // claim of hers reaches disk (the session restored, and her sign-out).
+    await AsyncStorage.removeItem(OWNER);
+    claimsFail();
+    mockCurrentUser = {uid: ANA, isAnonymous: false};
+    const screen = launch();
+    await rehydrate();
+    await settle();
+    const deAna = pushesInto(ANA);
+    await act(async () => {
+      await app.auth!.signOut();
+    });
+    const trasAna = await realGet(OWNER);
+
+    // Same process: the anonymous session that follows, and Beto signs in.
+    mockCurrentUser = {uid: BETO, isAnonymous: true};
+    await rehydrate();
+    expect(account(screen)).toBe('anonymous');
+    const signIn = tapSignIn();
+    const asked = await answerIfAsked(screen, JUST_SIGN_IN);
+    await act(async () => {
+      await signIn;
+    });
+    await settle();
+    // Sin R9-158: la marca leida es null («primer inicio»), asked false, y
+    // las 12 notas de Ana suben a Beto.
+    expect({
+      deAna, // CONTROL: Ana tuvo su sesion, con sus notas
+      reclamosFallidos: failedClaims >= 2, // CONTROL: el restaurado y el cierre
+      trasAna, // CONTROL: en disco no quedo nadie
+      asked,
+      subidas: pushesInto(BETO),
+      cuenta: account(screen),
+    }).toEqual({
+      deAna: 12,
+      reclamosFallidos: true,
+      trasAna: null,
+      asked: true,
+      subidas: 0,
+      cuenta: 'google',
+    });
+  });
+});

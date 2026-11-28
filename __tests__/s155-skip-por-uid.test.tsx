@@ -472,10 +472,14 @@ describe('R9-127 — el salto del bulk push es de la cuenta a la que se le pidi�
 // ---- R9-127, sesión 155: la red del borrado ----
 //
 // The deletion still leaves a skip for the next account, armed only once the
-// wipe and the deletion went through: a sign-in that does not ask (the
-// store's owner unreadable, or never recorded) must not upload the rows just
-// deleted. A sign-in that asks overrules it: «Migrar» suspends it for that
-// attempt, and declining queues its own.
+// wipe and the deletion went through: a sign-in that does not ask must not
+// upload the rows just deleted. A sign-in that asks overrules it: «Migrar»
+// suspends it for that attempt, and declining queues its own.
+//
+// R9-158 — a sign-in used not to ask with the store's owner unreadable, or
+// never recorded, and these tests got their sign-in with no question that
+// way. Both ask now. The one door left is a check of the local data that
+// could not run (`checkCannotRun`): the net is behind that one.
 const OWNER = '@local_store_owner_uid';
 let ownerGetFails = false;
 let ownerSetFails = false;
@@ -519,6 +523,13 @@ async function noAnonymousUser() {
   });
 }
 
+/** The sign-in's check of the local data throws, once: it asks nothing. */
+function checkCannotRun() {
+  jest
+    .spyOn(mockEngine, 'exportLocalData')
+    .mockRejectedValueOnce(new Error('sqlite'));
+}
+
 /** A sign-in that asks nothing: it resolves on its own. */
 async function signInUnasked(ref: {current: AuthApi | null}) {
   let out: unknown;
@@ -529,9 +540,9 @@ async function signInUnasked(ref: {current: AuthApi | null}) {
 }
 
 describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migrar» la suelta', () => {
-  it('tras el borrado, con la marca de dueño ilegible, el link que no pregunta no sube lo borrado', async () => {
+  it('tras el borrado, el link que no pregunta (su comprobación no pudo correr) no sube lo borrado', async () => {
     const {ref} = await anaDeletes();
-    ownerGetFails = true;
+    checkCannotRun();
     mockCurrentUser = {uid: 'nuevo', isAnonymous: true};
     emit(mockCurrentUser);
     expect(await signInUnasked(ref)).not.toBeInstanceOf(Error);
@@ -542,12 +553,29 @@ describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migr
     expect(pushesOf('nuevo')).toBe(0);
   });
 
-  it('tras el borrado de un almacén nunca reclamado, cuyo reclamo de (deleted) también falla, el inicio sin anónimo no sube lo borrado', async () => {
-    const {ref} = await anaDeletes({neverClaimed: true});
+  it('R9-158 — tras el borrado, con la marca de dueño ilegible, el link pregunta, y su «Migrar» sube', async () => {
+    // Before R9-158 nobody asked here: the net wrote «skip», and the person
+    // who wanted the rows in the new account was never given the choice.
+    const {ref, getByText} = await anaDeletes();
+    ownerGetFails = true;
+    mockCurrentUser = {uid: 'nuevo', isAnonymous: true};
+    emit(mockCurrentUser);
+    const out = await signInAnswering(ref, getByText, 'Migrar');
+    expect((out as AuthUser | null)?.uid).toBe('nuevo');
+
+    await mockEngine.start('nuevo');
+    await drain();
+    expect(await flag('nuevo')).not.toBe('skip');
+    expect(pushesOf('nuevo')).toBe(1);
+  });
+
+  it('R9-158 — tras el borrado de un almacén nunca reclamado, cuyo reclamo de (deleted) también falla, el inicio sin anónimo pregunta, y «Solo iniciar sesión» no sube lo borrado', async () => {
+    const {ref, getByText} = await anaDeletes({neverClaimed: true});
     expect(await realGet(OWNER)).toBeNull();
     await noAnonymousUser();
     nextSignInLandsAs('nuevo');
-    expect(await signInUnasked(ref)).not.toBeInstanceOf(Error);
+    const out = await signInAnswering(ref, getByText, 'Solo iniciar sesión');
+    expect((out as AuthUser | null)?.uid).toBe('nuevo');
 
     await mockEngine.start('nuevo');
     await drain();
@@ -584,7 +612,7 @@ describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migr
     const first = await signInAnswering(ref, getByText, 'Migrar');
     expect(first).toBeInstanceOf(Error);
 
-    ownerGetFails = true;
+    checkCannotRun();
     nextSignInLandsAs('nuevo');
     expect(await signInUnasked(ref)).not.toBeInstanceOf(Error);
 
@@ -602,7 +630,7 @@ describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migr
     const first = await signInAnswering(ref, getByText, 'Migrar');
     expect(first).toBeInstanceOf(Error);
 
-    ownerGetFails = true;
+    checkCannotRun();
     expect(await signInUnasked(ref)).not.toBeInstanceOf(Error);
 
     await mockEngine.start('anon-nuevo');
@@ -618,7 +646,7 @@ describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migr
     const first = await signInAnswering(ref, getByText, 'Solo iniciar sesión');
     expect(first).toBeInstanceOf(Error);
 
-    ownerGetFails = true;
+    checkCannotRun();
     nextSignInLandsAs('nuevo');
     expect(await signInUnasked(ref)).not.toBeInstanceOf(Error);
 
@@ -646,8 +674,9 @@ describe('R9-127 — la red del borrado: armada solo si salió bien, y un «Migr
   });
 
   it('un «Migrar» a la pregunta propia de la colisión también suelta la red', async () => {
-    // Never claimed: the link branch does not ask, so the collision does.
-    const {ref, getByText} = await anaDeletes({neverClaimed: true});
+    // The check before the link could not run, so the collision asks.
+    const {ref, getByText} = await anaDeletes();
+    checkCannotRun();
     mockCurrentUser = {uid: 'anon-z', isAnonymous: true};
     emit(mockCurrentUser);
     mockLinkWithCredential.mockRejectedValueOnce(
