@@ -16,7 +16,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -29,10 +29,10 @@ import {Stack, useLocalSearchParams, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import bibleDB from '@lib/database';
@@ -64,8 +64,6 @@ interface FeelingVerseRow {
   verse: number;
   text: string | null;
 }
-
-const VERSION_KEY = '@bible_version';
 
 /** Resolve a canonical "EnglishBook/Chapter/Verse" key to a display row. */
 async function resolveRow(
@@ -155,29 +153,41 @@ export default function FeelingDetailScreen() {
   const [status, setStatus] = useState<LoadStatus>('loading');
   const [rows, setRows] = useState<FeelingVerseRow[]>([]);
 
+  // R9-525 (familia de R9-430) — the rows follow the reading version. They
+  // used to read `@bible_version` once, in the mount load, with nothing
+  // tied to the version: changed in the reader (a verse opens it, this
+  // detail stays mounted under it), they kept the old version until
+  // reopened. The version is a dependency of the load, and only the newest
+  // run may land.
+  const {selectedVersion} = useBibleVersion();
+  const loadRunRef = useRef(0);
   const load = useCallback(async () => {
+    const runId = ++loadRunRef.current;
+    const isStale = () => loadRunRef.current !== runId;
     if (!feeling) {
       setStatus('unknown');
       return;
     }
     try {
       setStatus('loading');
-      const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
+      const version = selectedVersion.id;
       // Book names follow the reading version's language, not the UI language.
       const bookLang = christLangForVersion(version);
       const resolved = await Promise.all(
         feeling.verseRefs.map(k => resolveRow(k, version, bookLang)),
       );
+      if (isStale()) return;
       setRows(resolved);
       setStatus('ready');
     } catch (err) {
+      if (isStale()) return;
       logger.error('Feeling detail load failed', err as Error, {
         component: 'FeelingDetailScreen',
         action: 'load',
       });
       setStatus('error');
     }
-  }, [feeling]);
+  }, [feeling, selectedVersion.id]);
 
   useEffect(() => {
     load();

@@ -16,6 +16,9 @@
  *   stayed green).
  * - R9-474 — a second tap during that wait pushed a second destination: two
  *   pulpits (back led to the first one), or two banks.
+ * - R9-647 — with the Mesa opened without `version` and the reading version
+ *   changed since (in the reader), «Modo púlpito» read the version again at
+ *   the tap and opened the pulpit in the new one, under a Mesa in the old.
  */
 import {Text, TouchableOpacity} from 'react-native';
 import {router, Stack, useLocalSearchParams, useRouter} from 'expo-router';
@@ -152,6 +155,17 @@ function BankStub() {
   );
 }
 
+// The pulpit stub shows the version it was opened with (R9-647).
+function PulpitStub() {
+  const {version} = useLocalSearchParams<{version?: string}>();
+  return (
+    <>
+      <Text>pulpito</Text>
+      <Text>{`version:${version ?? ''}`}</Text>
+    </>
+  );
+}
+
 function routes() {
   return {
     _layout: () => (
@@ -162,7 +176,7 @@ function routes() {
     index: () => <Text>inicio</Text>,
     'features/prep/index': PrepTableScreen,
     'features/prep/illustrations/index': BankStub,
-    'features/prep/pulpit': () => <Text>pulpito</Text>,
+    'features/prep/pulpit': PulpitStub,
   };
 }
 
@@ -445,10 +459,14 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
     expect(stackCount('features/prep/pulpit')).toBe(1);
   });
 
-  it('a failed version read at the tap keeps the Mesa, and the next tap navigates', async () => {
+  // 08117d6c measured here that a failed read of the version AT THE TAP
+  // kept the Mesa and let the next tap retry. Since R9-647 the tap reads no
+  // version (it forwards the one `load()` resolved; the button shows only
+  // after a load landed), so the same failing read can no longer block it.
+  it('a failing version read at the tap does not keep the Mesa (R9-647: no read at the tap)', async () => {
     await mountMesa();
-    // The Mesa was opened without `version`: the pulpit button reads the
-    // stored reading version at the tap. That one read fails, once.
+    // The Mesa was opened without `version`. A read of the stored reading
+    // version would fail, once.
     const getItem = AsyncStorage.getItem as jest.Mock;
     const realGetItem = getItem.getMockImplementation()!;
     let armed = true;
@@ -461,14 +479,10 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
     });
     try {
       await pressLast(PULPIT_LABEL);
-      await drain();
-      // Control: the failing read happened, and the Mesa stayed.
-      expect(armed).toBe(false);
-      expect(routed.getPathname()).toBe('/features/prep');
-
-      await pressLast(PULPIT_LABEL);
       await screen.findByText('pulpito');
       expect(stackCount('features/prep/pulpit')).toBe(1);
+      // No read of the version happened at the tap.
+      expect(armed).toBe(true);
     } finally {
       getItem.mockImplementation(realGetItem);
     }
@@ -484,5 +498,131 @@ describe('R9-474 — two taps open ONE destination, and back returns to the Mesa
     await pressLast(PULPIT_LABEL);
     await screen.findByText('pulpito');
     expect(stackCount('features/prep/pulpit')).toBe(1);
+  });
+});
+
+describe('R9-647 — «Modo púlpito» opens in the version the Mesa loaded', () => {
+  it("the reader changed the version after a Mesa opened without one: the pulpit keeps the Mesa's", async () => {
+    // Opened without `version`: the Mesa resolves the stored one (none
+    // stored: RVR1960) and shows its text under «Juan 3:16».
+    await mountMesa();
+    // The reader changed the reading version since (it writes the disk).
+    await AsyncStorage.setItem('@bible_version', 'KJV');
+    await pressLast(PULPIT_LABEL);
+    await screen.findByText('pulpito');
+    // Pre-fix: version:KJV (read again at the tap).
+    expect(screen.getByText('version:RVR1960')).toBeTruthy();
+  });
+
+  it('control: an explicit version is forwarded as it is', async () => {
+    routed = renderRouter(routes(), {initialUrl: `${MESA_URL}&version=KJV`});
+    await screen.findByText('John 3:16');
+    await AsyncStorage.setItem('@bible_version', 'RVR1960');
+    await pressLast(PULPIT_LABEL);
+    await screen.findByText('pulpito');
+    expect(screen.getByText('version:KJV')).toBeTruthy();
+  });
+});
+
+describe('R9-648 — after the bank, a blur or the pending debounce does not erase the illustration', () => {
+  /**
+   * Type in `application` and open the bank (its flush saves the text);
+   * insert there and come back with the Mesa's focus re-read of the notes
+   * HELD: the window where the drafts still hold the text from before.
+   * `typedAt` is the fake clock when the text was typed.
+   */
+  async function insertAndComeBackWithRereadHeld() {
+    await mountMesa();
+    await act(async () => {
+      fireEvent.changeText(
+        screen.getByLabelText(p.sections.application.label),
+        HANDWRITTEN,
+      );
+    });
+    const typedAt = Date.now();
+    await pressLast(BANK_LABEL);
+    await screen.findByText('banco');
+    const realGet = prepNotesStore.getPrepNotes;
+    let release!: () => void;
+    const held = new Promise<void>(r => {
+      release = r;
+    });
+    const getSpy = jest
+      .spyOn(prepNotesStore, 'getPrepNotes')
+      .mockImplementation(async (key, options) => {
+        const result = await realGet(key, options);
+        if (getSpy.mock.calls.length > 1) await held;
+        return result;
+      });
+    await pressLast('insertar-ilustracion');
+    await screen.findByText('Juan 3:16');
+    await drain();
+    // Control: the re-read is held, the field still shows the old text, and
+    // storage has the illustration.
+    expect(getSpy.mock.calls.length).toBeGreaterThan(1);
+    expect(
+      screen.getByLabelText(p.sections.application.label).props.value,
+    ).toBe(HANDWRITTEN);
+    expect((await realGet(KEY)).sections.application).toBe(
+      `${HANDWRITTEN}\n\n${ILLUSTRATION}`,
+    );
+    return {release, realGet, typedAt};
+  }
+
+  it('a blur of the field in the window does not erase it', async () => {
+    const {release, realGet} = await insertAndComeBackWithRereadHeld();
+    await act(async () => {
+      fireEvent(screen.getByLabelText(p.sections.application.label), 'blur');
+    });
+    await drain();
+    // Pre-fix: the blur wrote HANDWRITTEN alone over it.
+    expect((await realGet(KEY)).sections.application).toBe(
+      `${HANDWRITTEN}\n\n${ILLUSTRATION}`,
+    );
+    await act(async () => {
+      release();
+    });
+  });
+
+  it('the save the debounce held before the bank does not fire after the insertion', async () => {
+    const {release, realGet, typedAt} = await insertAndComeBackWithRereadHeld();
+    // Control: the insertion came within the debounce's 700 ms.
+    expect(Date.now() - typedAt).toBeLessThan(700);
+    await act(async () => {
+      jest.advanceTimersByTime(1000);
+    });
+    await drain();
+    // Pre-fix: the pending save wrote HANDWRITTEN alone over it.
+    expect((await realGet(KEY)).sections.application).toBe(
+      `${HANDWRITTEN}\n\n${ILLUSTRATION}`,
+    );
+    await act(async () => {
+      release();
+    });
+  });
+
+  it('control: a blur after a real edit still saves it', async () => {
+    await mountMesa();
+    const field = () => screen.getByLabelText(p.sections.bigIdea.label);
+    // A first edit and blur: it stamps the template, so the second blur
+    // goes through the "unchanged draft" comparison.
+    await act(async () => {
+      fireEvent.changeText(field(), 'Idea editada');
+    });
+    await act(async () => {
+      fireEvent(field(), 'blur');
+    });
+    await drain();
+    await act(async () => {
+      fireEvent.changeText(field(), 'Idea editada otra vez');
+    });
+    await act(async () => {
+      fireEvent(field(), 'blur');
+    });
+    await drain();
+    // No timer advanced: the debounce has not fired; the blurs saved it.
+    expect((await getPrepNotes(KEY)).sections.bigIdea).toBe(
+      'Idea editada otra vez',
+    );
   });
 });

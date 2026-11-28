@@ -365,6 +365,10 @@ export default function PrepTableScreen() {
    * it. `null` until the first load has adopted a passage.
    */
   const draftsPassageKeyRef = useRef<string | null>(null);
+  /** R9-648 — pushes the debounced save still pending (see `flushDrafts`). */
+  const flushPendingSaveRef = useRef<() => Promise<void> | undefined>(
+    () => undefined,
+  );
   /**
    * R9-167 — what storage holds for the passage the drafts belong to, as far
    * as this screen knows: the notes it last read, plus every section it wrote
@@ -465,6 +469,9 @@ export default function PrepTableScreen() {
   // R9-478 — the language of the version `load()` resolved: the passage label
   // follows the text on screen, not the reading version of the moment.
   const [loadedLang, setLoadedLang] = useState<'es' | 'en' | null>(null);
+  // R9-647 — the version `load()` resolved, the one whose text is on
+  // screen: «Modo púlpito» forwards it.
+  const loadedVersionRef = useRef<string | null>(null);
   const [copied, setCopied] = useState(false);
   // T8.4.5 — PDF export (premium): a separate in-flight flag from `copied`
   // since printToFileAsync + shareAsync are real async I/O, not a clipboard
@@ -687,6 +694,7 @@ export default function PrepTableScreen() {
       setTemplate(saved.template ?? DEFAULT_PREP_TEMPLATE);
       setVersionLabel(versionAbbrev(version));
       setLoadedLang(lang);
+      loadedVersionRef.current = version;
       hasLoadedRef.current = true;
       setStatus('ready');
     } catch (err) {
@@ -1092,6 +1100,12 @@ export default function PrepTableScreen() {
   // R9-52 — resolves `false` when a save failed (after the error toast): the
   // two buttons then stay here, with the drafts still on screen, instead of
   // opening a screen that reads the notes from storage without them.
+  //
+  // R9-648 — and the save the 700 ms debounce still holds goes out too,
+  // before the screen moves: left pending, it fired after an insertion made
+  // in the bank inside those 700 ms, and wrote the old text over the
+  // illustration. (`debouncedSaveNote` is declared further down; a ref
+  // reaches it.)
   const flushDrafts = useCallback(async (): Promise<boolean> => {
     if (!table) return false;
     const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
@@ -1109,6 +1123,9 @@ export default function PrepTableScreen() {
           markSectionSynced(passageKey, section, value, template);
         }),
       );
+      // After the drafts' own writes: a failed one returned above and left
+      // the pending save as it was. This one reports its own failure.
+      await flushPendingSaveRef.current();
       return true;
     } catch {
       reportSaveError();
@@ -1178,9 +1195,16 @@ export default function PrepTableScreen() {
     // (e.g. deep link with no version param + English UI: Mesa shows
     // RVR1960 via its own fallback, pulpit would show WEB via its own).
     // Forwarding the resolved version unconditionally closes that gap.
+    //
+    // R9-647 — the version `load()` resolved, not a new read at the tap:
+    // with the Mesa opened without `version` and the reading version
+    // changed in the reader since, the read gave the new one, and the
+    // pulpit opened in it under a Mesa still in the old one. (The read is
+    // left for a tap before any load landed; the button shows only after.)
     let version: string;
     try {
-      version = await resolveVersion(params.version);
+      version =
+        loadedVersionRef.current ?? (await resolveVersion(params.version));
     } catch (error) {
       // R9-474 — a failed read is no navigation: the Mesa stays and the next
       // tap retries. (It used to be an unhandled rejection of the onPress.)
@@ -1219,11 +1243,11 @@ export default function PrepTableScreen() {
       section: PrepSection,
       value: string,
       templateId: PrepTemplateId,
-    ) => {
+    ) =>
+      // Returned so `flushDrafts` can wait for it (R9-648); it never rejects.
       savePrepNote(passageKey, section, value, undefined, templateId)
         .then(() => markSectionSynced(passageKey, section, value, templateId))
-        .catch(reportSaveError);
-    },
+        .catch(reportSaveError),
     700,
   );
 
@@ -1233,7 +1257,13 @@ export default function PrepTableScreen() {
   // silently dropped. Flushing on unmount forces that queued save through —
   // savePrepNote is idempotent + serialized, so this is harmless even when
   // onBlur/handleOpenPulpit already saved the same value.
-  useEffect(() => () => debouncedSaveNote.flush(), [debouncedSaveNote]);
+  useEffect(
+    () => () => {
+      debouncedSaveNote.flush();
+    },
+    [debouncedSaveNote],
+  );
+  flushPendingSaveRef.current = () => debouncedSaveNote.flush();
   // R9-58 — the unmount flush above never runs when the process dies: the OS
   // kills an app in the background (swipe-away, low memory) without
   // unmounting anything, and while it sits there the debounce's timer does
@@ -1330,6 +1360,13 @@ export default function PrepTableScreen() {
       //     and typed for.
       if (value === undefined) return;
       const passageKey = draftsPassageKeyRef.current ?? table.passageKey;
+      // R9-648 — and an unchanged draft is no edit: the same rule as
+      // `flushDrafts` (R9-167). Back from the bank, a blur before the focus
+      // re-read landed wrote the text from before over the illustration.
+      const synced = syncedNotesRef.current;
+      const writeAll =
+        synced.key !== passageKey || synced.template === undefined;
+      if (!writeAll && synced.sections[section] === value) return;
       savePrepNote(passageKey, section, value, undefined, template)
         .then(() => markSectionSynced(passageKey, section, value, template))
         .catch(reportSaveError);
@@ -1378,8 +1415,8 @@ export default function PrepTableScreen() {
     : '';
   const bookLang = selectedVersion.language === 'es' ? 'es' : 'en';
 
-  // Topic suggester — a display label for a suggested ref, same language
-  // convention as `passageLabel` above ("Juan 3:16" for an 'es' reader).
+  // Topic suggester — a display label for a suggested ref, in the reading
+  // version's language (`bookLang`: "Juan 3:16" for an 'es' reader).
   // Falls back to the raw canonical ref on the defensive parse-miss path
   // (kept in step with handleOpenTopicSuggestion's own guards).
   const formatSuggestionLabel = useCallback(

@@ -13,7 +13,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   ScrollView,
@@ -22,13 +22,13 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {Stack, useRouter} from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {Ionicons} from '@expo/vector-icons';
 import {LinearGradient} from 'expo-linear-gradient';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {useTheme} from '@hooks/useTheme';
 import {centeredMaxWidth} from '@/styles/responsive';
 import {useLanguage} from '@hooks/useLanguage';
+import {useBibleVersion} from '@hooks/useBibleVersion';
 import {haptics} from '@lib/haptics';
 import {AppText} from '@components/ui/AppText';
 import {useToast} from '@context/ToastContext';
@@ -60,8 +60,6 @@ import {
   verseTextRightSlack,
 } from '@/styles/designTokens';
 
-const VERSION_KEY = '@bible_version';
-
 interface DailyContent {
   book: string; // display book name
   bookId: number;
@@ -69,6 +67,7 @@ interface DailyContent {
   verse: number;
   text: string;
   reference: string;
+  version: string; // the Bible version the text above was read in
   applyQuestions: string[];
   themeId: string;
   themeName: string;
@@ -114,13 +113,23 @@ export default function DailyLightScreen() {
     'loading',
   );
 
+  // R9-525 (familia de R9-430) — the devotional follows the reading
+  // version. It used to read `@bible_version` once, in the mount load: with
+  // the version changed in the reader («Leer» opens it, this screen stays
+  // mounted under it), the verse, its language and the Christ card stayed in
+  // the old one. The version is a dependency of the load, and only the
+  // newest run may land.
+  const {selectedVersion} = useBibleVersion();
+  const loadRunRef = useRef(0);
   const load = useCallback(async () => {
+    const runId = ++loadRunRef.current;
+    const isStale = () => loadRunRef.current !== runId;
     try {
       setStatus('loading');
       // Resolve the devotional language from the selected Bible version (S99)
       // before anything else, so the verse, book intro, reflection, theme and
       // the Christ card all read in one coherent language.
-      const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
+      const version = selectedVersion.id;
       const vlang = christLangForVersion(version);
       setDevLang(vlang);
       const vt = translations[vlang].dailyLight;
@@ -214,6 +223,7 @@ export default function DailyLightScreen() {
         }
       }
 
+      if (isStale()) return;
       setContent({
         book: display,
         bookId: ref.book,
@@ -221,6 +231,7 @@ export default function DailyLightScreen() {
         verse: ref.verse,
         text: row?.text ?? '',
         reference: `${display} ${ref.chapter}:${ref.verse}`,
+        version,
         applyQuestions,
         themeId: theme.id,
         themeName: localizedTheme?.name ?? theme.id,
@@ -242,12 +253,13 @@ export default function DailyLightScreen() {
       });
       setStatus('ready');
     } catch {
+      if (isStale()) return;
       setStatus('error');
     }
     // Content resolves from the selected version's language via the static
-    // `translations` import (read fresh inside load), so the only reactive
-    // input is the achievement service for the streak.
-  }, [achievementService]);
+    // `translations` import (read fresh inside load), so the reactive inputs
+    // are the reading version and the achievement service for the streak.
+  }, [achievementService, selectedVersion.id]);
 
   useEffect(() => {
     load();
@@ -273,13 +285,13 @@ export default function DailyLightScreen() {
   const handleMemorize = useCallback(async () => {
     if (!content || inDeck) return;
     haptics.tap();
-    const version = (await AsyncStorage.getItem(VERSION_KEY)) ?? 'RVR1960';
+    // The version the text on screen was read in (R9-525).
     addCard({
       bookName: canonicalBookName(content.book),
       chapter: content.chapter,
       verse: content.verse,
       text: content.text,
-      version,
+      version: content.version,
     });
     toast.success(t.memory.addedToast);
   }, [content, inDeck, addCard, toast, t.memory.addedToast]);

@@ -17,7 +17,7 @@
  * Para la gloria de Dios Todopoderoso ✨
  */
 
-import {useCallback, useEffect, useMemo, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View, ScrollView, TouchableOpacity, StyleSheet} from 'react-native';
 import {Stack, useRouter} from 'expo-router';
 import {Ionicons} from '@expo/vector-icons';
@@ -89,6 +89,9 @@ export default function BibleFactsScreen() {
     void toggleFactFavorite(id).then(setFavorites);
   }, []);
 
+  // R9-521 (familia de R9-430) — the version the resolved verses belong to.
+  const resolvedVersionRef = useRef(selectedVersion.id);
+
   const resolveFact = useCallback(
     (ref: FactRefKey) => {
       const parsed = parseChristRef(ref);
@@ -113,9 +116,13 @@ export default function BibleFactsScreen() {
               },
             },
       );
+      const versionId = selectedVersion.id;
       void bibleDB
-        .getVerse(book.id, parsed.chapter, parsed.verse, selectedVersion.id)
+        .getVerse(book.id, parsed.chapter, parsed.verse, versionId)
         .then(row => {
+          // An answer for a version that is no longer the reading one would
+          // paint the old text (and chip) back over the new one.
+          if (resolvedVersionRef.current !== versionId) return;
           setResolved(prev => ({
             ...prev,
             [ref]: {
@@ -139,6 +146,21 @@ export default function BibleFactsScreen() {
     // Re-resolves when the reading version changes so the hero verse text
     // (not just the reference) matches the active version.
   }, [dailyFact.ref, resolveFact]);
+
+  // R9-521 — only the daily fact above followed a version change: a fact
+  // already opened kept the old version's text (and its chip, the old
+  // book name) with the version changed in the reader and this screen still
+  // mounted. Resolve every fact already resolved again, in the new version.
+  useEffect(() => {
+    if (resolvedVersionRef.current === selectedVersion.id) return;
+    resolvedVersionRef.current = selectedVersion.id;
+    for (const ref of Object.keys(resolved) as FactRefKey[]) {
+      // The daily fact's own effect above already asks for it.
+      if (ref !== dailyFact.ref) resolveFact(ref);
+    }
+    // Only the version triggers this; the resolved facts are read as they
+    // are now.
+  }, [selectedVersion.id]);
 
   const toggleExpanded = useCallback(
     (fact: BibleFact) => {
