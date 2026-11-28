@@ -15,6 +15,9 @@
  */
 
 import {
+  MAX_DAY_READINGS,
+  MAX_PLAN_DAYS,
+  MAX_PLAN_READINGS,
   makeCustomPlanBundle,
   type CustomPlanBundle,
   type CustomReading,
@@ -69,6 +72,22 @@ export function distributeChapters(
     days.push(chapters.slice(start, end));
   }
   return days;
+}
+
+/**
+ * R9-508 — true when distributed days don't fit a custom-plan bundle
+ * (`makeCustomPlanBundle` would silently drop days or readings): more than
+ * {@link MAX_PLAN_DAYS} days, a day over {@link MAX_DAY_READINGS} chapters, or
+ * more than {@link MAX_PLAN_READINGS} chapters in all.
+ */
+export function exceedsPlanCaps(days: CustomReading[][]): boolean {
+  if (days.length > MAX_PLAN_DAYS) return true;
+  let total = 0;
+  for (const day of days) {
+    if (day.length > MAX_DAY_READINGS) return true;
+    total += day.length;
+  }
+  return total > MAX_PLAN_READINGS;
 }
 
 /** Total chapters across all passages — for the editor's live preview. */

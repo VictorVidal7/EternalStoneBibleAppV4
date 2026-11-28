@@ -38,10 +38,16 @@ import {centeredMaxWidth} from '@/styles/responsive';
 import {focusTrapProps} from '@lib/a11y/focusTrap';
 import {BIBLE_BOOKS, getBookById} from '@/constants/bible';
 import {
-  buildCustomPlan,
+  MAX_DAY_READINGS,
+  MAX_PLAN_DAYS,
+  MAX_PLAN_READINGS,
+  makeCustomPlanBundle,
+} from '@lib/together';
+import {
   countChapters,
   daysToPassages,
   distributeChapters,
+  exceedsPlanCaps,
   inferPerDay,
   passagesToChapters,
   type PlanPace,
@@ -165,13 +171,23 @@ export default function PlanBuilderScreen() {
       : {mode: 'totalDays', days: totalDays};
 
   const totalChapters = useMemo(() => countChapters(passages), [passages]);
-  const dayCount = useMemo(
-    () => distributeChapters(passagesToChapters(passages), pace).length,
+  // The days that will be saved — the preview, the button and `onCreate` all
+  // read this one value.
+  const draftDays = useMemo(
+    () => distributeChapters(passagesToChapters(passages), pace),
     // pace is rebuilt each render; its fields are the real signals.
     [passages, paceMode, perDay, totalDays],
   );
+  const dayCount = draftDays.length;
+  // R9-508 — the bundle caps would cut such a plan short without a word (the
+  // preview promised 1189 days, 400 were saved): block it and say why.
+  const overCap = exceedsPlanCaps(draftDays);
+  const tooLongText = tb.tooLong
+    .replace('{{days}}', String(MAX_PLAN_DAYS))
+    .replace('{{perDay}}', String(MAX_DAY_READINGS))
+    .replace('{{total}}', String(MAX_PLAN_READINGS));
 
-  const canCreate = name.trim().length > 0 && passages.length > 0;
+  const canCreate = name.trim().length > 0 && passages.length > 0 && !overCap;
 
   const openPicker = () => {
     haptics.tap();
@@ -206,10 +222,10 @@ export default function PlanBuilderScreen() {
 
   const onCreate = async () => {
     if (!canCreate) {
-      toast.info(tb.needNameAndPassage);
+      toast.info(overCap ? tooLongText : tb.needNameAndPassage);
       return;
     }
-    const bundle = buildCustomPlan(name, passages, pace);
+    const bundle = makeCustomPlanBundle(name, draftDays);
     const plan = customPlanFromBundle(bundle);
     if (!plan) {
       toast.info(tb.needNameAndPassage);
@@ -431,6 +447,13 @@ export default function PlanBuilderScreen() {
                   .replace('{{chapters}}', String(totalChapters))}
           </Text>
         </View>
+        {overCap ? (
+          <Text
+            style={[styles.tooLong, {color: colors.error}]}
+            accessibilityRole="alert">
+            {tooLongText}
+          </Text>
+        ) : null}
 
         <TouchableOpacity
           style={[
@@ -690,6 +713,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   previewText: {fontSize: 15, fontWeight: '700'},
+  tooLong: {fontSize: 14, lineHeight: 20, marginTop: 10},
   createBtn: {
     flexDirection: 'row',
     alignItems: 'center',
