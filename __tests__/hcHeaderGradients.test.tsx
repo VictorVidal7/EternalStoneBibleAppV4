@@ -82,6 +82,14 @@ jest.mock('@lib/haptics', () => ({
 }));
 
 // ThemeDetailScreen-only deps — never reached by ScripturePrayerHubScreen.
+// R9-525 — the theme detail reads its version from the provider.
+const mockVersion = {
+  selectedVersion: {id: 'RVR1960', language: 'es', abbreviation: 'RVR1960'},
+};
+jest.mock('@hooks/useBibleVersion', () => ({
+  useBibleVersion: () => mockVersion,
+}));
+
 jest.mock('@react-native-async-storage/async-storage', () => ({
   getItem: jest.fn(async () => null),
   setItem: jest.fn(async () => undefined),
