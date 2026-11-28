@@ -89,6 +89,16 @@ export default function SettingsScreen() {
   // the only trace was a log line nobody reads.
   const droppedWrites =
     user && !user.isAnonymous ? (syncCtx?.state.droppedWrites ?? 0) : 0;
+  // R9-542 — what the two notices show is also their accessibility label
+  // (a fixed label replaced the number); what a tap does goes in the hint.
+  const droppedText =
+    droppedWrites === 1
+      ? t.sync.droppedSingular
+      : t.sync.dropped.replace('{{count}}', String(droppedWrites));
+  const conflictsText =
+    conflicts.length === 1
+      ? t.conflicts.badgeSingular
+      : t.conflicts.badge.replace('{{count}}', String(conflicts.length));
 
   const syncIndicator = useMemo(() => {
     if (!syncCtx || !user || user.isAnonymous) return null;
@@ -610,7 +620,8 @@ export default function SettingsScreen() {
                       void syncCtx?.engine.acknowledgeDroppedWrites();
                     }}
                     accessibilityRole="button"
-                    accessibilityLabel={t.sync.droppedA11y}>
+                    accessibilityLabel={droppedText}
+                    accessibilityHint={t.sync.droppedA11y}>
                     <Ionicons
                       name="cloud-offline"
                       size={18}
@@ -619,12 +630,7 @@ export default function SettingsScreen() {
                     <Text
                       style={[styles.conflictsBadgeText, {color: colors.error}]}
                       numberOfLines={2}>
-                      {droppedWrites === 1
-                        ? t.sync.droppedSingular
-                        : t.sync.dropped.replace(
-                            '{{count}}',
-                            String(droppedWrites),
-                          )}
+                      {droppedText}
                     </Text>
                   </TouchableOpacity>
                 ) : null}
@@ -640,7 +646,8 @@ export default function SettingsScreen() {
                     ]}
                     onPress={() => router.push('/(tabs)/conflicts')}
                     accessibilityRole="button"
-                    accessibilityLabel={t.conflicts.badgeA11y}>
+                    accessibilityLabel={conflictsText}
+                    accessibilityHint={t.conflicts.badgeA11y}>
                     <Ionicons
                       name="alert-circle"
                       size={18}
@@ -652,12 +659,7 @@ export default function SettingsScreen() {
                         {color: colors.warning ?? colors.error},
                       ]}
                       numberOfLines={1}>
-                      {conflicts.length === 1
-                        ? t.conflicts.badgeSingular
-                        : t.conflicts.badge.replace(
-                            '{{count}}',
-                            String(conflicts.length),
-                          )}
+                      {conflictsText}
                     </Text>
                     <Ionicons
                       name="chevron-forward"
