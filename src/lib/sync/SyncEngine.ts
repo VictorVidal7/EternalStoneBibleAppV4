@@ -146,8 +146,8 @@ export const CURSOR_SAFETY_MARGIN_MS = 5 * 60 * 1000; // 5 minutes
  * server does, or from cache (or `unavailable`) once it considers itself
  * offline, which its OnlineStateTracker decides 10 s after the stream starts
  * or at its first failure. Generous on purpose: past it, the batch goes on as
- * if the read had failed (the doc is left as it is locally, and a held
- * conflict is read again on the next attach: R9-186).
+ * if the read had failed (the doc is left as it is locally, and a held one
+ * is read again on the next attach: R9-186 a conflict, R9-646 any other).
  *
  * R9-186 — the deadline releases the engine's `await`, not the SDK. On
  * RNFirebase every doc `get()`, `set()` and `delete()` of the process runs on
@@ -2172,7 +2172,18 @@ export class SyncEngine {
           // again. Settled, a skipped doc whose copy is below the floor was
           // never applied. A read that fails every time leaves the floor where
           // it was before R9-164, at one read per attach.
-          if (!current && unheard) continue;
+          // R9-646 — and so does a held doc whose `removed` came through the
+          // live listener: the same doc, the same failed read. Settled here
+          // (below), the floor moved on, and a doc of the other device this
+          // one had skipped never came down. Before the branch of a write
+          // still queued, like the unheard ones: that write's echo settles
+          // it, or the next attach's read does.
+          if (
+            !current &&
+            (unheard || this.unsettledOf(adapter.collection).has(id))
+          ) {
+            continue;
+          }
           const currentData = current?.exists ? current.data() : undefined;
           // R9-238 — the read found a copy of the other device: it retires
           // this device's clocks of the doc, like one delivered (see
@@ -2296,10 +2307,9 @@ export class SyncEngine {
             }
           }
           if (!currentData) {
-            // Deleted, or unreadable: no delivery will ever come back to
-            // settle it. Before R9-164, keeping it held the floor down for
-            // good; since then the next attach would read it (a held doc
-            // whose read failed on the unheard path is kept: see above).
+            // Deleted, or unreadable and not held (a held doc whose read
+            // failed is kept: see above, R9-164 and R9-646): no delivery will
+            // ever come back to settle it.
             settle(id);
             continue;
           }

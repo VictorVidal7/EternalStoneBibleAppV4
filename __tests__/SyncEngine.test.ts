@@ -6678,6 +6678,134 @@ describe('R9-124 — un `removed` de la query filtrada no es un borrado', () => 
       }).toEqual({lecturas: 1, unsettled: -DAY, conflictos: ['doc-r']});
       engine.stop();
     });
+
+    // R9-646 — el mismo caso con el listener VIVO. La rama `removed` en vivo
+    // soltaba un retenido sin conflicto cuando su lectura fallaba; la del
+    // enganche (arriba) lo deja retenido. Suelto, el piso volvia a avanzar, y
+    // un doc del otro telefono que este nunca aplico quedaba bajo el piso.
+    it('R9-646: el `removed` en vivo de un retenido cuya lectura falla lo deja retenido, y el arranque siguiente lo baja', async () => {
+      const uid = 'uid-646-vivo';
+      const T = Date.now() - HOUR;
+      const fixture = makeAdapter();
+      const {adapter, localStore} = fixture;
+      let failOnce = true;
+      adapter.getLocal = async (id: string) => {
+        if (id === 'doc-s' && failOnce) {
+          failOnce = false;
+          throw new Error('SQLITE_BUSY');
+        }
+        return localStore.get(id) ?? null;
+      };
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      const engine = new SyncEngine();
+      engine.register(adapter);
+      await engine.start(uid);
+      await settle();
+      // El otro telefono crea doc-s; aqui no se pudo leer lo local, asi que no
+      // se aplico y queda retenido (R9-46). Este telefono NO lo tiene.
+      write(uid, 'doc-s', {value: 'del otro', updatedAt: T + 60_000});
+      await settle();
+      const retenidoAntes = (await persisted(uid)).unsettled['doc-s'] - T;
+      const localAntes = localStore.get('doc-s') ?? null;
+
+      // Con el listener vivo, el otro restaura un respaldo: doc-s cae bajo el
+      // piso y llega como `removed`. La lectura que lo distingue falla.
+      const r0 = docReads(uid);
+      mockGetShouldFail = true;
+      write(uid, 'doc-s', {value: 'su respaldo', updatedAt: T - DAY});
+      await settle();
+      mockGetShouldFail = false;
+      const trasElRemoved = {
+        lecturas: docReads(uid) - r0,
+        retenido: ((await persisted(uid)).unsettled['doc-s'] ?? NaN) - T,
+      };
+      // Dos arranques sanos, con trafico que mueve el cursor a «ahora».
+      await restart(engine, uid, 1);
+      await restart(engine, uid, 2);
+
+      // Sin R9-646: retenido NaN tras el `removed` (se soltaba), y tras los
+      // dos arranques local undefined: doc-s nunca bajo a este telefono.
+      expect({
+        retenidoAntes, // CONTROL: estaba retenido
+        localAntes, // CONTROL: y sin aplicar
+        removed: removedDelivered(uid), // CONTROL: salio por el listener vivo
+        trasElRemoved,
+        local: localStore.get('doc-s')?.value,
+        unsettled: (await persisted(uid)).unsettled,
+        pisoSobreElRetenido: floorOf(uid) > T + 60_000,
+      }).toEqual({
+        retenidoAntes: 60_000,
+        localAntes: null,
+        removed: ['doc-s'],
+        trasElRemoved: {lecturas: 1, retenido: 60_000},
+        local: 'su respaldo',
+        unsettled: {},
+        pisoSobreElRetenido: true,
+      });
+      engine.stop();
+    });
+
+    it('R9-646: con una escritura mia del doc en cola tambien sigue retenido, y el eco de esa escritura lo asienta', async () => {
+      // Donde va la regla: antes de la rama de la escritura en cola, como la
+      // de los no nombrados. Despues de ella, este caso se soltaba en el acto.
+      const uid = 'uid-646-en-cola';
+      const T = Date.now() - HOUR;
+      const fixture = makeAdapter();
+      const {adapter, localStore} = fixture;
+      let failOnce = true;
+      adapter.getLocal = async (id: string) => {
+        if (id === 'doc-s' && failOnce) {
+          failOnce = false;
+          throw new Error('SQLITE_BUSY');
+        }
+        return localStore.get(id) ?? null;
+      };
+      await AsyncStorage.setItem(`@sync_first_push_done:${uid}`, '2');
+      await AsyncStorage.setItem(cursorStorageKey('test', uid), String(T));
+      const engine = new SyncEngine();
+      engine.register(adapter);
+      await engine.start(uid);
+      await settle();
+      write(uid, 'doc-s', {value: 'del otro', updatedAt: T + 60_000});
+      await settle();
+      // Sin red, el usuario escribe doc-s aqui: la escritura espera en la cola.
+      engine.__setOnlineForTests(false);
+      const mio = {value: 'mi edicion', updatedAt: Date.now()};
+      localStore.set('doc-s', mio);
+      engine.queueWrite('test', 'doc-s', mio);
+      await settle();
+      const enCola = engine.__getQueueForTests().map(q => q.id);
+
+      mockGetShouldFail = true;
+      write(uid, 'doc-s', {value: 'su respaldo', updatedAt: T - DAY});
+      await settle();
+      mockGetShouldFail = false;
+      const trasElRemoved =
+        ((await persisted(uid)).unsettled['doc-s'] ?? NaN) - T;
+
+      engine.__setOnlineForTests(true);
+      await engine.__flushForTests();
+      await settle();
+      await settle();
+
+      expect({
+        enCola, // CONTROL: la escritura esperaba cuando llego el `removed`
+        removed: removedDelivered(uid), // CONTROL
+        trasElRemoved,
+        unsettled: (await persisted(uid)).unsettled,
+        local: localStore.get('doc-s')?.value,
+        nube: mockDocSets.map(d => (d.data as TestEntity).value),
+      }).toEqual({
+        enCola: ['doc-s'],
+        removed: ['doc-s'],
+        trasElRemoved: 60_000,
+        unsettled: {},
+        local: 'mi edicion',
+        nube: ['mi edicion'],
+      });
+      engine.stop();
+    });
   });
 
   it('un borrado DE VERDAD sigue borrando de local', async () => {
