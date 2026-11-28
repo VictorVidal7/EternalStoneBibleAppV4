@@ -379,3 +379,24 @@ describe('R9-57 — the back and the X do not drop an edited draft', () => {
     r.unmount();
   });
 });
+
+describe('R9-565 — a link to another book with the sheet open', () => {
+  it('the header keeps the book of the note, not the book of the new route', async () => {
+    mockStored = STORED;
+    const r = await openNoteSheet();
+    expect(r.getByText('Juan 3:1')).toBeTruthy();
+
+    // eternalbible://verse/Psalms/23?verse=1 arrives (a notification, a link).
+    mockParams = {book: 'Salmos', chapter: '23', verse: '1'};
+    r.rerender(<ChapterReader />);
+    await settle();
+
+    // Still the sheet of the note on Juan 3:1 (SAVE writes there)...
+    expect(noteModal(r)).toBeDefined();
+    expect(r.getByDisplayValue('nota guardada')).toBeTruthy();
+    // ...so its header says so: not «Salmos 3:1».
+    expect(r.queryByText('Salmos 3:1')).toBeNull();
+    expect(r.getByText('Juan 3:1')).toBeTruthy();
+    r.unmount();
+  });
+});

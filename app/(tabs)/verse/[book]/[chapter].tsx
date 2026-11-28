@@ -315,6 +315,16 @@ export default function VerseReadingScreen() {
   // baseline the sheet compares the draft with before discarding, and its id
   // is what the sheet's delete removes (R9-57).
   const [editingNote, setEditingNote] = useState<Note | null>(null);
+  // The note sheet's header names the book of the verse the note is on, in
+  // the reading version's language (same rule as `localizedBookName`).
+  const noteBookInfo = selectedVerseForNote
+    ? getBookByName(selectedVerseForNote.book)
+    : null;
+  const noteBookName = noteBookInfo
+    ? bookNameLang === 'en'
+      ? noteBookInfo.nameEn
+      : noteBookInfo.name
+    : '';
   const [favoritedVerses, setFavoritedVerses] = useState<Set<number>>(
     new Set(),
   );
@@ -3625,8 +3635,10 @@ export default function VerseReadingScreen() {
           visible={noteModalVisible}
           verseReference={
             selectedVerseForNote
-              ? `${
-                  localizedBookName || selectedVerseForNote.book
+              ? // The NOTE's book, not the route's: a link to another book can
+                // swap the chapter under the open sheet (R9-565).
+                `${
+                  noteBookName || selectedVerseForNote.book
                 } ${selectedVerseForNote.chapter}:${selectedVerseForNote.verse}`
               : ''
           }
