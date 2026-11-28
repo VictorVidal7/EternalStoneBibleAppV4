@@ -7,11 +7,15 @@
  */
 
 import {render, waitFor, fireEvent, act} from '@testing-library/react-native';
-import {StyleSheet} from 'react-native';
+import {Modal, Pressable, StyleSheet, Text} from 'react-native';
 import Purchases from 'react-native-purchases';
 import * as SecureStore from 'expo-secure-store';
 import {OfferingSheet} from '../src/components/offering/OfferingSheet';
 import {PremiumProvider} from '../src/context/PremiumContext';
+import {
+  OfferingSheetProvider,
+  useOfferingSheet,
+} from '../src/context/OfferingSheetContext';
 import {ENTITLEMENT_CACHE_KEY} from '../src/lib/offering/entitlementCache';
 import {
   ENTITLEMENT_ID,
@@ -635,5 +639,389 @@ describe('R9-584 — «ya comprado» y la tienda trae la compra sin entitlement'
     expect(mockToast.error).not.toHaveBeenCalled();
     expect(mockToast.success).not.toHaveBeenCalled();
     expect(queryByText('$0.99')).toBeNull();
+  });
+});
+
+describe('R9-418 — la hoja no se sale de la pantalla por arriba', () => {
+  const {ScrollView} = require('react-native');
+  const es = require('../src/i18n/translations').translations.es;
+  type Node = {type: unknown; parent: Node | null; props: {style?: unknown}};
+  // Un nodo esta dentro del ScrollView si alguno de sus ancestros lo es.
+  const insideScroll = (node: Node): boolean => {
+    for (let cur = node.parent; cur; cur = cur.parent) {
+      if (cur.type === ScrollView) return true;
+    }
+    return false;
+  };
+  // El tope de alto de la hoja (un ancestro del ScrollView).
+  const sheetMaxHeight = (scroll: Node): unknown => {
+    for (let cur = scroll.parent; cur; cur = cur.parent) {
+      const flat = StyleSheet.flatten(cur.props.style) as
+        {maxHeight?: unknown} | undefined;
+      if (flat?.maxHeight !== undefined) return flat.maxHeight;
+    }
+    return undefined;
+  };
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+  });
+
+  it('los montos: titulo, intro y extras se desplazan; montos, leyendas y «Restaurar» quedan fuera, en una hoja con tope', async () => {
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+    const view = renderSheet();
+    const title = await view.findByText('Una ofrenda voluntaria');
+
+    expect(insideScroll(title)).toBe(true);
+    expect(insideScroll(view.getByText(es.offering.sheetIntro))).toBe(true);
+    expect(insideScroll(view.getByText('Mesa de preparación'))).toBe(true);
+    // Lo que toca el dinero queda a la vista, fuera del desplazamiento.
+    expect(insideScroll(view.getByText('$0.99'))).toBe(false);
+    expect(insideScroll(view.getByText(es.offering.legend))).toBe(false);
+    expect(insideScroll(view.getByText(es.offering.transparency))).toBe(false);
+    expect(insideScroll(view.getByText(es.offering.restoreLink))).toBe(false);
+    expect(sheetMaxHeight(view.UNSAFE_getByType(ScrollView))).toBeDefined();
+  });
+
+  it('«Extras desbloqueados»: los extras se desplazan y «Cerrar» queda fuera', async () => {
+    mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    const view = renderSheet();
+
+    expect(insideScroll(await view.findByText('Extras desbloqueados'))).toBe(
+      true,
+    );
+    expect(insideScroll(view.getByText('Diccionario bíblico'))).toBe(true);
+    expect(insideScroll(view.getByText('Cerrar'))).toBe(false);
+    expect(sheetMaxHeight(view.UNSAFE_getByType(ScrollView))).toBeDefined();
+  });
+});
+
+describe('R9-576 — dos toques en el mismo cuadro, una sola llamada a la tienda', () => {
+  const es = require('../src/i18n/translations').translations.es;
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+  });
+
+  // Lets the store calls behind each press start (they sit behind awaits).
+  async function flush() {
+    for (let i = 0; i < 12; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  }
+
+  function deferred() {
+    let resolve!: (v: unknown) => void;
+    let reject!: (e: unknown) => void;
+    const promise = new Promise((res, rej) => {
+      resolve = res;
+      reject = rej;
+    });
+    return {promise, resolve, reject};
+  }
+
+  it('dos toques al mismo monto antes del re-render: una compra, y el aviso del pendiente no queda pisado', async () => {
+    const first = deferred();
+    mockPurchases.purchasePackage.mockImplementationOnce(() => first.promise);
+    mockPurchases.purchasePackage.mockImplementationOnce(() =>
+      Promise.reject({code: '15'}),
+    );
+    const view = renderSheet();
+    const tier = await view.findByLabelText('$0.99');
+    act(() => {
+      fireEvent.press(tier);
+      fireEvent.press(tier);
+    });
+
+    await flush();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+    await act(async () => {
+      first.reject({code: '20'});
+    });
+    expect(await view.findByText(es.offering.pendingTitle)).toBeTruthy();
+    expect(mockToast.error).not.toHaveBeenCalled();
+    expect(view.queryByText('$0.99')).toBeNull();
+  });
+
+  it('un monto y «Restaurar» en el mismo cuadro: una sola llamada a la tienda', async () => {
+    const first = deferred();
+    mockPurchases.purchasePackage.mockImplementationOnce(() => first.promise);
+    const view = renderSheet();
+    const tier = await view.findByLabelText('$0.99');
+    const restore = view.getByLabelText(es.offering.restoreLink);
+    act(() => {
+      fireEvent.press(tier);
+      fireEvent.press(restore);
+    });
+
+    await flush();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+    expect(mockPurchases.restorePurchases).not.toHaveBeenCalled();
+    await act(async () => {
+      first.reject({userCancelled: true});
+    });
+  });
+
+  it('CONTROL: terminada una compra (cancelada), el monto se puede volver a tocar', async () => {
+    mockPurchases.purchasePackage.mockRejectedValueOnce({userCancelled: true});
+    mockPurchases.purchasePackage.mockRejectedValueOnce({userCancelled: true});
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1),
+    );
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(2),
+    );
+  });
+});
+
+describe('R9-577 — la entitlement que llega con la hoja abierta', () => {
+  const es = require('../src/i18n/translations').translations.es;
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+  });
+
+  it('con el aviso del pago pendiente a la vista: al confirmarse, «Extras desbloqueados» sin cerrar la hoja', async () => {
+    mockPurchases.purchasePackage.mockRejectedValueOnce({code: '20'});
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    expect(await view.findByText(es.offering.pendingTitle)).toBeTruthy();
+
+    // La tienda confirma el pago: el SDK avisa por su listener.
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    expect(await view.findByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByText(es.offering.pendingTitle)).toBeNull();
+  });
+
+  it('con «cobrado sin activar» a la vista: al activarse, deja de decir que no se activaron', async () => {
+    mockPurchases.purchasePackage.mockResolvedValueOnce({
+      customerInfo: noEntitlementInfo,
+    });
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    expect(await view.findByText(es.offering.notActivatedTitle)).toBeTruthy();
+
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    expect(await view.findByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByText(es.offering.notActivatedTitle)).toBeNull();
+  });
+
+  it('con los montos a la vista: al llegar la entitlement, los montos se van (no hay una segunda compra que tocar)', async () => {
+    const view = renderSheet();
+    expect(await view.findByLabelText('$0.99')).toBeTruthy();
+
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    expect(await view.findByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(mockPurchases.purchasePackage).not.toHaveBeenCalled();
+  });
+
+  it('CONTROL: una compra que sale bien sigue en «Gracias», no salta a «Extras desbloqueados»', async () => {
+    mockPurchases.purchasePackage.mockResolvedValueOnce({
+      customerInfo: activeEntitlementInfo,
+    });
+    const view = renderSheet();
+    fireEvent.press(await view.findByLabelText('$0.99'));
+
+    expect(
+      await view.findByText('Gracias por sembrar en esta obra'),
+    ).toBeTruthy();
+    expect(view.queryByText('Extras desbloqueados')).toBeNull();
+  });
+});
+
+describe('R9-576 — cerrar y reabrir la hoja con la tienda sin responder', () => {
+  const es = require('../src/i18n/translations').translations.es;
+
+  beforeEach(async () => {
+    __resetForTests();
+    mockPurchases.__reset();
+    mockToast.success.mockClear();
+    mockToast.error.mockClear();
+    mockToast.info.mockClear();
+    await SecureStore.deleteItemAsync(ENTITLEMENT_CACHE_KEY);
+    __setApiKeyForTests('test-key');
+    await initialize();
+    mockPurchases.__setOfferings({
+      all: {default: {availablePackages: fakePackages}},
+    });
+  });
+
+  async function flush() {
+    for (let i = 0; i < 12; i++) {
+      await act(async () => {
+        await new Promise(r => setImmediate(r));
+      });
+    }
+  }
+
+  function OpenButton() {
+    const {open} = useOfferingSheet();
+    return (
+      <Pressable onPress={open}>
+        <Text>abrir la hoja</Text>
+      </Pressable>
+    );
+  }
+
+  // La hoja real, montada por su provider real (que la deja montada cerrada).
+  function renderWithProvider() {
+    return render(
+      <PremiumProvider>
+        <OfferingSheetProvider>
+          <OpenButton />
+        </OfferingSheetProvider>
+      </PremiumProvider>,
+    );
+  }
+
+  async function closeAndReopen(view: ReturnType<typeof renderWithProvider>) {
+    act(() => {
+      view.UNSAFE_getByType(Modal).props.onRequestClose();
+    });
+    await flush();
+    expect(view.UNSAFE_getByType(Modal).props.visible).toBe(false);
+    fireEvent.press(view.getByText('abrir la hoja'));
+    await flush();
+  }
+
+  it('una compra que no vuelve: al reabrir, «Procesando…», no montos que no hacen nada', async () => {
+    mockPurchases.purchasePackage.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+
+    await closeAndReopen(view);
+
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(view.queryByLabelText('$2.99')).toBeNull();
+    expect(view.getByText(es.offering.purchasing)).toBeTruthy();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('una compra que no vuelve pero la entitlement llega: al reabrir, «Extras desbloqueados»', async () => {
+    mockPurchases.purchasePackage.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+    // La tienda confirma por su listener; la promesa de la compra sigue sin volver.
+    await act(async () => {
+      mockPurchases.__setCustomerInfo(activeEntitlementInfo);
+    });
+
+    await closeAndReopen(view);
+
+    expect(view.getByText('Extras desbloqueados')).toBeTruthy();
+    expect(view.queryByText(es.offering.purchasing)).toBeNull();
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('una restauración que no vuelve: al reabrir, «Restaurando…»', async () => {
+    mockPurchases.restorePurchases.mockImplementation(
+      () => new Promise(() => {}),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    await view.findByLabelText('$0.99');
+    fireEvent.press(view.getByLabelText(es.offering.restoreLink));
+    await flush();
+
+    await closeAndReopen(view);
+
+    expect(view.queryByLabelText('$0.99')).toBeNull();
+    expect(view.getByText(es.offering.restoring)).toBeTruthy();
+    expect(mockPurchases.restorePurchases).toHaveBeenCalledTimes(1);
+  });
+
+  it('la compra sigue viva al reabrir: su resultado llega a la hoja, y no hubo una segunda', async () => {
+    let resolveFirst!: (v: unknown) => void;
+    mockPurchases.purchasePackage.mockImplementationOnce(
+      () => new Promise(res => (resolveFirst = res)),
+    );
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+
+    await closeAndReopen(view);
+    await act(async () => {
+      resolveFirst({customerInfo: activeEntitlementInfo});
+    });
+
+    expect(
+      await view.findByText('Gracias por sembrar en esta obra'),
+    ).toBeTruthy();
+    expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(1);
+  });
+
+  it('CONTROL: cancelada después de reabrir, los montos vuelven y comprar funciona', async () => {
+    let rejectFirst!: (e: unknown) => void;
+    mockPurchases.purchasePackage.mockImplementationOnce(
+      () => new Promise((_res, rej) => (rejectFirst = rej)),
+    );
+    mockPurchases.purchasePackage.mockRejectedValueOnce({userCancelled: true});
+    const view = renderWithProvider();
+    fireEvent.press(view.getByText('abrir la hoja'));
+    fireEvent.press(await view.findByLabelText('$0.99'));
+    await flush();
+
+    await closeAndReopen(view);
+    await act(async () => {
+      rejectFirst({userCancelled: true});
+    });
+
+    fireEvent.press(await view.findByLabelText('$2.99'));
+    await waitFor(() =>
+      expect(mockPurchases.purchasePackage).toHaveBeenCalledTimes(2),
+    );
   });
 });
