@@ -223,6 +223,35 @@ export default function JourneyRouteScreen() {
     router.push(`/features/prophecies?start=${found.index}` as never);
   };
 
+  // R9-486 (familia de R9-430) — the version the cached previews belong to.
+  const previewVersionRef = useRef(selectedVersion.id);
+
+  const loadPreview = (stop: JourneyStop) => {
+    const info = localizedRef(stop.ref);
+    if (!info) {
+      setPreviewText(prev => ({...prev, [stop.id]: null}));
+      return;
+    }
+    const versionId = selectedVersion.id;
+    // An answer for a version that is no longer the reading one is dropped:
+    // it would paint the old text under the new chip (and clear the new
+    // fetch's spinner).
+    const isStale = () => previewVersionRef.current !== versionId;
+    setPreviewLoading(stop.id);
+    void (async () => {
+      try {
+        await bibleDB.initialize();
+        const row = await bibleDB
+          .getVerse(info.bookId, info.chapter, info.verse, versionId)
+          .catch(() => null);
+        if (isStale()) return;
+        setPreviewText(prev => ({...prev, [stop.id]: row?.text ?? null}));
+      } finally {
+        if (!isStale()) setPreviewLoading(null);
+      }
+    })();
+  };
+
   const toggleExpand = (stop: JourneyStop) => {
     haptics.tap();
     markVisited(stop.id);
@@ -232,24 +261,24 @@ export default function JourneyRouteScreen() {
     }
     setExpandedId(stop.id);
     if (previewText[stop.id] !== undefined) return;
-    const info = localizedRef(stop.ref);
-    if (!info) {
-      setPreviewText(prev => ({...prev, [stop.id]: null}));
-      return;
-    }
-    setPreviewLoading(stop.id);
-    void (async () => {
-      try {
-        await bibleDB.initialize();
-        const row = await bibleDB
-          .getVerse(info.bookId, info.chapter, info.verse, selectedVersion.id)
-          .catch(() => null);
-        setPreviewText(prev => ({...prev, [stop.id]: row?.text ?? null}));
-      } finally {
-        setPreviewLoading(null);
-      }
-    })();
+    loadPreview(stop);
   };
+
+  // R9-486 — the previews were cached per stop, not per version: with the
+  // version changed in the reader (the stop's chip opens it, this screen
+  // stays mounted), the open card kept the old text under the new chip, and
+  // closing and reopening it did not fetch again. Drop the cache and fetch
+  // the open card again, in the new version. Silent: no tap, so no
+  // `markVisited` (nor its achievement) and the card stays open.
+  useEffect(() => {
+    if (previewVersionRef.current === selectedVersion.id) return;
+    previewVersionRef.current = selectedVersion.id;
+    setPreviewText({});
+    setPreviewLoading(null);
+    const open = expandedId ? stops.find(s => s.id === expandedId) : undefined;
+    if (open) loadPreview(open);
+    // Only the version triggers this; the open card is read as it is now.
+  }, [selectedVersion.id]);
 
   // "Recorrido narrado" — reads each stop's label + note aloud in sequence,
   // from the first stop to the last, until stopped, via the shared narration
