@@ -40,7 +40,7 @@ import {BibleVerse, ReadingProgress} from '@/types/bible';
 import {READING_PLANS, getLocalizedPlan} from '@/constants/reading-plans';
 import {effectivePlanDays} from '@/lib/reading/planReflow';
 import {getDailyVerseRef} from '@/constants/daily-verses';
-import {getBookByName} from '@/constants/bible';
+import {getBookByName, canonicalBookName} from '@/constants/bible';
 import {orderAlsoVersions} from '@/lib/home/alsoInVersions';
 import {
   shiftDaysBack,
@@ -212,7 +212,10 @@ export default function HomeScreen() {
     useReadingPlanProgress();
   const {getMembership} = useTogether();
   const {customPlans} = useCustomPlans();
-  const {addFavorite, isFavorite, favorites} = useFavorites();
+  const {addFavorite, removeFavorite, isFavorite, favorites} = useFavorites();
+  // R9-437 — one heart tap at a time: the add/remove reads `favorites`, which
+  // only updates once the database write lands.
+  const favoriteBusyRef = useRef(false);
   const {stats: memoryStats} = useMemoryDeck();
   const {isPremium} = usePremium();
   const toast = useToast();
@@ -998,18 +1001,33 @@ export default function HomeScreen() {
                         );
                       }
                     }}
+                    // R9-437 — the heart shows whether the verse is in
+                    // Favorites, and a tap toggles it (it used to only add).
+                    isFavorite={isFavorite(
+                      dailyVerse.book,
+                      dailyVerse.chapter,
+                      dailyVerse.verse,
+                    )}
                     onFavorite={async () => {
-                      if (dailyVerse) {
-                        const alreadyFavorite = isFavorite(
-                          dailyVerse.book,
-                          dailyVerse.chapter,
-                          dailyVerse.verse,
+                      if (!dailyVerse || favoriteBusyRef.current) return;
+                      favoriteBusyRef.current = true;
+                      try {
+                        const book = canonicalBookName(dailyVerse.book);
+                        const existing = favorites.find(
+                          f =>
+                            canonicalBookName(f.book) === book &&
+                            f.chapter === dailyVerse.chapter &&
+                            f.verse === dailyVerse.verse,
                         );
-
-                        if (!alreadyFavorite) {
+                        if (existing) {
+                          await removeFavorite(existing.id);
+                          haptics.tap();
+                        } else {
                           await addFavorite(dailyVerse, 'worship', 5);
                           haptics.success();
                         }
+                      } finally {
+                        favoriteBusyRef.current = false;
                       }
                     }}
                     christNote={christNote}
